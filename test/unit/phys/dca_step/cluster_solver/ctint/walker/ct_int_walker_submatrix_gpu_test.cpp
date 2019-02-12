@@ -44,14 +44,16 @@ TEST_F(G0Setup, doSteps) {
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   G0Setup::RngType rng(setup_rngs);
 
-  ctint::G0Interpolation<GPU> g0(dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
+  const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t);
+  ctint::G0Interpolation<CPU> g0_cpu(g0_func);
+  ctint::G0Interpolation<GPU> g0_gpu(g0_func);
   G0Setup::LabelDomain label_dmn;
 
   // TODO: improve API.
-  SubmatrixWalker<CPU>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+  SubmatrixWalker<CPU>::setDMatrixBuilder(g0_cpu, RDmn::parameter_type::get_subtract_matrix(),
                                           label_dmn.get_branch_domain_steps(),
                                           parameters_.getAlphas());
-  SubmatrixWalker<GPU>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+  SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu, RDmn::parameter_type::get_subtract_matrix(),
                                           label_dmn.get_branch_domain_steps(),
                                           parameters_.getAlphas());
   SubmatrixWalker<CPU>::setInteractionVertices(parameters_, *data_);
@@ -84,9 +86,9 @@ TEST_F(G0Setup, doSteps) {
 
     for (int steps = 1; steps <= 8; ++steps) {
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<CPU> walker_cpu(parameters_, data_, rng);
+      SubmatrixWalker<CPU> walker_cpu(parameters_, rng);
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<GPU> walker_gpu(parameters_, data_, rng);
+      SubmatrixWalker<GPU> walker_gpu(parameters_, rng);
 
       rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);

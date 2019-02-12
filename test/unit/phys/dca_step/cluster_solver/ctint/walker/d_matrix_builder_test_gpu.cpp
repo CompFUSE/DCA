@@ -31,8 +31,11 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
                                                   label_dmn.get_branch_domain_steps(),
                                                   parameters_.getAlphas());
   ctint::DMatrixBuilder<dca::linalg::CPU> builder_cpu(
-      g0.get_host_interpolation(), RDmn::parameter_type::get_subtract_matrix(),
-      label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+      g0, RDmn::parameter_type::get_subtract_matrix(), label_dmn.get_branch_domain_steps(),
+      parameters_.getAlphas());
+
+  ctint::InteractionVertices interaction_vertices;
+  interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
 
   HostMatrix G0;
   DeviceMatrix G0_dev;
@@ -47,7 +50,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
 
     // Setup the configuration.
     ctint::SolverConfiguration configuration(parameters_.get_beta(), BDmn::dmn_size(),
-                                             G0Setup::interaction_vertices_);
+                                             interaction_vertices);
     ctint::DeviceConfigurationManager device_config;
     for (int i = 0; i < size; i++)
       configuration.insertRandom(rng);

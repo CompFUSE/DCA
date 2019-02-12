@@ -13,6 +13,7 @@
 #define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
@@ -28,15 +29,11 @@ using namespace dca::phys::solver::ctint;
 template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
 struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
   using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
-  using RootClass = CtintWalkerBase<Parameters, device_t>;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
 
-  WalkerWrapperSubmatrix(const Parameters& parameters_ref, const Data& data, Rng& rng_ref,
-                         const InteractionVertices& vertices)
-      : BaseClass(parameters_ref, rng_ref, 0) {
-    BaseClass::setInteractionVertices(data);
-  }
+  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {}
 
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);

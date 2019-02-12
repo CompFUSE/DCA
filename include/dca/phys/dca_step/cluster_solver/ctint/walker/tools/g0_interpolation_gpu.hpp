@@ -14,6 +14,8 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
 #ifdef DCA_HAVE_CUDA
 
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
@@ -30,12 +32,14 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <>
-class G0Interpolation<linalg::GPU> : public details::DeviceInterpolationData {
+class G0Interpolation<linalg::GPU> final : public details::DeviceInterpolationData,
+                                           public G0Interpolation<linalg::CPU> {
 private:
   using PDmn = G0ParametersDomain;
   using PDmn0 = func::dmn_0<G0ParametersDomain>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using BaseClass = details::DeviceInterpolationData;
+  using DeviceInterpolation = details::DeviceInterpolationData;
+  using HostInterpolation = G0Interpolation<linalg::CPU>;
 
 public:
   G0Interpolation() = default;
@@ -61,39 +65,34 @@ public:
     return time_slices_ * COEFF_SIZE;
   }
 
-  const auto& get_host_interpolation() const {
-    return g0_cpu_;
-  }
-
-  constexpr static int COEFF_SIZE = G0Interpolation<linalg::CPU>::COEFF_SIZE;
+  using HostInterpolation::COEFF_SIZE;
 
 private:
-  using CoeffDmn = func::dmn_0<func::dmn<COEFF_SIZE>>;
-  using PTime0 = func::dmn_0<PositiveTimeDomain>;
-  using InterpolationDmn = func::dmn_variadic<CoeffDmn, PTime0, PDmn0>;
+  using HostInterpolation::CoeffDmn;
+  using HostInterpolation::PTime0;
+  using HostInterpolation::InterpolationDmn;
 
   linalg::Vector<double, linalg::GPU> G0_coeff_;
-  linalg::Vector<double, linalg::GPU> g0_minus_;
+  linalg::Vector<double, linalg::GPU> g0_minus_dev_;
   int time_slices_ = -1;
-
-  G0Interpolation<linalg::CPU> g0_cpu_;
 };
 
 template <class InputDmn>
 void G0Interpolation<linalg::GPU>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
-  g0_cpu_.initialize(G0_pars_t);
-  assert(g0_cpu_.beta_);
-  time_slices_ = g0_cpu_.getTimeSlices();
-  BaseClass::beta_ = g0_cpu_.beta_;
-  BaseClass::n_div_beta_ = g0_cpu_.n_div_beta_;
+  HostInterpolation::initialize(G0_pars_t);
+  assert(HostInterpolation::beta_);
 
-  g0_minus_.set(g0_cpu_.g0_zero_minus, 0, 0);
-  G0_coeff_.resizeNoCopy(g0_cpu_.G0_coeff_.size());
-  cudaMemcpy(G0_coeff_.ptr(), g0_cpu_.G0_coeff_.values(),
+  time_slices_ = getTimeSlices();
+  DeviceInterpolation::beta_ = HostInterpolation::beta_;
+  DeviceInterpolation::n_div_beta_ = HostInterpolation::n_div_beta_;
+
+  g0_minus_dev_.set(HostInterpolation::g0_minus_, 0, 0);
+  G0_coeff_.resizeNoCopy(HostInterpolation::G0_coeff_.size());
+  cudaMemcpy(G0_coeff_.ptr(), HostInterpolation::G0_coeff_.values(),
              G0_coeff_.size() * sizeof(decltype(G0_coeff_.ptr())), cudaMemcpyHostToDevice);
   // Copy pointer to the data structure.
-  BaseClass::values_ = G0_coeff_.ptr();
-  BaseClass::g0_minus_ = g0_minus_.ptr();
+  DeviceInterpolation::values_ = G0_coeff_.ptr();
+  DeviceInterpolation::g0_minus_ = g0_minus_dev_.ptr();
 
   GlobalMemoryManager::initializeInterpolation(getStride());
   cudaDeviceSynchronize();

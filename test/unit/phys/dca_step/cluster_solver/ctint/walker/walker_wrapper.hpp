@@ -13,6 +13,7 @@
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 
 namespace testing {
 namespace phys {
@@ -27,7 +28,7 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   using Rng = typename BaseClass::Rng;
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, rng_ref, 0) {}
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {}
 
   using BaseClass::doStep;
   using BaseClass::tryVertexInsert;
@@ -52,7 +53,6 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   const auto& getWalkerConfiguration() const {
     return BaseClass::configuration_;
   }
-
 };
 
 }  // ctint

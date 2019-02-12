@@ -38,12 +38,14 @@ class CtintWalkerSubmatrix<linalg::GPU, Parameters>
 public:
   using this_type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
   using BaseClass = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
+  using RootClass = CtintWalkerBase<Parameters>;
 
+  using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
 
-  CtintWalkerSubmatrix(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                       const DMatrixBuilder<linalg::GPU>& builder_ref, int id = 0);
+  CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
+                       int id = 0);
 
 public:
   void doSweep() override;
@@ -80,7 +82,7 @@ private:
   using BaseClass::removal_list_;
   using BaseClass::conf_removal_list_;
 
-  const DMatrixBuilder<linalg::GPU>& d_builder_;
+  using RootClass::d_builder_ptr_;
 
   using BaseClass::parameters_;
   using BaseClass::rng_;
@@ -124,10 +126,10 @@ private:
 };
 
 template <class Parameters>
-CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
-    const Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-    const DMatrixBuilder<linalg::GPU>& builder_ref, int id)
-    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id), d_builder_(builder_ref) {
+CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(const Parameters& pars_ref,
+                                                                    const Data& data, Rng& rng_ref,
+                                                                    int id)
+    : BaseClass(pars_ref, data, rng_ref, id) {
   for (int s = 0; s < 2; ++s) {
     stream_[s] = linalg::util::getStream(thread_id_, s);
     M_dev_[s].setAsync(M_[s], stream_[s]);
@@ -229,7 +231,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
     const int delta = n_max_[s] - n_init_[s];
     if (delta > 0) {
       D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
-      d_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false, stream_[s]);
+      d_builder_ptr_->computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false, stream_[s]);
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
       details::multiplyByFFactor(D_view, f_dev_[s].ptr(), false, false, stream_[s]);
@@ -261,7 +263,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
 
     if (delta > 0) {
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
-      d_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true, stream_[s]);
+      d_builder_ptr_->computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true, stream_[s]);
 
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.

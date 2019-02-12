@@ -96,11 +96,11 @@ private:
   using Sdmn = func::dmn_0<domains::electron_spin_domain>;
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using Kdmn = typename CDA::KClusterDmn;
-  using Rdmn = typename CDA::RClusterDmn;
+  using RDmn = typename CDA::RClusterDmn;
   using Nu = func::dmn_variadic<Bdmn, Sdmn>;
   using Tdmn = func::dmn_0<domains::time_domain>;
   using Wdmn = func::dmn_0<domains::frequency_domain>;
-  using LabelDomain = func::dmn_variadic<Bdmn, Bdmn, Rdmn>;
+  using LabelDomain = func::dmn_variadic<Bdmn, Bdmn, RDmn>;
 
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, Kdmn, Wdmn>>;
@@ -153,7 +153,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
       accumulator_(parameters_, data_),
 
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
-  Walker::setDMatrixBuilder(g0_, Rdmn::parameter_type::get_subtract_matrix(),
+  Walker::setDMatrixBuilder(g0_, RDmn::parameter_type::get_subtract_matrix(),
                             label_dmn_.get_branch_domain_steps(), parameters_.getAlphas());
 
   Walker::setInteractionVertices(parameters_, data_);
@@ -229,7 +229,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   symmetrize::execute(data_.G_k_w);
 
   // transform  G_k_w and save into data_.
-  math::transform::FunctionTransform<Kdmn, Rdmn>::execute(data_.G_k_w, data_.G_r_w);
+  math::transform::FunctionTransform<Kdmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
   symmetrize::execute(data_.G_r_w);
 
   // compute and  save Sigma into data_
@@ -250,7 +250,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   G_k_w_copy -= data_.G0_k_w_cluster_excluded;
   math::transform::FunctionTransform<Wdmn, Tdmn>::execute(G_k_w_copy, data_.G_k_t);
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
-  math::transform::FunctionTransform<Kdmn, Rdmn>::execute(data_.G_k_t, data_.G_r_t);
+  math::transform::FunctionTransform<Kdmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
 
   if (concurrency_.id() == 0)
     std::cout << "\n\tDensity = " << computeDensity() << "\n";
@@ -417,7 +417,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity()
   double result(0.);
   const int t0_minus = Tdmn::dmn_size() / 2 - 1;
   for (int i = 0; i < Nu::dmn_size(); i++)
-    result += data_.G_r_t(i, i, Rdmn::parameter_type::origin_index(), t0_minus);
+    result += data_.G_r_t(i, i, RDmn::parameter_type::origin_index(), t0_minus);
 
   return result;
 }
@@ -426,7 +426,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
                                                                            bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
-  math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
+  math::transform::FunctionTransform<RDmn, Kdmn>::execute(M_r, M);
 
   double sign = accumulator_.get_accumulated_sign();
 
@@ -458,7 +458,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   SpGreensFunction M;
-  math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
+  math::transform::FunctionTransform<RDmn, Kdmn>::execute(M_r, M);
 
   const double sign = accumulator_.get_accumulated_sign();
 

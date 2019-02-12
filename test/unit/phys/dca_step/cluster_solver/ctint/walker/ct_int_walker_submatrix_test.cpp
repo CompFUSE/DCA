@@ -42,9 +42,9 @@ TEST_F(G0Setup, doSteps) {
   ctint::G0Interpolation<dca::linalg::CPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  ctint::DMatrixBuilder<dca::linalg::CPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                                  label_dmn.get_branch_domain_steps(),
-                                                  parameters_.getAlphas());
+  Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+  Walker::setInteractionVertices(parameters_, *data_);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -82,7 +82,7 @@ TEST_F(G0Setup, doSteps) {
 
   for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
-    SubmatrixWalker walker(parameters_, rng, G0Setup::interaction_vertices_, builder);
+    SubmatrixWalker walker(parameters_, rng);
 
     MatrixPair old_M(walker.getM());
     rng.setNewValues(rng_vals);
@@ -99,7 +99,7 @@ TEST_F(G0Setup, doSteps) {
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
-    Walker walker_nosub(parameters_, rng, G0Setup::interaction_vertices_, builder);
+    Walker walker_nosub(parameters_, rng);
 
     rng.setNewValues(rng_nosub_vals);
     for (int i = 0; i < steps; ++i)

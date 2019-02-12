@@ -99,9 +99,8 @@ int main(int argc, char** argv) {
     interaction_vertices.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
 
   BBRDmn bbr_dmn;
-  dca::phys::solver::ctint::DMatrixBuilder<device> builder(
-      g0, RDmn::parameter_type::get_subtract_matrix(), bbr_dmn.get_branch_domain_steps(),
-      parameters.getAlphas());
+  Walker<device>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+                                    bbr_dmn.get_branch_domain_steps(), parameters.getAlphas());
 
   auto printTime = [](const std::string& str, const auto& start, const auto& end) {
     dca::profiling::Duration time(end, start);
@@ -128,7 +127,7 @@ int main(int argc, char** argv) {
 
     // Do one integration step.
     RngType rng(0, 1, 0);
-    Walker<dca::linalg::CPU> walker(parameters, rng, interaction_vertices, builder, 0);
+    Walker<dca::linalg::CPU> walker(parameters, data, rng);
     walker.initialize();
 
     // Timed section.
@@ -152,7 +151,7 @@ int main(int argc, char** argv) {
 
     RngType::resetCounter();
     RngType rng(0, 1, 0);
-    Walker<dca::linalg::GPU> walker_gpu(parameters, rng, interaction_vertices, builder, 0);
+    Walker<dca::linalg::GPU> walker_gpu(parameters, data, rng, 0);
     walker_gpu.initialize();
 
     // Timed section.

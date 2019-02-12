@@ -39,10 +39,13 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   ctint::G0Interpolation<dca::linalg::CPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  ctint::DMatrixBuilder<dca::linalg::CPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                                  label_dmn.get_branch_domain_steps(),
-                                                  parameters_.getAlphas());
-  Walker walker(parameters_, rng, G0Setup::interaction_vertices_, builder);
+
+  Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+
+  Walker::setInteractionVertices(parameters_, *data_);
+
+  Walker walker(parameters_, rng);
 
   // *******************************
   // Test vertex removal ***********

@@ -29,7 +29,7 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <>
-class DMatrixBuilder<linalg::GPU> : public DMatrixBuilder<linalg::CPU> {
+class DMatrixBuilder<linalg::GPU> final : public DMatrixBuilder<linalg::CPU> {
 private:
   using Matrix = linalg::Matrix<double, linalg::GPU>;
   using MatrixPair = std::array<linalg::Matrix<double, linalg::GPU>, 2>;
@@ -45,7 +45,7 @@ public:
   }
 
   void computeG0(Matrix& G0, const details::DeviceConfiguration& configuration, int n_init,
-                 bool right_section, cudaStream_t stream) const;
+                 bool right_section, cudaStream_t stream) const override;
 
 private:
   const G0Interpolation<linalg::GPU>& g0_ref_;

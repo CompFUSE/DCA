@@ -23,6 +23,11 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include <cuda.h>
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
+#endif  // DCA_HAVE_CUDA
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -46,8 +51,9 @@ public:
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
                  const std::vector<int>& sbdm_step, const std::array<double, 3>& alphas);
 
-  void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
-                const SolverConfiguration& config) const;
+  virtual ~DMatrixBuilder() {}
+
+  void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
   const G0Interpolation<linalg::CPU>& getG0() const {
     return g0_ref_;
@@ -66,6 +72,14 @@ public:
   void computeG0Init(Matrix& G0, const Sector& configuration, const int n_init, const int n_max) const;
   void computeG0(linalg::Matrix<double, linalg::CPU>& G0, const Sector& configuration,
                  const int n_init, const int n_max, const int which_section) const;
+
+#ifdef DCA_HAVE_CUDA
+  virtual void computeG0(linalg::Matrix<double, linalg::GPU>& /*G0*/,
+                         const details::DeviceConfiguration& /*configuration*/, int /*n_init*/,
+                         bool /*right_section*/, cudaStream_t /*stream*/) const {
+    throw(std::runtime_error("Not implemented."));
+  }
+#endif  // DCA_HAVE_CUDA
 
 private:
   int label(const int nu1, const int nu2, const int r) const;

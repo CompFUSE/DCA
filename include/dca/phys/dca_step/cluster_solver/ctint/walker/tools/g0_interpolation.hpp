@@ -49,6 +49,9 @@ public:
   // See this->initialize(G0_pars_t).
   template <class InputDmn>
   G0Interpolation(const func::function<double, InputDmn>& G0_pars_t);
+
+  virtual ~G0Interpolation(){}
+
   // In: G0_pars_t. Assumed to be a function of discrete labels and time (in this order) and to
   //             be antiperiodic in time.
   template <class InputDmn>
@@ -72,7 +75,7 @@ public:
   static constexpr int COEFF_SIZE = 4;
 
 private:
-  void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t);
+  virtual void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t);
 
 private:
   using CoeffDmn = func::dmn_0<func::dmn<COEFF_SIZE>>;
@@ -82,7 +85,7 @@ private:
   func::function<double, InterpolationDmn> G0_coeff_;
   double beta_ = 0;
   // value at tau = 0
-  std::vector<double> g0_zero_minus;
+  std::vector<double> g0_minus_;
   // Spacing between time bins.
   double n_div_beta_;
 };

@@ -23,7 +23,7 @@ void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>
   const int t_pos_size = PositiveTimeDomain::get_size();
   dca::math::interpolation::akima_interpolation<double> akima_obj(t_pos_size);
   G0_coeff_.reset();
-  g0_zero_minus.resize(Pdmn::get_size());
+  g0_minus_.resize(Pdmn::get_size());
 
   std::vector<double> y(t_pos_size), x(t_pos_size);
   // The abscissa is scaled to integer steps
@@ -33,7 +33,7 @@ void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>
   // Loop over each cluster-orbital label.
   for (int p = 0; p < Pdmn::get_size(); p++) {
     // set G0(0-)
-    g0_zero_minus[p] = G0_pars_t(p, t_pos_size - 1);
+    g0_minus_[p] = G0_pars_t(p, t_pos_size - 1);
     // Compute interpolation coefficients:
     for (int t = 0; t < t_pos_size; t++)
       y[t] = G0_pars_t(p, t + t_pos_size);
@@ -51,7 +51,7 @@ void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>
 double G0Interpolation<linalg::CPU>::operator()(double tau, int lindex) const {
   assert(beta_ != 0);
   if (tau == 0)  // returns G0(tau = 0+)
-    return g0_zero_minus[lindex];
+    return g0_minus_[lindex];
 
   short int factor = 1;
   if (tau < 0) {

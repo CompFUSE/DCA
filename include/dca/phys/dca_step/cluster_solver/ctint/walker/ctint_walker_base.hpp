@@ -51,7 +51,7 @@ class CtintWalker;
 template <linalg::DeviceType device_type, class Parameters>
 class CtintWalkerSubmatrix;
 
-template <class Parameters, linalg::DeviceType device_type>
+template <class Parameters>
 class CtintWalkerBase {
 public:
   using parameters_type = Parameters;
@@ -125,6 +125,7 @@ public:
   void readConfig(const io::Buffer& /*buff*/) {}
 
   // Initialize the builder object shared by all walkers.
+  template <linalg::DeviceType device_type>
   static void setDMatrixBuilder(const G0Interpolation<device_type>& g0,
                                 const linalg::Matrix<int, linalg::CPU>& site_diff,
                                 const std::vector<int>& sbdm_step,
@@ -142,7 +143,7 @@ protected:  // Auxiliary methods.
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<const DMatrixBuilder<device_type>> d_builder_ptr_;
+  static std::unique_ptr<const DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -182,14 +183,13 @@ private:
   linalg::Vector<double, linalg::CPU> work_;
 };
 
-template <class Parameters, linalg::DeviceType device_type>
-InteractionVertices CtintWalkerBase<Parameters, device_type>::vertices_;
-template <class Parameters, linalg::DeviceType device_type>
-std::unique_ptr<const DMatrixBuilder<device_type>> CtintWalkerBase<Parameters, device_type>::d_builder_ptr_;
+template <class Parameters>
+InteractionVertices CtintWalkerBase<Parameters>::vertices_;
+template <class Parameters>
+std::unique_ptr<const DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
 
-template <class Parameters, linalg::DeviceType device_type>
-CtintWalkerBase<Parameters, device_type>::CtintWalkerBase(const Parameters& parameters_ref,
-                                                          Rng& rng_ref, int id)
+template <class Parameters>
+CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref, int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -210,8 +210,8 @@ CtintWalkerBase<Parameters, device_type>::CtintWalkerBase(const Parameters& para
   setMFromConfig();
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::setMFromConfig() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setMFromConfig() {
   // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
   sign_ = 1;
   for (int s = 0; s < 2; ++s) {
@@ -233,26 +233,26 @@ void CtintWalkerBase<Parameters, device_type>::setMFromConfig() {
   }
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-AccumulatorConfiguration CtintWalkerBase<Parameters, device_type>::getConfiguration() const {
+template <class Parameters>
+AccumulatorConfiguration CtintWalkerBase<Parameters>::getConfiguration() const {
   synchronize();
   return AccumulatorConfiguration{sign_, M_, configuration_};
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-AccumulatorConfiguration CtintWalkerBase<Parameters, device_type>::moveConfiguration() {
+template <class Parameters>
+AccumulatorConfiguration CtintWalkerBase<Parameters>::moveConfiguration() {
   return AccumulatorConfiguration{sign_, std::move(M_), std::move(configuration_)};
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::setConfiguration(AccumulatorConfiguration&& config) {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
   sign_ = config.sign;
   M_ = std::move(config.M);
   static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::updateSweepAverages() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::updateSweepAverages() {
   order_avg_.addSample(order());
   sign_avg_.addSample(sign_);
   // Track avg order for the final number of steps / sweep.
@@ -260,8 +260,8 @@ void CtintWalkerBase<Parameters, device_type>::updateSweepAverages() {
     partial_order_avg_.addSample(order());
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::markThermalized() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::markThermalized() {
   if (partial_order_avg_.mean() == 0)
     throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
@@ -275,8 +275,8 @@ void CtintWalkerBase<Parameters, device_type>::markThermalized() {
   n_steps_ = 0;
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::updateShell(int meas_id, int meas_to_do) const {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
       (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
@@ -288,8 +288,8 @@ void CtintWalkerBase<Parameters, device_type>::updateShell(int meas_id, int meas
   }
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::printSummary() const {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::printSummary() const {
   std::cout << "\n"
             << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
             << "-------------------------------------------\n";
@@ -305,8 +305,9 @@ void CtintWalkerBase<Parameters, device_type>::printSummary() const {
   std::cout << std::endl;
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::setDMatrixBuilder(
+template <class Parameters>
+template <linalg::DeviceType device_type>
+void CtintWalkerBase<Parameters>::setDMatrixBuilder(
     const dca::phys::solver::ctint::G0Interpolation<device_type>& g0,
     const dca::linalg::Matrix<int, linalg::CPU>& site_diff, const std::vector<int>& sbdm_step,
     const std::array<double, 3>& alphas) {
@@ -317,9 +318,8 @@ void CtintWalkerBase<Parameters, device_type>::setDMatrixBuilder(
       std::make_unique<const DMatrixBuilder<device_type>>(g0, site_diff, sbdm_step, alphas);
 }
 
-template <class Parameters, linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, device_type>::setInteractionVertices(const Parameters& parameters,
-                                                                      Data& data) {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& parameters, Data& data) {
   vertices_.initializeFromHamiltonian(data.H_interactions, parameters.doubleCountedInteraction());
   if (data.has_non_density_interactions())
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
