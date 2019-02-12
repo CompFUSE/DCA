@@ -13,6 +13,7 @@
 
 #include <array>
 #include <cassert>
+#include <complex>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -22,9 +23,7 @@
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
-#include "../../../../../../../include/dca/phys/four_point_type.hpp"
-#include "../../../../../../../../../../../usr/include/c++/8/complex"
-#include "../../../../../../../../../../../usr/local/cuda-9.1/include/driver_types.h"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
