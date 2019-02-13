@@ -62,6 +62,7 @@ void CMakeOptions::print() {
             << "DCA_WITH_REDUCED_VERTEX_FUNCTION = " << CMakeOptions::dca_with_reduced_vertex_function
             << "\n"
             << "DCA_WITH_SINGLE_PRECISION_MEASUREMENTS = " << dca_with_single_precision_measurements
+            << "\n"
             << "DCA_WITH_MEMORY_SAVINGS = " << CMakeOptions::dca_with_memory_savings << "\n"
             << "DCA_WITH_MANAGED_MEMORY = " << CMakeOptions::dca_with_memory_savings << "\n"
             << "\n"
