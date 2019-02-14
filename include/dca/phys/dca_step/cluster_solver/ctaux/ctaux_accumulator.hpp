@@ -248,7 +248,10 @@ CtauxAccumulator<device_t, Parameters, Data>::CtauxAccumulator(Parameters& param
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::initialize(int dca_iteration) {
-  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
+  // Note: profiling this function breaks the PAPI profiler as both the master thread and the first
+  // worker call this with the same thread_id.
+  // TODO: fix thread id assignment.
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
   MC_accumulator_data::initialize(dca_iteration);
 
@@ -278,7 +281,8 @@ void CtauxAccumulator<device_t, Parameters, Data>::initialize(int dca_iteration)
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::finalize() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
+  // Note: only one thread calls this function.
+  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__);
 
   single_particle_accumulator_obj.finalize();
 
