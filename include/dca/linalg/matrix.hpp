@@ -25,6 +25,7 @@
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
+#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
@@ -290,6 +291,7 @@ Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, 
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
   data_ = Allocator::allocate(nrElements(capacity_));
+  util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
 }
 
 template <typename ScalarType, DeviceType device_name>
