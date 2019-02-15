@@ -4,5 +4,5 @@ If the DCA++ code contributes to your research, we kindly ask to acknowledge thi
 
 Urs R. Hähner, Gonzalo Alvarez, Thomas A. Maier, Raffaele Solcà, Peter Staar, Michael S. Summers, and Thomas C. Schulthess,
 *DCA++: A software framework to solve correlated electron problems with modern quantum cluster methods,*
-Comput. Phys. Commun (2019),
+Comput. Phys. Commun. (2019),
 10.1016/j.cpc.2019.01.006.
