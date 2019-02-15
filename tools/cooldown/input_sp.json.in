@@ -1,93 +1,91 @@
 {
     "output": {
-        "directory": "./T=CURRENT_TEMP/",
-        "output-format": "HDF5",
-        "filename-dca": "dca_sp.hdf5",
-        "filename-profiling": "profiling_sp.json",
-        "directory-config-read" : "./T=PREVIOUS_TEMP/configuration",
-        "directory-config-write" : "./T=CURRENT_TEMP/configuration",
-        "dump-lattice-self-energy": false,
-        "dump-cluster-Greens-functions": false,
-        "dump-Gamma-lattice": false,
-        "dump-chi-0-lattice": false
+     "directory" : "./beta_BETA_CURRENT_TEMP/",
+     "output-format": "HDF5",
+     "filename-dca": "dca_sp.hdf5",
+     "filename-profiling": "profiling_sp.json",
+     "directory-config-read" : "./beta_BETA_PREVIOUS_TEMP/configuration",
+     "directory-config-write" : "./beta_BETA_CURRENT_TEMP/configuration",
+     "dump-lattice-self-energy": false,
+     "dump-cluster-Greens-functions": false,
+     "dump-Gamma-lattice": false,
+     "dump-chi-0-lattice": false
     },
 
     "physics": {
-        "beta": BETA,
-        "density": DENS,
+        "beta": BETA_CURRENT_TEMP,
+        "density": 1,
         "chemical-potential": 0.,
-        "adjust-chemical-potential": true
+        "adjust-chemical-potential": false
     },
 
     "single-band-Hubbard-model": {
         "t": 1.,
-        "U": HUBBARDU
+        "U": 4
     },
 
     "DCA": {
-        "initial-self-energy": "./T=PREVIOUS_TEMP/dca_sp.hdf5",
+        "initial-self-energy" : "./beta_BETA_PREVIOUS_TEMP/dca_sp.hdf5",
         "iterations": ITERS,
         "accuracy": 0.,
-        "self-energy-mixing-factor": 0.75,
+        "self-energy-mixing-factor": 1.,
         "interacting-orbitals": [0],
-
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
             "k-mesh-recursion": 3,
-            "periods": 0,
+            "periods": 2,
             "quadrature-rule": 1,
-            "threads": 1,
+            "threads": 7,
             "tail-frequencies": 0
         },
 
         "DCA+": {
-            "do-DCA+": DO_DCA_PLUS,
+            "do-DCA+": false,
             "deconvolution-iterations": 16,
-            "deconvolution-tolerance": 1.e-3,
-            "HTS-approximation": false,
-            "HTS-threads": 1
+            "deconvolution-tolerance": 1.e-2
         }
     },
 
     "domains": {
         "real-space-grids": {
-            "cluster": [VEC1,
-                        VEC2],
-            "sp-host": [[10, 10],
-                        [10,-10]],
-            "tp-host": [[2, 0],
-                        [0, 2]]
+            "cluster": [[SIZE_X, 0],
+                        [0, SIZE_Y]],
+            "sp-host": [[20, 0],
+                        [0, 20]],
+            "tp-host": [[8, 0],
+                        [0, 8]]
         },
 
         "imaginary-time": {
-            "sp-time-intervals": 128,
-            "time-intervals-for-time-measurements": 16
+            "sp-time-intervals": 1024
         },
 
         "imaginary-frequency": {
-            "sp-fermionic-frequencies": 256,
-            "HTS-bosonic-frequencies": 32
+            "sp-fermionic-frequencies": 1024,
+            "four-point-fermionic-frequencies": 64
         }
     },
 
-    "Monte-Carlo-integration": {
-        "seed": 985456376,
-        "warm-up-sweeps": 100,
-        "sweeps-per-measurement": 1.,
-        "measurements": 500000,
+    "four-point": {
+        "type": "NONE"
+    },
 
+    "Monte-Carlo-integration": {
+        "seed": 0,
+        "warm-up-sweeps": 10,
+        "sweeps-per-measurement": 1,
+        "measurements": MEASUREMENTS,
         "threaded-solver": {
-            "walkers": 3,
-            "accumulators": 5
+            "walkers": 7,
+            "accumulators": 7,
+            "shared-walk-and-accumulation-thread": true
         }
     },
 
     "CT-AUX": {
         "expansion-parameter-K": 1.,
-        "initial-configuration-size": 10,
-        "initial-matrix-size": 16,
-        "max-submatrix-size": 16,
+        "max-submatrix-size": 128,
         "neglect-Bennett-updates": false,
         "additional-time-measurements": false
     }

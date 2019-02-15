@@ -1,109 +1,94 @@
 {
     "output": {
-        "directory": "./T=CURRENT_TEMP/",
-        "output-format": "HDF5",
-        "filename-dca": "dca_tp.hdf5",
-        "filename-analysis": "analysis.hdf5",
-        "filename-profiling": "profiling_tp.json",
-        "directory-config-read" : "./T=CURRENT_TEMP/configuration",
-        "directory-config-write" : "./T=CURRENT_TEMP/configuration",
-        "dump-lattice-self-energy": false,
-        "dump-cluster-Greens-functions": false,
-        "dump-Gamma-lattice": false,
-        "dump-chi-0-lattice": false
+     "directory" : "./beta_BETA_CURRENT_TEMP/",
+     "output-format": "HDF5",
+     "filename-dca": "dca_tp.hdf5",
+     "filename-profiling": "profiling_tp.json",
+     "directory-config-read" : "./beta_BETA_CURRENT_TEMP/configuration",
+     "dump-lattice-self-energy": false,
+     "dump-cluster-Greens-functions": true,
+     "dump-Gamma-lattice": false,
+     "dump-chi-0-lattice": false
     },
 
     "physics": {
-        "beta": BETA,
-        "density": DENS,
+        "beta": 50,
+        "density": 1,
         "chemical-potential": 0.,
-        "adjust-chemical-potential": true
+        "adjust-chemical-potential": false
     },
 
     "single-band-Hubbard-model": {
         "t": 1.,
-        "U": HUBBARDU
+        "U": 4
     },
 
     "DCA": {
-        "initial-self-energy": "./T=CURRENT_TEMP/dca_sp.hdf5",
+        "initial-self-energy" : "./beta_BETA_PREVIOUS_TEMP/dca_sp.hdf5",
         "iterations": 1,
         "accuracy": 0.,
         "self-energy-mixing-factor": 1.,
         "interacting-orbitals": [0],
-
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
             "k-mesh-recursion": 3,
-            "periods": 0,
+            "periods": 2,
             "quadrature-rule": 1,
-            "threads": 1,
+            "threads": 7,
             "tail-frequencies": 0
         },
 
         "DCA+": {
-            "do-DCA+": DO_DCA_PLUS,
+            "do-DCA+": false,
             "deconvolution-iterations": 16,
-            "deconvolution-tolerance": 1.e-3,
-            "HTS-approximation": false,
-            "HTS-threads": 1
+            "deconvolution-tolerance": 1.e-2
         }
     },
 
     "domains": {
         "real-space-grids": {
-            "cluster": [VEC1,
-                        VEC2],
-            "sp-host": [[10, 10],
-                        [10,-10]],
-            "tp-host": [[2, 0],
-                        [0, 2]]
+            "cluster": [[SIZE_X, 0],
+                        [0, SIZE_Y]],
+            "sp-host": [[20, 0],
+                        [0, 20]],
+            "tp-host": [[8, 0],
+                        [0, 8]]
         },
 
         "imaginary-time": {
-            "sp-time-intervals": 128,
-            "time-intervals-for-time-measurements": 16
+            "sp-time-intervals": 1024
         },
 
         "imaginary-frequency": {
-            "sp-fermionic-frequencies": 256,
-            "HTS-bosonic-frequencies": 32,
-            "four-point-fermionic-frequencies": 16
+            "sp-fermionic-frequencies": 1024,
+            "four-point-fermionic-frequencies": 64
         }
     },
 
-    "Monte-Carlo-integration": {
-        "seed": 985456376,
-        "warm-up-sweeps": 100,
-        "sweeps-per-measurement": 4.,
-        "measurements": 500000,
+    "four-point": {
+        "type": "PARTICLE_PARTICLE_UP_DOWN",
+        "compute-all-transfers" : true,
+        "frequency-transfer" : 0
+    },
 
+    "Monte-Carlo-integration": {
+        "seed": 0,
+        "warm-up-sweeps": 10,
+        "sweeps-per-measurement": 1,
+        "measurements": MEASUREMENTS,
+	"error-computation-type" : "JACK_KNIFE",
         "threaded-solver": {
-            "walkers": 3,
-            "accumulators": 5
+            "walkers": 7,
+            "accumulators": 7,
+            "shared-walk-and-accumulation-thread": true
         }
     },
 
     "CT-AUX": {
         "expansion-parameter-K": 1.,
-        "initial-configuration-size": 10,
-        "initial-matrix-size": 16,
-        "max-submatrix-size": 16,
+        "max-submatrix-size": 128,
         "neglect-Bennett-updates": false,
         "additional-time-measurements": false
-    },
-
-    "four-point": {
-        "type": "PARTICLE_PARTICLE_UP_DOWN",
-        "momentum-transfer": [0., 0.],
-        "frequency-transfer": 0
-    },
-
-    "analysis": {
-        "symmetrize-Gamma": true,
-        "Gamma-deconvolution-cut-off": 0.5,
-        "project-onto-crystal-harmonics": false,
-        "projection-cut-off-radius": 1.5
     }
 }
