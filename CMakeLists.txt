@@ -202,7 +202,12 @@ endif()
 # Build applications.
 add_subdirectory(applications)
 
+################################################################################
+# Cooldown scrpts
+file(COPY ${CMAKE_SOURCE_DIR}/tools/cooldown DESTINATION ${CMAKE_BINARY_DIR}/)
+
 ###############################################################################
 # Generate a .cpp file with DCA++'s CMake options and their values.
 configure_file("${PROJECT_SOURCE_DIR}/src/config/cmake_options.cpp.in"
   "${PROJECT_BINARY_DIR}/src/config/cmake_options.cpp" @ONLY)
+
