@@ -11,6 +11,9 @@
 
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 
+#include <iostream>
+#include <numeric>
+
 namespace dca {
 namespace phys {
 namespace domains {
@@ -20,21 +23,36 @@ namespace domains {
 std::vector<int> MomentumExchangeDomain::elements_;
 bool MomentumExchangeDomain::initialized_ = false;
 
-void MomentumExchangeDomain::initialize(const bool compute_all_transfers, const int transfer_index,
-                                        const int cluster_size) {
-  if (compute_all_transfers) {
-    ;
-    elements_.resize(cluster_size);
-    int idx_value = 0;
-    for (int& elem : elements_)
-      elem = idx_value++;
-  }
-
-  else {
-    elements_ = std::vector<int>{transfer_index};
-  }
-
+void MomentumExchangeDomain::initialize(bool compute_all_transfers, int transfer_index,
+                                        const std::vector<std::vector<double>>& cluster_elements,
+                                        const std::vector<std::array<int, 2>>& symmetries,
+                                        bool verbose) {
   initialized_ = true;
+
+  if (!compute_all_transfers) {
+    elements_ = std::vector<int>{transfer_index};
+    return;
+  }
+
+  elements_.resize(cluster_elements.size());
+  std::iota(elements_.begin(), elements_.end(), 0);
+
+  for (const auto& symmetry : symmetries) {
+    if (symmetry[0] != symmetry[1]) {
+      const int to_remove = std::max(symmetry[0], symmetry[1]);
+      elements_.erase(std::remove(elements_.begin(), elements_.end(), to_remove), elements_.end());
+    }
+  }
+
+  if (verbose) {
+    std::cout << "Independent reciprocal cluster sites:\n";
+    for (const auto id : elements_) {
+      std::cout << id << ":\t";
+      for (auto k : cluster_elements[id])
+        std::cout << k << "\t";
+      std::cout << "\n";
+    }
+  }
 }
 
 }  // domains
