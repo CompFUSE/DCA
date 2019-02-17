@@ -25,7 +25,7 @@
     },
 
     "DCA": {
-        "initial-self-energy" : "./beta_BETA_PREVIOUS_TEMP/dca_sp.hdf5"
+        "initial-self-energy" : "./beta_BETA_PREVIOUS_TEMP/dca_sp.hdf5",
         "iterations": ITERS,
         "accuracy": 0.,
         "self-energy-mixing-factor": 1.,

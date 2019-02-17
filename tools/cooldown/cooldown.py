@@ -23,13 +23,14 @@ import os
 nodes = 1
 
 # DCA cluster (see cluster_definitions.txt)
-size_x = 4
-size_y = 4
+size_x = 6
+size_y = 6
 
 
 # DCA(+) iterations
 iters_ht = 10  # first/highest temperature
-iters = 8     # other temperatures
+iters_last = 10  # last/lowest temperature
+iters = 5     # other temperatures
 
 # Inverse temperatures for cooldown
 betas = [1, 2, 5, 10, 20, 40, 50]
@@ -81,6 +82,8 @@ def prepare_input_file(filename, b_ind, type):
 
     if (b_ind == 0):
         text = text.replace('ITERS', str(iters_ht))
+    elif (b_ind == len(betas)-1):
+        text = text.replace('ITERS', str(iters_last))
     else:
         text = text.replace('ITERS', str(iters))
 
