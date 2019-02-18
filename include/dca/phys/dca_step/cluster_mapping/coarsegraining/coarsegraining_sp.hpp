@@ -1,4 +1,4 @@
-// Copyright (C) 2018 ETH Zurich
+#// Copyright (C) 2018 ETH Zurich
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
@@ -131,7 +131,6 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       w_q_("w_q_"),
       w_tot_(0.) {
-          
   interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
 
   // Compute H0(k+q) for each value of k and q.
@@ -157,7 +156,9 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
   const int n_threads = parameters_.get_coarsegraining_threads();
   Threading().execute(n_threads, [&](int id, int n_threads) {
     const auto bounds = parallel::util::getBounds(id, n_threads, external_bounds);
-    linalg::Matrix<Complex, linalg::CPU> G_inv("G_inv", NuDmn::dmn_size());
+      constexpr int n_bands = Parameters::bands;
+
+    linalg::Matrix<Complex, linalg::CPU> G_inv("G_inv", n_bands);
     linalg::Vector<int, linalg::CPU> ipiv;
     linalg::Vector<Complex, linalg::CPU> work;
     int coor[2];
@@ -170,24 +171,25 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
 
       const auto w_val = WDmn::get_elements()[w];
       const auto& H0 = H0_q_[k];
-      constexpr int n_spin_bands = Parameters::bands * 2;
 
       for (int q = 0; q < QDmn::dmn_size(); ++q) {
-        for (int j = 0; j < n_spin_bands; j++) {
-          for (int i = 0; i < n_spin_bands; i++) {
+        for (int j = 0; j < n_bands; j++) {
+          for (int i = 0; i < n_bands; i++) {
             if (std::is_same<SigmaType, ClusterFreqFunction>::value)
-              G_inv(i, j) = -H0(i, j, q) - S_K_w(i, j, k, w);
+              G_inv(i, j) = -H0(i, 0, j, 0, q) - S_K_w(i, 0, j, 0, k, w);
             else
-              G_inv(i, j) = -H0(i, j, q) - (*Sigma_interpolated_)(i, j, q, k, w);
+              G_inv(i, j) = -H0(i, 0, j, 0, q) - (*Sigma_interpolated_)(i, 0, j, 0, q, k, w);
             if (i == j)
               G_inv(i, j) += im * w_val + parameters_.get_chemical_potential();
           }
         }
 
-        linalg::matrixop::inverse(G_inv, ipiv, work);
-        for (int j = 0; j < n_spin_bands; ++j)
-          for (int i = 0; i < n_spin_bands; ++i)
-            G_K_w(i, j, k, w) += G_inv(i, j) * w_q_(q);
+        linalg::matrixop::smallInverse(G_inv, ipiv, work);
+
+        for (int j = 0; j < n_bands; ++j)
+          for (int i = 0; i < n_bands; ++i)
+            for (int s = 0; s < 2; ++s)
+              G_K_w(i, s, j, s, k, w) += G_inv(i, j) * w_q_(q);
       }
     }
   });
