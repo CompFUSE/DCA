@@ -37,11 +37,13 @@
 #include "dca/phys/domains/cluster/cluster_domain_family.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_symmetry_initializer.hpp"
+#include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/numerical_error_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
@@ -212,6 +214,9 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
     domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>::write(writer);
     domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>::write(writer);
+
+    domains::FrequencyExchangeDomain::write(writer);
+    domains::MomentumExchangeDomain::write(writer);
   }
 
   domains::frequency_domain_real_axis::write(writer);
@@ -272,6 +277,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
   domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::initialize(*this);
 
+  domains::FrequencyExchangeDomain::initialize(*this);
+
   // DCA cluster
   domains::cluster_domain_initializer<RClusterDmn>::execute(Model::get_r_DCA_basis(),
                                                             DomainsParameters::get_cluster());
@@ -286,6 +293,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                                                            DomainsParameters::get_sp_host());
   domains::cluster_domain_symmetry_initializer<
       RSpHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  domains::MomentumExchangeDomain::initialize(*this);
 
   if (concurrency_.id() == concurrency_.first())
     KSpHostDmn::parameter_type::print(std::cout);

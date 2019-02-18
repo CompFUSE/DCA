@@ -38,10 +38,12 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
+#include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
@@ -63,10 +65,11 @@ public:
   constexpr static int DIMENSION = Lattice::DIMENSION;
   using TpAccumulatorScalar = typename Parameters::MC_measurement_scalar_type;
 
-private:
+public:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
@@ -79,6 +82,7 @@ private:
   using KClusterDmn = typename CDA::KClusterDmn;
   using RHostDmn = typename CDA::RSpHostDmn;
   using KHostDmn = typename CDA::KSpHostDmn;
+  using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
 
   using KCutDmn = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
 
@@ -88,7 +92,14 @@ private:
 public:
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
-  using TpGreensFunction = func::function<
+  using SpRGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
+  using TpGreensFunction =
+      func::function<std::complex<TpAccumulatorScalar>,
+                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
+                                        KExchangeDmn, WVertexDmn, WVertexDmn, WExchangeDmn>>;
+  // The following typedef is for testing purposes
+  using ReducedTpGreensFunction = func::function<
       std::complex<TpAccumulatorScalar>,
       func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
 

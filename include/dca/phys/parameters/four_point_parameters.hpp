@@ -39,7 +39,8 @@ public:
   FourPointParameters()
       : four_point_type_(NONE),
         four_point_momentum_transfer_input_(lattice_dimension, 0.),
-        four_point_frequency_transfer_(0) {}
+        four_point_frequency_transfer_(0),
+        compute_all_transfers_(false) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -52,7 +53,7 @@ public:
   void readWrite(ReaderOrWriter& reader_or_writer);
 
   FourPointType get_four_point_type() const {
-    return static_cast<FourPointType>(four_point_type_);
+    return four_point_type_;
   }
 
   void set_four_point_type(FourPointType type) {
@@ -62,9 +63,14 @@ public:
   const std::vector<double>& get_four_point_momentum_transfer_input() const {
     return four_point_momentum_transfer_input_;
   }
+
+  // Returns the index of the bosonic exchange frequency. If compute_all_transfers() is true, all
+  // non-negative frequency transfers up to and included this index are computed. Otherwise only the
+  // transfer relative to this index is computed.
   int get_four_point_frequency_transfer() const {
     return four_point_frequency_transfer_;
   }
+
   // Returns the 'exact' momentum transfer (q-vector), i.e. the DCA momentum space cluster vector
   // whose distance (L2 norm) to the input momentum transfer is minimal.
   // It assumes that the input q-vectors' distance to the next DCA momentum space cluster vector is
@@ -84,12 +90,19 @@ public:
     return q_ind;
   }
 
+  // Returns true if all possible momentum and frequency exchanges are computed, ignoring the values
+  // of 'get_four_point_momentum_transfer' and 'get_four_point_momentum_transfer_index'.
+  bool compute_all_transfers() const {
+    return compute_all_transfers_;
+  }
+
 private:
   // There is no utility to communicate enumerations over mpi, so four_point_type_ is stored
   // as an int rather than a FourPointType.
-  int four_point_type_;
+  FourPointType four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
+  bool compute_all_transfers_;
 };
 
 template <int lattice_dimension>
@@ -100,6 +113,7 @@ int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& con
   buffer_size += concurrency.get_buffer_size(four_point_type_);
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
+  buffer_size += concurrency.get_buffer_size(compute_all_transfers_);
 
   return buffer_size;
 }
@@ -111,6 +125,7 @@ void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency
   concurrency.pack(buffer, buffer_size, position, four_point_type_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
+  concurrency.pack(buffer, buffer_size, position, compute_all_transfers_);
 }
 
 template <int lattice_dimension>
@@ -120,6 +135,7 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
   concurrency.unpack(buffer, buffer_size, position, four_point_type_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
+  concurrency.unpack(buffer, buffer_size, position, compute_all_transfers_);
 }
 
 template <int lattice_dimension>
@@ -128,7 +144,7 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
   try {
     reader_or_writer.open_group("four-point");
 
-    std::string four_point_name = toString(static_cast<FourPointType>(four_point_type_));
+    std::string four_point_name = toString(four_point_type_);
     try {
       reader_or_writer.execute("type", four_point_name);
       four_point_type_ = stringToFourPointType(four_point_name);
@@ -145,11 +161,20 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
     }
     catch (const std::exception& r_e) {
     }
+    try {
+      reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
+    }
+    catch (const std::exception& r_e) {
+    }
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
   }
+
+  if (compute_all_transfers_ && four_point_frequency_transfer_ < 0)
+    throw(std::logic_error(
+        "When compute-all-transfers is set, a greater than 0 frequency-transfer must be chosen."));
 }
 
 }  // params

@@ -99,11 +99,11 @@ public:
   typedef func::dmn_variadic<b, b, r_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_r_r_w_w_dmn_t;
   typedef func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
 
+  using TpGreensFunction = typename MOMS_type::TpGreensFunction;
+
 public:
-  accumulator_nonlocal_chi(
-      parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
-      func::function<std::complex<double>,
-                     func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4_ref);
+  accumulator_nonlocal_chi(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
+                           TpGreensFunction& G4_ref);
 
   void initialize();
 
@@ -171,8 +171,7 @@ private:
 
   int thread_id;
 
-  func::function<std::complex<double>,
-                 func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4;
+  TpGreensFunction& G4;
 
   int w_VERTEX_EXTENDED_POS_dmn_size;
 
@@ -193,9 +192,7 @@ private:
 
 template <class parameters_type, class MOMS_type>
 accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
-    func::function<std::complex<double>,
-                   func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4_ref)
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id, TpGreensFunction& G4_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),
@@ -275,21 +272,21 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::execute(scalar_type c
   profiler_t profiler("compute nonlocal-chi", "CT-AUX accumulator", __LINE__, thread_id);
 
   switch (parameters.get_four_point_type()) {
-    case PARTICLE_HOLE_TRANSVERSE:
-      accumulate_particle_hole_transverse(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
-                                          nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
-      break;
-
-    case PARTICLE_HOLE_MAGNETIC:
-      accumulate_particle_hole_magnetic(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
-                                        nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
-      break;
-
-    case PARTICLE_HOLE_CHARGE:
-      accumulate_particle_hole_charge(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
-                                      nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
-      break;
-
+    //    case PARTICLE_HOLE_TRANSVERSE:
+    //      accumulate_particle_hole_transverse(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
+    //                                          nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
+    //      break;
+    //
+    //    case PARTICLE_HOLE_MAGNETIC:
+    //      accumulate_particle_hole_magnetic(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
+    //                                        nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
+    //      break;
+    //
+    //    case PARTICLE_HOLE_CHARGE:
+    //      accumulate_particle_hole_charge(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
+    //                                      nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
+    //      break;
+    //
     case PARTICLE_PARTICLE_UP_DOWN:
       accumulate_particle_particle_superconducting(
           nonlocal_G_obj.get_G_k_k_w_w_e_DN(), nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
@@ -363,161 +360,165 @@ inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic(
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type sign) {
-  // n1 ------------------------ m1
-  //        |           |
-  //        |           |
-  //        |           |
-  // n2 ------------------------ m2
+// template <class parameters_type, class MOMS_type>
+// void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic(
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type
+//    sign) {
+//  // n1 ------------------------ m1
+//  //        |           |
+//  //        |           |
+//  //        |           |
+//  // n2 ------------------------ m2
+//
+//  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
+//      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+//      G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
+//      G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_UP_n2_m2_k2_plus_q_k2_w2_w2, G4_val;
+//
+//  int k2_plus_q, k1_plus_q;
+//
+//  scalar_type sign_div_2 = scalar_type(sign) / 2.;
+//
+//  int w_nu = parameters.get_four_point_frequency_transfer();
+//
+//  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
+//    int w2_ext = w_vertex_2_w_vertex_ext(w2);
+//    int w2_ext_plus_w_nu = w2_ext + w_nu;
+//    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
+//           1.e-6);
+//
+//    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
+//      int w1_ext = w_vertex_2_w_vertex_ext(w1);
+//      int w1_ext_plus_w_nu = w1_ext + w_nu;
+//
+//      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
+//        //          int k2_plus_q = k_cluster_type::add(k2,q_channel);
+//        k2_plus_q = q_plus_(k2);
+//
+//        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
+//          //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
+//          k1_plus_q = q_plus_(k1);
+//
+//          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
+//            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
+//              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+//                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
+//                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
+//                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
+//
+//                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
+//                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
+//                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+//
+//                  F(n1, m1, k1, k1_plus_q, w1_ext, w1_ext_plus_w_nu, G2_k_k_w_w_e_DN,
+//                    G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_k_k_w_w_e_UP,
+//                    G2_UP_n1_m1_k1_k1_plus_q_w1_w1);
+//
+//                  F(n2, m2, k2_plus_q, k2, w2_ext_plus_w_nu, w2_ext, G2_k_k_w_w_e_DN,
+//                    G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_k_k_w_w_e_UP,
+//                    G2_UP_n2_m2_k2_plus_q_k2_w2_w2);
+//
+//                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
+//                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
+//
+//                           +
+//                           (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 - G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
+//                               (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 - G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
+//
+//                  /*
+//                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
+//                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
+//                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
+//                    k1_plus_q, w2+w_channel, w1+w_channel))
+//
+//                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) -
+//                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
+//                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) -
+//                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
+//                    */
+//
+//                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+//                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
+//                  // std::complex<double>(sign_div_2 * G4);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
-  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
-      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-      G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
-      G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_UP_n2_m2_k2_plus_q_k2_w2_w2, G4_val;
-
-  int k2_plus_q, k1_plus_q;
-
-  scalar_type sign_div_2 = scalar_type(sign) / 2.;
-
-  int w_nu = parameters.get_four_point_frequency_transfer();
-
-  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
-    int w2_ext = w_vertex_2_w_vertex_ext(w2);
-    int w2_ext_plus_w_nu = w2_ext + w_nu;
-    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
-           1.e-6);
-
-    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
-      int w1_ext = w_vertex_2_w_vertex_ext(w1);
-      int w1_ext_plus_w_nu = w1_ext + w_nu;
-
-      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
-        //          int k2_plus_q = k_cluster_type::add(k2,q_channel);
-        k2_plus_q = q_plus_(k2);
-
-        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
-          //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
-          k1_plus_q = q_plus_(k1);
-
-          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
-            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
-                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
-                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
-
-                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
-                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
-                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
-                  F(n1, m1, k1, k1_plus_q, w1_ext, w1_ext_plus_w_nu, G2_k_k_w_w_e_DN,
-                    G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_k_k_w_w_e_UP, G2_UP_n1_m1_k1_k1_plus_q_w1_w1);
-
-                  F(n2, m2, k2_plus_q, k2, w2_ext_plus_w_nu, w2_ext, G2_k_k_w_w_e_DN,
-                    G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_k_k_w_w_e_UP, G2_UP_n2_m2_k2_plus_q_k2_w2_w2);
-
-                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
-                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
-
-                           +
-                           (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 - G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
-                               (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 - G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
-
-                  /*
-                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
-                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
-                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
-                    k1_plus_q, w2+w_channel, w1+w_channel))
-
-                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) -
-                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
-                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) -
-                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
-                    */
-
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
-                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
-                  // std::complex<double>(sign_div_2 * G4);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-template <class parameters_type, class MOMS_type>
-void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_transverse(
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type sign) {
-  // n1 ------------------------ m1
-  //        |           |
-  //        |           |
-  //        |           |
-  // n2 ------------------------ m2
-
-  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
-      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G4_val;
-
-  int k2_plus_q, k1_plus_q;
-
-  scalar_type sign_div_2 = scalar_type(sign) / 2.;
-
-  int w_nu = parameters.get_four_point_frequency_transfer();
-
-  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
-    int w2_ext = w_vertex_2_w_vertex_ext(w2);
-    int w2_ext_plus_w_nu = w2_ext + w_nu;
-    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
-           1.e-6);
-
-    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
-      int w1_ext = w_vertex_2_w_vertex_ext(w1);
-      int w1_ext_plus_w_nu = w1_ext + w_nu;
-
-      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
-        k2_plus_q = q_plus_(k2);
-
-        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
-          k1_plus_q = q_plus_(k1);
-
-          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
-            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
-                  //                    F(n1, m2, k1, k2, w1, w2,
-                  //                      G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
-                  //                      G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
-
-                  //                    F(n2, m1, k2_plus_q, k1_plus_q, w2+w_nu, w1+w_nu,
-                  //                      G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-                  //                      G2_k_k_w_w_e_UP, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
-                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
-                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
-
-                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
-                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
-                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
-                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
-                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
+// template <class parameters_type, class MOMS_type>
+// void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_transverse(
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type
+//    sign) {
+//  // n1 ------------------------ m1
+//  //        |           |
+//  //        |           |
+//  //        |           |
+//  // n2 ------------------------ m2
+//
+//  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
+//      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G4_val;
+//
+//  int k2_plus_q, k1_plus_q;
+//
+//  scalar_type sign_div_2 = scalar_type(sign) / 2.;
+//
+//  int w_nu = parameters.get_four_point_frequency_transfer();
+//
+//  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
+//    int w2_ext = w_vertex_2_w_vertex_ext(w2);
+//    int w2_ext_plus_w_nu = w2_ext + w_nu;
+//    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
+//           1.e-6);
+//
+//    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
+//      int w1_ext = w_vertex_2_w_vertex_ext(w1);
+//      int w1_ext_plus_w_nu = w1_ext + w_nu;
+//
+//      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
+//        k2_plus_q = q_plus_(k2);
+//
+//        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
+//          k1_plus_q = q_plus_(k1);
+//
+//          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
+//            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
+//              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+//                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
+//                  //                    F(n1, m2, k1, k2, w1, w2,
+//                  //                      G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
+//                  //                      G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
+//
+//                  //                    F(n2, m1, k2_plus_q, k1_plus_q, w2+w_nu, w1+w_nu,
+//                  //                      G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+//                  //                      G2_k_k_w_w_e_UP, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+//
+//                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
+//                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
+//
+//                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
+//                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
+//                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+//
+//                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
+//                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+//
+//                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
 /*
   template<class parameters_type, class MOMS_type>
@@ -580,93 +581,96 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
   }
 */
 
-template <class parameters_type, class MOMS_type>
-void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type sign) {
-  // n1 ------------------------ m1
-  //        |           |
-  //        |           |
-  //        |           |
-  // n2 ------------------------ m2
-
-  // int q_channel = parameters.get_q_channel();
-
-  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
-      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-      G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
-      G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_UP_n2_m2_k2_plus_q_k2_w2_w2, G4_val;
-
-  int w_nu = parameters.get_four_point_frequency_transfer();
-
-  scalar_type sign_div_2 = scalar_type(sign) / 2.;
-
-  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
-    int w2_ext = w_vertex_2_w_vertex_ext(w2);
-    int w2_ext_plus_w_nu = w2_ext + w_nu;
-    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
-           1.e-6);
-
-    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
-      int w1_ext = w_vertex_2_w_vertex_ext(w1);
-      int w1_ext_plus_w_nu = w1_ext + w_nu;
-
-      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
-        // int k2_plus_q = k_cluster_type::add(k2,q_channel);
-        int k2_plus_q = q_plus_(k2);
-
-        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
-          // int k1_plus_q = k_cluster_type::add(k1,q_channel);
-          int k1_plus_q = q_plus_(k1);
-
-          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
-            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
-                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
-                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
-
-                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
-                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
-                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
-                  F(n1, m1, k1, k1_plus_q, w1_ext, w1_ext_plus_w_nu, G2_k_k_w_w_e_DN,
-                    G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_k_k_w_w_e_UP, G2_UP_n1_m1_k1_k1_plus_q_w1_w1);
-
-                  F(n2, m2, k2_plus_q, k2, w2_ext_plus_w_nu, w2_ext, G2_k_k_w_w_e_DN,
-                    G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_k_k_w_w_e_UP, G2_UP_n2_m2_k2_plus_q_k2_w2_w2);
-
-                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
-                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
-
-                           +
-                           (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
-                               (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
-
-                  /*
-                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
-                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
-                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
-                    k1_plus_q, w2+w_channel, w1+w_channel))
-
-                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) +
-                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
-                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) +
-                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
-                    */
-
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
-                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
-                  // std::complex<double>(sign_div_2 * G4);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
+// template <class parameters_type, class MOMS_type>
+// void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+//    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP, scalar_type
+//    sign) {
+//  // n1 ------------------------ m1
+//  //        |           |
+//  //        |           |
+//  //        |           |
+//  // n2 ------------------------ m2
+//
+//  // int q_channel = parameters.get_q_channel();
+//
+//  std::complex<scalar_type> G2_DN_n1_m2_k1_k2_w1_w2, G2_UP_n1_m2_k1_k2_w1_w2,
+//      G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+//      G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
+//      G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_UP_n2_m2_k2_plus_q_k2_w2_w2, G4_val;
+//
+//  int w_nu = parameters.get_four_point_frequency_transfer();
+//
+//  scalar_type sign_div_2 = scalar_type(sign) / 2.;
+//
+//  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
+//    int w2_ext = w_vertex_2_w_vertex_ext(w2);
+//    int w2_ext_plus_w_nu = w2_ext + w_nu;
+//    assert(std::fabs(w_VERTEX::get_elements()[w2] - w_VERTEX_EXTENDED::get_elements()[w2_ext]) <
+//           1.e-6);
+//
+//    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
+//      int w1_ext = w_vertex_2_w_vertex_ext(w1);
+//      int w1_ext_plus_w_nu = w1_ext + w_nu;
+//
+//      for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
+//        // int k2_plus_q = k_cluster_type::add(k2,q_channel);
+//        int k2_plus_q = q_plus_(k2);
+//
+//        for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
+//          // int k1_plus_q = k_cluster_type::add(k1,q_channel);
+//          int k1_plus_q = q_plus_(k1);
+//
+//          for (int m1 = 0; m1 < b::dmn_size(); m1++) {
+//            for (int m2 = 0; m2 < b::dmn_size(); m2++) {
+//              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+//                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
+//                  F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
+//                    G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
+//
+//                  F(n2, m1, k2_plus_q, k1_plus_q, w2_ext_plus_w_nu, w1_ext_plus_w_nu,
+//                    G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_k_k_w_w_e_UP,
+//                    G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+//
+//                  F(n1, m1, k1, k1_plus_q, w1_ext, w1_ext_plus_w_nu, G2_k_k_w_w_e_DN,
+//                    G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_k_k_w_w_e_UP,
+//                    G2_UP_n1_m1_k1_k1_plus_q_w1_w1);
+//
+//                  F(n2, m2, k2_plus_q, k2, w2_ext_plus_w_nu, w2_ext, G2_k_k_w_w_e_DN,
+//                    G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_k_k_w_w_e_UP,
+//                    G2_UP_n2_m2_k2_plus_q_k2_w2_w2);
+//
+//                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
+//                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
+//
+//                           +
+//                           (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
+//                               (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
+//
+//                  /*
+//                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
+//                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
+//                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
+//                    k1_plus_q, w2+w_channel, w1+w_channel))
+//
+//                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) +
+//                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
+//                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) +
+//                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
+//                    */
+//
+//                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+//                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
+//                  // std::complex<double>(sign_div_2 * G4);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_particle_superconducting(
@@ -675,47 +679,63 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_p
   std::complex<scalar_type> G2_UP_n1_m1_k1_k2_w1_w2, G2_DN_n1_m1_k1_k2_w1_w2,
       G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2, G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2,
       G4_val;
+  using WExchangeDmn = typename MOMS_type::WExchangeDmn::parameter_type;
+  using KExchangeDmn = typename MOMS_type::KExchangeDmn::parameter_type;
+  using KDmn = typename parameters_type::KClusterDmn;
+  int q_idx(0), w_idx;
 
-  int w_nu = parameters.get_four_point_frequency_transfer();
+  for (const int q : KExchangeDmn::get_elements()) {
+    for (int l = 0; l < KDmn::dmn_size(); ++l) {
+      //    q_plus_(l) = k_cluster_type::add(l, q_idx);
+      q_min_(l) = k_cluster_type::subtract(l, q);
+    }
 
-  scalar_type sign_div_2 = sign / 2.;
+    w_idx = 0;
+    for (const int w_nu : WExchangeDmn::get_elements()) {
+      scalar_type sign_div_2 = sign / 2.;
 
-  for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
-    int w2_ext = w_vertex_2_w_vertex_ext(w2);
-    int w_nu_min_w2 = w_nu + w_vertex_2_w_vertex_ext(min_w_vertex(w2));
+      for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
+        int w2_ext = w_vertex_2_w_vertex_ext(w2);
+        int w_nu_min_w2 = w_nu + w_vertex_2_w_vertex_ext(min_w_vertex(w2));
 
-    for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
-      int w1_ext = w_vertex_2_w_vertex_ext(w1);
-      int w_nu_min_w1 = w_nu + w_vertex_2_w_vertex_ext(min_w_vertex(w1));
+        for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++) {
+          int w1_ext = w_vertex_2_w_vertex_ext(w1);
+          int w_nu_min_w1 = w_nu + w_vertex_2_w_vertex_ext(min_w_vertex(w1));
 
-      for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
-        int q_minus_k1 = q_min_(k1);
+          for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
+            int q_minus_k1 = q_min_(k1);
 
-        for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
-          int q_minus_k2 = q_min_(k2);
+            for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
+              int q_minus_k2 = q_min_(k2);
 
-          for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-            for (int n2 = 0; n2 < b::dmn_size(); n2++) {
-              for (int m1 = 0; m1 < b::dmn_size(); m1++) {
-                for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-                  F(n1, m1, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m1_k1_k2_w1_w2,
-                    G2_k_k_w_w_e_UP, G2_UP_n1_m1_k1_k2_w1_w2);
+              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+                for (int n2 = 0; n2 < b::dmn_size(); n2++) {
+                  for (int m1 = 0; m1 < b::dmn_size(); m1++) {
+                    for (int m2 = 0; m2 < b::dmn_size(); m2++) {
+                      F(n1, m1, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m1_k1_k2_w1_w2,
+                        G2_k_k_w_w_e_UP, G2_UP_n1_m1_k1_k2_w1_w2);
 
-                  F(n2, m2, q_minus_k1, q_minus_k2, w_nu_min_w1, w_nu_min_w2, G2_k_k_w_w_e_UP,
-                    G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2, G2_k_k_w_w_e_DN,
-                    G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2);
+                      F(n2, m2, q_minus_k1, q_minus_k2, w_nu_min_w1, w_nu_min_w2, G2_k_k_w_w_e_UP,
+                        G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2, G2_k_k_w_w_e_DN,
+                        G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2);
 
-                  G4_val = (G2_UP_n1_m1_k1_k2_w1_w2 * G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2 +
-                            G2_DN_n1_m1_k1_k2_w1_w2 * G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2);
+                      G4_val =
+                          (G2_UP_n1_m1_k1_k2_w1_w2 * G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2 +
+                           G2_DN_n1_m1_k1_k2_w1_w2 * G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2);
 
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                      G4(n1, n2, m1, m2, k1, k2, q_idx, w1, w2, w_idx) +=
+                          std::complex<double>(sign_div_2 * G4_val);
+                    }
+                  }
                 }
               }
             }
           }
         }
       }
+      ++w_idx;
     }
+    ++q_idx;
   }
 }
 
