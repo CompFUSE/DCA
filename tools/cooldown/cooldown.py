@@ -11,79 +11,81 @@
 # how to run a DCA(+) calculation.
 #
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 
 import os
-import sys
 
 ################################################################################
 ##################################### EDIT #####################################
 ################################################################################
 
-# Filename (including path) of the batch script template.
-# The file should contain the placeholder JOBS.
-# Other optional placeholders: APPLICATION, HUBBARDU, DENS, SIZE.
-batch_tmpl = 'EDIT'
-
-# Command (including options) to run (MPI) programs, e.g. 'mpirun -n 8'.
-# Used to execute main_dca.
-run_command_dca = 'EDIT'
-# The run command to execute main_analysis.
-run_command_analysis = run_command_dca
-
-# Simulation parameters
-dca_plus = False  # True|False
-U = 6             # on-site Coulomb interaction
-d = 0.95          # density
+# Numbers of compute nodes
+nodes = 1
 
 # DCA cluster (see cluster_definitions.txt)
-Nc = 4 # Cluster size
-cluster_vec_1 = [2, 0]
-cluster_vec_2 = [0, 2]
+size_x = 6
+size_y = 6
+
 
 # DCA(+) iterations
-iters_ht = 8  # first/highest temperature
-iters = 6     # other temperatures
+iters_ht = 10  # first/highest temperature
+iters_last = 10  # last/lowest temperature
+iters = 5     # other temperatures
 
-# Temperatures for cooldown
-temps = [1, 0.75, 0.5, 0.25, 0.125, 0.1, 0.09, 0.08, 0.07]
+# Inverse temperatures for cooldown
+betas = [1, 2, 5, 10, 20, 40, 50]
 # Starting temperature for computing two-particle quantities and running the analysis.
-T_analysis = 0.1
+beta_analysis = 50
+
+#Measurements
+measurements_per_node = False
+measurements = 1000000
 
 ################################################################################
 ################################## UNTIL HERE ##################################
 ################################################################################
+
+############################ System Specific settings ##########################
+# Command (including options) to run (MPI) programs, e.g. 'jsrun ...'.
+# Used to execute main_dca.
+batch_tmpl = 'summit/summit.job'
+run_command_dca = 'jsrun -n PROCESSES -a 1 -g 1 -c 7 -b rs'
+# The run command to execute main_analysis.
+#run_command_analysis = run_command_dca
+################################################################################
+
 
 # Formats the inverse temperature beta.
 def beta_format(x):
     return ('%.6g' % x)
 
 # Prepares the input file for the given temperature.
-def prepare_input_file(filename, T_ind):
+def prepare_input_file(filename, b_ind, type):
     file = open(filename, 'r')
     text = file.read()
     file.close()
 
-    text = text.replace('CURRENT_TEMP', str(temps[T_ind]))
-    text = text.replace('BETA', str(beta_format(1./temps[T_ind])))
-    text = text.replace('DENS', str(d))
-    text = text.replace('HUBBARDU', str(U))
+    text = text.replace('BETA_CURRENT_TEMP', str(betas[b_ind]))
+    text = text.replace('SIZE_X', str(size_x))
+    text = text.replace('SIZE_Y', str(size_y))
+
+    if measurements_per_node : meaasurements *= nodes
+    text = text.replace('MEASUREMENTS', str(measurements))
 
     # For the first temperature set the initial self-energy to zero.
-    if (T_ind == 0):
-        text = text.replace('./T=PREVIOUS_TEMP/dca_sp.hdf5', 'zero')
+    if (b_ind == 0):
+        text = text.replace('./beta_BETA_PREVIOUS_TEMP/dca_sp.hdf5', 'zero')
+        text = text.replace('./beta_BETA_PREVIOUS_TEMP/configuration', '')
     else:
-        text = text.replace('PREVIOUS_TEMP', str(temps[T_ind-1]))
+        previous_beta = betas[b_ind-1] if type == 'sp' else betas[b_ind]
+        text = text.replace('BETA_PREVIOUS_TEMP', str(previous_beta))
 
-    if (T_ind == 0):
+    if (b_ind == 0):
         text = text.replace('ITERS', str(iters_ht))
+    elif (b_ind == len(betas)-1):
+        text = text.replace('ITERS', str(iters_last))
     else:
         text = text.replace('ITERS', str(iters))
-
-    # Use lower() since Python's booleans start with a capital letter, while JSON's booleans don't.
-    text = text.replace('DO_DCA_PLUS', str(dca_plus).lower())
-
-    text = text.replace('VEC1', str(cluster_vec_1))
-    text = text.replace('VEC2', str(cluster_vec_2))
 
     file = open(filename, 'w')
     file.write(text)
@@ -91,88 +93,91 @@ def prepare_input_file(filename, T_ind):
 
 ################################################################################
 
-batch_str_dca = ''
-batch_str_analysis = ''
+batch_str_dca_sp = ''
+batch_str_dca_tp = ''
+#batch_str_analysis = ''
 
 print('Generating directories and input files:')
 
-for T_ind, T in enumerate(temps):
-    print('T = ' + str(T))
+for b_ind, beta in enumerate(betas):
+    print('BETA = ' + str(beta))
 
     # Create directory.
-    cmd = 'mkdir T=' + str(T)
+    dir_str = './beta_' + str(beta)
+    cmd = 'mkdir -p ' + dir_str
     os.system(cmd)
-
-    dir_str = './T=' + str(T)
+    cmd = 'mkdir -p ' + dir_str + "/configuration"
+    os.system(cmd)
 
     input_sp = dir_str + '/input_sp.json'
     input_tp = dir_str + '/input_tp.json'
 
     data_dca_sp   = dir_str + '/dca_sp.hdf5'
     data_dca_tp   = dir_str + '/dca_tp.hdf5'
-    data_analysis = dir_str + '/analysis.hdf5'
+    #data_analysis = dir_str + '/analysis.hdf5'
 
     # dca sp
     # Generate the sp input file.
     cmd = 'cp ./input_sp.json.in ' + input_sp
     os.system(cmd)
-    prepare_input_file(input_sp, T_ind)
+    prepare_input_file(input_sp, b_ind, 'sp')
 
     # Add job.
-    batch_str_dca = batch_str_dca + run_command_dca + ' ./main_dca ' + input_sp + '\n'
+    batch_str_dca_sp += run_command_dca + ' ./main_dca ' + input_sp + '\n'
 
-    if (T <= T_analysis):
+    if (beta >= beta_analysis):
         # dca tp
         # Generate the tp input file.
         cmd = 'cp ./input_tp.json.in ' + input_tp
         os.system(cmd)
-        prepare_input_file(input_tp, T_ind)
+        prepare_input_file(input_tp, b_ind, 'tp')
 
         # Add job.
-        batch_str_dca = batch_str_dca + run_command_dca + ' ./main_dca ' + input_tp + '\n'
+        batch_str_dca_tp += run_command_dca + ' ./main_dca ' + input_tp + '\n'
 
         # analysis
         # Add job.
-        batch_str_analysis = batch_str_analysis + run_command_analysis + ' ./main_analysis ' + input_tp + '\n'
+        #batch_str_analysis = batch_str_analysis + run_command_analysis + ' ./main_analysis ' + input_tp + '\n'
 
 
 # Get filename extension of batch script.
 _, extension = os.path.splitext(batch_tmpl)
 
 # Generate the dca batch script.
-batch_name_dca = 'job.dca_U=' + str(U) + '_d=' + str(d) + '_Nc=' + str(Nc) + extension
-print('\nGenerating the dca batch script: ' + batch_name_dca)
-file = open(batch_tmpl, 'r')
-text_dca = file.read()
-file.close()
+for type in ['sp', 'tp']:
+    batch_name_dca = 'dca_' + type +'.job'
+    print('\nGenerating the dca batch script: ' + batch_name_dca)
+    file = open(batch_tmpl, 'r')
+    text_dca = file.read()
+    file.close()
 
-text_dca = text_dca.replace('APPLICATION', 'dca')
-text_dca = text_dca.replace('HUBBARDU', str(U))
-text_dca = text_dca.replace('DENS', str(d))
-text_dca = text_dca.replace('SIZE', str(Nc))
-text_dca = text_dca.replace('JOBS', batch_str_dca)
+    text_dca = text_dca.replace('JOBS', batch_str_dca_sp if type == 'sp' else batch_str_dca_tp)
 
-file = open(batch_name_dca, 'w')
-file.write(text_dca)
-file.close()
+    text_dca = text_dca.replace('APPLICATION', 'dca')
+    text_dca = text_dca.replace('NODES', str(nodes))
+    text_dca = text_dca.replace('PROCESSES', str(6 * nodes))
+
+    file = open(batch_name_dca, 'w')
+    file.write(text_dca)
+    file.close()
 
 # Generate the analysis batch script.
-batch_name_analysis = 'job.analysis_U=' + str(U) + '_d=' + str(d) + '_Nc=' + str(Nc) + extension
-print('Generating the analysis batch script: ' + batch_name_analysis)
-file = open(batch_tmpl, 'r')
-text_analysis = file.read()
-file.close()
+#batch_name_analysis = 'job.analysis_U=' + str(U) + '_d=' + str(d) + '_Nc=' + str(Nc) + extension
+#print('Generating the analysis batch script: ' + batch_name_analysis)
+#file = open(batch_tmpl, 'r')
+#text_analysis = file.read()
+#file.close()
 
-text_analysis = text_analysis.replace('APPLICATION', 'analysis')
-text_analysis = text_analysis.replace('HUBBARDU', str(U))
-text_analysis = text_analysis.replace('DENS', str(d))
-text_analysis = text_analysis.replace('SIZE', str(Nc))
-text_analysis = text_analysis.replace('JOBS', batch_str_analysis)
+# text_analysis = text_analysis.replace('APPLICATION', 'analysis')
+# text_analysis = text_analysis.replace('HUBBARDU', str(U))
+# text_analysis = text_analysis.replace('DENS', str(d))
+# text_analysis = text_analysis.replace('SIZE', str(Nc))
+# text_analysis = text_analysis.replace('JOBS', batch_str_analysis)
 
-file = open(batch_name_analysis, 'w')
-file.write(text_analysis)
-file.close()
+# file = open(batch_name_analysis, 'w')
+# file.write(text_analysis)
+# file.close()
 
 # Make batch scripts executable.
 os.chmod(batch_name_dca, 0o755)
-os.chmod(batch_name_analysis, 0o755)
+# os.chmod(batch_name_analysis, 0o755)
