@@ -311,10 +311,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    double factor =
-        1. / std::sqrt(1 +
-                       concurrency.number_of_processors() * parameters.get_accumulators() *
-                           parameters.get_measurements_per_process_and_accumulator());
+    double factor = 1. / std::sqrt(1 + parameters.get_measurements());
 
     M_r_w_stddev *= factor;
   }

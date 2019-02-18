@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // A std::thread MC integrator that implements a threaded MC integration independent of the MC
 // method.
@@ -24,6 +25,7 @@
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/parallel/util/get_workload.hpp"
 
 namespace dca {
 namespace phys {
@@ -86,6 +88,7 @@ private:
   using qmci_integrator_type::accumulator;
 
   std::atomic<int> acc_finished;
+  std::atomic<int> acc_id_;
   std::atomic<int> measurements_remaining_;
 
   const int nr_walkers;
@@ -140,6 +143,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iterat
   qmci_integrator_type::initialize(dca_iteration);
 
   acc_finished = 0;
+  acc_id_ = 0;
 }
 
 template <class qmci_integrator_type>
@@ -151,8 +155,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << std::endl;
   }
 
-  measurements_remaining_ =
-      parameters.get_measurements_per_process_and_accumulator() * nr_accumulators;
+  measurements_remaining_ = parallel::util::getWorkload(parameters.get_measurements(), concurrency);
+  ;
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
@@ -186,10 +190,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator() * nr_accumulators
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
   }
 }
 
@@ -307,7 +308,12 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
 
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
+  const int accumulator_id = acc_id_++;
+
+  const int n_local_meas = parallel::util::getWorkload(
+      parameters.get_measurements(), parameters.get_accumulators(), accumulator_id);
+
+  for (int i = 0; i < n_local_meas; ++i) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue);
       accumulators_queue.push(&accumulator_obj);

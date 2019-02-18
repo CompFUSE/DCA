@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the Monte Carlo Integration (MCI) parameters.
-//
-// TODO: Remove "additional-steps" parameter.
 
 #ifndef DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
@@ -20,6 +18,8 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+
+#include "dca/phys/error_computation_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -32,10 +32,9 @@ public:
       : seed_(default_seed),
         warm_up_sweeps_(20),
         sweeps_per_measurement_(1.),
-        measurements_per_process_and_accumulator_(100),
+        measurements_(100),
         walkers_(1),
         accumulators_(1),
-        additional_steps_(0),
         adjust_self_energy_for_double_counting_(false) {}
 
   template <typename Concurrency>
@@ -57,12 +56,12 @@ public:
   double get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements_per_process_and_accumulator() const {
-    return measurements_per_process_and_accumulator_;
+  int get_measurements() const {
+    return measurements_;
   }
-  void set_measurements_per_process_and_accumulator(const int measurements) {
+  void set_measurements(const int measurements) {
     assert(measurements >= 0);
-    measurements_per_process_and_accumulator_ = measurements;
+    measurements_ = measurements;
   }
   int get_walkers() const {
     return walkers_;
@@ -89,11 +88,12 @@ private:
   int seed_;
   int warm_up_sweeps_;
   double sweeps_per_measurement_;
-  int measurements_per_process_and_accumulator_;
+  int measurements_;
   int walkers_;
   int accumulators_;
   int additional_steps_;
   bool adjust_self_energy_for_double_counting_;
+  ErrorComputationType error_computation_type_;
 };
 
 template <typename Concurrency>
@@ -103,11 +103,12 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(seed_);
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
-  buffer_size += concurrency.get_buffer_size(measurements_per_process_and_accumulator_);
+  buffer_size += concurrency.get_buffer_size(measurements_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(additional_steps_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
+  buffer_size += concurrency.get_buffer_size(error_computation_type_);
 
   return buffer_size;
 }
@@ -118,11 +119,12 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, seed_);
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.pack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
+  concurrency.pack(buffer, buffer_size, position, measurements_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, additional_steps_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.pack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename Concurrency>
@@ -131,11 +133,12 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, seed_);
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.unpack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
+  concurrency.unpack(buffer, buffer_size, position, measurements_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, additional_steps_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename ReaderOrWriter>
@@ -187,16 +190,25 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
+
     try {
-      reader_or_writer.execute("measurements-per-process-and-accumulator",
-                               measurements_per_process_and_accumulator_);
+      reader_or_writer.execute("measurements", measurements_);
     }
     catch (const std::exception& r_e) {
     }
 
+    // Read error computation type.
+    std::string error_type = toString(error_computation_type_);
+    try {
+      reader_or_writer.execute("error-computation-type", error_type);
+      error_computation_type_ = stringToErrorComputationType(error_type);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
-
       try {
         reader_or_writer.execute("walkers", walkers_);
       }
@@ -212,7 +224,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {

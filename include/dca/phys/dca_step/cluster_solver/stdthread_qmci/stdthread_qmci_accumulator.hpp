@@ -96,9 +96,10 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
     measuring = true;
 
     if (thread_id == 1)
-      walker.update_shell(
-          measurements_done_,
-          qmci_accumulator_type::parameters.get_measurements_per_process_and_accumulator());
+      walker.update_shell(measurements_done_,
+                          qmci_accumulator_type::parameters.get_measurements() /
+                              (parameters.get_accumulators() *
+                               parameters.get_concurrency().number_of_processors()));
   }
 
   start_measuring.notify_one();
