@@ -311,11 +311,16 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_w1 = [=](const int w) { return n_pos_frqs_ - 1 - w; };
   auto minus_w2 = [=](const int w) { return 2 * n_pos_frqs_ - 1 - w; };
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
+  auto minus_k = [=](const int k) {
+    const static int k0 = RDmn::parameter_type::origin_index();
+    return RDmn::parameter_type::subtract(k, k0);
+
+  };
 
   if (w1_ext >= n_pos_frqs_)
     return G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
   else
-    return std::conj(G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext)));
+    return std::conj(G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext)));
 }
 
 template <class Parameters>
@@ -327,6 +332,12 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto minus_w2 = [=](const int w) { return 2 * n_pos_frqs_ - 1 - w; };
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
 
+  auto minus_k = [=](const int k) {
+    const static int k0 = RDmn::parameter_type::origin_index();
+    return RDmn::parameter_type::subtract(k, k0);
+
+  };
+
   if (w1_ext >= n_pos_frqs_) {
     const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
     for (int b2 = 0; b2 < n_bands_; ++b2)
@@ -334,7 +345,7 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
         G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
   }
   else {
-    const Complex* const G_ptr = &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
+    const Complex* const G_ptr = &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
         G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
