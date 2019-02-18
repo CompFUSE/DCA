@@ -428,6 +428,33 @@ TYPED_TEST(MatrixopComplexCPUTest, Inverse) {
   }
 }
 
+TYPED_TEST(MatrixopComplexCPUTest, SmallInverse) {
+  using ScalarType = TypeParam;
+
+  for (int size = 1; size < 3; ++size) {
+    auto val = [size](int i, int j) {
+      return std::polar<typename ScalarType::value_type>(2. / ((4 + size + i - j) % size + 1), i + j);
+    };
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+    testing::setMatrixElements(mat, val);
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat(mat);
+    dca::linalg::matrixop::smallInverse(invmat);
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(size);
+    dca::linalg::matrixop::gemm(mat, invmat, res);
+
+    for (int j = 0; j < mat.nrCols(); ++j) {
+      for (int i = 0; i < mat.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_GE(500 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+        else
+          EXPECT_GE(500 * this->epsilon, std::abs(res(i, j)));
+      }
+    }
+  }
+}
+
 TYPED_TEST(MatrixopComplexCPUTest, PseudoInverse) {
   using ScalarType = TypeParam;
   auto val = [](int i, int j) {
