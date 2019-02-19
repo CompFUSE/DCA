@@ -99,7 +99,7 @@ void accumulateOnDevice(const double* M, const int ldm, const ScalarType sign, S
                         const ConfigElem* config_right, const ScalarType* tau,
                         const ScalarType* cubic_coeff, const int size, cudaStream_t stream_) {
   const auto& helper = HelperSelector<ScalarType>::value;
-  const static int convolution_size = 2 * helper.get_oversampling() + 1;
+  const int convolution_size = 2 * helper.get_oversampling() + 1;
   const auto blocks = getBlockSize(size * size * convolution_size, 128);
 
   // TODO: check if there is a performance gain in using a block size that is a multiple of
