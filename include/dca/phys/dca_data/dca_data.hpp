@@ -90,6 +90,8 @@ public:
 
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+    using SpRGreensFunction =
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
   using TpGreensFunction =
       func::function<std::complex<TpAccumulatorScalar>,
                      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
@@ -178,6 +180,11 @@ public:  // Optional members getters.
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
     return *G_k_w_err_;
   }
+  auto& get_G_r_w_error() {
+    if (not G_r_w_err_)
+      G_r_w_err_ = std::make_unique<SpRGreensFunction>("G_r_w-error");
+    return *G_r_w_err_;
+  }
   auto& get_G_k_w_stdv() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("cluster_greens_function_G_k_w-stddev"));
@@ -221,6 +228,7 @@ public:  // Optional members getters.
 
 private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
+  std::unique_ptr<SpRGreensFunction> G_r_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
   std::unique_ptr<TpGreensFunction> G4_;
   std::unique_ptr<TpGreensFunction> G4_err_;
@@ -434,6 +442,7 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_err_);
     writer.execute(G_r_w);
+    writer.execute(G_r_w_err_);
     writer.execute(G_k_t);
     writer.execute(G_r_t);
 
