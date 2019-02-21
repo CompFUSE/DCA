@@ -21,6 +21,7 @@
 #include "H5Cpp.h"
 
 #include "dca/function/domains.hpp"
+#include "dca/io/buffer.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -63,7 +64,7 @@ public:
   void execute(std::string name, std::pair<scalar_type, scalar_type>& value);
 
   template <typename scalar_type>
-  void execute(std::string name, std::vector<scalar_type>& value);
+  void execute(const std::string& name, const std::vector<scalar_type>& value);
 
   template <typename scalar_type>
   void execute(std::string name, std::vector<std::complex<scalar_type>>& value);
@@ -107,6 +108,10 @@ public:
 
   template<class T>
   void execute(const std::unique_ptr<T>& obj);
+
+  void execute(const std::string& name, const io::Buffer& buffer){
+      return execute(name, static_cast<io::Buffer::Container>(buffer));
+  }
 
 private:
   bool fexists(const char* filename);
@@ -180,8 +185,8 @@ void HDF5Writer::execute(std::string name, std::pair<scalar_type, scalar_type>& 
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
-                         std::vector<scalar_type>& value)  //, H5File& file, std::string path)
+void HDF5Writer::execute(const std::string& name,
+                         const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     H5::H5File& file = (*my_file);

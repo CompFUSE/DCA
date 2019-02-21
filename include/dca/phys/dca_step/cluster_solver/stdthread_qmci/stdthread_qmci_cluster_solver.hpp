@@ -21,6 +21,8 @@
 #include <thread>
 #include <vector>
 
+#include "dca/io/buffer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
@@ -72,6 +74,9 @@ private:
 
   void warm_up(walker_type& walker, int id);
 
+  void readConfigurations();
+  void writeConfigurations() const;
+
   // TODO: Are the following using statements redundant and can therefore be removed?
   using qmci_integrator_type::compute_error_bars;
   using qmci_integrator_type::symmetrize_measurements;
@@ -105,6 +110,8 @@ private:
   std::mutex mutex_queue;
   std::mutex mutex_acc_finished;
   std::mutex mutex_numerical_error;
+
+  std::vector<dca::io::Buffer> config_dump_;
 };
 
 template <class qmci_integrator_type>
@@ -117,7 +124,8 @@ StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
 
       thread_task_handler_(nr_walkers, nr_accumulators),
 
-      accumulators_queue() {
+      accumulators_queue(),
+      config_dump_(nr_walkers) {
   if (nr_walkers < 1 || nr_accumulators < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -127,6 +135,8 @@ StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
     rng_vector.emplace_back(concurrency.id(), concurrency.number_of_processors(),
                             parameters.get_seed());
   }
+
+  readConfigurations();
 }
 
 template <class qmci_integrator_type>
@@ -201,6 +211,9 @@ double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struc
   if (DCA_iteration == parameters.get_dca_iterations() - 1)
     compute_error_bars();
 
+  if (DCA_iteration == parameters.get_dca_iterations() - 1)
+    writeConfigurations();
+
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
   return L2_Sigma_difference;
 }
@@ -236,6 +249,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 
   const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
   walker_type walker(parameters, data_, rng_vector[rng_index], id);
+
+  if (config_dump_[rng_index].size())
+    walker.readConfig(config_dump_[rng_index]);
 
   walker.initialize();
 
@@ -273,6 +289,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   // accumulator.get_error_distribution() += walker.get_error_distribution();
   mutex_numerical_error.unlock();
 #endif  // DCA_WITH_QMC_BIT
+
+  config_dump_[rng_index] = walker.dumpConfig();
 
   if (id == 0 && concurrency.id() == concurrency.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;
@@ -336,6 +354,44 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
   {
     std::lock_guard<std::mutex> lock(mutex_merge);
     accumulator_obj.sum_to(accumulator);
+  }
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::writeConfigurations() const {
+  if (parameters.get_directory_config_write() == "")
+    return;
+
+  try {
+    const std::string out_name = parameters.get_directory_config_write() + "/process_" +
+                                 std::to_string(concurrency.id()) + ".hdf5";
+    io::HDF5Writer writer;
+    writer.open_file(out_name);
+    for (int id = 0; id < config_dump_.size(); ++id)
+      writer.execute("configuration_" + std::to_string(id), config_dump_[id]);
+  }
+  catch (std::exception& err) {
+    std::cerr << err.what() << "\nCould not write the configuration.\n";
+  }
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
+  if (parameters.get_directory_config_read() == "")
+    return;
+
+  try {
+    const std::string inp_name = parameters.get_directory_config_read() + "/process_" +
+                                 std::to_string(concurrency.id()) + ".hdf5";
+    io::HDF5Reader reader;
+    reader.open_file(inp_name);
+    for (int id = 0; id < config_dump_.size(); ++id)
+      reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
+  }
+  catch (std::exception& err) {
+    std::cerr << err.what() << "\nCould not read the configuration.\n";
+    for (auto& config : config_dump_)
+      config.clear();
   }
 }
 
