@@ -473,8 +473,19 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     return;
 
   try {
+    // The command cmd returns the highest id among the available configuration files.
+    const std::string cmd = "ls -1 " + parameters_.get_directory_config_read() +
+                            " | grep -o _[0-9]* | grep -o [0-9]* | sort -n | tail -n 1 > .tmp.txt";
+    system(cmd.c_str());
+    std::ifstream tmp(".tmp.txt");
+    int available(0);
+    tmp >> available;
+    ++available;
+
+    const int id_to_read = concurrency_.id() % available;
+
     const std::string inp_name = parameters_.get_directory_config_read() + "/process_" +
-                                 std::to_string(concurrency_.id()) + ".hdf5";
+                                 std::to_string(id_to_read) + ".hdf5";
     io::HDF5Reader reader;
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
