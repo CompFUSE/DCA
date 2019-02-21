@@ -68,16 +68,24 @@ public:
   void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
                                   func::function<std::complex<scalar_type>, domain>& f_stddev) const;
 
+  // Computes the sum of s over all ranks excluding the local value and stores the result back
+  // in s.
+  // Does nothing, if there is only one rank.
+  // In/Out: s
+  template <typename T>
+  void leaveOneOutSum(T& s) const;
+
+  // Element-wise implementations for dca::func::function.
+  // In/Out: f
+  template <typename Scalar, class Domain>
+  void leaveOneOutSum(func::function<Scalar, Domain>& f) const;
+
   // Computes the average of s over all ranks excluding the local value and stores the result back
   // in s.
   // Does nothing, if there is only one rank.
   // In/Out: s
-  template <typename Scalar>
-  void leaveOneOutAvg(Scalar& s) const;
-  // Element-wise implementation for dca::func::function.
-  // In/Out: f
-  template <typename Scalar, class Domain>
-  void leaveOneOutAvg(func::function<Scalar, Domain>& f) const;
+  template <typename T>
+  void leaveOneOutAvg(T& s) const;
 
   // Computes and returns the element-wise jackknife error
   // \Delta f_{jack} = \sqrt( (n-1)/n \sum_i^n (f_i - f_avg)^2 ),
@@ -264,26 +272,34 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
 }
 
 template <typename Scalar>
-void MPICollectiveSum::leaveOneOutAvg(Scalar& s) const {
+void MPICollectiveSum::leaveOneOutSum(Scalar& s) const {
   if (grouping_.get_Nr_threads() == 1)
     return;
 
   const Scalar s_local(s);
   sum(s);
-  s = (s - s_local) / (grouping_.get_Nr_threads() - 1);
+  s = s - s_local;
 }
 
 template <typename Scalar, class Domain>
-void MPICollectiveSum::leaveOneOutAvg(func::function<Scalar, Domain>& f) const {
+void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain>& f) const {
   if (grouping_.get_Nr_threads() == 1)
     return;
 
   const func::function<Scalar, Domain> f_local(f);
   sum(f_local, f);
 
-  const double scale = 1. / (grouping_.get_Nr_threads() - 1);
   for (int i = 0; i < f.size(); ++i)
-    f(i) = scale * (f(i) - f_local(i));
+    f(i) = f(i) - f_local(i);
+}
+
+template <typename T>
+void MPICollectiveSum::leaveOneOutAvg(T& x) const {
+  if (grouping_.get_Nr_threads() == 1)
+    return;
+
+  leaveOneOutSum(x);
+  x /= grouping_.get_Nr_threads() - 1;
 }
 
 template <typename Scalar, class Domain>
@@ -321,7 +337,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
 
   const int n = grouping_.get_Nr_threads();
 
-  if (n == 1)  // No jackknife procedure possible.
+  if (n == 1)  // No Jack Knife procedure possible.
     return err;
 
   func::function<std::complex<Scalar>, Domain> f_avg("f_avg");

@@ -89,7 +89,6 @@ public:
   using NuKCutDmn = func::dmn_variadic<NuDmn, KCutDmn>;
   using NuNuKWDmn = func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>;
 
-public:
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
   using SpRGreensFunction =
@@ -103,7 +102,6 @@ public:
       std::complex<TpAccumulatorScalar>,
       func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
 
-public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
@@ -183,6 +181,11 @@ public:  // Optional members getters.
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
     return *G_k_w_err_;
   }
+  auto& get_G_r_w_error() {
+    if (not G_r_w_err_)
+      G_r_w_err_ = std::make_unique<SpRGreensFunction>("G_r_w-error");
+    return *G_r_w_err_;
+  }
   auto& get_G_k_w_stdv() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("cluster_greens_function_G_k_w-stddev"));
@@ -213,6 +216,11 @@ public:  // Optional members getters.
       G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-stddev"));
     return *G4_k_k_w_w_err_;
   }
+    auto& get_G4_error() {
+      if (not G4_k_k_w_w_err_)
+        G4_k_k_w_w_err_.reset(new TpGreensFunction("G4-error"));
+      return *G4_k_k_w_w_err_;
+    }
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
       non_density_interactions_.reset(
@@ -226,6 +234,7 @@ public:  // Optional members getters.
 
 private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
+  std::unique_ptr<SpRGreensFunction> G_r_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
   std::unique_ptr<TpGreensFunction> G4_k_k_w_w_;
   std::unique_ptr<TpGreensFunction> G4_k_k_w_w_err_;
@@ -439,6 +448,7 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_err_);
     writer.execute(G_r_w);
+    writer.execute(G_r_w_err_);
     writer.execute(G_k_t);
     writer.execute(G_r_t);
 

@@ -75,6 +75,9 @@ public:
   bool adjust_self_energy_for_double_counting() const {
     return adjust_self_energy_for_double_counting_;
   }
+  ErrorComputationType get_error_computation_type() const {
+    return error_computation_type_;
+  }
 
 private:
   void generateRandomSeed() {
