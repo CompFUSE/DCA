@@ -26,6 +26,7 @@
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
+#include "dca/util/get_stdout_from_command.hpp"
 #include "dca/util/print_time.hpp"
 #include "dca/parallel/util/get_workload.hpp"
 
@@ -383,12 +384,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
   try {
     // The command cmd returns the highest id among the available configuration files.
     const std::string cmd = "ls -1 " + parameters.get_directory_config_read() +
-                            " | grep -o _[0-9]* | grep -o [0-9]* | sort -n | tail -n 1 > .tmp.txt";
-    system(cmd.c_str());
-    std::ifstream tmp(".tmp.txt");
-    int available(0);
-    tmp >> available;
-    ++available;
+                            " | grep -o _[0-9]* | grep -o [0-9]* | sort -n | tail -n 1";
+
+    const int available = std::atoi(dca::util::getStdoutFromCommand(cmd).c_str()) + 1;
 
     const int id_to_read = concurrency.id() % available;
 
