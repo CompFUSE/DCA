@@ -80,7 +80,7 @@
 	"error-computation-type" : "JACK_KNIFE",
         "threaded-solver": {
             "walkers": 7,
-            "accumulators": 5,
+            "accumulators": 7,
             "shared-walk-and-accumulation-thread": true
         }
     },
