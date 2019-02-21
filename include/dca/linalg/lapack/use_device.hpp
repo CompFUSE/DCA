@@ -57,16 +57,16 @@ struct UseDevice<CPU> {
   // d[2*inc_d]...
   // Out: b
   // Preconditions: lda >= m, ldb >= m.
-  template <typename ScalarType>
-  static void multiplyDiagonalLeft(int m, int n, const ScalarType* d, int inc_d,
-                                   const ScalarType* a, int lda, ScalarType* b, int ldb,
+  template <typename ScalarIn, typename ScalarOut>
+  static void multiplyDiagonalLeft(int m, int n, const ScalarIn* d, int inc_d,
+                                   const ScalarIn* a, int lda, ScalarOut* b, int ldb,
                                    int /*thread_id*/, int /*stream_id*/) {
     assert(lda >= m);
     assert(ldb >= m);
 
     for (int j = 0; j < n; ++j) {
-      const ScalarType* aj = a + j * lda;
-      ScalarType* bj = b + j * ldb;
+      const ScalarIn* aj = a + j * lda;
+      ScalarOut* bj = b + j * ldb;
 
       for (int i = 0; i < m; ++i)
         bj[i] = aj[i] * d[i * inc_d];
@@ -117,9 +117,9 @@ struct UseDevice<GPU> {
     magma::getri_gpu(n, a, lda, ipiv, work, lwork);
   }
 
-  template <typename ScalarType>
-  inline static void multiplyDiagonalLeft(int m, int n, const ScalarType* d, int inc_d,
-                                          const ScalarType* a, int lda, ScalarType* b, int ldb,
+  template <typename ScalarIn, typename ScalarOut>
+  inline static void multiplyDiagonalLeft(int m, int n, const ScalarIn* d, int inc_d,
+                                          const ScalarIn* a, int lda, ScalarOut* b, int ldb,
                                           int thread_id, int stream_id) {
     lapack::multiplyDiagonalLeft_gpu(m, n, d, inc_d, a, lda, b, ldb, thread_id, stream_id);
   }

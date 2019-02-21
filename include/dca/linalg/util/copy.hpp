@@ -28,6 +28,25 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
+template <typename ScalarType>
+inline void memoryCopyCpu(ScalarType* dest, const ScalarType* src, size_t sz) {
+  std::memcpy(dest, src, sz * sizeof(ScalarType));
+}
+
+template <typename ScalarType>
+void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
+                   std::pair<int, int> size) {
+  assert(size.first <= ld_dest);
+  assert(size.first <= ld_src);
+  assert(size.first >= 0);
+  assert(size.second >= 0);
+
+  size_t ncols = size.second;
+  for (size_t i = 0; i < ncols; ++i) {
+    memoryCopyCpu(dest + i * ld_dest, src + i * ld_src, size.first);
+  }
+}
+
 #ifdef DCA_HAVE_CUDA
 // Fully synchronous 1D memory copy, i.e. all operations in the GPU queue are executed before the
 // execution of this copy.
@@ -109,24 +128,17 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
 }
 
 #else
+
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, const ScalarType* src, size_t sz, int /*thread_id*/ = 0,
                 int /*stream_id*/ = 0) {
-  std::memcpy(dest, src, sz * sizeof(ScalarType));
+  memoryCopyCpu(dest, src, sz);
 }
 
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                 std::pair<int, int> size, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
-  assert(size.first <= ld_dest);
-  assert(size.first <= ld_src);
-  assert(size.first >= 0);
-  assert(size.second >= 0);
-
-  size_t ncols = size.second;
-  for (size_t i = 0; i < ncols; ++i) {
-    memoryCopy(dest + i * ld_dest, src + i * ld_src, size.first);
-  }
+  memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
 #endif  // DCA_HAVE_CUDA

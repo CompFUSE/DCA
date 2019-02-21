@@ -83,6 +83,11 @@ public:
                                           G_precomputed.leadingDimension(), col_ptr, incr);
   }
 
+  int deviceFingerprint() const {
+    return (i_index_gpu.capacity() + j_index_gpu.capacity()) * sizeof(int) +
+           is_Bennett_gpu.capacity() * sizeof(bool) + exp_Vj_gpu.capacity() * sizeof(double);
+  }
+
 private:
   int thread_id;
 

@@ -8,7 +8,6 @@
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file provides memory related utility:
-// - allocation, deallocation,
 // - setToZero.
 
 #ifndef DCA_LINALG_UTIL_MEMORY_HPP
@@ -37,39 +36,6 @@ struct Memory {};
 
 template <>
 struct Memory<CPU> {
-  template <typename ScalarType>
-  static void allocate(ScalarType*& ptr, size_t size) {
-    assert(ptr == nullptr);
-
-#ifdef DCA_HAVE_CUDA
-    cudaError_t ret = cudaHostAlloc((void**)&ptr, size * sizeof(ScalarType), cudaHostAllocDefault);
-    if (ret != cudaSuccess) {
-      checkRCMsg(ret,
-                 "\t HOST size requested : " + std::to_string(size) + " * " +
-                     std::to_string(sizeof(ScalarType)));
-      throw(std::bad_alloc());
-    }
-#else
-    int err = posix_memalign((void**)&ptr, 128, size * sizeof(ScalarType));
-    if (err)
-      throw(std::bad_alloc());
-#endif
-  }
-
-  template <typename ScalarType>
-  static void deallocate(ScalarType*& ptr) {
-#ifdef DCA_HAVE_CUDA
-    cudaError_t ret = cudaFreeHost(ptr);
-    if (ret != cudaSuccess) {
-      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
-      std::terminate();
-    }
-#else
-    free(ptr);
-#endif  // DCA_HAVE_CUDA
-    ptr = nullptr;
-  }
-
   // Sets the elements to 0. Only defined for arithmetic types and
   // std::complex of aritmetic types.
   template <typename ScalarType>
@@ -87,28 +53,6 @@ struct Memory<CPU> {
 #ifdef DCA_HAVE_CUDA
 template <>
 struct Memory<GPU> {
-  template <typename ScalarType>
-  static void allocate(ScalarType*& ptr, size_t size) {
-    assert(ptr == nullptr);
-
-    cudaError_t ret = cudaMalloc((void**)&ptr, size * sizeof(ScalarType));
-    if (ret != cudaSuccess) {
-      checkRCMsg(ret, "\t DEVICE size requested : " + std::to_string(size));
-      throw(std::bad_alloc());
-    }
-  }
-
-  template <typename ScalarType>
-  static void deallocate(ScalarType*& ptr) {
-    cudaError_t ret = cudaFree(ptr);
-    if (ret != cudaSuccess) {
-      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
-      std::terminate();
-    }
-
-    ptr = nullptr;
-  }
-
   // Sets the elements to 0. Only defined for arithmetic types and
   // std::complex of aritmetic types.
   template <typename ScalarType>

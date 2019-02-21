@@ -256,6 +256,26 @@ else()
 endif()
 
 ################################################################################
+# Accumulation options.
+option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
+       cost." OFF)
+if (DCA_WITH_MEMORY_SAVINGS)
+  set(MEMORY_SAVINGS true)
+else()
+  set(MEMORY_SAVINGS false)
+endif()
+
+if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+  set(MC_ACCUMULATION_SCALAR float)
+else()
+  set(MC_ACCUMULATION_SCALAR double)
+endif()
+
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"
+        "${CMAKE_BINARY_DIR}/include/dca/config/accumulation_options.hpp" @ONLY)
+
+
+################################################################################
 # Generate applications' config files.
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/analysis.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/analysis.hpp" @ONLY)

@@ -22,7 +22,7 @@
 #include <cuda_runtime.h>
 
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/util/allocators.hpp"
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/math/nfft/kernels_interface.hpp"
@@ -59,8 +59,8 @@ public:
   // Accumulates asynchronously on the device the entries of the M matrix at times and orbitals
   // described by the provided configuration.
   // Postcondition: M and config shall not be modified until 'synchronizeCopy' is called.
-  template <class Configuration>
-  void accumulate(const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config,
+  template <class Configuration, typename RealInp>
+  void accumulate(const linalg::Matrix<RealInp, linalg::GPU>& M, const Configuration& config,
                   const int sign);
 
   // Transforms the accumulated data to the frequency domain and stores it in f_w.
@@ -69,12 +69,24 @@ public:
   void finalize(func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w,
                 bool get_square = false);
 
+  // Preallocates memory for the configuration to avoid a crash during the execution of accumulate.
+  void reserve(std::size_t size);
+
   // Sums the accumulated data in the time domain.
   ThisType& operator+=(ThisType& other);
 
   // Ensures that the arguments of the method 'accumulate' have been copied to the GPU.
   void synchronizeCopy() {
     m_copied_event_.block();
+  }
+
+  // Returns the allocated device memory in bytes.
+  std::size_t deviceFingerprint() const {
+    return accumulation_matrix_.deviceFingerprint() + accumulation_matrix_sqr_.deviceFingerprint();
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return get_device_cubic_coeff().deviceFingerprint();
   }
 
 private:
@@ -89,7 +101,6 @@ private:
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
 
-  linalg::Matrix<double, linalg::GPU> M_;
   linalg::util::HostVector<details::ConfigElem> config_left_;
   linalg::util::HostVector<details::ConfigElem> config_right_;
   linalg::util::HostVector<ScalarType> times_;
@@ -97,7 +108,6 @@ private:
   linalg::Vector<details::ConfigElem, linalg::GPU> config_right_dev_;
   linalg::Vector<ScalarType, linalg::GPU> times_dev_;
 
-  linalg::util::CudaEvent config_copied_event_;
   linalg::util::CudaEvent m_copied_event_;
 };
 
@@ -150,17 +160,19 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <class Configuration>
+void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::reserve(std::size_t size) {
+  config_right_.resize(size);
+  config_left_.resize(size);
+  times_.resize(size);
+}
+
+template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
+template <class Configuration, typename RealInp>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
-    const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config, const int sign) {
+    const linalg::Matrix<RealInp, linalg::GPU>& M, const Configuration& config, const int sign) {
   assert(M.is_square());
   if (config.size() == 0)  // Contribution is zero.
     return;
-
-  M_.setAsync(M, stream_);
-  m_copied_event_.record(stream_);
-
-  config_copied_event_.block();
 
   const int n = M.nrCols();
   config_right_.resize(n);
@@ -180,13 +192,13 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   config_left_dev_.setAsync(config_left_, stream_);
   times_dev_.setAsync(times_, stream_);
 
-  config_copied_event_.record(stream_);
-
-  details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), static_cast<ScalarType>(sign),
+  details::accumulateOnDevice(M.ptr(), M.leadingDimension(), static_cast<ScalarType>(sign),
                               accumulation_matrix_.ptr(), accumulation_matrix_sqr_.ptr(),
                               accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
                               config_right_dev_.ptr(), times_dev_.ptr(),
                               get_device_cubic_coeff().ptr(), n, stream_);
+
+  m_copied_event_.record(stream_);
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>

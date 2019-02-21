@@ -50,6 +50,9 @@ inline void syncStream(int thread_id, int stream_id) {
 #else
 
 // Implement SFINAE.
+inline void* getStream(int = 0, int = 0) {
+  return nullptr;
+}
 inline void syncStream(int /*thread_id*/, int /*stream_id*/) {}
 inline void resizeStreamContainer(int /*max_threads*/) {}
 

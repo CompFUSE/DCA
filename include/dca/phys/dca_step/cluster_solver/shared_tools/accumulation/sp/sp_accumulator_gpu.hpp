@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/math/nfft/dnfft_1d_gpu.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
@@ -53,8 +54,13 @@ public:
 
   void resetAccumulation();
 
-  template <class Configuration, typename InpScalar>
-  void accumulate(const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2>& Ms,
+                  const std::array<Configuration, 2>& configs, const int sign);
+
+  // For testing purposes.
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
@@ -66,8 +72,18 @@ public:
     cached_nfft_obj_[1].synchronizeCopy();
   }
 
+  void syncStreams(const linalg::util::CudaEvent& event) {
+    for(const auto& stream : streams_)
+      event.block(stream);
+  }
+
   const auto& get_streams() const {
     return streams_;
+  }
+
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return cached_nfft_obj_[0].deviceFingerprint() + cached_nfft_obj_[1].deviceFingerprint();
   }
 
 private:
@@ -100,15 +116,29 @@ void SpAccumulator<Parameters, linalg::GPU>::resetAccumulation() {
 }
 
 template <class Parameters>
-template <class Configuration, typename InpScalar>
+template <class Configuration>
 void SpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+    const std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (finalized_)
     throw(std::logic_error("The accumulator is already finalized."));
 
   for (int s = 0; s < 2; ++s)
+    cached_nfft_obj_[s].reserve(configs[s].size());
+  for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
+}
+
+template <class Parameters>
+template <class Configuration>
+void SpAccumulator<Parameters, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
+    const std::array<Configuration, 2>& configs, const int sign) {
+  std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2> M_dev;
+  for (int s = 0; s < 2; ++s)
+    M_dev[s].setAsync(Ms[s], streams_[s]);
+
+  accumulate(M_dev, configs, sign);
 }
 
 template <class Parameters>

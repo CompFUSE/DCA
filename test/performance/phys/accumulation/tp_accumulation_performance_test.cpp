@@ -57,9 +57,8 @@ struct ConfigElement {
   double tau_;
 };
 
-using Configuration = std::array<std::vector<ConfigElement>, 2>;
-using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
-void prepareRandomConfig(Configuration& config, MatrixPair& M, int n);
+using dca::linalg::CPU;
+using dca::linalg::GPU;
 
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
@@ -68,6 +67,13 @@ using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
+
+using Real = Parameters::MC_measurement_scalar_type;
+template <dca::linalg::DeviceType device>
+using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
+using Configuration = std::array<std::vector<ConfigElement>, 2>;
+
+void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = typename Parameters::RClusterDmn;
@@ -88,7 +94,7 @@ int main(int argc, char** argv) {
   Data data(parameters);
   data.initialize();
 
-  MatrixPair M;
+  MatrixPair<CPU> M;
   Configuration config;
   prepareRandomConfig(config, M, n);
   const int sign = 1;
@@ -135,10 +141,10 @@ int main(int argc, char** argv) {
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
       data.G0_k_w_cluster_excluded, parameters);
-  gpu_accumulator.resetAccumulation(1);
+  MatrixPair<GPU> M_dev{M[0], M[1]};
 
-  // Allows memory to be assigned.
-  gpu_accumulator.accumulate(M, config, sign);
+  // Allow memory to be assigned.
+  gpu_accumulator.accumulate(M_dev, config, sign);
   cudaStreamSynchronize(gpu_accumulator.get_stream());
   gpu_accumulator.resetAccumulation(1);
 
@@ -148,7 +154,7 @@ int main(int argc, char** argv) {
   // Time a single execution.
   start_event.record(gpu_accumulator.get_stream());
   dca::profiling::WallTime host_start_time;
-  gpu_accumulator.accumulate(M, config, sign);
+  gpu_accumulator.accumulate(M_dev, config, sign);
   dca::profiling::WallTime host_end_time;
   stop_event.record(gpu_accumulator.get_stream());
 
@@ -174,7 +180,7 @@ int main(int argc, char** argv) {
 #endif  // DCA_HAVE_CUDA
 }
 
-void prepareRandomConfig(Configuration& config, MatrixPair& M, const int n) {
+void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, const int n) {
   dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   for (int s = 0; s < 2; ++s) {

@@ -146,6 +146,9 @@ public:
     return io::Buffer();
   }
   void readConfig(io::Buffer& /*buffer*/) {}
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
 
 private:
   void test_interpolation();

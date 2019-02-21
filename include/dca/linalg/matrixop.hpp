@@ -768,7 +768,8 @@ void multiply(char transa, char transb, const std::array<Matrix<ScalarType, CPU>
 template <typename ScalarType>
 void multiply(const std::array<Matrix<ScalarType, CPU>, 2>& a,
               const std::array<Matrix<ScalarType, CPU>, 2>& b,
-              std::array<Matrix<ScalarType, CPU>, 2>& c,  std::array<Matrix<ScalarType, CPU>, 5>& work) {
+              std::array<Matrix<ScalarType, CPU>, 2>& c,
+              std::array<Matrix<ScalarType, CPU>, 5>& work) {
   multiply('N', 'N', a, b, c, work);
 }
 
@@ -842,19 +843,19 @@ void multiply(const Matrix<ScalarType, device_name>& a,
 // where d is a vector containing the diagonal elements of the matrix D.
 // Out: b
 // Preconditions: a.size() == b.size(), d.size() == a.nrRows().
-template <typename ScalarType, DeviceType device_name>
-inline void multiplyDiagonalLeft(const Vector<ScalarType, device_name>& d,
-                                 const Matrix<ScalarType, device_name>& a,
-                                 Matrix<ScalarType, device_name>& b, int thread_id = 0,
+template <typename ScalarIn, typename ScalarOut, DeviceType device_name>
+inline void multiplyDiagonalLeft(const Vector<ScalarIn, device_name>& d,
+                                 const Matrix<ScalarIn, device_name>& a,
+                                 Matrix<ScalarOut, device_name>& b, int thread_id = 0,
                                  int stream_id = 0) {
   lapack::UseDevice<device_name>::multiplyDiagonalLeft(a.nrRows(), a.nrCols(), d.ptr(), 1, a.ptr(),
                                                        a.leadingDimension(), b.ptr(),
                                                        b.leadingDimension(), thread_id, stream_id);
 }
-template <typename ScalarType>
-inline void multiplyDiagonalLeft(const Vector<ScalarType, CPU>& d, const Matrix<ScalarType, GPU>& a,
-                                 Matrix<ScalarType, GPU>& b, int thread_id = 0, int stream_id = 0) {
-  Vector<ScalarType, GPU> d_gpu(d);
+template <typename ScalarIn, typename ScalarOut>
+inline void multiplyDiagonalLeft(const Vector<ScalarIn, CPU>& d, const Matrix<ScalarIn, GPU>& a,
+                                 Matrix<ScalarOut, GPU>& b, int thread_id = 0, int stream_id = 0) {
+  Vector<ScalarIn, GPU> d_gpu(d);
   multiplyDiagonalLeft(d_gpu, a, b, thread_id, stream_id);
 }
 

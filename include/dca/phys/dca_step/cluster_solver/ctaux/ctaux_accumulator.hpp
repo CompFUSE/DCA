@@ -22,6 +22,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
@@ -150,18 +151,23 @@ public:
   void update_sum_squares();
 #endif
 
+  std::size_t deviceFingerprint() const {
+    return M_[0].deviceFingerprint() + M_[1].deviceFingerprint() +
+           single_particle_accumulator_obj.deviceFingerprint() +
+           two_particle_accumulator_.deviceFingerprint();
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return accumulator::TpAccumulator<Parameters, device_t>::staticDeviceFingerprint();
+  }
+
 private:
-  void compute_M_v_v(std::vector<vertex_singleton_type>& configuration_e_spin,
-                     dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-                     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int thread_id, int stream_id);
-
-  void compute_M_v_v(std::vector<vertex_singleton_type>& configuration_e_spin,
-                     dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int thread_id, int stream_id);
-
   void accumulate_single_particle_quantities();
 
   void accumulate_equal_time_quantities();
+  using AccumType = typename Parameters::MC_measurement_scalar_type;
+  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<AccumType, linalg::GPU>, 2>& M);
+  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<AccumType, linalg::CPU>, 2>& M);
 
   void accumulate_two_particle_quantities();
 
@@ -182,13 +188,10 @@ protected:
 
   const bool compute_std_deviation_;
 
-  CV<Parameters> CV_obj;
-
-  dca::linalg::Vector<double, dca::linalg::CPU> exp_V_minus_one;
-
   std::array<std::vector<vertex_singleton_type>, 2> hs_configuration_;
 
-  std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_;
+  std::array<dca::linalg::Matrix<AccumType, device_t>, 2> M_;
+  std::array<dca::linalg::Matrix<AccumType, linalg::CPU>, 2> M_host_;
 
   func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
   func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
@@ -225,10 +228,6 @@ CtauxAccumulator<device_t, Parameters, Data>::CtauxAccumulator(Parameters& param
       compute_std_deviation_(parameters_.get_error_computation_type() ==
                              ErrorComputationType::STANDARD_DEVIATION),
 
-      CV_obj(parameters_),
-
-      exp_V_minus_one(64),
-
       error("numerical-error-distribution-of-N-matrices"),
       visited_expansion_order_k("<k>"),
 
@@ -259,8 +258,6 @@ void CtauxAccumulator<device_t, Parameters, Data>::initialize(int dca_iteration)
   if (dca_iteration == parameters_.get_dca_iterations() - 1 &&
       parameters_.get_four_point_type() != NONE)
     perform_tp_accumulation_ = true;
-
-  CV_obj.initialize(data_);
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
     visited_expansion_order_k(i) = 0;
@@ -367,7 +364,14 @@ void CtauxAccumulator<device_t, Parameters, Data>::updateFrom(walker_type& walke
 
   current_sign = walker.get_sign();
 
+  const linalg::util::CudaEvent* event = walker.compute_M(M_);
+
+  single_particle_accumulator_obj.synchronizeCopy();
+  two_particle_accumulator_.synchronizeCopy();
+
   configuration_type& full_configuration = walker.get_configuration();
+  hs_configuration_[0] = full_configuration.get(e_UP);
+  hs_configuration_[1] = full_configuration.get(e_DN);
 
   const int k = full_configuration.get_number_of_interacting_HS_spins();
   if (k < visited_expansion_order_k.size())
@@ -378,14 +382,8 @@ void CtauxAccumulator<device_t, Parameters, Data>::updateFrom(walker_type& walke
   walker.get_error_distribution() = 0;
 #endif  // DCA_WITH_QMC_BIT
 
-  single_particle_accumulator_obj.synchronizeCopy();
-  two_particle_accumulator_.synchronizeCopy();
-
-  hs_configuration_[0] = full_configuration.get(e_UP);
-  compute_M_v_v(hs_configuration_[0], walker.get_N(e_UP), M_[0], walker.get_thread_id(), 0);
-
-  hs_configuration_[1] = full_configuration.get(e_DN);
-  compute_M_v_v(hs_configuration_[1], walker.get_N(e_DN), M_[1], walker.get_thread_id(), 0);
+  single_particle_accumulator_obj.syncStreams(*event);
+  two_particle_accumulator_.syncStreams(*event);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -431,58 +429,6 @@ void CtauxAccumulator<device_t, Parameters, Data>::update_sum_squares() {
 }
 #endif
 
-/*!
- *   \f{eqnarray}{
- *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
- *   \f}
- */
-template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-void CtauxAccumulator<device_t, Parameters, Data>::compute_M_v_v(
-    std::vector<vertex_singleton_type>& configuration_e_spin,
-    dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int /*walker_thread_id*/,
-    int /*walker_stream_id*/) {
-  assert(int(configuration_e_spin.size()) == N.nrRows() && N.is_square());
-
-  // What happens if configuration_size = 0?
-  int configuration_size = configuration_e_spin.size();
-
-  M.resizeNoCopy(N.size());
-
-  exp_V_minus_one.resize(configuration_size);
-
-  for (int i = 0; i < configuration_size; ++i)
-    exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
-
-  dca::linalg::matrixop::multiplyDiagonalLeft(exp_V_minus_one, N, M);
-}
-
-/*!
- *   \f{eqnarray}{
- *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
- *   \f}
- */
-#ifdef DCA_HAVE_CUDA
-template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-void CtauxAccumulator<device_t, Parameters, Data>::compute_M_v_v(
-    std::vector<vertex_singleton_type>& configuration_e_spin,
-    dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int walker_thread_id, int walker_stream_id) {
-  assert(int(configuration_e_spin.size()) == N.nrRows() && N.is_square());
-
-  M.set(N, walker_thread_id, walker_stream_id);
-
-  // What happens if configuration_size = 0?
-  int configuration_size = configuration_e_spin.size();
-  exp_V_minus_one.resize(configuration_size);
-
-  for (int i = 0; i < configuration_size; ++i)
-    exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
-
-  dca::linalg::matrixop::multiplyDiagonalLeft(exp_V_minus_one, M, M);
-}
-#endif  // DCA_HAVE_CUDA
-
 /*************************************************************
  **                                                         **
  **                    G2 - MEASUREMENTS                    **
@@ -509,8 +455,25 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantities() {
   profiler_type profiler("equal-time-measurements", "CT-AUX accumulator", __LINE__, thread_id);
 
-  MC_two_particle_equal_time_accumulator_obj.compute_G_r_t(hs_configuration_[1], M_[1],
-                                                           hs_configuration_[0], M_[0]);
+  return accumulate_equal_time_quantities(M_);
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantities(
+    const std::array<linalg::Matrix<AccumType, linalg::GPU>, 2>& M) {
+  for (int s = 0; s < 2; ++s)
+    M_host_[s].setAsync(M[s], thread_id, s);
+  for (int s = 0; s < 2; ++s)
+    linalg::util::syncStream(thread_id, s);
+
+  return accumulate_equal_time_quantities(M_host_);
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantities(
+    const std::array<linalg::Matrix<AccumType, linalg::CPU>, 2>& M) {
+  MC_two_particle_equal_time_accumulator_obj.compute_G_r_t(hs_configuration_[0], M[0],
+                                                           hs_configuration_[1], M[1]);
 
   MC_two_particle_equal_time_accumulator_obj.accumulate_G_r_t(current_sign);
 

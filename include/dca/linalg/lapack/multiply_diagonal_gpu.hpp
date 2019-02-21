@@ -26,9 +26,9 @@ namespace lapack {
 // Out: b
 // Preconditions: lda >= m, ldb >= m.
 // Type can be float, double, cuComplex, cuDoubleComplex, std::complex<float>, std::complex<double>.
-template <typename Type>
-void multiplyDiagonalLeft_gpu(int m, int n, const Type* d, int inc_d, const Type* a, int lda,
-                              Type* b, int ldb, int thread_id, int stream_id);
+template <typename ScalarIn, typename ScalarOut>
+void multiplyDiagonalLeft_gpu(int m, int n, const ScalarIn* d, int inc_d, const ScalarIn* a,
+                              int lda, ScalarOut* b, int ldb, int thread_id, int stream_id);
 template <typename Type>
 inline void multiplyDiagonalLeft_gpu(int m, int n, const std::complex<Type>* d, int inc_d,
                                      const std::complex<Type>* a, int lda, std::complex<Type>* b,

@@ -39,6 +39,11 @@ public:
   void update_G0_matrix(configuration_type& configuration,
                         dca::linalg::Matrix<double, dca::linalg::GPU>& G0, e_spin_states_type spin);
 
+  int deviceFingerprint() const {
+    return G0_r_t_GPU.deviceFingerprint() + akima_coefficients_GPU.deviceFingerprint() +
+           r1_minus_r0.deviceFingerprint();
+  }
+
 private:
   int thread_id;
   int stream_id;

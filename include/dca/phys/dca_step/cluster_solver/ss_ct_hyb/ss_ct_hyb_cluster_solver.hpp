@@ -56,6 +56,8 @@ public:
 
   const static int MC_TYPE = SS_CT_HYB;
 
+  static constexpr linalg::DeviceType device = device_t;
+
 public:
   SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
 

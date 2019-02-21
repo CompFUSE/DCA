@@ -20,6 +20,7 @@
 #include <cuda.h>
 #include <mutex>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
@@ -46,6 +47,8 @@ private:
   using NuDmn = typename BaseClass::NuDmn;
   using WDmn = typename BaseClass::WDmn;
 
+  using typename BaseClass::Real;
+
 public:
   // Constructor:
   // In: G0: non interacting greens function.
@@ -62,8 +65,13 @@ public:
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
-  template <class Configuration, class Scalar>
-  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
+                  const std::array<Configuration, 2>& configs, int sign);
+
+  // CPU input. For testing purposes.
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // Downloads the accumulation result to the host.
@@ -82,6 +90,24 @@ public:
     ndft_objs_[1].synchronizeCopy();
   }
 
+  void syncStreams(const linalg::util::CudaEvent& event) {
+    for (const auto& stream : streams_)
+      event.block(stream);
+  }
+
+  std::size_t deviceFingerprint() const {
+    std::size_t res(0);
+    for (int s = 0; s < 2; ++s)
+      res += ndft_objs_[s].deviceFingerprint() + G_[s].deviceFingerprint() +
+             space_trsf_objs_[s].deviceFingerprint();
+    return res;
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return get_G4().deviceFingerprint() + get_G0()[0].deviceFingerprint() +
+           get_G0()[1].deviceFingerprint();
+  }
+
 private:
   using Profiler = typename Parameters::profiler_type;
 
@@ -94,7 +120,6 @@ private:
   using typename BaseClass::SDmn;
 
   using typename BaseClass::TpGreenFunction;
-  using typename BaseClass::Real;
   using typename BaseClass::Complex;
 
   void initializeG0();
@@ -107,8 +132,8 @@ private:
 
   void computeGSingleband(int s);
 
-  template <class Configuration, typename Scalar>
-  void computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  template <class Configuration>
+  void computeM(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
                 const std::array<Configuration, 2>& configs);
 
   void updateG4();
@@ -116,6 +141,8 @@ private:
   void synchronizeStreams();
 
 private:
+  constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
+
   using BaseClass::thread_id_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
@@ -147,7 +174,7 @@ private:
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType = linalg::Vector<Complex, linalg::GPU>;
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, linalg::util::DeviceAllocator<Complex>>;
   static inline G4DevType& get_G4();
 };
 
@@ -205,7 +232,7 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   try {
     typename BaseClass::TpDomain tp_dmn;
     G4.resizeNoCopy(tp_dmn.get_size());
-    cudaMemsetAsync(G4.ptr(), 0, G4.size() * sizeof(Complex), streams_[0]);
+    G4.setToZeroAsync(streams_[0]);
   }
   catch (std::bad_alloc& err) {
     std::cerr << "Failed to allocate G4 on device.\n";
@@ -230,9 +257,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 }
 
 template <class Parameters>
-template <class Configuration, class Scalar>
+template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
 
@@ -243,30 +270,48 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
     return;
 
   sign_ = sign;
-  computeM(M_pair, configs);
+  computeM(M, configs);
   computeG();
   updateG4();
 }
 
 template <class Parameters>
-template <class Configuration, class Scalar>
+template <class Configuration>
+void TpAccumulator<Parameters, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const int sign) {
+  std::array<linalg::Matrix<Real, linalg::GPU>, 2> M_dev;
+  for (int s = 0; s < 2; ++s)
+    M_dev[s].setAsync(M[s], streams_[0]);
+
+  accumulate(M_dev, configs, sign);
+}
+
+template <class Parameters>
+template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::computeM(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
+  auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
+
   {
     Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      ndft_objs_[s].execute(configs[s], M_pair[s], G_[s]);
+      ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
   }
   {
     Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      space_trsf_objs_[s].execute(G_[s]);
+      space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::computeG() {
+  if (n_ndft_streams_ == 1) {
+    event_.record(streams_[0]);
+    event_.block(streams_[1]);
+  }
   {
     Profiler prf("ComputeG: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s) {
@@ -308,6 +353,9 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
   const int nk_exchange = domains::MomentumExchangeDomain::get_size();
 
+  //  TODO: set stream only if this thread gets exclusive access to G4.
+  //  get_G4().setStream(streams_[0]);
+
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
@@ -344,11 +392,9 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
     return;
 
   G4_ = std::make_unique<TpGreenFunction>("G4");
-  assert(G4_->size() == get_G4().size());
 
-  cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
-                  cudaMemcpyDeviceToHost, streams_[0]);
-  synchronizeStreams();
+  get_G4().copyTo(*G4_);
+
   // TODO: release memory if needed by the rest of the DCA loop.
   // get_G4().clear();
 

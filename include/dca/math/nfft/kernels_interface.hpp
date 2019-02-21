@@ -30,7 +30,7 @@ struct ConfigElem {
 };
 
 template <typename ScalarType>
-void accumulateOnDevice(const double* M, int ldm, ScalarType sign, ScalarType* out,
+void accumulateOnDevice(const ScalarType* M, int ldm, ScalarType sign, ScalarType* out,
                         ScalarType* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarType* tau,
                         const ScalarType* cubic_coeff, int size, cudaStream_t stream_);

@@ -51,6 +51,10 @@ public:
     return stream_;
   }
 
+  std::size_t deviceFingerprint() const {
+    return T_times_M_.deviceFingerprint() + T_times_M_times_T_.deviceFingerprint();
+  }
+
 private:
   using BaseClass = SpaceTransform2D<RDmn, KDmn, Real>;
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
