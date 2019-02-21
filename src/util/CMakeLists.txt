@@ -21,3 +21,6 @@ add_dependencies(modules modules_helper)
 
 # Timer
 add_library(timer STATIC timer.cpp)
+
+# System
+add_library(system STATIC get_stdout_from_command.cpp)
