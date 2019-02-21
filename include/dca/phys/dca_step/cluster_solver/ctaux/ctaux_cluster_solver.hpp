@@ -283,7 +283,7 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     data_.get_G4() /= parameters_.get_beta() * parameters_.get_beta();
 
   if (compute_jack_knife_)
-    concurrency_.jackknifeError(data_.get_G4(), true);
+    data_.get_G4_error() = concurrency_.jackknifeError(data_.get_G4(), true);
 
   double total = 1.e-6, integral = 0;
 
