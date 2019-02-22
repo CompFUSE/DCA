@@ -24,11 +24,11 @@ namespace dca {
 namespace testing {
 
 template <typename AccumType, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
-class AccumulationTest : public SingleSectorAccumulationTest<n_bands, n_sites, n_frqs> {
+class AccumulationTest : public SingleSectorAccumulationTest<AccumType, n_bands, n_sites, n_frqs> {
 public:
   using TimeDmn = dca::func::dmn_0<dca::phys::domains::time_domain>;
 
-  using BaseClass = SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>;
+  using BaseClass = SingleSectorAccumulationTest<AccumType, n_bands, n_sites, n_frqs>;
   using Parameters = MockParameters<BaseClass, AccumType>;
   using Configuration = std::array<typename BaseClass::Configuration, 2>;
   using Sample = std::array<typename BaseClass::Matrix, 2>;

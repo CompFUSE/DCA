@@ -138,8 +138,8 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
 // Explicit instantiation.
 template void sortM<double, double>(int, const double*, int, std::complex<double>*, const int,
                                     const Triple<double>*, const Triple<double>*, const cudaStream_t);
-template void sortM<float, double>(int, const double*, int, std::complex<float>*, const int,
-                                   const Triple<float>*, const Triple<float>*, const cudaStream_t);
+template void sortM<float, float>(int, const float*, int, std::complex<float>*, const int,
+                                  const Triple<float>*, const Triple<float>*, const cudaStream_t);
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);
 template void computeT<float>(int, int, std::complex<float>*, int, const Triple<float>*,

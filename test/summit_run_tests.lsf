@@ -10,9 +10,9 @@
 # TODO: Fix project ID and walltime.
 
 #BSUB -J DCA++_test_suite
-#BSUB -P GEN113
+#BSUB -P CPH102
 #BSUB -nnodes 1
-#BSUB -W 20
+#BSUB -W 30
 #BSUB -alloc_flags gpumps
 #BSUB -o out.DCA++-tests.%J.txt
 #BSUB -e err.DCA++-tests.%J.txt

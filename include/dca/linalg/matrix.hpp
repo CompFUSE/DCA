@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
@@ -32,10 +33,11 @@ namespace linalg {
 // dca::linalg::
 
 template <typename ScalarType, DeviceType device_name>
-class Matrix {
+class Matrix : public util::DefaultAllocator<ScalarType, device_name> {
 public:
   using ThisType = Matrix<ScalarType, device_name>;
   using ValueType = ScalarType;
+  using Allocator = util::DefaultAllocator<ScalarType, device_name>;
 
   Matrix(const std::string& name = default_name_);
 
@@ -84,26 +86,23 @@ public:
   // Two matrices are equal, if they have the same size and contain the same elements. Name and
   // capacity are ignored.
   // Special case: two matrices without elements are equal.
-  template <DeviceType dn = device_name>
-  bool operator==(
-      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
-  template <DeviceType dn = device_name>
+  bool operator==(const Matrix<ScalarType, device_name>& other) const;
+
   // Returns true if this is not equal to other, false otherwise.
   // See description of operator== for the definition of equality.
-  bool operator!=(
-      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
+  bool operator!=(const Matrix<ScalarType, device_name>& other) const;
 
   // Returns the (i,j)-th element of the matrix.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
   // This method is available only if device_name == CPU.
-  template <DeviceType dn = device_name>
-  std::enable_if_t<device_name == CPU && dn == CPU, ScalarType&> operator()(int i, int j) {
+  template <DeviceType dn = device_name, typename = std::enable_if_t<dn == CPU>>
+  ScalarType& operator()(int i, int j) {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
     return data_[i + j * leadingDimension()];
   }
-  template <DeviceType dn = device_name>
-  std::enable_if_t<device_name == CPU && dn == CPU, const ScalarType&> operator()(int i, int j) const {
+  template <DeviceType dn = device_name, typename = std::enable_if_t<dn == CPU>>
+  const ScalarType& operator()(int i, int j) const {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
     return data_[i + j * leadingDimension()];
@@ -142,8 +141,7 @@ public:
     return (size_.first == size_.second);
   }
 
-  // TODO: remove reference (needed to check for external changes)
-  const std::pair<int, int>& size() const {
+  const std::pair<int, int> size() const {
     return size_;
   }
   const std::pair<int, int>& capacity() const {
@@ -218,12 +216,11 @@ public:
 #endif  // DCA_HAVE_CUDA
 
   // Prints the values of the matrix elements.
-  template <DeviceType dn = device_name>
-  std::enable_if_t<device_name == CPU && dn == CPU, void> print() const;
-  template <DeviceType dn = device_name>
-  std::enable_if_t<device_name != CPU && dn == device_name, void> print() const;
+  void print() const;
   // Prints the properties of *this.
   void printFingerprint() const;
+  // Returns the allocated device memory in bytes.
+  std::size_t deviceFingerprint() const;
 
 private:
   static std::pair<int, int> capacityMultipleOfBlockSize(std::pair<int, int> size);
@@ -276,6 +273,15 @@ Matrix<ScalarType, device_name>::Matrix(std::pair<int, int> size, std::pair<int,
     : Matrix(default_name_, size, capacity) {}
 
 template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device_name>
+Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                        const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
+  data_ = Allocator::allocate(nrElements(capacity_));
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+}
+
+template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
     : name_(name), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)) {
@@ -284,16 +290,15 @@ Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, 
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
-  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
+  data_ = Allocator::allocate(nrElements(capacity_));
   util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
 }
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& rhs,
                                         const std::string& name)
-    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
-  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+    : name_(name) {
+  *this = rhs;
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -305,17 +310,8 @@ Matrix<ScalarType, device_name>::Matrix(Matrix<ScalarType, device_name>&& rhs, c
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                        const std::string& name)
-    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
-  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
-}
-
-template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::~Matrix() {
-  util::Memory<device_name>::deallocate(data_);
+  Allocator::deallocate(data_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -324,12 +320,12 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
 
-    ValueType* new_data = NULL;
-    util::Memory<device_name>::allocate(new_data, nrElements(new_capacity));
+    ValueType* new_data = nullptr;
+    new_data = Allocator::allocate(nrElements(new_capacity));
     const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
                                         std::min(new_size.second, size_.second));
     util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
-    util::Memory<device_name>::deallocate(data_);
+    Allocator::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
@@ -344,22 +340,17 @@ template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarType, device_name>& rhs) {
   resizeNoCopy(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  if (device_name == CPU)
+    util::memoryCopyCpu(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  else
+    util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
 }
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     Matrix<ScalarType, device_name>&& rhs) {
-  if (this != &rhs) {
-    util::Memory<device_name>::deallocate(data_);
-    data_ = rhs.data_;
-    size_ = rhs.size_;
-    capacity_ = rhs.capacity_;
-    rhs.data_ = nullptr;
-    rhs.capacity_ = std::make_pair(0, 0);
-    rhs.size_ = std::make_pair(0, 0);
-  }
+  swap(rhs);
   return *this;
 }
 
@@ -373,9 +364,10 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType dn>
-bool Matrix<ScalarType, device_name>::operator==(
-    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
+bool Matrix<ScalarType, device_name>::operator==(const Matrix<ScalarType, device_name>& other) const {
+  if (device_name == GPU)
+    return Matrix<ScalarType, CPU>(*this) == Matrix<ScalarType, CPU>(other);
+
   if (size() != other.size())
     return nrRows() * nrCols() == 0 and other.nrRows() * other.nrCols() == 0;
 
@@ -388,9 +380,7 @@ bool Matrix<ScalarType, device_name>::operator==(
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType dn>
-bool Matrix<ScalarType, device_name>::operator!=(
-    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
+bool Matrix<ScalarType, device_name>::operator!=(const Matrix<ScalarType, device_name>& other) const {
   return not(*this == other);
 }
 
@@ -400,8 +390,8 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
     size_ = new_size;
     capacity_ = capacityMultipleOfBlockSize(new_size);
 
-    util::Memory<device_name>::deallocate(data_);
-    util::Memory<device_name>::allocate(data_, nrElements(capacity_));
+    Allocator::deallocate(data_);
+    data_ = Allocator::allocate(nrElements(capacity_));
   }
   else {
     size_ = new_size;
@@ -410,7 +400,7 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::clear() {
-  util::Memory<device_name>::deallocate(data_);
+  Allocator::deallocate(data_);
   size_ = capacity_ = std::make_pair(0, 0);
 }
 
@@ -470,8 +460,10 @@ void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_devi
 #endif  // DCA_HAVE_CUDA
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType dn>
-std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, device_name>::print() const {
+void Matrix<ScalarType, device_name>::print() const {
+  if (device_name == GPU)
+    return Matrix<ScalarType, CPU>(*this).print();
+
   printFingerprint();
 
   std::stringstream ss;
@@ -486,14 +478,6 @@ std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, devic
   }
 
   std::cout << ss.str() << std::endl;
-}
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType dn>
-std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType, device_name>::print()
-    const {
-  Matrix<ScalarType, CPU> copy(*this, name_);
-  copy.print();
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -523,6 +507,14 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
   size.second = get_new_size(size.second);
 
   return size;
+}
+
+template <typename ScalarType, DeviceType device_name>
+std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
+  if (device_name == GPU)
+    return capacity_.first * capacity_.second * sizeof(ScalarType);
+  else
+    return 0;
 }
 
 }  // linalg

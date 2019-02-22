@@ -30,6 +30,13 @@ protected:
 public:
   CtauxWalkerData(parameters_type& parameters, int id);
 
+  std::size_t deviceFingerprint() const {
+    return N_up.deviceFingerprint() + N_dn.deviceFingerprint() + G0_up.deviceFingerprint() +
+           G0_dn.deviceFingerprint() + Gamma_up.deviceFingerprint() + G0_dn.deviceFingerprint() +
+           stored_Gamma_up.deviceFingerprint() + stored_Gamma_dn.deviceFingerprint() +
+           G_up.deviceFingerprint() + G_dn.deviceFingerprint();
+  }
+
   int thread_id;
 
   dca::linalg::Matrix<double, device_t> N_up;

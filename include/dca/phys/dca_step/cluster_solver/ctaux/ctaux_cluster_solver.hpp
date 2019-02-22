@@ -59,6 +59,8 @@ protected:
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
   using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data>;
 
+  static constexpr linalg::DeviceType device = device_t;
+
 private:
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -146,8 +148,8 @@ private:
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
-private:
   bool averaged_;
+  bool compute_jack_knife_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -201,6 +203,9 @@ void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteratio
   accumulator_.initialize(dca_iteration_);
 
   averaged_ = false;
+  compute_jack_knife_ =
+      (dca_iteration == parameters_.get_dca_iterations() - 1) &&
+      (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
@@ -278,6 +283,9 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1 &&
       parameters_.get_four_point_type() != NONE)
     data_.get_G4() /= parameters_.get_beta() * parameters_.get_beta();
+
+  if (compute_jack_knife_)
+    concurrency_.jackknifeError(data_.get_G4(), true);
 
   double total = 1.e-6, integral = 0;
 
@@ -400,12 +408,19 @@ void CtauxClusterSolver<device_t, Parameters, Data>::computeErrorBars() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
+  auto collect = [&](auto& f) {
+    if (compute_jack_knife_)
+      concurrency_.leaveOneOutSum(f);
+    else
+      concurrency_.sum(f);
+  };
+
   {
     Profiler profiler("Scalars", "QMC-collectives", __LINE__);
     concurrency_.sum(total_time_);
     concurrency_.sum(accumulator_.get_Gflop());
     accumulated_sign_ = accumulator_.get_accumulated_sign();
-    concurrency_.sum(accumulated_sign_);
+    collect(accumulated_sign_);
   }
 
   if (concurrency_.id() == concurrency_.first())
@@ -419,7 +434,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
   M_r_w_ = accumulator_.get_sign_times_M_r_w();
   {
     Profiler profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-    concurrency_.sum(M_r_w_);
+    collect(M_r_w_);
   }
   M_r_w_ /= accumulated_sign_;
 
@@ -457,7 +472,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
     Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
     auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
-    concurrency_.sum(G4);
+    collect(G4);
     G4 /= accumulated_sign_;
   }
 
@@ -565,6 +580,13 @@ double CtauxClusterSolver<device_t, Parameters, Data>::compute_S_k_w_from_G_k_w(
       dca::linalg::matrixop::copyMatrixToArray(sigma_matrix, &data_.Sigma(0, 0, 0, 0, k_ind, w_ind),
                                                matrix_dim);
     }
+  }
+
+  // Compute error on G and Self Energy.
+  if (compute_jack_knife_) {
+    data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w, true);
+    data_.get_G_r_w_error() = concurrency_.jackknifeError(data_.G_r_w, true);
+    data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma, true);
   }
 
   // set_non_interacting_bands_to_zero();

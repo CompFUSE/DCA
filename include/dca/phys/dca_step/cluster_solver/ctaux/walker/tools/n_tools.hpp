@@ -62,7 +62,7 @@ public:
 
   template <class configuration_type>
   void build_N_matrix(configuration_type& configuration, dca::linalg::Matrix<double, device_t>& N,
-                      dca::linalg::Matrix<double, device_t>& G0, e_spin_states_type e_spin);
+                      const dca::linalg::Matrix<double, device_t>& G0, e_spin_states_type e_spin);
 
   template <class configuration_type>
   void update_N_matrix(configuration_type& full_configuration,
@@ -80,6 +80,11 @@ public:
   void check_N_matrix(configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0,
                       dca::linalg::Matrix<double, device_t>& N,
                       dca::linalg::Matrix<double, device_t>& Gamma, e_spin_states_type e_spin);
+
+  int deviceFingerprint() const {
+    return G.deviceFingerprint() + N_new_spins.deviceFingerprint() +
+           G0_times_exp_V_minus_one.deviceFingerprint();
+  }
 
 private:
   void compute_d_vector(std::vector<int>& permutation, dca::linalg::Matrix<double, device_t>& N,
@@ -183,7 +188,7 @@ template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& configuration,
                                                         dca::linalg::Matrix<double, device_t>& N,
-                                                        dca::linalg::Matrix<double, device_t>& G0,
+                                                        const dca::linalg::Matrix<double, device_t>& G0,
                                                         e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size(configuration_e_spin.size());

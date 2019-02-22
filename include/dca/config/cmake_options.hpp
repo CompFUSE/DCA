@@ -42,6 +42,8 @@ struct CMakeOptions {
   static const std::string dca_with_gnuplot;
   static const std::string dca_with_reduced_vertex_function;
   static const std::string dca_with_single_precision_measurements;
+  static const std::string dca_with_memory_savings;
+
   static const std::string dca_with_qmc_bit;
 
   static void print();

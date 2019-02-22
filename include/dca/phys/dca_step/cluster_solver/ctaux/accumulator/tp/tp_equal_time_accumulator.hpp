@@ -93,11 +93,11 @@ public:
     return dwave_pp_correlator;
   }
 
-  template <class configuration_type>
-  void compute_G_r_t(configuration_type& configuration_e_up,
-                     dca::linalg::Matrix<double, dca::linalg::CPU>& M_up,
-                     configuration_type& configuration_e_dn,
-                     dca::linalg::Matrix<double, dca::linalg::CPU>& M_dn);
+  template <class configuration_type, typename RealInp>
+  void compute_G_r_t(const configuration_type& configuration_e_up,
+                     const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_up,
+                     const configuration_type& configuration_e_dn,
+                     const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_dn);
 
   void accumulate_G_r_t(double sign);
 
@@ -118,18 +118,18 @@ private:
   void interpolate(func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
                    func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
 
-  int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
+  int find_first_non_interacting_spin(const std::vector<vertex_singleton_type>& configuration_e_spin);
 
   template <class configuration_type>
-  void compute_G0_matrix(e_spin_states e_spin, configuration_type& configuration,
+  void compute_G0_matrix(e_spin_states e_spin, const configuration_type& configuration,
                          dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
-  void compute_G0_matrix_left(e_spin_states e_spin, configuration_type& configuration,
+  void compute_G0_matrix_left(e_spin_states e_spin, const configuration_type& configuration,
                               dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
-  void compute_G0_matrix_right(e_spin_states e_spin, configuration_type& configuration,
+  void compute_G0_matrix_right(e_spin_states e_spin, const configuration_type& configuration,
                                dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   double interpolate_akima(int b_i, int s_i, int b_j, int s_j, int delta_r, double tau);
@@ -588,10 +588,12 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate(
 }
 
 template <class parameters_type, class MOMS_type>
-template <class configuration_type>
+template <class configuration_type, typename RealInp>
 void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G_r_t(
-    configuration_type& configuration_e_up, dca::linalg::Matrix<double, dca::linalg::CPU>& M_up,
-    configuration_type& configuration_e_dn, dca::linalg::Matrix<double, dca::linalg::CPU>& M_dn) {
+    const configuration_type& configuration_e_up,
+    const dca::linalg::Matrix<RealInp, linalg::CPU>& M_up,
+    const configuration_type& configuration_e_dn,
+    const dca::linalg::Matrix<RealInp, linalg::CPU>& M_dn) {
   {
     int configuration_size = find_first_non_interacting_spin(configuration_e_dn);
 
@@ -753,7 +755,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_dwave_pp_cor
 
 template <class parameters_type, class MOMS_type>
 int TpEqualTimeAccumulator<parameters_type, MOMS_type>::find_first_non_interacting_spin(
-    std::vector<vertex_singleton_type>& configuration_e_spin) {
+    const std::vector<vertex_singleton_type>& configuration_e_spin) {
   int configuration_size = configuration_e_spin.size();
 
   int vertex_index = 0;
@@ -770,7 +772,7 @@ int TpEqualTimeAccumulator<parameters_type, MOMS_type>::find_first_non_interacti
 template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
-    e_spin_states e_spin, configuration_type& configuration,
+    e_spin_states e_spin, const configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
@@ -779,7 +781,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
 
   int configuration_size = find_first_non_interacting_spin(configuration);
   for (int j = 0; j < configuration_size; j++) {
-    vertex_singleton_type& configuration_e_spin_j = configuration[j];
+    const vertex_singleton_type& configuration_e_spin_j = configuration[j];
 
     b_j = configuration_e_spin_j.get_band();
     r_j = configuration_e_spin_j.get_r_site();
@@ -802,7 +804,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
 template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
-    e_spin_states e_spin, configuration_type& configuration,
+    e_spin_states e_spin, const configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
@@ -811,7 +813,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
 
   int configuration_size = find_first_non_interacting_spin(configuration);
   for (int j = 0; j < configuration_size; j++) {
-    vertex_singleton_type& configuration_e_spin_j = configuration[j];
+    const vertex_singleton_type& configuration_e_spin_j = configuration[j];
 
     b_j = configuration_e_spin_j.get_band();
     r_j = configuration_e_spin_j.get_r_site();
@@ -834,7 +836,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
 template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_right(
-    e_spin_states e_spin, configuration_type& configuration,
+    e_spin_states e_spin, const configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
@@ -849,7 +851,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_right
     t_j = fixed_configuration[j].t_val;
 
     for (int i = 0; i < configuration_size; i++) {
-      vertex_singleton_type& configuration_e_spin_i = configuration[i];
+      const vertex_singleton_type& configuration_e_spin_i = configuration[i];
 
       b_i = configuration_e_spin_i.get_band();
       r_i = configuration_e_spin_i.get_r_site();

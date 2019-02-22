@@ -60,8 +60,8 @@ public:
 
   void resetAccumulation();
 
-  template <class Configuration, typename InpScalar>
-  void accumulate(const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
@@ -73,6 +73,14 @@ public:
   const auto& get_sign_times_M_r_w() const;
 
   const auto& get_sign_times_M_r_w_sqr() const;
+
+  template<class T>
+  void syncStreams(const T& ){}
+
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return 0;
+  }
 
 protected:
   constexpr static int oversampling = 8;
@@ -111,9 +119,9 @@ void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
 }
 
 template <class Parameters>
-template <class Configuration, typename InpScalar>
+template <class Configuration>
 void SpAccumulator<Parameters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+    const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (!initialized_)
     throw(std::logic_error("The accumulator was not initialized."));

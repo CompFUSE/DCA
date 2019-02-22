@@ -25,7 +25,8 @@
 constexpr int n_sites = 4;
 constexpr int n_bands = 3;
 constexpr int n_frqs = 16;
-using CachedNdftCpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>;
+using CachedNdftCpuTest =
+    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frqs>;
 
 double computeWithFastDNFT(const CachedNdftCpuTest::Configuration& config,
                            const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w);

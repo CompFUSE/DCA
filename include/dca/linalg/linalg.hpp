@@ -42,9 +42,9 @@
 #include "dca/linalg/lapack/use_device.hpp"
 
 // Utils
+#include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/lapack_exception.hpp"
-#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
 #ifdef DCA_HAVE_CUDA

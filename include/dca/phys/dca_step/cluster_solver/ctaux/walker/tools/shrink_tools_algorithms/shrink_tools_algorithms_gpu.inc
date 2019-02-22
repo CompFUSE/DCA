@@ -92,6 +92,10 @@ public:
 #endif  // DCA_WITH_QMC_BIT
   }
 
+  int deviceFingerprint() const {
+    return (i_s_dn.capacity() + i_t_up.capacity()) * 2 * sizeof(int);
+  }
+
 private:
   bool test_swap_vectors(std::vector<int>& source_index, std::vector<int>& target_index) {
     if (source_index.size() != target_index.size())
