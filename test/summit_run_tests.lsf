@@ -1,13 +1,11 @@
 #!/bin/bash
 #
 # Batch script to run DCA++'s test suite on ORNL's Summit supercomputer.
-# The script has to be submitted from the directory where the script is located (DCA/test) or the
-# top-level source directory (DCA).
 #
-# Usage: bsub summit_run_tests.lsf      [from a subdirectory of the DCA source]
-# Note:  Define the variable DCA_BUILD_TYPE to select a build type (default: Release).
+# The script can be submitted from the top-level source directory (DCA) or any subdirectory of it.
+# The environment variable DCA_BUILD_TYPE can be used to select th build type (default: Debug).
 #
-# TODO: Fix project ID and walltime.
+# Usage: bsub /path/to/summit_run_tests.lsf [from a subdirectory of the DCA source]
 
 #BSUB -J DCA++_test_suite
 #BSUB -P CPH102
@@ -17,12 +15,12 @@
 #BSUB -o out.DCA++-tests.%J.txt
 #BSUB -e err.DCA++-tests.%J.txt
 
-# Check where the script has been submitted from and change to the top-level source dir.
+# Check where the script has been submitted from and change to the top-level source dir (DCA).
 cd ${LS_SUBCWD}
 source_dir=$(git rev-parse --show-toplevel)
 
 if [[ ${source_dir} == "" ]]; then
-    1>&2 printf "Usage: bsub summit_run_tests.lsf [from a subdirectory of the DCA source]"
+    1>&2 printf "Usage: bsub /path/to/summit_run_tests.lsf [from a subdirectory of the DCA source]\n"
     exit
 fi
 
@@ -36,15 +34,15 @@ source build-aux/summit_load_modules.sh
 BUILD_DIR="build_$LSB_JOBID"
 mkdir $BUILD_DIR && cd $BUILD_DIR
 
-# Run CMake to configure the build (Default: Debug).
-type=${DCA_BUILD_TYPE:-Debug}
-echo "DCA build type: ${type}"
-cmake -C ../build-aux/summit.cmake -DCMAKE_BUILD_TYPE=$type -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
+# Run CMake to configure the build.
+build_type=${DCA_BUILD_TYPE:-Debug}
+printf "Build type: ${build_type}\n\n"
+cmake -C ../build-aux/summit.cmake -DCMAKE_BUILD_TYPE=$build_type -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
 
 # Build the tests.
 make -j
 
 # Run the tests.
 date
-ctest --output-on-failure
+make test
 date

@@ -18,8 +18,7 @@ set(MPIEXEC_PREFLAGS "-n 1 -g 1 -c 8" CACHE STRING
 # The flag "--smpiargs=none" is needed to execute tests with no MPI functionalities.
 set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING
   "Spectrum MPI argument list flag for serial tests.")
-# The flag "--smpiargs=-mxm" is a workaround (for now) to execute tests with MPI to avoid tests from failing.
-# It uses Mellanox's protocol and bypasses PAMI for MPI communications.
+# Let's keep this option in case we need it again in the future.
 set(SMPIARGS_FLAG_MPI "" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
 
 # Enable the GPU support.
@@ -34,9 +33,6 @@ option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 # For the GPU support we also need MAGMA.
 set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
-
-# Flags for CPU.
-set(CMAKE_CXX_FLAGS -march=power9)
 
 # FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
