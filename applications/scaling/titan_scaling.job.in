@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+#PBS -A cph102
+#PBS -N scaling_NODES
+#PBS -o scaling_titan_NODES.$PBS_JOBID
+#PBS -e scaling_titan_NODES.$PBS_JOBID
+#PBS -l nodes=NODES
+#PBS -l walltime=02:00:00
+#PBS -l gres=atlas1%atlas2
+
+export OMP_NUM_THREADS=1
+
+module reset
+module unload PrgEnv-pgi
+module load PrgEnv-gnu
+module load cray-hdf5
+module load cray-fftw
+module load cudatoolkit
+module load magma/2.4.0
+module load cmake3
+
+cd $PBS_O_WORKDIR
+
+date
+
+#TODO: check it and add number of threads.
+aprun -n PROCESSES EXEC INPUT > OUTPUT
+
+date
