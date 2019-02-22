@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Batch script to run DCA++'s test suite on ORNL's Summit supercomputer.
+# The script has to be submitted from the directory where the script is located (DCA/test) or the
+# top-level source directory (DCA).
+# 
+# Usage: bsub summit_run_tests.lsf      [from DCA/test dir]
+#        bsub test/summit_run_tests.lsf [from DCA dir]
+#
+# TODO: Fix project ID and walltime.
+
+#BSUB -J DCA++_test_suite
+#BSUB -P CPH102
+#BSUB -nnodes 1
+#BSUB -W 30
+#BSUB -alloc_flags gpumps
+#BSUB -o out.DCA++-tests.%J.txt
+#BSUB -e err.DCA++-tests.%J.txt
+
+# Check where the script has been submitted from and change to the top-level source dir (DCA).
+if [ "${LS_SUBCWD: -4}" == "test" ]; then
+    # Go up.
+    cd ..
+elif [ "${LS_SUBCWD: -3}" == "DCA" ]; then
+    # Stay.
+    :
+else
+    1>&2 printf "Usage: bsub summit_run_tests.lsf      [from test dir]\n       bsub test/summit_run_tests.lsf [from DCA dir]\n"
+    exit
+fi
+
+# Load all required modules.
+source $MODULESHOME/init/bash
+source build-aux/summit_load_modules.sh
+
+# Create a clean build directory and change to it.
+BUILD_DIR="build_$LSB_JOBID"
+mkdir $BUILD_DIR && cd $BUILD_DIR
+
+# Run CMake to configure the build.
+cmake -C ../build-aux/summit.cmake -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
+
+# Build the tests.
+make -j 8
+
+# Run the tests.
+date
+make test
+date

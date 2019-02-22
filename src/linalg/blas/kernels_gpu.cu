@@ -5,7 +5,8 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file implements kernels_gpu.hpp
@@ -30,9 +31,9 @@ constexpr int copy_block_size_y = 8;
 constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
-constexpr int scale_block_size_y = 8;
+constexpr int scale_block_size_y = 32;
 constexpr int swap_block_size_x = 32;
-constexpr int swap_block_size_y = 8;
+constexpr int swap_block_size_y = 32;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
@@ -131,67 +132,38 @@ __global__ void moveUp(int m, int n, Type* a, int lda) {
 template <typename Type>
 __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a,
                           int lda) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+  const int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  // Work on BlockDim.x rows and copyrows_block_size_y cols.
-  int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int js = blockIdx.y * scale_block_size_y;
-  int je = min(row_size, (blockIdx.y + 1) * scale_block_size_y);
-
-  if (ind_i < n_rows) {
-    int ia = i[ind_i];
-
-    for (int j = js; j < je; ++j)
-      a[ia + j * lda] = a[ia + j * lda] * alpha[ind_i];
+  if (ind_i < n_rows && j < row_size) {
+    a[i[ind_i] + j * lda] *= alpha[ind_i];
   }
 }
 
 template <typename Type>
 __global__ void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, int lda) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+  const int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int ind_j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  Type tmp;
-
-  int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int js = blockIdx.y * swap_block_size_y;
-  int je = min(row_size, (blockIdx.y + 1) * swap_block_size_y);
-
-  if (ind_i < n_rows) {
-    for (int j = js; j < je; ++j) {
-      tmp = a[i1[ind_i] + j * lda];
-      a[i1[ind_i] + j * lda] = a[i2[ind_i] + j * lda];
-      a[i2[ind_i] + j * lda] = tmp;
-    }
+  if (ind_i < n_rows && ind_j < row_size) {
+    const Type tmp = a[i1[ind_i] + ind_j * lda];
+    a[i1[ind_i] + ind_j * lda] = a[i2[ind_i] + ind_j * lda];
+    a[i2[ind_i] + ind_j * lda] = tmp;
   }
 }
 
 template <typename Type>
 __global__ void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, int lda) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+  const int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int ind_j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  Type tmp;
-
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int js = blockIdx.y * swap_block_size_y;
-  int je = min(n_cols, (blockIdx.y + 1) * swap_block_size_y);
-
-  if (i < col_size) {
-    for (int ind_j = js; ind_j < je; ++ind_j) {
-      tmp = a[i + j1[ind_j] * lda];
-      a[i + j1[ind_j] * lda] = a[i + j2[ind_j] * lda];
-      a[i + j2[ind_j] * lda] = tmp;
-    }
+  if (ind_i < col_size && ind_j < n_cols) {
+    const Type tmp = a[ind_i + j1[ind_j] * lda];
+    a[ind_i + j1[ind_j] * lda] = a[ind_i + j2[ind_j] * lda];
+    a[ind_i + j2[ind_j] * lda] = tmp;
   }
 }
+
 }  // kernels
 // dca::linalg::blas::
 
@@ -295,7 +267,7 @@ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* 
     int bl_x = dca::util::ceilDiv(n_rows, kernels::scale_block_size_x);
     int bl_y = dca::util::ceilDiv(row_size, kernels::scale_block_size_y);
 
-    dim3 threads(kernels::scale_block_size_x);
+    dim3 threads(kernels::scale_block_size_x, kernels::scale_block_size_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
@@ -318,10 +290,10 @@ void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, i
               int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(n_rows, kernels::swap_block_size_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::swap_block_size_y);
+    const int bl_x = dca::util::ceilDiv(n_rows, kernels::swap_block_size_x);
+    const int bl_y = dca::util::ceilDiv(row_size, kernels::swap_block_size_y);
 
-    dim3 threads(kernels::swap_block_size_x);
+    dim3 threads(kernels::swap_block_size_x, kernels::swap_block_size_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
@@ -344,10 +316,10 @@ void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, i
               int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(col_size, kernels::swap_block_size_x);
-    int bl_y = dca::util::ceilDiv(n_cols, kernels::swap_block_size_y);
+    const int bl_x = dca::util::ceilDiv(col_size, kernels::swap_block_size_x);
+    const int bl_y = dca::util::ceilDiv(n_cols, kernels::swap_block_size_y);
 
-    dim3 threads(kernels::swap_block_size_x);
+    dim3 threads(kernels::swap_block_size_x, kernels::swap_block_size_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
