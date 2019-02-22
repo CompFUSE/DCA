@@ -1,10 +1,10 @@
 {
     "output": {
-     "directory" : "./beta_BETA_CURRENT_TEMP/",
+     "directory" : "./nodes_NODES/",
      "output-format": "HDF5",
-     "filename-dca": "dca_tp.hdf5",
-     "filename-profiling": "profiling_tp.json",
-     "directory-config-read" : "./beta_BETA_CURRENT_TEMP/configuration",
+     "filename-dca": "dca.hdf5",
+     "filename-profiling": "profiling.json",
+     "directory-config-read" : "../beta_BETA_CURRENT_TEMP/configuration",
      "dump-lattice-self-energy": false,
      "dump-cluster-Greens-functions": true,
      "dump-Gamma-lattice": false,
@@ -24,7 +24,7 @@
     },
 
     "DCA": {
-        "initial-self-energy" : "./beta_BETA_CURRENT_TEMP/dca_sp.hdf5",
+        "initial-self-energy" : "../beta_BETA_CURRENT_TEMP/dca_sp.hdf5",
         "iterations": 1,
         "accuracy": 0.,
         "self-energy-mixing-factor": 1.,
@@ -35,7 +35,7 @@
             "k-mesh-recursion": 3,
             "periods": 2,
             "quadrature-rule": 1,
-            "threads": 7,
+            "threads": THREADS,
             "tail-frequencies": 0
         },
 
@@ -79,9 +79,9 @@
         "measurements": MEASUREMENTS,
 	"error-computation-type" : "JACK_KNIFE",
         "threaded-solver": {
-            "walkers": 7,
-            "accumulators": 7,
-            "shared-walk-and-accumulation-thread": true
+            "walkers": WALKERS,
+            "accumulators": ACCUMULATORS,
+            "shared-walk-and-accumulation-thread": SHARED
         }
     },
 
