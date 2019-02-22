@@ -166,9 +166,9 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
         return candidate;
     return -1;
   };
-  const static int width = get_block_width();
 
-  const static auto blocks = getBlockSize(n_rows, n_rows * 2, width);
+  const int width = get_block_width();
+  const auto blocks = getBlockSize(n_rows, n_rows * 2, width);
 
   computeGMultibandKernel<<<blocks[0], blocks[1], width * width * sizeof(std::complex<Real>), stream>>>(
       castCudaComplex(G), ldg, castCudaComplex(G0), ldg0, nb, nk, nw_pos, beta);
@@ -255,7 +255,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(w2);
       int k1_a(k1);
       int k2_a(k2);
-      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a,w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
@@ -265,10 +265,14 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(g4_helper.addWex(w1, w_ex));
       int k1_b = g4_helper.addKex(k2, k_ex);
       int k2_b = g4_helper.addKex(k1, k_ex);
-      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b,w1_b, w2_b);
       const int i_b = b2 + nb * k1_b + no * w1_b;
       const int j_b = b3 + nb * k2_b + no * w2_b;
+
+
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+
+
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
       contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
@@ -310,7 +314,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(w2);
       int k1_a(k1);
       int k2_a(k2);
-      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a,w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
 
@@ -321,11 +325,14 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(g4_helper.addWex(w1, w_ex));
       int k1_b = g4_helper.addKex(k2, k_ex);
       int k2_b = g4_helper.addKex(k1, k_ex);
-      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b,w1_b, w2_b);
       const int i_b = b2 + nb * k1_b + no * w1_b;
       const int j_b = b3 + nb * k2_b + no * w2_b;
 
+
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+
+
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
       contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
@@ -405,10 +412,10 @@ void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int 
               const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
               const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
               bool atomic, cudaStream_t stream) {
-  const static int nw = 2 * nw_pos;
-  const static int size_12 = nw * nk * nb * nb;
-  const static int size_3 = nw_exchange * nk_exchange;
-  const static auto blocks = getBlockSize3D(size_12, size_12, size_3);
+  const int nw = 2 * nw_pos;
+  const int size_12 = nw * nk * nb * nb;
+  const int size_3 = nw_exchange * nk_exchange;
+  const auto blocks = getBlockSize3D(size_12, size_12, size_3);
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
