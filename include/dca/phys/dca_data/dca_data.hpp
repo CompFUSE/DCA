@@ -216,11 +216,11 @@ public:  // Optional members getters.
       G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-stddev"));
     return *G4_k_k_w_w_err_;
   }
-    auto& get_G4_error() {
-      if (not G4_k_k_w_w_err_)
-        G4_k_k_w_w_err_.reset(new TpGreensFunction("G4-error"));
-      return *G4_k_k_w_w_err_;
-    }
+  auto& get_G4_error() {
+    if (not G4_k_k_w_w_err_)
+      G4_k_k_w_w_err_.reset(new TpGreensFunction("G4-error"));
+    return *G4_k_k_w_w_err_;
+  }
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
       non_density_interactions_.reset(
@@ -326,7 +326,7 @@ void DcaData<Parameters>::read(std::string filename) {
 
   if (parameters_.get_four_point_type() != NONE) {
     concurrency_.broadcast_object(G_k_w);
-    concurrency_.broadcast_object(get_G4_k_k_w_w());
+    //    concurrency_.broadcast_object(get_G4_k_k_w_w());
   }
 }
 
