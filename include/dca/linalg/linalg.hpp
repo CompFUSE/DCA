@@ -22,6 +22,7 @@
 #include "dca/linalg/lapack/bennet_update.hpp"
 #include "dca/linalg/lapack/inverse.hpp"
 #include "dca/linalg/lapack/lapack.hpp"
+#include "dca/linalg/lapack/silence_lapack.hpp"
 #include "dca/linalg/lapack/solve.hpp"
 
 #ifdef DCA_HAVE_CUDA
