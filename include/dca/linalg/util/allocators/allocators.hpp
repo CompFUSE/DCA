@@ -51,7 +51,7 @@ struct DefaultAllocator<T, GPU> {
     T* allocate(std::size_t) {
       throw(std::logic_error("GPU not available."));
     }
-    void deallocate(T*& ptr, std::size_t /*n*/ = 0) {}
+    void deallocate(T*& /*ptr*/, std::size_t /*n*/ = 0) {}
   };
   using type = UnusedAllocator;
 };

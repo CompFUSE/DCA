@@ -143,6 +143,7 @@ set(DCA_LIBS
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
+  lapack
 )
 
 if (DCA_HAVE_CUDA)

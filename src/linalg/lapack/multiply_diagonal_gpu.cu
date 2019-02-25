@@ -5,8 +5,8 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file implements laset_gpu.hpp.
 
