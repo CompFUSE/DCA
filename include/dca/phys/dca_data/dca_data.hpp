@@ -457,15 +457,8 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.get_four_point_type() != NONE) {
-    if (!(parameters_.dump_cluster_Greens_functions())) {
-      writer.execute(G_k_w);
-      writer.execute(G_k_w_err_);
-    }
-
-    writer.execute(G4_);
-    writer.execute(G4_err_);
-  }
+  writer.execute(G4_);
+  writer.execute(G4_err_);
 
   writer.close_group();
 }
