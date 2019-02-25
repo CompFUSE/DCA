@@ -180,6 +180,8 @@ coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(paramet
     : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
   static std::once_flag flag;
   std::call_once(flag, [&]() {
+    linalg::lapack::silenceLapack();
+
     compute_tetrahedron_mesh(parameters.get_k_mesh_recursion(),
                              parameters.get_coarsegraining_periods());
 
