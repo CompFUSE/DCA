@@ -13,7 +13,6 @@
 
 #include <array>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -77,15 +76,15 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     accumulator.accumulate(M, config, sign);
     accumulator.finalize();
 
-    const std::vector<std::unique_ptr<Data::TpGreensFunction>>& G4 = accumulator.get_sign_times_G4();
+    const std::vector<Data::TpGreensFunction>& G4 = accumulator.get_sign_times_G4();
 
     if (update_baseline) {
-      writer.execute(func_names[type], *G4[0]);
+      writer.execute(func_names[type], G4[0]);
     }
     else {
       G4_check.set_name(func_names[type]);
       reader.execute(G4_check);
-      const auto diff = dca::func::util::difference(*G4[0], G4_check);
+      const auto diff = dca::func::util::difference(G4[0], G4_check);
       EXPECT_GT(1e-8, diff.l_inf);
     }
   }

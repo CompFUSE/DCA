@@ -12,18 +12,18 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
 
+#include <array>
 #include <cmath>
 #include <complex>
-#include <memory>
-#include <mutex>
 #include <stdexcept>
-#include <string>
+#include <vector>
 
 #include "dca/config/config_defines.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_name_to_four_point_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -134,7 +134,7 @@ protected:
   double computeM(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
                   const std::array<Configuration, 2>& configs);
 
-  double updateG4(const FourPointType channel, std::unique_ptr<TpGreensFunction>& G4_channel);
+  double updateG4(TpGreensFunction& G4_channel);
 
   void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
                              int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
@@ -143,9 +143,6 @@ protected:
   void inline updateG4SpinDifference(Complex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
                                      int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
                                      bool cross_legs);
-
-  FourPointType G4nameToFourPointType(const std::string& name) const;
-  std::string FourPointTypeToG4name(const FourPointType channel) const;
 
 protected:
   const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
@@ -162,7 +159,7 @@ protected:
 
   SpGreenFunction G_;
 
-  std::vector<std::unique_ptr<TpGreensFunction>> G4_;
+  std::vector<TpGreensFunction> G4_;
 
   func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
@@ -194,37 +191,29 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
 
   // Ensure backward compatibility.
   if (pars.get_four_point_type() != NONE) {
-    G4_.emplace_back(new TpGreensFunction(FourPointTypeToG4name(pars.get_four_point_type())));
+    G4_.emplace_back(FourPointTypeToG4name(pars.get_four_point_type()));
   }
 
   // Check which four point types to accumulate.
   else {
     if (pars.accumulateG4ParticleHoleTransverse())
-      G4_.emplace_back(new TpGreensFunction(FourPointTypeToG4name(PARTICLE_HOLE_TRANSVERSE)));
+      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_TRANSVERSE));
 
     if (pars.accumulateG4ParticleHoleMagnetic())
-      G4_.emplace_back(new TpGreensFunction(FourPointTypeToG4name(PARTICLE_HOLE_MAGNETIC)));
+      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_MAGNETIC));
 
     if (pars.accumulateG4ParticleHoleCharge())
-      G4_.emplace_back(new TpGreensFunction(FourPointTypeToG4name(PARTICLE_HOLE_CHARGE)));
+      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_CHARGE));
 
     if (pars.accumulateG4ParticleParticleUpDown())
-      G4_.emplace_back(new TpGreensFunction(FourPointTypeToG4name(PARTICLE_PARTICLE_UP_DOWN)));
+      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_PARTICLE_UP_DOWN));
   }
-
-  if (G4_.empty())
-    throw std::logic_error("No four point type specified.");
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::resetAccumulation(unsigned int /*dca_loop*/) {
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-    // Check whether the object exists before taking its name.
-    if (!G4_[channel])
-      throw std::logic_error("G4 in this channel has not been allocated.");
-
-    G4_[channel].reset(new TpGreensFunction(G4_[channel]->get_name()));
-  }
+  for (auto& G4_channel : G4_)
+    G4_channel = 0.;
 
   initializeG0();
 }
@@ -257,9 +246,8 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
   gflops += computeM(M_pair, configs);
   gflops += computeG();
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-    gflops += updateG4(G4nameToFourPointType(G4_[channel]->get_name()), G4_[channel]);
-  }
+  for (auto& G4_channel : G4_)
+    gflops += updateG4(G4_channel);
 
   return gflops;
 }
@@ -399,8 +387,7 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
 }
 
 template <class Parameters>
-double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType channel,
-                                                        std::unique_ptr<TpGreensFunction>& G4) {
+double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -408,9 +395,6 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
   //        |           |
   // b2 ------------------------ b4
   Profiler profiler("updateG4", "tp-accumulation", __LINE__, thread_id_);
-
-  if (!G4)
-    throw std::logic_error("G4 in this channel has not been allocated.");
 
   double flops(0);
 
@@ -430,6 +414,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
   const auto& exchange_frq = domains::FrequencyExchangeDomain::get_elements();
   const auto& exchange_mom = domains::MomentumExchangeDomain::get_elements();
 
+  const FourPointType channel = G4nameToFourPointType(G4.get_name());
+
   switch (channel) {
     case PARTICLE_HOLE_MAGNETIC:
       // Note: sums over spin indices are implied.
@@ -446,7 +432,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -472,7 +458,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -498,7 +484,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
@@ -521,7 +507,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const FourPointType chan
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
                                    q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
@@ -620,11 +606,9 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
 
 template <class Parameters>
 const auto& TpAccumulator<Parameters, linalg::CPU>::get_sign_times_G4() const {
-  // Check whether all objects exist before returning the container.
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-    if (!G4_[channel])
-      throw std::logic_error("G4 in this channel has not been allocated.");
-  }
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+
   return G4_;
 }
 
@@ -633,55 +617,15 @@ void TpAccumulator<Parameters, linalg::CPU>::sumTo(this_type& other_one) {
   if (other_one.G4_.size() != G4_.size())
     throw std::logic_error("Objects accumulate different number of channels.");
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-    if (!G4_[channel])
-      throw std::logic_error("G4 in this channel has not been allocated.");
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+    other_one.G4_[channel] += G4_[channel];
 
-    if (!other_one.G4_[channel])
-      other_one.G4_[channel].reset(new TpGreensFunction(G4_[channel]->get_name()));
-
-    *(other_one.G4_[channel]) += *G4_[channel];
-
-    G4_[channel].release();
-  }
+  G4_.clear();
 }
 
-template <class Parameters>
-FourPointType TpAccumulator<Parameters, linalg::CPU>::G4nameToFourPointType(const std::string& name) const {
-  if (name == "G4-particle-hole-transverse")
-    return PARTICLE_HOLE_TRANSVERSE;
-  if (name == "G4-particle-hole-magnetic")
-    return PARTICLE_HOLE_MAGNETIC;
-  if (name == "G4-particle-hole-charge")
-    return PARTICLE_HOLE_CHARGE;
-  if (name == "G4-particle-particle-up-down")
-    return PARTICLE_PARTICLE_UP_DOWN;
-  else
-    throw std::invalid_argument("G4's name does not match any preset value");
-
-  return NONE;
-}
-
-template <class Parameters>
-std::string TpAccumulator<Parameters, linalg::CPU>::FourPointTypeToG4name(
-    const FourPointType channel) const {
-  if (channel == PARTICLE_HOLE_TRANSVERSE)
-    return "G4-particle-hole-transverse";
-  if (channel == PARTICLE_HOLE_MAGNETIC)
-    return "G4-particle-hole-magnetic";
-  if (channel == PARTICLE_HOLE_CHARGE)
-    return "G4-particle-hole-charge";
-  if (channel == PARTICLE_PARTICLE_UP_DOWN)
-    return "G4-particle-particle-up-down";
-  else
-    throw std::invalid_argument("Four point type does not match any G4's name.");
-
-  return "";
-}
-
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
