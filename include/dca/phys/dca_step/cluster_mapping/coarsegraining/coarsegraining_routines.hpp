@@ -165,8 +165,8 @@ protected:
 template <typename parameters_type, typename K_dmn>
 coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(parameters_type& parameters_ref)
     : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
-    linalg::lapack::silenceLapack();
-    }
+  linalg::lapack::silenceLapack();
+}
 
 template <typename parameters_type, typename K_dmn>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(

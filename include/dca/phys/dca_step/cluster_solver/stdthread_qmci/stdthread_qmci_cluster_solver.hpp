@@ -367,7 +367,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::writeConfigurations() const {
   try {
     const std::string out_name = parameters.get_directory_config_write() + "/process_" +
                                  std::to_string(concurrency.id()) + ".hdf5";
-    io::HDF5Writer writer;
+    io::HDF5Writer writer(false);
     writer.open_file(out_name);
     for (int id = 0; id < config_dump_.size(); ++id)
       writer.execute("configuration_" + std::to_string(id), config_dump_[id]);
@@ -388,10 +388,14 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
 
     const std::string inp_name = parameters.get_directory_config_read() + "/process_" +
                                  std::to_string(id_to_read) + ".hdf5";
-    io::HDF5Reader reader;
+    io::HDF5Reader reader(false);
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
       reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
+
+    if (concurrency.id() == 0) {
+      std::cout << "Read configuration from " << parameters.get_directory_config_read() << ".\n";
+    }
   }
   catch (std::exception& err) {
     std::cerr << err.what() << "\nCould not read the configuration.\n";
