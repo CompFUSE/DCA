@@ -33,7 +33,7 @@ class HDF5Reader {
 public:
   typedef H5::H5File file_type;
 
-  HDF5Reader() : my_file(NULL), my_paths(0) {}
+  HDF5Reader(bool verbose = true) : my_file(NULL), my_paths(0), verbose_(verbose) {}
   ~HDF5Reader();
 
   bool is_reader() {
@@ -99,6 +99,8 @@ private:
 
   H5::H5File* my_file;
   std::vector<std::string> my_paths;
+
+  bool verbose_;
 };
 
 template <typename arbitrary_struct_t>
