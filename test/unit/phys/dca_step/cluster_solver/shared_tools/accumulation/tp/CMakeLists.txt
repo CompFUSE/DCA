@@ -28,4 +28,6 @@ dca_add_gtest(tp_accumulator_singleband_gpu_test
   LIBS     ${DCA_LIBS}
   )
 
+dca_add_gtest(g4_name_to_four_point_type_test GTEST_MAIN)
+
 add_subdirectory(ndft)
