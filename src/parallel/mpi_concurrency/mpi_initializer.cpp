@@ -31,7 +31,7 @@ MPIInitializer::~MPIInitializer() {
 }
 
 void MPIInitializer::abort() const {
-  std::cout << "\nAborting all processes.\n";
+  std::cout << "\nAborting all processes.\n" << std::endl;
   MPI_Abort(MPI_COMM_WORLD, 134); // Same error code as std::terminate().
 }
 
