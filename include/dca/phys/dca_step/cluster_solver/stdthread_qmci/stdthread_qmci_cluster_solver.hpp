@@ -77,6 +77,7 @@ private:
 
   void readConfigurations();
   void writeConfigurations() const;
+  int findAvailableFiles() const;
 
   // TODO: Are the following using statements redundant and can therefore be removed?
   using qmci_integrator_type::compute_error_bars;
@@ -382,13 +383,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     return;
 
   try {
-    // The command cmd returns the highest id among the available configuration files.
-    const std::string cmd = "ls -1 " + parameters.get_directory_config_read() +
-                            " | grep -o _[0-9]* | grep -o [0-9]* | sort -n | tail -n 1";
-
-    const int available = std::atoi(dca::util::getStdoutFromCommand(cmd).c_str()) + 1;
-
-    const int id_to_read = concurrency.id() % available;
+    const int n_available = findAvailableFiles();
+    const int id_to_read = concurrency.id() % n_available;
 
     const std::string inp_name = parameters.get_directory_config_read() + "/process_" +
                                  std::to_string(id_to_read) + ".hdf5";
@@ -402,6 +398,24 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     for (auto& config : config_dump_)
       config.clear();
   }
+}
+
+template <class QmciSolver>
+int StdThreadQmciClusterSolver<QmciSolver>::findAvailableFiles() const {
+  int result = 0;
+  if (concurrency.id() == 0) {
+    try {
+      // Count the number of configuration files.
+      const std::string cmd =
+          "ls -1 " + parameters.get_directory_config_read() + "/process_*.hdf5 | wc -l";
+      result = std::atoi(dca::util::getStdoutFromCommand(cmd).c_str());
+    }
+    catch (...) {
+    }
+  }
+
+  concurrency.broadcast(result, 0);
+  return result;
 }
 
 }  // solver
