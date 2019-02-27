@@ -290,7 +290,7 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
   // Allocate memory for G4.
   // Ensure backward compatibility.
   if (parameters_.get_four_point_type() != NONE)
-    G4_.emplace_back("G4_" + toString(parameters_.get_four_point_type()));
+    G4_.emplace_back("G4");
 
   // Check which four point types to accumulate.
   else {
@@ -310,7 +310,7 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
   // Allocate memory for error on G4.
   if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
     if (parameters_.get_four_point_type() != NONE)
-      G4_err_.emplace_back("G4_" + toString(parameters_.get_four_point_type()) + "_err");
+      G4_err_.emplace_back("G4-error");
 
     else {
       if (parameters_.accumulateG4ParticleHoleTransverse())
@@ -383,9 +383,6 @@ void DcaData<Parameters>::read(Reader& reader) {
 
   if (parameters_.accumulateG4()) {
     reader.execute(G_k_w);
-
-    // Quick hack for analysis tests as long as their input data has not been updated.
-    reader.execute("G4", G4_[0]);
 
     for (auto& G4_channel : G4_)
       reader.execute(G4_channel);
