@@ -63,6 +63,7 @@ PenaltyReturnTypeOnItsOwnLine: 100000000
 PointerAlignment: Left
 #ReflowComments: true # Supported only from clang 3.9
 SortIncludes: false
+SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
