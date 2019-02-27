@@ -126,11 +126,11 @@ template <>
 class MPITypeMap<std::complex<float>> {
 public:
   static std::size_t factor() {
-    return 2;
+    return 1;
   }
 
   static MPI_Datatype value() {
-    return MPI_FLOAT;
+    return MPI_COMPLEX;
   }
 };
 
@@ -138,11 +138,11 @@ template <>
 class MPITypeMap<std::complex<double>> {
 public:
   static std::size_t factor() {
-    return 2;
+    return 1;
   }
 
   static MPI_Datatype value() {
-    return MPI_DOUBLE;
+    return MPI_DOUBLE_COMPLEX;
   }
 };
 

@@ -280,10 +280,6 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     }
   }
 
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 &&
-      parameters_.get_four_point_type() != NONE)
-    data_.get_G4() /= parameters_.get_beta() * parameters_.get_beta();
-
   if (compute_jack_knife_)
     data_.get_G4_error() = concurrency_.jackknifeError(data_.get_G4(), true);
 
@@ -473,7 +469,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
     auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
     collect(G4);
-    G4 /= accumulated_sign_;
+    G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
   }
 
   concurrency_.sum(accumulator_.get_visited_expansion_order_k());
