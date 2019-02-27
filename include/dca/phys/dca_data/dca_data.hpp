@@ -15,6 +15,7 @@
 #define DCA_PHYS_DCA_DATA_DCA_DATA_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <complex>
 #include <cstring>
 #include <iostream>
