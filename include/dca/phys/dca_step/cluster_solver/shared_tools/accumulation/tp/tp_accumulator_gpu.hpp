@@ -126,7 +126,7 @@ private:
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
 
-  using typename BaseClass::TpGreenFunction;
+  using typename BaseClass::TpGreensFunction;
   using typename BaseClass::Complex;
 
   void initializeG0();
@@ -234,6 +234,8 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
+  get_G4().resize(G4_.size());
+
   for (auto& G4_channel : get_G4()) {
     try {
       typename BaseClass::TpDomain tp_dmn;
@@ -281,7 +283,7 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
   computeG();
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-    gflops += updateG4(channel);
+    updateG4(channel);
 }
 
 template <class Parameters>
