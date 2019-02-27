@@ -171,7 +171,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
 
   int* coor_1 = new int[G_II.signature()];
 
-  auto& G4 = data_.get_G4();
+  // Get the first object/channel of the G4 container.
+  auto& G4 = data_.get_G4()[0];
   int* coor_2 = new int[G4.signature()];
 
   for (int i = 0; i < G4.size(); i++) {

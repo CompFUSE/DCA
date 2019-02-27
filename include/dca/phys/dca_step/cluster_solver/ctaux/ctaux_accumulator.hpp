@@ -255,8 +255,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::initialize(int dca_iteration)
 
   MC_accumulator_data::initialize(dca_iteration);
 
-  if (dca_iteration == parameters_.get_dca_iterations() - 1 &&
-      parameters_.get_four_point_type() != NONE)
+  if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4())
     perform_tp_accumulation_ = true;
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
@@ -325,7 +324,7 @@ std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data>::get
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <typename Writer>
 void CtauxAccumulator<device_t, Parameters, Data>::write(Writer& writer) {
-//       writer.open_group("CT-AUX-SOLVER-functions");
+  //       writer.open_group("CT-AUX-SOLVER-functions");
 
 #ifdef DCA_WITH_QMC_BIT
   writer.execute(error);
