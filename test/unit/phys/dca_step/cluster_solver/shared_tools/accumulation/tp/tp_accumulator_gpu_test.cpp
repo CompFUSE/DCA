@@ -68,8 +68,8 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
     accumulatorHost.accumulate(M, config, sign);
     accumulatorHost.finalize();
 
-    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
-                                                  accumulatorDevice.get_sign_times_G4());
+    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[0],
+                                                  accumulatorDevice.get_sign_times_G4()[0]);
     EXPECT_GT(5e-7, diff.l_inf);
     ++loop_counter;
   }
@@ -117,7 +117,7 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();
 
-  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_G4(),
-                                                accumulator_sum.get_sign_times_G4());
+  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_G4()[0],
+                                                accumulator_sum.get_sign_times_G4()[0]);
   EXPECT_GT(5e-7, diff.l_inf);
 }
