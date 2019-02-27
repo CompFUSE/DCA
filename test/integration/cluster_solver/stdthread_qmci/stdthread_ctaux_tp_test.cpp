@@ -91,7 +91,7 @@ void performTest(const std::string& input, const std::string& baseline) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
       Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
-      Data::TpGreensFunction G4_check(data.get_G4().get_name());
+      Data::TpGreensFunction G4_check("G4");
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
       reader.open_file(input_dir + baseline);
@@ -101,7 +101,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       reader.close_group(), reader.close_file();
 
       const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
-      const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4());
+      const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4()[0]);
 
       EXPECT_GE(5e-7, err_g.l_inf);
       EXPECT_GE(5e-7, err_g4.l_inf);
@@ -114,7 +114,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       writer.open_file(input_dir + baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
-      writer.execute(data.get_G4());
+      writer.execute(data.get_G4()[0]);
       writer.close_group(), writer.close_file();
     }
   }
