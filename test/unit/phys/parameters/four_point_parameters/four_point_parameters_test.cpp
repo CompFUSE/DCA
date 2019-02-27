@@ -77,3 +77,18 @@ TEST(FourPointParametersTest, Setters) {
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleCharge());
   EXPECT_EQ(true, pars.accumulateG4ParticleParticleUpDown());
 }
+
+TEST(FourPointParametersTest, AccumulateG4) {
+  dca::phys::params::FourPointParameters<2> pars;
+
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.set_four_point_type(dca::phys::NONE);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleTransverse(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+}
