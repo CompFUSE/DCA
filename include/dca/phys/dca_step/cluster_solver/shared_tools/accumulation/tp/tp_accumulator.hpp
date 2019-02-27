@@ -23,7 +23,6 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_name_to_four_point_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -191,22 +190,22 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
 
   // Ensure backward compatibility.
   if (pars.get_four_point_type() != NONE) {
-    G4_.emplace_back(FourPointTypeToG4name(pars.get_four_point_type()));
+    G4_.emplace_back("G4_" + toString(pars.get_four_point_type()));
   }
 
   // Check which four point types to accumulate.
   else {
     if (pars.accumulateG4ParticleHoleTransverse())
-      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_TRANSVERSE));
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
 
     if (pars.accumulateG4ParticleHoleMagnetic())
-      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_MAGNETIC));
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
 
     if (pars.accumulateG4ParticleHoleCharge())
-      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_HOLE_CHARGE));
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
 
     if (pars.accumulateG4ParticleParticleUpDown())
-      G4_.emplace_back(FourPointTypeToG4name(PARTICLE_PARTICLE_UP_DOWN));
+      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
   }
 }
 
@@ -414,7 +413,9 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
   const auto& exchange_frq = domains::FrequencyExchangeDomain::get_elements();
   const auto& exchange_mom = domains::MomentumExchangeDomain::get_elements();
 
-  const FourPointType channel = G4nameToFourPointType(G4.get_name());
+  // Strip "G4_" prefix from G4 name and convert to FourPointType.
+  const std::string channel_str = G4.get_name().substr(3, G4.get_name().size() - 3);
+  const FourPointType channel = stringToFourPointType(channel_str);
 
   switch (channel) {
     case PARTICLE_HOLE_MAGNETIC:
