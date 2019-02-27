@@ -56,6 +56,11 @@ public:
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
+  // Returns true, if any G4 channel should be accumulated. Otherwise returns false.
+  bool accumulateG4() const {
+    return four_point_type_ != NONE || ph_transverse_ || ph_magnetic_ || ph_charge_ || pp_up_down_;
+  }
+
   FourPointType get_four_point_type() const {
     return four_point_type_;
   }
@@ -246,8 +251,8 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
         "When compute-all-transfers is set, a greater than 0 frequency-transfer must be chosen."));
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_FOUR_POINT_PARAMETERS_HPP
