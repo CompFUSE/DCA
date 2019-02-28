@@ -5,6 +5,8 @@
         "particle-hole-transverse": true,
         "particle-hole-magnetic": true,
         "particle-hole-charge": true,
+        "particle-hole-longitudinal-up-up": true,
+        "particle-hole-longitudinal-up-down": true,
         "particle-particle-up-down": true,
 
         "momentum-transfer": [3.14, -1.57],
