@@ -41,6 +41,8 @@ public:
         ph_transverse_(false),
         ph_magnetic_(false),
         ph_charge_(false),
+        ph_longitudinal_up_up_(false),
+        ph_longitudinal_up_down_(false),
         pp_up_down_(false),
         four_point_momentum_transfer_input_(lattice_dimension, 0.),
         four_point_frequency_transfer_(0),
@@ -58,7 +60,8 @@ public:
 
   // Returns true, if any G4 channel should be accumulated. Otherwise returns false.
   bool accumulateG4() const {
-    return four_point_type_ != NONE || ph_transverse_ || ph_magnetic_ || ph_charge_ || pp_up_down_;
+    return four_point_type_ != NONE || ph_transverse_ || ph_magnetic_ || ph_charge_ ||
+           ph_longitudinal_up_up_ || ph_longitudinal_up_down_ || pp_up_down_;
   }
 
   FourPointType get_four_point_type() const {
@@ -87,6 +90,20 @@ public:
   }
   void accumulateG4ParticleHoleCharge(const bool accumulate_channel) {
     ph_charge_ = accumulate_channel;
+  }
+
+  bool accumulateG4ParticleHoleLongitudinalUpUp() const {
+    return ph_longitudinal_up_up_;
+  }
+  void accumulateG4ParticleHoleLongitudinalUpUp(const bool accumulate_channel) {
+    ph_longitudinal_up_up_ = accumulate_channel;
+  }
+
+  bool accumulateG4ParticleHoleLongitudinalUpDown() const {
+    return ph_longitudinal_up_down_;
+  }
+  void accumulateG4ParticleHoleLongitudinalUpDown(const bool accumulate_channel) {
+    ph_longitudinal_up_down_ = accumulate_channel;
   }
 
   bool accumulateG4ParticleParticleUpDown() const {
@@ -140,6 +157,8 @@ private:
   bool ph_transverse_;
   bool ph_magnetic_;
   bool ph_charge_;
+  bool ph_longitudinal_up_up_;
+  bool ph_longitudinal_up_down_;
   bool pp_up_down_;
 
   std::vector<double> four_point_momentum_transfer_input_;
@@ -156,6 +175,8 @@ int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& con
   buffer_size += concurrency.get_buffer_size(ph_transverse_);
   buffer_size += concurrency.get_buffer_size(ph_magnetic_);
   buffer_size += concurrency.get_buffer_size(ph_charge_);
+  buffer_size += concurrency.get_buffer_size(ph_longitudinal_up_up_);
+  buffer_size += concurrency.get_buffer_size(ph_longitudinal_up_down_);
   buffer_size += concurrency.get_buffer_size(pp_up_down_);
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
@@ -172,6 +193,8 @@ void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency
   concurrency.pack(buffer, buffer_size, position, ph_transverse_);
   concurrency.pack(buffer, buffer_size, position, ph_magnetic_);
   concurrency.pack(buffer, buffer_size, position, ph_charge_);
+  concurrency.pack(buffer, buffer_size, position, ph_longitudinal_up_up_);
+  concurrency.pack(buffer, buffer_size, position, ph_longitudinal_up_down_);
   concurrency.pack(buffer, buffer_size, position, pp_up_down_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
@@ -186,6 +209,8 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
   concurrency.unpack(buffer, buffer_size, position, ph_transverse_);
   concurrency.unpack(buffer, buffer_size, position, ph_magnetic_);
   concurrency.unpack(buffer, buffer_size, position, ph_charge_);
+  concurrency.unpack(buffer, buffer_size, position, ph_longitudinal_up_up_);
+  concurrency.unpack(buffer, buffer_size, position, ph_longitudinal_up_down_);
   concurrency.unpack(buffer, buffer_size, position, pp_up_down_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
@@ -217,6 +242,16 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
     }
     try {
       reader_or_writer.execute("particle-hole-charge", ph_charge_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("particle-hole-longitudinal-up-up", ph_longitudinal_up_up_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("particle-hole-longitudinal-up-down", ph_longitudinal_up_down_);
     }
     catch (const std::exception& r_e) {
     }
