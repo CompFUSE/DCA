@@ -14,6 +14,13 @@ dca_add_gtest(tp_accumulator_singleband_test
   LIBS     ${DCA_LIBS}
   )
 
+dca_add_gtest(tp_accumulator_particle_hole_test
+  FAST
+  GTEST_MAIN
+  INCLUDE_DIRS ${PROJECT_SOURCE_DIR} ${FFTW_INCLUDE_DIR}
+  LIBS function cluster_domains time_and_frequency_domains quantum_domains timer json random
+       enumerations dca_algorithms ${LAPACK_LIBRARIES})
+
 dca_add_gtest(tp_accumulator_gpu_test
   CUDA
   GTEST_MAIN
