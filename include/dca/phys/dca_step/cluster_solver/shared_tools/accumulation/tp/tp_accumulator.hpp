@@ -516,6 +516,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       }
 
       flops += n_loops * 4 * flops_update_atomic;
+      break;
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, -s) c(k2+k_ex, -s)>
