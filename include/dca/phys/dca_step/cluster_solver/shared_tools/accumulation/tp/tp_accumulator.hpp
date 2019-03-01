@@ -47,7 +47,6 @@ class TpAccumulator<Parameters, linalg::CPU> {
 public:
   using Real = typename Parameters::MC_measurement_scalar_type;
 
-protected:
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -56,8 +55,28 @@ protected:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
-public:
+  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
+
   using this_type = TpAccumulator<Parameters>;
+
+protected:
+  using Profiler = typename Parameters::profiler_type;
+
+  using Complex = std::complex<Real>;
+  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
+
+  using SpGreenFunction =
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
+
+  using TpDomain =
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+
+public:
+  using TpGreensFunction = func::function<Complex, TpDomain>;
 
   // Constructor:
   // In: G0: non interacting greens function.
@@ -100,23 +119,6 @@ public:
   }
 
 protected:
-  using Profiler = typename Parameters::profiler_type;
-
-  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
-  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
-  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
-
-  using Complex = std::complex<Real>;
-  using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
-  using TpGreensFunction = func::function<Complex, TpDomain>;
-  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
-
   void initializeG0();
 
   double computeG();
