@@ -101,8 +101,8 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
                     }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);
-  EXPECT_LT(diff_up_up.l_inf, std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
 
   const auto diff_up_down = dca::func::util::difference(G4_ph_long_up_down, G4_ph_long_up_down_check);
-  EXPECT_LT(diff_up_down.l_inf, std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
 }
