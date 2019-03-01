@@ -385,6 +385,18 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel_
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
       break;
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
+      break;
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
+      break;
     case PARTICLE_HOLE_TRANSVERSE:
       details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
