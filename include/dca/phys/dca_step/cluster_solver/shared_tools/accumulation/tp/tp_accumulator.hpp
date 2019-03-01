@@ -190,6 +190,11 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
     throw(std::logic_error("The number of single particle frequencies is too small."));
   initializeG0();
 
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(pars.numG4Channels());
+
   // Ensure backward compatibility.
   if (pars.get_four_point_type() != NONE) {
     G4_.emplace_back("G4_" + toString(pars.get_four_point_type()));
