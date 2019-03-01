@@ -362,6 +362,88 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       }
       break;
 
+      // The PARTICLE_HOLE_LONGITUDINAL_UP_UP contribution is computed in two parts:
+    case PARTICLE_HOLE_LONGITUDINAL_UP_UP: {
+      // contribution <- \sum_s G(k1, k1+k_ex, s) * G(k2+k_ex, k2, s)
+      int w1_a(w1);
+      int w2_a(helper.addWex(w1, w_ex));
+      int k1_a = k1;
+      int k2_a = helper.addKex(k1, k_ex);
+      const bool conj_a = helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      const int i_a = b1 + nb * k1_a + no * w1_a;
+      const int j_a = b3 + nb * k2_a + no * w2_a;
+
+      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+
+      int w1_b(helper.addWex(w2, w_ex));
+      int w2_b(w2);
+      int k1_b = helper.addKex(k2, k_ex);
+      int k2_b = k2;
+      const bool conj_b = helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      const int i_b = b2 + nb * k1_b + no * w1_b;
+      const int j_b = b4 + nb * k2_b + no * w2_b;
+
+      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
+
+      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2);
+    }
+      {
+        // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
+        int w1_a(w1);
+        int w2_a(w2);
+        int k1_a(k1);
+        int k2_a(k2);
+        const bool conj_a = helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+        const int i_a = b1 + nb * k1_a + no * w1_a;
+        const int j_a = b4 + nb * k2_a + no * w2_a;
+
+        const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+        const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+
+        int w1_b(helper.addWex(w2, w_ex));
+        int w2_b(helper.addWex(w1, w_ex));
+        int k1_b = helper.addKex(k2, k_ex);
+        int k2_b = helper.addKex(k1, k_ex);
+        const bool conj_b = helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+        const int i_b = b2 + nb * k1_b + no * w1_b;
+        const int j_b = b3 + nb * k2_b + no * w2_b;
+
+        const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+        const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
+
+        contribution += -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+      }
+      break;
+
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN: {
+      // contribution <- \sum_s G(k1, k1+k_ex, s) * G(k2+k_ex, k2, -s)
+      int w1_a(w1);
+      int w2_a(helper.addWex(w1, w_ex));
+      int k1_a = k1;
+      int k2_a = helper.addKex(k1, k_ex);
+      const bool conj_a = helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      const int i_a = b1 + nb * k1_a + no * w1_a;
+      const int j_a = b3 + nb * k2_a + no * w2_a;
+
+      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+
+      int w1_b(helper.addWex(w2, w_ex));
+      int w2_b(w2);
+      int k1_b = helper.addKex(k2, k_ex);
+      int k2_b = k2;
+      const bool conj_b = helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      const int i_b = b2 + nb * k1_b + no * w1_b;
+      const int j_b = b4 + nb * k2_b + no * w2_b;
+
+      const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+
+      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2);
+    } break;
+
     case PARTICLE_PARTICLE_UP_DOWN: {
       // contribution <- -\sum_s G(k_ex - k2, k_ex - k1, s) * G(k2, k1, -s).
       int w1_a(w1);
