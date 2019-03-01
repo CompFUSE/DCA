@@ -520,7 +520,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, -s) c(k2+k_ex, -s)>
-      //                  = 1/2 sum_s [G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
+      //                  = 1/2 sum_s G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
