@@ -337,10 +337,10 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
         G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
 
       if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP)_"_err");
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP) + "_err");
 
       if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN)_"_err");
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN) + "_err");
 
       if (parameters_.accumulateG4ParticleParticleUpDown())
         G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");
