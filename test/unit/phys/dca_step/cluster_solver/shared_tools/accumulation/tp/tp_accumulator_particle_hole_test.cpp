@@ -69,11 +69,11 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
       });
   const auto& G4_ph_long_up_up =
       *std::find_if(G4.begin(), G4.end(), [](const TpAccumulatorType::TpGreensFunction& G4_channel) {
-        return G4_channel.get_name() == "G4_PARTICLE_HOLE_LONITUDINAL_UP_UP";
+        return G4_channel.get_name() == "G4_PARTICLE_HOLE_LONGITUDINAL_UP_UP";
       });
   const auto& G4_ph_long_up_down =
       *std::find_if(G4.begin(), G4.end(), [](const TpAccumulatorType::TpGreensFunction& G4_channel) {
-        return G4_channel.get_name() == "G4_PARTICLE_HOLE_LONITUDINAL_UP_DOWN";
+        return G4_channel.get_name() == "G4_PARTICLE_HOLE_LONGITUDINAL_UP_DOWN";
       });
 
   // Compute G4 in the particle-hole longitudinal channels from the contributions in the p-h
