@@ -64,6 +64,15 @@ public:
            ph_longitudinal_up_up_ || ph_longitudinal_up_down_ || pp_up_down_;
   }
 
+  // Returns the number of channels of G4 to accumulate.
+  std::size_t numG4Channels() const {
+    if (four_point_type_ != NONE)
+      return 1;
+    else
+      return ph_transverse_ + ph_magnetic_ + ph_charge_ + ph_longitudinal_up_up_ +
+             ph_longitudinal_up_down_ + pp_up_down_;
+  }
+
   FourPointType get_four_point_type() const {
     return four_point_type_;
   }
