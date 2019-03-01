@@ -286,6 +286,11 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
       orbital_occupancy("orbital_occupancy") {
   H_symmetry = -1;
 
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(parameters_.numG4Channels());
+
   // Allocate memory for G4.
   // Ensure backward compatibility.
   if (parameters_.get_four_point_type() != NONE)
@@ -308,6 +313,8 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
 
   // Allocate memory for error on G4.
   if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
+    G4_err_.reserve(parameters_.numG4Channels());
+
     if (parameters_.get_four_point_type() != NONE)
       G4_err_.emplace_back("G4-error");
 
