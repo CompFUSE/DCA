@@ -51,7 +51,8 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
-        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
+        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+        dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
     parameters_.set_four_point_type(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
