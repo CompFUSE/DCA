@@ -253,7 +253,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(w2);
       int k1_a(k1);
       int k2_a(k2);
-      const bool conj_a = helper.extendGIndices(k1_a, k2_a,w1_a, w2_a);
+      const bool conj_a = helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
@@ -263,13 +263,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(helper.addWex(w1, w_ex));
       int k1_b = helper.addKex(k2, k_ex);
       int k2_b = helper.addKex(k1, k_ex);
-      const bool conj_b = helper.extendGIndices(k1_b, k2_b,w1_b, w2_b);
+      const bool conj_b = helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
       const int i_b = b2 + nb * k1_b + no * w1_b;
       const int j_b = b3 + nb * k2_b + no * w2_b;
 
-
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-
 
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
@@ -312,7 +310,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(w2);
       int k1_a(k1);
       int k2_a(k2);
-      const bool conj_a = helper.extendGIndices(k1_a, k2_a,w1_a, w2_a);
+      const bool conj_a = helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
 
@@ -323,13 +321,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(helper.addWex(w1, w_ex));
       int k1_b = helper.addKex(k2, k_ex);
       int k2_b = helper.addKex(k1, k_ex);
-      const bool conj_b = helper.extendGIndices(k1_b, k2_b,w1_b, w2_b);
+      const bool conj_b = helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
       const int i_b = b2 + nb * k1_b + no * w1_b;
       const int j_b = b3 + nb * k2_b + no * w2_b;
 
-
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-
 
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
@@ -475,8 +471,8 @@ template void updateG4<double, PARTICLE_PARTICLE_UP_DOWN>(
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
     const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
 
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
