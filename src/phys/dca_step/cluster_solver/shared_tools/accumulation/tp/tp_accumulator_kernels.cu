@@ -531,6 +531,15 @@ template void updateG4<float, PARTICLE_HOLE_CHARGE>(std::complex<float>* G4,
                                                     const int nb, const int nk, const int nw_pos,
                                                     const int nw_exchange, const int nk_exchange,
                                                     const int sign, cudaStream_t stream);
+template void updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+    std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
+    const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
+template void updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+    std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
+    const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
+
 template void updateG4<float, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
@@ -545,6 +554,14 @@ template void updateG4<double, PARTICLE_HOLE_MAGNETIC>(
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
     const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
 template void updateG4<double, PARTICLE_HOLE_CHARGE>(
+    std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
+    const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
+template void updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+    std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
+    const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
+template void updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
     const int nw_exchange, const int nk_exchange, const int sign, cudaStream_t stream);
