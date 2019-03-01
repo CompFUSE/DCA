@@ -309,6 +309,12 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
     if (parameters_.accumulateG4ParticleHoleCharge())
       G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
 
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
+
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
+
     if (parameters_.accumulateG4ParticleParticleUpDown())
       G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
   }
@@ -329,6 +335,12 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
 
       if (parameters_.accumulateG4ParticleHoleCharge())
         G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP)_"_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN)_"_err");
 
       if (parameters_.accumulateG4ParticleParticleUpDown())
         G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");
