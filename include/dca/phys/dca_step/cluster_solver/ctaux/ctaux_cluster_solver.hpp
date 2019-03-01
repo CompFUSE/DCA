@@ -458,10 +458,12 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
     concurrency_.sum(accumulator_.get_charge_cluster_moment());
     concurrency_.sum(accumulator_.get_magnetic_cluster_moment());
     concurrency_.sum(accumulator_.get_dwave_pp_correlator());
+    concurrency_.sum(accumulator_.get_xs_pp_correlator());
 
     accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
     accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
     accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
+    accumulator_.get_xs_pp_correlator() /= accumulated_sign_;
 
     data_.G_r_t = accumulator_.get_G_r_t();
   }

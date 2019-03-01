@@ -66,6 +66,9 @@ public:
   using w = func::dmn_0<domains::frequency_domain>;
   using w_VERTEX =
       func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using tp_time_pos_dmn_t =
+              func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
+  using t_VERTEX = tp_time_pos_dmn_t;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -130,9 +133,13 @@ public:
   get_magnetic_cluster_moment() {
     return magnetic_cluster_moment;
   }
-  func::function<double, func::dmn_variadic<b, r_dmn_t>> &
+  func::function<double, func::dmn_variadic<b,b, r_dmn_t, t_VERTEX>> &
   get_dwave_pp_correlator() {
     return dwave_pp_correlator;
+  }
+  func::function<double, func::dmn_variadic<b,b, r_dmn_t, t_VERTEX>> &
+  get_xs_pp_correlator() {
+    return xs_pp_correlator;
   }
 
   // sp-measurements
@@ -212,7 +219,8 @@ protected:
   func::function<double, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
   func::function<double, func::dmn_variadic<b, r_dmn_t>>
       magnetic_cluster_moment;
-  func::function<double, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<double, func::dmn_variadic<b,b, r_dmn_t, t_VERTEX>> dwave_pp_correlator;
+  func::function<double, func::dmn_variadic<b,b, r_dmn_t, t_VERTEX>> xs_pp_correlator;
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>
       M_r_w_stddev;
@@ -249,6 +257,7 @@ CtauxAccumulator<device_t, Parameters, Data>::CtauxAccumulator(
       charge_cluster_moment("charge-cluster-moment"),
       magnetic_cluster_moment("magnetic-cluster-moment"),
       dwave_pp_correlator("dwave-pp-correlator"),
+      xs_pp_correlator("xs-pp-correlator"),
 
       M_r_w_stddev("M_r_w_stddev"),
 
@@ -289,6 +298,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::initialize(
     charge_cluster_moment = 0;
     magnetic_cluster_moment = 0;
     dwave_pp_correlator = 0;
+    xs_pp_correlator = 0;
 
     MC_two_particle_equal_time_accumulator_obj.initialize();
   }
@@ -327,6 +337,8 @@ void CtauxAccumulator<device_t, Parameters, Data>::finalize() {
                                   .get_magnetic_cluster_moment();
     dwave_pp_correlator =
         MC_two_particle_equal_time_accumulator_obj.get_dwave_pp_correlator();
+    xs_pp_correlator =
+        MC_two_particle_equal_time_accumulator_obj.get_xs_pp_correlator();
   }
 
   if (perform_tp_accumulation_)
@@ -361,6 +373,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::write(Writer &writer) {
     writer.execute(charge_cluster_moment);
     writer.execute(magnetic_cluster_moment);
     writer.execute(dwave_pp_correlator);
+    writer.execute(xs_pp_correlator);
 
     writer.execute(G_r_t);
     writer.execute(G_r_t_stddev);
@@ -515,7 +528,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::
 
   MC_two_particle_equal_time_accumulator_obj.accumulate_moments(current_sign);
 
-  MC_two_particle_equal_time_accumulator_obj.accumulate_dwave_pp_correlator(
+  MC_two_particle_equal_time_accumulator_obj.accumulate_pp_correlator(
       current_sign);
 
   GFLOP += MC_two_particle_equal_time_accumulator_obj.get_GFLOP();
