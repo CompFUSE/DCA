@@ -3,10 +3,8 @@
         "real-space-grids": {
             "cluster": [[2, 0],
                         [0, 2]],
-            "sp-host": [[20, 20],
-                        [20,-20]],
-            "tp-host": [[8, 8],
-                        [8,-8]]
+            "sp-superlattice-size": 10,
+            "tp-superlattice-size": 6
         },
 
         "imaginary-time": {

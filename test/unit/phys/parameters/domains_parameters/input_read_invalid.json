@@ -1,0 +1,7 @@
+{
+    "domains": {
+        "real-space-grids": {
+            "sp-superlattice-size": 5,
+            "tp-superlattice-size": 3
+        }
+}
