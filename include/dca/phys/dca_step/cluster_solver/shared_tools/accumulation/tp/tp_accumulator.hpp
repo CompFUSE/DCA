@@ -5,17 +5,18 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class computes the two particle Green's function from the walker's M matrix.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
 
+#include <array>
 #include <cmath>
 #include <complex>
-#include <memory>
-#include <mutex>
 #include <stdexcept>
+#include <vector>
 
 #include "dca/config/config_defines.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -46,7 +47,6 @@ class TpAccumulator<Parameters, linalg::CPU> {
 public:
   using Real = typename Parameters::MC_measurement_scalar_type;
 
-protected:
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -55,8 +55,28 @@ protected:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
-public:
+  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
+
   using this_type = TpAccumulator<Parameters>;
+
+protected:
+  using Profiler = typename Parameters::profiler_type;
+
+  using Complex = std::complex<Real>;
+  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
+
+  using SpGreenFunction =
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
+
+  using TpDomain =
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+
+public:
+  using TpGreensFunction = func::function<Complex, TpDomain>;
 
   // Constructor:
   // In: G0: non interacting greens function.
@@ -99,23 +119,6 @@ public:
   }
 
 protected:
-  using Profiler = typename Parameters::profiler_type;
-
-  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
-  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
-  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
-
-  using Complex = std::complex<Real>;
-  using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
-  using TpGreenFunction = func::function<Complex, TpDomain>;
-  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
-
   void initializeG0();
 
   double computeG();
@@ -132,7 +135,7 @@ protected:
   double computeM(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
                   const std::array<Configuration, 2>& configs);
 
-  double updateG4();
+  double updateG4(TpGreensFunction& G4_channel);
 
   void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
                              int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
@@ -148,7 +151,6 @@ protected:
 
   const int thread_id_;
 
-  const FourPointType mode_ = NONE;
   const Real beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
@@ -158,7 +160,7 @@ protected:
 
   SpGreenFunction G_;
 
-  std::unique_ptr<TpGreenFunction> G4_;
+  std::vector<TpGreensFunction> G4_;
 
   func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
@@ -178,7 +180,6 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
-      mode_(pars.get_four_point_type()),
       beta_(pars.get_beta()),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
       n_pos_frqs_(WTpExtPosDmn::dmn_size()),
@@ -188,11 +189,44 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));
   initializeG0();
+
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(pars.numG4Channels());
+
+  // Ensure backward compatibility.
+  if (pars.get_four_point_type() != NONE) {
+    G4_.emplace_back("G4_" + toString(pars.get_four_point_type()));
+  }
+
+  // Check which four point types to accumulate.
+  else {
+    if (pars.accumulateG4ParticleHoleTransverse())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
+
+    if (pars.accumulateG4ParticleHoleMagnetic())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
+
+    if (pars.accumulateG4ParticleHoleCharge())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
+
+    if (pars.accumulateG4ParticleHoleLongitudinalUpUp())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
+
+    if (pars.accumulateG4ParticleHoleLongitudinalUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
+
+    if (pars.accumulateG4ParticleParticleUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
+  }
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::resetAccumulation(unsigned int /*dca_loop*/) {
-  G4_.reset(new TpGreenFunction("G4"));
+  for (auto& G4_channel : G4_)
+    G4_channel = 0.;
+
   initializeG0();
 }
 
@@ -223,7 +257,10 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
   sign_ = sign;
   gflops += computeM(M_pair, configs);
   gflops += computeG();
-  gflops += updateG4();
+
+  for (auto& G4_channel : G4_)
+    gflops += updateG4(G4_channel);
+
   return gflops;
 }
 
@@ -324,7 +361,6 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_)
@@ -345,7 +381,6 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_) {
@@ -355,7 +390,8 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
         G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
   }
   else {
-    const Complex* const G_ptr = &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
+    const Complex* const G_ptr =
+        &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
         G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
@@ -363,7 +399,7 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
 }
 
 template <class Parameters>
-double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
+double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -371,8 +407,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
   //        |           |
   // b2 ------------------------ b4
   Profiler profiler("updateG4", "tp-accumulation", __LINE__, thread_id_);
-  if (!G4_)
-    G4_.reset(new TpGreenFunction("G4"));
+
   double flops(0);
 
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
@@ -391,14 +426,17 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
   const auto& exchange_frq = domains::FrequencyExchangeDomain::get_elements();
   const auto& exchange_mom = domains::MomentumExchangeDomain::get_elements();
 
-  switch (mode_) {
+  // Strip "G4_" prefix from G4 name and convert to FourPointType.
+  const std::string channel_str = G4.get_name().substr(3, G4.get_name().size() - 3);
+  const FourPointType channel = stringToFourPointType(channel_str);
+
+  switch (channel) {
     case PARTICLE_HOLE_MAGNETIC:
-      // Note: sums over spin indices are implied.
-      //
-      // G4(k1, k2, k_ex) = 1/2 (s1 * s2) <c^+(k1 + k_ex, s1) c(k1, s1)
-      //                    c^+(k2, s2) c(k2 + k_ex, s2)>
-      //                  = 1/2 (s1 * s2) <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
-      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
+      // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2} (s1 * s2)
+      //                      <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
+      //                  = 1/2 sum_{s1, s2} (s1 * s2)
+      //                      [G(k1, k1+k_ex, s1) G(k2+k_ex, k2, s2)
+      //                       - (s1 == s2) G(k2+k_ex, k1+k_ex, s1) G(k1, k2, s1)]
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -407,7 +445,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -422,9 +460,11 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_HOLE_CHARGE:
-      // G4(k1, k2, k_ex) += 1/2  <c^+(k1 + k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2 + k_ex, s2)> =
-      //                  = 1/2 <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
-      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
+      // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2}
+      //                    <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
+      //                  = 1/2 sum_{s1, s2}
+      //                      [G(k1, k1+k_ex, s1) G(k2+k_ex, k2, s2)
+      //                       - (s1 == s2) G(k2+k_ex, k1+k_ex, s1) G(k1, k2, s1)]
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -433,7 +473,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -448,9 +488,10 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
 
-    case PARTICLE_HOLE_TRANSVERSE:
-      // G4 = 1/2 <c^+(k1 + k_ex, s) c(k1, -s) c^+(k2, -s) c(k2 + k_ex, s)>
-      //    = -1/2 G(k2 + k_ex, k1 + k_ex, s) G(k1, k2, -s).
+    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, s) c(k2+k_ex, s)>
+      //                  = 1/2 sum_s [G(k1, k1+k_ex, s) G(k2+k_ex, k2, s)
+      //                               - G(k2+k_ex, k1+k_ex, s) G(k1, k2, s)]
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -459,7 +500,59 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
+                                   s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
+                                   sign_over_2, false);
+
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                                   momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                }
+            }
+      }
+
+      flops += n_loops * 4 * flops_update_atomic;
+      break;
+
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, -s) c(k2+k_ex, -s)>
+      //                  = 1/2 sum_s G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
+        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
+                                   !s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
+                                   sign_over_2, false);
+                }
+            }
+      }
+
+      flops += n_loops * 4 * flops_update_atomic;
+      break;
+
+    case PARTICLE_HOLE_TRANSVERSE:
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, -s) c^+(k2, -s) c(k2+k_ex, s)>
+      //                  = -1/2 sum_s G(k2+k_ex, k1+k_ex, s) G(k1, k2, -s)
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
+        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
@@ -472,8 +565,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN:
-      // G4 = 1/2 <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
-      //    = 1/2 G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s).
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
+      //                  = 1/2 sum_s G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -482,7 +575,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
                                    q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
@@ -493,8 +586,9 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
 
       flops += n_loops * 2 * flops_update_atomic;
       break;
+
     default:
-      throw(std::logic_error("Non supported tp mode."));
+      throw std::logic_error("Specified four point type not implemented.");
   }
 
   return 1e-9 * flops;
@@ -508,6 +602,7 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
   // This function performs the following update for each band:
   //
   // G4(k1, k2, w1, w2) += alpha * G(s_a, k1_a, k2_a, w1_a, w2_a) * G(s_b, k1_b, k2_b, w1_b, w2_b)
+  //
   // INTERNAL: would use __restrict__ pointer make sense?
   if (n_bands_ == 1) {
     *G4_ptr += alpha * getGSingleband(s_a, k1_a, k2_a, w1_a, w2_a) *
@@ -543,12 +638,14 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
     const bool cross_legs) {
   // This function performs the following update for each band:
   //
-  // G4(k1, k2, w1, w2) += alpha * (G(up, k1_a, k2_a, w1_a, w2_a)
-  //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
-  //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
+  // G4(k1, k2, w1, w2) += alpha * [G(up, k1_a, k2_a, w1_a, w2_a)
+  //                                + sign * G(down,k1_a, k2_a, w1_a, w2_a)]
+  //                             * [G(up, k1_b, k2_b, w1_b, w2_b)
+  //                               + sign * G(down, k1_b, k2_b, w1_b, w2_b)]
   if (n_bands_ == 1) {
-      *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-			  Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha *
+               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
@@ -579,26 +676,26 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
 
 template <class Parameters>
 const auto& TpAccumulator<Parameters, linalg::CPU>::get_sign_times_G4() const {
-  if (!G4_)
-    throw(std::logic_error("There is no G4 stored in this class."));
-  return *G4_;
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+
+  return G4_;
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::sumTo(this_type& other_one) {
-  if (!G4_)
-    throw(std::logic_error("There is no G4 stored in this class."));
+  if (other_one.G4_.size() != G4_.size())
+    throw std::logic_error("Objects accumulate different number of channels.");
 
-  if (!other_one.G4_)
-    other_one.G4_.reset(new TpGreenFunction("G4"));
-  *(other_one.G4_) += *G4_;
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+    other_one.G4_[channel] += G4_[channel];
 
-  G4_.release();
+  G4_.clear();
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP

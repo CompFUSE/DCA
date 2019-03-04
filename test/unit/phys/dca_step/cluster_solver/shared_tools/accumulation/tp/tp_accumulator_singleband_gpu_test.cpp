@@ -37,8 +37,6 @@ using ConfigGenerator =
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
-uint loop_id = 0;
-
 TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
@@ -49,28 +47,30 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
                                         TpAccumulatorGpuSinglebandTest::RDmn::dmn_size(),
                                         parameters_.get_beta(), n);
 
-  for (const dca::phys::FourPointType type :
-       {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
-        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    parameters_.set_four_point_type(type);
+  parameters_.accumulateG4ParticleHoleTransverse(true);
+  parameters_.accumulateG4ParticleHoleMagnetic(true);
+  parameters_.accumulateG4ParticleHoleCharge(true);
+  parameters_.accumulateG4ParticleHoleLongitudinalUpUp(true);
+  parameters_.accumulateG4ParticleHoleLongitudinalUpDown(true);
+  parameters_.accumulateG4ParticleParticleUpDown(true);
 
-    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-        data_->G0_k_w_cluster_excluded, parameters_);
-    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
-        data_->G0_k_w_cluster_excluded, parameters_);
-    const int sign = 1;
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+    data_->G0_k_w_cluster_excluded, parameters_);
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+    data_->G0_k_w_cluster_excluded, parameters_);
+  const int sign = 1;
 
-    accumulatorDevice.resetAccumulation(loop_id);
-    accumulatorDevice.accumulate(M, config, sign);
-    accumulatorDevice.finalize();
+  accumulatorDevice.resetAccumulation(0);
+  accumulatorDevice.accumulate(M, config, sign);
+  accumulatorDevice.finalize();
 
-    accumulatorHost.resetAccumulation(loop_id);
-    accumulatorHost.accumulate(M, config, sign);
-    accumulatorHost.finalize();
+  accumulatorHost.resetAccumulation(0);
+  accumulatorHost.accumulate(M, config, sign);
+  accumulatorHost.finalize();
 
-    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
-                                                  accumulatorDevice.get_sign_times_G4());
+  for (std::size_t channel = 0; channel < accumulatorHost.get_sign_times_G4().size(); ++channel) {
+    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[channel],
+                                                  accumulatorDevice.get_sign_times_G4()[channel]);
     EXPECT_GT(5e-7, diff.l_inf);
-    ++loop_id;
   }
 }
