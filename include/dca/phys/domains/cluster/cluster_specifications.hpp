@@ -103,6 +103,23 @@ struct cluster_specifications<scalar_type, TMP_CLUSTER, REAL_SPACE, S> {
       dmn_specifications_type;
 };
 
+// SUPERLATTICE_SP
+template <typename scalar_type, CLUSTER_SHAPE S>
+struct cluster_specifications<scalar_type, SUPERLATTICE_SP, MOMENTUM_SPACE, S> {
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
+      dmn_specifications_type;
+};
+
+template <typename scalar_type, CLUSTER_SHAPE S>
+struct cluster_specifications<scalar_type, SUPERLATTICE_SP, REAL_SPACE, S> {
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
+      dmn_specifications_type;
+};
+
 }  // domains
 }  // phys
 }  // dca

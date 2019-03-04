@@ -14,6 +14,7 @@
 #define DCA_PHYS_CLUSTER_DOMAIN_ALIASES_HPP
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_family.hpp"
 
@@ -21,43 +22,52 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template<int DIMENSION>
+template <int DIMENSION>
 class ClusterDomainAliases {
 public:
   // DCA cluster domains
   using RClusterType = domains::cluster_domain<double, DIMENSION, domains::CLUSTER,
-					       domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
-  using RClusterDmn =
-      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+                                               domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
+  using RClusterDmn = func::dmn_0<RClusterType>;
+
   using KClusterType = domains::cluster_domain<double, DIMENSION, domains::CLUSTER,
-					      domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
-  using KClusterDmn =
-      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  // Host cluster domains
+                                               domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
+  using KClusterDmn = func::dmn_0<KClusterType>;
+
+  // Host cluster domains (lattice for single-particle functions)
   using RSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_SP,
                                           domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   using KSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  // Host vertex cluster domains
+
+  // Superlattice for single-particle functions
+  using RSpSuperlatticeDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::SUPERLATTICE_SP,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+
+  using KSpSuperlatticeDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::SUPERLATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using CenteredKSpSuperlatticeType =
+      domains::centered_cluster_domain<typename KSpSuperlatticeDmn::parameter_type>;
+  using CenteredKSpSuperlatticeDmn = func::dmn_0<CenteredKSpSuperlatticeType>;
+
+  // Host vertex cluster domains (lattice for two-particle functions)
   using RTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_TP,
                                           domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   using KTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+
   using DcaClusterFamily =
-      domains::cluster_domain_family<double, DIMENSION, domains::CLUSTER,
-                                     domains::BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, DIMENSION, domains::CLUSTER, domains::BRILLOUIN_ZONE>;
   using HostSpClusterFamily =
-      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_SP,
-                                     domains::BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_SP, domains::BRILLOUIN_ZONE>;
   using HostTpClusterFamily =
-      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_TP,
-                                     domains::BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_TP, domains::BRILLOUIN_ZONE>;
 };
 
 }  // phys
