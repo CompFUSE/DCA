@@ -19,6 +19,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/util.hpp"
 
@@ -61,6 +62,17 @@ public:
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+
+  // Initializes the hopping matrix for the case of broken translational invariance in the cluster.
+  // Then, the hopping matrix is a function of real space cluster vectors I and J, and a real space
+  // superlattice vector d_tilde (= i_tilde - j_tilde, translational invariance of the
+  // superlattice).
+  template <typename RLatticeDmn, typename ParametersType, typename ScalarType,
+            typename RClusterDmn, typename RSuperlatticeDmn>
+  static void initializeNonTranslationalInvariantHoppingMatrix(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<RClusterDmn, RClusterDmn, RSuperlatticeDmn>>&
+          t_IJ_d_tilde);
 };
 
 template <typename point_group_type>
@@ -167,6 +179,78 @@ void square_lattice<point_group_type>::initialize_H_0(
 
     H_0(0, 0, 0, 0, k_ind) = val;
     H_0(0, 1, 0, 1, k_ind) = val;
+  }
+}
+
+template <typename point_group_type>
+template <typename RLatticeDmn, typename ParametersType, typename ScalarType, typename RClusterDmn,
+          typename RSuperlatticeDmn>
+void square_lattice<point_group_type>::initializeNonTranslationalInvariantHoppingMatrix(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<RClusterDmn, RClusterDmn, RSuperlatticeDmn>>&
+        t_IJ_d_tilde) {
+  if (parameters.get_t_prime() != 0.)
+    throw std::logic_error("Next nearest neighbor hopping has not been implemented yet.");
+
+  const auto& basis = RClusterDmn::parameter_type::get_basis_vectors();
+  // The four directions of nearest neighbor hopping.
+  const auto a0 = basis[0];
+  const auto min_a0 = math::util::scale(-1., a0);
+  const auto a1 = basis[1];
+  const auto min_a1 = math::util::scale(-1., a1);
+
+  const auto& lattice_superbasis = RLatticeDmn::parameter_type::get_super_basis_vectors();
+  // To apply the periodic boundary conditions of the lattice.
+  const auto b0 = lattice_superbasis[0];
+  const auto b1 = lattice_superbasis[1];
+  const auto b0_plus_b1 = math::util::add(b0, b1);
+
+  const auto& cluster = RClusterDmn::get_elements();
+  const auto& superlattice = RSuperlatticeDmn::get_elements();
+
+  const auto t = parameters.get_t();
+
+  for (std::size_t I = 0; I < cluster.size(); ++I) {
+    const auto& I_vec = cluster[I];
+    for (std::size_t J = 0; J < cluster.size(); ++J) {
+      const auto& J_vec = cluster[J];
+      for (std::size_t d_tilde = 0; d_tilde < superlattice.size(); ++d_tilde) {
+        const auto& d_tilde_vec = superlattice[d_tilde];
+
+        // i = I + d_tilde, j = J
+        const auto i_min_j = math::util::subtract(J_vec, math::util::add(I_vec, d_tilde_vec));
+
+        // Check whether i and j are nearest neighbors.
+        if (math::util::isSameVector(i_min_j, a0) || math::util::isSameVector(i_min_j, min_a0) ||
+            math::util::isSameVector(i_min_j, a1) || math::util::isSameVector(i_min_j, min_a1))
+          t_IJ_d_tilde(I, J, d_tilde) = t;
+
+        // Take into account the periodic boundary conditions of the lattice.
+        // Translate i-j by b0.
+        const auto i_min_j_min_b0 = math::util::subtract(b0, i_min_j);
+        if (math::util::isSameVector(i_min_j_min_b0, a0) ||
+            math::util::isSameVector(i_min_j_min_b0, min_a0) ||
+            math::util::isSameVector(i_min_j_min_b0, a1) ||
+            math::util::isSameVector(i_min_j_min_b0, min_a1))
+          t_IJ_d_tilde(I, J, d_tilde) = t;
+
+        // Translate i-j by b1.
+        const auto i_min_j_min_b1 = math::util::subtract(b1, i_min_j);
+        if (math::util::isSameVector(i_min_j_min_b1, a0) ||
+            math::util::isSameVector(i_min_j_min_b1, min_a0) ||
+            math::util::isSameVector(i_min_j_min_b1, a1) ||
+            math::util::isSameVector(i_min_j_min_b1, min_a1))
+          t_IJ_d_tilde(I, J, d_tilde) = t;
+
+        // Translate i-j by b0 + b1.
+        const auto i_min_j_min_b0_min_b1 = math::util::subtract(b0_plus_b1, i_min_j);
+        if (math::util::isSameVector(i_min_j_min_b0_min_b1, a0) ||
+            math::util::isSameVector(i_min_j_min_b0_min_b1, min_a0) ||
+            math::util::isSameVector(i_min_j_min_b0_min_b1, a1) ||
+            math::util::isSameVector(i_min_j_min_b0_min_b1, min_a1))
+          t_IJ_d_tilde(I, J, d_tilde) = t;
+      }
+    }
   }
 }
 
