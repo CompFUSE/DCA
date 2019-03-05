@@ -26,53 +26,33 @@ namespace blas {
 namespace kernels {
 // dca::linalg::blas::kernels::
 
-constexpr int copy_block_size_x = 32;
-constexpr int copy_block_size_y = 8;
+constexpr int copy_block_size = 32;
 constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
-constexpr int scale_block_size_y = 32;
 constexpr int swap_block_size_x = 32;
 constexpr int swap_block_size_y = 32;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
                          const int* i_y, Type* y, int ldy) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
-
   // Work on BlockDim.x rows and copyrows_block_size_y cols.
   int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  int ind_j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  int js = blockIdx.y * copy_block_size_y;
-  int je = min(row_size, (blockIdx.y + 1) * copy_block_size_y);
-
-  if (ind_i < n_rows) {
-    int iy = i_y[ind_i];
-    int ix = i_x[ind_i];
-
-    for (int j = js; j < je; ++j)
-      y[iy + j * ldy] = x[ix + j * ldx];
+  if (ind_i < n_rows && ind_j < row_size) {
+    y[i_y[ind_i] + ind_j * ldy] = x[i_x[ind_i] + ind_j * ldx];
   }
 }
 
 template <typename Type>
 __global__ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx,
                          const int* j_y, Type* y, int ldy) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+  const int i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  // Work on BlockDim.x rows and copyrows_block_size_y cols.
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int ind_js = blockIdx.y * copy_block_size_y;
-  int ind_je = min(n_cols, (blockIdx.y + 1) * copy_block_size_y);
-
-  if (i < col_size) {
-    for (int ind_j = ind_js; ind_j < ind_je; ++ind_j)
-      y[i + j_y[ind_j] * ldy] = x[i + j_x[ind_j] * ldx];
+  if (i < col_size && j < n_cols) {
+    y[i + j_y[j] * ldy] = x[i + j_x[j] * ldx];
   }
 }
 
@@ -172,11 +152,12 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(n_rows, kernels::copy_block_size_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::copy_block_size_y);
+    const int threads_x = std::min(kernels::copy_block_size, n_rows);
+    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
+    int bl_y = dca::util::ceilDiv(row_size, kernels::copy_block_size);
 
-    dim3 threads(kernels::copy_block_size_x);
-    dim3 blocks(bl_x, bl_y);
+    const dim3 threads(threads_x, kernels::copy_block_size);
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
@@ -198,11 +179,12 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(col_size, kernels::copy_block_size_x);
-    int bl_y = dca::util::ceilDiv(n_cols, kernels::copy_block_size_y);
+    const int bl_x = dca::util::ceilDiv(col_size, kernels::copy_block_size);
+    const int threads_y = std::min(kernels::copy_block_size, n_cols);
+    const int bl_y = dca::util::ceilDiv(n_cols, kernels::copy_block_size);
 
-    dim3 threads(kernels::copy_block_size_x);
-    dim3 blocks(bl_x, bl_y);
+    const dim3 threads(kernels::copy_block_size, threads_y);
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
