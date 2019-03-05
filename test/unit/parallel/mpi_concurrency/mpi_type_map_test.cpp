@@ -38,11 +38,11 @@ TEST(MPITypeMapTest, All) {
   EXPECT_EQ(1, MPITypeMap<double>::factor());
   EXPECT_EQ(MPI_DOUBLE, MPITypeMap<double>::value());
 
-  EXPECT_EQ(2, MPITypeMap<std::complex<float>>::factor());
-  EXPECT_EQ(MPI_FLOAT, MPITypeMap<std::complex<float>>::value());
+  EXPECT_EQ(1, MPITypeMap<std::complex<float>>::factor());
+  EXPECT_EQ(MPI_COMPLEX, MPITypeMap<std::complex<float>>::value());
 
-  EXPECT_EQ(2, MPITypeMap<std::complex<double>>::factor());
-  EXPECT_EQ(MPI_DOUBLE, MPITypeMap<std::complex<double>>::value());
+  EXPECT_EQ(1, MPITypeMap<std::complex<double>>::factor());
+  EXPECT_EQ(MPI_DOUBLE_COMPLEX, MPITypeMap<std::complex<double>>::value());
 }
 
 TEST(MPITypeMapTest, Enums) {
