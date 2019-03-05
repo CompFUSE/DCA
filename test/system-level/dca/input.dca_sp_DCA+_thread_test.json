@@ -19,7 +19,7 @@
 
     "DCA": {
         "initial-self-energy": "zero",
-        "iterations": 3,
+        "iterations": 2,
         "self-energy-mixing-factor": 0.75,
         "interacting-orbitals": [0],
 
@@ -41,8 +41,7 @@
         "real-space-grids": {
             "cluster": [[2, 0],
                         [0, 2]],
-            "sp-host": [[8, 8],
-                        [8,-8]]
+            "sp-superlattice-size": 6
         },
 
         "imaginary-time": {
