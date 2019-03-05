@@ -46,11 +46,13 @@ public:
 #endif  // DCA_WITH_QMC_BIT
 
     if (true) {
-      i_s_up.set(source_index_up, thread_id, stream_id);
-      i_t_up.set(target_index_up, thread_id, stream_id);
+      i_s_up.setAsync(source_index_up, thread_id, stream_id);
+      i_t_up.setAsync(target_index_up, thread_id, stream_id);
 
-      i_s_dn.set(source_index_dn, thread_id, stream_id);
-      i_t_dn.set(target_index_dn, thread_id, stream_id);
+      i_s_dn.setAsync(source_index_dn, thread_id, stream_id);
+      i_t_dn.setAsync(target_index_dn, thread_id, stream_id);
+
+      linalg::util::syncStream(thread_id, stream_id);
 
       dca::linalg::matrixop::swapRows(N_up, i_s_up, i_t_up, thread_id, stream_id);
       dca::linalg::matrixop::swapCols(N_up, i_s_up, i_t_up, thread_id, stream_id);
