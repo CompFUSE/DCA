@@ -331,7 +331,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
   const int accumulator_id = acc_id_++;
 
   const int n_local_meas = parallel::util::getWorkload(
-      parameters.get_measurements(), parameters.get_accumulators(), accumulator_id);
+      parameters.get_measurements(), parameters.get_accumulators(), accumulator_id, concurrency);
 
   for (int i = 0; i < n_local_meas; ++i) {
     {
