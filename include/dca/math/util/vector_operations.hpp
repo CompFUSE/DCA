@@ -36,14 +36,16 @@ void print(const std::vector<T>& v) {
   for (const auto& element : v)
     std::cout << element << "\t";
 
-  std::cout << std::endl;
+  std::cout << std::flush;
 }
 
 // Prints a std::vector of std::vectors.
 template <typename T>
 void print(const std::vector<std::vector<T>>& vecs) {
-  for (const auto& vec : vecs)
+  for (const auto& vec : vecs) {
     print(vec);
+    std::cout << std::endl;
+  }
 
   std::cout << std::endl;
 }
