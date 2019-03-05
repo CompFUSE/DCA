@@ -33,8 +33,19 @@ void print(const std::vector<T>& v) {
   std::cout << std::scientific;
   std::cout.precision(6);
 
-  for (std::size_t i = 0; i < v.size(); ++i)
-    std::cout << v[i] << "\t";
+  for (const auto& element : v)
+    std::cout << element << "\t";
+
+  std::cout << std::endl;
+}
+
+// Prints a std::vector of std::vectors.
+template <typename T>
+void print(const std::vector<std::vector<T>>& vecs) {
+  for (const auto& vec : vecs)
+    print(vec);
+
+  std::cout << std::endl;
 }
 
 // Scales the vector v by the scalar a, i.e. computes and returns a new vector w with elements

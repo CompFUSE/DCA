@@ -13,6 +13,7 @@
 #ifndef DCA_PHYS_PARAMETERS_DOMAINS_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_DOMAINS_PARAMETERS_HPP
 
+#include <iostream>
 #include <vector>
 #include <stdexcept>
 
@@ -24,9 +25,10 @@ namespace params {
 class DomainsParameters {
 public:
   DomainsParameters(int dimension)
-      : cluster_(dimension, std::vector<int>(dimension, 0)),
-        sp_host_(dimension, std::vector<int>(dimension, 0)),
-        tp_host_(dimension, std::vector<int>(dimension, 0)),
+      : dimension_(dimension),
+        cluster_(dimension, std::vector<int>(dimension, 0)),
+        sp_superlattice_size_(1),
+        tp_superlattice_size_(1),
         sp_time_intervals_(128),
         time_intervals_for_time_measurements_(1),
         sp_fermionic_frequencies_(256),
@@ -36,11 +38,9 @@ public:
         max_real_frequency_(10.),
         real_frequencies_(3),
         imaginary_damping_(0.01) {
-    // Set all grids to their default value, the lattice basis.
+    // Set the cluster to its default value, the lattice basis.
     for (int i = 0; i < dimension; ++i) {
       cluster_[i][i] = 1;
-      sp_host_[i][i] = 1;
-      tp_host_[i][i] = 1;
     }
   }
 
@@ -57,12 +57,64 @@ public:
   const std::vector<std::vector<int>>& get_cluster() const {
     return cluster_;
   }
-  const std::vector<std::vector<int>>& get_sp_host() const {
-    return sp_host_;
+  void set_cluster(const std::vector<std::vector<int>>& cluster) {
+    if (cluster.size() != dimension_ || cluster[0].size() != dimension_) {
+      throw std::invalid_argument("Cluster dimension does not match specified dimension.");
+    }
+
+    cluster_ = cluster;
   }
-  const std::vector<std::vector<int>>& get_tp_host() const {
-    return tp_host_;
+
+  int get_sp_superlattice_size() const {
+    return sp_superlattice_size_;
   }
+  void set_sp_superlattice_size(const int sp_superlattice_size) {
+    if (sp_superlattice_size > 1 && sp_superlattice_size % 2) {
+      std::cerr << "Warning: sp-superlattice-size must be even.\nDecreasing given value by 1."
+                << std::endl;
+      sp_superlattice_size_ = sp_superlattice_size - 1;
+    }
+
+    else
+      sp_superlattice_size_ = sp_superlattice_size;
+  }
+  std::vector<std::vector<int>> get_sp_host() const {
+    std::vector<std::vector<int>> sp_host(cluster_);
+
+    for (int i = 0; i < dimension_; ++i) {
+      for (int j = 0; j < dimension_; ++j) {
+        sp_host[i][j] *= sp_superlattice_size_;
+      }
+    }
+
+    return sp_host;
+  }
+
+  int get_tp_superlattice_size() const {
+    return tp_superlattice_size_;
+  }
+  void set_tp_superlattice_size(const int tp_superlattice_size) {
+    if (tp_superlattice_size > 1 && tp_superlattice_size % 2) {
+      std::cerr << "Warning: tp-superlattice-size must be even.\nDecreasing given value by 1."
+                << std::endl;
+      tp_superlattice_size_ = tp_superlattice_size - 1;
+    }
+
+    else
+      tp_superlattice_size_ = tp_superlattice_size;
+  }
+  std::vector<std::vector<int>> get_tp_host() const {
+    std::vector<std::vector<int>> tp_host(cluster_);
+
+    for (int i = 0; i < dimension_; ++i) {
+      for (int j = 0; j < dimension_; ++j) {
+        tp_host[i][j] *= tp_superlattice_size_;
+      }
+    }
+
+    return tp_host;
+  }
+
   int get_sp_time_intervals() const {
     return sp_time_intervals_;
   }
@@ -92,9 +144,12 @@ public:
   }
 
 private:
+  const int dimension_;
+
   std::vector<std::vector<int>> cluster_;
-  std::vector<std::vector<int>> sp_host_;
-  std::vector<std::vector<int>> tp_host_;
+
+  int sp_superlattice_size_;
+  int tp_superlattice_size_;
 
   int sp_time_intervals_;
   int time_intervals_for_time_measurements_;
@@ -114,8 +169,8 @@ int DomainsParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(cluster_);
-  buffer_size += concurrency.get_buffer_size(sp_host_);
-  buffer_size += concurrency.get_buffer_size(tp_host_);
+  buffer_size += concurrency.get_buffer_size(sp_superlattice_size_);
+  buffer_size += concurrency.get_buffer_size(tp_superlattice_size_);
   buffer_size += concurrency.get_buffer_size(sp_time_intervals_);
   buffer_size += concurrency.get_buffer_size(time_intervals_for_time_measurements_);
   buffer_size += concurrency.get_buffer_size(sp_fermionic_frequencies_);
@@ -133,8 +188,8 @@ template <typename Concurrency>
 void DomainsParameters::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
                              int& position) const {
   concurrency.pack(buffer, buffer_size, position, cluster_);
-  concurrency.pack(buffer, buffer_size, position, sp_host_);
-  concurrency.pack(buffer, buffer_size, position, tp_host_);
+  concurrency.pack(buffer, buffer_size, position, sp_superlattice_size_);
+  concurrency.pack(buffer, buffer_size, position, tp_superlattice_size_);
   concurrency.pack(buffer, buffer_size, position, sp_time_intervals_);
   concurrency.pack(buffer, buffer_size, position, time_intervals_for_time_measurements_);
   concurrency.pack(buffer, buffer_size, position, sp_fermionic_frequencies_);
@@ -150,8 +205,8 @@ template <typename Concurrency>
 void DomainsParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                int& position) {
   concurrency.unpack(buffer, buffer_size, position, cluster_);
-  concurrency.unpack(buffer, buffer_size, position, sp_host_);
-  concurrency.unpack(buffer, buffer_size, position, tp_host_);
+  concurrency.unpack(buffer, buffer_size, position, sp_superlattice_size_);
+  concurrency.unpack(buffer, buffer_size, position, tp_superlattice_size_);
   concurrency.unpack(buffer, buffer_size, position, sp_time_intervals_);
   concurrency.unpack(buffer, buffer_size, position, time_intervals_for_time_measurements_);
   concurrency.unpack(buffer, buffer_size, position, sp_fermionic_frequencies_);
@@ -175,15 +230,45 @@ void DomainsParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-      try {
-        reader_or_writer.execute("sp-host", sp_host_);
+
+      // Read.
+      if (reader_or_writer.is_reader()) {
+        try {
+          reader_or_writer.execute("sp-superlattice-size", sp_superlattice_size_);
+        }
+        catch (const std::exception& r_e) {
+        }
+        if (sp_superlattice_size_ > 1 && sp_superlattice_size_ % 2) {
+          std::cerr << "Warning: sp-superlattice-size must be even.\nDecreasing input value by 1."
+                    << std::endl;
+          sp_superlattice_size_ -= 1;
+        }
+
+        try {
+          reader_or_writer.execute("tp-superlattice-size", tp_superlattice_size_);
+        }
+        catch (const std::exception& r_e) {
+        }
+
+        if (tp_superlattice_size_ > 1 && tp_superlattice_size_ % 2) {
+          std::cerr << "Warning: tp-superlattice-size must be even.\nDecreasing input value by 1."
+                    << std::endl;
+          tp_superlattice_size_ -= 1;
+        }
       }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("tp-host", tp_host_);
-      }
-      catch (const std::exception& r_e) {
+
+      // Write.
+      else {
+        try {
+          reader_or_writer.execute("sp-superlattice-size", sp_superlattice_size_);
+        }
+        catch (const std::exception& r_e) {
+        }
+        try {
+          reader_or_writer.execute("tp-superlattice-size", tp_superlattice_size_);
+        }
+        catch (const std::exception& r_e) {
+        }
       }
 
       reader_or_writer.close_group();
@@ -271,8 +356,8 @@ void DomainsParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_DOMAINS_PARAMETERS_HPP
