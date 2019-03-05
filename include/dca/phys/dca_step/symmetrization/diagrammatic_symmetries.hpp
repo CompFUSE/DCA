@@ -270,6 +270,11 @@ void diagrammatic_symmetries<parameters_type>::execute(
         symmetrize_over_pi_rotations_pp(G);
         break;
 
+      case PARTICLE_PARTICLE_SINGLET:
+        set_real(G);
+        symmetrize_over_pi_rotations_pp(G);
+        break;
+
       default:
         throw std::logic_error(__FUNCTION__);
     }
@@ -297,6 +302,11 @@ void diagrammatic_symmetries<parameters_type>::execute(
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN:
+      // set_real(G);
+      symmetrize_over_pi_rotations_pp(G);
+      break;
+
+    case PARTICLE_PARTICLE_SINGLET:
       // set_real(G);
       symmetrize_over_pi_rotations_pp(G);
       break;

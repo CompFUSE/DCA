@@ -380,6 +380,12 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
+    case PARTICLE_PARTICLE_SINGLET:
+      details::updateG4<Real, PARTICLE_PARTICLE_SINGLET>(
+          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
+      break;
       break;
     default:
       throw(std::logic_error("Mode non supported."));
