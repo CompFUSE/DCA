@@ -8,11 +8,6 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // No-change test of / example for the single-particle (sp) lattice mapping.
-// The value-parameterized test is run with
-// - a DCA+ cluster self-energy for which a lattice self-energy can be found with the given
-//   tolerance and maximum number of iterations ("dcaplus-converging"),
-// - a DCA cluster self-energy for which no lattice self-energy can be found
-//   ("dca-not-terminating").
 
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 
@@ -38,7 +33,7 @@
 
 using namespace dca;
 
-class LatticeMappingSpTest : public ::testing::TestWithParam<std::string> {
+class LatticeMappingSpTest : public ::testing::Test {
 protected:
   using FreqDmn = func::dmn_0<phys::domains::frequency_domain>;
   using BandDmn = func::dmn_0<phys::domains::electron_band_domain>;
@@ -103,10 +98,10 @@ LatticeMappingSpTest::ConcurrencyType LatticeMappingSpTest::concurrency_(0, null
 LatticeMappingSpTest::ParametersType LatticeMappingSpTest::parameters_(
     "", LatticeMappingSpTest::concurrency_);
 
-TEST_P(LatticeMappingSpTest, Execute) {
+TEST_F(LatticeMappingSpTest, Execute) {
   reader_.open_file(DCA_SOURCE_DIR
                     "/test/integration/phys/lattice_mapping/lattice_mapping_sp_test_baseline.hdf5");
-  reader_.open_group(GetParam());
+  reader_.open_group("functions");
   reader_.execute(sigma_cluster_);
   reader_.execute(sigma_lattice_baseline_);
   reader_.execute(sigma_lattice_interpolated_baseline_);
@@ -120,7 +115,7 @@ TEST_P(LatticeMappingSpTest, Execute) {
   lattice_mapping_obj.execute(sigma_cluster_, sigma_lattice_interpolated_,
                               sigma_lattice_coarsegrained_, sigma_lattice_);
 
-  // Compate with baseline.
+  // Compare with baseline.
   for (int i = 0; i < sigma_lattice_.size(); ++i) {
     EXPECT_NEAR(sigma_lattice_baseline_(i).real(), sigma_lattice_(i).real(),
                 500 * std::numeric_limits<double>::epsilon());
@@ -142,7 +137,3 @@ TEST_P(LatticeMappingSpTest, Execute) {
                 sigma_lattice_coarsegrained_(i).imag(), 500 * std::numeric_limits<double>::epsilon());
   }
 }
-
-// The last comma in the outer parentheses suppresses the gnu-zero-variadic-macro-arguments warning.
-INSTANTIATE_TEST_CASE_P(InputType, LatticeMappingSpTest,
-                        ::testing::Values("dcaplus-converging", "dca-not-terminating"), );

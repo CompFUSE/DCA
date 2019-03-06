@@ -13,8 +13,7 @@
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[2, 0], [0,1]],
-      "sp-host": [[40, 0], [0,20]]
+      "cluster": [[2, 0], [0,1]]
     },
 
     "imaginary-time": {
