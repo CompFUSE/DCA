@@ -43,8 +43,7 @@
         "real-space-grids": {
             "cluster": [VEC1,
                         VEC2],
-            "sp-host": [[10, 10],
-                        [10,-10]]
+            "sp-superlattice-size": 8
         },
 
         "imaginary-time": {

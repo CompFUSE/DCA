@@ -66,14 +66,14 @@
             "time-intervals": "sp-time-intervals" ("domains"/"imaginary-time"),
             "fermionic-frequencies": "sp-fermionic-frequencies" ("domains"/"imaginary-frequency"),
             "bosonic-frequencies": "HTS-bosonic-frequencies" ("domains"/"imaginary-frequency"),
-            "sp-cluster": "sp-host" ("domains"/"real-space-grids")
+            "sp-cluster": "sp-superlattice-size" ("domains"/"real-space-grids")
         },
 
         "two-particle-functions": {
             "time-intervals": "time-intervals-for-time-measurements" ("domains"/"imaginary-time"),
             "fermionic-frequencies": "four-point-fermionic-frequencies" ("domains"/"imaginary-frequency"),
             "bosonic-frequencies": removed,
-            "tp-cluster": "tp-host" ("domains"/"real-space-grids")
+            "tp-cluster": "tp-superlattice-size" ("domains"/"real-space-grids")
         },
 
         "real-axis-functions": {
