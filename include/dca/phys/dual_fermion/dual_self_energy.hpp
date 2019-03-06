@@ -89,7 +89,7 @@ void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn,
 
   Sigma_tilde_ = 0.;
 
-  const double min_1_over_Nc_V_beta =
+  const Scalar min_1_over_Nc_V_beta =
       -1. / (KClusterDmn::dmn_size() * KSuperlatticeDmn::dmn_size() * beta_);
 
   for (int l = bounds.first; l < bounds.second; ++l) {
