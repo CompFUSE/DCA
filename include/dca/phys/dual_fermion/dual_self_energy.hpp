@@ -38,19 +38,23 @@ public:
   using DualGreensFunction = func::function<std::complex<Scalar>, DualGreensFunctionDomain>;
 
   DualSelfEnergy(const Concurrency& concurrency, const Scalar beta,
-                 const DualGreensFunction& G0_tilde, const TpGreensFunction& Gamma_uu,
-                 const TpGreensFunction& Gamma_ud)
+                 const DualGreensFunction& G0_tilde, const TpGreensFunction& Gamma_long_uu,
+                 const TpGreensFunction& Gamma_long_ud, const TpGreensFunction& Gamma_trans_ud)
       : concurrency_(concurrency),
         beta_(beta),
         G0_tilde_(G0_tilde),
-        Gamma_uu_(Gamma_uu),
-        Gamma_ud_(Gamma_ud) {
+        Gamma_long_uu_(Gamma_long_uu),
+        Gamma_long_ud_(Gamma_long_ud),
+        Gamma_trans_ud_(Gamma_trans_ud) {
     // TODO: Multi-orbital support.
     assert(BandDmn::dmn_size() == 1);
   }
 
   // Computes the 1st order contribution.
   void compute1stOrder();
+
+  // Computes the 2nd order contribution.
+  void compute2ndOrder(){};
 
   const DualGreensFunction& get() {
     return Sigma_tilde_;
@@ -60,14 +64,18 @@ private:
   const Concurrency& concurrency_;
   const Scalar beta_;
 
-  // Bare dual Green's Function.
-  const DualGreensFunction& G0_tilde_;
-  // Two-particle vertex in particle-hole longtidudinal up-up channel.
-  const TpGreensFunction& Gamma_uu_;
-  // Two-particle vertex in particle-hole longtidudinal up-down channel.
-  const TpGreensFunction& Gamma_ud_;
   // Dual self-energy.
   DualGreensFunction Sigma_tilde_;
+
+  // Bare dual Green's function.
+  const DualGreensFunction& G0_tilde_;
+
+  // Two-particle vertex in particle-hole longitudinal up-up channel.
+  const TpGreensFunction& Gamma_long_uu_;
+  // Two-particle vertex in particle-hole longitudinal up-down channel.
+  const TpGreensFunction& Gamma_long_ud_;
+  // Two-particle vertex in particle-hole transverse up-down channel.
+  const TpGreensFunction& Gamma_trans_ud_;
 };
 
 template <typename Scalar, typename Concurrency, typename BandDmn, typename KClusterDmn,
@@ -101,8 +109,8 @@ void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn,
 
               Sigma_tilde_(K1, K2, k_tilde, wn) +=
                   min_1_over_Nc_V_beta *
-                  (Gamma_uu_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0) +
-                   Gamma_ud_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0)) *
+                  (Gamma_long_uu_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0) +
+                   Gamma_long_ud_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0)) *
                   G0_tilde_(K1_plus_Q, K2_plus_Q, k_tilde_plus_q_tilde, wm);
             }
           }
