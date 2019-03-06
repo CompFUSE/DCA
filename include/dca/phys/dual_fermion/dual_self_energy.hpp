@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <complex>
+#include <utility>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -48,7 +49,8 @@ public:
     assert(BandDmn::dmn_size() == 1);
   }
 
-  void compute1stOrder(){};
+  // Computes the 1st order contribution.
+  void compute1stOrder();
 
   const DualGreensFunction& get() {
     return Sigma_tilde_;
@@ -58,12 +60,59 @@ private:
   const Concurrency& concurrency_;
   const Scalar beta_;
 
+  // Bare dual Green's Function.
   const DualGreensFunction& G0_tilde_;
+  // Two-particle vertex in particle-hole longtidudinal up-up channel.
   const TpGreensFunction& Gamma_uu_;
+  // Two-particle vertex in particle-hole longtidudinal up-down channel.
   const TpGreensFunction& Gamma_ud_;
-
+  // Dual self-energy.
   DualGreensFunction Sigma_tilde_;
 };
+
+template <typename Scalar, typename Concurrency, typename BandDmn, typename KClusterDmn,
+          typename KSuperlatticeDmn, typename TpFreqDmn, typename FreqExchangeDmn>
+void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn, TpFreqDmn,
+                    FreqExchangeDmn>::compute1stOrder() {
+  // Distribute the work amongst the processes.
+  const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
+  int k_tilde_wn[2];
+
+  Sigma_tilde_ = 0.;
+
+  const double min_1_over_Nc_V_beta =
+      -1. / (KClusterDmn::dmn_size() * KSuperlatticeDmn::dmn_size() * beta_);
+
+  for (int l = bounds.first; l < bounds.second; ++l) {
+    k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
+    const auto k_tilde = k_tilde_wn[0];
+    const auto wn = k_tilde_wn[1];
+
+    for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
+      for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+        for (int wm = 0; wm < TpFreqDmn::dmn_size(); ++wm) {
+          for (int q_tilde = 0; q_tilde < KSuperlatticeDmn::dmn_size(); ++q_tilde) {
+            const int k_tilde_plus_q_tilde = KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
+
+            for (int Q = 0; Q < KClusterDmn::dmn_size(); ++Q) {
+              const int K1_plus_Q = KClusterDmn::parameter_type::add(K1, Q);
+              const int K2_plus_Q = KClusterDmn::parameter_type::add(K2, Q);
+
+              Sigma_tilde_(K1, K2, k_tilde, wn) +=
+                  min_1_over_Nc_V_beta *
+                  (Gamma_uu_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0) +
+                   Gamma_ud_(0, 0, 0, 0, K1, K2, Q, wn, wm, 0)) *
+                  G0_tilde_(K1_plus_Q, K2_plus_Q, k_tilde_plus_q_tilde, wm);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  concurrency_.sum(Sigma_tilde_);
+}
 
 }  // namespace df
 }  // namespace phys
