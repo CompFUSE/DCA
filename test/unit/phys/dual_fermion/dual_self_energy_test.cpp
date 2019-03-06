@@ -49,7 +49,9 @@ protected:
   using TpGreensFunction = DualSelfEnergyType::TpGreensFunction;
   using DualGreensFunction = DualSelfEnergyType::DualGreensFunction;
 
-  DualSelfEnergyTest() : concurrency_(0, nullptr), beta_(10.) {
+  DualSelfEnergyTest()
+      : concurrency_(0, nullptr), beta_(10.), Gamma_uu_val_(3.14), Gamma_ud_val_(42.) {
+    // Prepare G0_tilde_ w/o w or k_tilde depedency.
     for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
       for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
         G0_tilde_(0, 0, k_tilde, w) = 1.;
@@ -58,23 +60,28 @@ protected:
         G0_tilde_(1, 1, k_tilde, w) = 4.;
       }
 
-    const double Gamma_uu_val = 3.14;
-    const double Gamma_ud_val = 42.;
-
+    // Prepare Gamma_uu_ and Gamma_ud_ w/o K1, K2, K_ex, w1 or w2 dependecy.
     for (int w_ex = 0; w_ex < FreqExchangeDmn::dmn_size(); ++w_ex)
       for (int w2 = 0; w2 < TpFreqDmn::dmn_size(); ++w2)
         for (int w1 = 0; w1 < TpFreqDmn::dmn_size(); ++w1)
           for (int K_ex = 0; K_ex < KClusterDmn::dmn_size(); ++K_ex)
             for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
               for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-                Gamma_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_uu_val;
-                Gamma_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_ud_val;
+                // Choose different value for w_ex == 0 because it is the only frequency used.
+                if (w_ex == 0) {
+                  Gamma_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_uu_val_;
+                  Gamma_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_ud_val_;
+                }
+                else {
+                  Gamma_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
+                  Gamma_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
+                }
               }
   }
 
   static void SetUpTestCase() {
     const std::array<double, 4> cluster_basis{1., 0., 0., 1.};
-    const std::vector<std::vector<int>> cluster_superbasis{{2, 0}, {0, 2}};
+    const std::vector<std::vector<int>> cluster_superbasis{{2, 0}, {0, 1}};
     phys::domains::cluster_domain_initializer<RClusterDmn>::execute(cluster_basis.data(),
                                                                     cluster_superbasis);
 
@@ -92,7 +99,10 @@ protected:
 
   DualGreensFunction G0_tilde_;
 
+  const double Gamma_uu_val_;
   TpGreensFunction Gamma_uu_;
+
+  const double Gamma_ud_val_;
   TpGreensFunction Gamma_ud_;
 };
 
@@ -105,4 +115,32 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
 
   const int Nc = RClusterDmn::dmn_size();
   const int V = RSuperlatticeDmn::dmn_size();
+  const double prefactor = -1. / (Nc * V * beta_) * (Gamma_uu_val_ + Gamma_ud_val_) *
+                           KSuperlatticeDmn::dmn_size() * TpFreqDmn::dmn_size();
+
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      EXPECT_DOUBLE_EQ(
+          (prefactor * (G0_tilde_(0, 0, k_tilde, w) + G0_tilde_(1, 1, k_tilde, w))).real(),
+          Sigma_tilde_1(0, 0, k_tilde, w).real());
+
+      EXPECT_DOUBLE_EQ(
+          (prefactor * (G0_tilde_(0, 1, k_tilde, w) + G0_tilde_(1, 0, k_tilde, w))).real(),
+          Sigma_tilde_1(0, 1, k_tilde, w).real());
+
+      EXPECT_DOUBLE_EQ(
+          (prefactor * (G0_tilde_(1, 0, k_tilde, w) + G0_tilde_(0, 1, k_tilde, w))).real(),
+          Sigma_tilde_1(1, 0, k_tilde, w).real());
+
+      EXPECT_DOUBLE_EQ(
+          (prefactor * (G0_tilde_(1, 1, k_tilde, w) + G0_tilde_(0, 0, k_tilde, w))).real(),
+          Sigma_tilde_1(1, 1, k_tilde, w).real());
+    }
+
+  // Imaginary part should be zero since all input functions are real.
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
+      for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
+        for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
+          EXPECT_EQ(0., Sigma_tilde_1(K1, K2, k_tilde, w).imag());
 }
