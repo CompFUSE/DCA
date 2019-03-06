@@ -21,8 +21,8 @@
   "domains": {
     "real-space-grids": {
       "cluster" : [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ],
-      "sp-host": [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ],
-      "tp-host": [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ]
+      "sp-superlattice-size": 4,
+      "tp-superlattice-size": 4
     },
     "imaginary-time" : {
       "sp-time-intervals": 512,

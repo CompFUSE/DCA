@@ -11,8 +11,7 @@
         "real-space-grids": {
             "cluster": [[2, 0],
                         [0, 2]],
-            "sp-host": [[2, 0],
-                        [0, 2]]
+            "sp-superlattice-size": 1
         }
     }
 }
