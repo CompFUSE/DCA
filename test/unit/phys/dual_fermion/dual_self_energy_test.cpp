@@ -50,33 +50,14 @@ protected:
   using DualGreensFunction = DualSelfEnergyType::DualGreensFunction;
 
   DualSelfEnergyTest()
-      : concurrency_(0, nullptr), beta_(10.), Gamma_uu_val_(3.14), Gamma_ud_val_(42.) {
-    // Prepare G0_tilde_ w/o w or k_tilde depedency.
-    for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
-      for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
-        G0_tilde_(0, 0, k_tilde, w) = 1.;
-        G0_tilde_(0, 1, k_tilde, w) = 2.;
-        G0_tilde_(0, 1, k_tilde, w) = 3.;
-        G0_tilde_(1, 1, k_tilde, w) = 4.;
-      }
-
-    // Prepare Gamma_uu_ and Gamma_ud_ w/o K1, K2, K_ex, w1 or w2 dependecy.
-    for (int w_ex = 0; w_ex < FreqExchangeDmn::dmn_size(); ++w_ex)
-      for (int w2 = 0; w2 < TpFreqDmn::dmn_size(); ++w2)
-        for (int w1 = 0; w1 < TpFreqDmn::dmn_size(); ++w1)
-          for (int K_ex = 0; K_ex < KClusterDmn::dmn_size(); ++K_ex)
-            for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
-              for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-                // Choose different value for w_ex == 0 because it is the only frequency used.
-                if (w_ex == 0) {
-                  Gamma_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_uu_val_;
-                  Gamma_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_ud_val_;
-                }
-                else {
-                  Gamma_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
-                  Gamma_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
-                }
-              }
+      : concurrency_(0, nullptr),
+        beta_(10.),
+        Nc_(RClusterDmn::dmn_size()),
+        V_(RSuperlatticeDmn::dmn_size()),
+        Gamma_long_uu_val_(3.14),
+        Gamma_long_ud_val_(42.),
+        Gamma_trans_ud_val_(1.23),
+        Sigma_tilde_(concurrency_, beta_, G0_tilde_, Gamma_long_uu_, Gamma_long_ud_, Gamma_trans_ud_) {
   }
 
   static void SetUpTestCase() {
@@ -97,44 +78,74 @@ protected:
 
   const double beta_;
 
+  const int Nc_;
+  const int V_;
+
   DualGreensFunction G0_tilde_;
 
-  const double Gamma_uu_val_;
-  TpGreensFunction Gamma_uu_;
+  const double Gamma_long_uu_val_;
+  TpGreensFunction Gamma_long_uu_;
 
-  const double Gamma_ud_val_;
-  TpGreensFunction Gamma_ud_;
+  const double Gamma_long_ud_val_;
+  TpGreensFunction Gamma_long_ud_;
+
+  const double Gamma_trans_ud_val_;
+  TpGreensFunction Gamma_trans_ud_;
+
+  DualSelfEnergyType Sigma_tilde_;
 };
 
 TEST_F(DualSelfEnergyTest, Compute1stOrder) {
-  DualSelfEnergyType Sigma_tilde(concurrency_, beta_, G0_tilde_, Gamma_uu_, Gamma_ud_);
+  // Prepare G0_tilde_ w/o w or k_tilde depedency.
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      G0_tilde_(0, 0, k_tilde, w) = 1.;
+      G0_tilde_(0, 1, k_tilde, w) = 2.;
+      G0_tilde_(0, 1, k_tilde, w) = 3.;
+      G0_tilde_(1, 1, k_tilde, w) = 4.;
+    }
 
-  Sigma_tilde.compute1stOrder();
+  // Prepare Gamma_long_uu_ and Gamma_long_ud_ w/o K1, K2, K_ex, w1 or w2 dependecy.
+  for (int w_ex = 0; w_ex < FreqExchangeDmn::dmn_size(); ++w_ex)
+    for (int w2 = 0; w2 < TpFreqDmn::dmn_size(); ++w2)
+      for (int w1 = 0; w1 < TpFreqDmn::dmn_size(); ++w1)
+        for (int K_ex = 0; K_ex < KClusterDmn::dmn_size(); ++K_ex)
+          for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
+            for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+              // Choose different value for w_ex == 0 because it is the only frequency used.
+              if (w_ex == 0) {
+                Gamma_long_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_long_uu_val_;
+                Gamma_long_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = Gamma_long_ud_val_;
+              }
+              else {
+                Gamma_long_uu_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
+                Gamma_long_ud_(0, 0, 0, 0, K1, K2, K_ex, w1, w2, w_ex) = -1.;
+              }
+            }
 
-  const DualGreensFunction& Sigma_tilde_1 = Sigma_tilde.get();
+  Sigma_tilde_.compute1stOrder();
+  const DualGreensFunction& Sigma_tilde_1st = Sigma_tilde_.get();
 
-  const int Nc = RClusterDmn::dmn_size();
-  const int V = RSuperlatticeDmn::dmn_size();
-  const double prefactor = -1. / (Nc * V * beta_) * (Gamma_uu_val_ + Gamma_ud_val_) *
+  const double prefactor = -1. / (Nc_ * V_ * beta_) * (Gamma_long_uu_val_ + Gamma_long_ud_val_) *
                            KSuperlatticeDmn::dmn_size() * TpFreqDmn::dmn_size();
 
   for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       EXPECT_DOUBLE_EQ(
           (prefactor * (G0_tilde_(0, 0, k_tilde, w) + G0_tilde_(1, 1, k_tilde, w))).real(),
-          Sigma_tilde_1(0, 0, k_tilde, w).real());
+          Sigma_tilde_1st(0, 0, k_tilde, w).real());
 
       EXPECT_DOUBLE_EQ(
           (prefactor * (G0_tilde_(0, 1, k_tilde, w) + G0_tilde_(1, 0, k_tilde, w))).real(),
-          Sigma_tilde_1(0, 1, k_tilde, w).real());
+          Sigma_tilde_1st(0, 1, k_tilde, w).real());
 
       EXPECT_DOUBLE_EQ(
           (prefactor * (G0_tilde_(1, 0, k_tilde, w) + G0_tilde_(0, 1, k_tilde, w))).real(),
-          Sigma_tilde_1(1, 0, k_tilde, w).real());
+          Sigma_tilde_1st(1, 0, k_tilde, w).real());
 
       EXPECT_DOUBLE_EQ(
           (prefactor * (G0_tilde_(1, 1, k_tilde, w) + G0_tilde_(0, 0, k_tilde, w))).real(),
-          Sigma_tilde_1(1, 1, k_tilde, w).real());
+          Sigma_tilde_1st(1, 1, k_tilde, w).real());
     }
 
   // Imaginary part should be zero since all input functions are real.
@@ -142,5 +153,10 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
       for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
         for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
-          EXPECT_EQ(0., Sigma_tilde_1(K1, K2, k_tilde, w).imag());
+          EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, w).imag());
+}
+
+TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
+  Sigma_tilde_.compute2ndOrder();
+  const DualGreensFunction& Sigma_tilde_2nd = Sigma_tilde_.get();
 }
