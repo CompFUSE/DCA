@@ -24,8 +24,6 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 using namespace dca;
 
@@ -56,11 +54,6 @@ protected:
 
   using BandDmn = func::dmn_0<func::dmn<1, int>>;
 
-  using FreqExchangeDmn = func::dmn_0<phys::domains::FrequencyExchangeDomain>;
-  using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
-  using TpFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::COMPACT>>;
-  using DualFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::EXTENDED>>;
-
   using RClusterDmn = phys::ClusterDomainAliases<dimension_>::RClusterDmn;
   using KClusterDmn = phys::ClusterDomainAliases<dimension_>::KClusterDmn;
 
@@ -68,8 +61,12 @@ protected:
   using KSuperlatticeDmn = phys::ClusterDomainAliases<dimension_>::KSpSuperlatticeDmn;
 
   using DualSelfEnergyType =
-      phys::df::DualSelfEnergy<double, parallel::NoConcurrency, BandDmn, KClusterDmn,
-                               KSuperlatticeDmn, DualFreqDmn, TpFreqDmn, FreqExchangeDmn>;
+      phys::df::DualSelfEnergy<double, parallel::NoConcurrency, BandDmn, KClusterDmn, KSuperlatticeDmn>;
+
+  using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
+  using FreqExchangeDmn = DualSelfEnergyType::FreqExchangeDmn;
+  using TpFreqDmn = DualSelfEnergyType::TpFreqDmn;
+  using DualFreqDmn = DualSelfEnergyType::DualFreqDmn;
 
   using TpGreensFunction = DualSelfEnergyType::TpGreensFunction;
   using DualGreensFunction = DualSelfEnergyType::DualGreensFunction;
