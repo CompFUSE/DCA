@@ -249,7 +249,7 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   auto& G4 = get_G4();
   try {
-    typename BaseClass::TpDomain tp_dmn;
+    typename BaseClass::TpGreenFunction::this_domain_type tp_dmn;
     if (!multiple_accumulators_) {
       G4.setStream(streams_[0]);
     }

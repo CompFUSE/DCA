@@ -42,19 +42,23 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
     for (const int idx : delta_w)
       host_helper.ext_size_ = std::max(host_helper.ext_size_, std::abs(idx));
 
-    const int nb4 = nb * nb * nb * nb;
-    const int nk3 = nk * nk * delta_k.size();
     const int nw = 2 * nw_pos;
-    const std::array<int, 10> steps{1,
+    const std::array<int, 10> sizes{nb,
                                     nb,
-                                    nb * nb,
-                                    nb * nb * nb,
-                                    nb4,
-                                    nb4 * nk,
-                                    nb4 * nk * nk,
-                                    nb4 * nk3,
-                                    nb4 * nk3 * nw,
-                                    nb4 * nk3 * nw * nw};
+                                    nb,
+                                    nb,
+                                    nk,
+                                    nw,
+                                    nk,
+                                    nw,
+                                    static_cast<int>(delta_k.size()),
+                                    static_cast<int>(delta_w.size())};
+
+    std::array<int, 10> steps;
+    steps[0] = 1;
+    for (std::size_t i = 1; i < steps.size(); ++i)
+      steps[i] = steps[i - 1] * sizes[i - 1];
+
     std::copy_n(steps.data(), steps.size(), host_helper.sbdm_steps_);
 
     cudaMalloc(&host_helper.add_matrix_, sizeof(int) * lda * nk);
