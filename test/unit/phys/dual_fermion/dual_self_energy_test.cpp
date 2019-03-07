@@ -223,6 +223,7 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
   for (int w = parameters_.get_four_point_frequency_transfer();
        w < DualFreqDmn::dmn_size() - parameters_.get_four_point_frequency_transfer(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      // K1 = 0, K2 = 0
       EXPECT_NEAR(
           (prefactor * (G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
                         G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
@@ -242,6 +243,72 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
                         G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0)))
               .real(),
           Sigma_tilde_2nd(0, 0, k_tilde, w).real(),
+          10000000 * std::numeric_limits<double>::epsilon());
+
+      // K1 = 0, K2 = 1
+      EXPECT_NEAR(
+          (prefactor * (G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0)))
+              .real(),
+          Sigma_tilde_2nd(0, 1, k_tilde, w).real(),
+          10000000 * std::numeric_limits<double>::epsilon());
+
+      // K1 = 1, K2 = 0
+      EXPECT_NEAR(
+          (prefactor * (G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0)))
+              .real(),
+          Sigma_tilde_2nd(1, 0, k_tilde, w).real(),
+          10000000 * std::numeric_limits<double>::epsilon());
+
+      // K1 = 1, K2 = 1
+      EXPECT_NEAR(
+          (prefactor * (G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 1, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(1, 0, 0, 0) +
+                        G0_tilde_(0, 0, 0, 0) * G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(0, 1, 0, 0) * G0_tilde_(1, 0, 0, 0) * G0_tilde_(0, 0, 0, 0) +
+                        G0_tilde_(1, 1, 0, 0) * G0_tilde_(0, 0, 0, 0) * G0_tilde_(0, 0, 0, 0)))
+              .real(),
+          Sigma_tilde_2nd(1, 1, k_tilde, w).real(),
           10000000 * std::numeric_limits<double>::epsilon());
     }
 
