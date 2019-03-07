@@ -22,6 +22,8 @@ FourPointType stringToFourPointType(const std::string& name) {
     return NONE;
   else if (name == "PARTICLE_PARTICLE_UP_DOWN")
     return PARTICLE_PARTICLE_UP_DOWN;
+  else if (name == "PARTICLE_PARTICLE_SINGLET")
+    return PARTICLE_PARTICLE_SINGLET;
   else if (name == "PARTICLE_HOLE_TRANSVERSE")
     return PARTICLE_HOLE_TRANSVERSE;
   else if (name == "PARTICLE_HOLE_MAGNETIC")
@@ -38,6 +40,8 @@ std::string toString(const FourPointType type) {
       return "NONE";
     case PARTICLE_PARTICLE_UP_DOWN:
       return "PARTICLE_PARTICLE_UP_DOWN";
+    case PARTICLE_PARTICLE_SINGLET:
+      return "PARTICLE_PARTICLE_SINGLET";
     case PARTICLE_HOLE_TRANSVERSE:
       return "PARTICLE_HOLE_TRANSVERSE";
     case PARTICLE_HOLE_MAGNETIC:

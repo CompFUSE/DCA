@@ -158,7 +158,7 @@ class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_CHARGE> {
 };
 
 //
-// Specialization for particle-hole-superconducting channel.
+// Specialization for particle-particle-up-down channel.
 //
 template <class model_type>
 class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_UP_DOWN> {
@@ -167,6 +167,15 @@ class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_UP_DOWN> {
   }
 };
 
+//
+// Specialization for particle-particle-singlet channel.
+//
+template <class model_type>
+class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_SINGLET> {
+  inline void execute() {
+    throw std::logic_error(__FUNCTION__);
+  }
+};
 }  // ctaux
 }  // solver
 }  // phys

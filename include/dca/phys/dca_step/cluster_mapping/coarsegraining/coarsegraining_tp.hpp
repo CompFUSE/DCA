@@ -704,6 +704,10 @@ double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
       return 1;
       break;
 
+    case PARTICLE_PARTICLE_SINGLET:
+      return 1;
+      break;
+
     default:
       throw std::logic_error(__FUNCTION__);
   }
