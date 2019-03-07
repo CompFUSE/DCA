@@ -2,4 +2,4 @@
 
 dca_add_gtest(dual_self_energy_test
   GTEST_MAIN
-  LIBS function ${LAPACK_LIBRARIES})
+  LIBS function time_and_frequency_domains ${LAPACK_LIBRARIES})
