@@ -76,7 +76,7 @@ public:
   void compute1stOrder();
 
   // Computes the 2nd order contribution.
-  void compute2ndOrder() {}
+  void compute2ndOrder();
 
   const DualGreensFunction& get() {
     return Sigma_tilde_;
@@ -154,75 +154,75 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
   concurrency_.sum(Sigma_tilde_);
 }
 
-// template <typename Scalar, typename Concurrency, int dimension>
-// void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
-//   // Distribute the work amongst the processes.
-//   const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
-//   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
-//   int k_tilde_wn[2];
+template <typename Scalar, typename Concurrency, int dimension>
+void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
+  // Distribute the work amongst the processes.
+  const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
+  int k_tilde_wn[2];
 
-//   Sigma_tilde_ = 0.;
+  const Scalar min_1_over_2_Nc_V_beta_squared = -1. / (2. * Nc_ * Nc_ * V_ * V_ * beta_ * beta_);
 
-//   const int Nc = KClusterDmn::dmn_size();
-//   const int V = KSuperlatticeDmn::dmn_size();
+  for (int l = bounds.first; l < bounds.second; ++l) {
+    k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
+    const auto k_tilde = k_tilde_wn[0];
+    const auto wn_tp = k_tilde_wn[1];
+    const auto wn_sp = wn_tp + max_exchange_freq_;
+    assert(DualFreqDmn::get_elements()[wn_sp] == TpFreqDmn::get_elements()[wn_tp]);
 
-//   const Scalar min_1_over_2_Nc_V_beta_squared = -1. / (2 * Nc * Nc * V * V * beta_ * beta_);
+    for (int K2 = 0; K2 < Nc_; ++K2) {
+      for (int K1 = 0; K1 < Nc_; ++K1) {
+        // Outer sums.
+        for (int wm_tp = 0; wm_tp < TpFreqDmn::dmn_size(); ++wm_tp) {
+          const auto wm_sp = wm_tp + max_exchange_freq_;
+          assert(DualFreqDmn::get_elements()[wm_sp] == TpFreqDmn::get_elements()[wm_tp]);
 
-//   for (int l = bounds.first; l < bounds.second; ++l) {
-//     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
-//     const auto k_tilde = k_tilde_wn[0];
-//     const auto n = k_tilde_wn[1];
+          for (int l = 0; l < FreqExchangeDmn::dmn_size(); ++l) {
+            for (int K2p = 0; K2p < Nc_; ++K2p) {
+              for (int K1p = 0; K1p < Nc_; ++K1p) {
+                for (int Q2 = 0; Q2 < Nc_; ++Q2) {
+                  const int K2_plus_Q2 = KClusterDmn::parameter_type::add(K2, Q2);
+                  const int K2p_plus_Q2 = KClusterDmn::parameter_type::add(K2p, Q2);
 
-//     for (int K2 = 0; K2 < Nc; ++K2) {
-//       for (int K1 = 0; K1 < Nc; ++K1) {
-//         // Outer sums.
-//         for (int m = 0; m < TpFreqDmn::dmn_size(); ++m) {
-//           for (int l = 0; l < FreqExchangeDmn::dmn_size(); ++l) {
-//             for (int K2p = 0; K2p < Nc; ++K2p) {
-//               for (int K1p = 0; K1p < Nc; ++K1p) {
-//                 for (int Q2 = 0; Q2 < Nc; ++Q2) {
-//                   const int K2_plus_Q2 = KClusterDmn::parameter_type::add(K2, Q2);
-//                   const int K2p_plus_Q2 = KClusterDmn::parameter_type::add(K2p, Q2);
+                  for (int Q1 = 0; Q1 < Nc_; ++Q1) {
+                    const int K1_plus_Q1 = KClusterDmn::parameter_type::add(K1, Q1);
+                    const int K1p_plus_Q1 = KClusterDmn::parameter_type::add(K1p, Q1);
 
-//                   for (int Q1 = 0; Q1 < Nc; ++Q1) {
-//                     const int K1_plus_Q1 = KClusterDmn::parameter_type::add(K1, Q1);
-//                     const int K1p_plus_Q1 = KClusterDmn::parameter_type::add(K1p, Q1);
+                    const std::complex<Scalar> Gamma_sum_prod =
+                        (Gamma_long_uu_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                             Gamma_long_uu_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
+                         Gamma_long_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                             Gamma_long_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
+                         Gamma_tran_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                             Gamma_tran_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l));
 
-//                     const std::complex<Scalar> Gamma_sum_prod =
-//                         (Gamma_long_uu_(0, 0, 0, 0, K1, K1p, Q1, n, m, l) *
-//                              Gamma_long_uu_(0, 0, 0, 0, K2, K2p, Q2, m, n, l) +
-//                          Gamma_long_ud_(0, 0, 0, 0, K1, K1p, Q1, n, m, l) *
-//                              Gamma_long_ud_(0, 0, 0, 0, K2, K2p, Q2, m, n, l) +
-//                          Gamma_tran_ud_(0, 0, 0, 0, K1, K1p, Q1, n, m, l) *
-//                              Gamma_tran_ud_(0, 0, 0, 0, K2, K2p, Q2, m, n, l));
+                    // Inner sums (product of \tilde{G}_0's).
+                    for (int k_tilde_p = 0; k_tilde_p < V_; ++k_tilde_p) {
+                      for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
+                        const int k_tilde_plus_q_tilde =
+                            KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
+                        const int k_tilde_p_plus_q_tilde =
+                            KSuperlatticeDmn::parameter_type::add(k_tilde_p, q_tilde);
 
-//                     // Inner sums.
-//                     for (int k_tilde_p = 0; k_tilde_p < V; ++k_tilde_p) {
-//                       for (int q_tilde = 0; q_tilde < V; ++q_tilde) {
-//                         const int k_tilde_plus_q_tilde =
-//                             KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
-//                         const int k_tilde_p_plus_q_tilde =
-//                             KSuperlatticeDmn::parameter_type::add(k_tilde_p, q_tilde);
+                        Sigma_tilde_(K1, K2, k_tilde, wn_sp) +=
+                            min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
+                            G0_tilde_(K1p, K2p, k_tilde_p, wm_sp) *
+                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde_p_plus_q_tilde, wm_sp + l) *
+                            G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_sp + l);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
-//                         Sigma_tilde_(K1, K2, k_tilde, n) +=
-//                             min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
-//                             G0_tilde_(K1p, K2p, k_tilde_p, m) *
-//                             G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde_p_plus_q_tilde, m + l) *
-//                             G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, m + l);
-//                       }
-//                     }
-//                   }
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   concurrency_.sum(Sigma_tilde_);
-// }
+  concurrency_.sum(Sigma_tilde_);
+}
 
 }  // namespace df
 }  // namespace phys
