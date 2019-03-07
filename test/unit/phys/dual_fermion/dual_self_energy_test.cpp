@@ -21,7 +21,6 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
@@ -51,22 +50,18 @@ struct MockParameters {
 class DualSelfEnergyTest : public ::testing::Test {
 protected:
   static constexpr int dimension_ = 2;
-
   using BandDmn = func::dmn_0<func::dmn<1, int>>;
 
-  using RClusterDmn = phys::ClusterDomainAliases<dimension_>::RClusterDmn;
-  using KClusterDmn = phys::ClusterDomainAliases<dimension_>::KClusterDmn;
-
-  using RSuperlatticeDmn = phys::ClusterDomainAliases<dimension_>::RSpSuperlatticeDmn;
-  using KSuperlatticeDmn = phys::ClusterDomainAliases<dimension_>::KSpSuperlatticeDmn;
-
   using DualSelfEnergyType =
-      phys::df::DualSelfEnergy<double, parallel::NoConcurrency, BandDmn, KClusterDmn, KSuperlatticeDmn>;
+      phys::df::DualSelfEnergy<double, parallel::NoConcurrency, BandDmn, dimension_>;
 
   using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
   using FreqExchangeDmn = DualSelfEnergyType::FreqExchangeDmn;
   using TpFreqDmn = DualSelfEnergyType::TpFreqDmn;
   using DualFreqDmn = DualSelfEnergyType::DualFreqDmn;
+
+  using KClusterDmn = DualSelfEnergyType::KClusterDmn;
+  using KSuperlatticeDmn = DualSelfEnergyType::KSuperlatticeDmn;
 
   using TpGreensFunction = DualSelfEnergyType::TpGreensFunction;
   using DualGreensFunction = DualSelfEnergyType::DualGreensFunction;
@@ -80,22 +75,22 @@ protected:
                      Gamma_long_ud_, Gamma_tran_ud_) {}
 
   static void SetUpTestCase() {
-    FreqExchangeDmn::parameter_type::initialize(parameters_);
     SpFreqDmn::parameter_type::initialize(parameters_);
+    FreqExchangeDmn::parameter_type::initialize(parameters_);
     TpFreqDmn::parameter_type::initialize(parameters_);
     DualFreqDmn::parameter_type::initialize(parameters_);
 
     const std::array<double, 4> cluster_basis{1., 0., 0., 1.};
     const std::vector<std::vector<int>> cluster_superbasis{{2, 0}, {0, 1}};
-    phys::domains::cluster_domain_initializer<RClusterDmn>::execute(cluster_basis.data(),
-                                                                    cluster_superbasis);
+    phys::domains::cluster_domain_initializer<func::dmn_0<KClusterDmn::parameter_type::dual_type>>::execute(
+        cluster_basis.data(), cluster_superbasis);
 
     const std::array<double, 4> superlattice_basis{2., 0., 0., 2.};
     const int superlattice_size = 4;
     const std::vector<std::vector<int>> superlattice_superbasis{{superlattice_size, 0},
                                                                 {0, superlattice_size}};
-    phys::domains::cluster_domain_initializer<RSuperlatticeDmn>::execute(superlattice_basis.data(),
-                                                                         superlattice_superbasis);
+    phys::domains::cluster_domain_initializer<func::dmn_0<KSuperlatticeDmn::parameter_type::dual_type>>::execute(
+        superlattice_basis.data(), superlattice_superbasis);
   }
 
   static const testing::MockParameters parameters_;

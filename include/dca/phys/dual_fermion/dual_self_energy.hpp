@@ -18,6 +18,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
@@ -26,13 +27,15 @@ namespace phys {
 namespace df {
 // dca::phys::df::
 
-template <typename Scalar, typename Concurrency, typename BandDmn, typename KClusterDmn,
-          typename KSuperlatticeDmn>
+template <typename Scalar, typename Concurrency, typename BandDmn, int dimension>
 class DualSelfEnergy {
 public:
   using FreqExchangeDmn = func::dmn_0<phys::domains::FrequencyExchangeDomain>;
   using TpFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::COMPACT>>;
   using DualFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::EXTENDED>>;
+
+  using KClusterDmn = typename phys::ClusterDomainAliases<dimension>::KClusterDmn;
+  using KSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::KSpSuperlatticeDmn;
 
   using TpGreensFunctionDomain =
       func::dmn_variadic<BandDmn, BandDmn, BandDmn, BandDmn, KClusterDmn, KClusterDmn, KClusterDmn,
@@ -102,9 +105,8 @@ private:
   const TpGreensFunction& Gamma_tran_ud_;
 };
 
-template <typename Scalar, typename Concurrency, typename BandDmn, typename KClusterDmn,
-          typename KSuperlatticeDmn>
-void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn>::compute1stOrder() {
+template <typename Scalar, typename Concurrency, typename BandDmn, int dimension>
+void DualSelfEnergy<Scalar, Concurrency, BandDmn, dimension>::compute1stOrder() {
   // Distribute the work amongst the processes.
   const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
@@ -149,9 +151,8 @@ void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn>
   concurrency_.sum(Sigma_tilde_);
 }
 
-// template <typename Scalar, typename Concurrency, typename BandDmn, typename KClusterDmn,
-//           typename KSuperlatticeDmn>
-// void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, KSuperlatticeDmn>::compute2ndOrder() {
+// template <typename Scalar, typename Concurrency, typename BandDmn, int dimension>
+// void DualSelfEnergy<Scalar, Concurrency, BandDmn, KClusterDmn, dimension>::compute2ndOrder() {
 //   // Distribute the work amongst the processes.
 //   const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
 //   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
