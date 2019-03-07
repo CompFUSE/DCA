@@ -50,10 +50,10 @@ struct MockParameters {
 class DualSelfEnergyTest : public ::testing::Test {
 protected:
   static constexpr int dimension_ = 2;
-  using BandDmn = func::dmn_0<func::dmn<1, int>>;
 
-  using DualSelfEnergyType =
-      phys::df::DualSelfEnergy<double, parallel::NoConcurrency, BandDmn, dimension_>;
+  using DualSelfEnergyType = phys::df::DualSelfEnergy<double, parallel::NoConcurrency, dimension_>;
+
+  using BandDmn = DualSelfEnergyType::BandDmn;
 
   using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
   using FreqExchangeDmn = DualSelfEnergyType::FreqExchangeDmn;
@@ -75,6 +75,10 @@ protected:
                      Gamma_long_ud_, Gamma_tran_ud_) {}
 
   static void SetUpTestCase() {
+    const int num_bands = 1;
+    BandDmn::parameter_type::initialize(parameters_, num_bands, std::vector<int>(num_bands),
+                                        std::vector<std::vector<double>>(num_bands));
+
     SpFreqDmn::parameter_type::initialize(parameters_);
     FreqExchangeDmn::parameter_type::initialize(parameters_);
     TpFreqDmn::parameter_type::initialize(parameters_);
