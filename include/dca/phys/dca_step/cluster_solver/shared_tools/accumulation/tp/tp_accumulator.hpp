@@ -22,6 +22,7 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -99,6 +100,7 @@ public:
   }
 
 protected:
+  using Data = DcaData<Parameters>;
   using Profiler = typename Parameters::profiler_type;
 
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
@@ -111,9 +113,7 @@ protected:
   using SpGreenFunction =
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
 
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
-  using TpGreenFunction = func::function<Complex, TpDomain>;
+  using TpGreenFunction = typename Data::TpGreensFunction;
   using Matrix = linalg::Matrix<Complex, linalg::CPU>;
 
   void initializeG0();
@@ -402,13 +402,13 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -417,7 +417,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
                                    w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
-            }
+        }
       }
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
@@ -428,13 +428,13 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -443,7 +443,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
                                    w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
-            }
+        }
       }
 
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
@@ -454,19 +454,19 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       //    = -1/2 G(k2 + k_ex, k1 + k_ex, s) G(k1, k2, -s).
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
                                    w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
-            }
+        }
       }
 
       flops += n_loops * 2 * flops_update_atomic;
@@ -477,19 +477,19 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       //    = 1/2 G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s).
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
                                    q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
                                    w_ex_minus_w(w2, w_ex), sign_over_2, false);
                 }
-            }
+        }
       }
 
       flops += n_loops * 2 * flops_update_atomic;
@@ -548,9 +548,8 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
   //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
   //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
   if (n_bands_ == 1) {
-    *G4_ptr += alpha *
-               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                        Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
