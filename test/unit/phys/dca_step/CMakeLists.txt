@@ -1,2 +1,3 @@
+add_subdirectory(cluster_mapping/coarsegraining)
 add_subdirectory(cluster_solver)
 add_subdirectory(lattice_mapping/deconvolution)

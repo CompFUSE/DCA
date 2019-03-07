@@ -81,3 +81,17 @@ TEST_F(DcaParametersTest, ConsistencyCheck) {
   EXPECT_THROW(pars_.readWrite(reader_), std::logic_error);
   reader_.close_file();
 }
+
+TEST_F(DcaParametersTest, Setters) {
+  const int k_mesh_recursion = 3;
+  pars_.set_k_mesh_recursion(k_mesh_recursion);
+  EXPECT_EQ(k_mesh_recursion, pars_.get_k_mesh_recursion());
+
+  const int coarsegraining_periods = 2;
+  pars_.set_coarsegraining_periods(coarsegraining_periods);
+  EXPECT_EQ(coarsegraining_periods, pars_.get_coarsegraining_periods());
+
+  const int quadrature_rule = 4;
+  pars_.set_quadrature_rule(quadrature_rule);
+  EXPECT_EQ(quadrature_rule, pars_.get_quadrature_rule());
+}

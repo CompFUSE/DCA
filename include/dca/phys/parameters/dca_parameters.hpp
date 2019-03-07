@@ -78,15 +78,28 @@ public:
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
+
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
   }
+  void set_k_mesh_recursion(const int k_mesh_recursion) {
+    k_mesh_recursion_ = k_mesh_recursion;
+  }
+
   int get_coarsegraining_periods() const {
     return coarsegraining_periods_;
   }
+  void set_coarsegraining_periods(const int coarsegraining_periods) {
+    coarsegraining_periods_ = coarsegraining_periods;
+  }
+
   int get_quadrature_rule() const {
     return quadrature_rule_;
   }
+  void set_quadrature_rule(const int quadrature_rule) {
+    quadrature_rule_ = quadrature_rule;
+  }
+
   int get_coarsegraining_threads() const {
     return coarsegraining_threads_;
   }
