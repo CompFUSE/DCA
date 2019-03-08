@@ -35,28 +35,28 @@ public:
 
   using FreqExchangeDmn = func::dmn_0<phys::domains::FrequencyExchangeDomain>;
   using TpFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::COMPACT>>;
-  using DualFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::EXTENDED>>;
+  using ExtFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::EXTENDED>>;
 
   using KClusterDmn = typename phys::ClusterDomainAliases<dimension>::KClusterDmn;
   using KSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::KSpSuperlatticeDmn;
 
-  using TpGreensFunctionDomain =
-      func::dmn_variadic<BandDmn, BandDmn, BandDmn, BandDmn, KClusterDmn, KClusterDmn, KClusterDmn,
-                         TpFreqDmn, TpFreqDmn, FreqExchangeDmn>;
-  using TpGreensFunction = func::function<std::complex<Scalar>, TpGreensFunctionDomain>;
+  using TpGFDmn = func::dmn_variadic<BandDmn, BandDmn, BandDmn, BandDmn, KClusterDmn, KClusterDmn,
+                                     KClusterDmn, TpFreqDmn, TpFreqDmn, FreqExchangeDmn>;
+  using TpGF = func::function<std::complex<Scalar>, TpGFDmn>;
 
-  using DualGreensFunctionDomain =
-      func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, DualFreqDmn>;
-  using DualGreensFunction = func::function<std::complex<Scalar>, DualGreensFunctionDomain>;
+  using DualGFExtFreqDmn = func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, ExtFreqDmn>;
+  using DualGFExtFreq = func::function<std::complex<Scalar>, DualGFExtFreqDmn>;
 
-  DualSelfEnergy(const Concurrency& concurrency, const Scalar beta,
-                 const DualGreensFunction& G0_tilde, const TpGreensFunction& Gamma_long_uu,
-                 const TpGreensFunction& Gamma_long_ud, const TpGreensFunction& Gamma_tran_ud)
+  using DualGFTpFreqDmn = func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, TpFreqDmn>;
+  using DualGFTpFreq = func::function<std::complex<Scalar>, DualGFTpFreqDmn>;
+
+  DualSelfEnergy(const Concurrency& concurrency, const Scalar beta, const DualGFExtFreq& G0_tilde,
+                 const TpGF& Gamma_long_uu, const TpGF& Gamma_long_ud, const TpGF& Gamma_tran_ud)
       : concurrency_(concurrency),
         beta_(beta),
         Nc_(KClusterDmn::dmn_size()),
         V_(KSuperlatticeDmn::dmn_size()),
-        num_dual_freqs_(DualFreqDmn::dmn_size()),
+        num_dual_freqs_(ExtFreqDmn::dmn_size()),
         num_tp_freqs_(TpFreqDmn::dmn_size()),
         num_exchange_freqs_(FreqExchangeDmn::dmn_size()),
         max_exchange_freq_(FreqExchangeDmn::parameter_type::get_extension_size()),
@@ -78,7 +78,7 @@ public:
   // Computes the 2nd order contribution.
   void compute2ndOrder();
 
-  const DualGreensFunction& get() {
+  const DualGFTpFreq& get() {
     return Sigma_tilde_;
   }
 
@@ -95,17 +95,17 @@ private:
   const int max_exchange_freq_;
 
   // Dual self-energy.
-  DualGreensFunction Sigma_tilde_;
+  DualGFTpFreq Sigma_tilde_;
 
   // Bare dual Green's function.
-  const DualGreensFunction& G0_tilde_;
+  const DualGFExtFreq& G0_tilde_;
 
   // Two-particle vertex in particle-hole longitudinal up-up channel.
-  const TpGreensFunction& Gamma_long_uu_;
+  const TpGF& Gamma_long_uu_;
   // Two-particle vertex in particle-hole longitudinal up-down channel.
-  const TpGreensFunction& Gamma_long_ud_;
+  const TpGF& Gamma_long_ud_;
   // Two-particle vertex in particle-hole transverse up-down channel.
-  const TpGreensFunction& Gamma_tran_ud_;
+  const TpGF& Gamma_tran_ud_;
 };
 
 template <typename Scalar, typename Concurrency, int dimension>
@@ -123,14 +123,12 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
     const auto k_tilde = k_tilde_wn[0];
     const auto wn_tp = k_tilde_wn[1];
-    const auto wn_sp = wn_tp + max_exchange_freq_;
-    assert(DualFreqDmn::get_elements()[wn_sp] == TpFreqDmn::get_elements()[wn_tp]);
 
     for (int K2 = 0; K2 < Nc_; ++K2) {
       for (int K1 = 0; K1 < Nc_; ++K1) {
         for (int wm_tp = 0; wm_tp < num_tp_freqs_; ++wm_tp) {
-          const auto wm_sp = wm_tp + max_exchange_freq_;
-          assert(DualFreqDmn::get_elements()[wn_sp] == TpFreqDmn::get_elements()[wn_tp]);
+          const auto wm_ext = wm_tp + max_exchange_freq_;
+          assert(ExtFreqDmn::get_elements()[wm_ext] == TpFreqDmn::get_elements()[wm_tp]);
 
           for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
             const int k_tilde_plus_q_tilde = KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
@@ -139,11 +137,11 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
               const int K1_plus_Q = KClusterDmn::parameter_type::add(K1, Q);
               const int K2_plus_Q = KClusterDmn::parameter_type::add(K2, Q);
 
-              Sigma_tilde_(K1, K2, k_tilde, wn_sp) +=
+              Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
                   min_1_over_Nc_V_beta *
                   (Gamma_long_uu_(0, 0, 0, 0, K1, K2, Q, wn_tp, wm_tp, 0) +
                    Gamma_long_ud_(0, 0, 0, 0, K1, K2, Q, wn_tp, wm_tp, 0)) *
-                  G0_tilde_(K1_plus_Q, K2_plus_Q, k_tilde_plus_q_tilde, wm_sp);
+                  G0_tilde_(K1_plus_Q, K2_plus_Q, k_tilde_plus_q_tilde, wm_ext);
             }
           }
         }
@@ -167,15 +165,13 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
     const auto k_tilde = k_tilde_wn[0];
     const auto wn_tp = k_tilde_wn[1];
-    const auto wn_sp = wn_tp + max_exchange_freq_;
-    assert(DualFreqDmn::get_elements()[wn_sp] == TpFreqDmn::get_elements()[wn_tp]);
 
     for (int K2 = 0; K2 < Nc_; ++K2) {
       for (int K1 = 0; K1 < Nc_; ++K1) {
         // Outer sums.
         for (int wm_tp = 0; wm_tp < TpFreqDmn::dmn_size(); ++wm_tp) {
-          const auto wm_sp = wm_tp + max_exchange_freq_;
-          assert(DualFreqDmn::get_elements()[wm_sp] == TpFreqDmn::get_elements()[wm_tp]);
+          const auto wm_ext = wm_tp + max_exchange_freq_;
+          assert(ExtFreqDmn::get_elements()[wm_ext] == TpFreqDmn::get_elements()[wm_tp]);
 
           for (int l = 0; l < FreqExchangeDmn::dmn_size(); ++l) {
             for (int K2p = 0; K2p < Nc_; ++K2p) {
@@ -204,11 +200,11 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
                         const int k_tilde_p_plus_q_tilde =
                             KSuperlatticeDmn::parameter_type::add(k_tilde_p, q_tilde);
 
-                        Sigma_tilde_(K1, K2, k_tilde, wn_sp) +=
+                        Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
                             min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
-                            G0_tilde_(K1p, K2p, k_tilde_p, wm_sp) *
-                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde_p_plus_q_tilde, wm_sp + l) *
-                            G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_sp + l);
+                            G0_tilde_(K1p, K2p, k_tilde_p, wm_ext) *
+                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde_p_plus_q_tilde, wm_ext + l) *
+                            G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_ext + l);
                       }
                     }
                   }

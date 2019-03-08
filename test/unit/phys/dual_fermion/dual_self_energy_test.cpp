@@ -58,13 +58,14 @@ protected:
   using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
   using FreqExchangeDmn = DualSelfEnergyType::FreqExchangeDmn;
   using TpFreqDmn = DualSelfEnergyType::TpFreqDmn;
-  using DualFreqDmn = DualSelfEnergyType::DualFreqDmn;
+  using ExtFreqDmn = DualSelfEnergyType::ExtFreqDmn;
 
   using KClusterDmn = DualSelfEnergyType::KClusterDmn;
   using KSuperlatticeDmn = DualSelfEnergyType::KSuperlatticeDmn;
 
-  using TpGreensFunction = DualSelfEnergyType::TpGreensFunction;
-  using DualGreensFunction = DualSelfEnergyType::DualGreensFunction;
+  using TpGF = DualSelfEnergyType::TpGF;
+  using DualGFExtFreq = DualSelfEnergyType::DualGFExtFreq;
+  using DualGFTpFreq = DualSelfEnergyType::DualGFTpFreq;
 
   DualSelfEnergyTest()
       : concurrency_(0, nullptr),
@@ -82,7 +83,7 @@ protected:
     SpFreqDmn::parameter_type::initialize(parameters_);
     FreqExchangeDmn::parameter_type::initialize(parameters_);
     TpFreqDmn::parameter_type::initialize(parameters_);
-    DualFreqDmn::parameter_type::initialize(parameters_);
+    ExtFreqDmn::parameter_type::initialize(parameters_);
 
     const std::array<double, 4> cluster_basis{1., 0., 0., 1.};
     const std::vector<std::vector<int>> cluster_superbasis{{2, 0}, {0, 1}};
@@ -101,16 +102,16 @@ protected:
 
   const parallel::NoConcurrency concurrency_;
 
-  DualGreensFunction G0_tilde_;
+  DualGFExtFreq G0_tilde_;
 
   const double Gamma_long_uu_val_;
-  TpGreensFunction Gamma_long_uu_;
+  TpGF Gamma_long_uu_;
 
   const double Gamma_long_ud_val_;
-  TpGreensFunction Gamma_long_ud_;
+  TpGF Gamma_long_ud_;
 
   const double Gamma_tran_ud_val_;
-  TpGreensFunction Gamma_tran_ud_;
+  TpGF Gamma_tran_ud_;
 
   DualSelfEnergyType Sigma_tilde_;
 };
@@ -119,7 +120,7 @@ const testing::MockParameters DualSelfEnergyTest::parameters_;
 
 TEST_F(DualSelfEnergyTest, Compute1stOrder) {
   // Prepare G0_tilde_ w/o w or k_tilde depedency.
-  for (int w = 0; w < DualFreqDmn::dmn_size(); ++w)
+  for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       G0_tilde_(0, 0, k_tilde, w) = 1.;
       G0_tilde_(0, 1, k_tilde, w) = 2.;
@@ -146,15 +147,14 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
             }
 
   Sigma_tilde_.compute1stOrder();
-  const DualGreensFunction& Sigma_tilde_1st = Sigma_tilde_.get();
+  const DualGFTpFreq& Sigma_tilde_1st = Sigma_tilde_.get();
 
   const double prefactor =
       -1. / (KClusterDmn::dmn_size() * KSuperlatticeDmn::dmn_size() * parameters_.get_beta()) *
       (Gamma_long_uu_val_ + Gamma_long_ud_val_) * KSuperlatticeDmn::dmn_size() *
       TpFreqDmn::dmn_size();
 
-  for (int w = parameters_.get_four_point_frequency_transfer();
-       w < DualFreqDmn::dmn_size() - parameters_.get_four_point_frequency_transfer(); ++w)
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       EXPECT_NEAR((prefactor * (G0_tilde_(0, 0, 0, 0) + G0_tilde_(1, 1, 0, 0))).real(),
                   Sigma_tilde_1st(0, 0, k_tilde, w).real(),
@@ -173,20 +173,8 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
                   1000 * std::numeric_limits<double>::epsilon());
     }
 
-  // Frequency tails are not computed and should be zero.
-  for (int w = 0; w < parameters_.get_four_point_frequency_transfer(); ++w)
-    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
-      for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
-        for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-          EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, w).real());
-          EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, w).imag());
-
-          EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, DualFreqDmn::dmn_size() - 1 - w).real());
-          EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, DualFreqDmn::dmn_size() - 1 - w).imag());
-        }
-
   // Imaginary part should be zero since all input functions are real.
-  for (int w = 0; w < DualFreqDmn::dmn_size(); ++w)
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
       for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
         for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
@@ -195,7 +183,7 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
 
 TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
   // Prepare G0_tilde_ w/o w or k_tilde depedency.
-  for (int w = 0; w < DualFreqDmn::dmn_size(); ++w)
+  for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       G0_tilde_(0, 0, k_tilde, w) = 1.;
       G0_tilde_(0, 1, k_tilde, w) = 2.;
@@ -209,7 +197,7 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
   Gamma_tran_ud_ = Gamma_tran_ud_val_;
 
   Sigma_tilde_.compute2ndOrder();
-  const DualGreensFunction& Sigma_tilde_2nd = Sigma_tilde_.get();
+  const DualGFTpFreq& Sigma_tilde_2nd = Sigma_tilde_.get();
 
   const double prefactor =
       -1. /
@@ -220,8 +208,7 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
       KSuperlatticeDmn::dmn_size() * KSuperlatticeDmn::dmn_size() * TpFreqDmn::dmn_size() *
       FreqExchangeDmn::dmn_size();
 
-  for (int w = parameters_.get_four_point_frequency_transfer();
-       w < DualFreqDmn::dmn_size() - parameters_.get_four_point_frequency_transfer(); ++w)
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       // K1 = 0, K2 = 0
       EXPECT_NEAR(
@@ -312,20 +299,8 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
           10000000 * std::numeric_limits<double>::epsilon());
     }
 
-  // Frequency tails are not computed and should be zero.
-  for (int w = 0; w < parameters_.get_four_point_frequency_transfer(); ++w)
-    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
-      for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
-        for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-          EXPECT_EQ(0., Sigma_tilde_2nd(K1, K2, k_tilde, w).real());
-          EXPECT_EQ(0., Sigma_tilde_2nd(K1, K2, k_tilde, w).imag());
-
-          EXPECT_EQ(0., Sigma_tilde_2nd(K1, K2, k_tilde, DualFreqDmn::dmn_size() - 1 - w).real());
-          EXPECT_EQ(0., Sigma_tilde_2nd(K1, K2, k_tilde, DualFreqDmn::dmn_size() - 1 - w).imag());
-        }
-
   // Imaginary part should be zero since all input functions are real.
-  for (int w = 0; w < DualFreqDmn::dmn_size(); ++w)
+  for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde)
       for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
         for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
