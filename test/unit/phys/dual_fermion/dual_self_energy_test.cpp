@@ -27,6 +27,8 @@
 using namespace dca;
 
 namespace testing {
+// testing::
+
 // Mock parameters class for initialization of the frequency domains.
 struct MockParameters {
   double get_beta() const {
