@@ -79,17 +79,17 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   }
 
   const int tail_freqs = 32;
-  const double tolerance = std::numeric_limits<double>::epsilon();  // Too small?
 
-  phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_,
-                                        tolerance);
+  phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_);
+
+  const auto tol = std::numeric_limits<double>::epsilon();
 
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       const std::complex<double> expected = fitting_func(w, o_ind);
-      EXPECT_DOUBLE_EQ(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real());
-      EXPECT_DOUBLE_EQ(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag());
+      EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), tol);
+      EXPECT_NEAR(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag(), tol);
     }
   }
 }
