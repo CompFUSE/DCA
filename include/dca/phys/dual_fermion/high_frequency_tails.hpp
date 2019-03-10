@@ -17,6 +17,7 @@
 #define DCA_PHYS_DUAL_FERMION_HIGH_FREQUENCY_TAILS_HPP
 
 #include <complex>
+#include <limits>
 #include <stdexcept>
 
 #include "dca/function/domains.hpp"
@@ -40,11 +41,10 @@ public:
   static void compute(
       const Concurrency& concurrency, const int tail_freqs,
       const func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TpFreqDmn>>& Sigma_tp_freq,
-      func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, SpFreqDmn>> Sigma_sp_freq,
+      func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, SpFreqDmn>>& Sigma_sp_freq,
       Scalar tolerance = 1.e-6) {
     const auto& sp_freqs = SpFreqType::get_elements();
     const auto& tp_freqs = TpFreqType::get_elements();
-    const auto& tp_to_sp_index = TpFreqType::get_corresponding_frequency_domain_index();
 
     // vertex_frequency_domain<COMPACT> cannot be initialized larger than frequency_domain.
     // TODO: Test this branch.
@@ -65,12 +65,55 @@ public:
           "frequencies.");
 
     // Compute coefficients A and B.
+    func::function<Scalar, OtherDmns> A;
+    func::function<Scalar, OtherDmns> B;
 
-    // Check quality of coefficients.
+    for (int w_ind = 0; w_ind < tail_freqs; ++w_ind) {
+      for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+        const auto w = tp_freqs[w_ind];
+        B(o_ind) += Sigma_tp_freq(o_ind, w_ind).real() * w * w;
+        B(o_ind) += Sigma_tp_freq(o_ind, TpFreqDmn::dmn_size() - 1 - w_ind).real() * w * w;
+
+        A(o_ind) -= Sigma_tp_freq(o_ind, w_ind).imag() * w;
+        A(o_ind) += Sigma_tp_freq(o_ind, TpFreqDmn::dmn_size() - 1 - w_ind).imag() * w;
+      }
+    }
+
+    A /= 2 * tail_freqs;
+    B /= 2 * tail_freqs;
 
     // Copy tp part.
+    for (int w_tp_ind = 0; w_tp_ind < TpFreqDmn::dmn_size(); ++w_tp_ind) {
+      const auto w_sp_ind = TpFreqType::get_corresponding_frequency_domain_index()[w_tp_ind];
+      assert(std::abs(sp_freqs[w_sp_ind] - tp_freqs[w_tp_ind]) <
+             100 * std::numeric_limits<Scalar>::epsilon());
 
-    // Compute sp part.
+      for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+        Sigma_sp_freq(o_ind, w_sp_ind) = Sigma_tp_freq(o_ind, w_tp_ind);
+      }
+    }
+
+    // Compute sp part from fit.
+    // Negative frequencies.
+    for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
+      const auto w = sp_freqs[w_ind];
+      for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+        Sigma_sp_freq(o_ind, w_ind).real(B(o_ind) / (w * w));
+        Sigma_sp_freq(o_ind, w_ind).imag(-A(o_ind) / w);
+      }
+    }
+
+    // Positive frequencies.
+    for (int w_ind = SpFreqDmn::dmn_size() / 2 + TpFreqDmn::dmn_size() / 2;
+         w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
+      const auto w = sp_freqs[w_ind];
+      for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+        Sigma_sp_freq(o_ind, w_ind).real(B(o_ind) / (w * w));
+        Sigma_sp_freq(o_ind, w_ind).imag(-A(o_ind) / w);
+      }
+    }
+
+    // TODO: Check quality of coefficients.
   }
 };
 
