@@ -7,7 +7,11 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file provides a method to compute the high-frequency tails of the dual self-energy.
+// This file provides a method to extend the dual self-energy from the smaller two-particle (tp) to
+// the larger single-particle (sp) Matsubara freuqency domain.
+// The extrapolation is done by fitting the expected high-frequency behavior,
+//     \tilde{\Sigma}(i \omega_n >> 0) ~ A/(i \omega_n) + B/\omega_n^2,
+// to the tails of the dual self-energy on the tp domain.
 
 #ifndef DCA_PHYS_DUAL_FERMION_HIGH_FREQUENCY_TAILS_HPP
 #define DCA_PHYS_DUAL_FERMION_HIGH_FREQUENCY_TAILS_HPP
@@ -30,12 +34,12 @@ void highFrequencyTails(
     Scalar tolerance = 1.e-6) {
   // Check domain sizes.
 
-  // Check tail_freqs argument.
+  // Check tail_freqs parameter.
 
   // Compute coefficients A and B.
 
   // Check quality of coefficients.
-  
+
   // Copy tp part.
 
   // Compute sp part.
