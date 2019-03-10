@@ -17,6 +17,7 @@
 #define DCA_PHYS_DUAL_FERMION_HIGH_FREQUENCY_TAILS_HPP
 
 #include <complex>
+#include <stdexcept>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -58,6 +59,10 @@ public:
     }
 
     // Check tail_freqs parameter.
+    if (tail_freqs > TpFreqDmn::dmn_size() / 2)
+      throw std::invalid_argument(
+          "Number of tail frequencies for fitting cannot be larger than the number of positive "
+          "frequencies.");
 
     // Compute coefficients A and B.
 

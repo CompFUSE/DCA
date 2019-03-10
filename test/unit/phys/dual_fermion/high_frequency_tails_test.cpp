@@ -93,3 +93,11 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
     }
   }
 }
+
+TEST_F(HighFrequencyTailsTest, InvalidTailFreqs) {
+  const int tail_freqs = TpFreqDmn::dmn_size() / 2 + 1;
+
+  EXPECT_THROW(phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_,
+                                                     Sigma_sp_freq_),
+               std::invalid_argument);
+}
