@@ -16,11 +16,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 using namespace dca;
 
@@ -43,8 +39,8 @@ struct MockParameters {
 
 class HighFrequencyTailsTest : public ::testing::Test {
 protected:
-  using SpFreqDmn = func::dmn_0<phys::domains::frequency_domain>;
-  using TpFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::COMPACT>>;
+  using SpFreqDmn = phys::df::HighFrequencyTails::SpFreqDmn;
+  using TpFreqDmn = phys::df::HighFrequencyTails::TpFreqDmn;
 
   using OtherDmns =
       func::dmn_variadic<func::dmn_0<func::dmn<3, int>>, func::dmn_0<func::dmn<2, double>>>;
@@ -85,7 +81,8 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   const int tail_freqs = 32;
   const double tolerance = std::numeric_limits<double>::epsilon();  // Too small?
 
-  phys::df::highFrequencyTails(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_, tolerance);
+  phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_,
+                                        tolerance);
 
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];

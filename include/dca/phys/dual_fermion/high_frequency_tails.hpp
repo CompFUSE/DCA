@@ -20,30 +20,38 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 namespace dca {
 namespace phys {
 namespace df {
 // dca::phys::df::
 
-template <typename Scalar, typename Concurrency, typename SpFreqDmn, typename TpFreqDmn, typename OtherDmns>
-void highFrequencyTails(
-    const Concurrency& concurrency, const int tail_freqs,
-    const func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TpFreqDmn>>& Sigma_tp_freq,
-    func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, SpFreqDmn>> Sigma_sp_freq,
-    Scalar tolerance = 1.e-6) {
-  // Check domain sizes.
+class HighFrequencyTails {
+public:
+  using SpFreqType = phys::domains::frequency_domain;
+  using SpFreqDmn = func::dmn_0<SpFreqType>;
+  using TpFreqType = phys::domains::vertex_frequency_domain<phys::domains::COMPACT>;
+  using TpFreqDmn = func::dmn_0<TpFreqType>;
 
-  // Check tail_freqs parameter.
+  template <typename Scalar, typename Concurrency, typename OtherDmns>
+  static void compute(
+      const Concurrency& concurrency, const int tail_freqs,
+      const func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TpFreqDmn>>& Sigma_tp_freq,
+      func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, SpFreqDmn>> Sigma_sp_freq,
+      Scalar tolerance = 1.e-6) {
+    // Check tail_freqs parameter.
 
-  // Compute coefficients A and B.
+    // Compute coefficients A and B.
 
-  // Check quality of coefficients.
+    // Check quality of coefficients.
 
-  // Copy tp part.
+    // Copy tp part.
 
-  // Compute sp part.
-}
+    // Compute sp part.
+  }
+};
 
 }  // namespace df
 }  // namespace phys
