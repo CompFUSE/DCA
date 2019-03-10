@@ -70,7 +70,7 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   const double A = 2.8;
   const double B = 3.2;
 
-  auto exact_fit = [A, B](const double w, const int shift) {
+  auto fitting_func = [A, B](const double w, const int shift) {
     return std::complex<double>((B + shift) / (w * w), -(A + shift) / w);
   };
 
@@ -78,7 +78,7 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      Sigma_tp_freq_(o_ind, w_ind) = exact_fit(w, o_ind);
+      Sigma_tp_freq_(o_ind, w_ind) = fitting_func(w, o_ind);
     }
   }
 
@@ -90,7 +90,7 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      const std::complex<double> expected = exact_fit(w, o_ind);
+      const std::complex<double> expected = fitting_func(w, o_ind);
       EXPECT_DOUBLE_EQ(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real());
       EXPECT_DOUBLE_EQ(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag());
     }
