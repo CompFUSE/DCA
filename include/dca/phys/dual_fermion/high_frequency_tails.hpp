@@ -41,6 +41,22 @@ public:
       const func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TpFreqDmn>>& Sigma_tp_freq,
       func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, SpFreqDmn>> Sigma_sp_freq,
       Scalar tolerance = 1.e-6) {
+    const auto& sp_freqs = SpFreqType::get_elements();
+    const auto& tp_freqs = TpFreqType::get_elements();
+    const auto& tp_to_sp_index = TpFreqType::get_corresponding_frequency_domain_index();
+
+    // vertex_frequency_domain<COMPACT> cannot be initialized larger than frequency_domain.
+    // TODO: Test this branch.
+    if (TpFreqDmn::dmn_size() == SpFreqDmn::dmn_size()) {
+      // Only copy elements in this case.
+      for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
+        assert(sp_freqs[w_ind] == tp_freqs[w_ind]);
+        for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+          Sigma_sp_freq(o_ind, w_ind) = Sigma_tp_freq(o_ind, w_ind);
+        }
+      }
+    }
+
     // Check tail_freqs parameter.
 
     // Compute coefficients A and B.
