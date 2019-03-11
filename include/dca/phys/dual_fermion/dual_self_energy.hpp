@@ -86,7 +86,7 @@ public:
   // Reference implementation.
   void compute2ndOrderReference();
   // Accelerated version using Fourier transformation for the super-lattice variable.
-  void compute2ndOrderFT() {}
+  void compute2ndOrderFT();
 
   const DualGFTpFreq& get() {
     return Sigma_tilde_;
@@ -259,6 +259,14 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
       }
     }
   }
+
+  concurrency_.sum(Sigma_tilde_);
+}
+
+template <typename Scalar, typename Concurrency, int dimension>
+void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
+  // TODO: Fix addition of 1st and 2nd order contributions.
+  Sigma_tilde_ = 0.;
 
   concurrency_.sum(Sigma_tilde_);
 }
