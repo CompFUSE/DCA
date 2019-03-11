@@ -340,5 +340,5 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrderFT) {
   const DualGFTpFreq& Sigma_tilde_2nd_ft = Sigma_tilde_.get();
 
   const auto diff = func::util::difference(Sigma_tilde_2nd_ref, Sigma_tilde_2nd_ft);
-  EXPECT_LT(diff.l_inf, 1000 * std::numeric_limits<double>::epsilon());
+  EXPECT_LT(diff.l_inf, std::numeric_limits<double>::epsilon());
 }
