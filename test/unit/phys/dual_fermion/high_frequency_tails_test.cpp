@@ -78,6 +78,7 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   // Prepare input.
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       Sigma_tp_freq_(o_ind, w_ind) = exact(w, o_ind);
     }
@@ -88,18 +89,19 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
 
   const auto diff = high_freq_tails.compute();
 
-  const auto tol = std::numeric_limits<double>::epsilon();
+  const auto eps = std::numeric_limits<double>::epsilon();
 
   // Check quality of fit.
-  EXPECT_LT(diff.l_inf, 2 * tail_freqs * tol);
+  EXPECT_LT(diff.l_inf, 2 * tail_freqs * eps);
 
   // Check against analytic result.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       const std::complex<double> expected = exact(w, o_ind);
-      EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), tol);
-      EXPECT_NEAR(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag(), tol);
+      EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), eps);
+      EXPECT_NEAR(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag(), eps);
     }
   }
 }
@@ -117,6 +119,7 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   // Prepare input with noise.
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       Sigma_tp_freq_(o_ind, w_ind) = exact(w, o_ind);
       // Add noise.
@@ -137,6 +140,7 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   // Check tp frequency domain part (copied).
   for (int w_tp_ind = 0; w_tp_ind < TpFreqDmn::dmn_size(); ++w_tp_ind) {
     const auto w_sp_ind = TpFreqType::get_corresponding_frequency_domain_index()[w_tp_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       EXPECT_DOUBLE_EQ(Sigma_tp_freq_(o_ind, w_tp_ind).real(),
                        Sigma_sp_freq_(o_ind, w_sp_ind).real());
@@ -160,6 +164,7 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   // Check negative frequencies.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       const std::complex<double> expected = exact(w, o_ind);
       EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), noise / 10.);

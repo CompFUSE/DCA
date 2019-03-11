@@ -66,10 +66,11 @@ protected:
 
 const testing::MockParameters HighFrequencyTailsTest::parameters_;
 
-TEST_F(HighFrequencyTailsTest, ExactFit) {
+TEST_F(HighFrequencyTailsTest, SameSizeDomains) {
   // Prepare input.
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
+
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
       Sigma_tp_freq_(o_ind, w_ind) = w + o_ind;
     }

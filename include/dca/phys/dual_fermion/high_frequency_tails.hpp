@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file provides a method to extend the dual self-energy from the smaller two-particle (tp) to
+// This class provides a method to extend the dual self-energy from the smaller two-particle (tp) to
 // the larger single-particle (sp) Matsubara freuqency domain.
 // The extrapolation is done by fitting the expected high-frequency behavior,
 //     \tilde{\Sigma}(i \omega_n >> 0) ~ A/(i \omega_n) + B/\omega_n^2,
@@ -102,6 +102,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
 
     concurrency_.sum(Sigma_sp_freq_);
 
+    // Return Difference object with errors set to -1 since no fit is done.
     func::util::Difference diff;
     diff.l1 = diff.l2 = diff.l_inf = -1.;
     return diff;
@@ -113,6 +114,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
 
   for (int w_ind = 0; w_ind < tail_freqs_; ++w_ind) {
     const auto w = tp_freqs[w_ind];
+
     for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       B_(o_ind) += Sigma_tp_freq_(o_ind, w_ind).real() * w * w;
       B_(o_ind) += Sigma_tp_freq_(o_ind, TpFreqDmn::dmn_size() - 1 - w_ind).real() * w * w;
@@ -140,6 +142,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   // Negative frequencies.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
     const auto w = sp_freqs[w_ind];
+
     for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       Sigma_sp_freq_(o_ind, w_ind).real(B_(o_ind) / (w * w));
       Sigma_sp_freq_(o_ind, w_ind).imag(-A_(o_ind) / w);
@@ -150,6 +153,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   for (int w_ind = SpFreqDmn::dmn_size() / 2 + TpFreqDmn::dmn_size() / 2;
        w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = sp_freqs[w_ind];
+
     for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       Sigma_sp_freq_(o_ind, w_ind).real(B_(o_ind) / (w * w));
       Sigma_sp_freq_(o_ind, w_ind).imag(-A_(o_ind) / w);
