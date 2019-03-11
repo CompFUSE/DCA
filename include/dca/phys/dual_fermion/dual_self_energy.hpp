@@ -56,14 +56,15 @@ public:
   DualSelfEnergy(const Concurrency& concurrency, const Scalar beta, const DualGFExtFreq& G0_tilde,
                  const TpGF& Gamma_long_uu, const TpGF& Gamma_long_ud, const TpGF& Gamma_tran_ud)
       : concurrency_(concurrency),
+
         beta_(beta),
         Nc_(KClusterDmn::dmn_size()),
         V_(KSuperlatticeDmn::dmn_size()),
-        num_dual_freqs_(ExtFreqDmn::dmn_size()),
-        num_tp_freqs_(TpFreqDmn::dmn_size()),
-        num_exchange_freqs_(FreqExchangeDmn::dmn_size()),
+
         max_exchange_freq_(FreqExchangeDmn::parameter_type::get_extension_size()),
+
         G0_tilde_(G0_tilde),
+
         Gamma_long_uu_(Gamma_long_uu),
         Gamma_long_ud_(Gamma_long_ud),
         Gamma_tran_ud_(Gamma_tran_ud) {
@@ -71,8 +72,7 @@ public:
     assert(BandDmn::dmn_size() == 1);
 
     // Check consistency of frequency domains.
-    assert(num_dual_freqs_ == num_tp_freqs_ + 2 * max_exchange_freq_);
-    assert(num_exchange_freqs_ == max_exchange_freq_ + 1);
+    assert(ExtFreqDmn::dmn_size() == TpFreqDmn::dmn_size() + 2 * max_exchange_freq_);
   }
 
   // Computes the 1st order contribution.
@@ -92,9 +92,6 @@ private:
   const int Nc_;
   const int V_;
 
-  const int num_dual_freqs_;
-  const int num_tp_freqs_;
-  const int num_exchange_freqs_;
   const int max_exchange_freq_;
 
   // Dual self-energy.
@@ -129,7 +126,7 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
 
     for (int K2 = 0; K2 < Nc_; ++K2) {
       for (int K1 = 0; K1 < Nc_; ++K1) {
-        for (int wm_tp = 0; wm_tp < num_tp_freqs_; ++wm_tp) {
+        for (int wm_tp = 0; wm_tp < TpFreqDmn::dmn_size(); ++wm_tp) {
           const auto wm_ext = wm_tp + max_exchange_freq_;
           assert(ExtFreqDmn::get_elements()[wm_ext] == TpFreqDmn::get_elements()[wm_tp]);
 
@@ -228,15 +225,15 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
                                                        minus_w_tp(wm_tp), minus_w_tp(wn_tp), -l));
 
                     // Inner sums (product of \tilde{G}_0's).
-                    for (int k_tilde_p = 0; k_tilde_p < V_; ++k_tilde_p) {
+                    for (int kp_tilde = 0; kp_tilde < V_; ++kp_tilde) {
                       for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
                         const int k_tilde_plus_q_tilde = KSuperlatticeType::add(k_tilde, q_tilde);
-                        const int k_tilde_p_plus_q_tilde = KSuperlatticeType::add(k_tilde_p, q_tilde);
+                        const int kp_tilde_plus_q_tilde = KSuperlatticeType::add(kp_tilde, q_tilde);
 
                         Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
                             min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
-                            G0_tilde_(K1p, K2p, k_tilde_p, wm_ext) *
-                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde_p_plus_q_tilde, wm_ext + l) *
+                            G0_tilde_(K1p, K2p, kp_tilde, wm_ext) *
+                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, kp_tilde_plus_q_tilde, wm_ext + l) *
                             G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_ext + l);
                       }
                     }
