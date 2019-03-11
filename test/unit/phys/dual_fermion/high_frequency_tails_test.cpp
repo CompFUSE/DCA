@@ -17,7 +17,6 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/function/util/difference.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 
 using namespace dca;
@@ -41,12 +40,15 @@ struct MockParameters {
 
 class HighFrequencyTailsTest : public ::testing::Test {
 protected:
-  using SpFreqDmn = phys::df::HighFrequencyTails::SpFreqDmn;
-  using TpFreqType = phys::df::HighFrequencyTails::TpFreqType;
-  using TpFreqDmn = phys::df::HighFrequencyTails::TpFreqDmn;
-
   using OtherDmns =
       func::dmn_variadic<func::dmn_0<func::dmn<3, int>>, func::dmn_0<func::dmn<2, double>>>;
+
+  using HighFrequencyTailsType =
+      phys::df::HighFrequencyTails<double, parallel::NoConcurrency, OtherDmns>;
+
+  using SpFreqDmn = HighFrequencyTailsType::SpFreqDmn;
+  using TpFreqType = HighFrequencyTailsType::TpFreqType;
+  using TpFreqDmn = HighFrequencyTailsType::TpFreqDmn;
 
   HighFrequencyTailsTest() : concurrency_(0, nullptr) {}
 
@@ -69,7 +71,7 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   const double A = 2.8;
   const double B = 3.2;
 
-  auto fitting_func = [A, B](const double w, const int shift) {
+  auto exact = [A, B](const double w, const int shift) {
     return std::complex<double>((B + shift) / (w * w), -(A + shift) / w);
   };
 
@@ -77,20 +79,25 @@ TEST_F(HighFrequencyTailsTest, ExactFit) {
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      Sigma_tp_freq_(o_ind, w_ind) = fitting_func(w, o_ind);
+      Sigma_tp_freq_(o_ind, w_ind) = exact(w, o_ind);
     }
   }
 
   const int tail_freqs = 32;
+  HighFrequencyTailsType high_freq_tails(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_);
 
-  phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_);
+  const auto diff = high_freq_tails.compute();
 
   const auto tol = std::numeric_limits<double>::epsilon();
 
+  // Check quality of fit.
+  EXPECT_LT(diff.l_inf, 2 * tail_freqs * tol);
+
+  // Check against analytic result.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      const std::complex<double> expected = fitting_func(w, o_ind);
+      const std::complex<double> expected = exact(w, o_ind);
       EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), tol);
       EXPECT_NEAR(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag(), tol);
     }
@@ -101,7 +108,7 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   const double A = 2.8;
   const double B = 3.2;
 
-  auto fitting_func = [A, B](const double w, const int shift) {
+  auto exact = [A, B](const double w, const int shift) {
     return std::complex<double>((B + shift) / (w * w), -(A + shift) / w);
   };
 
@@ -111,7 +118,7 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   for (int w_ind = 0; w_ind < TpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = TpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      Sigma_tp_freq_(o_ind, w_ind) = fitting_func(w, o_ind);
+      Sigma_tp_freq_(o_ind, w_ind) = exact(w, o_ind);
       // Add noise.
       Sigma_tp_freq_(o_ind, w_ind) += std::complex<double>(
           noise * (std::rand() % 2 ? 1 : -1) * std::abs(Sigma_tp_freq_(o_ind, w_ind).real()),
@@ -120,7 +127,12 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
   }
 
   const int tail_freqs = 32;
-  phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_);
+  HighFrequencyTailsType high_freq_tails(concurrency_, tail_freqs, Sigma_tp_freq_, Sigma_sp_freq_);
+
+  const auto diff = high_freq_tails.compute();
+
+  // Check quality of fit.
+  EXPECT_LT(diff.l_inf, 2 * tail_freqs * noise);
 
   // Check tp frequency domain part (copied).
   for (int w_tp_ind = 0; w_tp_ind < TpFreqDmn::dmn_size(); ++w_tp_ind) {
@@ -135,41 +147,31 @@ TEST_F(HighFrequencyTailsTest, ExactFitWithNoise) {
 
   // Check sp frequency tails (extrapolated).
 
-  // Prepare expected result.
-  func::function<std::complex<double>, func::dmn_variadic<OtherDmns, SpFreqDmn>> expected;
-  // Tp frequency domain part (copied).
-  for (int w_tp_ind = 0; w_tp_ind < TpFreqDmn::dmn_size(); ++w_tp_ind) {
-    const auto w_sp_ind = TpFreqType::get_corresponding_frequency_domain_index()[w_tp_ind];
+  // Check symmetry.
+  for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      expected(o_ind, w_sp_ind) = Sigma_tp_freq_(o_ind, w_tp_ind);
+      EXPECT_DOUBLE_EQ(Sigma_sp_freq_(o_ind, w_ind).real(),
+                       Sigma_sp_freq_(o_ind, SpFreqDmn::dmn_size() - 1 - w_ind).real());
+      EXPECT_DOUBLE_EQ(Sigma_sp_freq_(o_ind, w_ind).imag(),
+                       -Sigma_sp_freq_(o_ind, SpFreqDmn::dmn_size() - 1 - w_ind).imag());
     }
   }
 
-  // Sp frequency domain extension (extrapolated).
-  // Negative frequencies.
+  // Check negative frequencies.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
     const auto w = SpFreqDmn::get_elements()[w_ind];
     for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      Sigma_sp_freq_(o_ind, w_ind) = fitting_func(w, o_ind);
+      const std::complex<double> expected = exact(w, o_ind);
+      EXPECT_NEAR(expected.real(), Sigma_sp_freq_(o_ind, w_ind).real(), noise / 10.);
+      EXPECT_NEAR(expected.imag(), Sigma_sp_freq_(o_ind, w_ind).imag(), noise / 10.);
     }
   }
-  // Positive frequencies.
-  for (int w_ind = SpFreqDmn::dmn_size() / 2 + TpFreqDmn::dmn_size() / 2;
-       w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
-    const auto w = SpFreqDmn::get_elements()[w_ind];
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      Sigma_sp_freq_(o_ind, w_ind) = fitting_func(w, o_ind);
-    }
-  }
-
-  const auto diff = func::util::difference(expected, Sigma_sp_freq_);
-  EXPECT_LT(diff.l_inf, 2 * tail_freqs * noise);
 }
 
 TEST_F(HighFrequencyTailsTest, InvalidTailFreqs) {
   const int tail_freqs = TpFreqDmn::dmn_size() / 2 + 1;
 
-  EXPECT_THROW(phys::df::HighFrequencyTails::compute(concurrency_, tail_freqs, Sigma_tp_freq_,
-                                                     Sigma_sp_freq_),
+  EXPECT_THROW(HighFrequencyTailsType high_freq_tails(concurrency_, tail_freqs, Sigma_tp_freq_,
+                                                      Sigma_sp_freq_),
                std::invalid_argument);
 }
