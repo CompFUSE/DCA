@@ -20,6 +20,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -62,6 +63,7 @@ public:
       TailFreqType::initialize(0, tail_freqs);
   }
 
+  // Returns the relative error of the fit, if a fit is done.
   func::util::Difference compute(bool verbose = false);
 
 private:
@@ -77,6 +79,12 @@ private:
 
 template <typename Scalar, typename Concurrency, typename OtherDmns>
 func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compute(bool verbose) {
+  // Distribute the work amongst the processes.
+  const func::dmn_variadic<OtherDmns> other_dmns_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(other_dmns_obj);
+
+  Sigma_sp_freq_ = 0.;
+
   const auto& sp_freqs = SpFreqType::get_elements();
   const auto& tp_freqs = TpFreqType::get_elements();
 
@@ -86,10 +94,16 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
     // Only copy elements in this case.
     for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
       assert(sp_freqs[w_ind] == tp_freqs[w_ind]);
-      for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+      for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
         Sigma_sp_freq_(o_ind, w_ind) = Sigma_tp_freq_(o_ind, w_ind);
       }
     }
+
+    concurrency_.sum(Sigma_sp_freq_);
+
+    func::util::Difference diff;
+    diff.l1 = diff.l2 = diff.l_inf = -1.;
+    return diff;
   }
 
   // Compute coefficients A and B.
@@ -97,8 +111,8 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   B_ = 0;
 
   for (int w_ind = 0; w_ind < tail_freqs_; ++w_ind) {
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      const auto w = tp_freqs[w_ind];
+    const auto w = tp_freqs[w_ind];
+    for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       B_(o_ind) += Sigma_tp_freq_(o_ind, w_ind).real() * w * w;
       B_(o_ind) += Sigma_tp_freq_(o_ind, TpFreqDmn::dmn_size() - 1 - w_ind).real() * w * w;
 
@@ -116,7 +130,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
     assert(std::abs(sp_freqs[w_sp_ind] - tp_freqs[w_tp_ind]) <
            100 * std::numeric_limits<Scalar>::epsilon());
 
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+    for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       Sigma_sp_freq_(o_ind, w_sp_ind) = Sigma_tp_freq_(o_ind, w_tp_ind);
     }
   }
@@ -125,7 +139,7 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   // Negative frequencies.
   for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size() / 2 - TpFreqDmn::dmn_size() / 2; ++w_ind) {
     const auto w = sp_freqs[w_ind];
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+    for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       Sigma_sp_freq_(o_ind, w_ind).real(B_(o_ind) / (w * w));
       Sigma_sp_freq_(o_ind, w_ind).imag(-A_(o_ind) / w);
     }
@@ -135,25 +149,32 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   for (int w_ind = SpFreqDmn::dmn_size() / 2 + TpFreqDmn::dmn_size() / 2;
        w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
     const auto w = sp_freqs[w_ind];
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
+    for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       Sigma_sp_freq_(o_ind, w_ind).real(B_(o_ind) / (w * w));
       Sigma_sp_freq_(o_ind, w_ind).imag(-A_(o_ind) / w);
     }
   }
+
+  concurrency_.sum(Sigma_sp_freq_);
 
   // Check quality of fit.
   func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TailFreqDmn>> data;
   func::function<std::complex<Scalar>, func::dmn_variadic<OtherDmns, TailFreqDmn>> fit;
 
   for (int w_ind = 0; w_ind < tail_freqs_; ++w_ind) {
-    for (int o_ind = 0; o_ind < OtherDmns::dmn_size(); ++o_ind) {
-      const auto w = tp_freqs[w_ind];
+    const auto w = tp_freqs[w_ind];
+
+    for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
       fit(o_ind, w_ind) = std::complex<Scalar>(B_(o_ind) / (w * w), -A_(o_ind) / w);
       data(o_ind, w_ind) = Sigma_tp_freq_(o_ind, w_ind);
     }
   }
+
+  concurrency_.sum(data);
+  concurrency_.sum(fit);
+
   const auto diff = func::util::difference(data, fit);
-  if (verbose) {
+  if (verbose && concurrency_.id() == concurrency_.first()) {
     std::cout << "Relative errors of fit of dual-self high-frequency tails:"
               << "\n"
               << "l1    = " << diff.l1 << "\n"
