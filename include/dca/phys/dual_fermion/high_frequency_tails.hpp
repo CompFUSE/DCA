@@ -89,11 +89,12 @@ func::util::Difference HighFrequencyTails<Scalar, Concurrency, OtherDmns>::compu
   const auto& tp_freqs = TpFreqType::get_elements();
 
   // vertex_frequency_domain<COMPACT> cannot be initialized larger than frequency_domain.
-  // TODO: Test this branch.
   if (TpFreqDmn::dmn_size() == SpFreqDmn::dmn_size()) {
     // Only copy elements in this case.
     for (int w_ind = 0; w_ind < SpFreqDmn::dmn_size(); ++w_ind) {
-      assert(sp_freqs[w_ind] == tp_freqs[w_ind]);
+      assert(std::abs(sp_freqs[w_ind] - tp_freqs[w_ind]) <
+             100 * std::numeric_limits<Scalar>::epsilon());
+
       for (int o_ind = bounds.first; o_ind < bounds.second; ++o_ind) {
         Sigma_sp_freq_(o_ind, w_ind) = Sigma_tp_freq_(o_ind, w_ind);
       }
