@@ -208,7 +208,7 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
       (Gamma_long_uu_val_ * Gamma_long_uu_val_ + Gamma_long_ud_val_ * Gamma_long_ud_val_ +
        Gamma_tran_ud_val_ * Gamma_tran_ud_val_) *
       KSuperlatticeDmn::dmn_size() * KSuperlatticeDmn::dmn_size() * TpFreqDmn::dmn_size() *
-      FreqExchangeDmn::dmn_size();
+      (2 * FreqExchangeDmn::dmn_size() - 1);
 
   for (int w = 0; w < TpFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {

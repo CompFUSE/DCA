@@ -38,7 +38,10 @@ public:
   using ExtFreqDmn = func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::EXTENDED>>;
 
   using KClusterDmn = typename phys::ClusterDomainAliases<dimension>::KClusterDmn;
+  using KClusterType = typename KClusterDmn::parameter_type;
+
   using KSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::KSpSuperlatticeDmn;
+  using KSuperlatticeType = typename KSuperlatticeDmn::parameter_type;
 
   using TpGFDmn = func::dmn_variadic<BandDmn, BandDmn, BandDmn, BandDmn, KClusterDmn, KClusterDmn,
                                      KClusterDmn, TpFreqDmn, TpFreqDmn, FreqExchangeDmn>;
@@ -131,11 +134,11 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
           assert(ExtFreqDmn::get_elements()[wm_ext] == TpFreqDmn::get_elements()[wm_tp]);
 
           for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
-            const int k_tilde_plus_q_tilde = KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
+            const int k_tilde_plus_q_tilde = KSuperlatticeType::add(k_tilde, q_tilde);
 
             for (int Q = 0; Q < Nc_; ++Q) {
-              const int K1_plus_Q = KClusterDmn::parameter_type::add(K1, Q);
-              const int K2_plus_Q = KClusterDmn::parameter_type::add(K2, Q);
+              const int K1_plus_Q = KClusterType::add(K1, Q);
+              const int K2_plus_Q = KClusterType::add(K2, Q);
 
               Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
                   min_1_over_Nc_V_beta *
@@ -161,44 +164,74 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
 
   const Scalar min_1_over_2_Nc_V_beta_squared = -1. / (2. * Nc_ * Nc_ * V_ * V_ * beta_ * beta_);
 
+  const int K0 = KClusterType::origin_index();
+
+  auto minus_w_tp = [](const int w) { return TpFreqDmn::dmn_size() - 1 - w; };
+
   for (int l = bounds.first; l < bounds.second; ++l) {
     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
     const auto k_tilde = k_tilde_wn[0];
     const auto wn_tp = k_tilde_wn[1];
 
     for (int K2 = 0; K2 < Nc_; ++K2) {
+      const int min_K2 = KClusterType::subtract(K2, K0);
+
       for (int K1 = 0; K1 < Nc_; ++K1) {
+        const int min_K1 = KClusterType::subtract(K1, K0);
+
         // Outer sums.
         for (int wm_tp = 0; wm_tp < TpFreqDmn::dmn_size(); ++wm_tp) {
           const auto wm_ext = wm_tp + max_exchange_freq_;
           assert(ExtFreqDmn::get_elements()[wm_ext] == TpFreqDmn::get_elements()[wm_tp]);
 
-          for (int l = 0; l < FreqExchangeDmn::dmn_size(); ++l) {
+          for (int l = -FreqExchangeDmn::dmn_size() + 1; l < FreqExchangeDmn::dmn_size(); ++l) {
             for (int K2p = 0; K2p < Nc_; ++K2p) {
+              const int min_K2p = KClusterType::subtract(K2p, K0);
+
               for (int K1p = 0; K1p < Nc_; ++K1p) {
+                const int min_K1p = KClusterType::subtract(K1p, K0);
+
                 for (int Q2 = 0; Q2 < Nc_; ++Q2) {
-                  const int K2_plus_Q2 = KClusterDmn::parameter_type::add(K2, Q2);
-                  const int K2p_plus_Q2 = KClusterDmn::parameter_type::add(K2p, Q2);
+                  const int min_Q2 = KClusterType::subtract(Q2, K0);
+                  const int K2_plus_Q2 = KClusterType::add(K2, Q2);
+                  const int K2p_plus_Q2 = KClusterType::add(K2p, Q2);
 
                   for (int Q1 = 0; Q1 < Nc_; ++Q1) {
-                    const int K1_plus_Q1 = KClusterDmn::parameter_type::add(K1, Q1);
-                    const int K1p_plus_Q1 = KClusterDmn::parameter_type::add(K1p, Q1);
+                    const int min_Q1 = KClusterType::subtract(Q1, K0);
+                    const int K1_plus_Q1 = KClusterType::add(K1, Q1);
+                    const int K1p_plus_Q1 = KClusterType::add(K1p, Q1);
 
-                    const std::complex<Scalar> Gamma_sum_prod =
-                        (Gamma_long_uu_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
-                             Gamma_long_uu_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
-                         Gamma_long_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
-                             Gamma_long_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
-                         Gamma_tran_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
-                             Gamma_tran_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l));
+                    std::complex<Scalar> Gamma_sum_prod = 0.;
+                    if (l >= 0)
+                      Gamma_sum_prod = Gamma_long_uu_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                                           Gamma_long_uu_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
+                                       Gamma_long_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                                           Gamma_long_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l) +
+                                       Gamma_tran_ud_(0, 0, 0, 0, K1, K1p, Q1, wn_tp, wm_tp, l) *
+                                           Gamma_tran_ud_(0, 0, 0, 0, K2, K2p, Q2, wm_tp, wn_tp, l);
+
+                    // Use symmetry of Gamma under conjugation to obtain values at negative bosonic
+                    // (exchange) frequencies.
+                    else
+                      Gamma_sum_prod =
+                          std::conj(Gamma_long_uu_(0, 0, 0, 0, min_K1, min_K1p, min_Q1,
+                                                   minus_w_tp(wn_tp), minus_w_tp(wm_tp), -l)) *
+                              std::conj(Gamma_long_uu_(0, 0, 0, 0, min_K2, min_K2p, min_Q2,
+                                                       minus_w_tp(wm_tp), minus_w_tp(wn_tp), -l)) +
+                          std::conj(Gamma_long_ud_(0, 0, 0, 0, min_K1, min_K1p, min_Q1,
+                                                   minus_w_tp(wn_tp), minus_w_tp(wm_tp), -l)) *
+                              std::conj(Gamma_long_ud_(0, 0, 0, 0, min_K2, min_K2p, min_Q2,
+                                                       minus_w_tp(wm_tp), minus_w_tp(wn_tp), -l)) +
+                          std::conj(Gamma_tran_ud_(0, 0, 0, 0, min_K1, min_K1p, min_Q1,
+                                                   minus_w_tp(wn_tp), minus_w_tp(wm_tp), -l)) *
+                              std::conj(Gamma_tran_ud_(0, 0, 0, 0, min_K2, min_K2p, min_Q2,
+                                                       minus_w_tp(wm_tp), minus_w_tp(wn_tp), -l));
 
                     // Inner sums (product of \tilde{G}_0's).
                     for (int k_tilde_p = 0; k_tilde_p < V_; ++k_tilde_p) {
                       for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
-                        const int k_tilde_plus_q_tilde =
-                            KSuperlatticeDmn::parameter_type::add(k_tilde, q_tilde);
-                        const int k_tilde_p_plus_q_tilde =
-                            KSuperlatticeDmn::parameter_type::add(k_tilde_p, q_tilde);
+                        const int k_tilde_plus_q_tilde = KSuperlatticeType::add(k_tilde, q_tilde);
+                        const int k_tilde_p_plus_q_tilde = KSuperlatticeType::add(k_tilde_p, q_tilde);
 
                         Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
                             min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
