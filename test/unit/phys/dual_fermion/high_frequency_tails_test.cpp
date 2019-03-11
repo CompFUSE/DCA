@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests high_frequency_tails.hpp
+// This file tests high_frequency_tails.hpp.
 
 #include "dca/phys/dual_fermion/high_frequency_tails.hpp"
 
