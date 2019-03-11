@@ -61,6 +61,10 @@ public:
         Nc_(KClusterDmn::dmn_size()),
         V_(KSuperlatticeDmn::dmn_size()),
 
+        min_1_over_2_Nc_V_beta_squared_(-1. / (2. * Nc_ * Nc_ * V_ * V_ * beta_ * beta_)),
+
+        K0_(KClusterType::origin_index()),
+
         max_exchange_freq_(FreqExchangeDmn::parameter_type::get_extension_size()),
 
         G0_tilde_(G0_tilde),
@@ -89,11 +93,20 @@ public:
   }
 
 private:
+  inline int minus_w_tp(const int w) const {
+    return TpFreqDmn::dmn_size() - 1 - w;
+  };
+
   const Concurrency& concurrency_;
   const Scalar beta_;
 
   const int Nc_;
   const int V_;
+
+  const Scalar min_1_over_2_Nc_V_beta_squared_;
+
+  // Index of origin in momentum space cluster domain.
+  const int K0_;
 
   const int max_exchange_freq_;
 
@@ -162,22 +175,16 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
   int k_tilde_wn[2];
 
-  const Scalar min_1_over_2_Nc_V_beta_squared = -1. / (2. * Nc_ * Nc_ * V_ * V_ * beta_ * beta_);
-
-  const int K0 = KClusterType::origin_index();
-
-  auto minus_w_tp = [](const int w) { return TpFreqDmn::dmn_size() - 1 - w; };
-
   for (int l = bounds.first; l < bounds.second; ++l) {
     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
     const auto k_tilde = k_tilde_wn[0];
     const auto wn_tp = k_tilde_wn[1];
 
     for (int K2 = 0; K2 < Nc_; ++K2) {
-      const int min_K2 = KClusterType::subtract(K2, K0);
+      const int min_K2 = KClusterType::subtract(K2, K0_);
 
       for (int K1 = 0; K1 < Nc_; ++K1) {
-        const int min_K1 = KClusterType::subtract(K1, K0);
+        const int min_K1 = KClusterType::subtract(K1, K0_);
 
         // Outer sums.
         for (int wm_tp = 0; wm_tp < TpFreqDmn::dmn_size(); ++wm_tp) {
@@ -186,18 +193,18 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
 
           for (int l = -FreqExchangeDmn::dmn_size() + 1; l < FreqExchangeDmn::dmn_size(); ++l) {
             for (int K2p = 0; K2p < Nc_; ++K2p) {
-              const int min_K2p = KClusterType::subtract(K2p, K0);
+              const int min_K2p = KClusterType::subtract(K2p, K0_);
 
               for (int K1p = 0; K1p < Nc_; ++K1p) {
-                const int min_K1p = KClusterType::subtract(K1p, K0);
+                const int min_K1p = KClusterType::subtract(K1p, K0_);
 
                 for (int Q2 = 0; Q2 < Nc_; ++Q2) {
-                  const int min_Q2 = KClusterType::subtract(Q2, K0);
+                  const int min_Q2 = KClusterType::subtract(Q2, K0_);
                   const int K2_plus_Q2 = KClusterType::add(K2, Q2);
                   const int K2p_plus_Q2 = KClusterType::add(K2p, Q2);
 
                   for (int Q1 = 0; Q1 < Nc_; ++Q1) {
-                    const int min_Q1 = KClusterType::subtract(Q1, K0);
+                    const int min_Q1 = KClusterType::subtract(Q1, K0_);
                     const int K1_plus_Q1 = KClusterType::add(K1, Q1);
                     const int K1p_plus_Q1 = KClusterType::add(K1p, Q1);
 
@@ -234,7 +241,7 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
                         const int kp_tilde_plus_q_tilde = KSuperlatticeType::add(kp_tilde, q_tilde);
 
                         Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
-                            min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
+                            min_1_over_2_Nc_V_beta_squared_ * Gamma_sum_prod *
                             G0_tilde_(K1p, K2p, kp_tilde, wm_ext) *
                             G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, kp_tilde_plus_q_tilde, wm_ext + l) *
                             G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_ext + l);
