@@ -81,6 +81,8 @@ public:
   // Computes the 2nd order contribution.
   // Reference implementation.
   void compute2ndOrderReference();
+  // Accelerated version using Fourier transformation for the super-lattice variable.
+  void compute2ndOrderFT() {}
 
   const DualGFTpFreq& get() {
     return Sigma_tilde_;

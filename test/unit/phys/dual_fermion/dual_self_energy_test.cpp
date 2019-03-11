@@ -20,6 +20,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -121,7 +122,7 @@ protected:
 const testing::MockParameters DualSelfEnergyTest::parameters_;
 
 TEST_F(DualSelfEnergyTest, Compute1stOrder) {
-  // Prepare G0_tilde_ w/o w or k_tilde depedency.
+  // Prepare G0_tilde_ w/o w or k_tilde dependency.
   for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       G0_tilde_(0, 0, k_tilde, w) = 1.;
@@ -184,7 +185,7 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
 }
 
 TEST_F(DualSelfEnergyTest, Compute2ndOrderReference) {
-  // Prepare G0_tilde_ w/o w or k_tilde depedency.
+  // Prepare G0_tilde_ w/o w or k_tilde dependency.
   for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
       G0_tilde_(0, 0, k_tilde, w) = 1.;
@@ -307,4 +308,37 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrderReference) {
       for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
         for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
           EXPECT_EQ(0., Sigma_tilde_2nd(K1, K2, k_tilde, w).imag());
+}
+
+TEST_F(DualSelfEnergyTest, Compute2ndOrderFT) {
+  // Prepare G0_tilde_.
+  for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
+        for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
+          G0_tilde_(K1, K2, k_tilde, w) =
+              std::complex<double>(K1 + K2 * K2, std::sin(k_tilde) + std::cos(w));
+    }
+
+  // Prepare Gamma_'s.
+  for (int l = 0; l < FreqExchangeDmn::dmn_size(); ++l)
+    for (int m = 0; m < TpFreqDmn::dmn_size(); ++m)
+      for (int n = 0; n < TpFreqDmn::dmn_size(); ++n)
+        for (int Q = 0; Q < KClusterDmn::dmn_size(); ++Q)
+          for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
+            for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+              const std::complex<double> tmp(std::sin(K1) + K2 + sin(l), Q + std::cos(n) + m * m);
+              Gamma_long_uu_(0, 0, 0, 0, K1, K2, Q, n, m, l) = tmp + Gamma_long_uu_val_;
+              Gamma_long_ud_(0, 0, 0, 0, K1, K2, Q, n, m, l) = tmp + Gamma_long_ud_val_;
+              Gamma_tran_ud_(0, 0, 0, 0, K1, K2, Q, n, m, l) = tmp + Gamma_tran_ud_val_;
+            }
+
+  Sigma_tilde_.compute2ndOrderReference();
+  const DualGFTpFreq Sigma_tilde_2nd_ref = Sigma_tilde_.get();
+
+  Sigma_tilde_.compute2ndOrderFT();
+  const DualGFTpFreq& Sigma_tilde_2nd_ft = Sigma_tilde_.get();
+
+  const auto diff = func::util::difference(Sigma_tilde_2nd_ref, Sigma_tilde_2nd_ft);
+  EXPECT_LT(diff.l_inf, 1000 * std::numeric_limits<double>::epsilon());
 }
