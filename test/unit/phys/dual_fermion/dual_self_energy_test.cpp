@@ -183,7 +183,7 @@ TEST_F(DualSelfEnergyTest, Compute1stOrder) {
           EXPECT_EQ(0., Sigma_tilde_1st(K1, K2, k_tilde, w).imag());
 }
 
-TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
+TEST_F(DualSelfEnergyTest, Compute2ndOrderReference) {
   // Prepare G0_tilde_ w/o w or k_tilde depedency.
   for (int w = 0; w < ExtFreqDmn::dmn_size(); ++w)
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
@@ -198,7 +198,7 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrder) {
   Gamma_long_ud_ = Gamma_long_ud_val_;
   Gamma_tran_ud_ = Gamma_tran_ud_val_;
 
-  Sigma_tilde_.compute2ndOrder();
+  Sigma_tilde_.compute2ndOrderReference();
   const DualGFTpFreq& Sigma_tilde_2nd = Sigma_tilde_.get();
 
   const double prefactor =

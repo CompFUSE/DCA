@@ -79,7 +79,8 @@ public:
   void compute1stOrder();
 
   // Computes the 2nd order contribution.
-  void compute2ndOrder();
+  // Reference implementation.
+  void compute2ndOrderReference();
 
   const DualGFTpFreq& get() {
     return Sigma_tilde_;
@@ -153,7 +154,7 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute1stOrder() {
 }
 
 template <typename Scalar, typename Concurrency, int dimension>
-void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrder() {
+void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() {
   // Distribute the work amongst the processes.
   const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
