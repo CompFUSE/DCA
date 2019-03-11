@@ -175,6 +175,9 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
   int k_tilde_wn[2];
 
+  // TODO: Fix addition of 1st and 2nd order contributions.
+  Sigma_tilde_ = 0.;
+
   for (int l = bounds.first; l < bounds.second; ++l) {
     k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
     const auto k_tilde = k_tilde_wn[0];
