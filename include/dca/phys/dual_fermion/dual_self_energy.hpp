@@ -18,6 +18,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
@@ -40,8 +41,14 @@ public:
   using KClusterDmn = typename phys::ClusterDomainAliases<dimension>::KClusterDmn;
   using KClusterType = typename KClusterDmn::parameter_type;
 
+  using RSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::RSpSuperlatticeDmn;
   using KSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::KSpSuperlatticeDmn;
   using KSuperlatticeType = typename KSuperlatticeDmn::parameter_type;
+
+  using FTSuperlatticeKtoR =
+      dca::math::transform::FunctionTransform<KSuperlatticeDmn, RSuperlatticeDmn>;
+  using FTSuperlatticeRtoK =
+      dca::math::transform::FunctionTransform<RSuperlatticeDmn, KSuperlatticeDmn>;
 
   using TpGFDmn = func::dmn_variadic<BandDmn, BandDmn, BandDmn, BandDmn, KClusterDmn, KClusterDmn,
                                      KClusterDmn, TpFreqDmn, TpFreqDmn, FreqExchangeDmn>;
@@ -118,6 +125,15 @@ private:
   const TpGF& Gamma_long_ud_;
   // Two-particle vertex in particle-hole transverse up-down channel.
   const TpGF& Gamma_tran_ud_;
+
+  // Helper functions for compute2ndOrderFT.
+  func::function<std::complex<Scalar>, KSuperlatticeDmn> G1_k;
+  func::function<std::complex<Scalar>, KSuperlatticeDmn> G2_k;
+  func::function<std::complex<Scalar>, KSuperlatticeDmn> G3_k;
+
+  func::function<std::complex<Scalar>, RSuperlatticeDmn> G1_r;
+  func::function<std::complex<Scalar>, RSuperlatticeDmn> G2_r;
+  func::function<std::complex<Scalar>, RSuperlatticeDmn> G3_r;
 };
 
 template <typename Scalar, typename Concurrency, int dimension>
@@ -263,17 +279,16 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
 template <typename Scalar, typename Concurrency, int dimension>
 void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
   // Distribute the work amongst the processes.
-  const func::dmn_variadic<KSuperlatticeDmn, TpFreqDmn> k_w_dmn_obj;
-  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
-  int k_tilde_wn[2];
+  const func::dmn_variadic<TpFreqDmn> TpFreqDmn_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(TpFreqDmn_obj);
 
   Sigma_tilde_ = 0.;
 
-  for (int l = bounds.first; l < bounds.second; ++l) {
-    k_w_dmn_obj.linind_2_subind(l, k_tilde_wn);
-    const auto k_tilde = k_tilde_wn[0];
-    const auto wn_tp = k_tilde_wn[1];
+  // The factor V^2 will be cancelled by two delta-functions from Fourier-transforming the inner
+  // sums over \tilde{k'} and \tilde{q}.
+  const Scalar min_1_over_2_Nc_beta_squared = -1. / (2. * Nc_ * Nc_ * beta_ * beta_);
 
+  for (int wn_tp = bounds.first; wn_tp < bounds.second; ++wn_tp) {
     for (int K2 = 0; K2 < Nc_; ++K2) {
       const int min_K2 = KClusterType::subtract(K2, K0_);
 
@@ -328,18 +343,34 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
                               std::conj(Gamma_tran_ud_(0, 0, 0, 0, min_K2, min_K2p, min_Q2,
                                                        minus_w_tp(wm_tp), minus_w_tp(wn_tp), -l));
 
-                    // Inner sums (product of \tilde{G}_0's).
-                    for (int kp_tilde = 0; kp_tilde < V_; ++kp_tilde) {
-                      for (int q_tilde = 0; q_tilde < V_; ++q_tilde) {
-                        const int k_tilde_plus_q_tilde = KSuperlatticeType::add(k_tilde, q_tilde);
-                        const int kp_tilde_plus_q_tilde = KSuperlatticeType::add(kp_tilde, q_tilde);
+                    // The inner sums over \tilde{k'} and \tilde{q} are replaced by super-lattice
+                    // Fourier transforms and the loop to update \tilde{k} is moved inside the outer
+                    // sums.
 
-                        Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
-                            min_1_over_2_Nc_V_beta_squared_ * Gamma_sum_prod *
-                            G0_tilde_(K1p, K2p, kp_tilde, wm_ext) *
-                            G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, kp_tilde_plus_q_tilde, wm_ext + l) *
-                            G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde_plus_q_tilde, wm_ext + l);
-                      }
+                    // Set G1_k, G2_k, G3_k.
+                    for (int k_tilde = 0; k_tilde < V_; ++k_tilde) {
+                      G1_k(k_tilde) = G0_tilde_(K1p, K2p, k_tilde, wm_ext);
+                      G2_k(k_tilde) = G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, k_tilde, wm_ext + l);
+                      G3_k(k_tilde) = G0_tilde_(K1_plus_Q1, K2_plus_Q2, k_tilde, wm_ext + l);
+                    }
+
+                    // Super-lattice FTs of G1, G2 and G3.
+                    FTSuperlatticeKtoR::execute(G1_k, G1_r);
+                    FTSuperlatticeKtoR::execute(G2_k, G2_r);
+                    FTSuperlatticeKtoR::execute(G3_k, G3_r);
+
+                    // Element-wise multiplication of G1, G2 and G3. Result is stored in G1.
+                    for (int r_tilde = 0; r_tilde < V_; ++r_tilde) {
+                      G1_r(r_tilde) *= G2_r(r_tilde) * G3_r(r_tilde);
+                    }
+
+                    // Inverse super-lattice FT of G1.
+                    FTSuperlatticeRtoK::execute(G1_r, G1_k);
+
+                    // Update Sigma_tilde_.
+                    for (int k_tilde = 0; k_tilde < V_; ++k_tilde) {
+                      Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
+                          min_1_over_2_Nc_beta_squared * Gamma_sum_prod * G1_k(k_tilde);
                     }
                   }
                 }
