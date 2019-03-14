@@ -1,10 +1,4 @@
 {
-  "output": {
-    "directory": "./",
-    "output-format": "HDF5",
-    "dump-cluster-Greens-functions" : true
-  },
-
   "physics": {
     "beta"                      :  1.,
     "chemical-potential"        : 0.
@@ -14,7 +8,7 @@
   {
     "tx"       : 1.,
     "ty"       : 0.,
-    "U"       : 4.
+    "U"        : 4.
   },
 
   "domains": {
@@ -33,15 +27,6 @@
   },
 
   "DCA": {
-    "iterations": 1,
-    "self-energy-mixing-factor": 1.,
-    "interacting-orbitals": [0,1],
-
-    "coarse-graining": {
-      "k-mesh-recursion": 3,
-      "periods": 2,
-      "quadrature-rule": 1,
-      "threads": 3
-    }
+    "interacting-orbitals": [0,1]
   }
 }

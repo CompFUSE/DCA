@@ -35,9 +35,12 @@ namespace transform {
 template <class RDmn, class KDmn, typename Real = double>
 class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Real> {
 private:
+  using BaseClass = SpaceTransform2D<RDmn, KDmn, Real>;
+
   using Complex = std::complex<Real>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
+  using VectorDev = linalg::Vector<Complex, linalg::GPU>;
 
 public:
   // Constructor
@@ -69,11 +72,12 @@ public:
   }
 
 private:
-  using BaseClass = SpaceTransform2D<RDmn, KDmn, Real>;
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
 
   static const MatrixDev& get_T_matrix();
-  void rearrangeResult(const RMatrix& in, RMatrix& out);
+  const auto& getPhaseFactors();
+
+  void phaseFactorsAndRearrange(const RMatrix& in, RMatrix& out);
 
   const int n_bands_;
   const int nw_;
@@ -134,15 +138,19 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
   }
 
-  rearrangeResult(T_times_M_times_T, *workspace_);
+  phaseFactorsAndRearrange(T_times_M_times_T, *workspace_);
   M.swap(*workspace_);
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::rearrangeResult(const RMatrix& in, RMatrix& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in,
+                                                                     RMatrix& out) {
   out.resizeNoCopy(in.size());
-  details::rearrangeResult(in.ptr(), in.leadingDimension(), out.ptr(), out.leadingDimension(),
-                           n_bands_, nc_, nw_, stream_);
+  const Complex* const phase_factors_ptr =
+      BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
+  details::phaseFactorsAndRearrange(in.ptr(), in.leadingDimension(), out.ptr(),
+                                    out.leadingDimension(), n_bands_, nc_, nw_, phase_factors_ptr,
+                                    stream_);
 }
 
 template <class RDmn, class KDmn, typename Real>
@@ -155,6 +163,20 @@ const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn,
 
   static const MatrixDev T(initialize_T_matrix(), "T_space_2D_device");
   return T;
+}
+
+template <class RDmn, class KDmn, typename Real>
+const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
+  auto initialize = []() {
+    const auto& phase_factors = BaseClass::getPhaseFactors();
+    linalg::Vector<std::complex<Real>, linalg::CPU> host_vector(phase_factors.size());
+    std::copy_n(phase_factors.values(), phase_factors.size(), host_vector.ptr());
+    return VectorDev(host_vector);
+  };
+
+  static const VectorDev phase_factors_dev(initialize());
+
+  return phase_factors_dev;
 }
 
 }  // transform

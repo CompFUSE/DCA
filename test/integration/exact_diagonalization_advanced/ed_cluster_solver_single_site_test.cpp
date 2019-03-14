@@ -61,6 +61,8 @@ TEST(EDClusterSolverSingleSiteTest, ComputeG0AndG) {
     EXPECT_NEAR(G_w_analytic(i).real(), data.G_k_w(i).real(), tol);
     EXPECT_NEAR(G_w_analytic(i).imag(), data.G_k_w(i).imag(), tol);
   }
-  for (int i = 0; i < G0_k_t_analytic.size(); ++i)
-    EXPECT_NEAR(G0_k_t_analytic(i), data.G0_k_t(i), tol);
+  for (int i = 0; i < G0_k_t_analytic.size(); ++i) {
+    EXPECT_NEAR(G0_k_t_analytic(i), data.G0_k_t(i).real(), tol);
+    EXPECT_NEAR(0, data.G0_k_t(i).imag(), tol);
+  }
 }
