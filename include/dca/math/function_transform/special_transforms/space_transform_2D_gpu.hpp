@@ -19,6 +19,10 @@
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 
+#include <array>
+#include <memory>
+
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -33,6 +37,7 @@ class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Real> {
 private:
   using Complex = std::complex<Real>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
 
 public:
   // Constructor
@@ -44,7 +49,11 @@ public:
   // order of M's labels from (r, b, w) to (b, r, w).
   // The transform is equivalent to M(k1, k2) = \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) M(r1, r2)
   // In/Out: M
-  void execute(MatrixDev& M);
+  void execute(RMatrix& M);
+
+  void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
+    workspace_ = workspace;
+  }
 
   // Returns: the stream associated with the magma queue.
   cudaStream_t get_stream() const {
@@ -52,7 +61,11 @@ public:
   }
 
   std::size_t deviceFingerprint() const {
-    return T_times_M_.deviceFingerprint() + T_times_M_times_T_.deviceFingerprint();
+    std::size_t res(0);
+
+      if (workspace_.unique())
+        res += workspace_->deviceFingerprint();
+    return res;
   }
 
 private:
@@ -60,7 +73,7 @@ private:
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
 
   static const MatrixDev& get_T_matrix();
-  void rearrangeResult(const MatrixDev& in, MatrixDev& out);
+  void rearrangeResult(const RMatrix& in, RMatrix& out);
 
   const int n_bands_;
   const int nw_;
@@ -69,8 +82,7 @@ private:
   magma_queue_t queue_;
   cudaStream_t stream_;
 
-  MatrixDev T_times_M_;
-  MatrixDev T_times_M_times_T_;
+  std::shared_ptr<RMatrix> workspace_;
 
   linalg::util::MagmaBatchedGemm<Complex> plan1_;
   linalg::util::MagmaBatchedGemm<Complex> plan2_;
@@ -84,11 +96,16 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, mag
       queue_(queue),
       stream_(magma_queue_get_cuda_stream(queue_)),
       plan1_(queue_),
-      plan2_(queue_) {}
+      plan2_(queue_) {
+  workspace_ = std::make_shared<RMatrix>();
+}
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(MatrixDev& M) {
-  T_times_M_.resizeNoCopy(M.size());
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
+  auto& T_times_M = *(workspace_);
+  auto& T_times_M_times_T = M;
+
+  T_times_M.resizeNoCopy(M.size());
   const auto& T = get_T_matrix();
 
   {
@@ -96,33 +113,33 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(MatrixDev& M) {
 
     plan1_.synchronizeCopy();
     for (int i = 0; i < n_trafo; ++i)
-      plan1_.addGemm(T.ptr(), M.ptr(i * nc_, 0), T_times_M_.ptr(i * nc_, 0));
+      plan1_.addGemm(T.ptr(), M.ptr(i * nc_, 0), T_times_M.ptr(i * nc_, 0));
 
     const int lda = T.leadingDimension();
     const int ldb = M.leadingDimension();
-    const int ldc = T_times_M_.leadingDimension();
+    const int ldc = T_times_M.leadingDimension();
     plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex(1), Complex(0), lda, ldb, ldc);
   }
 
-  T_times_M_times_T_.resizeNoCopy(M.size());
   {
     const int n_trafo = M.nrCols() / nc_;
     plan2_.synchronizeCopy();
     for (int j = 0; j < n_trafo; ++j)
-      plan2_.addGemm(T_times_M_.ptr(0, j * nc_), T.ptr(), T_times_M_times_T_.ptr(0, j * nc_));
+      plan2_.addGemm(T_times_M.ptr(0, j * nc_), T.ptr(), T_times_M_times_T.ptr(0, j * nc_));
 
-    const int lda = T_times_M_.leadingDimension();
+    const int lda = T_times_M.leadingDimension();
     const int ldb = T.leadingDimension();
-    const int ldc = T_times_M_times_T_.leadingDimension();
+    const int ldc = T_times_M_times_T.leadingDimension();
     const Complex norm(1. / nc_);
     plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
   }
 
-  rearrangeResult(T_times_M_times_T_, M);
+  rearrangeResult(T_times_M_times_T, *workspace_);
+  M.swap(*workspace_);
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::rearrangeResult(const MatrixDev& in, MatrixDev& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::rearrangeResult(const RMatrix& in, RMatrix& out) {
   out.resizeNoCopy(in.size());
   details::rearrangeResult(in.ptr(), in.leadingDimension(), out.ptr(), out.leadingDimension(),
                            n_bands_, nc_, nw_, stream_);

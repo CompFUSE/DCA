@@ -9,7 +9,7 @@
 //
 // This file tests the Matrix<CPU> class.
 
-#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include <complex>
 #include <string>
 #include <utility>
