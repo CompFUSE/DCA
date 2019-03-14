@@ -322,8 +322,8 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_w2 = [=](const int w) { return 2 * n_pos_frqs_ - 1 - w; };
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
   auto minus_k = [=](const int k) {
-    const static int k0 = RDmn::parameter_type::origin_index();
-    return RDmn::parameter_type::subtract(k, k0);
+    const static int k0 = KDmn::parameter_type::origin_index();
+    return KDmn::parameter_type::subtract(k, k0);
 
   };
 
@@ -343,8 +343,8 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
 
   auto minus_k = [=](const int k) {
-    const static int k0 = RDmn::parameter_type::origin_index();
-    return RDmn::parameter_type::subtract(k, k0);
+    const static int k0 = KDmn::parameter_type::origin_index();
+    return KDmn::parameter_type::subtract(k, k0);
 
   };
 

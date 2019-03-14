@@ -19,23 +19,21 @@ namespace testing {
 // The elements of the matrix will be set with mat(i, j) = func(i, j).
 // In: func
 // Out: mat
-template <typename ScalarType, typename F>
-void setMatrixElements(dca::linalg::Matrix<ScalarType, dca::linalg::CPU>& mat, F& func) {
+template <typename Matrix, typename F>
+void setMatrixElements(Matrix& mat, F&& func) {
   for (int j = 0; j < mat.nrCols(); ++j)
     for (int i = 0; i < mat.nrRows(); ++i) {
-      ScalarType el(func(i, j));
-      mat(i, j) = el;
+      mat(i, j) = func(i, j);
     }
 }
 
 // The elements of the vector will be set with vec[i] = func(i).
 // In: func
 // Out: vec
-template <typename ScalarType, typename F>
-void setVectorElements(dca::linalg::Vector<ScalarType, dca::linalg::CPU>& vec, F& func) {
+template <typename Vector, typename F>
+void setVectorElements(Vector& vec, F& func) {
   for (int i = 0; i < vec.size(); ++i) {
-    ScalarType el(func(i));
-    vec[i] = el;
+    vec[i] = func(i);
   }
 }
 }  // testing
