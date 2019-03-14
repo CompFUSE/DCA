@@ -7,8 +7,18 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Compare the coarsegraining of a bileyer model with one site, with a singleband model with two
-// sites representing the same physical system.
+// Run the coarsegraining on a two-band model with n-sites, and compare the results with the
+// precomputed result from a singleband model with 2*n sites representing the same physical system.
+// The Green's function for the two systems should be equal in real space, and related by the
+// transformation G_singleband(k) = G_aa(k) + G_ab(k) and  G_singleband(k+\pi) = G_aa(k) - G_ab(k)
+// in momentum space, where G_aa is the propagator between the same orbitals, and G_ab between the
+// two different orbitals.
+//
+// Note: as the code does not support reinitialization of the cluster with a different model or
+//       size, the singleband results are stored as a baseline in an hdf5 file, while the
+//       two-band model is run during this test. If the baseline needs to be update, please define
+//       the flag UPDATE_BASELINE and run the resulting executable.
+#undef UPDATE_BASELINE
 
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 
@@ -34,10 +44,6 @@
 #include "dca/util/modules.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
-
-// If this flag is defined, prepare the baseline using the singleband model, otherwise run the test
-// comparing the bilayer model with the baseline.
-#undef UPDATE_BASELINE
 
 // Set to true to dump the result in an hdf5 file.
 constexpr bool write_G_r_w = false;
