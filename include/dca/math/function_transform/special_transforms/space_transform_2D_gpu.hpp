@@ -145,11 +145,14 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in, RMatrix& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in,
+                                                                     RMatrix& out) {
   out.resizeNoCopy(in.size());
+  const Complex* const phase_factors_ptr =
+      BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
   details::phaseFactorsAndRearrange(in.ptr(), in.leadingDimension(), out.ptr(),
-                                    out.leadingDimension(), n_bands_, nc_, nw_,
-                                    getPhaseFactors().ptr(), stream_);
+                                    out.leadingDimension(), n_bands_, nc_, nw_, phase_factors_ptr,
+                                    stream_);
 }
 
 template <class RDmn, class KDmn, typename Real>
@@ -167,18 +170,13 @@ const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn,
 template <class RDmn, class KDmn, typename Real>
 const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
   auto initialize = []() {
-    if (!BaseClass::hasPhaseFactors()) {
-      return VectorDev();
-    }
-
     const auto& phase_factors = BaseClass::getPhaseFactors();
     linalg::Vector<std::complex<Real>, linalg::CPU> host_vector(phase_factors.size());
-    std::copy_n(phase_factors.values(), phase_factors.size(), host_vector.data());
+    std::copy_n(phase_factors.values(), phase_factors.size(), host_vector.ptr());
     return VectorDev(host_vector);
   };
 
-  static const VectorDev phase_factors_dev(initialize(), "Phase factors GPU.");
-  assert(BaseClass::hasPhaseFactors() || phase_factors_dev.ptr() == nullptr);
+  static const VectorDev phase_factors_dev(initialize());
 
   return phase_factors_dev;
 }
