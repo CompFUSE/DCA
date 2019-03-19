@@ -336,6 +336,8 @@ TEST_F(DualSelfEnergyTest, Compute2ndOrderFT) {
   Sigma_tilde_.compute2ndOrderReference();
   const DualGFTpFreq Sigma_tilde_2nd_ref = Sigma_tilde_.get();
 
+  Sigma_tilde_.reset();
+
   Sigma_tilde_.compute2ndOrderFT();
   const DualGFTpFreq& Sigma_tilde_2nd_ft = Sigma_tilde_.get();
 

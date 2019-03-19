@@ -93,8 +93,12 @@ public:
   // Accelerated version using Fourier transformation for the super-lattice variable.
   void compute2ndOrderFT();
 
-  const DualGFTpFreq& get() {
+  const DualGFTpFreq& get() const {
     return Sigma_tilde_;
+  }
+
+  void reset() {
+    Sigma_tilde_ = 0.;
   }
 
 private:
