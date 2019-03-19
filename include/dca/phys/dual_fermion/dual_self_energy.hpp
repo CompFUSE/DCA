@@ -187,7 +187,8 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
   int k_tilde_wn[2];
 
-  Sigma_tilde_ = 0.;
+  // Local variable to temporarily store the 2nd order contribution and to do the concurrency sum.
+  DualGFTpFreq Sigma_tilde_2nd;
 
   const Scalar min_1_over_2_Nc_V_beta_squared = -1. / (2. * Nc_ * Nc_ * V_ * V_ * beta_ * beta_);
 
@@ -256,7 +257,7 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
                         const int k_tilde_plus_q_tilde = KSuperlatticeType::add(k_tilde, q_tilde);
                         const int kp_tilde_plus_q_tilde = KSuperlatticeType::add(kp_tilde, q_tilde);
 
-                        Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
+                        Sigma_tilde_2nd(K1, K2, k_tilde, wn_tp) +=
                             min_1_over_2_Nc_V_beta_squared * Gamma_sum_prod *
                             G0_tilde_(K1p, K2p, kp_tilde, wm_ext) *
                             G0_tilde_(K1p_plus_Q1, K2p_plus_Q2, kp_tilde_plus_q_tilde, wm_ext + l) *
@@ -273,7 +274,9 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderReference() 
     }
   }
 
-  concurrency_.sum(Sigma_tilde_);
+  concurrency_.sum(Sigma_tilde_2nd);
+
+  Sigma_tilde_ += Sigma_tilde_2nd;
 }
 
 template <typename Scalar, typename Concurrency, int dimension>
@@ -282,7 +285,8 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
   const func::dmn_variadic<TpFreqDmn> TpFreqDmn_obj;
   const std::pair<int, int> bounds = concurrency_.get_bounds(TpFreqDmn_obj);
 
-  Sigma_tilde_ = 0.;
+  // Local variable to temporarily store the 2nd order contribution and to do the concurrency sum.
+  DualGFTpFreq Sigma_tilde_2nd;
 
   // The factor V^2 will be cancelled by two delta-functions from Fourier-transforming the inner
   // sums over \tilde{k'} and \tilde{q}.
@@ -367,9 +371,9 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
                     // Inverse super-lattice FT of G1.
                     FTSuperlatticeRtoK::execute(G1_r, G1_k);
 
-                    // Update Sigma_tilde_.
+                    // Update Sigma_tilde_2nd.
                     for (int k_tilde = 0; k_tilde < V_; ++k_tilde) {
-                      Sigma_tilde_(K1, K2, k_tilde, wn_tp) +=
+                      Sigma_tilde_2nd(K1, K2, k_tilde, wn_tp) +=
                           min_1_over_2_Nc_beta_squared * Gamma_sum_prod * G1_k(k_tilde);
                     }
                   }
@@ -382,7 +386,9 @@ void DualSelfEnergy<Scalar, Concurrency, dimension>::compute2ndOrderFT() {
     }
   }
 
-  concurrency_.sum(Sigma_tilde_);
+  concurrency_.sum(Sigma_tilde_2nd);
+
+  Sigma_tilde_ += Sigma_tilde_2nd;
 }
 
 }  // namespace df
