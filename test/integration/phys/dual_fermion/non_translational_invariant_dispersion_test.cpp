@@ -164,7 +164,10 @@ TEST(NonTranslationalInvariantDispersionTest, FourSiteSquareLattice) {
 
   //////////////////////////////////////////////////////////////////////////////
   // Fourier transform from cluster real space (I, J) to momentum space (K, K_prime).
-  math::transform::SpaceTransform2D<RClusterDmn, KClusterDmn, double>::execute(t_IJ_k_tilde);
+  func::function<std::complex<double>, func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn>>
+      t_K_Kprime_k_tilde;
+  math::transform::SpaceTransform2D<RClusterDmn, KClusterDmn, double>::execute(t_IJ_k_tilde,
+                                                                               t_K_Kprime_k_tilde);
 
   // Check t(K, K_prime, k_tilde).
   for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
@@ -175,27 +178,37 @@ TEST(NonTranslationalInvariantDispersionTest, FourSiteSquareLattice) {
 
     // t(K=0, K_prime=0, k_tilde).
     EXPECT_NEAR(one_over_Nc * 4. * t * (2 + std::cos(2. * k_tilde_x) + std::cos(2. * k_tilde_y)),
-                t_IJ_k_tilde(0, 0, k_tilde).real(), 100 * std::numeric_limits<double>::epsilon());
-    EXPECT_NEAR(0., t_IJ_k_tilde(0, 0, k_tilde).imag(), 100 * std::numeric_limits<double>::epsilon());
+                t_K_Kprime_k_tilde(0, 0, k_tilde).real(),
+                100 * std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(0., t_K_Kprime_k_tilde(0, 0, k_tilde).imag(),
+                100 * std::numeric_limits<double>::epsilon());
 
     // t(K=0, K_prime=1, k_tilde).
-    EXPECT_NEAR(0., t_IJ_k_tilde(0, 1, k_tilde).real(), 100 * std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(0., t_K_Kprime_k_tilde(0, 1, k_tilde).real(),
+                100 * std::numeric_limits<double>::epsilon());
     EXPECT_NEAR(-one_over_Nc * 4. * t * std::sin(2. * k_tilde_y),
-                t_IJ_k_tilde(0, 1, k_tilde).imag(), 100 * std::numeric_limits<double>::epsilon());
+                t_K_Kprime_k_tilde(0, 1, k_tilde).imag(),
+                100 * std::numeric_limits<double>::epsilon());
 
     // t(K=1, K_prime=0, k_tilde).
-    EXPECT_NEAR(0., t_IJ_k_tilde(1, 0, k_tilde).real(), 100 * std::numeric_limits<double>::epsilon());
-    EXPECT_NEAR(one_over_Nc * 4. * t * std::sin(2. * k_tilde_y), t_IJ_k_tilde(1, 0, k_tilde).imag(),
+    EXPECT_NEAR(0., t_K_Kprime_k_tilde(1, 0, k_tilde).real(),
+                100 * std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(one_over_Nc * 4. * t * std::sin(2. * k_tilde_y),
+                t_K_Kprime_k_tilde(1, 0, k_tilde).imag(),
                 100 * std::numeric_limits<double>::epsilon());
 
     // t(K=1, K_prime=1, k_tilde).
     EXPECT_NEAR(one_over_Nc * 4. * t * (std::cos(2. * k_tilde_x) - std::cos(2. * k_tilde_y)),
-                t_IJ_k_tilde(1, 1, k_tilde).real(), 100 * std::numeric_limits<double>::epsilon());
-    EXPECT_NEAR(0., t_IJ_k_tilde(1, 1, k_tilde).imag(), 100 * std::numeric_limits<double>::epsilon());
+                t_K_Kprime_k_tilde(1, 1, k_tilde).real(),
+                100 * std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(0., t_K_Kprime_k_tilde(1, 1, k_tilde).imag(),
+                100 * std::numeric_limits<double>::epsilon());
 
     // t(K=3, K_prime=3, k_tilde).
     EXPECT_NEAR(-one_over_Nc * 4. * t * (2 + std::cos(2. * k_tilde_x) + std::cos(2. * k_tilde_y)),
-                t_IJ_k_tilde(3, 3, k_tilde).real(), 100 * std::numeric_limits<double>::epsilon());
-    EXPECT_NEAR(0., t_IJ_k_tilde(3, 3, k_tilde).imag(), 100 * std::numeric_limits<double>::epsilon());
+                t_K_Kprime_k_tilde(3, 3, k_tilde).real(),
+                100 * std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(0., t_K_Kprime_k_tilde(3, 3, k_tilde).imag(),
+                100 * std::numeric_limits<double>::epsilon());
   }
 }
