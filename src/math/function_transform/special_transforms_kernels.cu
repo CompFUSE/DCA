@@ -15,6 +15,7 @@
 
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {
 namespace math {
@@ -35,9 +36,10 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
 }
 
 template <typename Real>
-__global__ void rearrangeResultKernel(const CudaComplex<Real>* in, const int ldi,
-                                      CudaComplex<Real>* out, const int ldo, const int nb,
-                                      const int nk, const int nw) {
+__global__ void phaseFactorsAndRearrangeKernel(const CudaComplex<Real>* in, const int ldi,
+                                               CudaComplex<Real>* out, const int ldo, const int nb,
+                                               const int nk, const int nw,
+                                               const CudaComplex<Real>* phase_factors) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -61,27 +63,38 @@ __global__ void rearrangeResultKernel(const CudaComplex<Real>* in, const int ldi
   const int out_i = b1 + nb * k1 + no * w1;
   const int out_j = b2 + nb * k2 + no * w2;
 
-  out[out_i + ldo * out_j] = in[id_i + ldi * id_j];
+  CudaComplex<Real> value = in[id_i + ldi * id_j];
+
+  using namespace dca::linalg;
+  if (phase_factors)
+    value *= phase_factors[b1 + nb * k1] * linalg::conj(phase_factors[b2 + nb * k2]);
+
+  out[out_i + ldo * out_j] = value;
 }
 
 template <typename Real>
-void rearrangeResult(const std::complex<Real>* in, const int ldi, std::complex<Real>* out,
-                     const int ldo, const int nb, const int nk, const int nw,
-                     const cudaStream_t stream) {
+void phaseFactorsAndRearrange(const std::complex<Real>* in, const int ldi, std::complex<Real>* out,
+                              const int ldo, const int nb, const int nk, const int nw,
+                              const std::complex<Real>* phase_factors, const cudaStream_t stream) {
   const int size = nk * nb * nw;
   auto const blocks = getBlockSize(size / 2, size);
 
-  rearrangeResultKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(
-      castCudaComplex(in), ldi, castCudaComplex(out), ldo, nb, nk, nw);
+  phaseFactorsAndRearrangeKernel<Real>
+      <<<blocks[0], blocks[1], 0, stream>>>(castCudaComplex(in), ldi, castCudaComplex(out), ldo, nb,
+                                            nk, nw, castCudaComplex(phase_factors));
 }
 
 // Explicit instantiation.
-template void rearrangeResult<double>(const std::complex<double>* in, const int ldi,
-                                      std::complex<double>* out, const int ldo, const int nb,
-                                      const int nk, const int nw, cudaStream_t stream);
-template void rearrangeResult<float>(const std::complex<float>* in, const int ldi,
-                                     std::complex<float>* out, const int ldo, const int nb,
-                                     const int nk, const int nw, cudaStream_t stream);
+template void phaseFactorsAndRearrange<double>(const std::complex<double>* in, const int ldi,
+                                               std::complex<double>* out, const int ldo,
+                                               const int nb, const int nk, const int nw,
+                                               const std::complex<double>* phase_factors,
+                                               const cudaStream_t stream);
+template void phaseFactorsAndRearrange<float>(const std::complex<float>* in, const int ldi,
+                                              std::complex<float>* out, const int ldo, const int nb,
+                                              const int nk, const int nw,
+                                              const std::complex<float>* phase_factors,
+                                              cudaStream_t const stream);
 
 }  // details
 }  // transform

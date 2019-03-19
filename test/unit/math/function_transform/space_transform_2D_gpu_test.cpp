@@ -17,17 +17,17 @@
 #include <string>
 
 #include "dca/io/json/json_reader.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/parameters/parameters.hpp"
-#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
-using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+using Model = dca::phys::models::TightBindingModel<
+    dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
@@ -58,12 +58,14 @@ void initialize() {
   }
 }
 
+template <typename Scalar, dca::linalg::DeviceType device>
+using Matrix = dca::linalg::ReshapableMatrix<Scalar, device>;
+
 TEST(SpaceTransform2DGpuTest, Execute) {
   initialize();
 
   using dca::func::function;
   using dca::func::dmn_variadic;
-  using dca::linalg::Matrix;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   Matrix<Complex, dca::linalg::CPU> M_in;
@@ -99,7 +101,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   cudaStreamSynchronize(transform_obj.get_stream());
   magma_queue_destroy(queue);
 
-  Matrix<Complex, dca::linalg::CPU> M_out(M_dev, "M_out");
+  Matrix<Complex, dca::linalg::CPU> M_out(M_dev);
   for (int w2 = 0; w2 < 2 * nw; ++w2)
     for (int w1 = 0; w1 < nw; ++w1)
       for (int r2 = 0; r2 < nr; ++r2)

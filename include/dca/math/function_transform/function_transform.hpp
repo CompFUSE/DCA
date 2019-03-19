@@ -18,6 +18,9 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/math/function_transform/domainwise_function_transform.hpp"
+#include "dca/math/function_transform/special_transforms/momentum_to_space.hpp"
+#include "dca/math/function_transform/special_transforms/space_to_momentum.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/util/type_list.hpp"
 
 namespace dca {
@@ -30,12 +33,13 @@ template <typename type_input, typename type_output>
 class FunctionTransform {};
 
 // Specialization for dmn_0 to dmn_0.
-template <typename type_input, typename type_output>
-class FunctionTransform<func::dmn_0<type_input>, func::dmn_0<type_output>> {
+ template <typename type_input, typename type_output>
+ class FunctionTransform<func::dmn_0<type_input>, func::dmn_0<type_output>> {
   const static bool VERBOSE = false;
 
-public:
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
+ public:
+  template <typename scalartype_input, class domain_input, typename scalartype_output, class
+  domain_output>
   static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
@@ -45,7 +49,8 @@ public:
         typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-    DomainwiseFunctionTransform<domain_input, domain_output, type_input, type_output>::execute_on_first(
+    DomainwiseFunctionTransform<domain_input, domain_output, type_input,
+    type_output>::execute_on_first(
         f_input, f_output);
   }
 
@@ -61,11 +66,13 @@ public:
         typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-    DomainwiseFunctionTransform<domain_input, domain_output, type_input, type_output>::execute_on_first(
+    DomainwiseFunctionTransform<domain_input, domain_output, type_input,
+    type_output>::execute_on_first(
         f_input, f_output, T);
   }
 
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
+  template <typename scalartype_input, class domain_input, typename scalartype_output, class
+  domain_output>
   static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
@@ -76,7 +83,8 @@ public:
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-    DomainwiseFunctionTransform<domain_input, domain_output, type_input, type_output>::execute_on_all(
+    DomainwiseFunctionTransform<domain_input, domain_output, type_input,
+    type_output>::execute_on_all(
         f_input, f_output);
   }
 
@@ -93,12 +101,14 @@ public:
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-    DomainwiseFunctionTransform<domain_input, domain_output, type_input, type_output>::execute_on_all(
+    DomainwiseFunctionTransform<domain_input, domain_output, type_input,
+    type_output>::execute_on_all(
         f_input, f_output, T);
   }
 
-private:
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
+ private:
+  template <typename scalartype_input, class domain_input, typename scalartype_output, class
+  domain_output>
   static void print_types(const func::function<scalartype_input, domain_input>& f_input,
                           const func::function<scalartype_output, domain_output>& f_output,
                           const bool do_all_domains = false) {
@@ -147,6 +157,44 @@ private:
       T.print_fingerprint();
       f_output.print_fingerprint();
     }
+  }
+};
+
+// Specialization for momentum to space transform.
+template <typename DmnScalar, int dim, phys::domains::CLUSTER_NAMES c_name,
+          phys::domains::CLUSTER_SHAPE c_shape>
+class FunctionTransform<
+    func::dmn_0<phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::MOMENTUM_SPACE, c_shape>>,
+    func::dmn_0<phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::REAL_SPACE, c_shape>>> {
+  using KDmn = func::dmn_0<
+      phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::MOMENTUM_SPACE, c_shape>>;
+  using RDmn = func::dmn_0<
+      phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::REAL_SPACE, c_shape>>;
+
+public:
+  template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput>
+  static void execute(const func::function<ScalarInp, DomainInput>& f_input,
+                      func::function<ScalarOut, DomainOutput>& f_output) {
+    MomentumToSpaceTransform<KDmn, RDmn>::execute(f_input, f_output);
+  }
+};
+
+// Specialization for space to momentum transformation.
+template <typename DmnScalar, int dim, phys::domains::CLUSTER_NAMES c_name,
+    phys::domains::CLUSTER_SHAPE c_shape>
+class FunctionTransform<
+    func::dmn_0<phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::REAL_SPACE, c_shape>>,
+    func::dmn_0<phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::MOMENTUM_SPACE, c_shape>>> {
+  using KDmn = func::dmn_0<
+      phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::MOMENTUM_SPACE, c_shape>>;
+  using RDmn = func::dmn_0<
+      phys::domains::cluster_domain<DmnScalar, dim, c_name, phys::domains::REAL_SPACE, c_shape>>;
+
+public:
+  template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput>
+  static void execute(const func::function<ScalarInp, DomainInput>& f_input,
+                      func::function<ScalarOut, DomainOutput>& f_output) {
+    SpaceToMomentumTransform<RDmn, KDmn>::execute(f_input, f_output);
   }
 };
 
