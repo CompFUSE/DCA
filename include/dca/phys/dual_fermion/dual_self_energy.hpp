@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class implements the dual self-energy up to second order.
+// This class computes the dual self-energy up to second order.
 
 #ifndef DCA_PHYS_DUAL_FERMION_DUAL_SELF_ENERGY_HPP
 #define DCA_PHYS_DUAL_FERMION_DUAL_SELF_ENERGY_HPP
