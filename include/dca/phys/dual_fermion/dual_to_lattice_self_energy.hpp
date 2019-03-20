@@ -18,7 +18,6 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/dual_fermion/dual_self_energy.hpp"
 
 namespace dca {
 namespace phys {
@@ -28,8 +27,6 @@ namespace df {
 template <typename Scalar, typename Concurrency, int dimension>
 class DualToLatticeSelfEnergy {
 public:
-  using DualSelfEnergyType = DualSelfEnergy<Scalar, Concurrency, dimension>;
-
   using BandDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SpinDmn = func::dmn_0<phys::domains::electron_spin_domain>;
 
@@ -55,19 +52,32 @@ public:
       func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, KLatticeDmn, SpFreqDmn>;
   using SpLatticeGF = func::function<std::complex<Scalar>, SpLatticeGFDmn>;
 
-  static void computeNonInvariantLatticeSelfEnergy(const Concurrency& concurrency,
-                                                   const SpClusterGF& G_cluster,
-                                                   const SpClusterGF& Sigma_cluster,
-                                                   const DualGF& Sigma_dual, DualGF& Sigma_lattice) {
-  }
+  DualToLatticeSelfEnergy(const Concurrency& concurrency, const SpClusterGF& G_cluster,
+                          const SpClusterGF& Sigma_cluster, const DualGF& Sigma_dual,
+                          SpLatticeGF& Sigma_lattice)
+      : concurrency_(concurrency),
+        G_cluster_(G_cluster),
+        Sigma_cluster_(Sigma_cluster),
+        Sigma_dual_(Sigma_dual),
+        Sigma_lattice_(Sigma_lattice) {}
 
-  static void fourierTransfromToRealSpace(const Concurrency& concurrency,
-                                          const DualGF& Sigma_lattice_K,
-                                          RealSpaceDualGF& Sigma_lattice_R) {}
+  void computeNonInvariantLatticeSelfEnergy() {}
 
-  static void fourierTransfromToMomentumSpace(const Concurrency& concurrency,
-                                              const RealSpaceDualGF& Sigma_lattice_R,
-                                              SpLatticeGF& Sigma_lattice_K) {}
+  void fourierTransfromToRealSpace() {}
+
+  void fourierTransfromToMomentumSpace() {}
+
+private:
+  const Concurrency& concurrency_;
+
+  const SpClusterGF& G_cluster_;
+  const SpClusterGF& Sigma_cluster_;
+
+  const DualGF& Sigma_dual_;
+
+  DualGF Sigma_lattice_noninvariant_K_;           // \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
+  RealSpaceDualGF Sigma_lattice_noninvariant_R_;  // \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}})
+  SpLatticeGF& Sigma_lattice_;                    // \Sigma(\vec{k})
 };
 
 }  // namespace df
