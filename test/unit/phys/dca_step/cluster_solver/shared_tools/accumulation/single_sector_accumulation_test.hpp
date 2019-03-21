@@ -102,7 +102,7 @@ struct Vertex {
 template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
-    using Complex = std::complex<Real>;
+  using Complex = std::complex<Real>;
 
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
   using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
