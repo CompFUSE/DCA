@@ -49,6 +49,7 @@ protected:
       phys::df::DualToLatticeSelfEnergy<double, parallel::NoConcurrency, dimension_>;
 
   using BandDmn = DualToLatticeSelfEnergyType::BandDmn;
+  using SpinDmn = DualToLatticeSelfEnergyType::SpinDmn;
 
   using SpFreqDmn = DualToLatticeSelfEnergyType::SpFreqDmn;
 
@@ -56,7 +57,14 @@ protected:
   using KLatticeDmn = DualToLatticeSelfEnergyType::KLatticeDmn;
   using KSuperlatticeDmn = DualToLatticeSelfEnergyType::KSuperlatticeDmn;
 
-  DualToLatticeSelfEnergyTest() : concurrency_(0, nullptr) {}
+  using SpClusterGF = DualToLatticeSelfEnergyType::SpClusterGF;
+  using SpLatticeGF = DualToLatticeSelfEnergyType::SpLatticeGF;
+  using DualGF = DualToLatticeSelfEnergyType::DualGF;
+
+  DualToLatticeSelfEnergyTest()
+      : concurrency_(0, nullptr),
+        dual_to_lattice_comp_(concurrency_, G_cluster_, Sigma_cluster_, Sigma_dual_, Sigma_lattice_) {
+  }
 
   static void SetUpTestCase() {
     const int num_bands = 1;
@@ -90,6 +98,13 @@ protected:
   static const testing::MockParameters parameters_;
 
   const parallel::NoConcurrency concurrency_;
+
+  SpClusterGF G_cluster_;
+  SpClusterGF Sigma_cluster_;
+  DualGF Sigma_dual_;
+  SpLatticeGF Sigma_lattice_;
+
+  DualToLatticeSelfEnergyType dual_to_lattice_comp_;
 };
 
 const testing::MockParameters DualToLatticeSelfEnergyTest::parameters_;
