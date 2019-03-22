@@ -127,4 +127,23 @@ TEST(ClusterDomainTest, ClusterLatticeSuperlattice) {
     phys::domains::cluster_operations::find_closest_cluster_vector(
         k_tilde_vec, k, KLatticeDmn::parameter_type::get_super_basis_vectors(), tolerance);
   }
+
+  // Check that each reciprocal lattice vector can be decomposed into a reciprocal cluster vector
+  // and a reciprocal superlattice vector.
+  std::vector<bool> found(KLatticeDmn::dmn_size(), false);
+
+  for (const auto& k_tilde_vec : k_tilde) {
+    for (const auto& K_vec : K) {
+      const auto K_plus_k_tilde = math::util::add(K_vec, k_tilde_vec);
+
+      const auto index = phys::domains::cluster_operations::index(
+          phys::domains::cluster_operations::find_closest_cluster_vector(
+              K_plus_k_tilde, k, KLatticeDmn::parameter_type::get_super_basis_vectors(), tolerance),
+          k, KLatticeDmn::parameter_type::SHAPE);
+
+      EXPECT_FALSE(found[index]);
+
+      found[index] = true;
+    }
+  }
 }
