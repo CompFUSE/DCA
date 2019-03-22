@@ -94,6 +94,9 @@ TEST(ClusterDomainTest, ClusterLatticeSuperlattice) {
   // math::util::print(k_tilde_centered);
   // math::util::print(weights);
 
+  // Check the domain sizes.
+  EXPECT_EQ(KLatticeDmn::dmn_size(), KClusterDmn::dmn_size() * KSuperlatticeDmn::dmn_size());
+
   // Check that real space cluster vectors are also real space lattice vectors.
   const double tolerance = 1.e-6;
   for (const auto& R_vec : R) {
