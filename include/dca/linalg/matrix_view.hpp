@@ -156,12 +156,12 @@ auto inline makeConstantView(const ScalarType* data, const std::pair<int, int> s
 }
 
 template <typename ScalarType, DeviceType device_t>
-auto inline makeConstantView(ScalarType* const data, const int size, const int ld) {
+auto inline makeConstantView(const ScalarType* data, const int size, const int ld) {
   return makeConstantView<ScalarType, device_t>(data, std::make_pair(size, size), ld);
 }
 
 template <typename ScalarType, DeviceType device_t>
-auto inline makeConstantView(ScalarType* const data, const int size) {
+auto inline makeConstantView(const ScalarType* data, const int size) {
   return makeConstantView<ScalarType, device_t>(data, std::make_pair(size, size), size);
 }
 

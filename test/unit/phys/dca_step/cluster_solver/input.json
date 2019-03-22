@@ -50,7 +50,6 @@
   },
 
   "four-point": {
-    "type": "NONE",
     "momentum-transfer": [0., 3.1415],
     "frequency-transfer": 2
   },

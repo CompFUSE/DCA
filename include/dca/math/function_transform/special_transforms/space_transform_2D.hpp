@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class performs the 2D transform from space to momentum used by the tp accumulation on
 // non translational invariant Greens function. See space_to_momentum.hpp for a definition of the
@@ -44,6 +45,10 @@ public:
   static void execute(
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
+
+  template <typename OtherDmns>
+  static void execute(const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
+                      func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out);
 
 protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
@@ -86,6 +91,27 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
 }
 
 template <class RDmn, class KDmn, typename Real>
+template <typename OtherDmns>
+void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+    const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
+    func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out) {
+  const int Nc = RDmn::dmn_size();
+  const Complex norm = Complex(1. / Nc);
+
+  const auto& T = get_T_matrix();
+  linalg::Matrix<Complex, linalg::CPU> tmp(Nc);
+
+  for (int i = 0; i < OtherDmns::dmn_size(); ++i) {
+    const auto f_r_r_ptr = linalg::makeConstantView<Complex, linalg::CPU>(&f_in(0, 0, i), Nc);
+    linalg::MatrixView<Complex, linalg::CPU> f_k_k(&f_out(0, 0, i), Nc);
+
+    // f(k1,k2) = 1/Nc \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) f(r1, r2)
+    linalg::matrixop::gemm(T, *f_r_r_ptr, tmp);
+    linalg::matrixop::gemm('N', 'C', norm, tmp, T, Complex(0), f_k_k);
+  }
+}
+
+template <class RDmn, class KDmn, typename Real>
 const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Real>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
@@ -125,8 +151,8 @@ const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
   return phase_factors;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D
