@@ -7,9 +7,9 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests compute_bare_dual_greens_function.hpp.
+// This file tests bare_dual_greens_function.hpp.
 
-#include "dca/phys/dual_fermion/compute_bare_dual_greens_function.hpp"
+#include "dca/phys/dual_fermion/bare_dual_greens_function.hpp"
 
 #include <complex>
 
