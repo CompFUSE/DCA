@@ -608,3 +608,33 @@ TEST(FunctionTest, ComparisonOperatorEqual) {
   EXPECT_TRUE(f2 == f1);
   EXPECT_FALSE(f1 == f3);
 }
+
+TEST(FunctionTest, MemoryLayout) {
+  // The function's data need to be stored in a column major order, as the code relies on this for
+  // interactions with the Vector and Matrix classes.
+
+  using Dmn1 = dmn_0<dmn<2>>;
+  using Dmn2 = dmn_0<dmn<5>>;
+  using Dmn3 = dmn_0<dmn<3>>;
+
+  dca::func::function<int, dca::func::dmn_variadic<Dmn1, Dmn2, Dmn3>> f;
+
+  std::vector<int> raw_data(f.size());
+  int count = 0;
+
+  for (auto& x : raw_data)
+    x = ++count;
+
+  // Copy from raw_data to f.
+  std::copy_n(raw_data.data(), f.size(), f.values());
+
+  // Check that the first index is the fast one.
+  count = 0;
+  for (int k = 0; k < Dmn3::dmn_size(); ++k)
+    for (int j = 0; j < Dmn2::dmn_size(); ++j)
+      for (int i = 0; i < Dmn1::dmn_size(); ++i) {
+        EXPECT_EQ(raw_data[count], f(i, j, k));
+        EXPECT_EQ(count, &f(i, j, k) - f.values());
+        ++count;
+      }
+}

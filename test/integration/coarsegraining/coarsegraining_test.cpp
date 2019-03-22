@@ -7,8 +7,18 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Compare the coarsegraining of a bileyer model with one site, with a singleband model with two
-// sites.
+// Run the coarsegraining on a two-band model with n-sites, and compare the results with the
+// precomputed result from a singleband model with 2*n sites representing the same physical system.
+// The Green's function for the two systems should be equal in real space, and related by the
+// transformation G_singleband(k) = G_aa(k) + G_ab(k) and  G_singleband(k+\pi) = G_aa(k) - G_ab(k)
+// in momentum space, where G_aa is the propagator between the same orbitals, and G_ab between the
+// two different orbitals.
+//
+// Note: as the code does not support reinitialization of the cluster with a different model or
+//       size, the singleband results are stored as a baseline in an hdf5 file, while the
+//       two-band model is run during this test. If the baseline needs to be update, please define
+//       the flag UPDATE_BASELINE and run the resulting executable.
+#undef UPDATE_BASELINE
 
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 
@@ -35,9 +45,8 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 
-// If this flag is defined, prepare the baseline using the singleband model, otherwise run the test
-// comparing the bilayer model with the baseline.
-#undef UPDATE_BASELINE
+// Set to true to dump the result in an hdf5 file.
+constexpr bool write_G_r_w = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/coarsegraining/";
 
@@ -59,8 +68,10 @@ const std::string input = input_dir + "input_bilayer.json";
 #endif  // UPDATE_BASELINE
 
 using Data = dca::phys::DcaData<Parameters>;
-using Coarsegraining =
-    dca::phys::clustermapping::CoarsegrainingSp<Parameters>;
+using Coarsegraining = dca::phys::clustermapping::CoarsegrainingSp<Parameters>;
+
+using RDmn = Data::RClusterDmn;
+using KDmn = Data::KClusterDmn;
 
 template <class SigmaType>
 void computeMockSigma(SigmaType& Sigma);
@@ -92,28 +103,36 @@ void performTest(const bool test_dca_plus) {
     cluster_mapping_obj.compute_G_K_w(data.Sigma, data.G_k_w);
   }
 
+  dca::math::transform::FunctionTransform<KDmn, RDmn>::execute(data.G_k_w, data.G_r_w);
+
   if (concurrency.id() == 0) {
     const std::string baseline_name = test_dca_plus ? "coarsegraining_dca_plus_baseline.hdf5"
                                                     : "coarsegraining_dca_baseline.hdf5";
     std::vector<std::complex<double>> raw_data;
 
 #ifdef UPDATE_BASELINE
-    raw_data.resize(data.G_k_w.size());
-    std::copy_n(data.G_k_w.values(), data.G_k_w.size(), raw_data.data());
+    raw_data.resize(data.G_r_w.size());
+    std::copy_n(data.G_r_w.values(), data.G_r_w.size(), raw_data.data());
 
     dca::io::HDF5Writer writer;
     writer.open_file(input_dir + baseline_name);
-    writer.execute(data.G_k_w.get_name(), raw_data);
+    writer.execute(data.G_r_w.get_name(), raw_data);
     writer.close_file();
+
+    if (write_G_r_w && test_dca_plus == false) {
+      writer.open_file("coarse_singleband.hdf5");
+      data.write(writer);
+      parameters.write(writer);
+    }
 #else
     using SingleBandBDmn = dca::func::dmn_0<dca::func::dmn<1>>;
     using SDmn = dca::func::dmn_0<dca::func::dmn<2>>;
     using WDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-    using SingleBandKDmn = dca::func::dmn_0<dca::func::dmn<2>>;
+    using SingleBandRDmn = dca::func::dmn_0<dca::func::dmn<6>>;
     using SinglebandNuDmn = dca::func::dmn_variadic<SingleBandBDmn, SDmn>;
     dca::func::function<std::complex<double>,
-                        dca::func::dmn_variadic<SinglebandNuDmn, SinglebandNuDmn, SingleBandKDmn, WDmn>>
-        G_check(data.G_k_w.get_name());
+                        dca::func::dmn_variadic<SinglebandNuDmn, SinglebandNuDmn, SingleBandRDmn, WDmn>>
+        G_check(data.G_r_w.get_name());
 
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + baseline_name);
@@ -123,20 +142,19 @@ void performTest(const bool test_dca_plus) {
     ASSERT_EQ(raw_data.size(), G_check.size());
     std::copy_n(raw_data.data(), raw_data.size(), G_check.values());
 
-    // The desired result is G(k=0) = G_aa(k=0) + G_ab(k=0) and G(k=\pi) = G_aa(k=0) - G_ab(k=0).
-    // This follows from c(0) = (c_aa(0) + c_ab(0)) / sqrt(2)
-    // and c(\pi) = (c_aa(0) - c_ab(0)) / sqrt(2).
+    if (write_G_r_w && test_dca_plus == false) {
+      dca::io::HDF5Writer writer;
+      writer.open_file("coarse_bilayer.hdf5");
+      data.write(writer);
+      parameters.write(writer);
+    }
+
+    // The Greens function in real space should be the same up to a relabelling.
     for (int w = 0; w < WDmn::dmn_size(); ++w)
-      for (int s = 0; s < SDmn::dmn_size(); ++s) {
-        const std::complex<double> G_k_0 = G_check(0, s, 0, s, 0, w);
-        const std::complex<double> G_k_pi = G_check(0, s, 0, s, 1, w);
-        const std::complex<double> G_aa = (G_k_0 + G_k_pi) / 2.;
-        const std::complex<double> G_ab = (G_k_0 - G_k_pi) / 2.;
-        EXPECT_LE(std::abs(G_aa - data.G_k_w(0, s, 0, s, 0, w)), 1e-7);
-        EXPECT_LE(std::abs(G_aa - data.G_k_w(1, s, 1, s, 0, w)), 1e-7);
-        EXPECT_LE(std::abs(G_ab - data.G_k_w(0, s, 1, s, 0, w)), 1e-7);
-        EXPECT_LE(std::abs(G_ab - data.G_k_w(1, s, 0, s, 0, w)), 1e-7);
-      }
+      for (int r = 0; r < RDmn::dmn_size(); ++r)
+        for (int s = 0; s < SDmn::dmn_size(); ++s) {
+          EXPECT_LE(std::abs(data.G_r_w(r % 2, s, 0, s, r / 2, w) - G_check(0, s, 0, s, r, w)), 1e-7);
+        }
 #endif  // UPDATE_BASELINE
   }
 }

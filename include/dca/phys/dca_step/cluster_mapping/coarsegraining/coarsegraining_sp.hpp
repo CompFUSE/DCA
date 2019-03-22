@@ -60,13 +60,13 @@ public:
   using ScalarType = double;
   using Complex = std::complex<ScalarType>;
 
+  using NuDmn =
+      func::dmn_variadic<func::dmn_0<domains::electron_band_domain>,
+                         func::dmn_0<domains::electron_spin_domain>>;  // orbital-spin index
 private:
   using QDmn = func::dmn_0<coarsegraining_domain<KClusterDmn, K>>;
 
   using WDmn = func::dmn_0<domains::frequency_domain>;
-  using NuDmn =
-      func::dmn_variadic<func::dmn_0<domains::electron_band_domain>,
-                         func::dmn_0<domains::electron_spin_domain>>;  // orbital-spin index
 
   using ClusterFreqFunction =
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
@@ -80,6 +80,12 @@ private:
 
 public:
   CoarsegrainingSp(Parameters& parameters_ref);
+
+  // Computes the coarsegrained dispersion,
+  //     \bar{\varepsilon}_\mathbf{K} = \frac{1}{V} \sum_{\tilde{\mathbf{k}}}
+  //                                    \varepsilon_{\mathbf{K}+\tilde{\mathbf{k}}} .
+  void computeCoarsegrainedDispersion(
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>>& eps_K_cg) const;
 
   // Computes the coarse-grained G(K, w) using H_0 and chemichal potential stored in the parameters.
   template <class SigmaType,
@@ -131,7 +137,6 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       w_q_("w_q_"),
       w_tot_(0.) {
-          
   interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
 
   // Compute H0(k+q) for each value of k and q.
@@ -144,6 +149,37 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
     w_tot_ += w_q_(l) = QDmn::parameter_type::get_weights()[l];
 }
 
+template <typename Parameters>
+void CoarsegrainingSp<Parameters>::computeCoarsegrainedDispersion(
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>>& eps_K_cg) const {
+  eps_K_cg = 0.;
+
+  const func::dmn_variadic<KClusterDmn> K_dmn;
+  const std::pair<int, int> concurrency_bounds = concurrency_.get_bounds(K_dmn);
+
+  const int n_threads = parameters_.get_coarsegraining_threads();
+
+  Threading().execute(n_threads, [&](int id, int n_threads) {
+    const auto thread_bounds = parallel::util::getBounds(id, n_threads, concurrency_bounds);
+
+    for (int k = thread_bounds.first; k < thread_bounds.second; ++k) {
+      const auto& eps_q = H0_q_[k];
+      constexpr int n_spin_bands = Parameters::bands * 2;
+
+      for (int q = 0; q < QDmn::dmn_size(); ++q) {
+        for (int j = 0; j < n_spin_bands; ++j) {
+          for (int i = 0; i < n_spin_bands; ++i) {
+            eps_K_cg(i, j, k) += eps_q(i, j, q) * w_q_(q);
+          }
+        }
+      }
+    }
+  });
+
+  concurrency_.sum(eps_K_cg);
+
+  eps_K_cg /= w_tot_;
+}
 template <typename Parameters>
 template <class SigmaType, typename>
 void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, ClusterFreqFunction& G_K_w) {
