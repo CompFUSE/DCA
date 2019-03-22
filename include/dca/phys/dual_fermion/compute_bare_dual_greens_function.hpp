@@ -22,6 +22,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 
 namespace dca {
 namespace phys {
@@ -48,6 +50,11 @@ void computeBareDualGreensFunction(
   // TODO: Add multi-orbital support.
   assert(OrbitalSpinDmn::dmn_size() == 2);
 
+  // Work space for the inverses.
+  linalg::Matrix<Complex, linalg::CPU> m("m", KClusterDmn::dmn_size());
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<Complex, linalg::CPU> work;
+
   // Distribute the work amongst the processes.
   const func::dmn_variadic<KSuperlatticeDmn, MatsubaraFreqDmn> k_w_dmn_obj;
   const std::pair<int, int> bounds = concurrency.get_bounds(k_w_dmn_obj);
@@ -62,12 +69,23 @@ void computeBareDualGreensFunction(
 
     for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
       for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-        Complex tmp = -eps_tilde(K1, K2, k_tilde);
+        m(K1, K2) = -eps_tilde(K1, K2, k_tilde);
         if (K1 == K2)
-          tmp += Delta(0, 0, K1, w) + eps_cg(0, 0, K1);
+          m(K1, K2) += Delta(0, 0, K1, w) + eps_cg(0, 0, K1);
+      }
+    }
 
-        G0_tilde(K1, K2, k_tilde, w) =
-            -G(0, 0, K1, w) * 1. / (G(0, 0, K2, w) + 1. / tmp) * G(0, 0, K2, w);
+    linalg::matrixop::inverse(m, ipiv, work);
+
+    for (int K = 0; K < KClusterDmn::dmn_size(); ++K) {
+      m(K, K) += G(0, 0, K, w);
+    }
+
+    linalg::matrixop::inverse(m, ipiv, work);
+
+    for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
+      for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+        G0_tilde(K1, K2, k_tilde, w) = -G(0, 0, K1, w) * G(0, 0, K2, w) * m(K1, K2);
       }
     }
   }
