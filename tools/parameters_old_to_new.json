@@ -142,7 +142,7 @@
     },
 
     "vertex-channel": replaced by "four-point" and "analysis" {
-        "vertex-measurement-type": "type" ("four-point"),
+        "vertex-measurement-type": replaced by separate boolean input parameter for each type,
         "q-channel": "momentum-transfer" ("four-point"),
         "w-channel": "frequency-transfer" ("four-point"),
 
