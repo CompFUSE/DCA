@@ -34,7 +34,7 @@
   },
 
   "four-point": {
-    "particle-hole-charge": true,
+    "type": "PARTICLE_HOLE_CHARGE",
     "momentum-transfer": [3.1415, 3.1415],
     "frequency-transfer": 1
   },
@@ -67,13 +67,3 @@
     "seed" : 0
   }
 }
-
-
-
-
-
-
-
-
-
-
