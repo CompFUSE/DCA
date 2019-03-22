@@ -986,6 +986,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::sumTo(
   other.G_r_t_accumulated += G_r_t_accumulated;
   other.G_r_t_accumulated_squared += G_r_t_accumulated_squared;
   other.charge_cluster_moment += charge_cluster_moment;
+  other.magnetic_cluster_moment += magnetic_cluster_moment;
   other.dwave_pp_correlator += dwave_pp_correlator;
   other.GFLOP += GFLOP;
 }
