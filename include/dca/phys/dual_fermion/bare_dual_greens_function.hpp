@@ -7,17 +7,12 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file provides a method to compute the bare dual Green's function,
-//     \tilde{G}^{(0)}(\vec{K}, \vec{K'}, \tilde{\vec{k}}, \omega_n)
-//         = - G^{(c)}(\vec{K}, \omega_n)
-//           * [G^{(c)}(\vec{K'}, \omega_n)
-//              + ((\Delta(\vec{K'}, \omega_n) + \bar{\vareps}_\vec{K}) \delta_{\vec{K}, \vec{K'}}
-//                 - \hat{\vareps}}_{\vec{K}, \vec{K'}, \tilde{\vec{k}}})^{-1}]^{-1}
-//           * G^{(c)}(\vec{K'}, \omega_n) .
+// This class computes the bare dual Green's function.
 
-#ifndef DCA_PHYS_DUAL_FERMION_COMPUTE_BARE_DUAL_GREENS_FUNCTION_HPP
-#define DCA_PHYS_DUAL_FERMION_COMPUTE_BARE_DUAL_GREENS_FUNCTION_HPP
+#ifndef DCA_PHYS_DUAL_FERMION_BARE_DUAL_GREENS_FUNCTION_HPP
+#define DCA_PHYS_DUAL_FERMION_BARE_DUAL_GREENS_FUNCTION_HPP
 
+#include <cassert>
 #include <complex>
 
 #include "dca/function/domains.hpp"
@@ -30,26 +25,48 @@ namespace phys {
 namespace df {
 // dca::phys::df::
 
-template <typename Complex, typename OrbitalSpinDmn, typename KClusterDmn,
-          typename KSuperlatticeDmn, typename MatsubaraFreqDmn, typename ConcurrencyType>
-void computeBareDualGreensFunction(
-    const func::function<Complex, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KClusterDmn>>& eps_cg,
+template <typename Complex, typename Concurrency, typename BandSpinDmn, typename KClusterDmn,
+          typename KSuperlatticeDmn, typename MatsubaraFreqDmn>
+class BareDualGreensFunction {
+public:
+  using Dispersion =
+      func::function<Complex, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KClusterDmn>>;
+  using NonTransInvariantDispersion =
+      func::function<Complex, func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn>>;
+  using GF =
+      func::function<Complex, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KClusterDmn, MatsubaraFreqDmn>>;
+  using DualGF =
+      func::function<Complex,
+                     func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, MatsubaraFreqDmn>>;
 
-    const func::function<Complex, func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn>>& eps_tilde,
+  BareDualGreensFunction(const Concurrency& concurrency, const Dispersion& eps_bar,
+                         const NonTransInvariantDispersion& eps_hat, const GF& Delta, const GF& G)
+      : concurrency_(concurrency), eps_bar_(eps_bar), eps_hat_(eps_hat), Delta_(Delta), G_(G) {
+    // TODO: Multi-orbital support.
+    assert(BandSpinDmn::dmn_size() == 2);
+  }
 
-    const func::function<
-        Complex, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KClusterDmn, MatsubaraFreqDmn>>& Delta,
+  void compute();
 
-    const func::function<
-        Complex, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KClusterDmn, MatsubaraFreqDmn>>& G,
-    const ConcurrencyType& concurrency,
-    func::function<Complex,
-                   func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, MatsubaraFreqDmn>>&
+  const DualGF& get() const {
+    return G0_tilde_;
+  }
 
-        G0_tilde) {
-  // TODO: Add multi-orbital support.
-  assert(OrbitalSpinDmn::dmn_size() == 2);
+private:
+  const Concurrency& concurrency_;
 
+  const Dispersion& eps_bar_;                   // Coarsegrained dispersion.
+  const NonTransInvariantDispersion& eps_hat_;  // Non-translational invariant dispersion.
+  const GF& Delta_;                             // Hybridization function.
+  const GF& G_;                                 // Cluster Green's function
+
+  DualGF G0_tilde_;  // Bare dual Green's function.
+};
+
+template <typename Complex, typename Concurrency, typename BandSpinDmn, typename KClusterDmn,
+          typename KSuperlatticeDmn, typename MatsubaraFreqDmn>
+void BareDualGreensFunction<Complex, Concurrency, BandSpinDmn, KClusterDmn, KSuperlatticeDmn,
+                            MatsubaraFreqDmn>::compute() {
   // Work space for the inverses.
   linalg::Matrix<Complex, linalg::CPU> m("m", KClusterDmn::dmn_size());
   linalg::Vector<int, linalg::CPU> ipiv;
@@ -57,10 +74,10 @@ void computeBareDualGreensFunction(
 
   // Distribute the work amongst the processes.
   const func::dmn_variadic<KSuperlatticeDmn, MatsubaraFreqDmn> k_w_dmn_obj;
-  const std::pair<int, int> bounds = concurrency.get_bounds(k_w_dmn_obj);
+  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
   int coor[2];
 
-  G0_tilde = 0.;
+  G0_tilde_ = 0.;
 
   for (int l = bounds.first; l < bounds.second; ++l) {
     k_w_dmn_obj.linind_2_subind(l, coor);
@@ -69,32 +86,32 @@ void computeBareDualGreensFunction(
 
     for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
       for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-        m(K1, K2) = -eps_tilde(K1, K2, k_tilde);
+        m(K1, K2) = -eps_hat_(K1, K2, k_tilde);
         if (K1 == K2)
-          m(K1, K2) += Delta(0, 0, K1, w) + eps_cg(0, 0, K1);
+          m(K1, K2) += Delta_(0, 0, K1, w) + eps_bar_(0, 0, K1);
       }
     }
 
     linalg::matrixop::inverse(m, ipiv, work);
 
     for (int K = 0; K < KClusterDmn::dmn_size(); ++K) {
-      m(K, K) += G(0, 0, K, w);
+      m(K, K) += G_(0, 0, K, w);
     }
 
     linalg::matrixop::inverse(m, ipiv, work);
 
     for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
       for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-        G0_tilde(K1, K2, k_tilde, w) = -G(0, 0, K1, w) * G(0, 0, K2, w) * m(K1, K2);
+        G0_tilde_(K1, K2, k_tilde, w) = -G_(0, 0, K1, w) * G_(0, 0, K2, w) * m(K1, K2);
       }
     }
   }
 
-  concurrency.sum(G0_tilde);
+  concurrency_.sum(G0_tilde_);
 }
 
 }  // namespace df
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_PHYS_DUAL_FERMION_COMPUTE_BARE_DUAL_GREENS_FUNCTION_HPP
+#endif  // DCA_PHYS_DUAL_FERMION_BARE_DUAL_GREENS_FUNCTION_HPP
