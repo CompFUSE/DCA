@@ -50,6 +50,10 @@ public:
   static void execute(const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out);
 
+  template <typename OtherDmns>
+  static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
+                      func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out);
+
 protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
 
@@ -108,6 +112,27 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
     // f(k1,k2) = 1/Nc \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) f(r1, r2)
     linalg::matrixop::gemm(T, *f_r_r_ptr, tmp);
     linalg::matrixop::gemm('N', 'C', norm, tmp, T, Complex(0), f_k_k);
+  }
+}
+
+template <class RDmn, class KDmn, typename Real>
+template <typename OtherDmns>
+void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+    const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out) {
+  const int Nc = RDmn::dmn_size();
+  const Complex norm = Complex(1. / Nc);
+
+  const auto& T = get_T_matrix();
+  linalg::Matrix<Complex, linalg::CPU> tmp(Nc);
+
+  for (int i = 0; i < OtherDmns::dmn_size(); ++i) {
+    const auto f_k_k_ptr = linalg::makeConstantView<Complex, linalg::CPU>(&f_in(0, 0, i), Nc);
+    linalg::MatrixView<Complex, linalg::CPU> f_r_r(&f_out(0, 0, i), Nc);
+
+    // f(r1,r2) = 1/Nc \sum_{k1, k2} exp(-i(k1 * r1 - k2 * r2)) f(k1, k2)
+    linalg::matrixop::gemm('C', 'N', Complex(1.), T, *f_k_k_ptr, Complex(0.), tmp);
+    linalg::matrixop::gemm('N', 'N', norm, tmp, T, Complex(0.), f_r_r);
   }
 }
 
