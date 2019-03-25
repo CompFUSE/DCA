@@ -1,13 +1,11 @@
 #!/bin/bash
 #
 # Batch script to run DCA++'s test suite on ORNL's Summit supercomputer.
-# The script has to be submitted from the directory where the script is located (DCA/test) or the
-# top-level source directory (DCA).
-# 
-# Usage: bsub summit_run_tests.lsf      [from DCA/test dir]
-#        bsub test/summit_run_tests.lsf [from DCA dir]
 #
-# TODO: Fix project ID and walltime.
+# The script can be submitted from the top-level source directory (DCA) or any subdirectory of it.
+# The environment variable DCA_BUILD_TYPE can be used to select th build type (default: Debug).
+#
+# Usage: bsub /path/to/summit_run_tests.lsf [from a subdirectory of the DCA source]
 
 #BSUB -J DCA++_test_suite
 #BSUB -P CPH102
@@ -18,16 +16,15 @@
 #BSUB -e err.DCA++-tests.%J.txt
 
 # Check where the script has been submitted from and change to the top-level source dir (DCA).
-if [ "${LS_SUBCWD: -4}" == "test" ]; then
-    # Go up.
-    cd ..
-elif [ "${LS_SUBCWD: -3}" == "DCA" ]; then
-    # Stay.
-    :
-else
-    1>&2 printf "Usage: bsub summit_run_tests.lsf      [from test dir]\n       bsub test/summit_run_tests.lsf [from DCA dir]\n"
+cd ${LS_SUBCWD}
+source_dir=$(git rev-parse --show-toplevel)
+
+if [[ ${source_dir} == "" ]]; then
+    1>&2 printf "Usage: bsub /path/to/summit_run_tests.lsf [from a subdirectory of the DCA source]\n"
     exit
 fi
+
+cd ${source_dir}
 
 # Load all required modules.
 source $MODULESHOME/init/bash
@@ -38,10 +35,12 @@ BUILD_DIR="build_$LSB_JOBID"
 mkdir $BUILD_DIR && cd $BUILD_DIR
 
 # Run CMake to configure the build.
-cmake -C ../build-aux/summit.cmake -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
+build_type=${DCA_BUILD_TYPE:-Debug}
+printf "Build type: ${build_type}\n\n"
+cmake -C ../build-aux/summit.cmake -DCMAKE_BUILD_TYPE=$build_type -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
 
 # Build the tests.
-make -j 8
+make -j
 
 # Run the tests.
 date
