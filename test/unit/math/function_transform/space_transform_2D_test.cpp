@@ -10,7 +10,9 @@
 // This file tests SpaceTransform2D.
 
 #include <array>
+#include <cmath>
 #include <complex>
+#include <limits>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -155,5 +157,29 @@ TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
         1. / RDmn::dmn_size() * f_k_k_(0, 1, j) * std ::exp(i * (k1[0] * r1[0] + k1[1] * r1[1]));
     EXPECT_DOUBLE_EQ(expected.real(), f_r_r_(0, 1, j).real());
     EXPECT_DOUBLE_EQ(expected.imag(), f_r_r_(0, 1, j).imag());
+  }
+
+  // Check that the momentum to real space FT reverses the real space to momentum space FT.
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
+      for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1) {
+        f_r_r_(r1, r2, j) = std::complex<double>(r1 * r1 + std::sin(1. * j), std::cos(r2));
+      }
+    }
+  }
+
+  const auto f_r_r_orig(f_r_r_);
+
+  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r_, f_k_k_);
+  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_k_k_, f_r_r_);
+
+  const double tol = std::numeric_limits<double>::epsilon() * std::pow(RDmn::dmn_size(), 3);
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
+      for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1) {
+        EXPECT_NEAR(f_r_r_orig(r1, r2, j).real(), f_r_r_(r1, r2, j).real(), tol);
+        EXPECT_NEAR(f_r_r_orig(r1, r2, j).imag(), f_r_r_(r1, r2, j).imag(), tol);
+      }
+    }
   }
 }
