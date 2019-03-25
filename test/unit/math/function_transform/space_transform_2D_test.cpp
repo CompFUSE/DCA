@@ -35,6 +35,8 @@ protected:
   using OtherDmns =
       func::dmn_variadic<func::dmn_0<func::dmn<2, double>>, func::dmn_0<func::dmn<3, int>>>;
 
+  using SpaceTransform2DType = math::transform::SpaceTransform2D<RDmn, double>;
+
   static void SetUpTestCase() {
     const std::array<double, 4> basis{1., 0., 0., 1.};
     const std::vector<std::vector<int>> superbasis{{2, 2}, {2, -2}};
@@ -57,7 +59,7 @@ TEST_F(SpaceTransform2DTest, RealSpaceToMomentumSpaceSingleBand) {
     f_r_r_(0, 0, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r_, f_k_k_);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2) {
@@ -74,7 +76,7 @@ TEST_F(SpaceTransform2DTest, RealSpaceToMomentumSpaceSingleBand) {
     f_r_r_(1, 0, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r_, f_k_k_);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   const std::complex<double> i(0., 1.);
   const auto r1 = RDmn::get_elements()[1];
@@ -93,7 +95,7 @@ TEST_F(SpaceTransform2DTest, RealSpaceToMomentumSpaceSingleBand) {
     f_r_r_(0, 1, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r_, f_k_k_);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     const auto expected =
@@ -114,7 +116,7 @@ TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
     f_k_k_(0, 0, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_k_k_, f_r_r_);
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
@@ -131,7 +133,7 @@ TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
     f_k_k_(1, 0, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_k_k_, f_r_r_);
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
 
   const std::complex<double> i(0., 1.);
   const auto r1 = RDmn::get_elements()[1];
@@ -150,7 +152,7 @@ TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
     f_k_k_(0, 1, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_k_k_, f_r_r_);
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     const auto expected =
@@ -170,8 +172,8 @@ TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
 
   const auto f_r_r_orig(f_r_r_);
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r_, f_k_k_);
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_k_k_, f_r_r_);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
 
   const double tol = std::numeric_limits<double>::epsilon() * std::pow(RDmn::dmn_size(), 3);
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
