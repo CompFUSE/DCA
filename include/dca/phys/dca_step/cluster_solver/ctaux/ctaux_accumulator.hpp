@@ -491,9 +491,9 @@ void CtauxAccumulator<device_t, Parameters, Data>::sumTo(this_type& other) {
     two_particle_accumulator_.sumTo(other.two_particle_accumulator_);
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_ACCUMULATOR_HPP

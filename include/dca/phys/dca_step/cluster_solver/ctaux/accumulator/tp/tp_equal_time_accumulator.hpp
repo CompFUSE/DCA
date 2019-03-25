@@ -3,8 +3,7 @@
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific
-// publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
@@ -915,9 +914,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::sumTo(
   other.GFLOP += GFLOP;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_ACCUMULATOR_TP_TP_EQUAL_TIME_ACCUMULATOR_HPP
