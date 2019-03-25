@@ -372,5 +372,5 @@ std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::deviceFingerpr
     return 0;
 }
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca

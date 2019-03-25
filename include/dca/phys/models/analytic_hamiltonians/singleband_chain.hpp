@@ -154,8 +154,8 @@ void singleband_chain<point_group_type>::initialize_H_symmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
-//  H_symmetries(0, 0, 0, 0) = 0;
-//  H_symmetries(0, 1, 0, 1) = 0;
+  //  H_symmetries(0, 0, 0, 0) = 0;
+  //  H_symmetries(0, 1, 0, 1) = 0;
 }
 
 template <typename point_group_type>
@@ -184,8 +184,8 @@ void singleband_chain<point_group_type>::initialize_H_0(
   }
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SINGLEBAND_CHAIN_HPP

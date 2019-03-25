@@ -307,7 +307,7 @@ void MPICollectiveSum::leaveOneOutAvg(T& x) const {
 }
 
 template <typename Scalar, class Domain>
-func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<Scalar, Domain> &f_i,
+func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<Scalar, Domain>& f_i,
                                                                 const bool overwrite) const {
   func::function<Scalar, Domain> err("jackknife-error");
 
@@ -508,7 +508,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
   return momenta_avg;
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP

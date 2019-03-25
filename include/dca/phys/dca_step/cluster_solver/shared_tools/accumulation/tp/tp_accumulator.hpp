@@ -548,8 +548,9 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
   //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
   //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
   if (n_bands_ == 1) {
-    *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-                        Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha *
+               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }

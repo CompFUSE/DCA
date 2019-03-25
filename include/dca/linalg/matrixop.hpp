@@ -1124,8 +1124,8 @@ void pseudoInverse(const Matrix<ScalarType, CPU>& a, Matrix<ScalarType, CPU>& a_
     gemm('N', 'C', at_a, a, a_inv);
   }
 }
-}  // matrixop
-}  // linalg
-}  // dca
+}  // namespace matrixop
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIXOP_HPP

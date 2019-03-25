@@ -1604,9 +1604,9 @@ io::Buffer CtauxWalker<device_t, parameters_type, MOMS_type>::dumpConfig() const
   return buff;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_WALKER_HPP

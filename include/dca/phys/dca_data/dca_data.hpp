@@ -126,7 +126,7 @@ public:
   func::function<int, NuNuDmn> H_symmetry;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> H_HOST;
 
   func::function<double, NuKCutDmn> band_structure;
@@ -696,7 +696,7 @@ void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
   }
 }
 
-}  //  phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP

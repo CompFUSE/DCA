@@ -820,8 +820,8 @@ auto CtauxClusterSolver<device_t, Parameters, Data>::local_G_k_w() const {
   return G_k_w_new;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_CLUSTER_SOLVER_HPP

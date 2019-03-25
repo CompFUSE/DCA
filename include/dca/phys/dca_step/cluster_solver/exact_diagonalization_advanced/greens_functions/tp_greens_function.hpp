@@ -1054,9 +1054,9 @@ void TpGreensFunction<parameters_type, ed_options>::compute_tp_Greens_function(
   }
 }
 
-}  // ed
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ed
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_HPP

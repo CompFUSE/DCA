@@ -33,8 +33,8 @@ namespace details {
 // dca::phys::solver::accumulator::details::
 
 using namespace linalg;
-using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+using linalg::util::CudaComplex;
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);

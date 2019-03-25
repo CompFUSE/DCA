@@ -327,8 +327,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_clu
       Gamma_cluster(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
 }
 
-}  // analysis
-}  // phys
-}  // dca
+}  // namespace analysis
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_HPP
