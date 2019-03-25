@@ -62,6 +62,10 @@ public:
     return elements_;
   }
 
+  static bool initialized() {
+    return initialized_;
+  };
+
 private:
   static void commonInit(const std::string& name);
 
