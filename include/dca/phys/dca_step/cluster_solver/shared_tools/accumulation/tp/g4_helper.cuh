@@ -25,9 +25,9 @@ namespace details {
 
 class G4Helper {
 public:
-    static void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
-                    const std::vector<int>& w_ex_indices, const int* add_k, int lda,
-                    const int* sub_k, int lds, int k0);
+  static void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
+                  const std::vector<int>& w_ex_indices, const int* add_k, int lda, const int* sub_k,
+                  int lds, int k0);
 
   // Returns the index of k + k_ex.
   __device__ inline int addKex(int k_idx, int k_ex_idx) const;
@@ -122,10 +122,10 @@ inline __device__ int G4Helper::g4Index(int k1, int k2, int k_ex, int w1, int w2
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
 }
 
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH

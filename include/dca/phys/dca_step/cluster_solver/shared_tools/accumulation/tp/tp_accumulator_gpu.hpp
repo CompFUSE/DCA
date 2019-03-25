@@ -454,9 +454,9 @@ typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parame
   return G4;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP

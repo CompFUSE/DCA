@@ -406,7 +406,7 @@ std::size_t Vector<ScalarType, device_name, Allocator>::deviceFingerprint() cons
   return device_name == GPU ? capacity_ * sizeof(ScalarType) : 0;
 }
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_VECTOR_HPP

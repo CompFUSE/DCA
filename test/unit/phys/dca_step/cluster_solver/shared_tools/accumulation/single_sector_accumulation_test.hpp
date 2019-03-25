@@ -199,7 +199,7 @@ auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBa
   return f_w;
 }
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SINGLE_SECTOR_ACCUMULATION_TEST_HPP

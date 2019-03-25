@@ -145,8 +145,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in,
-                                                                     RMatrix& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in, RMatrix& out) {
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
@@ -181,8 +180,8 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
   return phase_factors_dev;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
