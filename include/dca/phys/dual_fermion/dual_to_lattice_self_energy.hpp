@@ -12,8 +12,13 @@
 #ifndef DCA_PHYS_DUAL_FERMION_DUAL_TO_LATTICE_SELF_ENERGY_HPP
 #define DCA_PHYS_DUAL_FERMION_DUAL_TO_LATTICE_SELF_ENERGY_HPP
 
+#include <cassert>
+#include <complex>
+
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -27,6 +32,8 @@ namespace df {
 template <typename Scalar, typename Concurrency, int dimension>
 class DualToLatticeSelfEnergy {
 public:
+  using Complex = std::complex<Scalar>;
+
   using BandDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SpinDmn = func::dmn_0<phys::domains::electron_spin_domain>;
 
@@ -38,19 +45,19 @@ public:
   using KSuperlatticeDmn = typename phys::ClusterDomainAliases<dimension>::KSpSuperlatticeDmn;
 
   using DualGFDmn = func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, SpFreqDmn>;
-  using DualGF = func::function<std::complex<Scalar>, DualGFDmn>;
+  using DualGF = func::function<Complex, DualGFDmn>;
 
   using RealSpaceDualGFDmn =
       func::dmn_variadic<RClusterDmn, RClusterDmn, KSuperlatticeDmn, SpFreqDmn>;
-  using RealSpaceDualGF = func::function<std::complex<Scalar>, RealSpaceDualGFDmn>;
+  using RealSpaceDualGF = func::function<Complex, RealSpaceDualGFDmn>;
 
   using SpClusterGFDmn =
       func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, KClusterDmn, SpFreqDmn>;
-  using SpClusterGF = func::function<std::complex<Scalar>, SpClusterGFDmn>;
+  using SpClusterGF = func::function<Complex, SpClusterGFDmn>;
 
   using SpLatticeGFDmn =
       func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, KLatticeDmn, SpFreqDmn>;
-  using SpLatticeGF = func::function<std::complex<Scalar>, SpLatticeGFDmn>;
+  using SpLatticeGF = func::function<Complex, SpLatticeGFDmn>;
 
   DualToLatticeSelfEnergy(const Concurrency& concurrency, const SpClusterGF& G_cluster,
                           const SpClusterGF& Sigma_cluster, const DualGF& Sigma_dual,
@@ -59,16 +66,28 @@ public:
         G_cluster_(G_cluster),
         Sigma_cluster_(Sigma_cluster),
         Sigma_dual_(Sigma_dual),
-        Sigma_lattice_(Sigma_lattice) {}
+        Sigma_lattice_(Sigma_lattice) {
+    // TODO: Multi-orbital support.
+    assert(BandDmn::dmn_size() == 1);
+  }
 
-  // Computes the non-diagonal (in K) lattice self-energy from the dual self-energy.
-  void computeNonDiagonalLatticeSelfEnergy() {}
+  // Computes the non-diagonal (in \vec{K}) lattice self-energy from the dual self-energy,
+  //     \Sigma(\vec{K}, \vec{K}', \tilde{\vec{k}}, i\omega_n) =
+  //         \Sigma_c(\vec{K}, i\omega_n) \delta_{\vec{K}, \vec{K'}}
+  //         + \bar{\Sigma(\vec{K}, \vec{K}', \tilde{\vec{k}}, i\omega_n)},
+  // where (matrix notation in \vec{K}, \vec{K}')
+  //     \bar{\Sigma} = (1 + \tilde{Sigma} * G_c)^{-1} * \tilde{Sigma}.
+  void computeNonDiagonalLatticeSelfEnergy();
 
   // Computes the cluster real space Fourier transform of the non-diagonal (in K) lattice self-energy.
   void fourierTransfromToRealSpace() {}
 
   // Computes the diagonal lattice self-energy from the non-diagonal (in I) real space lattice self-energy.
   void fourierTransfromToMomentumSpace() {}
+
+  const DualGF& nonDiagonalLatticeSelfEnergy() const {
+    return Sigma_lattice_nondiag_K_;
+  }
 
 private:
   const Concurrency& concurrency_;
@@ -82,6 +101,57 @@ private:
   RealSpaceDualGF Sigma_lattice_nondiag_R_;  // \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}})
   SpLatticeGF& Sigma_lattice_;               // \Sigma(\vec{k} = \vec{K} + \tilde{vec{k}})
 };
+
+template <typename Scalar, typename Concurrency, int dimension>
+void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeNonDiagonalLatticeSelfEnergy() {
+  linalg::Matrix<Complex, linalg::CPU> one_plus_sigma_tilde_G_inv("one_plus_sigma_tilde_G_inv",
+                                                                  KClusterDmn::dmn_size());
+  linalg::Matrix<Complex, linalg::CPU> sigma_tilde("sigma_tilde", KClusterDmn::dmn_size());
+  linalg::Matrix<Complex, linalg::CPU> sigma_bar("sigma_bar", KClusterDmn::dmn_size());
+
+  // Work space for the inverse.
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<Complex, linalg::CPU> work;
+
+  // Distribute the work amongst the processes.
+  const func::dmn_variadic<KSuperlatticeDmn, SpFreqDmn> k_w_dmn_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
+  int coor[2];
+
+  Sigma_lattice_nondiag_K_ = 0.;
+
+  for (int l = bounds.first; l < bounds.second; ++l) {
+    k_w_dmn_obj.linind_2_subind(l, coor);
+    const auto k_tilde = coor[0];
+    const auto w = coor[1];
+
+    for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
+      for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+        sigma_tilde(K1, K2) = Sigma_dual_(K1, K2, k_tilde, w);
+
+        one_plus_sigma_tilde_G_inv(K1, K2) =
+            Sigma_dual_(K1, K2, k_tilde, w) * G_cluster_(0, 0, 0, 0, K2, w);
+        if (K1 == K2)
+          one_plus_sigma_tilde_G_inv(K1, K2) += 1.;
+      }
+    }
+
+    linalg::matrixop::inverse(one_plus_sigma_tilde_G_inv, ipiv, work);
+
+    linalg::matrixop::gemm(one_plus_sigma_tilde_G_inv, sigma_tilde, sigma_bar);
+
+    for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
+      for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
+        Sigma_lattice_nondiag_K_(K1, K2, k_tilde, w) = sigma_bar(K1, K2);
+
+        if (K1 == K2)
+          Sigma_lattice_nondiag_K_(K1, K2, k_tilde, w) += Sigma_cluster_(0, 0, 0, 0, K1, w);
+      }
+    }
+  }
+
+  concurrency_.sum(Sigma_lattice_nondiag_K_);
+}
 
 }  // namespace df
 }  // namespace phys
