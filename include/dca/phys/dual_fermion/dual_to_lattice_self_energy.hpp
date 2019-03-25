@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class provides methods to compute the lattice self-energy from the dual self-energy.
+// This class computes the lattice self-energy from the dual self-energy.
 
 #ifndef DCA_PHYS_DUAL_FERMION_DUAL_TO_LATTICE_SELF_ENERGY_HPP
 #define DCA_PHYS_DUAL_FERMION_DUAL_TO_LATTICE_SELF_ENERGY_HPP
@@ -61,10 +61,13 @@ public:
         Sigma_dual_(Sigma_dual),
         Sigma_lattice_(Sigma_lattice) {}
 
-  void computeNonInvariantLatticeSelfEnergy() {}
+  // Computes the non-diagonal (in K) lattice self-energy from the dual self-energy.
+  void computeNonDiagonalLatticeSelfEnergy() {}
 
+  // Computes the cluster real space Fourier transform of the non-diagonal (in K) lattice self-energy.
   void fourierTransfromToRealSpace() {}
 
+  // Computes the diagonal lattice self-energy from the non-diagonal (in I) real space lattice self-energy.
   void fourierTransfromToMomentumSpace() {}
 
 private:
@@ -75,9 +78,9 @@ private:
 
   const DualGF& Sigma_dual_;
 
-  DualGF Sigma_lattice_noninvariant_K_;           // \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
-  RealSpaceDualGF Sigma_lattice_noninvariant_R_;  // \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}})
-  SpLatticeGF& Sigma_lattice_;                    // \Sigma(\vec{k})
+  DualGF Sigma_lattice_nondiag_K_;           // \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
+  RealSpaceDualGF Sigma_lattice_nondiag_R_;  // \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}})
+  SpLatticeGF& Sigma_lattice_;               // \Sigma(\vec{k} = \vec{K} + \tilde{vec{k}})
 };
 
 }  // namespace df
