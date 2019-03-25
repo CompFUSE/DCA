@@ -13,6 +13,7 @@
 
 #include <array>
 #include <complex>
+#include <limits>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -163,27 +164,29 @@ TEST_F(DualToLatticeSelfEnergyTest, ComputeNonDiagonalLatticeSelfEnergy) {
   const auto& Sigma_lattice_nondiag_K = dual_to_lattice_comp_.nonDiagonalLatticeSelfEnergy();
 
   // Check results.
+  const double tol = std::numeric_limits<double>::epsilon();
+
   for (int w = 0; w < SpFreqDmn::dmn_size(); ++w) {
     for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_00.real(),
-                       Sigma_lattice_nondiag_K(0, 0, k_tilde, w).real());
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_00.imag(),
-                       Sigma_lattice_nondiag_K(0, 0, k_tilde, w).imag());
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_00.real(),
+                  Sigma_lattice_nondiag_K(0, 0, k_tilde, w).real(), tol);
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_00.imag(),
+                  Sigma_lattice_nondiag_K(0, 0, k_tilde, w).imag(), tol);
 
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_01.real(),
-                       Sigma_lattice_nondiag_K(0, 1, k_tilde, w).real());
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_01.imag(),
-                       Sigma_lattice_nondiag_K(0, 1, k_tilde, w).imag());
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_01.real(),
+                  Sigma_lattice_nondiag_K(0, 1, k_tilde, w).real(), tol);
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_01.imag(),
+                  Sigma_lattice_nondiag_K(0, 1, k_tilde, w).imag(), tol);
 
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_10.real(),
-                       Sigma_lattice_nondiag_K(1, 0, k_tilde, w).real());
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_10.imag(),
-                       Sigma_lattice_nondiag_K(1, 0, k_tilde, w).imag());
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_10.real(),
+                  Sigma_lattice_nondiag_K(1, 0, k_tilde, w).real(), tol);
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_10.imag(),
+                  Sigma_lattice_nondiag_K(1, 0, k_tilde, w).imag(), tol);
 
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_11.real(),
-                       Sigma_lattice_nondiag_K(1, 1, k_tilde, w).real());
-      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_11.imag(),
-                       Sigma_lattice_nondiag_K(1, 1, k_tilde, w).imag());
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_11.real(),
+                  Sigma_lattice_nondiag_K(1, 1, k_tilde, w).real(), tol);
+      EXPECT_NEAR(Sigma_lattice_nondiag_K_11.imag(),
+                  Sigma_lattice_nondiag_K(1, 1, k_tilde, w).imag(), tol);
     }
   }
 }
