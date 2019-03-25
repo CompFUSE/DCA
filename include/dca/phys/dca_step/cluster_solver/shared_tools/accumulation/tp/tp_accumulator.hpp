@@ -282,7 +282,7 @@ double TpAccumulator<Parameters, linalg::CPU>::computeM(
 
   Profiler prf_b("Space FT", "tp-accumulation", __LINE__, thread_id_);
   // TODO: add the gflops here.
-  math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(M_r_r_w_w, G_);
+  math::transform::SpaceTransform2D<RDmn, Real>::execute(M_r_r_w_w, G_);
 
   return gflops;
 }

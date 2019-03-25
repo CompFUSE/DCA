@@ -177,7 +177,7 @@ private:
 
   using NdftType = CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
-  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real>;
+  using DftType = math::transform::SpaceTransform2DGpu<RDmn, Real>;
   std::array<DftType, 2> space_trsf_objs_;
 
   std::array<RMatrix, 2> G_;

@@ -30,12 +30,15 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Real = double>
+template <class RDmn, typename Real = double>
 class SpaceTransform2D {
 protected:
   using Complex = std::complex<Real>;
+
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
+
+  using KDmn = func::dmn_0<typename RDmn::parameter_type::dual_type>;
 
 public:
   // 2D Fourier transform and rearranging of the result.
@@ -64,9 +67,9 @@ protected:
   static const auto& getPhaseFactors();
 };
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, typename Real>
 template <class W1Dmn, class W2Dmn>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, Real>::execute(
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
     func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output) {
   assert(SDmn::dmn_size() == 2);
@@ -94,9 +97,9 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
           }
 }
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, typename Real>
 template <typename OtherDmns>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, Real>::execute(
     const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
     func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out) {
   const int Nc = RDmn::dmn_size();
@@ -115,9 +118,9 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
   }
 }
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, typename Real>
 template <typename OtherDmns>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, Real>::execute(
     const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out) {
   const int Nc = RDmn::dmn_size();
@@ -136,8 +139,8 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
   }
 }
 
-template <class RDmn, class KDmn, typename Real>
-const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Real>::get_T_matrix() {
+template <class RDmn, typename Real>
+const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, Real>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
     linalg::Matrix<Complex, linalg::CPU> T(RDmn::dmn_size());
@@ -155,8 +158,8 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
   return T;
 }
 
-template <class RDmn, class KDmn, typename Real>
-const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
+template <class RDmn, typename Real>
+const auto& SpaceTransform2D<RDmn, Real>::getPhaseFactors() {
   static func::function<Complex, func::dmn_variadic<BDmn, KDmn>> phase_factors("Phase factors.");
   static std::once_flag flag;
 

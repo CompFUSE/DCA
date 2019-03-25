@@ -32,10 +32,12 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Real = double>
-class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Real> {
+template <class RDmn, typename Real = double>
+class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, Real> {
 private:
-  using BaseClass = SpaceTransform2D<RDmn, KDmn, Real>;
+  using BaseClass = SpaceTransform2D<RDmn, Real>;
+
+  using KDmn = func::dmn_0<typename RDmn::parameter_type::dual_type>;
 
   using Complex = std::complex<Real>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
@@ -66,8 +68,8 @@ public:
   std::size_t deviceFingerprint() const {
     std::size_t res(0);
 
-      if (workspace_.unique())
-        res += workspace_->deviceFingerprint();
+    if (workspace_.unique())
+      res += workspace_->deviceFingerprint();
     return res;
   }
 
@@ -92,8 +94,8 @@ private:
   linalg::util::MagmaBatchedGemm<Complex> plan2_;
 };
 
-template <class RDmn, class KDmn, typename Real>
-SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, magma_queue_t queue)
+template <class RDmn, typename Real>
+SpaceTransform2DGpu<RDmn, Real>::SpaceTransform2DGpu(const int nw_pos, magma_queue_t queue)
     : n_bands_(BDmn::dmn_size()),
       nw_(2 * nw_pos),
       nc_(RDmn::dmn_size()),
@@ -104,8 +106,8 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, mag
   workspace_ = std::make_shared<RMatrix>();
 }
 
-template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
+template <class RDmn, typename Real>
+void SpaceTransform2DGpu<RDmn, Real>::execute(RMatrix& M) {
   auto& T_times_M = *(workspace_);
   auto& T_times_M_times_T = M;
 
@@ -142,9 +144,8 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
   M.swap(*workspace_);
 }
 
-template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in,
-                                                                     RMatrix& out) {
+template <class RDmn, typename Real>
+void SpaceTransform2DGpu<RDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in, RMatrix& out) {
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
@@ -153,9 +154,8 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatr
                                     stream_);
 }
 
-template <class RDmn, class KDmn, typename Real>
-const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn, KDmn,
-                                                                           Real>::get_T_matrix() {
+template <class RDmn, typename Real>
+const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn, Real>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     const auto T_host = BaseClass::get_T_matrix();
     return MatrixDev(T_host);
@@ -165,8 +165,8 @@ const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn,
   return T;
 }
 
-template <class RDmn, class KDmn, typename Real>
-const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
+template <class RDmn, typename Real>
+const auto& SpaceTransform2DGpu<RDmn, Real>::getPhaseFactors() {
   auto initialize = []() {
     const auto& phase_factors = BaseClass::getPhaseFactors();
     linalg::Vector<std::complex<Real>, linalg::CPU> host_vector(phase_factors.size());
@@ -179,8 +179,8 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
   return phase_factors_dev;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
