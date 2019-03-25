@@ -16,6 +16,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
 
@@ -47,7 +48,8 @@ void compute_G0_k_t(
     const func::function<std::complex<Scalar>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const Scalar beta,
-    func::function<Scalar, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
+    func::function<std::complex<Scalar>,
+                   func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
   // Diagonal \mu function.
   func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> mu_function;
   for (int k = 0; k < KDmn::dmn_size(); ++k) {
@@ -74,16 +76,22 @@ void compute_G0_k_t(
     clustermapping::quadrature_integration<Scalar, KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
         beta, sign, tau, mu_function, H0_k, g);
 
-    for (int k = 0; k < KDmn::dmn_size(); ++k) {
-      for (int n = 0; n < OrbitalSpinDmn::dmn_size(); ++n) {
-        for (int m = 0; m < OrbitalSpinDmn::dmn_size(); ++m) {
-          if (g(m, n, k).imag() > 1.e-6)
-            throw std::logic_error("G_0(\vec{k}, \tau) is real!");
-          G0_k_t(m, n, k, t) = g(m, n, k).real();
-        }
-      }
-    }
+    std::copy_n(g.values(), g.size(), &G0_k_t(0, 0, 0, t));
   }
+}
+
+template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
+void compute_G0_k_t(
+    const func::function<std::complex<Scalar>,
+                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
+    const Scalar mu, const Scalar beta,
+    func::function<Scalar, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
+  func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>
+      f_cmplx;
+
+  compute_G0_k_t(H0_k, mu, beta, f_cmplx);
+
+  G0_k_t = std::move(func::util::real(f_cmplx, true));
 }
 
 }  // phys

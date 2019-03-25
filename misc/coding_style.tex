@@ -511,15 +511,16 @@ Foo::Foo(int var)
 
 \subsection{Namespace Formatting}
 
-The content of namespaces is not indented.
+The content of a namespace is not indented. \\
 A comment should indicate when a namespace is closed.
+ClangFormat >= 6.0 does this automatically. \\
 If nested namespaces are used, a comment with the full namespace is required after opening a set of namespaces or an inner namespace.
 
 Examples:
 \begin{lstlisting}
 namespace ns{
 void foo();
-}  // ns
+}  // namespace ns
 \end{lstlisting}
 
 \begin{lstlisting}
@@ -531,16 +532,16 @@ void foo();
 namespace ns3{
 // ns1::ns2::ns3::
 void bar();
-}  // ns3
-}  // ns2
+}  // namespace ns3
+}  // namespace ns2
 
 namespace ns4{
 namespace ns5{
 // ns1::ns4::ns5::
 void foo();
-}  // ns5
-}  // ns4
-}  // ns1
+}  // namespace ns5
+}  // namespace ns4
+}  // namespace ns1
 \end{lstlisting}
 
 

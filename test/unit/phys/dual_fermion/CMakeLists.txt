@@ -8,3 +8,7 @@ dca_add_gtest(dual_self_energy_test
 dca_add_gtest(dual_to_lattice_self_energy_test
   GTEST_MAIN
   LIBS function time_and_frequency_domains ${LAPACK_LIBRARIES})
+
+dca_add_gtest(compute_bare_dual_greens_function_test
+  GTEST_MAIN
+  LIBS function)

@@ -21,6 +21,9 @@ template <typename T>
 class AlignedAllocator {
 protected:
   T* allocate(std::size_t n) {
+    if (!n)
+      return nullptr;
+
     T* ptr;
     int err = posix_memalign((void**)&ptr, 128, n * sizeof(T));
     if (err)

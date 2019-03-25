@@ -215,6 +215,11 @@ struct mp_swap<mp_list<T0, Ts...>, T1, T2> {
   typedef typename mp_prepend<typename mp_swap<mp_list<Ts...>, T1, T2>::type, T0>::type type;
 };
 
+template <typename T1, typename Ts>
+constexpr bool contained() {
+  return mp_index_of<T1, Ts>::value != -1;
+}
+
 // Create aliases for backward naming compatibility with old typelist and typelist operations.
 template <class... Ts>
 using Typelist = mp_list<Ts...>;
