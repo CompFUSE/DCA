@@ -109,7 +109,84 @@ protected:
 
 const testing::MockParameters DualToLatticeSelfEnergyTest::parameters_;
 
-TEST_F(DualToLatticeSelfEnergyTest, ComputeNonInvariantLatticeSelfEnergy) {}
+TEST_F(DualToLatticeSelfEnergyTest, ComputeNonDiagonalLatticeSelfEnergy) {
+  // Prepare input.
+  std::complex<double> Sigma_dual_00(1., 1.);
+  std::complex<double> Sigma_dual_01(2., 4.);
+  std::complex<double> Sigma_dual_10(3., 9.);
+  std::complex<double> Sigma_dual_11(4., 16.);
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w) {
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      Sigma_dual_(0, 0, k_tilde, w) = Sigma_dual_00;
+      Sigma_dual_(0, 1, k_tilde, w) = Sigma_dual_01;
+      Sigma_dual_(1, 0, k_tilde, w) = Sigma_dual_10;
+      Sigma_dual_(1, 1, k_tilde, w) = Sigma_dual_11;
+    }
+  }
+
+  std::complex<double> Sigma_cluster_0(3.14, 1.59);
+  std::complex<double> Sigma_cluster_1(2.65, 3.59);
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w) {
+    for (int s = 0; s < SpinDmn::dmn_size(); ++s) {
+      Sigma_cluster_(0, s, 0, s, 0, w) = Sigma_cluster_0;
+      Sigma_cluster_(0, s, 0, s, 1, w) = Sigma_cluster_1;
+    }
+  }
+
+  std::complex<double> G_cluster_0(4.2, 2.4);
+  std::complex<double> G_cluster_1(3.7, 7.3);
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w) {
+    for (int s = 0; s < SpinDmn::dmn_size(); ++s) {
+      G_cluster_(0, s, 0, s, 0, w) = G_cluster_0;
+      G_cluster_(0, s, 0, s, 1, w) = G_cluster_1;
+    }
+  }
+
+  // Compute expected result.
+  const auto det_A_inv =
+      1. / ((1. + Sigma_dual_00 * G_cluster_0) * (1. + Sigma_dual_11 * G_cluster_1) -
+            Sigma_dual_01 * G_cluster_1 * Sigma_dual_10 * G_cluster_0);
+
+  const auto Sigma_lattice_nondiag_K_00 =
+      Sigma_cluster_0 + det_A_inv * (Sigma_dual_00 + Sigma_dual_00 * Sigma_dual_11 * G_cluster_1 -
+                                     Sigma_dual_01 * Sigma_dual_10 * G_cluster_1);
+
+  const auto Sigma_lattice_nondiag_K_01 = det_A_inv * Sigma_dual_01;
+
+  const auto Sigma_lattice_nondiag_K_10 = det_A_inv * Sigma_dual_10;
+
+  const auto Sigma_lattice_nondiag_K_11 =
+      Sigma_cluster_1 + det_A_inv * (Sigma_dual_11 + Sigma_dual_00 * Sigma_dual_11 * G_cluster_0 -
+                                     Sigma_dual_01 * Sigma_dual_10 * G_cluster_0);
+
+  dual_to_lattice_comp_.computeNonDiagonalLatticeSelfEnergy();
+  const auto& Sigma_lattice_nondiag_K = dual_to_lattice_comp_.nonDiagonalLatticeSelfEnergy();
+
+  // Check results.
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w) {
+    for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_00.real(),
+                       Sigma_lattice_nondiag_K(0, 0, k_tilde, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_00.imag(),
+                       Sigma_lattice_nondiag_K(0, 0, k_tilde, w).imag());
+
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_01.real(),
+                       Sigma_lattice_nondiag_K(0, 1, k_tilde, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_01.imag(),
+                       Sigma_lattice_nondiag_K(0, 1, k_tilde, w).imag());
+
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_10.real(),
+                       Sigma_lattice_nondiag_K(1, 0, k_tilde, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_10.imag(),
+                       Sigma_lattice_nondiag_K(1, 0, k_tilde, w).imag());
+
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_11.real(),
+                       Sigma_lattice_nondiag_K(1, 1, k_tilde, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_nondiag_K_11.imag(),
+                       Sigma_lattice_nondiag_K(1, 1, k_tilde, w).imag());
+    }
+  }
+}
 
 TEST_F(DualToLatticeSelfEnergyTest, FourierTransformToRealSpace) {}
 
