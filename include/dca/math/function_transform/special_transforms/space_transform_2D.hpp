@@ -8,9 +8,8 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class performs the 2D transform from space to momentum used by the tp accumulation on
-// non translational invariant Greens function. See space_to_momentum.hpp for a definition of the
-// transformation.
+// This class implements the general, i.e. for non-translational invariant functions, 2D space Fourier transform.
+// See space_to_momentum.hpp for the definition of the corresponding 1D Fourier transform.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D
@@ -49,10 +48,12 @@ public:
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
 
+  // f(r, r, other-domains) --> f(k, k, other-dmns)
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out);
 
+  // f(k, k, other-domains) --> f(r, r, other-dmns)
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out);
