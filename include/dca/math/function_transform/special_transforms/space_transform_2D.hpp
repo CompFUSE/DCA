@@ -40,20 +40,22 @@ protected:
   using KDmn = func::dmn_0<typename RDmn::parameter_type::dual_type>;
 
 public:
-  // 2D Fourier transform and rearranging of the result.
+  // 2D Fourier transform and rearranging the result:
+  // f(r1, r2, b1, b2, s, w1, w2) --> f(b1, b2, s, k1, k2, w1, w2)
   // In/Out: f_input
   // Out: f_output
+  // TODO: f_input should be const.
   template <class W1Dmn, class W2Dmn>
   static void execute(
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
 
-  // f(r, r, other-domains) --> f(k, k, other-dmns)
+  // f(r1, r2, other-domains) --> f(k1, k2, other-dmns)
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out);
 
-  // f(k, k, other-domains) --> f(r, r, other-dmns)
+  // f(k1, k2, other-domains) --> f(r1, r2, other-dmns)
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out);
