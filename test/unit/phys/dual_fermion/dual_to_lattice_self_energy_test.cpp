@@ -161,7 +161,7 @@ TEST_F(DualToLatticeSelfEnergyTest, ComputeNonDiagonalLatticeSelfEnergy) {
                                      Sigma_dual_01 * Sigma_dual_10 * G_cluster_0);
 
   dual_to_lattice_comp_.computeNonDiagonalLatticeSelfEnergy();
-  const auto& Sigma_lattice_nondiag_K = dual_to_lattice_comp_.nonDiagonalLatticeSelfEnergy();
+  const auto& Sigma_lattice_nondiag_K = dual_to_lattice_comp_.getNonDiagonalLatticeSelfEnergy();
 
   // Check results.
   const double tol = std::numeric_limits<double>::epsilon();

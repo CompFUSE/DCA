@@ -48,10 +48,6 @@ public:
   using DualGFDmn = func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn, SpFreqDmn>;
   using DualGF = func::function<Complex, DualGFDmn>;
 
-  using RealSpaceDualGFDmn =
-      func::dmn_variadic<RClusterDmn, RClusterDmn, KSuperlatticeDmn, SpFreqDmn>;
-  using RealSpaceDualGF = func::function<Complex, RealSpaceDualGFDmn>;
-
   using SpClusterGFDmn =
       func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, KClusterDmn, SpFreqDmn>;
   using SpClusterGF = func::function<Complex, SpClusterGFDmn>;
@@ -72,29 +68,20 @@ public:
     assert(BandDmn::dmn_size() == 1);
   }
 
-  // Computes the non-diagonal (in \vec{K}) lattice self-energy from the dual self-energy,
-  //     \Sigma(\vec{K}, \vec{K}', \tilde{\vec{k}}, i\omega_n) =
-  //         \Sigma_c(\vec{K}, i\omega_n) \delta_{\vec{K}, \vec{K'}}
-  //         + \bar{\Sigma(\vec{K}, \vec{K}', \tilde{\vec{k}}, i\omega_n)},
-  // where (matrix notation in \vec{K}, \vec{K}')
-  //     \bar{\Sigma} = (1 + \tilde{Sigma} * G_c)^{-1} * \tilde{Sigma}.
+  // Computes the non-diagonal (in K) lattice self-energy from the dual self-energy,
+  //     Sigma(K, K', k_tilde, w) = Sigma_c(K, w) delta_{K, K'} + Sigma_bar(K, K', k_tilde, w),
+  // with (matrix notation in K, K')
+  //     Sigma_bar = (1 + Sigma_dual * G_c)^{-1} * Sigma_dual.
   void computeNonDiagonalLatticeSelfEnergy();
 
-  // Computes the cluster real space Fourier transform of the non-diagonal (in \vec{K}) lattice
-  // self-energy,
-  //     \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}}) = 1/Nc \sum_{\vec{K}, \vec{K'}}
-  //         * \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
-  //         * e^{-i(\vec{I} \cdot \vec{K} - \vec{J} \cdot \vec{K'})}.
-  void fourierTransfromToRealSpace() {
-    math::transform::SpaceTransform2D<RClusterDmn>::execute(Sigma_lattice_nondiag_K_,
-                                                            Sigma_lattice_nondiag_R_);
-  }
+  // Computes the diagonal lattice self-energy from the non-diagonal (in K) lattice self-energy,
+  //     Sigma(k = K + k_tilde) = 1/Nc sum_{I, J} Sigma(I, J, k_tilde) e^{i (I - J) * (K + k_tilde)},
+  // with
+  //    Sigma(I, J, k_tilde) = 1/Nc sum_{K, K'} Sigma(K, K', k_tilde) e^{-i (I * K - J * K')}.
+  void computeDiagonalLatticeSelfEnergy() {}
 
-  // Computes the diagonal lattice self-energy from the non-diagonal (in I) real space lattice self-energy.
-  void fourierTransfromToMomentumSpace() {}
-
-  const DualGF& nonDiagonalLatticeSelfEnergy() const {
-    return Sigma_lattice_nondiag_K_;
+  const DualGF& getNonDiagonalLatticeSelfEnergy() const {
+    return Sigma_lattice_nondiag_;
   }
 
 private:
@@ -105,9 +92,8 @@ private:
 
   const DualGF& Sigma_dual_;
 
-  DualGF Sigma_lattice_nondiag_K_;           // \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
-  RealSpaceDualGF Sigma_lattice_nondiag_R_;  // \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}})
-  SpLatticeGF& Sigma_lattice_;               // \Sigma(\vec{k} = \vec{K} + \tilde{vec{k}})
+  DualGF Sigma_lattice_nondiag_;  // \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}}, i\omega_n)
+  SpLatticeGF& Sigma_lattice_;    // \Sigma(\vec{k} = \vec{K} + \tilde{vec{k}}, i\omega_n)
 };
 
 template <typename Scalar, typename Concurrency, int dimension>
@@ -126,7 +112,7 @@ void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeNonDiagonal
   const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
   int coor[2];
 
-  Sigma_lattice_nondiag_K_ = 0.;
+  Sigma_lattice_nondiag_ = 0.;
 
   for (int l = bounds.first; l < bounds.second; ++l) {
     k_w_dmn_obj.linind_2_subind(l, coor);
@@ -150,15 +136,15 @@ void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeNonDiagonal
 
     for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2) {
       for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1) {
-        Sigma_lattice_nondiag_K_(K1, K2, k_tilde, w) = sigma_bar(K1, K2);
+        Sigma_lattice_nondiag_(K1, K2, k_tilde, w) = sigma_bar(K1, K2);
 
         if (K1 == K2)
-          Sigma_lattice_nondiag_K_(K1, K2, k_tilde, w) += Sigma_cluster_(0, 0, 0, 0, K1, w);
+          Sigma_lattice_nondiag_(K1, K2, k_tilde, w) += Sigma_cluster_(0, 0, 0, 0, K1, w);
       }
     }
   }
 
-  concurrency_.sum(Sigma_lattice_nondiag_K_);
+  concurrency_.sum(Sigma_lattice_nondiag_);
 }
 
 }  // namespace df
