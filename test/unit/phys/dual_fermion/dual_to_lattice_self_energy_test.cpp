@@ -316,3 +316,55 @@ TEST_F(DualToLatticeSelfEnergyTest, MakeTranslationalInvariant) {
     EXPECT_DOUBLE_EQ(norm + R0_mean + 1, f_out(R).imag());
   }
 }
+
+TEST_F(DualToLatticeSelfEnergyTest, UpdateLatticeSelfEnergy) {
+  func::function<Complex, KClusterDmn> Sigma_lattice_K;
+  for (int K = 0; K < KClusterDmn::dmn_size(); ++K)
+    Sigma_lattice_K(K) = Complex(K + 1., K * K + 2.);
+
+  const int k_tilde = 1;
+  const int w = 2;
+
+  Sigma_lattice_ = 0.;
+
+  DualToLatticeSelfEnergyType::updateLatticeSelfEnergy(Sigma_lattice_K, k_tilde, w, Sigma_lattice_);
+
+  // Check that spin off-diagonal elements are zero.
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w)
+    for (int k = 0; k < KLatticeDmn::dmn_size(); ++k) {
+      EXPECT_DOUBLE_EQ(0., Sigma_lattice_(0, 0, 0, 1, k, w).real());
+      EXPECT_DOUBLE_EQ(0., Sigma_lattice_(0, 0, 0, 1, k, w).imag());
+
+      EXPECT_DOUBLE_EQ(0., Sigma_lattice_(0, 1, 0, 0, k, w).real());
+      EXPECT_DOUBLE_EQ(0., Sigma_lattice_(0, 1, 0, 0, k, w).imag());
+    }
+
+  // Check spin symmetry.
+  for (int w = 0; w < SpFreqDmn::dmn_size(); ++w)
+    for (int k = 0; k < KLatticeDmn::dmn_size(); ++k) {
+      EXPECT_DOUBLE_EQ(Sigma_lattice_(0, 0, 0, 0, k, w).real(),
+                       Sigma_lattice_(0, 1, 0, 1, k, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_(0, 0, 0, 0, k, w).imag(),
+                       Sigma_lattice_(0, 1, 0, 1, k, w).imag());
+    }
+
+  // Check non-zero elements.
+  const auto& k_tilde_vec = KSuperlatticeDmn::get_elements()[k_tilde];
+
+  for (int k = 0; k < KLatticeDmn::dmn_size(); ++k) {
+    const auto& k_vec = KLatticeDmn::get_elements()[k];
+    const auto k_min_k_tilde = math::util::subtract(k_tilde_vec, k_vec);
+
+    const auto K_vec = phys::domains::cluster_operations::find_closest_cluster_vector(
+        k_min_k_tilde, KClusterDmn::get_elements(),
+        KClusterDmn::parameter_type::get_super_basis_vectors());
+
+    if (math::util::distance(K_vec, k_min_k_tilde) < 1.e-3) {
+      const auto K = phys::domains::cluster_operations::index(K_vec, KClusterDmn::get_elements(),
+                                                              KClusterDmn::parameter_type::SHAPE);
+
+      EXPECT_DOUBLE_EQ(Sigma_lattice_K(K).real(), Sigma_lattice_(0, 0, 0, 0, k, w).real());
+      EXPECT_DOUBLE_EQ(Sigma_lattice_K(K).imag(), Sigma_lattice_(0, 0, 0, 0, k, w).imag());
+    }
+  }
+}
