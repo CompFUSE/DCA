@@ -285,3 +285,34 @@ TEST_F(DualToLatticeSelfEnergyTest, ComputeDiagonalLatticeSelfEnergy) {
                                Sigma_lattice_(b1, s1, b2, s2, k, w).imag());
             }
 }
+
+TEST_F(DualToLatticeSelfEnergyTest, MakeTranslationalInvariant) {
+  func::function<Complex, func::dmn_variadic<RClusterDmn, RClusterDmn>> f_in;
+  func::function<Complex, RClusterDmn> f_out;
+
+  const auto& R_vecs = RClusterDmn::get_elements();
+
+  for (int R2 = 0; R2 < RClusterDmn::dmn_size(); ++R2) {
+    const auto& R2_vec = R_vecs[R2];
+
+    for (int R1 = 0; R1 < RClusterDmn::dmn_size(); ++R1) {
+      const auto& R1_vec = R_vecs[R1];
+
+      const auto distance = math::util::distance(R1_vec, R2_vec);
+      f_in(R1, R2) = Complex(distance + R1_vec[0], distance + R2_vec[0] + 1);
+    }
+  }
+
+  double R0_mean = 0.;
+  for (const auto& R : R_vecs)
+    R0_mean += R[0];
+  R0_mean /= R_vecs.size();
+
+  DualToLatticeSelfEnergyType::makeTranslationalInvariant(f_in, f_out);
+
+  for (int R = 0; R < RClusterDmn::dmn_size(); ++R) {
+    const auto norm = math::util::l2Norm(R_vecs[R]);
+    EXPECT_DOUBLE_EQ(norm + R0_mean, f_out(R).real());
+    EXPECT_DOUBLE_EQ(norm + R0_mean + 1, f_out(R).imag());
+  }
+}
