@@ -273,16 +273,19 @@ TEST_F(DualToLatticeSelfEnergyTest, ComputeDiagonalLatticeSelfEnergy) {
   dual_to_lattice_comp_.computeDiagonalLatticeSelfEnergy();
 
   // Check results.
+  const double tol = std::numeric_limits<double>::epsilon() * KClusterDmn::dmn_size() *
+                     KSuperlatticeDmn::dmn_size();
+
   for (int w = 0; w < SpFreqDmn::dmn_size(); ++w)
     for (int k = 0; k < KLatticeDmn::dmn_size(); ++k)
       for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
         for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
           for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
             for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1) {
-              EXPECT_DOUBLE_EQ(Sigma_lattice_expected(b1, s1, b2, s2, k, w).real(),
-                               Sigma_lattice_(b1, s1, b2, s2, k, w).real());
-              EXPECT_DOUBLE_EQ(Sigma_lattice_expected(b1, s1, b2, s2, k, w).imag(),
-                               Sigma_lattice_(b1, s1, b2, s2, k, w).imag());
+              EXPECT_NEAR(Sigma_lattice_expected(b1, s1, b2, s2, k, w).real(),
+                          Sigma_lattice_(b1, s1, b2, s2, k, w).real(), tol);
+              EXPECT_NEAR(Sigma_lattice_expected(b1, s1, b2, s2, k, w).imag(),
+                          Sigma_lattice_(b1, s1, b2, s2, k, w).imag(), tol);
             }
 }
 
