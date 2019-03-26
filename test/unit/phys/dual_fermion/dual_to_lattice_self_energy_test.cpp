@@ -190,5 +190,3 @@ TEST_F(DualToLatticeSelfEnergyTest, ComputeNonDiagonalLatticeSelfEnergy) {
     }
   }
 }
-
-TEST_F(DualToLatticeSelfEnergyTest, FourierTransformToMomentumSpace) {}
