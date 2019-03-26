@@ -19,6 +19,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
@@ -80,10 +81,14 @@ public:
   //     Sigma(k = K + k_tilde) = 1/Nc sum_{I, J} Sigma(I, J, k_tilde) e^{i (I - J) * (K + k_tilde)},
   // with
   //    Sigma(I, J, k_tilde) = 1/Nc sum_{K, K'} Sigma(K, K', k_tilde) e^{-i (I * K - J * K')}.
-  void computeDiagonalLatticeSelfEnergy() {}
+  void computeDiagonalLatticeSelfEnergy();
 
+  // For testing.
   const DualGF& getNonDiagonalLatticeSelfEnergy() const {
     return Sigma_lattice_nondiag_;
+  }
+  void setNonDiagonalLatticeSelfEnergy(const DualGF& Sigma_lattice_nondiag) {
+    Sigma_lattice_nondiag_ = Sigma_lattice_nondiag;
   }
 
   static void makeTranslationalInvariant(
@@ -154,6 +159,55 @@ void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeNonDiagonal
   }
 
   concurrency_.sum(Sigma_lattice_nondiag_);
+}
+
+template <typename Scalar, typename Concurrency, int dimension>
+void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeDiagonalLatticeSelfEnergy() {
+  func::function<Complex, func::dmn_variadic<RClusterDmn, RClusterDmn>> Sigma_lattice_R_R;
+  func::function<Complex, func::dmn_variadic<KClusterDmn, KClusterDmn>> Sigma_lattice_K_K;
+  func::function<Complex, RClusterDmn> Sigma_lattice_R;
+  func::function<Complex, KClusterDmn> Sigma_lattice_K;
+
+  // Distribute the work amongst the processes.
+  const func::dmn_variadic<KSuperlatticeDmn, SpFreqDmn> k_w_dmn_obj;
+  const std::pair<int, int> bounds = concurrency_.get_bounds(k_w_dmn_obj);
+  int coor[2];
+
+  Sigma_lattice_ = 0.;
+
+  for (int l = bounds.first; l < bounds.second; ++l) {
+    k_w_dmn_obj.linind_2_subind(l, coor);
+    const auto k_tilde = coor[0];
+    const auto w = coor[1];
+
+    // 2D Fourier transform to real space.
+    for (int K2 = 0; K2 < KClusterDmn::dmn_size(); ++K2)
+      for (int K1 = 0; K1 < KClusterDmn::dmn_size(); ++K1)
+        Sigma_lattice_K_K(K1, K2) = Sigma_lattice_nondiag_(K1, K2, k_tilde, w);
+
+    math::transform::SpaceTransform2D<RClusterDmn>::execute(Sigma_lattice_K_K, Sigma_lattice_R_R);
+
+    // Impose translational invariance.
+    makeTranslationalInvariant(Sigma_lattice_R_R, Sigma_lattice_R);
+
+    // Multiply with phase factor.
+    const auto& k_tilde_vec = KSuperlatticeDmn::get_elements()[k_tilde];
+    const Complex i(0., 1.);
+
+    for (int R = 0; R < RClusterDmn::dmn_size(); ++R) {
+      const auto& R_vec = RClusterDmn::get_elements()[R];
+      Sigma_lattice_R(R) *= std::exp(i * math::util::innerProduct(R_vec, k_tilde_vec));
+    }
+
+    // 1D (translational invariant function) FT to momentum space.
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(Sigma_lattice_R,
+                                                                          Sigma_lattice_K);
+
+    // Update Sigma_lattice_.
+    updateLatticeSelfEnergy(Sigma_lattice_K, k_tilde, w, Sigma_lattice_);
+  }
+
+  concurrency_.sum(Sigma_lattice_);
 }
 
 template <typename Scalar, typename Concurrency, int dimension>
