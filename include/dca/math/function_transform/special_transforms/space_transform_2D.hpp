@@ -59,6 +59,9 @@ public:
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out);
+  // f(k1, k2) --> f(r1, r2)
+  static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn>>& f_in,
+                      func::function<Complex, func::dmn_variadic<RDmn, RDmn>>& f_out);
 
 protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
@@ -140,6 +143,24 @@ void SpaceTransform2D<RDmn, Real>::execute(
     linalg::matrixop::gemm('C', 'N', Complex(1.), T, *f_k_k_ptr, Complex(0.), tmp);
     linalg::matrixop::gemm('N', 'N', norm, tmp, T, Complex(0.), f_r_r);
   }
+}
+
+template <class RDmn, typename Real>
+void SpaceTransform2D<RDmn, Real>::execute(
+    const func::function<Complex, func::dmn_variadic<KDmn, KDmn>>& f_in,
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn>>& f_out) {
+  using DummyDmn = func::dmn_0<func::dmn<1, int>>;
+
+  func::function<Complex, func::dmn_variadic<KDmn, KDmn, DummyDmn>> f_in_tmp;
+  func::function<Complex, func::dmn_variadic<RDmn, RDmn, DummyDmn>> f_out_tmp;
+
+  for (int i = 0; i < f_in.size(); ++i)
+    f_in_tmp(i) = f_in(i);
+
+  execute(f_in_tmp, f_out_tmp);
+
+  for (int i = 0; i < f_out.size(); ++i)
+    f_out(i) = f_out_tmp(i);
 }
 
 template <class RDmn, typename Real>
