@@ -19,6 +19,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -79,8 +80,15 @@ public:
   //     \bar{\Sigma} = (1 + \tilde{Sigma} * G_c)^{-1} * \tilde{Sigma}.
   void computeNonDiagonalLatticeSelfEnergy();
 
-  // Computes the cluster real space Fourier transform of the non-diagonal (in K) lattice self-energy.
-  void fourierTransfromToRealSpace() {}
+  // Computes the cluster real space Fourier transform of the non-diagonal (in \vec{K}) lattice
+  // self-energy,
+  //     \Sigma(\vec{I}, \vec{J}, \tilde{\vec{k}}) = 1/Nc \sum_{\vec{K}, \vec{K'}}
+  //         * \Sigma(\vec{K}, \vec{K'}, \tilde{\vec{k}})
+  //         * e^{-i(\vec{I} \cdot \vec{K} - \vec{J} \cdot \vec{K'})}.
+  void fourierTransfromToRealSpace() {
+    math::transform::SpaceTransform2D<RClusterDmn>::execute(Sigma_lattice_nondiag_K_,
+                                                            Sigma_lattice_nondiag_R_);
+  }
 
   // Computes the diagonal lattice self-energy from the non-diagonal (in I) real space lattice self-energy.
   void fourierTransfromToMomentumSpace() {}
