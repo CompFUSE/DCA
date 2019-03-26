@@ -111,7 +111,7 @@ const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
 
   // Initialize the phase factors.
   std::call_once(flag, [&]() {
-    std::vector<std::vector<Real>> a_vecs;
+    std::vector<std::vector<double>> a_vecs;
     for (const auto& elem : BDmn::get_elements())
       a_vecs.push_back(elem.a_vec);
 
