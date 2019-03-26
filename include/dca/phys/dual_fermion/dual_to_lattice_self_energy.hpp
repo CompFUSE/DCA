@@ -84,6 +84,10 @@ public:
     return Sigma_lattice_nondiag_;
   }
 
+  static void makeTranslationalInvariant(
+      const func::function<Complex, func::dmn_variadic<RClusterDmn, RClusterDmn>>& f_in,
+      func::function<Complex, RClusterDmn>& f_out);
+
 private:
   const Concurrency& concurrency_;
 
@@ -145,6 +149,22 @@ void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::computeNonDiagonal
   }
 
   concurrency_.sum(Sigma_lattice_nondiag_);
+}
+
+template <typename Scalar, typename Concurrency, int dimension>
+void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::makeTranslationalInvariant(
+    const func::function<Complex, func::dmn_variadic<RClusterDmn, RClusterDmn>>& f_in,
+    func::function<Complex, RClusterDmn>& f_out) {
+  f_out = 0.;
+
+  for (int R2 = 0; R2 < RClusterDmn::dmn_size(); ++R2) {
+    for (int R1 = 0; R1 < RClusterDmn::dmn_size(); ++R1) {
+      const int R1_min_R2 = RClusterDmn::parameter_type::subtract(R2, R1);
+      f_out(R1_min_R2) += f_in(R1, R2);
+    }
+  }
+
+  f_out /= RClusterDmn::dmn_size();
 }
 
 }  // namespace df
