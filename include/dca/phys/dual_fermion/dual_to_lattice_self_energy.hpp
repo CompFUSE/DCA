@@ -20,7 +20,9 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -87,6 +89,9 @@ public:
   static void makeTranslationalInvariant(
       const func::function<Complex, func::dmn_variadic<RClusterDmn, RClusterDmn>>& f_in,
       func::function<Complex, RClusterDmn>& f_out);
+
+  static void updateLatticeSelfEnergy(const func::function<Complex, KClusterDmn>& Sigma_lattice_K,
+                                      const int k_tilde, const int w, SpLatticeGF& Sigma_lattice);
 
 private:
   const Concurrency& concurrency_;
@@ -165,6 +170,27 @@ void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::makeTranslationalI
   }
 
   f_out /= RClusterDmn::dmn_size();
+}
+
+template <typename Scalar, typename Concurrency, int dimension>
+void DualToLatticeSelfEnergy<Scalar, Concurrency, dimension>::updateLatticeSelfEnergy(
+    const func::function<Complex, KClusterDmn>& Sigma_lattice_K, const int k_tilde, const int w,
+    SpLatticeGF& Sigma_lattice) {
+  const auto& k_tilde_vec = KSuperlatticeDmn::get_elements()[k_tilde];
+
+  for (int K = 0; K < KClusterDmn::dmn_size(); ++K) {
+    const auto& K_vec = KClusterDmn::get_elements()[K];
+    const auto K_plus_k_tilde = math::util::add(K_vec, k_tilde_vec);
+
+    const auto k = phys::domains::cluster_operations::index(
+        phys::domains::cluster_operations::find_closest_cluster_vector(
+            K_plus_k_tilde, KLatticeDmn::get_elements(),
+            KLatticeDmn::parameter_type::get_super_basis_vectors()),
+        KLatticeDmn::get_elements(), KLatticeDmn::parameter_type::SHAPE);
+
+    Sigma_lattice(0, 0, 0, 0, k, w) = Sigma_lattice_K(K);
+    Sigma_lattice(0, 1, 0, 1, k, w) = Sigma_lattice_K(K);
+  }
 }
 
 }  // namespace df
