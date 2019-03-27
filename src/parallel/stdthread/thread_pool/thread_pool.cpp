@@ -63,10 +63,10 @@ void ThreadPool::enlarge(size_t n_threads) {
 
 void ThreadPool::workerLoop(int id) {
   // Set affinity.
-  const int shift = core_count_ * id;
+  const int shift = master_affinity_.size() * id;
   std::vector<int> affinities;
   for (int x : master_affinity_)
-    affinities.push_back(x + shift);
+    affinities.push_back((x + shift) % core_count_);
 
   set_affinity(affinities);
 
