@@ -411,6 +411,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
       concurrency_.sum(f);
   };
 
+  const double local_time = total_time_;
   {
     Profiler profiler("Scalars", "QMC-collectives", __LINE__);
     concurrency_.sum(total_time_);
@@ -421,8 +422,10 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t Collect measurements \t" << dca::util::print_time() << "\n"
-              << "\n\t\t\t QMC-time : " << total_time_ << " [sec]"
-              << "\n\t\t\t Gflops   : " << accumulator_.get_Gflop() / total_time_ << " [Gf]"
+              << "\n\t\t\t QMC-local-time : " << local_time << " [sec]"
+              << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
+              << "\n\t\t\t Gflop   : " << accumulator_.get_Gflop() << " [Gf]"
+              << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]"
               << "\n\t\t\t sign     : " << accumulated_sign_ / parameters_.get_measurements()
               << " \n";
 
@@ -816,8 +819,8 @@ auto CtauxClusterSolver<device_t, Parameters, Data>::local_G_k_w() const {
   return G_k_w_new;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_CLUSTER_SOLVER_HPP

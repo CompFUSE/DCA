@@ -67,13 +67,14 @@ public:
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
+  // Returns: number of flop.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
+  float accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // CPU input. For testing purposes.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
+  float accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // Downloads the accumulation result to the host.
@@ -116,15 +117,15 @@ private:
   using Profiler = typename Parameters::profiler_type;
 
   using typename BaseClass::WTpDmn;
-  using typename BaseClass::WTpPosDmn;
   using typename BaseClass::WTpExtDmn;
   using typename BaseClass::WTpExtPosDmn;
+  using typename BaseClass::WTpPosDmn;
 
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
 
-  using typename BaseClass::TpGreenFunction;
   using typename BaseClass::Complex;
+  using typename BaseClass::TpGreenFunction;
 
   using Matrix = linalg::Matrix<Complex, linalg::GPU>;
 
@@ -139,27 +140,27 @@ private:
   void computeGSingleband(int s);
 
   template <class Configuration>
-  void computeM(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
+  float computeM(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
                 const std::array<Configuration, 2>& configs);
 
-  void updateG4();
+  float updateG4();
 
   void synchronizeStreams();
 
 private:
   constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
-  using BaseClass::thread_id_;
-  using BaseClass::multiple_accumulators_;
-  using BaseClass::n_bands_;
   using BaseClass::beta_;
+  using BaseClass::extension_index_offset_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
   using BaseClass::mode_;
+  using BaseClass::multiple_accumulators_;
+  using BaseClass::n_bands_;
+  using BaseClass::n_pos_frqs_;
   using BaseClass::non_density_density_;
   using BaseClass::sign_;
-  using BaseClass::extension_index_offset_;
-  using BaseClass::n_pos_frqs_;
+  using BaseClass::thread_id_;
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =
@@ -283,52 +284,59 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 
 template <class Parameters>
 template <class Configuration>
-void TpAccumulator<Parameters, linalg::GPU>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
+  float flop = 0;
 
   if (!initialized_)
     throw(std::logic_error("The accumulator is not ready to measure."));
 
   if (!(configs[0].size() + configs[0].size()))  // empty config
-    return;
+    return flop;
 
   sign_ = sign;
-  computeM(M, configs);
+  flop += computeM(M, configs);
   computeG();
-  updateG4();
+  flop += updateG4();
+
+  return flop;
 }
 
 template <class Parameters>
 template <class Configuration>
-void TpAccumulator<Parameters, linalg::GPU>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<Real, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], streams_[0]);
 
-  accumulate(M_dev, configs, sign);
+  return accumulate(M_dev, configs, sign);
 }
 
 template <class Parameters>
 template <class Configuration>
-void TpAccumulator<Parameters, linalg::GPU>::computeM(
+float TpAccumulator<Parameters, linalg::GPU>::computeM(
     const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
 
+  float flop = 0.;
+
   {
     Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
+      flop += ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
   }
   {
     Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      space_trsf_objs_[stream_id(s)].execute(G_[s]);
+      flop += space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }
+
+  return flop;
 }
 
 template <class Parameters>
@@ -367,7 +375,7 @@ void TpAccumulator<Parameters, linalg::GPU>::computeGMultiband(const int s) {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
+float TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -383,25 +391,25 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
-      details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
+      return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
-      details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
+      return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
-      details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
+      return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
-      details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
+      return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0]);
@@ -454,9 +462,9 @@ typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parame
   return G4;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP
