@@ -185,8 +185,8 @@ protected:
   using MC_accumulator_data::DCA_iteration;
   using MC_accumulator_data::number_of_measurements;
 
-  using MC_accumulator_data::current_sign;
   using MC_accumulator_data::accumulated_sign;
+  using MC_accumulator_data::current_sign;
 
   const bool compute_std_deviation_;
 
@@ -464,12 +464,12 @@ void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantit
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::accumulate_two_particle_quantities() {
   profiler_type profiler("tp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
-  /*GFLOP +=*/two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign);
+  GFLOP += 1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::sumTo(this_type& other) {
-  other.get_Gflop() += get_Gflop();
+  other.GFLOP += GFLOP;
 
   other.accumulated_sign += accumulated_sign;
   other.number_of_measurements += number_of_measurements;

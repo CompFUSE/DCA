@@ -33,7 +33,7 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
                        int nb, int nk, int nw_pos, Real beta, cudaStream_t stream);
 
 template <typename Real, FourPointType type>
-void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int lggu,
+float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int lggu,
               const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
               const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
               bool atomic, cudaStream_t stream);
