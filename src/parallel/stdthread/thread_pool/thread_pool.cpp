@@ -14,7 +14,7 @@
 
 #include "mpi.h"
 
-#include "affinity.h"
+#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 
 namespace dca {
 namespace parallel {
