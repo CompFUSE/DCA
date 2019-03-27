@@ -12,6 +12,8 @@
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
+#include "affinity.h"
+
 namespace dca {
 namespace parallel {
 
@@ -55,6 +57,17 @@ void ThreadPool::enlarge(size_t n_threads) {
 }
 
 void ThreadPool::workerLoop(int id) {
+  // Print affinity.
+  auto affinity = get_affinity();
+  static std::mutex print_mutex;
+  {
+    std::unique_lock<std::mutex> lock(print_mutex);
+    std::cout << "\nThread id " << id << " affinities: ";
+    for (auto x : affinity)
+      std::cout << x << " ";
+    std::cout << std::endl;
+  }
+
   while (true) {
     std::packaged_task<void()> task;
 
@@ -72,5 +85,5 @@ void ThreadPool::workerLoop(int id) {
   }
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
