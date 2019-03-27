@@ -12,6 +12,8 @@
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
+#include "mpi.h"
+
 #include "affinity.h"
 
 namespace dca {
@@ -60,7 +62,11 @@ void ThreadPool::workerLoop(int id) {
   // Print affinity.
   auto affinity = get_affinity();
   static std::mutex print_mutex;
-  {
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank == 0) {
     std::unique_lock<std::mutex> lock(print_mutex);
     std::cout << "\nThread id " << id << " affinities: ";
     for (auto x : affinity)
