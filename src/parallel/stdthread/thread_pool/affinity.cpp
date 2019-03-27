@@ -50,3 +50,9 @@ void set_affinity(const std::vector<int>& cores) {
 
   sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
 }
+
+int get_core_count() {
+  cpu_set_t cpu_set_mask;
+  sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
+  return CPU_COUNT(&cpu_set_mask);
+}

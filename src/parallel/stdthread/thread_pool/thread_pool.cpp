@@ -20,6 +20,9 @@ namespace dca {
 namespace parallel {
 
 ThreadPool::ThreadPool(size_t n_threads) : stop_(false), active_id_(0) {
+  core_count_ = get_core_count();
+  master_affinity_ = get_affinity();
+
   enlarge(n_threads);
 }
 
@@ -59,20 +62,13 @@ void ThreadPool::enlarge(size_t n_threads) {
 }
 
 void ThreadPool::workerLoop(int id) {
-  // Print affinity.
-  auto affinity = get_affinity();
-  static std::mutex print_mutex;
+  // Set affinity.
+  const int shift = core_count_ * id;
+  std::vector<int> affinities;
+  for (int x : master_affinity_)
+    affinities.push_back(x + shift);
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (rank == 0) {
-    std::unique_lock<std::mutex> lock(print_mutex);
-    std::cout << "\nThread id " << id << " affinities: ";
-    for (auto x : affinity)
-      std::cout << x << " ";
-    std::cout << std::endl;
-  }
+  set_affinity(affinities);
 
   while (true) {
     std::packaged_task<void()> task;

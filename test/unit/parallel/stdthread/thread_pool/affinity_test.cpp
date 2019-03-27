@@ -45,3 +45,8 @@ TEST(AffinityTest, All) {
 
   f.get();
 }
+
+// TODO: make general.
+// TEST(AffinityTest, Count) {
+//  EXPECT_EQ(8, get_core_count());
+//}
