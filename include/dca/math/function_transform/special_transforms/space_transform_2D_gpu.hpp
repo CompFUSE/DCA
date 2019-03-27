@@ -54,7 +54,8 @@ public:
   // order of M's labels from (r, b, w) to (b, r, w).
   // The transform is equivalent to M(k1, k2) = \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) M(r1, r2)
   // In/Out: M
-  void execute(RMatrix& M);
+  // Returns: number of flop.
+  float execute(RMatrix& M);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
@@ -107,7 +108,9 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, mag
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
+float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
+  float flop = 0.;
+
   auto& T_times_M = *(workspace_);
   auto& T_times_M_times_T = M;
 
@@ -125,6 +128,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     const int ldb = M.leadingDimension();
     const int ldc = T_times_M.leadingDimension();
     plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex(1), Complex(0), lda, ldb, ldc);
+    flop += n_trafo * 8. * nc_ * M.nrCols() * nc_;
   }
 
   {
@@ -138,10 +142,13 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     const int ldc = T_times_M_times_T.leadingDimension();
     const Complex norm(1. / nc_);
     plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
+    flop += n_trafo * 8. * M.nrRows() * nc_ * nc_;
   }
 
   phaseFactorsAndRearrange(T_times_M_times_T, *workspace_);
   M.swap(*workspace_);
+
+  return flop;
 }
 
 template <class RDmn, class KDmn, typename Real>
@@ -183,8 +190,8 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
   return phase_factors_dev;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
