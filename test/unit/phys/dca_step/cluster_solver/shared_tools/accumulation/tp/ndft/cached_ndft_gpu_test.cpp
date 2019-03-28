@@ -17,6 +17,7 @@
 
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
@@ -59,15 +60,15 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
                                              CachedNdftGpuTest::PosFreqDmn, dca::linalg::GPU>
       nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> result_device(64);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> result_host;
+
+  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::GPU> result_device(64);
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M, result_device);
   cudaStreamSynchronize(nft_obj.get_stream());
   dca::profiling::WallTime end_time;
 
-  result_host = result_device;
+  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::CPU> result_host(result_device);
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).

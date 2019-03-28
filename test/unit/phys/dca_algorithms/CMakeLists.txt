@@ -19,3 +19,7 @@ dca_add_gtest(compute_greens_function_test
 dca_add_gtest(compute_hybridization_function_test
   GTEST_MAIN
   LIBS function ${LAPACK_LIBRARIES})
+
+dca_add_gtest(compute_reducible_tp_vertex_test
+  GTEST_MAIN
+  LIBS function cluster_domains ${LAPACK_LIBRARIES})

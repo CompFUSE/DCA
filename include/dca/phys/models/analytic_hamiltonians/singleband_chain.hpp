@@ -108,7 +108,7 @@ std::vector<int> singleband_chain<point_group_type>::get_flavors() {
 
 template <typename point_group_type>
 std::vector<std::vector<double>> singleband_chain<point_group_type>::get_a_vectors() {
-  static std::vector<std::vector<double>> a_vecs{std::vector<double>{0,0}};
+  static std::vector<std::vector<double>> a_vecs{std::vector<double>{0, 0}};
 
   return a_vecs;
 }
@@ -154,8 +154,8 @@ void singleband_chain<point_group_type>::initialize_H_symmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
-  H_symmetries(0, 0, 0, 0) = 0;
-  H_symmetries(0, 1, 0, 1) = 0;
+//  H_symmetries(0, 0, 0, 0) = 0;
+//  H_symmetries(0, 1, 0, 1) = 0;
 }
 
 template <typename point_group_type>

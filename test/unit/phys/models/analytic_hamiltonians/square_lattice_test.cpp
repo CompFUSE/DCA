@@ -19,10 +19,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
@@ -82,11 +82,11 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
   using BandSpinDmn = func::dmn_variadic<BandDmn, SpinDmn>;
 
   using CDA = phys::ClusterDomainAliases<Lattice::DIMENSION>;
-  using RClusterDmn= typename CDA::RClusterDmn;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0}, {0, 2}};
   phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
-                                                            DCA_cluster);
+                                                                  DCA_cluster);
 
   // Index of the origin (0,0).
   const int origin = 2;
