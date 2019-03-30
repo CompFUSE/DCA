@@ -511,17 +511,23 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
       // Note: sign flips  are ignored and a single complex * real multiplication is
       // present in all modes.
     case PARTICLE_HOLE_TRANSVERSE:
-      // Each update of a G4 entry involves 2 complex additions and 3 complex multiplications.
-      return 20. * n_updates;
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
     case PARTICLE_HOLE_MAGNETIC:
       // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
       return 26. * n_updates;
     case PARTICLE_HOLE_CHARGE:
       // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
       return 26. * n_updates;
+    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      // Each update of a G4 entry involves 3 complex additions and 4 complex multiplications.
+      return 32 * n_updates;
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
     case PARTICLE_PARTICLE_UP_DOWN:
-      // Each update of a G4 entry involves 3 complex additions and 2 complex multiplications.
-      return 20. * n_updates;
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
     default:
       throw(std::logic_error("Invalid mode"));
   }

@@ -167,9 +167,8 @@ private:
   void accumulate_single_particle_quantities();
 
   void accumulate_equal_time_quantities();
-  using AccumType = typename Parameters::MC_measurement_scalar_type;
-  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<AccumType, linalg::GPU>, 2>& M);
-  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<AccumType, linalg::CPU>, 2>& M);
+  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M);
+  void accumulate_equal_time_quantities(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M);
 
   void accumulate_two_particle_quantities();
 
@@ -192,8 +191,8 @@ protected:
 
   std::array<std::vector<vertex_singleton_type>, 2> hs_configuration_;
 
-  std::array<dca::linalg::Matrix<AccumType, device_t>, 2> M_;
-  std::array<dca::linalg::Matrix<AccumType, linalg::CPU>, 2> M_host_;
+  std::array<dca::linalg::Matrix<double, device_t>, 2> M_;
+  std::array<dca::linalg::Matrix<double, linalg::CPU>, 2> M_host_;
 
   func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
   func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
@@ -437,7 +436,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantit
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantities(
-    const std::array<linalg::Matrix<AccumType, linalg::GPU>, 2>& M) {
+    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M) {
   for (int s = 0; s < 2; ++s)
     M_host_[s].setAsync(M[s], thread_id, s);
   for (int s = 0; s < 2; ++s)
@@ -448,7 +447,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantit
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxAccumulator<device_t, Parameters, Data>::accumulate_equal_time_quantities(
-    const std::array<linalg::Matrix<AccumType, linalg::CPU>, 2>& M) {
+    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M) {
   equal_time_accumulator_.accumulateAll(hs_configuration_[0], M[0], hs_configuration_[1], M[1],
                                         current_sign);
 

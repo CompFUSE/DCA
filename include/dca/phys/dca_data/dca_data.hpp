@@ -66,7 +66,7 @@ public:
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
   constexpr static int DIMENSION = Lattice::DIMENSION;
-  using TpAccumulatorScalar = typename Parameters::MC_measurement_scalar_type;
+  using TpAccumulatorScalar = typename Parameters::TP_measurement_scalar_type;
 
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
