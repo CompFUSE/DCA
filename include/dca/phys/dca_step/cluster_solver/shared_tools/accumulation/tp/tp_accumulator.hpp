@@ -45,7 +45,7 @@ class TpAccumulator;
 template <class Parameters>
 class TpAccumulator<Parameters, linalg::CPU> {
 public:
-  using Real = typename Parameters::MC_measurement_scalar_type;
+  using Real = typename Parameters::TP_measurement_scalar_type;
 
 protected:
   using RDmn = typename Parameters::RClusterDmn;
@@ -75,7 +75,7 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   template <class Configuration>
-  double accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
+  double accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
                     const std::array<Configuration, 2>& configs, int sign);
 
   // Empty method for compatibility with GPU version.
@@ -129,8 +129,8 @@ protected:
   Complex getGSingleband(int s, int k1, int k2, int w1, int w2) const;
 
   template <class Configuration>
-  float computeM(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
-                  const std::array<Configuration, 2>& configs);
+  float computeM(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+                 const std::array<Configuration, 2>& configs);
 
   double updateG4();
 
@@ -215,7 +215,7 @@ void TpAccumulator<Parameters, linalg::CPU>::initializeG0() {
 template <class Parameters>
 template <class Configuration>
 double TpAccumulator<Parameters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
@@ -232,7 +232,7 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
 template <class Parameters>
 template <class Configuration>
 float TpAccumulator<Parameters, linalg::CPU>::computeM(
-    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
 
@@ -326,7 +326,6 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_)
@@ -347,7 +346,6 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_) {
@@ -550,8 +548,9 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
   //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
   //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
   if (n_bands_ == 1) {
-    *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-                        Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha *
+               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
@@ -599,9 +598,9 @@ void TpAccumulator<Parameters, linalg::CPU>::sumTo(this_type& other_one) {
   G4_.release();
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP

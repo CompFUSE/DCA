@@ -23,7 +23,7 @@ namespace config {
 // dca::config::
 
 struct AccumulationOptions {
-  using MCAccumulationScalar = @MC_ACCUMULATION_SCALAR@;
+  using TPAccumulationScalar = @TP_ACCUMULATION_SCALAR@;
 
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
 

@@ -23,7 +23,7 @@ namespace accumulator {
 namespace details {
 // dca::phys::solver::accumulator::details::
 
-template <typename Real, typename InpScalar>
+template <typename InpScalar, typename Real>
 void sortM(int size, const InpScalar* M, int ldm, std::complex<Real>* sorted_M, int lds,
            const Triple<Real>* config1, const Triple<Real>* config2, cudaStream_t stream);
 
@@ -35,10 +35,10 @@ template <typename Real>
 void rearrangeOutput(int nw, int no, int nb, const std::complex<Real>* in, int ldi,
                      std::complex<Real>* out, int ldo, cudaStream_t stream);
 
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_KERNELS_INTERFACE_HPP

@@ -61,7 +61,7 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // Out: M_r_r_w_w.
   template <class Configuration>
-  float execute(const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M,
+  float execute(const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M,
                  RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
@@ -79,7 +79,7 @@ public:
   std::size_t deviceFingerprint() const;
 
 private:
-  void sortM(const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const;
+  void sortM(const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
   double performFT(RMatrix& work);
   void rearrangeOutput(RMatrix& output);
@@ -127,7 +127,7 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
 float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_out) {
+    const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_out) {
   float flop = 0.;
 
   if (configuration.size() == 0) {  // The result is zero
@@ -160,7 +160,7 @@ float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::e
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
-    const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const {
+    const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(), stream_);

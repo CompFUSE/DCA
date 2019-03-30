@@ -68,9 +68,9 @@ using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoT
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
-using Real = Parameters::MC_measurement_scalar_type;
+using Real = Parameters::TP_measurement_scalar_type;
 template <dca::linalg::DeviceType device>
-using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
+using MatrixPair = std::array<dca::linalg::Matrix<double, device>, 2>;
 using Configuration = std::array<std::vector<ConfigElement>, 2>;
 
 void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);

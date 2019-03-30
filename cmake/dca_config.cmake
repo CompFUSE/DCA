@@ -237,12 +237,12 @@ endif()
 
 ################################################################################
 # Single precision measurements
-# TODO: change to ON by default after merging and testing the two particle accumulator.
-option(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS "Measure in single precision." OFF)
-mark_as_advanced(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+# TODO: maybe change to ON by default.
+option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure in single precision." OFF)
+mark_as_advanced(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
 
-if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
-  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
+  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
 endif()
 
 ################################################################################
@@ -278,9 +278,9 @@ else()
 endif()
 
 if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
-  set(MC_ACCUMULATION_SCALAR float)
+  set(TP_ACCUMULATION_SCALAR float)
 else()
-  set(MC_ACCUMULATION_SCALAR double)
+  set(TP_ACCUMULATION_SCALAR double)
 endif()
 
 option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
