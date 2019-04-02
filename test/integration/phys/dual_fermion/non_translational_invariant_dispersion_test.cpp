@@ -166,8 +166,7 @@ TEST(NonTranslationalInvariantDispersionTest, FourSiteSquareLattice) {
   // Fourier transform from cluster real space (I, J) to momentum space (K, K_prime).
   func::function<std::complex<double>, func::dmn_variadic<KClusterDmn, KClusterDmn, KSuperlatticeDmn>>
       t_K_Kprime_k_tilde;
-  math::transform::SpaceTransform2D<RClusterDmn, KClusterDmn, double>::execute(t_IJ_k_tilde,
-                                                                               t_K_Kprime_k_tilde);
+  math::transform::SpaceTransform2D<RClusterDmn, double>::execute(t_IJ_k_tilde, t_K_Kprime_k_tilde);
 
   // Check t(K, K_prime, k_tilde).
   for (int k_tilde = 0; k_tilde < KSuperlatticeDmn::dmn_size(); ++k_tilde) {

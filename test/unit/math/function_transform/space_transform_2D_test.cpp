@@ -10,7 +10,9 @@
 // This file tests SpaceTransform2D.
 
 #include <array>
+#include <cmath>
 #include <complex>
+#include <limits>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -23,50 +25,58 @@
 
 using namespace dca;
 
-TEST(SpaceTransform2DTest, f_r_r_otherDmns) {
-  const int dimension = 2;
-
-  const std::array<double, 4> basis{1., 0., 0., 1.};
-  const std::vector<std::vector<int>> superbasis{{2, 2}, {2, -2}};
+class SpaceTransform2DTest : public ::testing::Test {
+protected:
+  static constexpr int dimension = 2;
 
   using RDmn = phys::ClusterDomainAliases<dimension>::RClusterDmn;
   using KDmn = phys::ClusterDomainAliases<dimension>::KClusterDmn;
-  phys::domains::cluster_domain_initializer<RDmn>::execute(basis.data(), superbasis);
 
   using OtherDmns =
       func::dmn_variadic<func::dmn_0<func::dmn<2, double>>, func::dmn_0<func::dmn<3, int>>>;
 
-  func::function<std::complex<double>, func::dmn_variadic<RDmn, RDmn, OtherDmns>> f_r_r;
-  func::function<std::complex<double>, func::dmn_variadic<KDmn, KDmn, OtherDmns>> f_k_k;
+  using SpaceTransform2DType = math::transform::SpaceTransform2D<RDmn, double>;
 
-  // Simplest test function:
-  //     f(\vec{r1}, \vec{r2}, j) = j + j*j i, if \vec{r1} = \vec{r2} = 0,
-  //                              = 0, otherwise.
-  // The Fourier transform of this function is a constant,
-  //    \hat{f}(\vec{k1}, \vec{k2}, j) = j/Nc + j*j/Nc i,
-  // where Nc is the number of vectors \vec{R}.
-  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
-    f_r_r(0, 0, j) = std::complex<double>(j, j * j);
+  static void SetUpTestCase() {
+    const std::array<double, 4> basis{1., 0., 0., 1.};
+    const std::vector<std::vector<int>> superbasis{{2, 2}, {2, -2}};
+
+    phys::domains::cluster_domain_initializer<RDmn>::execute(basis.data(), superbasis);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r, f_k_k);
+  func::function<std::complex<double>, func::dmn_variadic<RDmn, RDmn, OtherDmns>> f_r_r_;
+  func::function<std::complex<double>, func::dmn_variadic<KDmn, KDmn, OtherDmns>> f_k_k_;
+};
+
+TEST_F(SpaceTransform2DTest, RealSpaceToMomentumSpaceSingleBand) {
+  // Simplest test function:
+  //     f(r1, r2, j) = j + j*j i, if r1 = r2 = 0,
+  //                  = 0, otherwise.
+  // The Fourier transform of this function is a constant,
+  //    \hat{f}(k1, k2, j) = j/Nc + j*j/Nc i,
+  // where Nc is the number of vectors R.
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    f_r_r_(0, 0, j) = std::complex<double>(j, j * j);
+  }
+
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2) {
       for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-        EXPECT_DOUBLE_EQ((1. * j) / RDmn::dmn_size(), f_k_k(k1, k2, j).real());
-        EXPECT_DOUBLE_EQ((1. * j * j) / RDmn::dmn_size(), f_k_k(k1, k2, j).imag());
+        EXPECT_DOUBLE_EQ((1. * j) / RDmn::dmn_size(), f_k_k_(k1, k2, j).real());
+        EXPECT_DOUBLE_EQ((1. * j * j) / RDmn::dmn_size(), f_k_k_(k1, k2, j).imag());
       }
     }
   }
 
   // Check plus sign in exponential of first argument.
-  f_r_r = 0.;
+  f_r_r_ = 0.;
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
-    f_r_r(1, 0, j) = std::complex<double>(j, j * j);
+    f_r_r_(1, 0, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r, f_k_k);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   const std::complex<double> i(0., 1.);
   const auto r1 = RDmn::get_elements()[1];
@@ -74,23 +84,104 @@ TEST(SpaceTransform2DTest, f_r_r_otherDmns) {
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     const auto expected =
-        1. / RDmn::dmn_size() * f_r_r(1, 0, j) * std ::exp(i * (k1[0] * r1[0] + k1[1] * r1[1]));
-    EXPECT_DOUBLE_EQ(expected.real(), f_k_k(1, 0, j).real());
-    EXPECT_DOUBLE_EQ(expected.imag(), f_k_k(1, 0, j).imag());
+        1. / RDmn::dmn_size() * f_r_r_(1, 0, j) * std ::exp(i * (k1[0] * r1[0] + k1[1] * r1[1]));
+    EXPECT_DOUBLE_EQ(expected.real(), f_k_k_(1, 0, j).real());
+    EXPECT_DOUBLE_EQ(expected.imag(), f_k_k_(1, 0, j).imag());
   }
 
   // Check minus sign in exponential of second argument.
-  f_r_r = 0.;
+  f_r_r_ = 0.;
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
-    f_r_r(0, 1, j) = std::complex<double>(j, j * j);
+    f_r_r_(0, 1, j) = std::complex<double>(j, j * j);
   }
 
-  math::transform::SpaceTransform2D<RDmn, KDmn>::execute(f_r_r, f_k_k);
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
 
   for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
     const auto expected =
-        1. / RDmn::dmn_size() * f_r_r(0, 1, j) * std ::exp(-i * (k1[0] * r1[0] + k1[1] * r1[1]));
-    EXPECT_DOUBLE_EQ(expected.real(), f_k_k(0, 1, j).real());
-    EXPECT_DOUBLE_EQ(expected.imag(), f_k_k(0, 1, j).imag());
+        1. / RDmn::dmn_size() * f_r_r_(0, 1, j) * std ::exp(-i * (k1[0] * r1[0] + k1[1] * r1[1]));
+    EXPECT_DOUBLE_EQ(expected.real(), f_k_k_(0, 1, j).real());
+    EXPECT_DOUBLE_EQ(expected.imag(), f_k_k_(0, 1, j).imag());
+  }
+}
+
+TEST_F(SpaceTransform2DTest, MomentumSpaceToRealSpaceSingleBand) {
+  // Simplest test function:
+  //     f(k1, k2, j) = j + j*j i, if k1 = k2 = 0,
+  //                  = 0, otherwise.
+  // The Fourier transform of this function is a constant,
+  //    \hat{f}(r1, r2, j) = j/Nc + j*j/Nc i,
+  // where Nc is the number of vectors R.
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    f_k_k_(0, 0, j) = std::complex<double>(j, j * j);
+  }
+
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
+
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
+      for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1) {
+        EXPECT_DOUBLE_EQ((1. * j) / RDmn::dmn_size(), f_r_r_(r1, r2, j).real());
+        EXPECT_DOUBLE_EQ((1. * j * j) / RDmn::dmn_size(), f_r_r_(r1, r2, j).imag());
+      }
+    }
+  }
+
+  // Check minus sign in exponential of first argument.
+  f_k_k_ = 0.;
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    f_k_k_(1, 0, j) = std::complex<double>(j, j * j);
+  }
+
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
+
+  const std::complex<double> i(0., 1.);
+  const auto r1 = RDmn::get_elements()[1];
+  const auto k1 = KDmn::get_elements()[1];
+
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    const auto expected =
+        1. / RDmn::dmn_size() * f_k_k_(1, 0, j) * std ::exp(-i * (k1[0] * r1[0] + k1[1] * r1[1]));
+    EXPECT_DOUBLE_EQ(expected.real(), f_r_r_(1, 0, j).real());
+    EXPECT_DOUBLE_EQ(expected.imag(), f_r_r_(1, 0, j).imag());
+  }
+
+  // Check plus sign in exponential of second argument.
+  f_k_k_ = 0.;
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    f_k_k_(0, 1, j) = std::complex<double>(j, j * j);
+  }
+
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
+
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    const auto expected =
+        1. / RDmn::dmn_size() * f_k_k_(0, 1, j) * std ::exp(i * (k1[0] * r1[0] + k1[1] * r1[1]));
+    EXPECT_DOUBLE_EQ(expected.real(), f_r_r_(0, 1, j).real());
+    EXPECT_DOUBLE_EQ(expected.imag(), f_r_r_(0, 1, j).imag());
+  }
+
+  // Check that the momentum to real space FT reverses the real space to momentum space FT.
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
+      for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1) {
+        f_r_r_(r1, r2, j) = std::complex<double>(r1 * r1 + std::sin(1. * j), std::cos(r2));
+      }
+    }
+  }
+
+  const auto f_r_r_orig(f_r_r_);
+
+  SpaceTransform2DType::execute(f_r_r_, f_k_k_);
+  SpaceTransform2DType::execute(f_k_k_, f_r_r_);
+
+  const double tol = std::numeric_limits<double>::epsilon() * std::pow(RDmn::dmn_size(), 3);
+  for (int j = 0; j < OtherDmns::dmn_size(); ++j) {
+    for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2) {
+      for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1) {
+        EXPECT_NEAR(f_r_r_orig(r1, r2, j).real(), f_r_r_(r1, r2, j).real(), tol);
+        EXPECT_NEAR(f_r_r_orig(r1, r2, j).imag(), f_r_r_(r1, r2, j).imag(), tol);
+      }
+    }
   }
 }

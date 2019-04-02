@@ -90,13 +90,13 @@ TEST(SpaceTransform2DGpuTest, Execute) {
 
   // Transform on the CPU.
   function<Complex, dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, double>::execute(f_in, f_out);
 
   // Transform on the GPU.
   Matrix<Complex, dca::linalg::GPU> M_dev(M_in);
   magma_queue_t queue;
   magma_queue_create(&queue);
-  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, double> transform_obj(nw, queue);
+  dca::math::transform::SpaceTransform2DGpu<RDmn, double> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
   cudaStreamSynchronize(transform_obj.get_stream());
   magma_queue_destroy(queue);

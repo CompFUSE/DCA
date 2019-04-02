@@ -94,6 +94,9 @@ TEST(ClusterDomainTest, ClusterLatticeSuperlattice) {
   // math::util::print(k_tilde_centered);
   // math::util::print(weights);
 
+  // Check the domain sizes.
+  EXPECT_EQ(KLatticeDmn::dmn_size(), KClusterDmn::dmn_size() * KSuperlatticeDmn::dmn_size());
+
   // Check that real space cluster vectors are also real space lattice vectors.
   const double tolerance = 1.e-6;
   for (const auto& R_vec : R) {
@@ -123,5 +126,24 @@ TEST(ClusterDomainTest, ClusterLatticeSuperlattice) {
   for (const auto& k_tilde_vec : k_tilde_centered) {
     phys::domains::cluster_operations::find_closest_cluster_vector(
         k_tilde_vec, k, KLatticeDmn::parameter_type::get_super_basis_vectors(), tolerance);
+  }
+
+  // Check that each reciprocal lattice vector can be decomposed into a reciprocal cluster vector
+  // and a reciprocal superlattice vector.
+  std::vector<bool> found(KLatticeDmn::dmn_size(), false);
+
+  for (const auto& k_tilde_vec : k_tilde) {
+    for (const auto& K_vec : K) {
+      const auto K_plus_k_tilde = math::util::add(K_vec, k_tilde_vec);
+
+      const auto index = phys::domains::cluster_operations::index(
+          phys::domains::cluster_operations::find_closest_cluster_vector(
+              K_plus_k_tilde, k, KLatticeDmn::parameter_type::get_super_basis_vectors(), tolerance),
+          k, KLatticeDmn::parameter_type::SHAPE);
+
+      EXPECT_FALSE(found[index]);
+
+      found[index] = true;
+    }
   }
 }

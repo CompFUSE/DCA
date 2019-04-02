@@ -8,9 +8,8 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class performs the 2D transform from space to momentum used by the tp accumulation on
-// non translational invariant Greens function. See space_to_momentum.hpp for a definition of the
-// transformation.
+// This class implements the general, i.e. for non-translational invariant functions, 2D space Fourier transform.
+// See space_to_momentum.hpp for the definition of the corresponding 1D Fourier transform.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D
@@ -30,25 +29,39 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Real = double>
+template <class RDmn, typename Real = double>
 class SpaceTransform2D {
 protected:
   using Complex = std::complex<Real>;
+
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
 
+  using KDmn = func::dmn_0<typename RDmn::parameter_type::dual_type>;
+
 public:
-  // 2D Fourier transform and rearranging of the result.
+  // 2D Fourier transform and rearranging the result:
+  // f(r1, r2, b1, b2, s, w1, w2) --> f(b1, b2, s, k1, k2, w1, w2)
   // In/Out: f_input
   // Out: f_output
+  // TODO: f_input should be const.
   template <class W1Dmn, class W2Dmn>
   static void execute(
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
 
+  // f(r1, r2, other-domains) --> f(k1, k2, other-dmns)
   template <typename OtherDmns>
   static void execute(const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
                       func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out);
+
+  // f(k1, k2, other-domains) --> f(r1, r2, other-dmns)
+  template <typename OtherDmns>
+  static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
+                      func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out);
+  // f(k1, k2) --> f(r1, r2)
+  static void execute(const func::function<Complex, func::dmn_variadic<KDmn, KDmn>>& f_in,
+                      func::function<Complex, func::dmn_variadic<RDmn, RDmn>>& f_out);
 
 protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
@@ -60,9 +73,9 @@ protected:
   static const auto& getPhaseFactors();
 };
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, typename Real>
 template <class W1Dmn, class W2Dmn>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, Real>::execute(
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
     func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output) {
   assert(SDmn::dmn_size() == 2);
@@ -90,9 +103,9 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
           }
 }
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, typename Real>
 template <typename OtherDmns>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, Real>::execute(
     const func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_in,
     func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_out) {
   const int Nc = RDmn::dmn_size();
@@ -111,8 +124,47 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
   }
 }
 
-template <class RDmn, class KDmn, typename Real>
-const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Real>::get_T_matrix() {
+template <class RDmn, typename Real>
+template <typename OtherDmns>
+void SpaceTransform2D<RDmn, Real>::execute(
+    const func::function<Complex, func::dmn_variadic<KDmn, KDmn, OtherDmns>>& f_in,
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn, OtherDmns>>& f_out) {
+  const int Nc = RDmn::dmn_size();
+  const Complex norm = Complex(1. / Nc);
+
+  const auto& T = get_T_matrix();
+  linalg::Matrix<Complex, linalg::CPU> tmp(Nc);
+
+  for (int i = 0; i < OtherDmns::dmn_size(); ++i) {
+    const auto f_k_k_ptr = linalg::makeConstantView<Complex, linalg::CPU>(&f_in(0, 0, i), Nc);
+    linalg::MatrixView<Complex, linalg::CPU> f_r_r(&f_out(0, 0, i), Nc);
+
+    // f(r1,r2) = 1/Nc \sum_{k1, k2} exp(-i(k1 * r1 - k2 * r2)) f(k1, k2)
+    linalg::matrixop::gemm('C', 'N', Complex(1.), T, *f_k_k_ptr, Complex(0.), tmp);
+    linalg::matrixop::gemm('N', 'N', norm, tmp, T, Complex(0.), f_r_r);
+  }
+}
+
+template <class RDmn, typename Real>
+void SpaceTransform2D<RDmn, Real>::execute(
+    const func::function<Complex, func::dmn_variadic<KDmn, KDmn>>& f_in,
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn>>& f_out) {
+  using DummyDmn = func::dmn_0<func::dmn<1, int>>;
+
+  func::function<Complex, func::dmn_variadic<KDmn, KDmn, DummyDmn>> f_in_tmp;
+  func::function<Complex, func::dmn_variadic<RDmn, RDmn, DummyDmn>> f_out_tmp;
+
+  for (int i = 0; i < f_in.size(); ++i)
+    f_in_tmp(i) = f_in(i);
+
+  execute(f_in_tmp, f_out_tmp);
+
+  for (int i = 0; i < f_out.size(); ++i)
+    f_out(i) = f_out_tmp(i);
+}
+
+template <class RDmn, typename Real>
+const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, Real>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
     linalg::Matrix<Complex, linalg::CPU> T(RDmn::dmn_size());
@@ -130,8 +182,8 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
   return T;
 }
 
-template <class RDmn, class KDmn, typename Real>
-const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
+template <class RDmn, typename Real>
+const auto& SpaceTransform2D<RDmn, Real>::getPhaseFactors() {
   static func::function<Complex, func::dmn_variadic<BDmn, KDmn>> phase_factors("Phase factors.");
   static std::once_flag flag;
 
