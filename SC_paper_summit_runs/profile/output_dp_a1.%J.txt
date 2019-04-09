@@ -1,0 +1,570 @@
+==89020== NVPROF is profiling process 89020, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+==89021== NVPROF is profiling process 89021, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+==89022== NVPROF is profiling process 89022, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+==88999== NVPROF is profiling process 88999, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+==88996== NVPROF is profiling process 88996, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+==89018== NVPROF is profiling process 89018, command: ../main_dca_new_code2_double_prec input_w7_a1.json
+
+********************************************************************************
+**********                        Git Version                         **********
+********************************************************************************
+
+Last commit:
+commit 81d9e2a9fab81f002d13ed0c92fc9c00e32c1eb8
+Author: gbalduzz <gbalduzz@itp.phys.ethz.ch>
+Date:   Thu Mar 28 13:59:41 2019 -0400
+
+    Revert "Fixed thread affinity assignement."
+    
+    This reverts commit efedb1aecc4bed96ce8ff2bfb7027c51b63975fe.
+
+Working tree:
+
+
+********************************************************************************
+**********                          Modules                           **********
+********************************************************************************
+
+
+
+********************************************************************************
+**********                       CMake Options                        **********
+********************************************************************************
+
+DCA_WITH_CUDA = ON
+CUDA_GPU_ARCH = sm_70
+
+DCA_WITH_MPI = ON
+DCA_WITH_THREADED_SOLVER = ON
+
+DCA_CLUSTER_SOLVER = CT-AUX
+DCA_LATTICE = square
+DCA_POINT_GROUP = D4
+DCA_MODEL = tight-binding
+DCA_RNG = std::mt19937_64
+DCA_PROFILER = None
+DCA_WITH_AUTOTUNING = OFF
+DCA_WITH_GNUPLOT = OFF
+DCA_WITH_REDUCED_VERTEX_FUNCTION = ON
+DCA_WITH_SINGLE_PRECISION_MEASUREMENTS = OFF
+DCA_WITH_MEMORY_SAVINGS = OFF
+DCA_WITH_MANAGED_MEMORY = OFF
+
+DCA_WITH_QMC_BIT = OFF
+
+
+********************************************************************************
+**********                            CUDA                            **********
+********************************************************************************
+
+CUDA found 1 devices.
+
+  Device 0:
+  Name:                      Tesla V100-SXM2-16GB
+  Compute capability:        7.0
+  Number of multiprocessors: 80
+  Global memory:             16911433728 bytes
+  Constant memory:           65536 bytes
+  Shared memory per block:   49152 bytes
+  Registers per block:       65536
+  Maximum memory pitch:      2147483647 bytes
+  Warp size:                 32
+  Maximum threads per block: 1024
+  Maximum size of blocks:    1024 x 1024 x 64
+  Maximum size of grids:     2147483647 x 65535 x 65535
+  Clock frequency:           1530000 KHz
+  Async engine count:        4
+  Kernel execution timeout:  No
+
+
+********************************************************************************
+**********                     DCA(+) Calculation                     **********
+********************************************************************************
+
+Start time : 29-03-2019 11:25:42
+
+MPI-world set up: 6 processes.
+
+
+
+	opening file : input_w7_a1.json
+
+
+	 Parsing completed! read 2315 characters and 93 lines.
+	 name        : CLUSTER MOMENTUM_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+	 name (dual) : CLUSTER REAL_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+
+	 size        : 36
+
+			MOMENTUM_SPACE			|	REAL_SPACE
+	 origin-index : 0				|	0
+	 volume       : 3.947842e+01			|	3.600000e+01
+
+	 basis : 
+			1.047198e+00	-0.000000e+00	|	1.000000e+00	0.000000e+00	
+			-0.000000e+00	1.047198e+00	|	0.000000e+00	1.000000e+00	
+
+	 super-basis : 
+			6.283185e+00	-0.000000e+00	|	6.000000e+00	0.000000e+00	
+			-0.000000e+00	6.283185e+00	|	0.000000e+00	6.000000e+00	
+
+	 inverse-basis : 
+			9.549297e-01	0.000000e+00	|	1.000000e+00	-0.000000e+00	
+			0.000000e+00	9.549297e-01	|	-0.000000e+00	1.000000e+00	
+
+	 inverse-super-basis : 
+			1.591549e-01	0.000000e+00	|	1.666667e-01	-0.000000e+00	
+			0.000000e+00	1.591549e-01	|	-0.000000e+00	1.666667e-01	
+
+
+	0	|	0.000000e+00	0.000000e+00		0.000000e+00	0.000000e+00	
+	1	|	0.000000e+00	1.047198e+00		0.000000e+00	1.000000e+00	
+	2	|	0.000000e+00	2.094395e+00		0.000000e+00	2.000000e+00	
+	3	|	0.000000e+00	3.141593e+00		0.000000e+00	3.000000e+00	
+	4	|	0.000000e+00	4.188790e+00		0.000000e+00	4.000000e+00	
+	5	|	0.000000e+00	5.235988e+00		0.000000e+00	5.000000e+00	
+	6	|	1.047198e+00	0.000000e+00		1.000000e+00	0.000000e+00	
+	7	|	1.047198e+00	1.047198e+00		1.000000e+00	1.000000e+00	
+	8	|	1.047198e+00	2.094395e+00		1.000000e+00	2.000000e+00	
+	9	|	1.047198e+00	3.141593e+00		1.000000e+00	3.000000e+00	
+	10	|	1.047198e+00	4.188790e+00		1.000000e+00	4.000000e+00	
+	11	|	1.047198e+00	5.235988e+00		1.000000e+00	5.000000e+00	
+	12	|	2.094395e+00	0.000000e+00		2.000000e+00	0.000000e+00	
+	13	|	2.094395e+00	1.047198e+00		2.000000e+00	1.000000e+00	
+	14	|	2.094395e+00	2.094395e+00		2.000000e+00	2.000000e+00	
+	15	|	2.094395e+00	3.141593e+00		2.000000e+00	3.000000e+00	
+	16	|	2.094395e+00	4.188790e+00		2.000000e+00	4.000000e+00	
+	17	|	2.094395e+00	5.235988e+00		2.000000e+00	5.000000e+00	
+	18	|	3.141593e+00	0.000000e+00		3.000000e+00	0.000000e+00	
+	19	|	3.141593e+00	1.047198e+00		3.000000e+00	1.000000e+00	
+	20	|	3.141593e+00	2.094395e+00		3.000000e+00	2.000000e+00	
+	21	|	3.141593e+00	3.141593e+00		3.000000e+00	3.000000e+00	
+	22	|	3.141593e+00	4.188790e+00		3.000000e+00	4.000000e+00	
+	23	|	3.141593e+00	5.235988e+00		3.000000e+00	5.000000e+00	
+	24	|	4.188790e+00	0.000000e+00		4.000000e+00	0.000000e+00	
+	25	|	4.188790e+00	1.047198e+00		4.000000e+00	1.000000e+00	
+	26	|	4.188790e+00	2.094395e+00		4.000000e+00	2.000000e+00	
+	27	|	4.188790e+00	3.141593e+00		4.000000e+00	3.000000e+00	
+	28	|	4.188790e+00	4.188790e+00		4.000000e+00	4.000000e+00	
+	29	|	4.188790e+00	5.235988e+00		4.000000e+00	5.000000e+00	
+	30	|	5.235988e+00	0.000000e+00		5.000000e+00	0.000000e+00	
+	31	|	5.235988e+00	1.047198e+00		5.000000e+00	1.000000e+00	
+	32	|	5.235988e+00	2.094395e+00		5.000000e+00	2.000000e+00	
+	33	|	5.235988e+00	3.141593e+00		5.000000e+00	3.000000e+00	
+	34	|	5.235988e+00	4.188790e+00		5.000000e+00	4.000000e+00	
+	35	|	5.235988e+00	5.235988e+00		5.000000e+00	5.000000e+00	
+
+
+	MOMENTUM_SPACE k-space symmetries : 
+
+	0, 0	|		0, 0	0, 0	0, 0	0, 0	0, 0	0, 0	0, 0	0, 0
+	1, 0	|		1, 0	30, 0	1, 0	6, 0	5, 0	6, 0	5, 0	30, 0
+	2, 0	|		2, 0	24, 0	2, 0	12, 0	4, 0	12, 0	4, 0	24, 0
+	3, 0	|		3, 0	18, 0	3, 0	18, 0	3, 0	18, 0	3, 0	18, 0
+	4, 0	|		4, 0	12, 0	4, 0	24, 0	2, 0	24, 0	2, 0	12, 0
+	5, 0	|		5, 0	6, 0	5, 0	30, 0	1, 0	30, 0	1, 0	6, 0
+	6, 0	|		6, 0	5, 0	30, 0	1, 0	6, 0	5, 0	30, 0	1, 0
+	7, 0	|		7, 0	35, 0	31, 0	7, 0	11, 0	11, 0	35, 0	31, 0
+	8, 0	|		8, 0	29, 0	32, 0	13, 0	10, 0	17, 0	34, 0	25, 0
+	9, 0	|		9, 0	23, 0	33, 0	19, 0	9, 0	23, 0	33, 0	19, 0
+	10, 0	|		10, 0	17, 0	34, 0	25, 0	8, 0	29, 0	32, 0	13, 0
+	11, 0	|		11, 0	11, 0	35, 0	31, 0	7, 0	35, 0	31, 0	7, 0
+	12, 0	|		12, 0	4, 0	24, 0	2, 0	12, 0	4, 0	24, 0	2, 0
+	13, 0	|		13, 0	34, 0	25, 0	8, 0	17, 0	10, 0	29, 0	32, 0
+	14, 0	|		14, 0	28, 0	26, 0	14, 0	16, 0	16, 0	28, 0	26, 0
+	15, 0	|		15, 0	22, 0	27, 0	20, 0	15, 0	22, 0	27, 0	20, 0
+	16, 0	|		16, 0	16, 0	28, 0	26, 0	14, 0	28, 0	26, 0	14, 0
+	17, 0	|		17, 0	10, 0	29, 0	32, 0	13, 0	34, 0	25, 0	8, 0
+	18, 0	|		18, 0	3, 0	18, 0	3, 0	18, 0	3, 0	18, 0	3, 0
+	19, 0	|		19, 0	33, 0	19, 0	9, 0	23, 0	9, 0	23, 0	33, 0
+	20, 0	|		20, 0	27, 0	20, 0	15, 0	22, 0	15, 0	22, 0	27, 0
+	21, 0	|		21, 0	21, 0	21, 0	21, 0	21, 0	21, 0	21, 0	21, 0
+	22, 0	|		22, 0	15, 0	22, 0	27, 0	20, 0	27, 0	20, 0	15, 0
+	23, 0	|		23, 0	9, 0	23, 0	33, 0	19, 0	33, 0	19, 0	9, 0
+	24, 0	|		24, 0	2, 0	12, 0	4, 0	24, 0	2, 0	12, 0	4, 0
+	25, 0	|		25, 0	32, 0	13, 0	10, 0	29, 0	8, 0	17, 0	34, 0
+	26, 0	|		26, 0	26, 0	14, 0	16, 0	28, 0	14, 0	16, 0	28, 0
+	27, 0	|		27, 0	20, 0	15, 0	22, 0	27, 0	20, 0	15, 0	22, 0
+	28, 0	|		28, 0	14, 0	16, 0	28, 0	26, 0	26, 0	14, 0	16, 0
+	29, 0	|		29, 0	8, 0	17, 0	34, 0	25, 0	32, 0	13, 0	10, 0
+	30, 0	|		30, 0	1, 0	6, 0	5, 0	30, 0	1, 0	6, 0	5, 0
+	31, 0	|		31, 0	31, 0	7, 0	11, 0	35, 0	7, 0	11, 0	35, 0
+	32, 0	|		32, 0	25, 0	8, 0	17, 0	34, 0	13, 0	10, 0	29, 0
+	33, 0	|		33, 0	19, 0	9, 0	23, 0	33, 0	19, 0	9, 0	23, 0
+	34, 0	|		34, 0	13, 0	10, 0	29, 0	32, 0	25, 0	8, 0	17, 0
+	35, 0	|		35, 0	7, 0	11, 0	35, 0	31, 0	31, 0	7, 0	11, 0
+
+
+
+	REAL_SPACE symmetries : 
+
+	0, 0	|		0, 0	0, 0	0, 0	0, 0	0, 0	0, 0	0, 0	0, 0
+	1, 0	|		1, 0	30, 0	1, 0	6, 0	5, 0	6, 0	5, 0	30, 0
+	2, 0	|		2, 0	24, 0	2, 0	12, 0	4, 0	12, 0	4, 0	24, 0
+	3, 0	|		3, 0	18, 0	3, 0	18, 0	3, 0	18, 0	3, 0	18, 0
+	4, 0	|		4, 0	12, 0	4, 0	24, 0	2, 0	24, 0	2, 0	12, 0
+	5, 0	|		5, 0	6, 0	5, 0	30, 0	1, 0	30, 0	1, 0	6, 0
+	6, 0	|		6, 0	5, 0	30, 0	1, 0	6, 0	5, 0	30, 0	1, 0
+	7, 0	|		7, 0	35, 0	31, 0	7, 0	11, 0	11, 0	35, 0	31, 0
+	8, 0	|		8, 0	29, 0	32, 0	13, 0	10, 0	17, 0	34, 0	25, 0
+	9, 0	|		9, 0	23, 0	33, 0	19, 0	9, 0	23, 0	33, 0	19, 0
+	10, 0	|		10, 0	17, 0	34, 0	25, 0	8, 0	29, 0	32, 0	13, 0
+	11, 0	|		11, 0	11, 0	35, 0	31, 0	7, 0	35, 0	31, 0	7, 0
+	12, 0	|		12, 0	4, 0	24, 0	2, 0	12, 0	4, 0	24, 0	2, 0
+	13, 0	|		13, 0	34, 0	25, 0	8, 0	17, 0	10, 0	29, 0	32, 0
+	14, 0	|		14, 0	28, 0	26, 0	14, 0	16, 0	16, 0	28, 0	26, 0
+	15, 0	|		15, 0	22, 0	27, 0	20, 0	15, 0	22, 0	27, 0	20, 0
+	16, 0	|		16, 0	16, 0	28, 0	26, 0	14, 0	28, 0	26, 0	14, 0
+	17, 0	|		17, 0	10, 0	29, 0	32, 0	13, 0	34, 0	25, 0	8, 0
+	18, 0	|		18, 0	3, 0	18, 0	3, 0	18, 0	3, 0	18, 0	3, 0
+	19, 0	|		19, 0	33, 0	19, 0	9, 0	23, 0	9, 0	23, 0	33, 0
+	20, 0	|		20, 0	27, 0	20, 0	15, 0	22, 0	15, 0	22, 0	27, 0
+	21, 0	|		21, 0	21, 0	21, 0	21, 0	21, 0	21, 0	21, 0	21, 0
+	22, 0	|		22, 0	15, 0	22, 0	27, 0	20, 0	27, 0	20, 0	15, 0
+	23, 0	|		23, 0	9, 0	23, 0	33, 0	19, 0	33, 0	19, 0	9, 0
+	24, 0	|		24, 0	2, 0	12, 0	4, 0	24, 0	2, 0	12, 0	4, 0
+	25, 0	|		25, 0	32, 0	13, 0	10, 0	29, 0	8, 0	17, 0	34, 0
+	26, 0	|		26, 0	26, 0	14, 0	16, 0	28, 0	14, 0	16, 0	28, 0
+	27, 0	|		27, 0	20, 0	15, 0	22, 0	27, 0	20, 0	15, 0	22, 0
+	28, 0	|		28, 0	14, 0	16, 0	28, 0	26, 0	26, 0	14, 0	16, 0
+	29, 0	|		29, 0	8, 0	17, 0	34, 0	25, 0	32, 0	13, 0	10, 0
+	30, 0	|		30, 0	1, 0	6, 0	5, 0	30, 0	1, 0	6, 0	5, 0
+	31, 0	|		31, 0	31, 0	7, 0	11, 0	35, 0	7, 0	11, 0	35, 0
+	32, 0	|		32, 0	25, 0	8, 0	17, 0	34, 0	13, 0	10, 0	29, 0
+	33, 0	|		33, 0	19, 0	9, 0	23, 0	33, 0	19, 0	9, 0	23, 0
+	34, 0	|		34, 0	13, 0	10, 0	29, 0	32, 0	25, 0	8, 0	17, 0
+	35, 0	|		35, 0	7, 0	11, 0	35, 0	31, 0	31, 0	7, 0	11, 0
+
+	 name        : LATTICE_SP MOMENTUM_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+	 name (dual) : LATTICE_SP REAL_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+
+	 size        : 400
+
+			MOMENTUM_SPACE			|	REAL_SPACE
+	 origin-index : 0				|	0
+	 volume       : 3.947842e+01			|	4.000000e+02
+
+	 basis : 
+			3.141593e-01	-0.000000e+00	|	1.000000e+00	0.000000e+00	
+			-0.000000e+00	3.141593e-01	|	0.000000e+00	1.000000e+00	
+
+	 super-basis : 
+			6.283185e+00	-0.000000e+00	|	2.000000e+01	0.000000e+00	
+			-0.000000e+00	6.283185e+00	|	0.000000e+00	2.000000e+01	
+
+	 inverse-basis : 
+			3.183099e+00	0.000000e+00	|	1.000000e+00	-0.000000e+00	
+			0.000000e+00	3.183099e+00	|	-0.000000e+00	1.000000e+00	
+
+	 inverse-super-basis : 
+			1.591549e-01	0.000000e+00	|	5.000000e-02	-0.000000e+00	
+			0.000000e+00	1.591549e-01	|	-0.000000e+00	5.000000e-02	
+
+
+	 name        : LATTICE_TP MOMENTUM_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+	 name (dual) : LATTICE_TP REAL_SPACE BRILLOUIN_ZONE (DIMENSION : 2)
+
+	 size        : 36
+
+			MOMENTUM_SPACE			|	REAL_SPACE
+	 origin-index : 0				|	0
+	 volume       : 3.947842e+01			|	3.600000e+01
+
+	 basis : 
+			1.047198e+00	-0.000000e+00	|	1.000000e+00	0.000000e+00	
+			-0.000000e+00	1.047198e+00	|	0.000000e+00	1.000000e+00	
+
+	 super-basis : 
+			6.283185e+00	-0.000000e+00	|	6.000000e+00	0.000000e+00	
+			-0.000000e+00	6.283185e+00	|	0.000000e+00	6.000000e+00	
+
+	 inverse-basis : 
+			9.549297e-01	0.000000e+00	|	1.000000e+00	-0.000000e+00	
+			0.000000e+00	9.549297e-01	|	-0.000000e+00	1.000000e+00	
+
+	 inverse-super-basis : 
+			1.591549e-01	0.000000e+00	|	1.666667e-01	-0.000000e+00	
+			0.000000e+00	1.591549e-01	|	-0.000000e+00	1.666667e-01	
+
+
+H_0 and H_int initialization start:    29-03-2019 11:25:45
+H_0 and H_int initialization end:      29-03-2019 11:25:45
+H_0 and H_int initialization duration: 6.428000e-05 s
+
+G_0 initialization start:    29-03-2019 11:25:45
+G_0 initialization end:      29-03-2019 11:25:45
+G_0 initialization duration: 3.632100e-05 s
+
+
+
+	 interpolation-matrices K initialization started ...  stopped ( 1.887437e+01 Mbytes) 
+
+
+
+	interpolation_sp is created 29-03-2019 11:25:53
+
+	 CT-AUX Integrator is born 
+
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Shared walker and accumulator thread requested, but the number of accumulators and walkers differ.
+Diabling shared thread.
+Read configuration from ../beta_50/configuration.
+
+
+	DcaLoop has started 	29-03-2019 11:26:07
+
+
+
+	opening file : ../beta_50/dca_sp.hdf5
+
+	start reading function : Self_Energy
+		 lattice-mapping 29-03-2019 11:26:07
+		 coarsegrain-Selfenergy 29-03-2019 11:26:07
+
+        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] 
+----------------------------------------------------------------------------------------------
+0.000000e+00	0.000000e+00	-2.389920e-01	-2.297887e-02	-2.389920e-01	-2.297887e-02
+0.000000e+00	1.047198e+00	-2.378204e-01	-2.705465e-02	-2.378204e-01	-2.705465e-02
+0.000000e+00	2.094395e+00	-3.570009e-01	-8.422598e-02	-3.570009e-01	-8.422598e-02
+0.000000e+00	3.141593e+00	5.037706e-11	-1.336546e+00	5.037706e-11	-1.336546e+00
+0.000000e+00	4.188790e+00	-3.570009e-01	-8.422598e-02	-3.570009e-01	-8.422598e-02
+0.000000e+00	5.235988e+00	-2.378204e-01	-2.705465e-02	-2.378204e-01	-2.705465e-02
+1.047198e+00	0.000000e+00	-2.378204e-01	-2.705465e-02	-2.378204e-01	-2.705465e-02
+1.047198e+00	1.047198e+00	-2.608166e-01	-4.259388e-02	-2.608166e-01	-4.259388e-02
+1.047198e+00	2.094395e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+1.047198e+00	3.141593e+00	3.570009e-01	-8.422598e-02	3.570009e-01	-8.422598e-02
+1.047198e+00	4.188790e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+1.047198e+00	5.235988e+00	-2.608166e-01	-4.259388e-02	-2.608166e-01	-4.259388e-02
+2.094395e+00	0.000000e+00	-3.570009e-01	-8.422598e-02	-3.570009e-01	-8.422598e-02
+2.094395e+00	1.047198e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+2.094395e+00	2.094395e+00	2.608166e-01	-4.259388e-02	2.608166e-01	-4.259388e-02
+2.094395e+00	3.141593e+00	2.378204e-01	-2.705465e-02	2.378204e-01	-2.705465e-02
+2.094395e+00	4.188790e+00	2.608166e-01	-4.259388e-02	2.608166e-01	-4.259388e-02
+2.094395e+00	5.235988e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+3.141593e+00	0.000000e+00	5.037706e-11	-1.336546e+00	5.037706e-11	-1.336546e+00
+3.141593e+00	1.047198e+00	3.570009e-01	-8.422598e-02	3.570009e-01	-8.422598e-02
+3.141593e+00	2.094395e+00	2.378204e-01	-2.705465e-02	2.378204e-01	-2.705465e-02
+3.141593e+00	3.141593e+00	2.389920e-01	-2.297887e-02	2.389920e-01	-2.297887e-02
+3.141593e+00	4.188790e+00	2.378204e-01	-2.705465e-02	2.378204e-01	-2.705465e-02
+3.141593e+00	5.235988e+00	3.570009e-01	-8.422598e-02	3.570009e-01	-8.422598e-02
+4.188790e+00	0.000000e+00	-3.570009e-01	-8.422598e-02	-3.570009e-01	-8.422598e-02
+4.188790e+00	1.047198e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+4.188790e+00	2.094395e+00	2.608166e-01	-4.259388e-02	2.608166e-01	-4.259388e-02
+4.188790e+00	3.141593e+00	2.378204e-01	-2.705465e-02	2.378204e-01	-2.705465e-02
+4.188790e+00	4.188790e+00	2.608166e-01	-4.259388e-02	2.608166e-01	-4.259388e-02
+4.188790e+00	5.235988e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+5.235988e+00	0.000000e+00	-2.378204e-01	-2.705465e-02	-2.378204e-01	-2.705465e-02
+5.235988e+00	1.047198e+00	-2.608166e-01	-4.259388e-02	-2.608166e-01	-4.259388e-02
+5.235988e+00	2.094395e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+5.235988e+00	3.141593e+00	3.570009e-01	-8.422598e-02	3.570009e-01	-8.422598e-02
+5.235988e+00	4.188790e+00	-6.721666e-13	-1.492367e-01	-6.721666e-13	-1.492367e-01
+5.235988e+00	5.235988e+00	-2.608166e-01	-4.259388e-02	-2.608166e-01	-4.259388e-02
+
+
+
+		 coarsegrain-Greens-function 29-03-2019 11:26:07
+		 cluster-exclusion-step 29-03-2019 11:26:07
+
+	 CT-AUX Integrator has initialized (DCA-iteration : 0)
+
+Threaded QMC integration has started: 29-03-2019 11:26:08
+
+	 thread-id : 0  -->   (walker)
+	 thread-id : 1  -->   (accumulator)
+	 thread-id : 2  -->   (walker)
+	 thread-id : 3  -->   (walker)
+	 thread-id : 4  -->   (walker)
+	 thread-id : 5  -->   (walker)
+	 thread-id : 6  -->   (walker)
+	 thread-id : 7  -->   (walker)
+
+		 QMCI starts
+
+
+
+		CT-AUX walker test
+
+
+		 warm-up starts
+
+			             0 % completed	     <k> = 2560	       N = 2624	29-03-2019 11:26:09
+			            10 % completed	     <k> = 2630	       N = 2659	29-03-2019 11:26:09
+			            20 % completed	     <k> = 2658	       N = 2675	29-03-2019 11:26:10
+			            30 % completed	     <k> = 2625	       N = 2671	29-03-2019 11:26:10
+			            40 % completed	     <k> = 2688	       N = 2752	29-03-2019 11:26:10
+			            50 % completed	     <k> = 2673	       N = 2701	29-03-2019 11:26:11
+			            60 % completed	     <k> = 2690	       N = 2749	29-03-2019 11:26:11
+			            70 % completed	     <k> = 2601	       N = 2655	29-03-2019 11:26:12
+			             0 % completed	     <k> = 2583	       N = 2616	29-03-2019 11:26:12
+			            80 % completed	     <k> = 2580	       N = 2634	29-03-2019 11:26:12
+			            90 % completed	     <k> = 2568	       N = 2604	29-03-2019 11:26:13
+
+		 warm-up ends
+
+			       9.95801 % completed	     <k> = 2599	       N = 2650	29-03-2019 11:26:25
+			        19.916 % completed	     <k> = 2573	       N = 2628	29-03-2019 11:26:37
+			        29.874 % completed	     <k> = 2561	       N = 2611	29-03-2019 11:26:49
+			        39.832 % completed	     <k> = 2528	       N = 2585	29-03-2019 11:27:01
+			         49.79 % completed	     <k> = 2513	       N = 2557	29-03-2019 11:27:14
+			       59.7481 % completed	     <k> = 2631	       N = 2679	29-03-2019 11:27:26
+			       69.7061 % completed	     <k> = 2575	       N = 2613	29-03-2019 11:27:37
+			       79.6641 % completed	     <k> = 2520	       N = 2563	29-03-2019 11:27:49
+			       89.6221 % completed	     <k> = 2483	       N = 2538	29-03-2019 11:28:04
+			       99.5801 % completed	     <k> = 2452	       N = 2510	29-03-2019 11:28:15
+
+		 QMCI ends
+
+
+Walker: process ID = 0, thread ID = 0
+-------------------------------------------
+estimate for sweep size: 2632.13
+average number of delayed spins: 80.7489
+# creations / # annihilations: 1.00277
+
+Threaded on-node integration has ended: 29-03-2019 11:28:16
+
+Total number of measurements: 10000
+QMC-time	1.280226e+02
+
+Walker fingerprints [MB]: 
+3.326362e+02
+3.253699e+02
+3.474145e+02
+3.326362e+02
+3.253207e+02
+3.399352e+02
+3.399352e+02
+Accumulator fingerprints [MB]: 
+8.350106e+02
+Static Accumulator fingerprint [MB]:
+3.397535e+03
+
+
+		 Collect measurements 	29-03-2019 11:28:17
+
+			 QMC-local-time : 1.280226e+02 [sec]
+			 QMC-total-time : 7.640872e+02 [sec]
+			 Gflop   : 1.741490e+06 [Gf]
+			 Gflop/s   : 1.360299e+04 [Gf/s]
+			 sign     : 0 
+
+		 symmetrize measurements has started 	29-03-2019 11:28:24
+
+
+		 |Sigma_QMC - Sigma_cg|_infty ~ 1.336368e-01
+		 |Sigma_QMC - Sigma_cg|_2 ~ 7.507387e-03
+
+
+
+	 CT-AUX Integrator has finalized 
+
+
+		 lattice-mapping 29-03-2019 11:28:38
+
+			 total-density : 9.999404e-01	 (time : 29-03-2019 11:28:38)
+
+
+		 coarsegrain-Selfenergy 29-03-2019 11:28:38
+
+        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] 
+----------------------------------------------------------------------------------------------
+0.000000e+00	0.000000e+00	-2.339423e-01	-2.157665e-02	-2.339423e-01	-2.157665e-02
+0.000000e+00	1.047198e+00	-2.344365e-01	-2.777313e-02	-2.344365e-01	-2.777313e-02
+0.000000e+00	2.094395e+00	-3.506711e-01	-8.055251e-02	-3.506711e-01	-8.055251e-02
+0.000000e+00	3.141593e+00	3.117346e-02	-1.206596e+00	3.117346e-02	-1.206596e+00
+0.000000e+00	4.188790e+00	-3.506711e-01	-8.055251e-02	-3.506711e-01	-8.055251e-02
+0.000000e+00	5.235988e+00	-2.344365e-01	-2.777313e-02	-2.344365e-01	-2.777313e-02
+1.047198e+00	0.000000e+00	-2.344365e-01	-2.777313e-02	-2.344365e-01	-2.777313e-02
+1.047198e+00	1.047198e+00	-2.563155e-01	-4.065139e-02	-2.563155e-01	-4.065139e-02
+1.047198e+00	2.094395e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+1.047198e+00	3.141593e+00	3.512701e-01	-8.179684e-02	3.512701e-01	-8.179684e-02
+1.047198e+00	4.188790e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+1.047198e+00	5.235988e+00	-2.563155e-01	-4.065139e-02	-2.563155e-01	-4.065139e-02
+2.094395e+00	0.000000e+00	-3.506711e-01	-8.055251e-02	-3.506711e-01	-8.055251e-02
+2.094395e+00	1.047198e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+2.094395e+00	2.094395e+00	2.563010e-01	-4.044077e-02	2.563010e-01	-4.044077e-02
+2.094395e+00	3.141593e+00	2.344333e-01	-2.764049e-02	2.344333e-01	-2.764049e-02
+2.094395e+00	4.188790e+00	2.563010e-01	-4.044077e-02	2.563010e-01	-4.044077e-02
+2.094395e+00	5.235988e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+3.141593e+00	0.000000e+00	3.117346e-02	-1.206596e+00	3.117346e-02	-1.206596e+00
+3.141593e+00	1.047198e+00	3.512701e-01	-8.179684e-02	3.512701e-01	-8.179684e-02
+3.141593e+00	2.094395e+00	2.344333e-01	-2.764049e-02	2.344333e-01	-2.764049e-02
+3.141593e+00	3.141593e+00	2.332975e-01	-2.153943e-02	2.332975e-01	-2.153943e-02
+3.141593e+00	4.188790e+00	2.344333e-01	-2.764049e-02	2.344333e-01	-2.764049e-02
+3.141593e+00	5.235988e+00	3.512701e-01	-8.179684e-02	3.512701e-01	-8.179684e-02
+4.188790e+00	0.000000e+00	-3.506711e-01	-8.055251e-02	-3.506711e-01	-8.055251e-02
+4.188790e+00	1.047198e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+4.188790e+00	2.094395e+00	2.563010e-01	-4.044077e-02	2.563010e-01	-4.044077e-02
+4.188790e+00	3.141593e+00	2.344333e-01	-2.764049e-02	2.344333e-01	-2.764049e-02
+4.188790e+00	4.188790e+00	2.563010e-01	-4.044077e-02	2.563010e-01	-4.044077e-02
+4.188790e+00	5.235988e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+5.235988e+00	0.000000e+00	-2.344365e-01	-2.777313e-02	-2.344365e-01	-2.777313e-02
+5.235988e+00	1.047198e+00	-2.563155e-01	-4.065139e-02	-2.563155e-01	-4.065139e-02
+5.235988e+00	2.094395e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+5.235988e+00	3.141593e+00	3.512701e-01	-8.179684e-02	3.512701e-01	-8.179684e-02
+5.235988e+00	4.188790e+00	7.228703e-05	-1.460420e-01	7.228703e-05	-1.460420e-01
+5.235988e+00	5.235988e+00	-2.563155e-01	-4.065139e-02	-2.563155e-01	-4.065139e-02
+
+
+
+Processor 0 is writing data.
+
+
+		 start writing ./dca.hdf5	29-03-2019 11:28:39
+
+	 starts writing function : band-structure
+	 starts writing function : Sigma-r-DCA
+	 starts writing function : Self_Energy
+	 starts writing function : Self_Energy-error
+	 starts writing function : cluster_greens_function_G_k_w
+	 starts writing function : G_k_w-error
+	 starts writing function : cluster_greens_function_G_r_w
+	 starts writing function : G_r_w-error
+	 starts writing function : cluster_greens_function_G_k_t
+	 starts writing function : cluster_greens_function_G_r_t
+	 starts writing function : free_cluster_greens_function_G0_k_w
+	 starts writing function : free_cluster_greens_function_G0_r_w
+	 starts writing function : free_cluster_greens_function_G0_k_t
+	 starts writing function : free_cluster_greens_function_G0_r_t
+	 starts writing function : cluster_excluded_greens_function_G0_k_w
+	 starts writing function : cluster_excluded_greens_function_G0_r_w
+	 starts writing function : cluster_excluded_greens_function_G0_k_t
+	 starts writing function : cluster_excluded_greens_function_G0_r_t
+	 starts writing function : G4
+	 starts writing function : G4-error
+	 starts writing function : Self-Energy-n-1-iteration
+	 starts writing function : Self-Energy-n-0-iteration
+	 starts writing function : <k>
+	 starts writing function : Gflop_per_mpi_task
+	 starts writing function : times_per_mpi_task
+	 starts writing function : Gflops_per_mpi_task
+	 starts writing function : sign
+	 starts writing function : L2_Sigma_difference
+	 starts writing function : standard_deviation
+	 starts writing function : chemical-potential
+	 starts writing function : density
+	 starts writing function : expansion_order
+	 starts writing function : Sigma_zero_moment
+	 starts writing function : n_k
+	 starts writing function : A_k
+	 starts writing function : orbital-occupancies
+
+Finish time: 29-03-2019 11:28:40
+
+==89022== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.5.nvprof
+==89018== Warning: Some profiling data are not recorded. Make sure cudaProfilerStop() or cuProfilerStop() is called before application exit to flush profile data.
+==89018== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.2.nvprof
+==89021== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.3.nvprof
+==88996== Warning: Some profiling data are not recorded. Make sure cudaProfilerStop() or cuProfilerStop() is called before application exit to flush profile data.
+==88996== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.0.nvprof
+==89020== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.4.nvprof
+==88999== Generated result file: /gpfs/alpine/cph102/proj-shared/DCA_sc_paper_runs/profile/dca_dp_a1.1.nvprof

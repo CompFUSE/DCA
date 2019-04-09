@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Begin LSF Directives
+#BSUB -P CPH102
+#BSUB -W 0:50
+#BSUB -nnodes 1
+#BSUB -alloc_flags smt4   ## set simultaneous multithreading level (no. of hardware threads per physical core)
+#BSUB -J scaling_1
+#BSUB -o ./nodes_1/output.%J.txt
+#BSUB -e ./nodes_1/output.%J.txt
+#BSUB -alloc_flags nvme
+
+# Change into scratch filesystem
+cd $LS_SUBCWD
+
+# Load required modules
+source $MODULESHOME/init/bash
+
+module reset
+module load gcc/6.4.0
+module load cuda
+module load hdf5
+module load fftw
+module load cmake
+module load magma
+module load netlib-lapack
+module load essl
+
+date
+
+export BBPATH=/mnt/bb/$USER
+jsrun -n 1 cp ../main_dca_new_code2_double_prec ${BBPATH}
+jsrun -n 1 cp ./nodes_1/input.json ${BBPATH}
+jsrun -n 1 cp -r ../beta_50 ${BBPATH} 
+jsrun -n 1 cp -r ./nodes_1 ${BBPATH}
+jsrun -n 1 ls -l ${BBPATH}/
+jsrun -n 6 -a 1 -g 1 -c 7 -b rs ${BBPATH}/main_dca_new_code2_double_prec ${BBPATH}/input.json > outputTest.txt 
+jsrun -n 1 ls -l ${BBPATH}/
+jsrun -n 1 ls -l ${BBPATH}/nodes_1/
+jsrun -n 1 cp -r ${BBPATH}/ .
+
+# TODO: compute l2 norm on the G4 error.
+
+date

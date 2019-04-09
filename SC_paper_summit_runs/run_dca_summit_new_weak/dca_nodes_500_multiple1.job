@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Begin LSF Directives
+#BSUB -P GEN010SOLLVE
+#BSUB -W 2:00
+#BSUB -nnodes 500
+#BSUB -alloc_flags smt4   ## set simultaneous multithreading level (no. of hardware threads per physical core)
+#BSUB -J scaling_500
+##BSUB -o ./nodes_500/output.%J.txt
+##BSUB -e ./nodes_500/output.%J.txt
+
+# Change into scratch filesystem
+cd $LS_SUBCWD
+
+# Load required modules
+source $MODULESHOME/init/bash
+
+module reset
+module load gcc/6.4.0
+module load cuda
+module load hdf5
+module load fftw
+module load cmake
+module load magma
+module load netlib-lapack
+module load essl
+
+date
+
+jsrun -n 3000 -a 1 -g 1 -c 7 -b rs ../main_dca_new_code2_double_prec ./nodes_500_seed1/input.json > ./nodes_500_seed1/output_seed1.txt
+
+jsrun -n 3000 -a 1 -g 1 -c 7 -b rs ../main_dca_new_code2_double_prec ./nodes_500_seed2/input.json > ./nodes_500_seed2/output_seed2.txt
+
+# TODO: compute l2 norm on the G4 error.
+
+date

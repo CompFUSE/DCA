@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+#PBS -A CPH102
+#PBS -N new_scaling
+#PBS -o output_w5_a1.txt
+#PBS -e output_w5_a1.txt
+#PBS -l nodes=1
+#PBS -l walltime=02:00:00
+#PBS -l gres=atlas1%atlas2
+
+export OMP_NUM_THREADS=1
+
+module reset
+module unload PrgEnv-pgi
+module load PrgEnv-gnu
+module load cray-hdf5
+module load cray-fftw
+module load cudatoolkit
+module load magma/2.4.0
+module load cmake3
+
+cd $PBS_O_WORKDIR
+
+date
+
+#TODO: check it and add number of threads.
+aprun -n 1 ../main_dca_new input_w5_a1.json &> output.txt
+
+date
