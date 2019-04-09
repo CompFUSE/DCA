@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Begin LSF Directives
+#BSUB -P STF006
+#BSUB -W TIME
+#BSUB -nnodes NODES
+#BSUB -alloc_flags smt4   ## set simultaneous multithreading level (no. of hardware threads per physical core)
+#BSUB -J scaling_NODES
+#BSUB -o OUTPUT.%J.txt
+#BSUB -e OUTPUT.%J.txt
+
+# Change into scratch filesystem
+cd $LS_SUBCWD
+
+# Load required modules
+source $MODULESHOME/init/bash
+
+module reset
+module load gcc/6.4.0
+module load cuda
+module load hdf5
+module load fftw
+module load cmake
+module load magma
+module load netlib-lapack
+module load essl
+
+date
+
+time jsrun -n PROCESSES -a 1 -g 1 -c 7 -b rs EXEC INPUT 
+
+module load python
+python ../compute_errorbar.hdf5 DIRECTORY/dca.hdf5
+
+date

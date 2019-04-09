@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Begin LSF Directives
+#BSUB -P CPH102
+#BSUB -W 1:40
+#BSUB -nnodes 1
+#BSUB -alloc_flags smt4
+#BSUB -J scaling_1
+#BSUB -o summit_1.%J
+#BSUB -e summit_1.%J
+
+# Change into scratch filesystem
+cd $LS_SUBCWD
+
+# Load required modules
+source $MODULESHOME/init/bash
+
+module reset
+module load gcc/6.4.0
+module load cuda
+module load hdf5
+module load fftw
+module load cmake
+module load magma
+module load netlib-lapack
+module load essl
+
+date
+
+#time jsrun -n 6 -a 1 -g 1 -c 7 -b rs nvprof -o dca_sp.%q{OMPI_COMM_WORLD_RANK}.nvprof ../main_dca_new_code2_single_prec input_w7_a7.json &> output_sp.%J.txt
+
+time jsrun -n 6 -a 1 -g 1 -c 7 -b rs nvprof -o dca_dp_a1.%q{OMPI_COMM_WORLD_RANK}.nvprof ../main_dca_new_code2_double_prec input_w7_a1.json &> output_dp_a1.%J.txt
+
+
+date
