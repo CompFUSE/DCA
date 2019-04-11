@@ -59,7 +59,7 @@ std::array<dim3, 2> getBlockSize3D(const uint i, const uint j, const uint k) {
   const uint n_blocks_k = dca::util::ceilDiv(k, n_threads_k);
 
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j, n_blocks_k),
-                             dim3(n_threads_i, n_threads_j, n_blocks_k)};
+                             dim3(n_threads_i, n_threads_j, n_threads_k)};
 }
 
 template <typename Real>
