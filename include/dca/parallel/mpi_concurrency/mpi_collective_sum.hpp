@@ -341,7 +341,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
 
   const int n = MPIProcessorGrouping::get_size();
 
-  if (n == 1)  // No jackknife procedure possible.
+  if (n == 1)  // No Jack Knife procedure possible.
     return err;
 
   func::function<std::complex<Scalar>, Domain> f_avg("f_avg");

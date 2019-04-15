@@ -46,7 +46,7 @@ __global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, cons
   const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
   if (i < m && j < n) {
-      b[i + j * ldb] = d[j * inc_d] * a[i + j * lda];
+    b[i + j * ldb] = d[j * inc_d] * a[i + j * lda];
   }
 }
 

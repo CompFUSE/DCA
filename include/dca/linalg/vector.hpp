@@ -38,6 +38,7 @@ class Vector : public Allocator {
 public:
   using ThisType = Vector<ScalarType, device_name, Allocator>;
   using ValueType = ScalarType;
+  using AllocatorType = Allocator;
 
   Vector();
   Vector(const std::string& name);
