@@ -69,5 +69,5 @@ void CMakeOptions::print() {
             << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_qmc_bit << "\n"
             << std::endl;
 }
-}  // config
-}  // dca
+}  // namespace config
+}  // namespace dca

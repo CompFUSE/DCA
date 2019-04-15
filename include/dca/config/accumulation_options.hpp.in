@@ -9,8 +9,8 @@
 //
 // This class stores compile time options for the MC accumulation.
 
-#ifndef DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
-#define DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
+#ifndef DCA_CONFIG_ACCUMULATION_OPTIONS_HPP
+#define DCA_CONFIG_ACCUMULATION_OPTIONS_HPP
 
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/util/allocators/device_allocator.hpp"
@@ -36,4 +36,4 @@ struct AccumulationOptions {
 }  // config
 }  // dca
 
-#endif  // DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
+#endif  // DCA_CONFIG_ACCUMULATION_OPTIONS_HPP

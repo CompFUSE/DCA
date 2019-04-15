@@ -203,7 +203,7 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
   // Create shared workspaces.
   for (int i = 0; i < n_ndft_streams_; ++i) {
     workspaces_.emplace_back(std::make_shared<RMatrix>());
-    workspaces_.back()->setStream(streams_[i]);
+    workspaces_[i]->setStream(streams_[i]);
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
@@ -460,9 +460,9 @@ typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parame
   return G4;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP

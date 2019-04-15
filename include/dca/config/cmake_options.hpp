@@ -50,7 +50,7 @@ struct CMakeOptions {
   static void print();
 };
 
-}  // config
-}  // dca
+}  // namespace config
+}  // namespace dca
 
 #endif  // DCA_CONFIG_CMAKE_OPTIONS_HPP

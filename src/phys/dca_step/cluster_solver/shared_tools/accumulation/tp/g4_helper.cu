@@ -31,7 +31,6 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
   static std::once_flag flag;
 
   std::call_once(flag, [=]() {
-
     G4Helper host_helper;
     host_helper.lda_ = lda;
     host_helper.lds_ = lds;
@@ -75,8 +74,8 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
   });
 }
 
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

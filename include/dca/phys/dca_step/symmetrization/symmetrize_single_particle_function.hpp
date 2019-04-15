@@ -387,18 +387,18 @@ template <typename scalartype, typename ClusterDmn>
 void symmetrize_single_particle_function::executeTimeOrFreq(
     func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, t>>& f, bool do_diff) {
   func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, t>> f_new;
+  // Antiperiodicity in time.
 
   int t_0 = t::dmn_size() / 2;
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; ++t_ind) {
     for (int c_ind = 0; c_ind < ClusterDmn::dmn_size(); ++c_ind) {
-      const int c_opposite_ind = oppositeSite<ClusterDmn>(c_ind);
       for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
         for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
-          scalartype tmp = (f(b0, b1, c_ind, t_ind) - f(b1, b0, c_opposite_ind, t_ind + t_0)) / 2.;
+          scalartype tmp = (f(b0, b1, c_ind, t_ind) - f(b0, b1, c_ind, t_ind + t_0)) / 2.;
 
           f_new(b0, b1, c_ind, t_ind) = tmp;
-          f_new(b1, b0, c_opposite_ind, t_ind + t_0) = -tmp;
+          f_new(b0, b1, c_ind, t_ind + t_0) = -tmp;
         }
       }
     }

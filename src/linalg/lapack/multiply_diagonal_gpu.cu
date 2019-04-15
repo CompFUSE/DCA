@@ -50,7 +50,7 @@ __global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, cons
   }
 }
 
-}  // kernels
+}  // namespace kernels
 // dca::linalg::lapack::
 
 template <typename ScalarIn, typename ScalarOut>
@@ -123,6 +123,6 @@ template void multiplyDiagonalRight_gpu(int m, int n, const cuDoubleComplex* a, 
                                         const cuDoubleComplex* d, int inc_d, cuDoubleComplex* b,
                                         int ldb, int thread_id, int stream_id);
 
-}  // lapack
-}  // linalg
-}  // dca
+}  // namespace lapack
+}  // namespace linalg
+}  // namespace dca

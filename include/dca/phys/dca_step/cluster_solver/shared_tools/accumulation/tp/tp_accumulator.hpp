@@ -326,7 +326,6 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_)
@@ -347,7 +346,6 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto minus_k = [=](const int k) {
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
-
   };
 
   if (w1_ext >= n_pos_frqs_) {
@@ -579,8 +577,9 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
   //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
   //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
   if (n_bands_ == 1) {
-      *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-			  Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha *
+               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
@@ -628,9 +627,9 @@ void TpAccumulator<Parameters, linalg::CPU>::sumTo(this_type& other_one) {
   G4_.release();
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
