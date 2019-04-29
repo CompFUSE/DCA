@@ -41,6 +41,3 @@ set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
 # FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
-
-# Flags for summit.
-set(CMAKE_CXX_FLAGS -march=power9)
