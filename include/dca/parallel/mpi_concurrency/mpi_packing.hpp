@@ -76,8 +76,7 @@ template <typename scalar_type>
 int MPIPacking::get_buffer_size(scalar_type /*item*/) const {
   int size(0);
 
-  MPI_Pack_size(MPITypeMap<scalar_type>::factor(), MPITypeMap<scalar_type>::value(),
-                MPIProcessorGrouping::get(), &size);
+  MPI_Pack_size(1, MPITypeMap<scalar_type>::value(), MPIProcessorGrouping::get(), &size);
 
   return size;
 }
@@ -97,7 +96,7 @@ int MPIPacking::get_buffer_size(const std::basic_string<scalar_type>& str) const
 
   int result = get_buffer_size(str.size());
 
-  int count = str.size() * MPITypeMap<scalar_type>::factor();
+  int count = str.size();
 
   {
     int size(0);
@@ -113,7 +112,7 @@ template <typename scalar_type>
 int MPIPacking::get_buffer_size(const std::vector<scalar_type>& v) const {
   int result = get_buffer_size(v.size());
 
-  int count = v.size() * MPITypeMap<scalar_type>::factor();
+  int count = v.size();
 
   {
     int size(0);
@@ -164,7 +163,7 @@ template <typename scalar_type, class dmn_type>
 int MPIPacking::get_buffer_size(const func::function<scalar_type, dmn_type>& f) const {
   int result = get_buffer_size(f.size());
 
-  int count = f.size() * MPITypeMap<scalar_type>::factor();
+  int count = f.size();
 
   {
     int size = 0;
@@ -180,7 +179,7 @@ template <typename scalar_type>
 void MPIPacking::pack(char* buffer, int size, int& off_set, scalar_type item) const {
   const scalar_type* tPtr(&item);
 
-  MPI_Pack(tPtr, MPITypeMap<scalar_type>::factor(), MPITypeMap<scalar_type>::value(), buffer, size,
+  MPI_Pack(tPtr, 1, MPITypeMap<scalar_type>::value(), buffer, size,
            &off_set, MPIProcessorGrouping::get());
 }
 
@@ -201,8 +200,8 @@ void MPIPacking::pack(char* buffer, int size, int& off_set,
   int vectorSize(str.size());
   pack(buffer, size, off_set, vectorSize);
 
-  MPI_Pack(&str[0], vectorSize * MPITypeMap<scalar_type>::factor(),
-           MPITypeMap<scalar_type>::value(), buffer, size, &off_set, MPIProcessorGrouping::get());
+  MPI_Pack(&str[0], vectorSize, MPITypeMap<scalar_type>::value(), buffer, size, &off_set,
+           MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
@@ -211,8 +210,8 @@ void MPIPacking::pack(char* buffer, int size, int& off_set, const std::vector<sc
   int vectorSize(v.size());
   pack(buffer, size, off_set, vectorSize);
 
-  MPI_Pack(&v[0], vectorSize * MPITypeMap<scalar_type>::factor(), MPITypeMap<scalar_type>::value(),
-           buffer, size, &off_set, MPIProcessorGrouping::get());
+  MPI_Pack(&v[0], vectorSize, MPITypeMap<scalar_type>::value(), buffer, size, &off_set,
+           MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
@@ -260,16 +259,16 @@ void MPIPacking::pack(char* buffer, int size, int& off_set,
   int function_size(f.size());
   pack(buffer, size, off_set, function_size);
 
-  MPI_Pack(f.values(), function_size * MPITypeMap<scalar_type>::factor(),
-           MPITypeMap<scalar_type>::value(), buffer, size, &off_set, MPIProcessorGrouping::get());
+  MPI_Pack(f.values(), function_size, MPITypeMap<scalar_type>::value(), buffer, size, &off_set,
+           MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
 void MPIPacking::unpack(char* buffer, int size, int& off_set, scalar_type& item) const {
   scalar_type tmp;
 
-  MPI_Unpack(buffer, size, &off_set, &tmp, MPITypeMap<scalar_type>::factor(),
-             MPITypeMap<scalar_type>::value(), MPIProcessorGrouping::get());
+  MPI_Unpack(buffer, size, &off_set, &tmp, 1, MPITypeMap<scalar_type>::value(),
+             MPIProcessorGrouping::get());
 
   item = tmp;
 }
@@ -303,9 +302,8 @@ void MPIPacking::unpack(char* buffer, int size, int& off_set,
   str.resize(vectorSize);
 
   // UnPack the vector
-  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&str[0]),
-             MPITypeMap<scalar_type>::factor() * vectorSize, MPITypeMap<scalar_type>::value(),
-             MPIProcessorGrouping::get());
+  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&str[0]), 1 * vectorSize,
+             MPITypeMap<scalar_type>::value(), MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
@@ -317,9 +315,8 @@ void MPIPacking::unpack(char* buffer, int size, int& off_set, std::vector<scalar
   v.resize(vectorSize);
 
   // UnPack the vector
-  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&v[0]),
-             MPITypeMap<scalar_type>::factor() * vectorSize, MPITypeMap<scalar_type>::value(),
-             MPIProcessorGrouping::get());
+  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&v[0]), 1 * vectorSize,
+             MPITypeMap<scalar_type>::value(), MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
@@ -384,11 +381,11 @@ void MPIPacking::unpack(char* buffer, int size, int& off_set,
   unpack(buffer, size, off_set, function_size);
 
   // UnPack the vector
-  MPI_Unpack(buffer, size, &off_set, f.values(), MPITypeMap<scalar_type>::factor() * function_size,
-             MPITypeMap<scalar_type>::value(), MPIProcessorGrouping::get());
+  MPI_Unpack(buffer, size, &off_set, f.values(), function_size, MPITypeMap<scalar_type>::value(),
+             MPIProcessorGrouping::get());
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP

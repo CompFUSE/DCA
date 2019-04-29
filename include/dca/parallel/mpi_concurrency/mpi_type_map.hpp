@@ -26,12 +26,7 @@ namespace parallel {
 // dca::parallel::
 
 template <typename T>
-class MPITypeMap {
-public:
-  static constexpr std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap {
   template <typename = std::enable_if_t<std::is_enum<T>::value>>
   static MPI_Datatype value() {
     return MPITypeMap<std::underlying_type_t<T>>::value();
@@ -39,24 +34,14 @@ public:
 };
 
 template <>
-class MPITypeMap<bool> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<bool> {
   static MPI_Datatype value() {
     return MPI_CXX_BOOL;
   }
 };
 
 template <>
-class MPITypeMap<char> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<char> {
   static MPI_Datatype value() {
     return MPI_CHAR;
   }
@@ -64,10 +49,6 @@ public:
 
 template <>
 struct MPITypeMap<std::uint8_t> {
-  static constexpr std::size_t factor() {
-    return 1;
-  }
-
   static MPI_Datatype value() {
     return MPI_UNSIGNED_CHAR;
   }
@@ -75,90 +56,55 @@ struct MPITypeMap<std::uint8_t> {
 
 
 template <>
-class MPITypeMap<int> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<int> {
   static MPI_Datatype value() {
     return MPI_INT;
   }
 };
 
 template <>
-class MPITypeMap<std::size_t> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<std::size_t> {
   static MPI_Datatype value() {
     return MPI_UNSIGNED_LONG;
   }
 };
 
 template <>
-class MPITypeMap<long long int> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<long long int> {
   static MPI_Datatype value() {
     return MPI_LONG_LONG_INT;
   }
 };
 
 template <>
-class MPITypeMap<float> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<float> {
   static MPI_Datatype value() {
     return MPI_FLOAT;
   }
 };
 
 template <>
-class MPITypeMap<double> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<double> {
   static MPI_Datatype value() {
     return MPI_DOUBLE;
   }
 };
 
 template <>
-class MPITypeMap<std::complex<float>> {
-public:
-  static std::size_t factor() {
-    return 2;
-  }
-
+struct MPITypeMap<std::complex<float>> {
   static MPI_Datatype value() {
-    return MPI_FLOAT;
+    return MPI_COMPLEX;
   }
 };
 
 template <>
-class MPITypeMap<std::complex<double>> {
-public:
-  static std::size_t factor() {
-    return 2;
-  }
-
+struct MPITypeMap<std::complex<double>> {
   static MPI_Datatype value() {
-    return MPI_DOUBLE;
+    return MPI_DOUBLE_COMPLEX;
   }
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_TYPE_MAP_HPP

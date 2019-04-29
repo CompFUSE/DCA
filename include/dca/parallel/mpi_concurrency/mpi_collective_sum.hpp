@@ -149,8 +149,8 @@ template <typename scalar_type>
 void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
-  MPI_Allreduce(&value, &result, MPITypeMap<scalar_type>::factor(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
+  MPI_Allreduce(&value, &result, 1, MPITypeMap<scalar_type>::value(), MPI_SUM,
+                MPIProcessorGrouping::get());
 
   value = result;
 }
@@ -513,8 +513,8 @@ void MPICollectiveSum::sum(const T* in, T* out, std::size_t n) const {
 
   for (std::size_t start = 0; start < n; start += max_size) {
     const int msg_size = std::min(n - start, max_size);
-    MPI_Allreduce(in + start, out + start, MPITypeMap<T>::factor() * msg_size,
-                  MPITypeMap<T>::value(), MPI_SUM, MPIProcessorGrouping::get());
+    MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
+                  MPIProcessorGrouping::get());
   }
 }
 
