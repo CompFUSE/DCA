@@ -16,18 +16,19 @@
 #include "gtest/gtest.h"
 #include <string>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/io/json/json_reader.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/parameters/parameters.hpp"
-#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
-using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+using Model = dca::phys::models::TightBindingModel<
+    dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
@@ -68,7 +69,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   using dca::func::dmn_variadic;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
-  Matrix<Complex, dca::linalg::CPU> M_in;
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> M_in;
 
   // Initialize the input function.
   const int nb = BDmn::dmn_size();
@@ -93,7 +94,9 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  Matrix<Complex, dca::linalg::GPU> M_dev(M_in);
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
+                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+      M_dev(M_in);
   magma_queue_t queue;
   magma_queue_create(&queue);
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, double> transform_obj(nw, queue);

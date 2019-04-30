@@ -63,7 +63,11 @@
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
     "measurements-per-process-and-accumulator" : 500,
-    "seed" : 0
+    "seed" : 0,
+
+    "threaded-solver" : {
+      "accumulators" : 3
+    }
   },
 
 

@@ -16,7 +16,6 @@
 #error "This file requires CUDA support."
 #endif
 
-#include <vector>
 #include <cuda_runtime.h>
 
 #include "dca/linalg/util/error_cuda.hpp"
@@ -27,8 +26,8 @@ namespace util {
 // dca::linalg::util::
 
 template <typename T>
-class DeviceAllocator : public std::allocator<T> {
-public:
+class DeviceAllocator {
+protected:
   T* allocate(std::size_t n) {
     if (n == 0)
       return nullptr;
@@ -50,6 +49,10 @@ public:
     }
     ptr = nullptr;
   }
+
+public:
+  // SFINAE method for setting managed memory stream.
+  void setStream(const cudaStream_t /*stream*/) const {}
 };
 
 }  // util

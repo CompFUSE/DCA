@@ -337,7 +337,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
   }
   else {
     // Perform the total number of loop with a shared atomic counter.
-    for (int meas_id = measurements_done_; meas_id < n_local_meas; meas_id = ++measurements_done_)
+    for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
       f(meas_id, n_local_meas, print);
   }
 }
@@ -506,8 +506,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::printIntegrationMetadata() const {
   }
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP

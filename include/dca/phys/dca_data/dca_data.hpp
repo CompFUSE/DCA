@@ -25,6 +25,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -90,6 +91,8 @@ public:
 
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using SpRGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
   using TpGreensFunction =
       func::function<std::complex<TpAccumulatorScalar>,
                      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
@@ -127,7 +130,7 @@ public:
   func::function<int, NuNuDmn> H_symmetry;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
-  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> H_HOST;
 
   func::function<double, NuKCutDmn> band_structure;
@@ -154,18 +157,19 @@ public:
       Sigma_lattice_coarsegrained;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G_k_w;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G_k_t;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G_r_w;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G_r_t;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>
       G0_k_w_cluster_excluded;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>>
+      G0_k_t_cluster_excluded;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>
       G0_r_w_cluster_excluded;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cluster_excluded;
@@ -177,6 +181,11 @@ public:  // Optional members getters.
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
     return *G_k_w_err_;
+  }
+  auto& get_G_r_w_error() {
+    if (not G_r_w_err_)
+      G_r_w_err_ = std::make_unique<SpRGreensFunction>("G_r_w-error");
+    return *G_r_w_err_;
   }
   auto& get_G_k_w_stdv() {
     if (not G_k_w_err_)
@@ -221,6 +230,7 @@ public:  // Optional members getters.
 
 private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
+  std::unique_ptr<SpRGreensFunction> G_r_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
   std::unique_ptr<TpGreensFunction> G4_;
   std::unique_ptr<TpGreensFunction> G4_err_;
@@ -435,6 +445,7 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_err_);
     writer.execute(G_r_w);
+    writer.execute(G_r_w_err_);
     writer.execute(G_k_t);
     writer.execute(G_r_t);
 
@@ -449,15 +460,8 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.get_four_point_type() != NONE) {
-    if (!(parameters_.dump_cluster_Greens_functions())) {
-      writer.execute(G_k_w);
-      writer.execute(G_k_w_err_);
-    }
-
-    writer.execute(G4_);
-    writer.execute(G4_err_);
-  }
+  writer.execute(G4_);
+  writer.execute(G4_err_);
 
   writer.close_group();
 }

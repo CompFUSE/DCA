@@ -32,6 +32,7 @@ const std::string CMakeOptions::dca_with_single_precision_measurements =
     "@DCA_WITH_SINGLE_PRECISION_MEASUREMENTS@";
 const std::string CMakeOptions::dca_with_qmc_bit = "@DCA_WITH_QMC_BIT@";
 const std::string CMakeOptions::dca_with_memory_savings = "@DCA_WITH_MEMORY_SAVINGS@";
+const std::string CMakeOptions::dca_with_managed_memory = "@DCA_WITH_MANAGED_MEMORY@";
 
 void CMakeOptions::print() {
   std::cout << "\n"
@@ -57,10 +58,12 @@ void CMakeOptions::print() {
             << "DCA_WITH_AUTOTUNING = " << CMakeOptions::dca_with_autotuning << "\n"
             << "DCA_WITH_GNUPLOT = " << CMakeOptions::dca_with_gnuplot << "\n"
             << "DCA_WITH_SINGLE_PRECISION_MEASUREMENTS = " << dca_with_single_precision_measurements
-            << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_memory_savings << "\n"
+            << "\n"
+            << "DCA_WITH_MEMORY_SAVINGS = " << CMakeOptions::dca_with_memory_savings << "\n"
+            << "DCA_WITH_MANAGED_MEMORY = " << CMakeOptions::dca_with_managed_memory << "\n"
             << "\n"
             << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_qmc_bit << "\n"
             << std::endl;
 }
-}  // config
-}  // dca
+}  // namespace config
+}  // namespace dca

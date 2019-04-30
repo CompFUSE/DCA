@@ -117,7 +117,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/lattice_model.hpp.in"
 
 ################################################################################
 # Select the profiler type and enable auto-tuning.
-set(DCA_PROFILER "Counting" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
+set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
 set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI)
 
 if (DCA_PROFILER STREQUAL "Counting")
@@ -260,7 +260,7 @@ endif()
 
 ################################################################################
 # Gnuplot
-option(DCA_WITH_GNUPLOT "Enable Gnuplot." ON)
+option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 
 if (DCA_WITH_GNUPLOT)
   include(dca_gnuplot)
@@ -283,6 +283,7 @@ endif()
 # Accumulation options.
 option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
        cost." OFF)
+mark_as_advanced(DCA_WITH_MEMORY_SAVINGS)
 if (DCA_WITH_MEMORY_SAVINGS)
   set(MEMORY_SAVINGS true)
 else()
@@ -293,6 +294,14 @@ if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
   set(MC_ACCUMULATION_SCALAR float)
 else()
   set(MC_ACCUMULATION_SCALAR double)
+endif()
+
+option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
+mark_as_advanced(DCA_WITH_MANAGED_MEMORY)
+if (DCA_WITH_MANAGED_MEMORY)
+  set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::ManagedAllocator<T>")
+else()
+  set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::DeviceAllocator<T>")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"

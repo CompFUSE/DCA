@@ -30,27 +30,35 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-template <typename ScalarType, DeviceType device_name>
-class ReshapableMatrix {
+template <typename ScalarType, DeviceType device_name,
+          class Allocator = util::DefaultAllocator<ScalarType, device_name>>
+class ReshapableMatrix : public Allocator {
 public:
-  using ThisType = ReshapableMatrix<ScalarType, device_name>;
+  using ThisType = ReshapableMatrix<ScalarType, device_name, Allocator>;
   using ValueType = ScalarType;
-  using Allocator = util::DefaultAllocator<ScalarType, device_name>;
 
-  ReshapableMatrix(int size = 0);
+  // Default contructor creates a matrix of zero size and capacity.
+  ReshapableMatrix() = default;
+  // Initializes a square size x size matrix.
+  ReshapableMatrix(int size);
+  // Initializes a square size.first x size.second matrix.
   ReshapableMatrix(std::pair<int, int> size);
 
-  // Copy and move constructor:
-  // Constructs a matrix with name name, size rhs.size() and a copy of the elements of rhs.
-  ReshapableMatrix(const ReshapableMatrix<ScalarType, device_name>& rhs);
-  // Constructs a matrix with name name, size rhs.size(). The elements of rhs are moved.
-  // Postcondition: rhs is a (0 x 0) matrix.
-  ReshapableMatrix(ReshapableMatrix<ScalarType, device_name>&& rhs);
+  // Contructs a matrix with size rhs.size() and a copy of the elements of rhs.
+  ReshapableMatrix(const ThisType& rhs);
+  template <DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
 
-  // Contructs a matrix with name name, size rhs.size() and a copy of the elements of rhs, where rhs
-  // elements are stored on a different device.
-  template <DeviceType rhs_device_name>
-  ReshapableMatrix(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs);
+  // Constructs a matrix with size rhs.size(). The elements of rhs are moved.
+  ReshapableMatrix(ThisType&& rhs);
+
+  // Resize the matrix to rhs.size() and copies the elements.
+  ReshapableMatrix& operator=(const ThisType& rhs);
+  template <DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix& operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
+
+  // Moves the elements of rhs into this matrix.
+  ReshapableMatrix& operator=(ThisType&& rhs);
 
   ~ReshapableMatrix();
 
@@ -58,11 +66,11 @@ public:
   // Two matrices are equal, if they have the same size and contain the same elements. Name and
   // capacity are ignored.
   // Special case: two matrices without elements are equal.
-  bool operator==(const ReshapableMatrix<ScalarType, device_name>& other) const;
+  bool operator==(const ReshapableMatrix<ScalarType, device_name, Allocator>& other) const;
 
   // Returns true if this is not equal to other, false otherwise.
   // See description of operator== for the definition of equality.
-  bool operator!=(const ReshapableMatrix<ScalarType, device_name>& other) const;
+  bool operator!=(const ReshapableMatrix<ScalarType, device_name, Allocator>& other) const;
 
   // Returns the (i,j)-th element of the matrix.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
@@ -118,34 +126,25 @@ public:
     return size_.first;
   }
 
-  // Resizes *this to a (new_size * new_size) matrix.
-  // The previous elements are not copied, therefore all the elements
-  // may have any value after the call to this method.
-  // Returns: true if reallocation took place.
-  // Remark: The capacity of the matrix and element pointers do not change
-  // if new_size <= capacity().first and new_size <= capacity().second.
-  bool resizeNoCopy(int new_size) {
-    return resizeNoCopy(std::make_pair(new_size, new_size));
-  }
   // Resizes *this to a (new_size.first * new_size.second) matrix.
   // The previous elements are not copied, therefore all the elements
   // may have any value after the call to this method.
   // Returns: true if reallocation took place.
-  // Remark: The capacity of the matrix and element pointers do not change
-  // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   bool resizeNoCopy(std::pair<int, int> new_size);
+  // Resizes *this to a (new_size * new_size) matrix. See previous method for details.
+  bool resizeNoCopy(int new_size) {
+    return resizeNoCopy(std::make_pair(new_size, new_size));
+  }
 
+  // Reserves the space for at least (new_size.first * new_size.second) elements without changing
+  // the matrix size. The value of the matrix elements is undefined after calling this method.
+  // Returns: true if reallocation took place.
   bool reserveNoCopy(std::size_t new_size);
 
-  void swap(ReshapableMatrix<ScalarType, device_name>& other);
+  void swap(ReshapableMatrix<ScalarType, device_name, Allocator>& other);
 
   // Releases the memory allocated by *this and sets size and capacity to zero.
   void clear();
-
-  // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
-  // + synchronization of stream
-  template <DeviceType rhs_device_name>
-  void set(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
 #ifdef DCA_HAVE_CUDA
   // Asynchronous assignment.
@@ -161,8 +160,8 @@ public:
 #else
   // Synchronous assignment fallback for SetAsync.
   template <DeviceType rhs_device_name>
-  void setAsync(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int thread_id,
-                int stream_id);
+  void setAsync(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int /*thread_id*/,
+                int /*stream_id*/);
 
 #endif  // DCA_HAVE_CUDA
 
@@ -175,62 +174,88 @@ private:
     return static_cast<size_t>(size.first) * static_cast<size_t>(size.second);
   }
 
-  std::pair<int, int> size_;
-  std::size_t capacity_;
+  std::pair<int, int> size_ = std::make_pair(0, 0);
+  std::size_t capacity_ = 0;
 
   ValueType* data_ = nullptr;
 
-  Allocator allocator_;
-
-  template <class ScalarType2, DeviceType device_name2>
+  template <class ScalarType2, DeviceType device_name2, class Allocator2>
   friend class dca::linalg::ReshapableMatrix;
 };
 
-template <typename ScalarType, DeviceType device_name>
-ReshapableMatrix<ScalarType, device_name>::ReshapableMatrix(int size)
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(int size)
     : ReshapableMatrix(std::make_pair(size, size)) {}
 
-template <typename ScalarType, DeviceType device_name>
-ReshapableMatrix<ScalarType, device_name>::ReshapableMatrix(std::pair<int, int> size)
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(std::pair<int, int> size)
     : size_(size), capacity_(nextCapacity(nrElements(size))) {
   assert(size_.first >= 0 && size_.second >= 0);
   assert(capacity_ >= nrElements(size_));
 
-  data_ = allocator_.allocate(capacity_);
+  data_ = Allocator::allocate(capacity_);
 }
 
-template <typename ScalarType, DeviceType device_name>
-ReshapableMatrix<ScalarType, device_name>::ReshapableMatrix(
-    const ReshapableMatrix<ScalarType, device_name>& rhs) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(const ThisType& rhs) {
   *this = rhs;
 }
 
-template <typename ScalarType, DeviceType device_name>
-ReshapableMatrix<ScalarType, device_name>::ReshapableMatrix(
-    ReshapableMatrix<ScalarType, device_name>&& rhs)
-    : size_(rhs.size_), capacity_(rhs.capacity_), data_(rhs.data_) {
-  rhs.capacity_ = 0;
-  rhs.size_ = std::make_pair(0, 0);
-  rhs.data_ = nullptr;
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
+    const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
+  *this = rhs;
 }
 
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-ReshapableMatrix<ScalarType, device_name>::ReshapableMatrix(
-    const ReshapableMatrix<ScalarType, rhs_device_name>& rhs)
-    : size_(rhs.size_), capacity_(rhs.capacity_) {
-  data_ = allocator_.allocate(capacity_);
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
+    ReshapableMatrix<ScalarType, device_name, Allocator>&& rhs)
+    : ReshapableMatrix<ScalarType, device_name, Allocator>() {
+  swap(rhs);
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
+    ScalarType, device_name, Allocator>::operator=(const ThisType& rhs) {
+  size_ = rhs.size_;
+  capacity_ = rhs.capacity_;
+
+  Allocator::deallocate(data_);
+  data_ = Allocator::allocate(capacity_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
 }
 
-template <typename ScalarType, DeviceType device_name>
-ReshapableMatrix<ScalarType, device_name>::~ReshapableMatrix() {
-  allocator_.deallocate(data_);
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
+    ScalarType, device_name,
+    Allocator>::operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
+  size_ = rhs.size_;
+  capacity_ = rhs.capacity_;
+
+  Allocator::deallocate(data_);
+  data_ = Allocator::allocate(capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
 }
 
-template <typename ScalarType, DeviceType device_name>
-bool ReshapableMatrix<ScalarType, device_name>::operator==(
-    const ReshapableMatrix<ScalarType, device_name>& other) const {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
+    ScalarType, device_name, Allocator>::operator=(ThisType&& rhs) {
+  swap(rhs);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+ReshapableMatrix<ScalarType, device_name, Allocator>::~ReshapableMatrix() {
+  Allocator::deallocate(data_);
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+bool ReshapableMatrix<ScalarType, device_name, Allocator>::operator==(
+    const ReshapableMatrix<ScalarType, device_name, Allocator>& other) const {
   if (device_name == GPU)
     return ReshapableMatrix<ScalarType, CPU>(*this) == ReshapableMatrix<ScalarType, CPU>(other);
 
@@ -245,91 +270,83 @@ bool ReshapableMatrix<ScalarType, device_name>::operator==(
   return true;
 }
 
-template <typename ScalarType, DeviceType device_name>
-bool ReshapableMatrix<ScalarType, device_name>::operator!=(
-    const ReshapableMatrix<ScalarType, device_name>& other) const {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+bool ReshapableMatrix<ScalarType, device_name, Allocator>::operator!=(
+    const ReshapableMatrix<ScalarType, device_name, Allocator>& other) const {
   return !(*this == other);
 }
 
-template <typename ScalarType, DeviceType device_name>
-bool ReshapableMatrix<ScalarType, device_name>::resizeNoCopy(const std::pair<int, int> new_size) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+bool ReshapableMatrix<ScalarType, device_name, Allocator>::resizeNoCopy(
+    const std::pair<int, int> new_size) {
   const bool realloc = reserveNoCopy(nrElements(new_size));
   size_ = new_size;
   assert(capacity_ >= nrElements(size_));
   return realloc;
 }
 
-template <typename ScalarType, DeviceType device_name>
-bool ReshapableMatrix<ScalarType, device_name>::reserveNoCopy(std::size_t new_size) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+bool ReshapableMatrix<ScalarType, device_name, Allocator>::reserveNoCopy(std::size_t new_size) {
   if (new_size > capacity_) {
-    allocator_.deallocate(data_);
+    Allocator::deallocate(data_);
     capacity_ = nextCapacity(new_size);
-    data_ = allocator_.allocate(capacity_);
+    data_ = Allocator::allocate(capacity_);
     return true;
   }
   return false;
 }
 
-template <typename ScalarType, DeviceType device_name>
-void ReshapableMatrix<ScalarType, device_name>::swap(ReshapableMatrix<ScalarType, device_name>& other) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void ReshapableMatrix<ScalarType, device_name, Allocator>::swap(
+    ReshapableMatrix<ScalarType, device_name, Allocator>& other) {
   std::swap(size_, other.size_);
   std::swap(capacity_, other.capacity_);
   std::swap(data_, other.data_);
-  std::swap(allocator_, other.allocator_);
 }
 
-template <typename ScalarType, DeviceType device_name>
-void ReshapableMatrix<ScalarType, device_name>::clear() {
-  allocator_.deallocate(data_);
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void ReshapableMatrix<ScalarType, device_name, Allocator>::clear() {
+  Allocator::deallocate(data_);
   size_ = std::make_pair(0, 0);
   capacity_ = 0;
 }
 
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-void ReshapableMatrix<ScalarType, device_name>::set(
-    const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id) {
-  resize(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, thread_id,
-                   stream_id);
-}
-
 #ifdef DCA_HAVE_CUDA
 
-template <typename ScalarType, DeviceType device_name>
+template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name>
-void ReshapableMatrix<ScalarType, device_name>::setAsync(
+void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
     const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, const cudaStream_t stream) {
   resizeNoCopy(rhs.size_);
   util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
 }
 
-template <typename ScalarType, DeviceType device_name>
+template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name>
-void ReshapableMatrix<ScalarType, device_name>::setAsync(
+void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
     const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, const int thread_id,
     const int stream_id) {
   setAsync(rhs, util::getStream(thread_id, stream_id));
 }
 
-template <typename ScalarType, DeviceType device_name>
-void ReshapableMatrix<ScalarType, device_name>::setToZero(cudaStream_t stream) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void ReshapableMatrix<ScalarType, device_name, Allocator>::setToZero(cudaStream_t stream) {
   cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
 }
 
 #else  // DCA_HAVE_CUDA
 
-template <typename ScalarType, DeviceType device_name>
+template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name>
-void ReshapableMatrix<ScalarType, device_name>::setAsync(
+void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
     const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int /*thread_id*/, int /*stream_id*/) {
-  set(rhs);
+  *this = rhs;
 }
 
 #endif  // DCA_HAVE_CUDA
 
-template <typename ScalarType, DeviceType device_name>
-std::size_t ReshapableMatrix<ScalarType, device_name>::nextCapacity(const std::size_t size) {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::nextCapacity(const std::size_t size) {
   assert(size >= 0);
   constexpr std::size_t block_size = 512;
 
@@ -347,8 +364,8 @@ std::size_t ReshapableMatrix<ScalarType, device_name>::nextCapacity(const std::s
                             : (size + block_size - 1) / block_size * block_size;
 }
 
-template <typename ScalarType, DeviceType device_name>
-std::size_t ReshapableMatrix<ScalarType, device_name>::deviceFingerprint() const {
+template <typename ScalarType, DeviceType device_name, class Allocator>
+std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::deviceFingerprint() const {
   if (device_name == GPU)
     return capacity_ * sizeof(ScalarType);
   else

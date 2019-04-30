@@ -9,8 +9,14 @@
 //
 // This class stores compile time options for the MC accumulation.
 
-#ifndef DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
-#define DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
+#ifndef DCA_CONFIG_ACCUMULATION_OPTIONS_HPP
+#define DCA_CONFIG_ACCUMULATION_OPTIONS_HPP
+
+#ifdef DCA_HAVE_CUDA
+#include "dca/linalg/util/allocators/device_allocator.hpp"
+#include "dca/linalg/util/allocators/managed_allocator.hpp"
+#endif  // DCA_HAVE_CUDA
+
 
 namespace dca {
 namespace config {
@@ -20,9 +26,14 @@ struct AccumulationOptions {
   using MCAccumulationScalar = @MC_ACCUMULATION_SCALAR@;
 
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
+
+#ifdef DCA_HAVE_CUDA
+  template <typename T>
+  using TpAllocator = @TWO_PARTICLE_ALLOCATOR@;
+#endif  // DCA_HAVE_CUDA
 };
 
 }  // config
 }  // dca
 
-#endif  // DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
+#endif  // DCA_CONFIG_ACCUMULATION_OPTIONS_HPP

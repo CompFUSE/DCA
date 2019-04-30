@@ -67,7 +67,7 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
     EXPECT_EQ(function_expected(i), function_test(i));
 }
 
-TEST_F(MPICollectiveSumTest, LeaveOneOutAvg) {
+TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   std::vector<double> values(size_);
   double sum = 0.;
   for (int i = 0; i < size_; ++i) {
@@ -80,8 +80,11 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvg) {
 
   // Check scalar version.
   double scalar = values[rank_];
+  double sum_one_out = scalar;
   sum_interface_.leaveOneOutAvg(scalar);
+  sum_interface_.leaveOneOutSum(sum_one_out);
   EXPECT_DOUBLE_EQ(expected, scalar);
+  EXPECT_DOUBLE_EQ(expected * (size_ - 1), sum_one_out);
 
   // Check dca::func::function version.
   using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
@@ -89,10 +92,15 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvg) {
   f(0) = values[rank_];
   f(1) = 0.;
 
+  dca::func::function<double, TestDomain> f_sum(f);
   sum_interface_.leaveOneOutAvg(f);
+  sum_interface_.leaveOneOutSum(f_sum);
 
   EXPECT_DOUBLE_EQ(expected, f(0));
+  EXPECT_DOUBLE_EQ(expected * (size_ - 1), f_sum(0));
+
   EXPECT_DOUBLE_EQ(0., f(1));
+  EXPECT_DOUBLE_EQ(0., f_sum(1));
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {

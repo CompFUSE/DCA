@@ -33,15 +33,15 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
                        int nb, int nk, int nw_pos, Real beta, cudaStream_t stream);
 
 template <typename Real, FourPointType type>
-void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, int lggu,
-              const std::complex<Real>* G_down, int ldgd, int nb, int nk, int nw_pos,
-              int nw_exchange, int nk_exchange, int sign, cudaStream_t stream);
+void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int lggu,
+              const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
+              const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
+              bool atomic, cudaStream_t stream);
 
-
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_KERNELS_INTERFACE_HPP

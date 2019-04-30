@@ -147,6 +147,7 @@ protected:
       nullptr;
 
   const int thread_id_;
+  const bool multiple_accumulators_;
 
   const FourPointType mode_ = NONE;
   const Real beta_ = -1;
@@ -178,6 +179,7 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
+      multiple_accumulators_(pars.get_accumulators() > 1),
       mode_(pars.get_four_point_type()),
       beta_(pars.get_beta()),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
@@ -322,9 +324,8 @@ std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulato
   auto minus_w2 = [=](const int w) { return 2 * n_pos_frqs_ - 1 - w; };
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
   auto minus_k = [=](const int k) {
-    const static int k0 = RDmn::parameter_type::origin_index();
-    return RDmn::parameter_type::subtract(k, k0);
-
+    const static int k0 = KDmn::parameter_type::origin_index();
+    return KDmn::parameter_type::subtract(k, k0);
   };
 
   if (w1_ext >= n_pos_frqs_)
@@ -343,9 +344,8 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
   auto plus_w1 = [=](const int w) { return w - n_pos_frqs_; };
 
   auto minus_k = [=](const int k) {
-    const static int k0 = RDmn::parameter_type::origin_index();
-    return RDmn::parameter_type::subtract(k, k0);
-
+    const static int k0 = KDmn::parameter_type::origin_index();
+    return KDmn::parameter_type::subtract(k, k0);
   };
 
   if (w1_ext >= n_pos_frqs_) {
@@ -355,7 +355,8 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
         G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
   }
   else {
-    const Complex* const G_ptr = &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
+    const Complex* const G_ptr =
+        &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
         G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
@@ -393,10 +394,12 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
-      //       G4(k1, k2, k_ex) = 1/2  (s1 * s2) <c^+(k1 + k_ex, s1) c(k1, s1)
-      //                       c^+(k2, s2) c(k2 + k_ex, s2)>
-      //                     = 1/2 (s1 * s2) <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) - (s1 ==s2)
-      //                       G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>
+      // Note: sums over spin indices are implied.
+      //
+      // G4(k1, k2, k_ex) = 1/2 (s1 * s2) <c^+(k1 + k_ex, s1) c(k1, s1)
+      //                    c^+(k2, s2) c(k2 + k_ex, s2)>
+      //                  = 1/2 (s1 * s2) <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
+      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -421,8 +424,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
 
     case PARTICLE_HOLE_CHARGE:
       // G4(k1, k2, k_ex) += 1/2  <c^+(k1 + k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2 + k_ex, s2)> =
-      //                = 1/2 <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
-      //                  (s1 ==s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>
+      //                  = 1/2 <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
+      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -447,8 +450,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_HOLE_TRANSVERSE:
-      // G4 = 1/2 \sum_s <c^+(k1 + k_ex, s) c(k1, -s) c^+(k2, -s) c(k2 + k_ex, s)>
-      //    = -1/2 \sum_s G( k2 + k_ex, k1 + k_ex, s) G4(k1, k2, -s)
+      // G4 = 1/2 <c^+(k1 + k_ex, s) c(k1, -s) c^+(k2, -s) c(k2 + k_ex, s)>
+      //    = -1/2 G(k2 + k_ex, k1 + k_ex, s) G(k1, k2, -s).
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -470,8 +473,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN:
-      // G4 = 1/2 \sum_s <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
-      //    = 1/2 \sum_s G(k_ex-k2, k_ex-k1, s) G4(k2, k1, -s)
+      // G4 = 1/2 <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
+      //    = 1/2 G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s).
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -541,12 +544,13 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
     const bool cross_legs) {
   // This function performs the following update for each band:
   //
-  // G4(k1, k2, w1, w2) += alpha * (G(up, k1_a, k2_a, w1_a, w2_a) * G(up, k1_b, k2_b, w1_b, w2_b)
-  //                       + sign * G(down, k1_a, k2_a, w1_a, w2_a) * G(down, k1_b, k2_b, w1_b,
-  //                       w2_b)
+  // G4(k1, k2, w1, w2) += alpha * (G(up, k1_a, k2_a, w1_a, w2_a)
+  //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
+  //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
   if (n_bands_ == 1) {
-    *G4_ptr += alpha * (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-                        Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+    *G4_ptr += alpha *
+               (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
+                Complex(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
                 Complex(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
@@ -594,9 +598,9 @@ void TpAccumulator<Parameters, linalg::CPU>::sumTo(this_type& other_one) {
   G4_.release();
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP

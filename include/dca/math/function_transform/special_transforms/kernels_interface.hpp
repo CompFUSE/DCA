@@ -23,8 +23,10 @@ namespace details {
 // dca::math::transform::details::
 
 template <typename Real>
-void rearrangeResult(const std::complex<Real>* in, int ldi, std::complex<Real>* out, int ldo,
-                     int nb, int nk, int nw, cudaStream_t stream);
+void phaseFactorsAndRearrange(const std::complex<Real> *in, const int ldi, std::complex<Real> *out,
+                              const int ldo, const int nb, const int nk, const int nw,
+                              const std::complex<Real> *phase_factors,
+                              cudaStream_t const stream);
 
 }  // details
 }  // transform
