@@ -320,6 +320,7 @@ void CtintWalkerBase<Parameters>::setDMatrixBuilder(
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& parameters, Data& data) {
+  vertices_.reset();
   vertices_.initializeFromHamiltonian(data.H_interactions, parameters.doubleCountedInteraction());
   if (data.has_non_density_interactions())
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
