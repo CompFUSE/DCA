@@ -63,6 +63,18 @@ public:
 };
 
 template <>
+struct MPITypeMap<std::uint8_t> {
+  static constexpr std::size_t factor() {
+    return 1;
+  }
+
+  static MPI_Datatype value() {
+    return MPI_UNSIGNED_CHAR;
+  }
+};
+
+
+template <>
 class MPITypeMap<int> {
 public:
   static std::size_t factor() {
