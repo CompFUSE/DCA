@@ -351,7 +351,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
 
       removal_list_[s][i] = destination;
 
-      linalg::matrixop::swapRowAndCol(M_dev_[s], source, destination);
+      // TODO: swap in a single kernel.
+      linalg::matrixop::swapRowAndCol(M_dev_[s], source, destination, thread_id_, s);
       configuration_.swapSectorLabels(source, destination, s);
 
       --destination;
