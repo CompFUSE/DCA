@@ -1,0 +1,75 @@
+{
+  "output" : {
+    "dump-cluster-Greens-functions" : true
+  },
+  "physics": {
+    "beta"                      :  1.,
+    "chemical-potential"        : 0.
+  },
+
+  "bilayer-Hubbard-model":
+  {
+    "t"       : 1.,
+    "U"       : 2.,
+    "V" : 2,
+    "V-prime" : 2
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 1]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512
+    }
+  },
+
+  "CT-AUX" : {
+    "expansion-parameter-K": 1.,
+    "initial-configuration-size": 10,
+    "max-submatrix-size": 16
+  },
+
+  "CT-INT" :
+  {
+    "use-submatrix" : true,
+    "max-submatrix-size": 4,
+    "initial-configuration-size": 5,
+    "alpha-dd-pos" : 0.501
+  },
+
+  "DCA": {
+    "iterations": 1,
+    "self-energy-mixing-factor": 0.,
+    "interacting-orbitals": [0, 1]
+  },
+
+  "Monte-Carlo-integration" : {
+    "warm-up-sweeps": 1000,
+    "sweeps-per-measurement": 1,
+    "measurements": 20000,
+    "seed": "random",
+    "threaded-solver": {
+      "walkers": 1,
+      "accumulators": 1,
+      "shared-walk-and-accumulation-thread" : true,
+      "fix-meas-per-walker" : true
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
