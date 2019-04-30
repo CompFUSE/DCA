@@ -254,7 +254,7 @@ inline void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::accumulate(cons
                                                                             const ScalarType t_val,
                                                                             const ScalarType f_val) {
   const static PDmn p_dmn_obj;
-  int linind = 0;
+  std::size_t linind = 0;
   p_dmn_obj.subind_2_linind(subind, linind);
   accumulate(linind, t_val, f_val);
 }

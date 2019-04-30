@@ -179,8 +179,8 @@ template <typename scalar_type>
 void MPIPacking::pack(char* buffer, int size, int& off_set, scalar_type item) const {
   const scalar_type* tPtr(&item);
 
-  MPI_Pack(tPtr, 1, MPITypeMap<scalar_type>::value(), buffer, size,
-           &off_set, MPIProcessorGrouping::get());
+  MPI_Pack(tPtr, 1, MPITypeMap<scalar_type>::value(), buffer, size, &off_set,
+           MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type>
@@ -256,7 +256,7 @@ template <typename scalar_type, class dmn_type>
 void MPIPacking::pack(char* buffer, int size, int& off_set,
                       const func::function<scalar_type, dmn_type>& f) const {
   // Pack the vector length
-  int function_size(f.size());
+  auto function_size = f.size();
   pack(buffer, size, off_set, function_size);
 
   MPI_Pack(f.values(), function_size, MPITypeMap<scalar_type>::value(), buffer, size, &off_set,
@@ -377,7 +377,7 @@ template <typename scalar_type, class dmn_type>
 void MPIPacking::unpack(char* buffer, int size, int& off_set,
                         func::function<scalar_type, dmn_type>& f) const {
   // UnPack the vector length
-  int function_size(0);
+  std::size_t function_size = 0;
   unpack(buffer, size, off_set, function_size);
 
   // UnPack the vector
