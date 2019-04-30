@@ -30,6 +30,7 @@
 #include "dca/linalg/vector.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace parallel {
@@ -508,8 +509,10 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 
 template <typename T>
 void MPICollectiveSum::sum(const T* in, T* out, std::size_t n) const {
-  // On summit large messages hangs even if the size is lower than 2^31-1.
-  constexpr std::size_t max_size = std::numeric_limits<int>::max() / 10;
+  // On summit large messages hangs if sizeof(floating point type) type * message_size > 2^31-1.
+  constexpr std::size_t max_size = dca::util::IsComplex<T>::value
+                                       ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
+                                       : std::numeric_limits<int>::max() / sizeof(T);
 
   for (std::size_t start = 0; start < n; start += max_size) {
     const int msg_size = std::min(n - start, max_size);
