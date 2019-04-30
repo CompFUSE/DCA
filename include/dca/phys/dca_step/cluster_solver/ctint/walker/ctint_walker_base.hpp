@@ -221,8 +221,8 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
     M.resize(n);
     if (!n)
       continue;
-    for (int i = 0; i < n; ++i)
-      for (int j = 0; j < n; ++j)
+    for (int j = 0; j < n; ++j)
+      for (int i = 0; i < n; ++i)
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
     const double det = linalg::matrixop::inverseAndDeterminant(M);
@@ -325,9 +325,9 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& param
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_BASE_HPP
