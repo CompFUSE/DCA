@@ -22,9 +22,8 @@ set(MPIEXEC_PREFLAGS "-n 1 -g 1 -c 8" CACHE STRING
 # The flag "--smpiargs=none" is needed to execute tests with no MPI functionalities.
 set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING
   "Spectrum MPI argument list flag for serial tests.")
-# The flag "--smpiargs=-mxm" is a workaround (for now) to execute tests with MPI to avoid tests from failing.
-# It uses Mellanox's protocol and bypasses PAMI for MPI communications.
-set(SMPIARGS_FLAG_MPI "--smpiargs=-mxm" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
+# Let's keep this option in case we need it again in the future.
+set(SMPIARGS_FLAG_MPI "" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
