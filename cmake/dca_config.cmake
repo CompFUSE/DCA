@@ -191,7 +191,7 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_INT)
   set(DCA_CLUSTER_SOLVER_INCLUDE "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp")
 
-  set(DCA_USE_CTINT_SUBMATRIX OFF CACHE BOOL "Use submatrix updates if the CT-INT solver is selected.")
+  set(DCA_USE_CTINT_SUBMATRIX ON CACHE BOOL "Use submatrix updates if the CT-INT solver is selected.")
   if(DCA_USE_CTINT_SUBMATRIX)
     set(DCA_CLUSTER_SOLVER_TYPE
             "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
