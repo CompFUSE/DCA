@@ -288,6 +288,11 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
       orbital_occupancy("orbital_occupancy") {
   H_symmetry = -1;
 
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(parameters_.numG4Channels());
+
   // Allocate memory for G4.
   // Ensure backward compatibility.
   if (parameters_.get_four_point_type() != NONE)
@@ -304,12 +309,20 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
     if (parameters_.accumulateG4ParticleHoleCharge())
       G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
 
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
+
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
+
     if (parameters_.accumulateG4ParticleParticleUpDown())
       G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
   }
 
   // Allocate memory for error on G4.
   if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
+    G4_err_.reserve(parameters_.numG4Channels());
+
     if (parameters_.get_four_point_type() != NONE)
       G4_err_.emplace_back("G4-error");
 
@@ -322,6 +335,12 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
 
       if (parameters_.accumulateG4ParticleHoleCharge())
         G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN) + "_err");
 
       if (parameters_.accumulateG4ParticleParticleUpDown())
         G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");

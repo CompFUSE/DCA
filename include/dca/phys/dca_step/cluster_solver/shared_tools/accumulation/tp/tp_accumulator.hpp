@@ -47,7 +47,6 @@ class TpAccumulator<Parameters, linalg::CPU> {
 public:
   using Real = typename Parameters::MC_measurement_scalar_type;
 
-protected:
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -56,8 +55,28 @@ protected:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
-public:
+  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
+
   using this_type = TpAccumulator<Parameters>;
+
+protected:
+  using Profiler = typename Parameters::profiler_type;
+
+  using Complex = std::complex<Real>;
+  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
+
+  using SpGreenFunction =
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
+
+  using TpDomain =
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+
+public:
+  using TpGreensFunction = func::function<Complex, TpDomain>;
 
   // Constructor:
   // In: G0: non interacting greens function.
@@ -100,23 +119,6 @@ public:
   }
 
 protected:
-  using Profiler = typename Parameters::profiler_type;
-
-  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
-  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
-  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
-
-  using Complex = std::complex<Real>;
-  using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
-  using TpGreensFunction = func::function<Complex, TpDomain>;
-  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
-
   void initializeG0();
 
   double computeG();
@@ -188,6 +190,11 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
     throw(std::logic_error("The number of single particle frequencies is too small."));
   initializeG0();
 
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(pars.numG4Channels());
+
   // Ensure backward compatibility.
   if (pars.get_four_point_type() != NONE) {
     G4_.emplace_back("G4_" + toString(pars.get_four_point_type()));
@@ -203,6 +210,12 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
 
     if (pars.accumulateG4ParticleHoleCharge())
       G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
+
+    if (pars.accumulateG4ParticleHoleLongitudinalUpUp())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
+
+    if (pars.accumulateG4ParticleHoleLongitudinalUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
 
     if (pars.accumulateG4ParticleParticleUpDown())
       G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
@@ -419,12 +432,11 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
 
   switch (channel) {
     case PARTICLE_HOLE_MAGNETIC:
-      // Note: sums over spin indices are implied.
-      //
-      // G4(k1, k2, k_ex) = 1/2 (s1 * s2) <c^+(k1 + k_ex, s1) c(k1, s1)
-      //                    c^+(k2, s2) c(k2 + k_ex, s2)>
-      //                  = 1/2 (s1 * s2) <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
-      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
+      // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2} (s1 * s2)
+      //                      <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
+      //                  = 1/2 sum_{s1, s2} (s1 * s2)
+      //                      [G(k1, k1+k_ex, s1) G(k2+k_ex, k2, s2)
+      //                       - (s1 == s2) G(k2+k_ex, k1+k_ex, s1) G(k1, k2, s1)]
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -448,9 +460,11 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       break;
 
     case PARTICLE_HOLE_CHARGE:
-      // G4(k1, k2, k_ex) += 1/2  <c^+(k1 + k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2 + k_ex, s2)> =
-      //                  = 1/2 <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
-      //                    (s1 == s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>.
+      // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2}
+      //                    <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
+      //                  = 1/2 sum_{s1, s2}
+      //                      [G(k1, k1+k_ex, s1) G(k2+k_ex, k2, s2)
+      //                       - (s1 == s2) G(k2+k_ex, k1+k_ex, s1) G(k1, k2, s1)]
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -474,9 +488,62 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
 
+    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, s) c(k2+k_ex, s)>
+      //                  = 1/2 sum_s [G(k1, k1+k_ex, s) G(k2+k_ex, k2, s)
+      //                               - G(k2+k_ex, k1+k_ex, s) G(k1, k2, s)]
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
+        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
+                                   s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
+                                   sign_over_2, false);
+
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                                   momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                }
+            }
+      }
+
+      flops += n_loops * 4 * flops_update_atomic;
+      break;
+
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, -s) c(k2+k_ex, -s)>
+      //                  = 1/2 sum_s G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
+        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  for (int s = 0; s < 2; ++s)
+                    updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
+                                   !s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
+                                   sign_over_2, false);
+                }
+            }
+      }
+
+      flops += n_loops * 4 * flops_update_atomic;
+      break;
+
     case PARTICLE_HOLE_TRANSVERSE:
-      // G4 = 1/2 <c^+(k1 + k_ex, s) c(k1, -s) c^+(k2, -s) c(k2 + k_ex, s)>
-      //    = -1/2 G(k2 + k_ex, k1 + k_ex, s) G(k1, k2, -s).
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, -s) c^+(k2, -s) c(k2+k_ex, s)>
+      //                  = -1/2 sum_s G(k2+k_ex, k1+k_ex, s) G(k1, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -498,8 +565,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN:
-      // G4 = 1/2 <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
-      //    = 1/2 G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s).
+      // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
+      //                  = 1/2 sum_s G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -535,6 +602,7 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
   // This function performs the following update for each band:
   //
   // G4(k1, k2, w1, w2) += alpha * G(s_a, k1_a, k2_a, w1_a, w2_a) * G(s_b, k1_b, k2_b, w1_b, w2_b)
+  //
   // INTERNAL: would use __restrict__ pointer make sense?
   if (n_bands_ == 1) {
     *G4_ptr += alpha * getGSingleband(s_a, k1_a, k2_a, w1_a, w2_a) *
@@ -570,9 +638,10 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
     const bool cross_legs) {
   // This function performs the following update for each band:
   //
-  // G4(k1, k2, w1, w2) += alpha * (G(up, k1_a, k2_a, w1_a, w2_a)
-  //                       + sign * G(down,k1_a, k2_a, w1_a, w2_a)) *
-  //                          (G(up,k1_b,k2_b,w1_b,w2_b) + sign * G(down,k1_b,k2_b,w1_b,w2_b))
+  // G4(k1, k2, w1, w2) += alpha * [G(up, k1_a, k2_a, w1_a, w2_a)
+  //                                + sign * G(down,k1_a, k2_a, w1_a, w2_a)]
+  //                             * [G(up, k1_b, k2_b, w1_b, w2_b)
+  //                               + sign * G(down, k1_b, k2_b, w1_b, w2_b)]
   if (n_bands_ == 1) {
     *G4_ptr += alpha *
                (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +

@@ -26,6 +26,8 @@ TEST(FourPointParametersTest, DefaultValues) {
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleTransverse());
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleMagnetic());
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleCharge());
+  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpUp());
+  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpDown());
   EXPECT_EQ(false, pars.accumulateG4ParticleParticleUpDown());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
@@ -49,6 +51,8 @@ TEST(FourPointParametersTest, ReadAll) {
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleTransverse());
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleMagnetic());
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleCharge());
+  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpUp());
+  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpDown());
   EXPECT_EQ(true, pars.accumulateG4ParticleParticleUpDown());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
@@ -63,18 +67,24 @@ TEST(FourPointParametersTest, Setters) {
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleTransverse());
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleMagnetic());
   EXPECT_EQ(false, pars.accumulateG4ParticleHoleCharge());
+  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpUp());
+  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpDown());
   EXPECT_EQ(false, pars.accumulateG4ParticleParticleUpDown());
 
   pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
   pars.accumulateG4ParticleHoleTransverse(true);
   pars.accumulateG4ParticleHoleMagnetic(true);
   pars.accumulateG4ParticleHoleCharge(true);
+  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
+  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
   pars.accumulateG4ParticleParticleUpDown(true);
 
   EXPECT_EQ(dca::phys::PARTICLE_HOLE_MAGNETIC, pars.get_four_point_type());
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleTransverse());
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleMagnetic());
   EXPECT_EQ(true, pars.accumulateG4ParticleHoleCharge());
+  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpUp());
+  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpDown());
   EXPECT_EQ(true, pars.accumulateG4ParticleParticleUpDown());
 }
 
@@ -91,4 +101,70 @@ TEST(FourPointParametersTest, AccumulateG4) {
 
   pars.accumulateG4ParticleHoleTransverse(true);
   EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleTransverse(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleCharge(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleCharge(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleMagnetic(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleMagnetic(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpUp(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpDown(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+
+  pars.accumulateG4ParticleParticleUpDown(true);
+  EXPECT_EQ(true, pars.accumulateG4());
+
+  pars.accumulateG4ParticleParticleUpDown(false);
+  EXPECT_EQ(false, pars.accumulateG4());
+}
+
+TEST(FourPointParametersTest, NumG4Channels) {
+  dca::phys::params::FourPointParameters<2> pars;
+
+  EXPECT_EQ(0, pars.numG4Channels());
+
+  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
+  EXPECT_EQ(1, pars.numG4Channels());
+
+  pars.set_four_point_type(dca::phys::NONE);
+  EXPECT_EQ(0, pars.numG4Channels());
+
+  pars.accumulateG4ParticleHoleTransverse(true);
+  EXPECT_EQ(1, pars.numG4Channels());
+
+  pars.accumulateG4ParticleHoleCharge(true);
+  EXPECT_EQ(2, pars.numG4Channels());
+
+  pars.accumulateG4ParticleHoleMagnetic(true);
+  EXPECT_EQ(3, pars.numG4Channels());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
+  EXPECT_EQ(4, pars.numG4Channels());
+
+  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
+  EXPECT_EQ(5, pars.numG4Channels());
+
+  pars.accumulateG4ParticleParticleUpDown(true);
+  EXPECT_EQ(6, pars.numG4Channels());
+
+  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
+  EXPECT_EQ(1, pars.numG4Channels());
 }

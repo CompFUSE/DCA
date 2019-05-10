@@ -1,0 +1,21 @@
+{
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+                  [0, 2]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 4
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 4,
+      "four-point-fermionic-frequencies": 2
+    }
+  },
+
+    "four-point": {
+        "compute-all-transfers": true
+  }
+}
