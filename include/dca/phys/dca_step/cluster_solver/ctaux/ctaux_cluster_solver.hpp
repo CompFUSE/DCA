@@ -280,13 +280,15 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     }
   }
 
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 &&
-      parameters_.get_four_point_type() != NONE)
-    data_.get_G4() /= parameters_.get_beta() * parameters_.get_beta();
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
+    for (auto& G4_channel : data_.get_G4())
+      G4_channel /= parameters_.get_beta() * parameters_.get_beta();
 
-  if (compute_jack_knife_)
-    data_.get_G4_error() = concurrency_.jackknifeError(data_.get_G4(), true);
-
+    if (compute_jack_knife_) {
+      for (std::size_t channel = 0; channel < data_.get_G4().size(); ++channel)
+        data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
+    }
+  }
   double total = 1.e-6, integral = 0;
 
   for (int l = 0; l < accumulator_.get_visited_expansion_order_k().size(); l++) {
@@ -394,15 +396,18 @@ void CtauxClusterSolver<device_t, Parameters, Data>::computeErrorBars() {
   concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
 
   // sum G4
-  if (parameters_.get_four_point_type() != NONE &&
-      dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
     if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
+    // This creates a copy!
     auto G4 = accumulator_.get_sign_times_G4();
-    G4 /= parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign();
 
-    concurrency_.average_and_compute_stddev(G4, data_.get_G4_stdv());
+    for (std::size_t channel = 0; channel < G4.size(); ++channel) {
+      G4[channel] /=
+          parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign();
+      concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
+    }
   }
 }
 
@@ -467,13 +472,16 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
   }
 
   // sum G4
-  if (parameters_.get_four_point_type() != NONE &&
-      dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
     Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
+
     auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
-    collect(G4);
-    G4 /= accumulated_sign_;
+
+    for (auto& G4_channel : G4) {
+      collect(G4_channel);
+      G4_channel /= accumulated_sign_;
+    }
   }
 
   concurrency_.sum(accumulator_.get_visited_expansion_order_k());
@@ -820,8 +828,8 @@ auto CtauxClusterSolver<device_t, Parameters, Data>::local_G_k_w() const {
   return G_k_w_new;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_CLUSTER_SOLVER_HPP

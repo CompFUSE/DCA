@@ -68,8 +68,8 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
     accumulatorHost.accumulate(M, config, sign);
     accumulatorHost.finalize();
 
-    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
-                                                  accumulatorDevice.get_sign_times_G4());
+    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[0],
+                                                  accumulatorDevice.get_sign_times_G4()[0]);
     EXPECT_GT(5e-7, diff.l_inf);
     ++loop_id;
   }

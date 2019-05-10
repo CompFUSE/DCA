@@ -192,7 +192,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
   domains::DCA_iteration_domain::write(writer);
 
-  if (FourPointParameters<Model::DIMENSION>::get_four_point_type() != NONE) {
+  if (FourPointParameters<Model::DIMENSION>::accumulateG4()) {
     domains::vertex_time_domain<domains::SP_TIME_DOMAIN>::write(writer);
     domains::vertex_time_domain<domains::TP_TIME_DOMAIN>::write(writer);
     domains::vertex_time_domain<domains::SP_TIME_DOMAIN_POSITIVE>::write(writer);

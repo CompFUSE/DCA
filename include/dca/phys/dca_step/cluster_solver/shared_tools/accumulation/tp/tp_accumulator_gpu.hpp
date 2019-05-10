@@ -19,6 +19,7 @@
 
 #include <cuda.h>
 #include <mutex>
+#include <vector>
 
 #include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
@@ -107,8 +108,14 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return get_G4().deviceFingerprint() + get_G0()[0].deviceFingerprint() +
-           get_G0()[1].deviceFingerprint();
+    std::size_t res = 0;
+
+    for (const auto& G4_channel : get_G4())
+      res += G4_channel.deviceFingerprint();
+
+    res += get_G0()[0].deviceFingerprint() + get_G0()[1].deviceFingerprint();
+
+    return res;
   }
 
 private:
@@ -122,7 +129,7 @@ private:
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
 
-  using typename BaseClass::TpGreenFunction;
+  using typename BaseClass::TpGreensFunction;
   using typename BaseClass::Complex;
 
   using Matrix = linalg::Matrix<Complex, linalg::GPU>;
@@ -141,7 +148,7 @@ private:
   void computeM(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
                 const std::array<Configuration, 2>& configs);
 
-  void updateG4();
+  void updateG4(const std::size_t channel_index);
 
   void synchronizeStreams();
 
@@ -153,7 +160,6 @@ private:
   using BaseClass::beta_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
-  using BaseClass::mode_;
   using BaseClass::non_density_density_;
   using BaseClass::sign_;
   using BaseClass::extension_index_offset_;
@@ -182,7 +188,7 @@ private:
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
   using G4DevType = linalg::Vector<Complex, linalg::GPU, linalg::util::DeviceAllocator<Complex>>;
-  static inline G4DevType& get_G4();
+  static inline std::vector<G4DevType>& get_G4();
 };
 
 template <class Parameters>
@@ -245,15 +251,18 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
-  auto& G4 = get_G4();
-  try {
-    typename BaseClass::TpDomain tp_dmn;
-    G4.resizeNoCopy(tp_dmn.get_size());
-    G4.setToZeroAsync(streams_[0]);
-  }
-  catch (std::bad_alloc& err) {
-    std::cerr << "Failed to allocate G4 on device.\n";
-    throw(err);
+  get_G4().resize(G4_.size());
+
+  for (auto& G4_channel : get_G4()) {
+    try {
+      typename BaseClass::TpDomain tp_dmn;
+      G4_channel.resizeNoCopy(tp_dmn.get_size());
+      G4_channel.setToZeroAsync(streams_[0]);
+    }
+    catch (std::bad_alloc& err) {
+      std::cerr << "Failed to allocate G4 on device.\n";
+      throw(err);
+    }
   }
 }
 
@@ -289,7 +298,9 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
   sign_ = sign;
   computeM(M, configs);
   computeG();
-  updateG4();
+
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+    updateG4(channel);
 }
 
 template <class Parameters>
@@ -359,7 +370,7 @@ void TpAccumulator<Parameters, linalg::GPU>::computeGMultiband(const int s) {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
+void TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel_index) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -373,33 +384,38 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
 
-  switch (mode_) {
+  // Strip "G4_" prefix from G4 name and convert to FourPointType.
+  const std::string channel_str =
+      G4_[channel_index].get_name().substr(3, G4_[channel_index].get_name().size() - 3);
+  const FourPointType channel = stringToFourPointType(channel_str);
+
+  switch (channel) {
     case PARTICLE_HOLE_MAGNETIC:
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
-          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
       details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
-          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
       details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
-          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
       details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
-          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, streams_[0]);
       break;
     default:
-      throw(std::logic_error("Mode non supported."));
+      throw std::logic_error("Specified four point type not implemented.");
   }
 }
 
@@ -408,9 +424,8 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  G4_ = std::make_unique<TpGreenFunction>("G4");
-
-  get_G4().copyTo(*G4_);
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+    get_G4()[channel].copyTo(G4_[channel]);
 
   // TODO: release memory if needed by the rest of the DCA loop.
   // get_G4().clear();
@@ -440,15 +455,15 @@ typename TpAccumulator<Parameters, linalg::GPU>::G0DevType& TpAccumulator<Parame
 }
 
 template <class Parameters>
-typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parameters,
-                                                                          linalg::GPU>::get_G4() {
-  static G4DevType G4;
+std::vector<typename TpAccumulator<Parameters, linalg::GPU>::G4DevType>& TpAccumulator<
+    Parameters, linalg::GPU>::get_G4() {
+  static std::vector<G4DevType> G4;
   return G4;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP
