@@ -110,7 +110,7 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<std::complex<double>,

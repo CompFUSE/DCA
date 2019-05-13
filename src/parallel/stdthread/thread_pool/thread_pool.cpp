@@ -12,10 +12,17 @@
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
+#include "mpi.h"
+
+#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
+
 namespace dca {
 namespace parallel {
 
 ThreadPool::ThreadPool(size_t n_threads) : stop_(false), active_id_(0) {
+  core_count_ = get_core_count();
+  master_affinity_ = get_affinity();
+
   enlarge(n_threads);
 }
 
@@ -55,6 +62,14 @@ void ThreadPool::enlarge(size_t n_threads) {
 }
 
 void ThreadPool::workerLoop(int id) {
+  // Set affinity.
+  const int shift = core_count_ * id;
+  std::vector<int> affinities;
+  for (int x : master_affinity_)
+    affinities.push_back(x + shift);
+
+  set_affinity(affinities);
+
   while (true) {
     std::packaged_task<void()> task;
 
@@ -72,5 +87,5 @@ void ThreadPool::workerLoop(int id) {
   }
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca

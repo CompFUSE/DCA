@@ -140,6 +140,7 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   symmetrization
+  system
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
@@ -205,7 +206,18 @@ endif()
 # Build applications.
 add_subdirectory(applications)
 
+################################################################################
+# Cooldown scrpts
+file(COPY ${CMAKE_SOURCE_DIR}/tools/cooldown DESTINATION ${CMAKE_BINARY_DIR}/)
+
+################################################################################
+# Scaling scrpts
+file(GLOB MY_FILES ${CMAKE_SOURCE_DIR}/applications/scaling/*)
+file(COPY ${MY_FILES} DESTINATION ${CMAKE_BINARY_DIR}/scaling/)
+
+
 ###############################################################################
 # Generate a .cpp file with DCA++'s CMake options and their values.
 configure_file("${PROJECT_SOURCE_DIR}/src/config/cmake_options.cpp.in"
   "${PROJECT_BINARY_DIR}/src/config/cmake_options.cpp" @ONLY)
+

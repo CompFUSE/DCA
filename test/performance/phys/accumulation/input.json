@@ -10,14 +10,14 @@
         [0, 6]]
     },
     "imaginary-frequency": {
-      "sp-fermionic-frequencies": 256,
-      "four-point-fermionic-frequencies" : 32
+      "sp-fermionic-frequencies": 1032,
+      "four-point-fermionic-frequencies" : 64
     }
   },
 
   "four-point": {
     "type": "PARTICLE_PARTICLE_UP_DOWN",
-    "momentum-transfer": [0., 0],
+    "compute-all-transfers": true,
     "frequency-transfer": 0
   }
 }

@@ -177,23 +177,23 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
   for (int i = 0; i < G4.size(); i++) {
     G4.linind_2_subind(i, coor_2);
 
-    // coordinate  0 1 2 3 4 5 6   7 8 9
-    // G4        : b b b b k k k_ex w w w_ex
-    // G_II      : b b k w b b k   w
+    // coordinate  0 1 2 3 4 5 6 7 8    9
+    // G4        : b b b b k w k w k_ex w_ex
+    // G_II      : b b k w b b k w
 
     coor_1[0] = coor_2[0];
     coor_1[1] = coor_2[1];
     coor_1[2] = coor_2[4];  // k_1
-    coor_1[3] = coor_2[7];  // w_1
+    coor_1[3] = coor_2[5];  // w_1
     coor_1[4] = coor_2[2];
     coor_1[5] = coor_2[3];
-    coor_1[6] = coor_2[5];  // k_2
-    coor_1[7] = coor_2[8];  // w_2
+    coor_1[6] = coor_2[6];  // k_2
+    coor_1[7] = coor_2[7];  // w_2
 
     // Note: only the first momentum and frequency exchange (7th and 10th index of G4) are analyzed.
     G_II(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7]) =
-        G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], 0, coor_2[7],
-           coor_2[8], 0);
+        G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7],
+           0, 0);
   }
 
   delete[] coor_1;

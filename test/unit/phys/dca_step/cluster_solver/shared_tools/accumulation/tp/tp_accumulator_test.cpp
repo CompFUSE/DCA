@@ -44,7 +44,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  Data::ReducedTpGreensFunction G4_check("G4");
+  Data::TpGreensFunction G4_check("G4");
 
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
@@ -83,7 +83,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
       G4_check.set_name(func_names[type]);
       reader.execute(G4_check);
       const auto diff = dca::func::util::difference(G4, G4_check);
-      EXPECT_GT(1e-8, diff.l_inf);
+      EXPECT_GT(5e-7, diff.l_inf);
     }
   }
 

@@ -283,6 +283,51 @@ void inverse(MatrixType<ScalarType, device_name>& mat) {
   inverse(mat, ipiv, work);
 }
 
+template <class ScalarType>
+void smallInverse(Matrix<ScalarType, CPU>& m_inv, Vector<int, CPU>& ipiv,
+                  Vector<ScalarType, CPU>& work) {
+  assert(m_inv.is_square());
+  switch (m_inv.nrCols()) {
+    case 1:
+      m_inv(0, 0) = ScalarType(1.) / m_inv(0, 0);
+      break;
+    case 2: {
+      const Matrix<ScalarType, CPU> m(m_inv);
+      const ScalarType det = m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
+      m_inv(0, 0) = m(1, 1) / det;
+      m_inv(1, 1) = m(0, 0) / det;
+      m_inv(0, 1) = -m(1, 0) / det;
+      m_inv(1, 0) = -m(0, 1) / det;
+      break;
+    }
+    case 3: {
+      const Matrix<ScalarType, CPU> m(m_inv);
+      const ScalarType det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+                             m(1, 0) * (m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) +
+                             m(2, 0) * (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1));
+      m_inv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) / det;
+      m_inv(0, 1) = -(m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) / det;
+      m_inv(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) / det;
+      m_inv(1, 0) = -(m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) / det;
+      m_inv(1, 1) = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) / det;
+      m_inv(1, 2) = -(m(0, 0) * m(1, 2) - m(1, 0) * m(0, 2)) / det;
+      m_inv(2, 0) = (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0)) / det;
+      m_inv(2, 1) = -(m(0, 0) * m(2, 1) - m(0, 1) * m(2, 0)) / det;
+      m_inv(2, 2) = (m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0)) / det;
+      break;
+    }
+    default:
+      inverse(m_inv, ipiv, work);
+  }
+}
+
+template <class ScalarType>
+void smallInverse(Matrix<ScalarType, CPU>& m_inv) {
+  Vector<int, CPU> ipiv;
+  Vector<ScalarType, CPU> work;
+  smallInverse(m_inv, ipiv, work);
+}
+
 // Computes in place the inverse of mat and the determinant of the inverse.
 // In/Out: mat
 // Returns: the determinant of mat^-1

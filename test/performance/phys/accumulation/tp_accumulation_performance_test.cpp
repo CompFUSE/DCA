@@ -61,16 +61,16 @@ using dca::linalg::CPU;
 using dca::linalg::GPU;
 
 using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+    dca::phys::models::TightBindingModel<dca::phys::models::square_lattice<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
-using Real = Parameters::MC_measurement_scalar_type;
+using Real = Parameters::TP_measurement_scalar_type;
 template <dca::linalg::DeviceType device>
-using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
+using MatrixPair = std::array<dca::linalg::Matrix<double, device>, 2>;
 using Configuration = std::array<std::vector<ConfigElement>, 2>;
 
 void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);

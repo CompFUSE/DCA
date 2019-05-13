@@ -21,6 +21,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fermionic_overlap_matrices.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fock_space.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/c_operator.hpp"
@@ -91,6 +92,9 @@ public:
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
+  using Data = DcaData<parameters_type>;
+  using TpGreensFunctionData = typename Data::TpGreensFunction;
+
 public:
   TpGreensFunction(const parameters_type &parameters_ref,
                    fermionic_Hamiltonian_type &Hamiltonian_ref,
@@ -101,14 +105,8 @@ public:
 
   void compute_two_particle_Greens_function(bool interacting);
 
-  void compute_particle_particle_superconducting_A(
-      func::function<complex_type,
-                     func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                        KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4);
-  void compute_particle_particle_superconducting_B(
-      func::function<complex_type,
-                     func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                        KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4);
+  void compute_particle_particle_superconducting_A(TpGreensFunctionData& G4);
+  void compute_particle_particle_superconducting_B(TpGreensFunctionData& G4);
 
   void compute_two_particle_Greens_function(
       func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
@@ -183,10 +181,10 @@ private:
   func::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
   func::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
 
-  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
-                                         b_s_r_dmn_type>>& creation_set_all;
-  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
-                                         b_s_r_dmn_type>>& annihilation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
+      creation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
+      annihilation_set_all;
 
   func::function<int, KClusterDmn> min_k_dmn_t;
   func::function<int, KClusterDmn> q_plus_;
@@ -327,9 +325,7 @@ void TpGreensFunction<parameters_type, ed_options>::write(Writer& writer) {
 */
 template <typename parameters_type, typename ed_options>
 void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_A(
-    func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                      KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4) {
+    TpGreensFunctionData& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
@@ -365,7 +361,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
                       //                         int w2 = min_w_vertex_ext(wn_ext);
                       //                         int w3 = wm_ext;
 
-                      G4(b_0, b_1, b_2, b_3, 0, 0, 0, wn, wm, w_nu_idx) +=
+                      G4(b_0, b_1, b_2, b_3, 0, wn, 0, wm, w_nu_idx, 0, 0) +=
                           G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
                     }
                   }
@@ -387,10 +383,10 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
         for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-          if (std::abs(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+          if (std::abs(real(G4(0, 0, 0, 0, 0, wn, 0, wm, w_nu_idx, 0, 0))) < 1.e-10)
             std::cout << 0.0 << "\t";
           else
-            std::cout << real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+            std::cout << real(G4(0, 0, 0, 0, 0, wn, 0, wm, w_nu_idx, 0, 0)) << "\t";
         std::cout << "\n";
       }
       std::cout << "\n";
@@ -407,7 +403,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
           if (std::abs(imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
             std::cout << 0.0 << "\t";
           else
-            std::cout << imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+            std::cout << imag(G4(0, 0, 0, 0, 0, wn, 0, wm, w_nu_idx, 0, 0)) << "\t";
         std::cout << "\n";
       }
       std::cout << "\n";
@@ -418,7 +414,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wn, 0)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, wn, 0, wn, 0, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -428,7 +424,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn, 0)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, wn, 0, w_VERTEX::dmn_size() - 1 - wn, 0, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -455,9 +451,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
 */
 template <typename parameters_type, typename ed_options>
 void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_B(
-    func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                      KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4) {
+    TpGreensFunctionData& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -494,7 +488,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
                       //                         int w3 = wm_ext;
 
                       // TODO check if ignoring the momentum is correct.
-                      G4(b_0, b_1, b_2, b_3, 0, 0, 0, wn, wm, w_nu_idx) +=
+                      G4(b_0, b_1, b_2, b_3, 0, wn, 0, wm, 0, w_nu_idx) +=
                           G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
                     }
                   }
@@ -515,10 +509,10 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
         for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-          if (abs(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+          if (abs(real(G4(0, 0, 0, 0, wn, 0, wm, 0, w_nu_idx))) < 1.e-10)
             std::cout << 0.0 << "\t";
           else
-            std::cout << real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+            std::cout << real(G4(0, 0, 0, 0, 0, wn, 0, wm, 0, w_nu_idx)) << "\t";
         std::cout << "\n";
       }
       std::cout << "\n";
@@ -532,10 +526,10 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
         for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-          if (abs(imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+          if (abs(imag(G4(0, 0, 0, 0, 0, wn, 0, wm, 0, w_nu_idx))) < 1.e-10)
             std::cout << 0.0 << "\t";
           else
-            std::cout << imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+            std::cout << imag(G4(0, 0, 0, 0, 0, wn, 0, wm, 0, w_nu_idx)) << "\t";
         std::cout << "\n";
       }
       std::cout << "\n";
@@ -546,7 +540,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wn, 0)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, wn, 0, wn, 0, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -556,7 +550,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, wn, 0, w_VERTEX::dmn_size() - 1 - wn, 0, 0)));
       }
 
       util::Plot::plotPoints(x, y);

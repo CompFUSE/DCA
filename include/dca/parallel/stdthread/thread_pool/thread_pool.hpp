@@ -70,6 +70,9 @@ private:
   std::vector<std::unique_ptr<std::condition_variable>> condition_;
   std::atomic<bool> stop_;
   std::atomic<unsigned int> active_id_;
+
+  int core_count_;
+  std::vector<int> master_affinity_;
 };
 
 template <class F, class... Args>
