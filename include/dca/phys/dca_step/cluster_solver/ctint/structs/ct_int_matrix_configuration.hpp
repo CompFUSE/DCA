@@ -32,7 +32,7 @@ struct Vertex {
   ushort interaction_id;
   double tau;
 
-  bool operator==(const Vertex& b) const{
+  bool operator==(const Vertex& b) const {
     return aux_spin == b.aux_spin && interaction_id == b.interaction_id && tau == b.tau;
   }
 };
@@ -60,6 +60,10 @@ public:
 
   const std::array<Sector, 2>& get_sectors() const {
     return sectors_;
+  }
+
+  bool operator==(const MatrixConfiguration& rhs) const{
+    return sectors_ == rhs.sectors_;
   }
 
 protected:
@@ -153,9 +157,9 @@ void MatrixConfiguration::swapSectorLabels(const int a, const int b, const int s
   std::swap(sectors_[s].entries_[a], sectors_[s].entries_[b]);
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_CT_INT_MATRIX_CONFIGURATION_HPP

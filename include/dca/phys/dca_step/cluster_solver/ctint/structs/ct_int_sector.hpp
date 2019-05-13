@@ -67,6 +67,10 @@ public:
     return entries_[i].aux_field_type_;
   }
 
+  bool operator==(const Sector& rhs) const {
+    return entries_ == rhs.entries_;
+  }
+
 protected:
   linalg::util::HostVector<details::SectorEntry> entries_;
 };

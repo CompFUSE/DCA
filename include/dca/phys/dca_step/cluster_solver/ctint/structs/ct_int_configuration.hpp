@@ -15,6 +15,7 @@
 #include <array>
 #include <vector>
 
+#include "dca/io/buffer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/linalg/device_type.hpp"
@@ -36,6 +37,8 @@ public:
 
   inline SolverConfiguration& operator=(const SolverConfiguration& other);
   inline SolverConfiguration& operator=(SolverConfiguration&& other);
+
+  bool operator==(const SolverConfiguration& rhs) const;
 
   template <class RngType>
   void insertRandom(RngType& rng);
@@ -94,6 +97,9 @@ public:
 
   inline std::array<int, 2> sizeIncrease() const;
 
+  friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
+  friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
+
 private:
   inline void addSectorSizes(int idx, std::array<int, 2>& sizes) const;
 
@@ -110,8 +116,7 @@ protected:
   const int n_bands_ = 0;
 };
 
-SolverConfiguration& SolverConfiguration::operator=(
-    const SolverConfiguration& other) {
+SolverConfiguration& SolverConfiguration::operator=(const SolverConfiguration& other) {
   BaseClass::operator=(other);
   H_int_ = other.H_int_;
   vertices_ = other.vertices_;
@@ -119,8 +124,7 @@ SolverConfiguration& SolverConfiguration::operator=(
   return *this;
 }
 
-SolverConfiguration& SolverConfiguration::operator=(
-    SolverConfiguration&& other) {
+SolverConfiguration& SolverConfiguration::operator=(SolverConfiguration&& other) {
   H_int_ = other.H_int_;
   BaseClass::operator=(other);
   vertices_ = std::move(other.vertices_);
@@ -128,8 +132,8 @@ SolverConfiguration& SolverConfiguration::operator=(
 }
 
 SolverConfiguration::SolverConfiguration(const double beta, const int n_bands,
-                                                           const InteractionVertices& H_int,
-                                                           const double double_insertion)
+                                         const InteractionVertices& H_int,
+                                         const double double_insertion)
     : MatrixConfiguration(&H_int, n_bands),
       double_insertion_prob_(double_insertion),
 
@@ -166,9 +170,9 @@ std::pair<short, short> SolverConfiguration::randomRemovalCandidate(RngType& rng
   std::pair<short, short> candidates(rng() * size(), -1);
   if (double_insertion_prob_) {
     const int partner_id = (*H_int_)[vertices_[candidates.first].interaction_id].partner_id;
-    if (partner_id != -1  and rng() < double_insertion_prob_) {
+    if (partner_id != -1 and rng() < double_insertion_prob_) {
       const std::size_t n_partners = existing_[partner_id].size();
-      if(n_partners)
+      if (n_partners)
         candidates.second = existing_[partner_id][int(rng() * n_partners)];
     }
   }
@@ -203,9 +207,8 @@ void SolverConfiguration::push_back(const Vertex& v) {
 
 void SolverConfiguration::pop(const int n) {
   assert(n <= (int)size());
-  assert(n == 1 or
-         (*H_int_)[vertices_[size() - 2].interaction_id].partner_id ==
-             vertices_[size() - 1].interaction_id);
+  assert(n == 1 or (*H_int_)[vertices_[size() - 2].interaction_id].partner_id ==
+                       vertices_[size() - 1].interaction_id);
   if (double_insertion_prob_) {
     for (int i = 1; i <= n; ++i) {
       // TODO improve.
@@ -239,8 +242,7 @@ void SolverConfiguration::addSectorSizes(int idx, std::array<int, 2>& sizes) con
   ++sizes[spin(nu[2])];
 }
 
-std::vector<ushort> SolverConfiguration::findIndices(const int index,
-                                                                       const int s) const {
+std::vector<ushort> SolverConfiguration::findIndices(const int index, const int s) const {
   const double tau = vertices_[index].tau;
   return BaseClass::findIndices(tau, s);
 }
@@ -261,9 +263,22 @@ int SolverConfiguration::occupationNumber(const Vertex& vertex) const {
   return existing_[vertex.interaction_id].size();
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+inline bool SolverConfiguration::operator==(const SolverConfiguration& rhs) const {
+  bool result = true;
+  result &= vertices_ == rhs.vertices_;
+  result &= existing_ == rhs.existing_;
+  result &= max_tau_ == rhs.max_tau_;
+  result &= n_bands_ == rhs.n_bands_;
+  result &= double_insertion_prob_ == rhs.double_insertion_prob_;
+
+  result &= static_cast<BaseClass>(*this) == static_cast<BaseClass>(rhs);
+
+  return result;
+}
+
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_CT_INT_CONFIGURATION_HPP

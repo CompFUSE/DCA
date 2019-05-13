@@ -30,7 +30,7 @@ private:
   constexpr static int max_threads_ = 32;
 
   constexpr static int nb_time_counter_ = time_event<long long int>::NB_TIME_COUNTERS;
-  constexpr static int nb_papi_counter_ = 2;
+  constexpr static int nb_papi_counter_ = 3;
 
   // Set of events to record and their name.
   const static std::array<int, nb_papi_counter_> papi_event_types_;

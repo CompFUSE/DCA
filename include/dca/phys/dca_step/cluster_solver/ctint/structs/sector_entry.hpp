@@ -40,6 +40,11 @@ struct SectorEntry {
     return tau_;
   }
 
+  bool operator==(const SectorEntry& rhs) const {
+    return b_left_ == rhs.b_left_ && r_left_ == rhs.r_left_ && b_right_ == rhs.b_right_ &&
+           r_left_ == rhs.r_left_ && tau_ == rhs.tau_ && aux_field_type_ == rhs.aux_field_type_;
+  }
+
   ushort b_left_;
   ushort r_left_;
   ushort b_right_;
@@ -48,10 +53,10 @@ struct SectorEntry {
   short aux_field_type_;
 };
 
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_SECTOR_ENTRY_HPP

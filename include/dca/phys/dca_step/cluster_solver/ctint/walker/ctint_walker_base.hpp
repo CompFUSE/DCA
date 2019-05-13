@@ -116,13 +116,15 @@ public:
     return 0;
   };
 
-  // TODO: Implement
   io::Buffer dumpConfig() const {
-    return io::Buffer();
+    io::Buffer buff;
+    buff << configuration_;
+    return buff;
   }
 
-  // TODO: implement
-  void readConfig(const io::Buffer& /*buff*/) {}
+  void readConfig(io::Buffer& buff) {
+    buff >> configuration_;
+  }
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>

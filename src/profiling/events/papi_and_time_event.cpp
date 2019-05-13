@@ -19,9 +19,9 @@ namespace profiling {
 // dca::profiling::
 
 const std::array<int, PapiAndTimeEvent::nb_papi_counter_> PapiAndTimeEvent::papi_event_types_{
-    PAPI_TOT_INS, PAPI_FP_OPS};
+    PAPI_L1_TCM, PAPI_L2_TCM, PAPI_L3_TCM};
 const std::array<std::string, PapiAndTimeEvent::nb_papi_counter_> PapiAndTimeEvent::papi_event_names_{
-    "PAPI_TOT_INS", "PAPI_FP_OPS"};
+    "PAPI_L1_TCM", "PAPI_L2_TCM", "PAPI_L3_TCM"};
 
 void PapiAndTimeEvent::start() {
   static std::once_flag flag;
