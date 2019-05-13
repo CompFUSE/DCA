@@ -206,8 +206,10 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       total_interaction_(vertices_.integratedInteraction()) {
   assert(total_interaction_);
 
-  while (parameters_.getInitialConfigurationSize() > configuration_.size())
-    configuration_.insertRandom(rng_);
+  if(!configuration_.size()) { // Do not initialize if it was already done.
+    while (parameters_.getInitialConfigurationSize() > configuration_.size())
+      configuration_.insertRandom(rng_);
+  }
 
   setMFromConfig();
 }

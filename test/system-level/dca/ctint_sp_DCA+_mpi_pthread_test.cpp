@@ -18,11 +18,11 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -42,13 +42,13 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::parallel::Pthreading;
+  using Threading = dca::parallel::stdthread;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
                                     dca::phys::solver::CT_INT>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
-  using ClusterSolverType = dca::phys::solver::PosixQmciClusterSolver<
+  using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<
       dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType>>;
   using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
 
@@ -119,8 +119,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv,
-      DCA_SOURCE_DIR "/test/system-level/dca/input.ctint_sp_DCA+_mpi_pthread_test.json");
+      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.ctint_sp_DCA+_mpi_pthread_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
