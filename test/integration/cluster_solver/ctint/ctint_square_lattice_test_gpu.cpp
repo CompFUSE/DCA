@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Confront GPU and CPU runs with CT-INT, no submatrix algorithm is used.
+// Confront GPU and CPU runs with CT-INT.
 // Model: square lattice with single band and double occupancy repulsion U.
 
 #include <cuda_profiler_api.h>
@@ -58,7 +58,6 @@ TEST(SquareLatticeTest, GpuSolver) {
 
   Data data_gpu(parameters);
   data_gpu.initialize();
-
   dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters, true> qmc_solver_gpu(
       parameters, data_gpu);
   qmc_solver_gpu.initialize(0);
@@ -71,11 +70,9 @@ TEST(SquareLatticeTest, GpuSolver) {
   // Confront with CPU run.
   Data data_cpu(parameters);
   data_cpu.initialize();
-
   RngType::resetCounter();  // Use the same random numbers.
   dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true> qmc_solver_cpu(
       parameters, data_cpu);
-
   qmc_solver_cpu.initialize();
   qmc_solver_cpu.integrate();
   qmc_solver_cpu.finalize();

@@ -28,8 +28,15 @@
     },
 
     "imaginary-frequency": {
-      "sp-fermionic-frequencies": 512
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies": 4
     }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "momentum-transfer": [0., 0.],
+    "frequency-transfer": -1
   },
 
 
@@ -41,7 +48,8 @@
 
   "CT-INT" : {
     "initial-configuration-size" :5,
-    "alpha-dd-pos" : 0.501
+    "alpha-dd-pos" : 0.501,
+    "max-submatrix-size": 4
   },
 
   "DCA": {

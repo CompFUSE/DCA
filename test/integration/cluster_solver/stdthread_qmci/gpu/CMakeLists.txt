@@ -7,7 +7,7 @@ dca_add_gtest(stdthread_ctaux_gpu_tp_test
   LIBS ${DCA_LIBS}
   )
 
-dca_add_gtest(stdthread_ctint_gpu_test
+dca_add_gtest(stdthread_ctint_gpu_tp_test
   EXTENSIVE
   CUDA
   GTEST_MAIN

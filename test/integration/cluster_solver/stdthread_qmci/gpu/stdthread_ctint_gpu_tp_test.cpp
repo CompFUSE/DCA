@@ -3,7 +3,7 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
@@ -37,7 +37,7 @@
 
 constexpr bool UPDATE_RESULTS = false;
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/gpu/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -54,6 +54,7 @@ using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver<devic
 
 TEST(StdthreadCtintGpuTest, GpuVsCpu) {
   Concurrency concurrency(0, nullptr);
+  dca::linalg::util::initializeMagma();
 
   Parameters parameters("", concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "threaded_input.json");
@@ -65,10 +66,6 @@ TEST(StdthreadCtintGpuTest, GpuVsCpu) {
   data_cpu.initialize();
   data_gpu.initialize();
 
-  QmcSolver<dca::linalg::CPU> qmc_solver_cpu(parameters, data_cpu);
-  RngType::resetCounter();  // Use the same seed for both solvers.
-  QmcSolver<dca::linalg::GPU> qmc_solver_gpu(parameters, data_gpu);
-
   // Do one integration step.
   auto perform_integration = [&](auto& solver) {
     solver.initialize(0);
@@ -76,8 +73,13 @@ TEST(StdthreadCtintGpuTest, GpuVsCpu) {
     dca::phys::DcaLoopData<Parameters> loop_data;
     solver.finalize(loop_data);
   };
-  perform_integration(qmc_solver_cpu);
+
+  QmcSolver<dca::linalg::GPU> qmc_solver_gpu(parameters, data_gpu);
   perform_integration(qmc_solver_gpu);
+
+  RngType::resetCounter();  // Use the same seed for both solvers.
+  QmcSolver<dca::linalg::CPU> qmc_solver_cpu(parameters, data_cpu);
+  perform_integration(qmc_solver_cpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
   const auto err_g4 = dca::func::util::difference(data_cpu.get_G4(), data_gpu.get_G4());

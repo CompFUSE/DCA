@@ -27,13 +27,11 @@
       "k-mesh-recursion": 3,
       "periods": 2,
       "quadrature-rule": 1,
-      "threads": 1
+      "threads": 4
     },
 
     "DCA+": {
-      "do-DCA+": true,
-      "deconvolution-iterations": 16,
-      "deconvolution-tolerance": 0.01
+      "do-DCA+": false
     }
   },
 
@@ -46,34 +44,34 @@
     },
 
     "imaginary-time": {
-      "sp-time-intervals": 128
+      "sp-time-intervals": 256
     },
 
     "imaginary-frequency": {
-      "sp-fermionic-frequencies": 128
+      "sp-fermionic-frequencies": 256
     }
   },
 
   "Monte-Carlo-integration": {
     "seed": 42,
     "warm-up-sweeps": 200,
-    "sweeps-per-measurement": 1.,
-    "measurements-per-process-and-accumulator": 2000,
+    "sweeps-per-measurement": 1,
+    "measurements": 2000,
 
     "error-computation-type" : "JACK_KNIFE",
 
     "threaded-solver": {
       "walkers": 1,
       "accumulators": 3,
-      "additional-steps": 0,
       "shared-walk-and-accumulation-thread": false
     }
   },
 
   "CT-INT" :
   {
-    "initial-configuration-size" :10,
-    "alpha-dd-pos" : 0.501
+    "initial-configuration-size" : 10,
+    "alpha-dd-pos" : 0.501,
+    "max-submatrix-size" : 4
   }
 }
 

@@ -93,7 +93,7 @@ public:
     return double(n_accepted_) / double(n_steps_);
   }
 
-  void initialize() {}
+  void initialize();
 
   const auto& get_configuration() const {
     return configuration_;
@@ -203,10 +203,12 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
                      parameters_.getDoubleUpdateProb()),
 
       beta_(parameters_.get_beta()),
-      total_interaction_(vertices_.integratedInteraction()) {
-  assert(total_interaction_);
+      total_interaction_(vertices_.integratedInteraction()) {}
 
-  if(!configuration_.size()) { // Do not initialize if it was already done.
+template <class Parameters>
+void CtintWalkerBase<Parameters>::initialize() {
+  assert(total_interaction_);
+  if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size())
       configuration_.insertRandom(rng_);
   }

@@ -37,7 +37,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/gpu/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/gpu/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -73,10 +73,6 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   data_cpu.initialize();
   data_gpu.initialize();
 
-  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
-  RngType::resetCounter();  // Use the same seed for both solvers.
-  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
-
   // Do one integration step.
   auto perform_integration = [&](auto& solver) {
     solver.initialize(0);
@@ -84,7 +80,11 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
     dca::phys::DcaLoopData<Parameters> loop_data;
     solver.finalize(loop_data);
   };
+  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
   perform_integration(qmc_solver_cpu);
+
+  RngType::resetCounter();  // Use the same seed for both solvers.
+  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
   perform_integration(qmc_solver_gpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);

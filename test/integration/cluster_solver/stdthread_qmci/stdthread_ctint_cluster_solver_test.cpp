@@ -54,10 +54,6 @@ void performTest(const std::string& input, const std::string& baseline) {
   static bool update_model = true;
 
   Concurrency concurrency(0, nullptr);
-  if (concurrency.id() == concurrency.first()) {
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
-  }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input);

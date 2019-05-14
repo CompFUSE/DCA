@@ -1,11 +1,11 @@
-// Copyright (C) 2018 ETH Zurich
 // Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2018 ETH Zurich
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
@@ -46,6 +46,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   Walker::setInteractionVertices(parameters_, *data_);
 
   Walker walker(parameters_, rng);
+  walker.initialize();
 
   // *******************************
   // Test vertex removal ***********

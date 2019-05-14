@@ -119,6 +119,8 @@ template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ = parameters_.get_four_point_type() != NONE &&
                              dca_iteration == parameters_.get_dca_iterations() - 1;
+  total_sign_ = 0;
+  total_meas_ = 0;
 
   sp_accumulator_.resetAccumulation();
   if (perform_tp_accumulation_)
@@ -200,9 +202,9 @@ const auto& CtintAccumulator<Parameters, device>::get_sign_times_G4() const {
   return tp_accumulator_.get_sign_times_G4();
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_ACCUMULATOR_CTINT_ACCUMULATOR_HPP

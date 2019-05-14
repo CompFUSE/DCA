@@ -91,7 +91,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
     //  Write results
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file("hund_lattice_baseline.hdf5");
+      writer.open_file(input_dir + "hund_lattice_baseline.hdf5");
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();

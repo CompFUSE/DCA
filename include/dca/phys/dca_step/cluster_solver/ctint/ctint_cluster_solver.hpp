@@ -180,6 +180,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   walker_ = std::make_unique<Walker>(parameters_, data_, rng_, 0);
+  walker_->initialize();
 
   dca::profiling::WallTime start_time;
   auto getTime = [&]() {

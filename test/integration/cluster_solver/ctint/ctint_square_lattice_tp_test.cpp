@@ -9,6 +9,8 @@
 //
 // No-change test for CT-INT.
 // Square lattice with single band and double occupancy repulsion U.
+#define DCA_WITH_CUDA
+
 
 #include <iostream>
 #include <string>
@@ -74,22 +76,26 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
   dca::phys::DcaLoopData<Parameters> loop_data;
   qmc_solver.finalize(loop_data);
 
-  if (not update_baseline) {
+  if (!update_baseline) {
     // Read and confront with previous run
-    Data::SpGreensFunction G4_check(data.get_G4().get_name());
+    Data::TpGreensFunction G4_check(data.get_G4().get_name());
+    Data::SpGreensFunction G_check(data.G_k_w.get_name());
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     reader.open_group("functions");
     reader.execute(G4_check);
+    reader.execute(G_check);
     reader.close_group(), reader.close_file();
 
-    const auto diff = dca::func::util::difference(G4_check, data.get_G4());
-    EXPECT_GE(5e-7, diff.l_inf);
+    const auto diff_g = dca::func::util::difference(G_check, data.G_k_w);
+    const auto diff_g4 = dca::func::util::difference(G4_check, data.get_G4());
+    EXPECT_GE(5e-7, diff_g.l_inf);
+    EXPECT_GE(5e-7, diff_g4.l_inf);
   }
   else {
     //  Write results
     dca::io::HDF5Writer writer;
-    writer.open_file("square_lattice_tp_baseline.hdf5");
+    writer.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     writer.open_group("functions");
     writer.execute(data.get_G4());
     writer.execute(data.G_k_w);

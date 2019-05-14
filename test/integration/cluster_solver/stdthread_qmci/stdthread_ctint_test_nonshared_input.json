@@ -34,13 +34,13 @@
   },
 
   "four-point": {
-    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "type": "NONE",
     "momentum-transfer": [0, 3.1415],
     "frequency-transfer": -1
   },
 
   "CT-INT" : {
-    "initial-configuration-size" :5,
+    "max-submatrix-size" : 4,
     "alpha-dd-pos" : 0.501
   },
 

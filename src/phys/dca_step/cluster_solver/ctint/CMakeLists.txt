@@ -21,9 +21,9 @@ if (DCA_HAVE_CUDA)
       )
   target_compile_definitions(ctint_kernels PUBLIC  "-DDCA_HAVE_CUDA")
 
-  target_compile_definitions(ctint PRIVATE "-DDCA_HAVE_CUDA")
+  target_compile_definitions(ctint PUBLIC "-DDCA_HAVE_CUDA")
   target_include_directories(ctint PRIVATE ${MAGMA_INCLUDE_DIR})
-  target_link_libraries(ctint PRIVATE ${CUDA_CUDART_LIBRARY})
+  target_link_libraries(ctint PUBLIC ${CUDA_CUDART_LIBRARY};cuda_utils)
 endif()
 
 

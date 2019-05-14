@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-//
+// No-change test for a full DCA loop with a threaded ct-int solver.
 
 #include <iostream>
 #include <string>
@@ -33,7 +33,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -77,14 +77,17 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   dca_loop.finalize();
 
   if (concurrency.id() == concurrency.first()) {
-    if (not UPDATE_RESULTS) {
+    const std::string baseline_name =
+        DCA_SOURCE_DIR "/test/system-level/dca/baseline_ctint_sp_DCA_mpi_thread_test.hdf5";
+
+    if (not update_baseline) {
       std::cout << "\nProcessor " << concurrency.id() << " is checking data " << std::endl;
 
       // Read self-energy from check_data file.
       decltype(dca_data.Sigma) Sigma_check(dca_data.Sigma.get_name());
       dca::io::HDF5Reader reader;
+      reader.open_file(baseline_name);
       reader.open_group("functions");
-      reader.open_file("data.ctint_sp_DCA+_mpi_pthread_test.hdf5");
       reader.execute(Sigma_check);
       reader.close_group();
       reader.close_file();
@@ -98,10 +101,11 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     else {
       //  Write results
       dca::io::HDF5Writer writer;
-      writer.open_file("check_data.ctint_sp_DCA+_mpi_pthread_test.hdf5");
+      writer.open_file(baseline_name);
       writer.open_group("functions");
       writer.execute(dca_data.Sigma);
-      writer.close_group(), writer.close_file();
+      writer.close_group();
+      writer.close_file();
     }
   }
 
@@ -119,7 +123,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.ctint_sp_DCA+_mpi_pthread_test.json");
+      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.ctint_sp_DCA_mpi_thread_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
