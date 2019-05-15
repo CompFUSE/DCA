@@ -38,8 +38,7 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters>
-class CtintWalkerSubmatrix<linalg::CPU, Parameters>
-    : public CtintWalkerBase<Parameters> {
+class CtintWalkerSubmatrix<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
   using BaseClass = CtintWalkerBase<Parameters>;
@@ -49,9 +48,14 @@ public:
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
+  void initialize();
+
   virtual ~CtintWalkerSubmatrix() = default;
 
   virtual void doSweep();
+
+  virtual void computeM(typename BaseClass::MatrixPair& m_accum,
+                        const std::vector<cudaStream_t>& /*streams*/);
 
   using BaseClass::order;
 
@@ -61,6 +65,7 @@ protected:
   void mainSubmatrixProcess();
   void updateM();
 
+  void transformM();
   // For testing purposes.
   void doStep(const int nbr_of_movesto_delay);
 
@@ -199,31 +204,15 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(const Parame
 }
 
 template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::initialize() {
+  BaseClass::initialize();
+  transformM();
+}
+
+template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
-  double f_i;
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) /= -(f_i - 1);
-      }
-    }
-  }
-
   doSteps();
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) *= -(f_i - 1);
-      }
-    }
-  }
 }
 
 template <class Parameters>
@@ -261,33 +250,11 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_movesto_delay) {
   std::cout << "\nStarted doStep() function for testing." << std::endl;
 
-  double f_i;
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) /= -(f_i - 1);
-      }
-    }
-  }
-
   generateDelayedMoves(nbr_of_movesto_delay);
 
   std::cout << "\nGenerated " << nbr_of_movesto_delay << " moves for testing.\n" << std::endl;
 
   doSubmatrixUpdate();
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) *= -(f_i - 1);
-      }
-    }
-  }
 }
 
 template <class Parameters>
@@ -973,9 +940,36 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
   }
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
+  for (int s = 0; s < 2; ++s) {
+    for (int j = 0; j < M_[s].size().second; ++j) {
+      for (int i = 0; i < M_[s].size().first; ++i) {
+        const double f_i = -(f_[configuration_.getSector(s).getAuxFieldType(i)] - 1);
+        M_[s](i, j) /= f_i;
+      }
+    }
+  }
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass::MatrixPair& m_accum,
+                                                             const std::vector<cudaStream_t>&) {
+    for (int s = 0; s < 2; ++s) {
+    m_accum[s].resizeNoCopy(M_[s].size());
+
+    for (int j = 0; j < M_[s].size().second; ++j) {
+      for (int i = 0; i < M_[s].size().first; ++i) {
+        const double factor = -(f_[configuration_.getSector(s).getAuxFieldType(i)] - 1.);
+        m_accum[s](i, j) = M_[s](i, j) * factor;
+      }
+    }
+  }
+}
+
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CPU_SUBMATRIX_HPP

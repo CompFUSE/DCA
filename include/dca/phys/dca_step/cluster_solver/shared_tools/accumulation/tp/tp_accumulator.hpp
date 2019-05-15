@@ -92,6 +92,10 @@ public:
   template <class T>
   void syncStreams(const T&) {}
 
+  auto get_streams() const {
+    return std::vector<cudaStream_t>();
+  }
+
   std::size_t deviceFingerprint() const {
     return 0;
   }

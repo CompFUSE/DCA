@@ -82,6 +82,10 @@ public:
     return 0;
   }
 
+  std::vector<cudaStream_t> get_streams() const {
+    return std::vector<cudaStream_t>();
+  }
+
 protected:
   constexpr static int oversampling = 8;
   const Parameters& parameters_;
@@ -215,9 +219,9 @@ const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w_sqr() c
   return *M_r_w_sqr_;
 }
 
-}  // accumualtor
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_HPP

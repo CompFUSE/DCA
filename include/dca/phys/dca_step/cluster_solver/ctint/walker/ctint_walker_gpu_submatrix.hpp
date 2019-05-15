@@ -47,6 +47,9 @@ public:
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 
+  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
+                const std::vector<cudaStream_t>& streams);
+
   void initialize();
 
   void doSweep() override;
@@ -122,8 +125,7 @@ private:
   // Maximal sector size after submatrix update.
   using BaseClass::n_max_;
 
-  // If true the m matrix is multiplied by a f-factor.
-  bool m_transformed_ = false;
+  linalg::util::CudaEvent m_computed_event_;
 };
 
 template <class Parameters>
@@ -158,40 +160,15 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
-  for (int s = 0; s < 2; ++s) {
-    MatrixView<linalg::GPU> M(M_dev_[s]);
-    details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
-  }
-
   BaseClass::doSteps();
   uploadConfiguration();
-
-  for (int s = 0; s < 2; ++s) {
-    MatrixView<linalg::GPU> M(M_dev_[s]);
-    details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
-
-    if (BaseClass::thermalized_)  // TODO: do not download if accumulator accepts GPU matrices.
-      M_[s].setAsync(M_dev_[s], stream_[s]);
-  }
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_delay) {
-  for (int s = 0; s < 2; ++s) {
-    MatrixView<linalg::GPU> M(M_dev_[s]);
-    details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
-  }
-
   BaseClass::nbr_of_moves_to_delay_ = n_moves_to_delay;
   doStep();
   uploadConfiguration();
-
-  for (int s = 0; s < 2; ++s) {
-    MatrixView<linalg::GPU> M(M_dev_[s]);
-    details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
-    M_[s].setAsync(M_dev_[s], stream_[s]);
-  }
-  synchronize();
 }
 
 template <class Parameters>
@@ -241,7 +218,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
                                 stream_[s]);
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
-      details::multiplyByFFactor(D_view, f_dev_[s].ptr(), false, false, stream_[s]);
+      details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), stream_[s]);
 
       MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
@@ -380,6 +357,27 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
 
     --destination;
   }
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
+    std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
+    const std::vector<cudaStream_t>& streams) {
+  for (int s = 0; s < 2; ++s)
+    m_accum[s].resizeNoCopy(M_dev_[s].size());
+
+  for (int s = 0; s < 2; ++s) {
+    MatrixView<linalg::GPU> m_in(M_dev_[s]);
+    MatrixView<linalg::GPU> m_out(m_accum[s]);
+    details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), stream_[s]);
+  }
+
+  m_computed_event_.record(stream_[0]);
+  m_computed_event_.block(stream_[1]);
+  m_computed_event_.record(stream_[1]);
+
+  for (auto stream : streams)
+    m_computed_event_.block(stream);
 }
 
 }  // namespace ctint

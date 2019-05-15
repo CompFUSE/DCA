@@ -86,10 +86,6 @@ protected:  // thread jacket interface.
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
-  using Configuration = ctint::AccumulatorConfiguration;
-
-  //  Walker instantiateWalker(Rng& rng_ref, int id);
-  //  Accumulator instantiateAccumulator(int id);
 
 private:
   using Bdmn = func::dmn_0<domains::electron_band_domain>;

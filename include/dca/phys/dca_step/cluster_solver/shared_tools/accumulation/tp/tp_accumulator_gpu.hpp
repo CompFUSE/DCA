@@ -84,8 +84,8 @@ public:
   // other_acc.
   void sumTo(this_type& other_acc);
 
-  auto get_stream() const {
-    return streams_[0];
+  const auto& get_streams() const {
+    return streams_;
   }
 
   void synchronizeCopy() {

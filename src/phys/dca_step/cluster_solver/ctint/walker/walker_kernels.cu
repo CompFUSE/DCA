@@ -59,32 +59,44 @@ void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_ini
   computeGLeftKernel<<<blocks[0], blocks[1], 0, stream>>>(G, M, f, n_init);
 }
 
-__global__ void multiplyByFFactorKernel(MatrixView M, const double* f_vals,
-                                        const bool inverse_factor, const bool row_factor) {
+__global__ void multiplyByFColFactorKernel(MatrixView M, const double* f_vals) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
   if (i >= M.nrRows() || j >= M.nrCols())
     return;
 
-  double factor;
-  if (row_factor)
-    factor = -(f_vals[i] - 1.);
-  else
-    factor = f_vals[j] - 1.;
-
-  if (inverse_factor)
-    M(i, j) /= factor;
-  else
-    M(i, j) *= factor;
+  const double factor = f_vals[j] - 1.;
+  M(i, j) *= factor;
 }
 
-void multiplyByFFactor(MatrixView& M, const double* f_vals, bool inverse_factor, bool row_factor,
+void multiplyByFColFactor(MatrixView& M, const double* f_vals,
                        cudaStream_t stream) {
   if (M.nrCols() == 0 || M.nrRows() == 0)
     return;
   const auto blocks = dca::util::getBlockSize(M.nrRows(), M.nrCols());
 
-  multiplyByFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(M, f_vals, inverse_factor, row_factor);
+  multiplyByFColFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(M, f_vals);
+}
+
+__global__ void multiplyByInverseFFactorKernel(const MatrixView m_in, MatrixView m_out,
+                                               const double* f_vals) {
+  const int i = threadIdx.x + blockDim.x * blockIdx.x;
+  const int j = threadIdx.y + blockDim.y * blockIdx.y;
+  if (i >= m_in.nrRows() || j >= m_in.nrCols())
+    return;
+
+  const double factor = -(f_vals[i] - 1.);
+  m_out(i, j) = factor * m_in(i, j);
+}
+
+void multiplyByInverseFFactor(const MatrixView& m_in, MatrixView& m_out, const double* f_vals,
+                              cudaStream_t stream) {
+  assert(m_in.nrRows() == m_out.nrRows() && m_in.nrCols() == m_out.nrCols());
+  if (m_in.nrCols() == 0 || m_in.nrRows() == 0)
+    return;
+  const auto blocks = dca::util::getBlockSize(m_in.nrRows(), m_out.nrCols());
+
+  multiplyByInverseFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(m_in, m_out, f_vals);
 }
 
 __global__ void divideByGammaFactorKernel(MatrixView m, const std::pair<int, double>* gamma_indices,
@@ -92,7 +104,7 @@ __global__ void divideByGammaFactorKernel(MatrixView m, const std::pair<int, dou
   // TODO: loop over a number of j indices.
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
-  if(i >= n_indices || j >= m.nrCols())
+  if (i >= n_indices || j >= m.nrCols())
     return;
 
   const int p = gamma_indices[i].first;
@@ -108,8 +120,8 @@ void divideByGammaFactor(MatrixView m, const std::pair<int, double>* gamma_indic
   divideByGammaFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(m, gamma_indices, n_indices);
 }
 
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

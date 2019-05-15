@@ -16,7 +16,7 @@
 #include <stdexcept>
 
 #include "dca/phys/dca_data/dca_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/accumulator/ctint_accumulator_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
@@ -71,14 +71,10 @@ public:
   }
 
   int order() const {
-    return (config_.matrix_configuration.size(0) + config_.matrix_configuration.size(1)) / 2;
+    return (configuration_.size(0) + configuration_.size(1)) / 2;
   }
   double avgOrder() const {
     return (double)order_sum_ / (double)total_meas_;
-  }
-
-  const AccumulatorConfiguration& get_configuration() const {
-    return config_;
   }
 
   std::size_t deviceFingerprint() const {
@@ -91,7 +87,14 @@ public:
 
 private:
   const Parameters& parameters_;
-  AccumulatorConfiguration config_;
+
+  // Internal instantaneous configuration.
+  std::array<linalg::Matrix<double, device>, 2> M_;
+  MatrixConfiguration configuration_;
+  int sign_ = 0;
+
+  std::vector<cudaStream_t> streams_;
+
   int total_sign_ = 0;
   uint total_meas_ = 0;
   ulong order_sum_ = 0;
@@ -113,7 +116,12 @@ CtintAccumulator<Parameters, device>::CtintAccumulator(const Parameters& pars, c
     : parameters_(pars),
       thread_id_(id),
       sp_accumulator_(pars),
-      tp_accumulator_(data.G0_k_w_cluster_excluded, pars, thread_id_) {}
+      tp_accumulator_(data.G0_k_w_cluster_excluded, pars, thread_id_) {
+  streams_.insert(streams_.end(), sp_accumulator_.get_streams().begin(),
+                  sp_accumulator_.get_streams().end());
+  streams_.insert(streams_.end(), tp_accumulator_.get_streams().begin(),
+                  tp_accumulator_.get_streams().end());
+}
 
 template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
@@ -132,37 +140,31 @@ void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
 template <class Parameters, linalg::DeviceType device>
 template <class Walker>
 void CtintAccumulator<Parameters, device>::updateFrom(Walker& walker) {
-  config_ = walker.getConfiguration();
+  walker.computeM(M_, streams_);
+  configuration_ = walker.getConfiguration();
+  sign_ = walker.getSign();
+
   ready_ = true;
 }
 
 template <class Parameters, linalg::DeviceType device>
 template <class Walker>
 void CtintAccumulator<Parameters, device>::accumulate(Walker& walker) {
-  if (device == linalg::CPU) {
-    config_ = std::move(walker.moveConfiguration());
-    ready_ = true;
-    measure();
-    walker.setConfiguration(std::move(config_));
-  }
-  else {
-    config_ = walker.getConfiguration();
-    ready_ = true;
-    measure();
-  }
+  updateFrom(walker);
+  measure();
 }
 
 template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::measure() {
-  if (not ready_ or config_.sign == 0)
+  if (!ready_ || sign_ == 0)
     throw(std::logic_error("No or invalid configuration to accumulate."));
 
-  total_sign_ += config_.sign;
+  total_sign_ += sign_;
   ++total_meas_;
   order_sum_ += order();
-  sp_accumulator_.accumulate(config_.M, config_.matrix_configuration.get_sectors(), config_.sign);
+  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
   if (perform_tp_accumulation_)
-    tp_accumulator_.accumulate(config_.M, config_.matrix_configuration.get_sectors(), config_.sign);
+    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
 
   ready_ = false;
 }

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -81,10 +82,8 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 5e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 5e-7);
-      }
+      auto diff = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      EXPECT_GE(1e-6, diff.l2);
     }
   }
   else {

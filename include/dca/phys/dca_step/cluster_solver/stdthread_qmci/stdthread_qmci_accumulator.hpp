@@ -39,7 +39,6 @@ public:
 
   using QmciAccumulator::finalize;
   using QmciAccumulator::initialize;
-  using QmciAccumulator::get_configuration;
 
   template <typename walker_type>
   void updateFrom(walker_type& walker);

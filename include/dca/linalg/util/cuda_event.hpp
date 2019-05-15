@@ -36,7 +36,7 @@ public:
     return event_;
   }
 
-  void record(cudaStream_t stream) {
+  void record(cudaStream_t stream) const {
     cudaEventRecord(event_, stream);
   }
 

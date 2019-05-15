@@ -22,7 +22,6 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/make_constant_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/accumulator/ctint_accumulator_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
@@ -60,15 +59,24 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
+  using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
 
   virtual ~CtintWalkerBase() = default;
 
 public:
-  AccumulatorConfiguration getConfiguration() const;
-  AccumulatorConfiguration moveConfiguration();
-  void setConfiguration(AccumulatorConfiguration&& config);
+  const auto& getConfiguration() const {
+    return configuration_;
+  }
+
+  int getSign() const {
+    return sign_;
+  }
+
+  void computeM(MatrixPair& m_accum, const std::vector<cudaStream_t>& /*streams*/) const;
 
   void markThermalized();
 
@@ -135,13 +143,11 @@ public:
 
   static void setInteractionVertices(const Parameters& parameters, Data& data);
 
-protected:  // typedefs
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
-
+protected:
+  // typedefs
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
-protected:  // Auxiliary methods.
+  // Auxiliary methods.
   void updateSweepAverages();
 
 protected:  // Members.
@@ -240,24 +246,6 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
 }
 
 template <class Parameters>
-AccumulatorConfiguration CtintWalkerBase<Parameters>::getConfiguration() const {
-  synchronize();
-  return AccumulatorConfiguration{sign_, M_, configuration_};
-}
-
-template <class Parameters>
-AccumulatorConfiguration CtintWalkerBase<Parameters>::moveConfiguration() {
-  return AccumulatorConfiguration{sign_, std::move(M_), std::move(configuration_)};
-}
-
-template <class Parameters>
-void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
-  sign_ = config.sign;
-  M_ = std::move(config.M);
-  static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
-}
-
-template <class Parameters>
 void CtintWalkerBase<Parameters>::updateSweepAverages() {
   order_avg_.addSample(order());
   sign_avg_.addSample(sign_);
@@ -330,6 +318,12 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& param
   vertices_.initializeFromHamiltonian(data.H_interactions, parameters.doubleCountedInteraction());
   if (data.has_non_density_interactions())
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
+}
+
+template <class Parameters>
+void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum,
+                                           const std::vector<cudaStream_t>&) const {
+  m_accum = M_;
 }
 
 }  // namespace ctint

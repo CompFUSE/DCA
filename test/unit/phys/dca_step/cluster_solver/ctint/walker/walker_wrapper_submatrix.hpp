@@ -33,7 +33,11 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   using Data = typename BaseClass::Data;
 
   WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {}
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
+      /**/cudaDeviceSynchronize();
+      BaseClass::initialize();
+      /**/cudaDeviceSynchronize();
+  }
 
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);
@@ -42,8 +46,20 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 
-  const MatrixPair& getM() {
-    return BaseClass::M_;
+  MatrixPair getM() {
+    std::array<dca::linalg::Matrix<double, device_t>, 2> M;
+    std::vector<cudaStream_t> s;
+    /**/cudaDeviceSynchronize();
+    BaseClass::computeM(M, s);
+    /**/cudaDeviceSynchronize();
+
+    std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
+    return M_copy;
+  }
+
+  void setMFromConfig() {
+    BaseClass::setMFromConfig();
+    BaseClass::transformM();
   }
 
   const auto& getWalkerConfiguration() const {
@@ -55,9 +71,9 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   }
 };
 
-}  // ctint
-}  // solver
-}  // phys
-}  // testing
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace testing
 
 #endif  //  TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP

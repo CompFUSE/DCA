@@ -95,8 +95,10 @@ TEST_F(G0Setup, doSteps) {
       rng.setNewValues(rng_vals);
       walker_gpu.doStep(steps);
 
+      auto M_cpu = walker_cpu.getM();
+      auto M_gpu = walker_gpu.getM();
       for (int s = 0; s < 2; ++s)
-        EXPECT_TRUE(dca::linalg::matrixop::areNear(walker_cpu.getM()[s], walker_gpu.getM()[s], 1e-7));
+        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], 1e-7));
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();
