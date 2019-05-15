@@ -53,6 +53,7 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
 
   const int sign = 1;
   accumulator_ph.accumulate(M, config, sign);
+
   accumulator_ph.finalize();
 
   const auto& G4 = accumulator_ph.get_sign_times_G4();
