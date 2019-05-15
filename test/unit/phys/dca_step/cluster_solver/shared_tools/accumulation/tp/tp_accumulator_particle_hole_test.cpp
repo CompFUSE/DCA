@@ -55,7 +55,6 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   accumulator_ph.accumulate(M, config, sign);
   accumulator_ph.finalize();
 
-
   const auto& G4 = accumulator_ph.get_sign_times_G4();
 
   // Check which element of the G4 container corresponds to which channel.
