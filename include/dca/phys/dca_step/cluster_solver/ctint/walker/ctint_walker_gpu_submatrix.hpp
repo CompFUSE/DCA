@@ -58,6 +58,18 @@ public:
 
   using BaseClass::order;
 
+  std::size_t deviceFingerprint() const {
+    std::size_t res = 0;
+    for (int s = 0; s < 2; ++s) {
+      res += M_dev_[s].deviceFingerprint();
+      res += Gamma_inv_dev_[s].deviceFingerprint();
+      res += D_dev_[s].deviceFingerprint();
+      res += G_dev_[s].deviceFingerprint();
+      res += G0_dev_[s].deviceFingerprint();
+    }
+    return res;
+  }
+
 private:
   void doStep() override;
 
