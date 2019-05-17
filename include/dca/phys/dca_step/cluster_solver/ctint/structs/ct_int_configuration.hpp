@@ -46,7 +46,14 @@ public:
   template <class RngType>
   std::pair<short, short> randomRemovalCandidate(RngType& rng) const;
 
+  // Move elements from 'from' to 'to' and shrink at the back by 'from' elements.
+  template <class Alloc>
+  void moveAndShrink(const std::array<std::vector<int, Alloc>, 2>& sector_from,
+                     const std::array<std::vector<int, Alloc>, 2>& sector_to,
+                     const std::vector<int>& from, const std::vector<int>& to);
+
   inline void swapVertices(short i, short j);
+
   inline void pop(int n = 1);
   inline void push_back(const Vertex& v);
 
@@ -79,14 +86,15 @@ public:
     return existing_[id];
   }
 
-  inline std::vector<ushort> findIndices(int index, const int s) const;
-
   inline ushort getLeftNu(const int matrix_index) const;
   inline ushort getRightNu(const int matrix_index) const;
   inline ushort getLeftR(const int matrix_index) const;
   inline ushort getRightR(const int matrix_index) const;
   inline double getTau(const int matrix_index) const;
   inline bool getAuxSpin(int matrix_index) const;
+  auto getTag(int i) const {
+    return vertices_[i].tag;
+  }
 
   inline double getStrength(int vertex_index) const;
   inline short getSign(int vertex_index) const;
@@ -114,6 +122,8 @@ protected:
   ushort last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
+
+  std::uint64_t current_tag_ = 0;
 };
 
 SolverConfiguration& SolverConfiguration::operator=(const SolverConfiguration& other) {
@@ -148,7 +158,7 @@ void SolverConfiguration::insertRandom(RngType& rng) {
   const double tau = rng() * max_tau_;
   const bool aux_spin = rng() > 0.5;
 
-  push_back(Vertex{aux_spin, ushort(indices.first), tau});
+  push_back(Vertex{aux_spin, ushort(indices.first), ++current_tag_, tau});
 
   if (double_insertion_prob_) {
     existing_[indices.first].push_back(vertices_.size() - 1);
@@ -156,13 +166,15 @@ void SolverConfiguration::insertRandom(RngType& rng) {
     if (indices.second != -1 and rng() < double_insertion_prob_) {
       const double tau2 = rng() * max_tau_;
       const bool aux_spin2 = rng() > 0.5;
-      push_back(Vertex{aux_spin2, ushort(indices.second), tau2});
+      // TODO: decide if tag is same or not.
+      push_back(Vertex{aux_spin2, ushort(indices.second), ++current_tag_, tau2});
       existing_[indices.second].push_back(vertices_.size() - 1);
       last_insertion_size_ = 2;
     }
     else
       last_insertion_size_ = 1;
   }
+  assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
 
 template <class RngType>
@@ -178,23 +190,6 @@ std::pair<short, short> SolverConfiguration::randomRemovalCandidate(RngType& rng
   }
   assert(candidates.first < size() and candidates.second < int(size()));
   return candidates;
-}
-
-void SolverConfiguration::swapVertices(const short i, const short j) {
-  // Swap occupation list entries.
-  if (double_insertion_prob_) {
-    auto& list1 = existing_[vertices_[i].interaction_id];
-    auto& list2 = existing_[vertices_[j].interaction_id];
-
-    auto it1 = std::find(list1.begin(), list1.end(), i);
-    assert(it1 != list1.end());
-    *it1 = j;
-    auto it2 = std::find(list2.begin(), list2.end(), j);
-    assert(it2 != list1.end());
-    *it2 = i;
-  }
-  // Swap the vertices.
-  std::swap(vertices_[i], vertices_[j]);
 }
 
 void SolverConfiguration::push_back(const Vertex& v) {
@@ -242,11 +237,6 @@ void SolverConfiguration::addSectorSizes(int idx, std::array<int, 2>& sizes) con
   ++sizes[spin(nu[2])];
 }
 
-std::vector<ushort> SolverConfiguration::findIndices(const int index, const int s) const {
-  const double tau = vertices_[index].tau;
-  return BaseClass::findIndices(tau, s);
-}
-
 short SolverConfiguration::getSign(const int vertex_index) const {
   return (*H_int_)[vertices_[vertex_index].interaction_id].w >= 0 ? 1 : -1;
 }
@@ -263,6 +253,36 @@ int SolverConfiguration::occupationNumber(const Vertex& vertex) const {
   return existing_[vertex.interaction_id].size();
 }
 
+template <class Alloc>
+inline void SolverConfiguration::moveAndShrink(
+    const std::array<std::vector<int, Alloc>, 2>& sector_from,
+    const std::array<std::vector<int, Alloc>, 2>& sector_to, const std::vector<int>& from,
+    const std::vector<int>& to) {
+  for (int s = 0; s < 2; ++s) {
+    auto& sector = BaseClass::getEntries(s);
+    auto& tags = BaseClass::sectors_[s].tags_;
+    for (int i = 0; i < sector_from[s].size(); ++i) {
+      sector[sector_to[s][i]] = sector[sector_from[s][i]];
+      tags[sector_to[s][i]] = tags[sector_from[s][i]];
+    }
+    sector.erase(sector.end() - sector_to[s].size(), sector.end());
+    tags.erase(tags.end() - sector_to[s].size(), tags.end());
+  }
+
+  if (double_insertion_prob_) {
+    for (int i = 0; i < to.size(); ++i) {
+      const int type = vertices_[size() - i].interaction_id;
+      auto& list = existing_[type];
+      const auto iter = std::find(list.begin(), list.end(), size() - i);
+      list.erase(iter);
+    }
+  }
+
+  for (int i = 0; i < from.size(); ++i)
+    vertices_[to[i]] = vertices_[from[i]];
+  vertices_.erase(vertices_.end() - to.size(), vertices_.end());
+}
+
 inline bool SolverConfiguration::operator==(const SolverConfiguration& rhs) const {
   bool result = true;
   result &= vertices_ == rhs.vertices_;
@@ -274,6 +294,23 @@ inline bool SolverConfiguration::operator==(const SolverConfiguration& rhs) cons
   result &= static_cast<BaseClass>(*this) == static_cast<BaseClass>(rhs);
 
   return result;
+}
+
+void SolverConfiguration::swapVertices(const short i, const short j) {
+  // Swap occupation list entries.
+  if (double_insertion_prob_) {
+    auto& list1 = existing_[vertices_[i].interaction_id];
+    auto& list2 = existing_[vertices_[j].interaction_id];
+
+    auto it1 = std::find(list1.begin(), list1.end(), i);
+    assert(it1 != list1.end());
+    *it1 = j;
+    auto it2 = std::find(list2.begin(), list2.end(), j);
+    assert(it2 != list1.end());
+    *it2 = i;
+  }
+  // Swap the vertices.
+  std::swap(vertices_[i], vertices_[j]);
 }
 
 }  // namespace ctint

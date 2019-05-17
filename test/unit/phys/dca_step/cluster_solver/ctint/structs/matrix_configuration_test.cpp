@@ -37,8 +37,8 @@ TEST(MatrixConfigurationTest, InsertAndSwap) {
   Vertex v1{0, 0, tau0,};   // based on first element
   Vertex v2{0, 1, tau1};  // based on second element
 
-  config.addVertex(v1);
-  config.addVertex(v2);
+    config.addVertex(v1);
+    config.addVertex(v2);
   EXPECT_EQ(3, config.size(0));
   EXPECT_EQ(1, config.size(1));
 
@@ -48,7 +48,7 @@ TEST(MatrixConfigurationTest, InsertAndSwap) {
   EXPECT_EQ(expected_up, indices_up);
   EXPECT_EQ(0, indices_down.size());
 
-  config.swapSectorLabels(0, 2, 0); // push up-down vertex to the end.
+    config.moveSectorLabels(0, 2, 0); // push up-down vertex to the end.
   config.pop(1,1);
   EXPECT_EQ(2, config.size(0));
   EXPECT_EQ(0, config.size(1));

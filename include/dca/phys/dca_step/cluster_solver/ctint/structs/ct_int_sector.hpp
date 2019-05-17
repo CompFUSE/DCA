@@ -31,6 +31,7 @@ class Sector {
 public:
   Sector() : entries_(){};
 
+  friend class SolverConfiguration;
   friend class MatrixConfiguration;
   friend class DeviceConfigurationManager;
 
@@ -67,12 +68,15 @@ public:
     return entries_[i].aux_field_type_;
   }
 
+  auto getTag(int i) const { return tags_[i];}
+
   bool operator==(const Sector& rhs) const {
     return entries_ == rhs.entries_;
   }
 
 protected:
   linalg::util::HostVector<details::SectorEntry> entries_;
+  std::vector<std::uint64_t> tags_;
 };
 
 }  // ctint
