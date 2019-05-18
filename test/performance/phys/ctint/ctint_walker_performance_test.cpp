@@ -93,14 +93,11 @@ int main(int argc, char** argv) {
 
   dca::phys::solver::ctint::G0Interpolation<device> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
-  dca::phys::solver::ctint::InteractionVertices interaction_vertices;
-  interaction_vertices.initializeFromHamiltonian(data.H_interactions);
-  if (data.has_non_density_interactions())
-    interaction_vertices.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
 
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
                                     bbr_dmn.get_branch_domain_steps(), parameters.getAlphas());
+    Walker<device>::setInteractionVertices(parameters, data);
 
   auto printTime = [](const std::string& str, const auto& start, const auto& end) {
     dca::profiling::Duration time(end, start);
