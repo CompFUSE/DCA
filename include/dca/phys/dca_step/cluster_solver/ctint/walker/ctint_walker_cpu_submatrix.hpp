@@ -180,6 +180,8 @@ protected:
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
   Matrix D_;
+
+  using BaseClass::flop_;
 };
 
 template <class Parameters>
@@ -620,6 +622,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_, M, D_M);
+      flop_ += 2 * D_.nrRows() * D_.nrCols() * M.nrCols();
 
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
@@ -659,6 +662,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
       MatrixView G(G_[s], 0, n_init_[s], n_max_[s], delta);
 
       linalg::matrixop::gemm(M_[s], G0, G);
+      flop_ += 2. * M_[s].nrRows() * M_[s].nrCols() * G0.nrCols();
     }
   }
 }
@@ -772,6 +776,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
       linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
+      flop_ += 2 * Gamma_inv_[s].nrRows() * Gamma_inv_[s].nrCols() * old_M.nrCols();
+      flop_ += 2 * old_G.nrRows() * old_G.nrCols() * result_matrix.nrCols();
 
       p = 0;
       for (auto& i : move_indices_[s]) {
@@ -809,7 +815,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int 
   //      assert(tau_ == configuration_.getSector(s).getTau(sector_indices_[s][i]));
   //  }
 
- nbr_of_indices_[s] = sector_indices_[s].size();
+  nbr_of_indices_[s] = sector_indices_[s].size();
 }
 
 // Remove row and column of Gamma_inv with Woodbury's formula.

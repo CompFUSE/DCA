@@ -112,7 +112,8 @@ protected:  // Protected for testing purposes.
   void computeSigma(const SpGreensFunction& G, const SpGreensFunction& G0,
                     const SpGreensFunction& M, SpGreensFunction& Sigma) const;
 
-  void gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
+  // Returns: average sign.
+  double gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
 
   double L2Difference() const;
 
@@ -219,7 +220,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   SpGreensFunction M;
 
   // average M across ranks.
-  gatherMAndG4(M, compute_error);
+  double avg_sign = gatherMAndG4(M, compute_error);
 
   // compute G_r_t and save it into data_.
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);
@@ -249,8 +250,20 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
   math::transform::FunctionTransform<Kdmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
 
-  if (concurrency_.id() == 0)
-    std::cout << "\n\tDensity = " << computeDensity() << "\n";
+  auto local_time = total_time_;
+  concurrency_.sum(total_time_);
+  auto gflop = accumulator_.getFLOPs() * 1e-9;
+  concurrency_.sum(gflop);
+
+  if (concurrency_.id() == 0) {
+    std::cout << "\n\t\t Collected measurements \t" << dca::util::print_time() << "\n"
+              << "\n\t\t\t QMC-local-time : " << local_time << " [sec]"
+              << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
+              << "\n\t\t\t Gflop   : " << gflop << " [Gf]"
+              << "\n\t\t\t Gflop/s   : " << gflop / local_time << " [Gf/s]"
+              << "\n\t\t\t sign     : " << avg_sign
+              << "\n\t\t\t Density = " << computeDensity() << "\n" << std::endl;
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
@@ -420,8 +433,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity()
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
-                                                                           bool compute_error) const {
+double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
+                                                                             bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<RDmn, Kdmn>::execute(M_r, M);
 
@@ -449,6 +462,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
 
     G4 /= std::complex<double>(sign, 0.);
   }
+
+  return sign / parameters_.get_measurements();
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
@@ -466,8 +481,8 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() cons
   return G_k_w;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_CTINT_CLUSTER_SOLVER_HPP

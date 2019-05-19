@@ -141,6 +141,8 @@ private:
   using BaseClass::n_max_;
 
   linalg::util::CudaEvent m_computed_event_;
+
+  using BaseClass::flop_;
 };
 
 template <class Parameters>
@@ -241,6 +243,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
       MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
+      flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
 
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
                                   n_max_[s], stream_[s]);
@@ -270,6 +273,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
+      flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
     }
     G_[s].setAsync(G_dev_[s], stream_[s]);
   }
@@ -314,6 +318,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
     linalg::matrixop::gemm(Gamma_inv_dev_[s], old_M, tmp, thread_id_, s);
     linalg::matrixop::gemm(-1., old_G, tmp, 1., M_dev_[s], thread_id_, s);
+    flop_ += 2 * Gamma_inv_dev_[s].nrRows() * Gamma_inv_dev_[s].nrCols() * old_M.nrCols();
+    flop_ += 2 * old_G.nrRows() * old_G.nrCols() * tmp.nrCols();
 
     details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
                                  gamma_size, stream_[s]);

@@ -478,8 +478,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     const int n_available = findAvailableFiles();
     const int id_to_read = concurrency_.id() % n_available;
 
-    const std::string inp_name = parameters_.get_directory_config_read() + "/process_" +
-                                 std::to_string(id_to_read) + ".hdf5";
+    const std::string inp_name =
+        parameters_.get_directory_config_read() + "/process_" + std::to_string(id_to_read) + ".hdf5";
     io::HDF5Reader reader(false);
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
@@ -518,9 +518,11 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::printIntegrationMetadata() const {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements()
-              << "\nQMC-time\t" << total_time_ << "\n";
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << "\n";
+    //              << "QMC-time\t" << total_time_ << "\n";
     if (QmciSolver::device == linalg::GPU) {
+      auto prec = std::cout.precision();
+      std::cout.precision(1);
       std::cout << "\nWalker fingerprints [MB]: \n";
       for (const auto& x : walker_fingerprints_)
         std::cout << x * 1e-6 << "\n";
@@ -529,6 +531,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::printIntegrationMetadata() const {
         std::cout << x * 1e-6 << "\n";
       std::cout << "Static Accumulator fingerprint [MB]:\n"
                 << Accumulator::staticDeviceFingerprint() * 1e-6 << "\n\n";
+      std::cout.precision(prec);
     }
   }
 }

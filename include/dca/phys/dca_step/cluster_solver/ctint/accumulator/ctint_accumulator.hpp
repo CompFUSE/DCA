@@ -85,6 +85,8 @@ public:
     return accumulator::TpAccumulator<Parameters, device>::staticDeviceFingerprint();
   }
 
+  float getFLOPs() const {return flop_;}
+
 private:
   const Parameters& parameters_;
 
@@ -107,6 +109,8 @@ private:
   bool perform_tp_accumulation_ = false;
   bool ready_ = false;
   bool finalized_ = false;
+
+  float flop_ = 0.;
 };
 
 template <class Parameters, linalg::DeviceType device>
@@ -143,6 +147,7 @@ void CtintAccumulator<Parameters, device>::updateFrom(Walker& walker) {
   walker.computeM(M_, streams_);
   configuration_ = walker.getConfiguration();
   sign_ = walker.getSign();
+  flop_ += walker.stealFLOPs();
 
   ready_ = true;
 }
@@ -178,6 +183,7 @@ void CtintAccumulator<Parameters, device>::sumTo(this_type& other_one) {
     assert(other_one.perform_tp_accumulation_);
     tp_accumulator_.sumTo(other_one.tp_accumulator_);
   }
+  other_one.flop_ += flop_;
 }
 
 template <class Parameters, linalg::DeviceType device>
