@@ -68,7 +68,6 @@ protected:
   void transformM();
   // For testing purposes.
   void doStep(const int nbr_of_movesto_delay);
-  void pushToEnd();
 
 private:
   virtual void doStep();
@@ -340,9 +339,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
-
-  static int counter = 0;
-  ++counter;
 
   for (int s = 0; s < 2; ++s) {
     Gamma_size_[s] = 0;
@@ -790,7 +786,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
   }
 
   // Remove "non-interacting" rows and columns.
-  pushToEnd();
+  configuration_.moveAndShrink(source_list_, removal_list_, conf_source_, conf_removal_list_);
+
   for (int s = 0; s < 2; ++s) {
     const int removal_size = removal_list_[s].size();
     //    removal_list_[s].resize(source_list_[s].size());
@@ -805,8 +802,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int s) {
-  static int counter = 0;
-  ++counter;
   tau_ = configuration_[index_].tau;
   auto tag = configuration_[index_].tag;
 
@@ -875,34 +870,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(co
   }
 
   Gamma_size_[s] = Gamma_inv_[s].nrRows();
-}
-
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::pushToEnd() {
-  for (int s = 0; s < 2; ++s) {
-    std::sort(removal_list_[s].begin(), removal_list_[s].end());
-    source_list_[s].clear();
-    int source_idx = configuration_.getSector(s).size() - removal_list_[s].size();
-    for (; source_idx < configuration_.getSector(s).size(); ++source_idx) {
-      while (std::binary_search(removal_list_[s].begin(), removal_list_[s].end(), source_idx))
-        ++source_idx;
-      if (source_idx < configuration_.getSector(s).size())
-        source_list_[s].push_back(source_idx);
-    }
-  }
-
-  std::sort(conf_removal_list_.begin(), conf_removal_list_.end());
-
-  conf_source_.clear();
-  int source_idx = configuration_.size() - conf_removal_list_.size();
-  for (; source_idx < configuration_.size(); ++source_idx) {
-    while (std::binary_search(conf_removal_list_.begin(), conf_removal_list_.end(), source_idx))
-      ++source_idx;
-    if (source_idx < configuration_.size())
-      conf_source_.push_back(source_idx);
-  }
-
-  configuration_.moveAndShrink(source_list_, removal_list_, conf_source_, conf_removal_list_);
 }
 
 // This method is unused and left to potentially use as a testing reference.

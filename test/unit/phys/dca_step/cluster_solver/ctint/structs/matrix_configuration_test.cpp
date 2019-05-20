@@ -34,26 +34,27 @@ TEST(MatrixConfigurationTest, InsertAndSwap) {
   MatrixConfigurationWrapper config(&vertices, 2);
 
   const double tau0(0), tau1(0.1);
-  Vertex v1{0, 0, tau0,};   // based on first element
-  Vertex v2{0, 1, tau1};  // based on second element
+  std::uint64_t tag1(0), tag2(1);
+  Vertex v1{0, 0, tag1, tau0};  // based on first element
+  Vertex v2{0, 1, tag2, tau1};  // based on second element
 
-    config.addVertex(v1);
-    config.addVertex(v2);
+  config.addVertex(v1);
+  config.addVertex(v2);
   EXPECT_EQ(3, config.size(0));
   EXPECT_EQ(1, config.size(1));
 
-  auto indices_up = config.findIndices(tau1, 0);
-  auto indices_down = config.findIndices(tau1, 1);
-  const std::vector<ushort> expected_up{1,2};
+  auto indices_up = config.findIndices(tag2, 0);
+  auto indices_down = config.findIndices(tag2, 1);
+  const std::vector<int> expected_up{1, 2};
   EXPECT_EQ(expected_up, indices_up);
   EXPECT_EQ(0, indices_down.size());
 
-    config.moveSectorLabels(0, 2, 0); // push up-down vertex to the end.
-  config.pop(1,1);
+  config.swapSectorLabels(0, 2, 0);  // push up-down vertex to the end.
+  config.pop(1, 1);
   EXPECT_EQ(2, config.size(0));
   EXPECT_EQ(0, config.size(1));
 
-  indices_up = config.findIndices(tau1, 0);
-  const std::vector<ushort> expected_up2{0,1};
+  indices_up = config.findIndices(tag2, 0);
+  const std::vector<int> expected_up2{0, 1};
   EXPECT_EQ(expected_up2, indices_up);
 }

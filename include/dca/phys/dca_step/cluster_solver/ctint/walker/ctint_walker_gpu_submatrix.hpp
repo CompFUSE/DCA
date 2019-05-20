@@ -326,7 +326,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
   }
 
   // Remove non-interacting rows and columns.
-  BaseClass::pushToEnd();
+  configuration_.moveAndShrink(source_list_, removal_list_, BaseClass::conf_source_,
+                               conf_removal_list_);
   for (int s = 0; s < 2; ++s) {
     const int removal_size = removal_list_[s].size();
     removal_list_[s].resize(source_list_[s].size());

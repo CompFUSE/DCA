@@ -46,11 +46,17 @@ public:
   template <class RngType>
   std::pair<short, short> randomRemovalCandidate(RngType& rng) const;
 
-  // Move elements from 'from' to 'to' and shrink at the back by 'from' elements.
+  // Remove elements with id remove by copying elements from the end.
+  // Postcondition: from and sector_from contains the indices that where moved into the place
+  //                of the oldelements.
+  // Postcondition: all vectors are ordered, resized, and ready to be used for moving the rows of
+  //                the M matrix
+  // In/Out: sector_remove, remove.
+  // Out: sector_from, from.
   template <class Alloc>
-  void moveAndShrink(const std::array<std::vector<int, Alloc>, 2>& sector_from,
-                     const std::array<std::vector<int, Alloc>, 2>& sector_to,
-                     const std::vector<int>& from, const std::vector<int>& to);
+  void moveAndShrink(std::array<std::vector<int, Alloc>, 2>& sector_from,
+                     std::array<std::vector<int, Alloc>, 2>& sector_to, std::vector<int>& from,
+                     std::vector<int>& to);
 
   inline void swapVertices(short i, short j);
 
@@ -104,6 +110,8 @@ public:
   }
 
   inline std::array<int, 2> sizeIncrease() const;
+
+  bool checkConsistency() const;
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
@@ -254,33 +262,59 @@ int SolverConfiguration::occupationNumber(const Vertex& vertex) const {
 }
 
 template <class Alloc>
-inline void SolverConfiguration::moveAndShrink(
-    const std::array<std::vector<int, Alloc>, 2>& sector_from,
-    const std::array<std::vector<int, Alloc>, 2>& sector_to, const std::vector<int>& from,
-    const std::vector<int>& to) {
+inline void SolverConfiguration::moveAndShrink(std::array<std::vector<int, Alloc>, 2>& sector_from,
+                                               std::array<std::vector<int, Alloc>, 2>& sector_to,
+                                               std::vector<int>& from, std::vector<int>& to) {
   for (int s = 0; s < 2; ++s) {
-    auto& sector = BaseClass::getEntries(s);
+    // Sort and prepare source array.
+    auto& sector = BaseClass::sectors_[s].entries_;
+    std::sort(sector_to[s].begin(), sector_to[s].end());
     auto& tags = BaseClass::sectors_[s].tags_;
+    sector_from[s].clear();
+    int source_idx = sector.size() - sector_to[s].size();
+    for (int i = 0; source_idx < sector.size(); ++i, ++source_idx) {
+      while (std::binary_search(sector_to[s].begin(), sector_to[s].end(), source_idx))
+        ++source_idx;
+      if (source_idx < sector.size())
+        sector_from[s].push_back(source_idx);
+    }
+
+    // Move configuration elements.
     for (int i = 0; i < sector_from[s].size(); ++i) {
       sector[sector_to[s][i]] = sector[sector_from[s][i]];
       tags[sector_to[s][i]] = tags[sector_from[s][i]];
     }
+    // Shrink sector configuration.
     sector.erase(sector.end() - sector_to[s].size(), sector.end());
     tags.erase(tags.end() - sector_to[s].size(), tags.end());
   }
 
+  std::sort(to.begin(), to.end());
+  from.clear();
+  int source_idx = size() - to.size();
+  for (int i = 0; source_idx < size(); ++i, ++source_idx) {
+    while (std::binary_search(to.begin(), to.end(), source_idx))
+      ++source_idx;
+    if (source_idx < size())
+      from.push_back(source_idx);
+  }
+
+  // Remove from list of partners.
   if (double_insertion_prob_) {
     for (int i = 0; i < to.size(); ++i) {
-      const int type = vertices_[size() - i].interaction_id;
+      const int type = vertices_[to[i]].interaction_id;
       auto& list = existing_[type];
       const auto iter = std::find(list.begin(), list.end(), size() - i);
       list.erase(iter);
     }
   }
 
+  // Move and shrink configuration.
   for (int i = 0; i < from.size(); ++i)
     vertices_[to[i]] = vertices_[from[i]];
   vertices_.erase(vertices_.end() - to.size(), vertices_.end());
+
+  assert(checkConsistency());
 }
 
 inline bool SolverConfiguration::operator==(const SolverConfiguration& rhs) const {
@@ -311,6 +345,24 @@ void SolverConfiguration::swapVertices(const short i, const short j) {
   }
   // Swap the vertices.
   std::swap(vertices_[i], vertices_[j]);
+}
+
+inline bool SolverConfiguration::checkConsistency() const {
+  for (auto v : vertices_) {
+    int count = 0;
+    for (int s = 0; s < 2; ++s) {
+      auto indices = findIndices(v.tag, s);
+      count += indices.size();
+      for (auto idx : indices) {
+        const auto& matrix_el = sectors_[s].entries_[idx];
+        if (matrix_el.tau_ != v.tau)
+          return false;
+      }
+    }
+    if ((double_insertion_prob_ == 0 && count != 2) || !count)
+      return false;
+  }
+  return true;
 }
 
 }  // namespace ctint
