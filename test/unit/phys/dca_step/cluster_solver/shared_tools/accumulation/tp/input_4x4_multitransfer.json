@@ -19,24 +19,10 @@
     "U"       : 2
   },
 
-  "Hund-model":
-  {
-    "t"       : 1,
-    "U"       : 1,
-    "V"       : 1,
-    "Jh"      : 2
-  },
-
-  "single-band-Hubbard-model":
-  {
-    "t"       : 1,
-    "U"       : 2
-  },
-
   "domains": {
     "real-space-grids": {
-      "cluster": [[4, 0],
-        [0, 4]]
+      "cluster": [[2, 0],
+        [0, 2]]
     },
 
     "imaginary-time": {
@@ -45,14 +31,14 @@
 
     "imaginary-frequency": {
       "sp-fermionic-frequencies": 512,
-      "four-point-fermionic-frequencies" : 8
+      "four-point-fermionic-frequencies" : 4
     }
   },
 
   "four-point": {
     "type": "NONE",
-    "momentum-transfer": [0., 3.1415],
-    "frequency-transfer": 2
+    "frequency-transfer": 3,
+    "compute-all-transfers" : true
   },
 
 

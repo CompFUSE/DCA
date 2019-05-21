@@ -150,6 +150,7 @@ protected:
       nullptr;
 
   const int thread_id_;
+  const bool multiple_accumulators_;
 
   const Real beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
@@ -180,6 +181,8 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
+      multiple_accumulators_(pars.get_accumulators() > 1),
+      mode_(pars.get_four_point_type()),
       beta_(pars.get_beta()),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
       n_pos_frqs_(WTpExtPosDmn::dmn_size()),

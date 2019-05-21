@@ -27,15 +27,14 @@ constexpr bool update_baseline = false;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_4x4.json";
+constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer.json";
+
+using ConfigGenerator = dca::testing::AccumulationTest<double>;
+using Configuration = ConfigGenerator::Configuration;
+using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuTest =
     dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
-
-using ConfigGenerator =
-    dca::testing::AccumulationTest<TpAccumulatorGpuTest::Parameters::MC_measurement_scalar_type>;
-using Configuration = ConfigGenerator::Configuration;
-using Sample = ConfigGenerator::Sample;
 
 uint loop_counter = 0;
 

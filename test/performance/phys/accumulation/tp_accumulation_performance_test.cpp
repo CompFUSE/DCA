@@ -141,6 +141,7 @@ int main(int argc, char** argv) {
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
       data.G0_k_w_cluster_excluded, parameters);
+  gpu_accumulator.resetAccumulation(0);
   MatrixPair<GPU> M_dev{M[0], M[1]};
 
   // Allow memory to be assigned.

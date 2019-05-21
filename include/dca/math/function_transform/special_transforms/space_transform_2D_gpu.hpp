@@ -22,6 +22,7 @@
 #include <array>
 #include <memory>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
@@ -39,8 +40,9 @@ private:
 
   using Complex = std::complex<Real>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
 
 public:
   // Constructor
@@ -66,8 +68,8 @@ public:
   std::size_t deviceFingerprint() const {
     std::size_t res(0);
 
-      if (workspace_.unique())
-        res += workspace_->deviceFingerprint();
+    if (workspace_.unique())
+      res += workspace_->deviceFingerprint();
     return res;
   }
 
@@ -143,8 +145,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in,
-                                                                     RMatrix& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatrix& in, RMatrix& out) {
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
@@ -179,8 +180,8 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Real>::getPhaseFactors() {
   return phase_factors_dev;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU

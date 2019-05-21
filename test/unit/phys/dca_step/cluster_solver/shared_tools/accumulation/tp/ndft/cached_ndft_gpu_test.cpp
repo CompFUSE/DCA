@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -61,10 +62,14 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
       nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
-  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::GPU> result_device(64);
+  dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M);
+  using Complex = std::complex<double>;
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
+                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+      result_device(64);
 
   dca::profiling::WallTime start_time;
-  nft_obj.execute(config, M, result_device);
+  nft_obj.execute(config, M_dev, result_device);
   cudaStreamSynchronize(nft_obj.get_stream());
   dca::profiling::WallTime end_time;
 
