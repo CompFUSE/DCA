@@ -76,7 +76,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair& m_accum, const std::vector<cudaStream_t>& /*streams*/) const;
+  void computeM(MatrixPair &m_accum, const std::vector<linalg::util::CudaStream *> & /*streams*/) const;
 
   void markThermalized();
 
@@ -333,8 +333,8 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& param
 }
 
 template <class Parameters>
-void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum,
-                                           const std::vector<cudaStream_t>&) const {
+void CtintWalkerBase<Parameters>::computeM(MatrixPair &m_accum,
+                                           const std::vector<linalg::util::CudaStream *> &) const {
   m_accum = M_;
 }
 

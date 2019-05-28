@@ -20,7 +20,7 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtintBilayerValidationTest, GreensFunction) {
+TEST(CtauxBilayerValidationTest, GreensFunction) {
   using namespace dca::testing;
   const std::string ed_data_name = dca::testing::test_directory + "/data.ed.hdf5";
 
@@ -32,18 +32,18 @@ TEST(CtintBilayerValidationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType<CT_INT> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType<CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
   parameters.set_measurements(parameters.get_measurements() * number_of_samples);
 
-  DcaData<CT_INT> data(parameters);
+  DcaData<CT_AUX> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_INT> qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_AUX> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
@@ -77,7 +77,7 @@ TEST(CtintBilayerValidationTest, GreensFunction) {
     // read the stored reference data
     dca::math::StatisticalTesting test(G_k_w_sample, G_k_w_expected, G_k_w_covariance, 1);
     double p_value = test.computePValue(false, number_of_samples);
-    test.printInfo("ctint_bilayer_testinfo.out", true);
+    test.printInfo("ctaux_bilayer_testinfo.out", true);
     double p_value_default = 0.05;
     std::cout << "\n***\nThe p-value is " << p_value << "\n***\n";
     EXPECT_LT(p_value_default, p_value);

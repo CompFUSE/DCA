@@ -21,6 +21,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
@@ -93,7 +94,7 @@ public:
   void syncStreams(const T&) {}
 
   auto get_streams() const {
-    return std::vector<cudaStream_t>();
+    return std::vector<linalg::util::CudaStream*>();
   }
 
   std::size_t deviceFingerprint() const {
