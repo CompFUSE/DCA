@@ -270,6 +270,7 @@ endif()
 # Accumulation options.
 option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
        cost." OFF)
+mark_as_advanced(DCA_WITH_MEMORY_SAVINGS)
 if (DCA_WITH_MEMORY_SAVINGS)
   set(MEMORY_SAVINGS true)
 else()
@@ -280,6 +281,14 @@ if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
   set(MC_ACCUMULATION_SCALAR float)
 else()
   set(MC_ACCUMULATION_SCALAR double)
+endif()
+
+option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
+mark_as_advanced(DCA_WITH_MANAGED_MEMORY)
+if (DCA_WITH_MANAGED_MEMORY)
+  set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::ManagedAllocator<T>")
+else()
+  set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::DeviceAllocator<T>")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"

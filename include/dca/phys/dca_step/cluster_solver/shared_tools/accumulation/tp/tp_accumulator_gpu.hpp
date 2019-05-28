@@ -24,6 +24,7 @@
 #include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
+#include "dca/linalg/util/allocators/managed_allocator.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
@@ -156,6 +157,7 @@ private:
   constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
   using BaseClass::thread_id_;
+  using BaseClass::multiple_accumulators_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
   using BaseClass::G0_ptr_;
@@ -166,7 +168,8 @@ private:
   using BaseClass::n_pos_frqs_;
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
@@ -187,7 +190,8 @@ private:
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType = linalg::Vector<Complex, linalg::GPU, linalg::util::DeviceAllocator<Complex>>;
+  using G4DevType =
+      linalg::Vector<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
 
@@ -203,11 +207,9 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
   initializeG4Helpers();
 
   // Create shared workspaces.
-  workspaces_.resize(n_ndft_streams_);
-  for (auto& work : workspaces_)
-    work = std::make_shared<RMatrix>();
-
   for (int i = 0; i < n_ndft_streams_; ++i) {
+    workspaces_.emplace_back(std::make_shared<RMatrix>());
+    workspaces_[i]->setStream(streams_[i]);
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
@@ -256,6 +258,9 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   for (auto& G4_channel : get_G4()) {
     try {
       typename BaseClass::TpDomain tp_dmn;
+      if (!multiple_accumulators_) {
+        G4_channel.setStream(streams_[0]);
+      }
       G4_channel.resizeNoCopy(tp_dmn.get_size());
       G4_channel.setToZeroAsync(streams_[0]);
     }
@@ -275,9 +280,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
     const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-    details::G4HelperManager::set_instance(
-        n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices, add_mat.ptr(),
-        add_mat.leadingDimension(), sub_mat.ptr(), sub_mat.leadingDimension(), k0);
+    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
+                           add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
+                           sub_mat.leadingDimension(), k0);
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
@@ -390,41 +395,41 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel_
   const FourPointType channel = stringToFourPointType(channel_str);
 
   switch (channel) {
+    case PARTICLE_HOLE_TRANSVERSE:
+      details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
+          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+      break;
     case PARTICLE_HOLE_MAGNETIC:
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
       details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
-      break;
-    case PARTICLE_HOLE_TRANSVERSE:
-      details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
       details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     default:
       throw std::logic_error("Specified four point type not implemented.");

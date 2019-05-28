@@ -9,15 +9,10 @@
 //
 // Helper class for adding and subtracting momentum and frequency on the device.
 
-// TODO: split G4Helper and G4HelperManager into two separate file.
-
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH
 
-#include <array>
-#include <mutex>
 #include <vector>
-#include <stdexcept>
 
 #include <cuda.h>
 
@@ -30,15 +25,9 @@ namespace details {
 
 class G4Helper {
 public:
-  __host__ void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
-                    const std::vector<int>& w_ex_indices, const int* add_k, int lda,
-                    const int* sub_k, int lds, int k0);
-
-  G4Helper(const G4Helper& other) = default;
-
-  __host__ bool isInitialized() const {
-    return device_members_ != nullptr;
-  }
+  static void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
+                  const std::vector<int>& w_ex_indices, const int* add_k, int lda, const int* sub_k,
+                  int lds, int k0);
 
   // Returns the index of k + k_ex.
   __device__ inline int addKex(int k_idx, int k_ex_idx) const;
@@ -65,123 +54,48 @@ public:
   __device__ inline int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
 
 protected:
-  // This object can be constructed only through its derived class.
-  G4Helper() = default;
-
-  int* add_matrix_ = nullptr;
-  int* sub_matrix_ = nullptr;
-
-  // device_members_ points to an array of private members stored in a single GPU allocation.
-  // The order is:
-  // lda: leading dimension of add_matrix_.
-  // lds: leading dimension of sub_matrix_.
-  // nw_pos: number of positive frequencies stored in G4.
-  // ext_size: difference between the number of positive frequencies stored in G and G4.
-  // k0: index of the origin.
-  int* device_members_ = nullptr;
-
-  int* w_ex_indices_ = nullptr;
-  int* k_ex_indices_ = nullptr;
-
-  // Stores the steps between each subdomain used by g4Index.
-  int* sbdm_steps_ = nullptr;
+  int lda_;
+  int lds_;
+  int nw_pos_;
+  int ext_size_;
+  int k0_;
+  int sbdm_steps_[10];
+  int* add_matrix_;
+  int* sub_matrix_;
+  int* w_ex_indices_;
+  int* k_ex_indices_;
 };
 
-class G4HelperManager : public G4Helper {
-public:
-  G4HelperManager() = default;
-  __host__ ~G4HelperManager();
-  __host__ __device__ G4HelperManager(const G4HelperManager& other) = delete;
-
-  static G4HelperManager& get_instance() {
-    static G4HelperManager instance;
-    return instance;
-  }
-
-  static void set_instance(int nb, int nk, int nw_pos, const std::vector<int>& delta_k_indices,
-                           const std::vector<int>& delta_w_indices, const int* add_k, int lda,
-                           const int* sub_k, int lds, int k0) {
-    static std::once_flag flag;
-    std::call_once(flag, [&]() {
-      get_instance().set(nb, nk, nw_pos, delta_k_indices, delta_w_indices, add_k, lda, sub_k, lds, k0);
-    });
-  }
-};
-
-inline __host__ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
-                                   const std::vector<int>& delta_w, const int* add_k, int lda,
-                                   const int* sub_k, int lds, int k0) {
-  if (isInitialized())
-    throw(std::logic_error("already initialized."));
-
-  cudaMalloc(&add_matrix_, sizeof(int) * lda * nk);
-  cudaMalloc(&sub_matrix_, sizeof(int) * lds * nk);
-  cudaMemcpy(add_matrix_, add_k, sizeof(int) * lda * nk, cudaMemcpyHostToDevice);
-  cudaMemcpy(sub_matrix_, sub_k, sizeof(int) * lds * nk, cudaMemcpyHostToDevice);
-
-  int ext_size = 0;
-  for (const int idx : delta_w)
-    ext_size = std::max(ext_size, std::abs(idx));
-
-  const std::array<int, 5> device_members_host{lda, lds, nw_pos, ext_size, k0};
-  cudaMalloc(&device_members_, sizeof(int) * device_members_host.size());
-  cudaMemcpy(device_members_, device_members_host.data(), sizeof(int) * device_members_host.size(),
-             cudaMemcpyHostToDevice);
-
-  cudaMalloc(&w_ex_indices_, sizeof(int) * delta_w.size());
-  cudaMemcpy(w_ex_indices_, delta_w.data(), sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
-  cudaMalloc(&k_ex_indices_, sizeof(int) * delta_k.size());
-  cudaMemcpy(k_ex_indices_, delta_k.data(), sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
-
-  const int nb4 = nb * nb * nb * nb;
-  const int nk3 = nk * nk * delta_k.size();
-  const int nw = 2 * nw_pos;
-  const std::array<int, 10> steps_host{1,
-                                       nb,
-                                       nb * nb,
-                                       nb * nb * nb,
-                                       nb4,
-                                       nb4 * nk,
-                                       nb4 * nk * nk,
-                                       nb4 * nk3,
-                                       nb4 * nk3 * nw,
-                                       nb4 * nk3 * nw * nw};
-  cudaMalloc(&sbdm_steps_, sizeof(int) * steps_host.size());
-  cudaMemcpy(sbdm_steps_, steps_host.data(), sizeof(int) * steps_host.size(), cudaMemcpyHostToDevice);
-}
+// Global instance to be used in the tp accumulation kernel.
+extern __device__ __constant__ G4Helper g4_helper;
 
 inline __device__ int G4Helper::addWex(const int w_idx, const int w_ex_idx) const {
   return w_idx + w_ex_indices_[w_ex_idx];
 }
 
 inline __device__ int G4Helper::wexMinus(const int w_idx, const int w_ex_idx) const {
-  const int nw = 2 * device_members_[2];
+  const int nw = 2 * nw_pos_;
   return w_ex_indices_[w_ex_idx] + nw - 1 - w_idx;
 }
 
 inline __device__ int G4Helper::addKex(const int k_idx, const int k_ex_idx) const {
-  const int ld = device_members_[0];
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return add_matrix_[k_idx + ld * k_ex];
+  return add_matrix_[k_idx + lda_ * k_ex];
 }
 
 inline __device__ int G4Helper::kexMinus(const int k_idx, const int k_ex_idx) const {
-  const int ld = device_members_[1];
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return sub_matrix_[k_idx + ld * k_ex];
+  return sub_matrix_[k_idx + lds_ * k_ex];
 }
 
 inline __device__ int G4Helper::kMinus(const int k_idx) const {
-  const int ld = device_members_[1];
-  const auto k0 = device_members_[4];
-  return sub_matrix_[k_idx + ld * k0];
+  return sub_matrix_[k_idx + lds_ * k0_];
 }
 
 inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
-  const int extension = device_members_[3];
-  const int n_w_ext_pos = extension + device_members_[2];
-  w1 += extension;
-  w2 += extension;
+  const int n_w_ext_pos = ext_size_ + nw_pos_;
+  w1 += ext_size_;
+  w2 += ext_size_;
   if (w1 >= n_w_ext_pos) {
     w1 -= n_w_ext_pos;
     return false;
@@ -208,19 +122,10 @@ inline __device__ int G4Helper::g4Index(int k1, int k2, int k_ex, int w1, int w2
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
 }
 
-inline __host__ G4HelperManager::~G4HelperManager() {
-  cudaFree(G4Helper::add_matrix_);
-  cudaFree(G4Helper::sub_matrix_);
-  cudaFree(G4Helper::device_members_);
-  cudaFree(G4Helper::sbdm_steps_);
-  cudaFree(G4Helper::w_ex_indices_);
-  cudaFree(G4Helper::k_ex_indices_);
-}
-
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH

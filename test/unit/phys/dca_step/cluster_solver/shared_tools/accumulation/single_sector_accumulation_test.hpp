@@ -102,6 +102,8 @@ struct Vertex {
 template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
+  using Complex = std::complex<Real>;
+
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
   using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using PosFreqDmn = dca::func::dmn_0<PositiveFrq>;
@@ -197,7 +199,7 @@ auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBa
   return f_w;
 }
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SINGLE_SECTOR_ACCUMULATION_TEST_HPP

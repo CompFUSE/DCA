@@ -23,6 +23,7 @@
 #include <complex>
 #include <memory>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -31,6 +32,7 @@
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_template.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/kernels_interface.hpp"
+#include "dca/util/ignore.hpp"
 
 namespace dca {
 namespace phys {
@@ -48,7 +50,8 @@ private:
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
+                                           config::AccumulationOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 public:
@@ -185,6 +188,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
 
   auto& T_times_M = M_out;
   bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(stream_);
 
@@ -257,9 +261,9 @@ std::size_t CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_densi
   return res;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
