@@ -76,7 +76,6 @@ private:
   void computeMInit();
   void computeGInit();
   void updateM();
-  void pushToEnd();
 
   void uploadConfiguration();
 
@@ -96,6 +95,9 @@ private:
   DeviceConfigurationManager device_config_;
 
   using BaseClass::removal_list_;
+  using BaseClass::source_list_;
+  std::array<linalg::Vector<int, linalg::GPU>, 2> removal_list_dev_;
+  std::array<linalg::Vector<int, linalg::GPU>, 2> source_list_dev_;
   using BaseClass::conf_removal_list_;
 
   using RootClass::d_builder_ptr_;
@@ -122,6 +124,7 @@ private:
 
   using BaseClass::gamma_;
   using BaseClass::move_indices_;
+  std::array<linalg::Vector<int, linalg::GPU>, 2> move_indices_dev_;
   std::array<linalg::util::HostVector<std::pair<int, double>>, 2> gamma_index_;
   std::array<linalg::Vector<std::pair<int, double>, linalg::GPU>, 2> gamma_index_dev_;
 
@@ -138,6 +141,8 @@ private:
   using BaseClass::n_max_;
 
   linalg::util::CudaEvent m_computed_event_;
+
+  using BaseClass::flop_;
 };
 
 template <class Parameters>
@@ -185,6 +190,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
+  for (auto& event : config_copied_)
+    event.block();
   BaseClass::generateDelayedMoves(BaseClass::nbr_of_moves_to_delay_);
   uploadConfiguration();
 
@@ -197,8 +204,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
-  for (int s = 0; s < 2; ++s)
-    config_copied_[s].block();
+  //  for (int s = 0; s < 2; ++s)
+  //    config_copied_[s].block();
 
   // Upload configuration and f values.
   device_config_.upload(configuration_, thread_id_);
@@ -236,6 +243,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
       MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
+      flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
 
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
                                   n_max_[s], stream_[s]);
@@ -265,6 +273,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
+      flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
     }
     G_[s].setAsync(G_dev_[s], stream_[s]);
   }
@@ -299,76 +308,41 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
     old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
 
-    // TODO: this can be done in a single kernel with the copied memory.
-    int p;
-    for (int j = 0; j < gamma_size; ++j) {
-      p = move_indices_[s][j];
-
-      linalg::matrixop::copyCol(G_dev_[s], p, old_G, j, thread_id_, s);
-      linalg::matrixop::copyRow(M_dev_[s], p, old_M, j, thread_id_, s);
-    }
+    move_indices_dev_[s].setAsync(move_indices_[s], stream_[s]);
+    // Note: an event synchronization might be necessary if the order of operation is changed.
+    linalg::matrixop::copyCols(G_dev_[s], move_indices_dev_[s], old_G, thread_id_, s);
+    linalg::matrixop::copyRows(M_dev_[s], move_indices_dev_[s], old_M, thread_id_, s);
 
     auto& tmp = G_dev_[s];
     // Note: the following resize is safe as it does not deallocate.
     tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
     linalg::matrixop::gemm(Gamma_inv_dev_[s], old_M, tmp, thread_id_, s);
     linalg::matrixop::gemm(-1., old_G, tmp, 1., M_dev_[s], thread_id_, s);
+    flop_ += 2 * Gamma_inv_dev_[s].nrRows() * Gamma_inv_dev_[s].nrCols() * old_M.nrCols();
+    flop_ += 2 * old_G.nrRows() * old_G.nrCols() * tmp.nrCols();
 
     details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
                                  gamma_size, stream_[s]);
   }
 
-  // Remove "non-interacting" rows and columns.
-  pushToEnd();
-
-  for (int s = 0; s < 2; ++s)
-    M_dev_[s].resize(n_max_[s] - BaseClass::removal_list_[s].size());
-
-  const int n_new_vertices = (M_dev_[0].size().first + M_dev_[1].size().first) / 2;
-  while (configuration_.size() > n_new_vertices)
-    configuration_.pop();
+  // Remove non-interacting rows and columns.
+  configuration_.moveAndShrink(source_list_, removal_list_, BaseClass::conf_source_,
+                               conf_removal_list_);
+  for (int s = 0; s < 2; ++s) {
+    const int removal_size = removal_list_[s].size();
+    removal_list_[s].resize(source_list_[s].size());
+    removal_list_dev_[s].setAsync(removal_list_[s], stream_[s]);
+    source_list_dev_[s].setAsync(source_list_[s], stream_[s]);
+    config_copied_[s].record(stream_[s]);
+    linalg::matrixop::copyRows(M_dev_[s], source_list_dev_[s], M_dev_[s], removal_list_dev_[s],
+                               thread_id_, s);
+    linalg::matrixop::copyCols(M_dev_[s], source_list_dev_[s], M_dev_[s], removal_list_dev_[s],
+                               thread_id_, s);
+    M_dev_[s].resize(n_max_[s] - removal_size);
+  }
 
   assert(configuration_.getSector(0).size() == M_dev_[0].nrRows());
   assert(configuration_.getSector(1).size() == M_dev_[1].nrRows());
-}
-
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
-  int source;
-  int destination;
-
-  for (int s = 0; s < 2; ++s) {
-    // Sort in reverse order.
-    std::sort(removal_list_[s].rbegin(), removal_list_[s].rend());
-
-    destination = n_max_[s] - 1;
-
-    for (int i = 0; i < removal_list_[s].size(); ++i) {
-      source = removal_list_[s][i];
-
-      removal_list_[s][i] = destination;
-
-      // TODO: swap in a single kernel.
-      linalg::matrixop::swapRowAndCol(M_dev_[s], source, destination, thread_id_, s);
-      configuration_.swapSectorLabels(source, destination, s);
-
-      --destination;
-    }
-  }
-
-  std::sort(conf_removal_list_.rbegin(), conf_removal_list_.rend());
-
-  destination = configuration_.size() - 1;
-
-  for (int i = 0; i < conf_removal_list_.size(); ++i) {
-    source = conf_removal_list_[i];
-
-    conf_removal_list_[i] = destination;
-
-    configuration_.swapVertices(source, destination);
-
-    --destination;
-  }
 }
 
 template <class Parameters>

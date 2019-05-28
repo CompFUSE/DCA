@@ -265,7 +265,8 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
     removal_matrix_indices_[s].clear();
     for (int i = 0; i < n_removed; ++i) {
       const int index = i ? removal_candidates_.second : removal_candidates_.first;
-      const std::vector<ushort> vertex_indices = configuration_.findIndices(index, s);
+      const auto vertex_indices =
+          configuration_.findIndices(configuration_.getTag(index), s);
       removal_matrix_indices_[s].insert(removal_matrix_indices_[s].end(), vertex_indices.begin(),
                                         vertex_indices.end());
     }
@@ -366,9 +367,9 @@ double CtintWalker<linalg::CPU, Parameters>::separateIndexDeterminant(
   return details::separateIndexDeterminant(m, indices);
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CPU_HPP

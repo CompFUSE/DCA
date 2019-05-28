@@ -40,13 +40,18 @@ void setRightSectorToId(double* m, const int ldm, const int n0, const int n_max,
   setRightSectorToIdKernel<<<blocks[0], blocks[1], 0, stream>>>(m, ldm, n0, n_max);
 }
 
-__global__ void computeGLeftKernel(MatrixView G, const MatrixView M, const double* f, int n_init) {
-  const int i = threadIdx.x + blockDim.x * blockIdx.x;
+__global__ void computeGLeftKernel(MatrixView G, const MatrixView M, const double* __restrict__ f, int n_init) {
+  const int i_t = threadIdx.x + blockDim.x * blockIdx.x;
+  const int stride = blockDim.x * gridDim.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
-  if (i >= G.nrRows() || j >= n_init)
+  if (j >= n_init)
     return;
 
-  G(i, j) = (M(i, j) * f[j] - double(i == j)) / (f[j] - 1);
+  const double factor = 1. / (f[j] - 1);
+  const double fj = f[j];
+
+  for (int i = i_t; i < G.nrRows(); i += stride)
+    G(i, j) = (M(i, j) * fj - double(i == j)) * factor;
 }
 
 void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_init,
@@ -54,9 +59,13 @@ void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_ini
   if (n_init == 0)
     return;
   const int n = G.nrRows();
-  const auto blocks = dca::util::getBlockSize(n, n_init);
 
-  computeGLeftKernel<<<blocks[0], blocks[1], 0, stream>>>(G, M, f, n_init);
+  constexpr int thread_j = 4;
+  constexpr int thread_i = 64;
+  dim3 threads(thread_i, thread_j);
+  dim3 blocks(std::max(n / (10 * thread_i), 1), util::ceilDiv(n_init, thread_j));
+
+  computeGLeftKernel<<<blocks, threads, 0, stream>>>(G, M, f, n_init);
 }
 
 __global__ void multiplyByFColFactorKernel(MatrixView M, const double* f_vals) {
@@ -69,8 +78,7 @@ __global__ void multiplyByFColFactorKernel(MatrixView M, const double* f_vals) {
   M(i, j) *= factor;
 }
 
-void multiplyByFColFactor(MatrixView& M, const double* f_vals,
-                       cudaStream_t stream) {
+void multiplyByFColFactor(MatrixView& M, const double* f_vals, cudaStream_t stream) {
   if (M.nrCols() == 0 || M.nrRows() == 0)
     return;
   const auto blocks = dca::util::getBlockSize(M.nrRows(), M.nrCols());

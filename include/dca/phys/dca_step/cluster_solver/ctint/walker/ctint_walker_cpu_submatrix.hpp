@@ -75,7 +75,6 @@ private:
   double computeAcceptanceProbability();
   void updateGammaInv();
   void removeRowAndColOfGammaInv(const int s);
-  void pushToEnd();
   void computeMInit();
   //  void computeG0Init();
   void computeGInit();
@@ -148,7 +147,6 @@ protected:
   Move move_type_;
 
   std::array<int, 2> nbr_of_indices_;
-  std::array<bool, 2> found_sector_index_;
 
   int index_;
   double tau_;
@@ -164,13 +162,15 @@ protected:
 
   std::array<int, 2> n_max_;
 
-  std::array<std::vector<int>, 2> move_indices_;
+  std::array<linalg::util::HostVector<int>, 2> move_indices_;
   std::vector<int> existing_indices_;
-  std::array<std::vector<int>, 2> removal_list_;
+  std::array<linalg::util::HostVector<int>, 2> removal_list_;
+  std::array<linalg::util::HostVector<int>, 2> source_list_;
   std::array<std::vector<int>, 2> insertion_list_;
   std::array<std::vector<int>, 2> insertion_Gamma_indices_;
 
   std::vector<int> conf_removal_list_;
+  std::vector<int> conf_source_;
 
   std::vector<int>::iterator insertion_list_it_;
   bool recently_added_;
@@ -179,6 +179,8 @@ protected:
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
   Matrix D_;
+
+  using BaseClass::flop_;
 };
 
 template <class Parameters>
@@ -352,6 +354,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
   bool do_nothing;
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
+    static int count2 = 0;
     move_type_ = delayed_moves_[delay_ind].move_type_;
     do_nothing = false;
     recently_added_ = false;
@@ -382,7 +385,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
 
       findSectorIndices(s);
       // Continue to next sector/move if there is nothing to change in current sector.
-      if (!found_sector_index_[s])
+      if (!nbr_of_indices_[s])
         continue;
 
       if (move_type_ == INSERTION) {
@@ -573,6 +576,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
           gamma_[s].pop_back();
       }
     }
+    ++count2;
+    // assert(removal_list_[0].size() == conf_removal_list_.size());
   }
 }
 
@@ -613,6 +618,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_, M, D_M);
+      flop_ += 2 * D_.nrRows() * D_.nrCols() * M.nrCols();
 
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
@@ -652,6 +658,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
       MatrixView G(G_[s], 0, n_init_[s], n_max_[s], delta);
 
       linalg::matrixop::gemm(M_[s], G0, G);
+      flop_ += 2. * M_[s].nrRows() * M_[s].nrCols() * G0.nrCols();
     }
   }
 }
@@ -765,6 +772,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
       linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
+      flop_ += 2 * Gamma_inv_[s].nrRows() * Gamma_inv_[s].nrCols() * old_M.nrCols();
+      flop_ += 2 * old_G.nrRows() * old_G.nrCols() * result_matrix.nrCols();
 
       p = 0;
       for (auto& i : move_indices_[s]) {
@@ -777,37 +786,29 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
   }
 
   // Remove "non-interacting" rows and columns.
-
-  pushToEnd();
+  configuration_.moveAndShrink(source_list_, removal_list_, conf_source_, conf_removal_list_);
 
   for (int s = 0; s < 2; ++s) {
-    M_[s].resize(n_max_[s] - removal_list_[s].size());
+    const int removal_size = removal_list_[s].size();
+    //    removal_list_[s].resize(source_list_[s].size());
+    linalg::matrixop::copyRows(M_[s], source_list_[s], M_[s], removal_list_[s]);
+    linalg::matrixop::copyCols(M_[s], source_list_[s], M_[s], removal_list_[s]);
+    M_[s].resize(n_max_[s] - removal_size);
   }
 
-  while (configuration_.size() > (M_[0].size().first + M_[1].size().first) / 2)
-    configuration_.pop();
+  assert(M_[0].nrCols() == configuration_.getSector(0).size());
+  assert(M_[1].nrCols() == configuration_.getSector(1).size());
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int s) {
-  // TODO: use configuration_.findIndices(index_, s);
-  // TODO: use sector indices for insertion.
   tau_ = configuration_[index_].tau;
+  auto tag = configuration_[index_].tag;
 
-  found_sector_index_[s] = false;
-  sector_indices_[s].clear();
-
-  // NB: In multiband case, two sector indices may correspond to same tau (?).
-  // Then the corresponding sector must be extended/shrunk by 2 rows and columns.
-
-  for (int i = 0; i < configuration_.getSector(s).size(); ++i) {
-    if (configuration_.getSector(s).getTau(i) == tau_) {
-      found_sector_index_[s] = true;
-      sector_indices_[s].push_back(i);
-      if (sector_indices_[s].size() == 2)
-        break;
-    }
-  }
+  sector_indices_[s] = configuration_.findIndices(tag, s);
+  //  for(int i = 0; i < sector_indices_[s].size(); ++i) {
+  //      assert(tau_ == configuration_.getSector(s).getTau(sector_indices_[s][i]));
+  //  }
 
   nbr_of_indices_[s] = sector_indices_[s].size();
 }
@@ -871,44 +872,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(co
   Gamma_size_[s] = Gamma_inv_[s].nrRows();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::pushToEnd() {
-  int source;
-  int destination;
-
-  for (int s = 0; s < 2; ++s) {
-    // Sort in reverse order.
-    std::sort(removal_list_[s].rbegin(), removal_list_[s].rend());
-
-    destination = n_max_[s] - 1;
-
-    for (int i = 0; i < removal_list_[s].size(); ++i) {
-      source = removal_list_[s][i];
-
-      removal_list_[s][i] = destination;
-
-      linalg::matrixop::swapRowAndCol(M_[s], source, destination);
-      configuration_.swapSectorLabels(source, destination, s);
-
-      --destination;
-    }
-  }
-
-  std::sort(conf_removal_list_.rbegin(), conf_removal_list_.rend());
-
-  destination = configuration_.size() - 1;
-
-  for (int i = 0; i < conf_removal_list_.size(); ++i) {
-    source = conf_removal_list_[i];
-
-    conf_removal_list_[i] = destination;
-
-    configuration_.swapVertices(source, destination);
-
-    --destination;
-  }
-}
-
 // This method is unused and left to potentially use as a testing reference.
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
@@ -955,7 +918,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass::MatrixPair& m_accum,
                                                              const std::vector<cudaStream_t>&) {
-    for (int s = 0; s < 2; ++s) {
+  for (int s = 0; s < 2; ++s) {
     m_accum[s].resizeNoCopy(M_[s].size());
 
     for (int j = 0; j < M_[s].size().second; ++j) {

@@ -143,6 +143,12 @@ public:
 
   static void setInteractionVertices(const Parameters& parameters, Data& data);
 
+  float stealFLOPs() {
+    auto flop = flop_;
+    flop_ = 0.;
+    return flop;
+  }
+
 protected:
   // typedefs
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
@@ -185,6 +191,8 @@ protected:  // Members.
 
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   std::pair<short, short> removal_candidates_;
+
+  float flop_ = 0.;
 
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
@@ -276,8 +284,12 @@ void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();
     const double avg_order = avgOrder();
-    if (avg_order != -1)
-      std::cout << "\t <k> :" << std::setprecision(1) << std::fixed << avg_order;
+    if (avg_order != -1) {
+      auto precision = std::cout.precision();
+      std::cout.precision(1);
+      std::cout << "\t <k> :" << std::fixed << avg_order;
+      std::cout.precision(precision);
+    }
     std::cout << "\t\t" << dca::util::print_time() << "\n";
   }
 }

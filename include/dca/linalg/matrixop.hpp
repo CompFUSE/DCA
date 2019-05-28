@@ -88,10 +88,10 @@ inline void copyCol(const Matrix<ScalarType, device_name>& mat_x, int jx,
 // Preconditions: j_x.size() <= j_y.size(), mat_x.nrRows() == mat_y.nrRows()
 //                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
 //                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
-template <typename ScalarType>
-inline void copyCols(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU>& j_x,
-                     Matrix<ScalarType, CPU>& mat_y, const Vector<int, CPU>& j_y,
-                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+template <typename ScalarType, class Vec>
+inline void copyCols(const Matrix<ScalarType, CPU>& mat_x, const Vec& j_x,
+                     Matrix<ScalarType, CPU>& mat_y, const Vec& j_y, int /*thread_id*/ = 0,
+                     int /*stream_id*/ = 0) {
   assert(j_x.size() <= j_y.size());
 
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
@@ -107,6 +107,19 @@ inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
 
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  j_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the j_x columns of mat_x into the  mat_y, for 0 <= i < j_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrRows() == mat_y.nrRows()
+//                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
+template <typename ScalarType>
+inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& j_x,
+                     Matrix<ScalarType, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrRows() == mat_y.nrRows());
+
+  blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 
@@ -132,10 +145,10 @@ inline void copyRow(const Matrix<ScalarType, device_name>& mat_x, int ix,
 // Preconditions: i_x.size() <= i_y.size(), mat_x.nrCols() == mat_y.nrCols()
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
-template <typename ScalarType>
-inline void copyRows(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU>& i_x,
-                     Matrix<ScalarType, CPU>& mat_y, const Vector<int, CPU>& i_y,
-                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+template <typename ScalarType, class Vec>
+inline void copyRows(const Matrix<ScalarType, CPU>& mat_x, const Vec& i_x,
+                     Matrix<ScalarType, CPU>& mat_y, const Vec& i_y, int /*thread_id*/ = 0,
+                     int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
@@ -153,6 +166,19 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  i_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the i_x rows of mat_x into  mat_y, for 0 <= i < i_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrCols() == mat_y.nrCols()
+//                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size().
+template <typename ScalarType>
+inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& i_x,
+                     Matrix<ScalarType, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 
@@ -1249,8 +1275,8 @@ bool areNear(const Matrix<ScalarType, CPU>& A, const Matrix<ScalarType, CPU>& B,
   return true;
 }
 
-}  // matrixop
-}  // linalg
-}  // dca
+}  // namespace matrixop
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIXOP_HPP

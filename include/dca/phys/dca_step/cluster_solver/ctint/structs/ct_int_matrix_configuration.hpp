@@ -30,6 +30,7 @@ namespace ctint {
 struct Vertex {
   bool aux_spin;
   ushort interaction_id;
+  std::uint64_t tag;
   double tau;
 
   bool operator==(const Vertex& b) const {
@@ -62,14 +63,14 @@ public:
     return sectors_;
   }
 
-  bool operator==(const MatrixConfiguration& rhs) const{
+  bool operator==(const MatrixConfiguration& rhs) const {
     return sectors_ == rhs.sectors_;
   }
 
-protected:
-  // TODO try to return on the stack
-  inline std::vector<ushort> findIndices(double tau, int s) const;
+  // TODO try to return on the stack or preallocated mem.
+  inline std::vector<int> findIndices(const uint64_t tag, const int s) const;
 
+protected:
   inline MatrixConfiguration(const InteractionVertices* H_int, int bands);
 
   inline std::array<int, 2> addVertex(const Vertex& v);
@@ -79,8 +80,11 @@ protected:
   const auto& getEntries(const int s) const {
     return sectors_[s].entries_;
   }
+  auto& getEntries(const int s) {
+    return sectors_[s].entries_;
+  }
 
-private:
+protected:
   const InteractionVertices* H_int_ = nullptr;
   const int n_bands_ = -1;
   std::array<Sector, 2> sectors_;
@@ -126,35 +130,42 @@ std::array<int, 2> MatrixConfiguration::addVertex(const Vertex& v) {
     sector.entries_.emplace_back(details::SectorEntry{band(nu[0 + 2 * leg]), r[0 + 2 * leg],
                                                       band(nu[1 + 2 * leg]), r[1 + 2 * leg], v.tau,
                                                       field_type(v, leg)});
+    sector.tags_.push_back(v.tag);
   }
+  assert(sectors_[0].entries_.size() == sectors_[0].tags_.size());
+  assert(sectors_[1].entries_.size() == sectors_[1].tags_.size());
   return sizes;
 }
 
 void MatrixConfiguration::pop(ushort n_up, ushort n_down) {
   assert(n_up <= sectors_[0].size() and n_down <= sectors_[1].size());
   sectors_[0].entries_.erase(sectors_[0].entries_.end() - n_up, sectors_[0].entries_.end());
+  sectors_[0].tags_.erase(sectors_[0].tags_.end() - n_up, sectors_[0].tags_.end());
   sectors_[1].entries_.erase(sectors_[1].entries_.end() - n_down, sectors_[1].entries_.end());
+  sectors_[1].tags_.erase(sectors_[1].tags_.end() - n_down, sectors_[1].tags_.end());
 }
 
-std::vector<ushort> MatrixConfiguration::findIndices(const double tau, const int s) const {
-  // TODO try writing tau as a separate array
-  // TODO return vector of correct size.
-  const auto& entries = sectors_[s].entries_;
-  auto search_func = [tau](const details::SectorEntry& e) { return e.tau_ == tau; };
+std::vector<int> MatrixConfiguration::findIndices(const uint64_t tag, const int s) const {
+  std::vector<int> indices;
 
-  const auto it1 = std::find_if(entries.begin(), entries.end(), search_func);
-  if (it1 == entries.end())
-    return std::vector<ushort>{};
+  auto start = sectors_[s].tags_.begin();
+  const auto end = sectors_[s].tags_.end();
+  while (true) {
+    start = std::find(start, end, tag);
+    if (start != end) {
+      indices.push_back(start - sectors_[s].tags_.begin());
+      ++start;
+    }
+    else
+      break;
+  }
 
-  const auto it2 = std::find_if(it1 + 1, entries.end(), search_func);
-  if (it2 == entries.end())
-    return std::vector<ushort>{ushort(it1 - entries.begin())};
-
-  return std::vector<ushort>{ushort(it1 - entries.begin()), ushort(it2 - entries.begin())};
+  return indices;
 }
 
 void MatrixConfiguration::swapSectorLabels(const int a, const int b, const int s) {
   std::swap(sectors_[s].entries_[a], sectors_[s].entries_[b]);
+  std::swap(sectors_[s].tags_[a], sectors_[s].tags_[b]);
 }
 
 }  // namespace ctint

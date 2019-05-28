@@ -33,7 +33,6 @@ dca_add_gtest(ctint_fe_as_test
 dca_add_gtest(ctint_square_lattice_tp_test
     EXTENSIVE
     GTEST_MAIN
-    PTHREADS
     INCLUDE_DIRS ${TEST_INCLUDES}
     LIBS     ${TEST_LIBS}
     )
