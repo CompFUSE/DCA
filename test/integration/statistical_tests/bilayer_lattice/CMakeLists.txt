@@ -13,6 +13,14 @@ dca_add_gtest(ctint_bilayer_validation_stattest
     LIBS     ${TEST_LIBS}
     )
 
+dca_add_gtest(ctint_hund_validation_stattest
+        STOCHASTIC
+        # Run with more ranks for better error detection.
+        MPI MPI_NUMPROC 32
+        INCLUDE_DIRS ${TEST_INCLUDES}
+        LIBS     ${TEST_LIBS}
+        )
+
 dca_add_gtest(ctaux_bilayer_validation_stattest
         STOCHASTIC
         # Run with more ranks for better error detection.
