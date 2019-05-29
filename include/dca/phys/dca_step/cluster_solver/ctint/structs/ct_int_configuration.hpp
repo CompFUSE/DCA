@@ -171,7 +171,6 @@ void SolverConfiguration::insertRandom(RngType& rng) {
   push_back(Vertex{aux_spin, ushort(indices.first), ++current_tag_, tau});
 
   if (double_insertion_prob_) {
-    existing_[indices.first].push_back(vertices_.size() - 1);
     // TODO: generalize to multiband n_bands > 2
     if (indices.second != -1 and rng() < double_insertion_prob_) {
       const double tau2 = rng() * max_tau_;
