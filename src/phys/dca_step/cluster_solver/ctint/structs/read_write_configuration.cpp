@@ -26,8 +26,10 @@ io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config) {
   std::vector<Vertex> vertices;
   buff >> vertices;
 
-  for (auto& v : vertices)
+  for (auto& v : vertices) {
+    v.tag = config.current_tag_++;
     config.push_back(v);
+  }
 
   return buff;
 }
