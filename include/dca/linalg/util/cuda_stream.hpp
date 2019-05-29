@@ -14,6 +14,9 @@
 
 #ifdef DCA_HAVE_CUDA
 #include <cuda.h>
+#else
+using cudaStream_t = void*;
+void cudaDeviceSynchronize(){}
 #endif
 
 namespace dca {
@@ -47,6 +50,11 @@ public:
 private:
   cudaStream_t stream_ = nullptr;
 };
+
+inline CudaStream* cudaStreamPtr(cudaStream_t s) {
+  static_assert(sizeof(cudaStream_t) == sizeof(CudaStream), "CudaStream is not just a wrapper.");
+  return reinterpret_cast<CudaStream*>(s);
+}
 
 #else  // DCA_HAVE_CUDA
 

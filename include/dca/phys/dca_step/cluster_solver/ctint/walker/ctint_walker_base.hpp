@@ -21,6 +21,7 @@
 #include "dca/io/buffer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/make_constant_view.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
@@ -76,7 +77,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair &m_accum, const std::vector<linalg::util::CudaStream *> & /*streams*/) const;
+  void computeM(MatrixPair& m_accum, const std::vector<cudaStream_t >& /*streams*/) const;
 
   void markThermalized();
 
@@ -333,8 +334,8 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& param
 }
 
 template <class Parameters>
-void CtintWalkerBase<Parameters>::computeM(MatrixPair &m_accum,
-                                           const std::vector<linalg::util::CudaStream *> &) const {
+void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum,
+                                           const std::vector<cudaStream_t>&) const {
   m_accum = M_;
 }
 

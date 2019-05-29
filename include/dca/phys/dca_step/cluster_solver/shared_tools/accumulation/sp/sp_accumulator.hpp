@@ -83,8 +83,8 @@ public:
     return 0;
   }
 
-  auto get_streams() const {
-    return std::vector<linalg::util::CudaStream*>();
+  std::vector<cudaStream_t> get_streams() const {
+    return std::vector<cudaStream_t>();
   }
 
 protected:

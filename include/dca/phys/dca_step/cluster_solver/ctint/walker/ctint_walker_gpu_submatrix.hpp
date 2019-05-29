@@ -47,8 +47,8 @@ public:
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 
-  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2> &m_accum,
-                const std::vector<linalg::util::CudaStream *> &streams);
+  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
+                const std::vector<cudaStream_t>& streams);
 
   void initialize();
 
@@ -347,8 +347,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
-        std::array<dca::linalg::Matrix<double, linalg::GPU>, 2> &m_accum,
-        const std::vector<linalg::util::CudaStream *> &streams) {
+    std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
+    const std::vector<cudaStream_t>& streams) {
   for (int s = 0; s < 2; ++s)
     m_accum[s].resizeNoCopy(M_dev_[s].size());
 
@@ -363,7 +363,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
   m_computed_event_.record(stream_[1]);
 
   for (auto stream : streams)
-    m_computed_event_.block(*stream);
+    m_computed_event_.block(stream);
 }
 
 }  // namespace ctint

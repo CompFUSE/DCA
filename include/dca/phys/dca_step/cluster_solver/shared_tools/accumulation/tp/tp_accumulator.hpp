@@ -94,7 +94,7 @@ public:
   void syncStreams(const T&) {}
 
   auto get_streams() const {
-    return std::vector<linalg::util::CudaStream*>();
+    return std::vector<cudaStream_t>();
   }
 
   std::size_t deviceFingerprint() const {

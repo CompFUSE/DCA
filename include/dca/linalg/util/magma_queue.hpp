@@ -13,8 +13,10 @@
 #define DCA_LINALG_UTIL_MAGMA_QUEUE_HPP
 #ifdef DCA_HAVE_CUDA
 
+#include <cublas_v2.h>
 #include <cuda.h>
-#include <magma.h>
+#include <cusparse_v2.h>
+#include <magma_v2.h>
 
 namespace dca {
 namespace linalg {
@@ -27,11 +29,23 @@ public:
     magma_queue_create(&queue_);
   }
 
-  ~MagmaQueue() {
-    magma_queue_destroy(queue_);
+  MagmaQueue(cudaStream_t stream) {
+    cublasCreate(&cublas_handle_);
+    cusparseCreate(&cusparse_handle_);
+    int device;
+    cudaGetDevice(&device);
+    magma_queue_create_from_cuda(device, stream, cublas_handle_, cusparse_handle_, &queue_);
   }
 
-  inline operator magma_queue_t() {
+  ~MagmaQueue() {
+    magma_queue_destroy(queue_);
+    if (cublas_handle_)
+      cublasDestroy(cublas_handle_);
+    if (cusparse_handle_)
+      cusparseDestroy(cusparse_handle_);
+  }
+
+  operator magma_queue_t() {
     return queue_;
   }
 
@@ -41,11 +55,13 @@ public:
 
 private:
   magma_queue_t queue_ = nullptr;
+  cublasHandle_t cublas_handle_ = nullptr;
+  cusparseHandle_t cusparse_handle_ = nullptr;
 };
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_QUEUE_HPP

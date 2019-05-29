@@ -95,7 +95,7 @@ private:
   MatrixConfiguration configuration_;
   int sign_ = 0;
 
-  std::vector<linalg::util::CudaStream*> streams_;
+  std::vector<cudaStream_t> streams_;
 
   int total_sign_ = 0;
   uint total_meas_ = 0;
