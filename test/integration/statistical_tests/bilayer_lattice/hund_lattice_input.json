@@ -31,17 +31,11 @@
 		}
 	},
 
-	"CT-AUX" : {
-		"expansion-parameter-K": 1.,
-		"initial-configuration-size": 10,
-		"max-submatrix-size": 16
-	},
-
 	"CT-INT" :
 	{
-		"use-submatrix" : true,
 		"max-submatrix-size": 4,
 		"initial-configuration-size": 5,
+		"max-submatrix-size": 4,
 		"alpha-dd-pos" : 0.501,
 		"alpha-ndd" : 0.01,
 		"double-update-probability" : 0

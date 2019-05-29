@@ -72,7 +72,7 @@ struct ClusterSolverSelector<CT_AUX> {
 };
 template <>
 struct ClusterSolverSelector<CT_INT> {
-  using type = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType<CT_INT>>;
+  using type = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType<CT_INT>, true>;
 };
 template <ClusterSolverName name = CT_AUX>
 using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;

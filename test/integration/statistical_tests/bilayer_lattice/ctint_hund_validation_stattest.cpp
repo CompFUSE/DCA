@@ -41,7 +41,7 @@ using ParametersType =
                                   RandomNumberGenerator, dca::phys::solver::CT_INT>;
 
 using DcaData = dca::phys::DcaData<ParametersType>;
-using Solver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType>;
+using Solver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType, true>;
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
