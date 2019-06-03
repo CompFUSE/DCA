@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implement the conversion of FourPointType to and from string.
+// This file implements the conversion of FourPointType to and from string.
 
 #include "dca/phys/four_point_type.hpp"
 
@@ -28,8 +28,12 @@ FourPointType stringToFourPointType(const std::string& name) {
     return PARTICLE_HOLE_MAGNETIC;
   else if (name == "PARTICLE_HOLE_CHARGE")
     return PARTICLE_HOLE_CHARGE;
+  else if (name == "PARTICLE_HOLE_LONGITUDINAL_UP_UP")
+    return PARTICLE_HOLE_LONGITUDINAL_UP_UP;
+  else if (name == "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN")
+    return PARTICLE_HOLE_LONGITUDINAL_UP_DOWN;
   else
-    throw std::logic_error("Invalid four point mode " + name);
+    throw std::logic_error("Invalid four point mode: " + name);
 }
 
 std::string toString(const FourPointType type) {
@@ -44,6 +48,10 @@ std::string toString(const FourPointType type) {
       return "PARTICLE_HOLE_MAGNETIC";
     case PARTICLE_HOLE_CHARGE:
       return "PARTICLE_HOLE_CHARGE";
+    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      return "PARTICLE_HOLE_LONGITUDINAL_UP_UP";
+    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      return "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN";
     default:
       throw std::logic_error("Invalid four point mode.");
   }
