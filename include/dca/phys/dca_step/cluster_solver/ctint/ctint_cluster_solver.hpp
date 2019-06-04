@@ -442,24 +442,22 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
 
   symmetrize::execute(M, data_.H_symmetry);
 
-  if (compute_error) {
-    concurrency_.leaveOneOutAvg(M);
-    concurrency_.leaveOneOutAvg(sign);
-  }
-  else {
-    concurrency_.sum_and_average(M);
-    concurrency_.sum_and_average(sign);
-  }
+  auto collect = [&](auto& f) {
+    if (compute_error)
+      concurrency_.leaveOneOutSum(f);
+    else
+      concurrency_.sum(f);
+  };
+
+  collect(M);
+  collect(sign);
+
   M /= std::complex<double>(sign, 0.);
 
   if (perform_tp_accumulation_) {
     auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
-    if (compute_error)
-      concurrency_.leaveOneOutAvg(G4);
-    else
-      concurrency_.sum_and_average(G4);
-
+    collect(G4);
     G4 /= std::complex<double>(sign, 0.);
   }
 

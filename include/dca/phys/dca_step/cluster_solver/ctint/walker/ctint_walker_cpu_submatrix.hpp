@@ -174,7 +174,6 @@ protected:
 
   std::vector<int>::iterator insertion_list_it_;
   bool recently_added_;
-  bool accepted_;
 
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
@@ -473,7 +472,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
     acceptance_prob_ = computeAcceptanceProbability();
 
     // Acceptance can be forced (for testing).
-    accepted_ = delayed_moves_[delay_ind].acceptance_rng_ < std::min(std::abs(acceptance_prob_), 1.);
+    const bool accepted = delayed_moves_[delay_ind].acceptance_rng_ < std::min(std::abs(acceptance_prob_), 1.);
 
     // NB: recomputeGammaInv is just a inefficient alternative to updateGammaInv. Only for testing
     // or debbuging.
@@ -482,7 +481,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
 
     // Update other objects.
 
-    if (accepted_) {
+    if (accepted) {
       ++BaseClass::n_accepted_;
       if (acceptance_prob_ < 0)
         sign_ *= -1;
