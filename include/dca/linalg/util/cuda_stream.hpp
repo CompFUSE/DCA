@@ -11,15 +11,20 @@
 
 #ifndef DCA_LINALG_UTIL_CUDA_STREAM_HPP
 #define DCA_LINALG_UTIL_CUDA_STREAM_HPP
-#ifdef DCA_HAVE_CUDA
 
+#ifdef DCA_HAVE_CUDA
 #include <cuda.h>
-#include <magma.h>
+#else
+using cudaStream_t = void*;
+void cudaDeviceSynchronize(){}
+#endif
 
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
+
+#ifdef DCA_HAVE_CUDA
 
 class CudaStream {
 public:
@@ -46,9 +51,23 @@ private:
   cudaStream_t stream_ = nullptr;
 };
 
-}  // util
-}  // linalg
-}  // dca
+inline CudaStream* cudaStreamPtr(cudaStream_t s) {
+  static_assert(sizeof(cudaStream_t) == sizeof(CudaStream), "CudaStream is not just a wrapper.");
+  return reinterpret_cast<CudaStream*>(s);
+}
+
+#else  // DCA_HAVE_CUDA
+
+// Mock object.
+class CudaStream {
+public:
+  CudaStream() = default;
+};
 
 #endif  // DCA_HAVE_CUDA
+
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
+
 #endif  // DCA_LINALG_UTIL_CUDA_STREAM_HPP

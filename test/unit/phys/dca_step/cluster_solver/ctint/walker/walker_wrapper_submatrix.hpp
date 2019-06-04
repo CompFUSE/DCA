@@ -34,9 +34,9 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
   WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
-      /**/cudaDeviceSynchronize();
+      //cudaDeviceSynchronize();
       BaseClass::initialize();
-      /**/cudaDeviceSynchronize();
+      //cudaDeviceSynchronize();
   }
 
   void doStep(const int n_steps_to_delay) {
@@ -49,9 +49,9 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   MatrixPair getM() {
     std::array<dca::linalg::Matrix<double, device_t>, 2> M;
     std::vector<cudaStream_t> s;
-    /**/cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
     BaseClass::computeM(M, s);
-    /**/cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
 
     std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
     return M_copy;

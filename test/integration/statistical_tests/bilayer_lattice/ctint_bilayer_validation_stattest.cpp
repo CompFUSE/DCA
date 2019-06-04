@@ -20,9 +20,9 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
+TEST(CtintBilayerValidationTest, GreensFunction) {
   using namespace dca::testing;
-  const std::string ed_data_name = "ed.hdf5";
+  const std::string ed_data_name = dca::testing::test_directory + "/data.ed.hdf5";
 
   const int id = dca_test_env->concurrency.id();
   const int number_of_samples = dca_test_env->concurrency.number_of_processors();

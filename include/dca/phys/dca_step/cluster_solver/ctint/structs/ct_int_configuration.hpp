@@ -88,7 +88,7 @@ public:
     return n_bands_;
   }
 
-  const std::vector<ushort>& getExisting(const short id) const {
+  const auto& getExisting(const short id) const {
     return existing_[id];
   }
 
@@ -112,6 +112,8 @@ public:
   inline std::array<int, 2> sizeIncrease() const;
 
   bool checkConsistency() const;
+  // Return index corresponding to tag.
+  int findTag(std::uint64_t tag) const;
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
@@ -126,7 +128,7 @@ protected:
   std::vector<Vertex> vertices_;
 
   const InteractionVertices* H_int_ = nullptr;
-  std::vector<std::vector<ushort>> existing_;
+  std::vector<std::vector<std::uint64_t>> existing_;
   ushort last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
@@ -169,14 +171,12 @@ void SolverConfiguration::insertRandom(RngType& rng) {
   push_back(Vertex{aux_spin, ushort(indices.first), ++current_tag_, tau});
 
   if (double_insertion_prob_) {
-    existing_[indices.first].push_back(vertices_.size() - 1);
     // TODO: generalize to multiband n_bands > 2
     if (indices.second != -1 and rng() < double_insertion_prob_) {
       const double tau2 = rng() * max_tau_;
       const bool aux_spin2 = rng() > 0.5;
       // TODO: decide if tag is same or not.
       push_back(Vertex{aux_spin2, ushort(indices.second), ++current_tag_, tau2});
-      existing_[indices.second].push_back(vertices_.size() - 1);
       last_insertion_size_ = 2;
     }
     else
@@ -192,8 +192,10 @@ std::pair<short, short> SolverConfiguration::randomRemovalCandidate(RngType& rng
     const int partner_id = (*H_int_)[vertices_[candidates.first].interaction_id].partner_id;
     if (partner_id != -1 and rng() < double_insertion_prob_) {
       const std::size_t n_partners = existing_[partner_id].size();
-      if (n_partners)
-        candidates.second = existing_[partner_id][int(rng() * n_partners)];
+      if (n_partners) {
+        auto tag = existing_[partner_id][int(rng() * n_partners)];
+        candidates.second = findTag(tag);
+      }
     }
   }
   assert(candidates.first < size() and candidates.second < int(size()));
@@ -205,7 +207,7 @@ void SolverConfiguration::push_back(const Vertex& v) {
   BaseClass::addVertex(v);
 
   if (double_insertion_prob_)
-    existing_[v.interaction_id].push_back(size() - 1);
+    existing_[v.interaction_id].push_back(v.tag);
 }
 
 void SolverConfiguration::pop(const int n) {
@@ -214,10 +216,9 @@ void SolverConfiguration::pop(const int n) {
                        vertices_[size() - 1].interaction_id);
   if (double_insertion_prob_) {
     for (int i = 1; i <= n; ++i) {
-      // TODO improve.
       const int type = vertices_[size() - i].interaction_id;
       auto& list = existing_[type];
-      const auto iter = std::find(list.begin(), list.end(), size() - i);
+      const auto iter = std::find(list.begin(), list.end(), vertices_[size() - i].tag);
       list.erase(iter);
     }
   }
@@ -227,6 +228,9 @@ void SolverConfiguration::pop(const int n) {
     addSectorSizes(i, removal_size);
   vertices_.erase(vertices_.begin() + first_idx, vertices_.end());
   BaseClass::pop(removal_size[0], removal_size[1]);
+
+  // ctint base walker leaves configuration temporary inconsistent by (poor) design.
+  // assert(checkConsistency());
 }
 
 std::array<int, 2> SolverConfiguration::sizeIncrease() const {
@@ -304,7 +308,7 @@ inline void SolverConfiguration::moveAndShrink(std::array<std::vector<int, Alloc
     for (int i = 0; i < to.size(); ++i) {
       const int type = vertices_[to[i]].interaction_id;
       auto& list = existing_[type];
-      const auto iter = std::find(list.begin(), list.end(), size() - i);
+      const auto iter = std::find(list.begin(), list.end(), vertices_[to[i]].tag);
       list.erase(iter);
     }
   }
@@ -331,19 +335,6 @@ inline bool SolverConfiguration::operator==(const SolverConfiguration& rhs) cons
 }
 
 void SolverConfiguration::swapVertices(const short i, const short j) {
-  // Swap occupation list entries.
-  if (double_insertion_prob_) {
-    auto& list1 = existing_[vertices_[i].interaction_id];
-    auto& list2 = existing_[vertices_[j].interaction_id];
-
-    auto it1 = std::find(list1.begin(), list1.end(), i);
-    assert(it1 != list1.end());
-    *it1 = j;
-    auto it2 = std::find(list2.begin(), list2.end(), j);
-    assert(it2 != list1.end());
-    *it2 = i;
-  }
-  // Swap the vertices.
   std::swap(vertices_[i], vertices_[j]);
 }
 
@@ -362,7 +353,22 @@ inline bool SolverConfiguration::checkConsistency() const {
     if ((double_insertion_prob_ == 0 && count != 2) || !count)
       return false;
   }
+
+  if (double_insertion_prob_) {
+    for (const auto& v : vertices_) {
+      const auto& list = existing_[v.interaction_id];
+      if (std::find(list.begin(), list.end(), v.tag) == list.end())
+        return false;
+    }
+  }
   return true;
+}
+
+inline int SolverConfiguration::findTag(std::uint64_t tag) const {
+  for (int i = 0; i < vertices_.size(); ++i)
+    if (vertices_[i].tag == tag)
+      return i;
+  return -1;
 }
 
 }  // namespace ctint

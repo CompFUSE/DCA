@@ -47,6 +47,8 @@ TEST(SolverConfigurationTest, InsertAndSwap) {
 
   config.pop();
   EXPECT_EQ(2, config.size());
+
+  EXPECT_TRUE(config.checkConsistency());
 }
 
 TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
@@ -71,42 +73,45 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
 
   EXPECT_EQ(3, config.getSector(0).size());
   EXPECT_EQ(1, config.getSector(1).size());
+
+  // Note: The matrix configuration is swapped by another function.
+  // TODO: always leave cofig consitent.
+  EXPECT_FALSE(config.checkConsistency());
 }
 
-
 TEST(SolverConfigurationTest, ShrinkAndMove) {
-    dca::phys::solver::ctint::InteractionVertices interactions;
-    interactions.insertElement({{0, 0, 0, 0}, {0, 0, 1, 1}, 1});  // up-down
-    interactions.insertElement({{1, 1, 1, 1}, {0, 0, 1, 1}, 1});
-    interactions.insertElement({{2, 2, 2, 2}, {0, 0, 1, 1}, 1});
+  dca::phys::solver::ctint::InteractionVertices interactions;
+  interactions.insertElement({{0, 0, 0, 0}, {0, 0, 1, 1}, 1});  // up-down
+  interactions.insertElement({{1, 1, 1, 1}, {0, 0, 1, 1}, 1});
+  interactions.insertElement({{2, 2, 2, 2}, {0, 0, 1, 1}, 1});
 
+  dca::phys::solver::ctint::SolverConfiguration config(1, 1, interactions);
+  using dca::phys::solver::ctint::Vertex;
+  std::mt19937_64 rgen(0);
+  std::uniform_real_distribution<double> distro(0, 1);
+  auto rng = std::bind(distro, rgen);
 
-    dca::phys::solver::ctint::SolverConfiguration config(1, 1, interactions);
-    using dca::phys::solver::ctint::Vertex;
-    std::mt19937_64 rgen(0);
-    std::uniform_real_distribution<double> distro(0,1);
-    auto rng = std::bind(distro, rgen);
+  for (int i = 0; i < 4; ++i)
+    config.insertRandom(rng);
 
-    for(int i = 0; i < 4; ++i)
-        config.insertRandom(rng);
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(config.getTag(i), config.getSector(0).getTag(i));
+    EXPECT_EQ(config.getTag(i), config.getSector(1).getTag(i));
+  }
 
-    for(int i = 0; i < 4; ++i){
-        EXPECT_EQ(config.getTag(i), config.getSector(0).getTag(i));
-        EXPECT_EQ(config.getTag(i), config.getSector(1).getTag(i));
-    }
+  std::vector<int> from{0};
+  std::vector<int> to{0, 2};
 
-    std::vector<int> from{0};
-    std::vector<int> to{0, 2};
+  std::array<std::vector<int>, 2> from_sectors{from, from};
+  std::array<std::vector<int>, 2> to_sectors{to, to};
 
-    std::array<std::vector<int>, 2> from_sectors{from, from};
-    std::array<std::vector<int>, 2> to_sectors{to, to};
+  config.moveAndShrink(from_sectors, to_sectors, from, to);
 
-    config.moveAndShrink(from_sectors, to_sectors, from, to);
+  EXPECT_EQ(config.size(), 2);
+  for (int i = 0; i < config.size(); ++i) {
+    EXPECT_EQ(config.getTag(i), config.getSector(0).getTag(i));
+    EXPECT_EQ(config.getTag(i), config.getSector(1).getTag(i));
+  }
 
-    EXPECT_EQ(config.size(), 2);
-    for(int i = 0; i < config.size(); ++i){
-        EXPECT_EQ(config.getTag(i), config.getSector(0).getTag(i));
-        EXPECT_EQ(config.getTag(i), config.getSector(1).getTag(i));
-    }
-
+  EXPECT_TRUE(config.checkConsistency());
 }

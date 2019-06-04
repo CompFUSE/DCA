@@ -46,8 +46,8 @@ const int n_frequencies = 10;
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/bilayer_lattice/";
 
-using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+using Model = dca::phys::models::TightBindingModel<
+    dca::phys::models::bilayer_lattice<dca::phys::domains::no_symmetry<2>>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
 using dca::phys::solver::ClusterSolverName;
@@ -72,7 +72,7 @@ struct ClusterSolverSelector<CT_AUX> {
 };
 template <>
 struct ClusterSolverSelector<CT_INT> {
-  using type = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType<CT_INT>>;
+  using type = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType<CT_INT>, true>;
 };
 template <ClusterSolverName name = CT_AUX>
 using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;

@@ -50,7 +50,7 @@ private:
   using typename BaseClass::ScalarType;
 
 public:
-  SpAccumulator(/*const*/ const Parameters &parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(/*const*/ const Parameters& parameters_ref, bool accumulate_m_squared = false);
 
   void resetAccumulation();
 
@@ -73,7 +73,7 @@ public:
   }
 
   void syncStreams(const linalg::util::CudaEvent& event) {
-    for(const auto& stream : streams_)
+    for (const auto& stream : streams_)
       event.block(stream);
   }
 
@@ -100,8 +100,8 @@ private:
 };
 
 template <class Parameters>
-SpAccumulator<Parameters, linalg::GPU>::SpAccumulator(/*const*/ const Parameters &parameters_ref,
-                                                                bool accumulate_m_sqr)
+SpAccumulator<Parameters, linalg::GPU>::SpAccumulator(/*const*/ const Parameters& parameters_ref,
+                                                      bool accumulate_m_sqr)
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),

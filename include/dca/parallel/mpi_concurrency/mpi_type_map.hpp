@@ -75,6 +75,18 @@ public:
 };
 
 template <>
+class MPITypeMap<unsigned int> {
+public:
+  static std::size_t factor() {
+    return 1;
+  }
+
+  static MPI_Datatype value() {
+    return MPI_UNSIGNED;
+  }
+};
+
+template <>
 class MPITypeMap<std::size_t> {
 public:
   static std::size_t factor() {
@@ -146,7 +158,7 @@ public:
   }
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_TYPE_MAP_HPP

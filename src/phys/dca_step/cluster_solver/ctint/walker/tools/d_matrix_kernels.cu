@@ -32,7 +32,7 @@ __constant__ uint g0_paremeters_step;
 __constant__ ushort cluster_size;
 __constant__ ushort cluster_site_diff[MAX_CLUSTER_SIZE * MAX_CLUSTER_SIZE];
 __constant__ ushort sbdm_step[3];
-}  // global
+}  // namespace global
 namespace details {
 // dca::phys::solver::ctint::details::
 
@@ -58,7 +58,7 @@ __global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool 
   const double tau_j = config.getTau(j);
 
   const int delta_r =
-      global::cluster_site_diff[config.getLeftR(i) + config.getRightR(j) * global::cluster_size];
+      global::cluster_site_diff[config.getRightR(j) + config.getLeftR(i) * global::cluster_size];
   const int label = b_i + b_j * global::sbdm_step[1] + delta_r * global::sbdm_step[2];
 
   G0(id_i, id_j) = g0_interp(tau_i - tau_j, label);
@@ -117,7 +117,7 @@ double deviceInterpolationTest(Interpolation g0, double tau, int lindex) {
   cudaFree(d_result);
   return result;
 }
-}
+}  // namespace details
 // dca::phys::solver::ctint::
 
 // ************  Global Memory Manager  **************
@@ -170,7 +170,7 @@ void GlobalMemoryManager::initializeInterpolation(const int parameters_step, boo
   interpolation_initialized_ = true;
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

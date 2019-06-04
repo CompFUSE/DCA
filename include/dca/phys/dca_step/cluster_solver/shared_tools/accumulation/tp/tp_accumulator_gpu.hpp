@@ -167,8 +167,8 @@ private:
       linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
+  std::array<linalg::util::CudaStream, 2> streams_;
   std::array<linalg::util::MagmaQueue, 2> queues_;
-  std::array<cudaStream_t, 2> streams_;
   linalg::util::CudaEvent event_;
 
   std::vector<std::shared_ptr<RMatrix>> workspaces_;
@@ -195,8 +195,8 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : BaseClass(G0, pars, thread_id),
-      queues_(),
-      streams_{queues_[0].getStream(), queues_[1].getStream()},
+      streams_(),
+      queues_{linalg::util::MagmaQueue(streams_[0]), linalg::util::MagmaQueue(streams_[1])},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])} {
   initializeG4Helpers();
@@ -437,7 +437,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::synchronizeStreams() {
-  for (auto stream : streams_)
+  for (auto& stream : streams_)
     cudaStreamSynchronize(stream);
 }
 

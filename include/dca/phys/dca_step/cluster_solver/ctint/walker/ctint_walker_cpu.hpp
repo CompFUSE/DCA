@@ -349,6 +349,8 @@ void CtintWalker<linalg::CPU, Parameters>::pushToEnd(
     configuration_.swapVertices(b, configuration_.size() - 1);
     configuration_.swapVertices(a, configuration_.size() - 2);
   }
+
+  assert(configuration_.checkConsistency());
 }
 
 template <class Parameters>
