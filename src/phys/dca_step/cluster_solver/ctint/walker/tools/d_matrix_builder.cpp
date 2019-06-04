@@ -82,7 +82,7 @@ double DMatrixBuilder<CPU>::computeD(const int i, const int j, const Sector& con
 
   const int b1 = configuration.getLeftB(i);
   const int b2 = configuration.getRightB(j);
-  const int delta_r = site_diff_(configuration.getLeftR(i), configuration.getRightR(j));
+  const int delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(i));
   const int p_index = label(b1, b2, delta_r);
   const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const double g0_val = g0_ref_(delta_tau, p_index);
@@ -115,7 +115,7 @@ double DMatrixBuilder<CPU>::computeDSubmatrix(const int i, const int j, const Se
 
   const int b1 = configuration.getLeftB(i);
   const int b2 = configuration.getRightB(j);
-  const int delta_r = site_diff_(configuration.getLeftR(i), configuration.getRightR(j));
+  const int delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(i));
   const int p_index = label(b1, b2, delta_r);
   const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const double g0_val = g0_ref_(delta_tau, p_index);
@@ -153,7 +153,7 @@ double DMatrixBuilder<CPU>::computeG(const int i, const int j, const Sector& con
   for (int k = 0; k < M.size().first; ++k) {
     b1 = configuration.getLeftB(k);
     b2 = configuration.getRightB(j);
-    delta_r = site_diff_(configuration.getLeftR(k), configuration.getRightR(j));
+    delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(k));
     p_index = label(b1, b2, delta_r);
     delta_tau = configuration.getTau(k) - configuration.getTau(j);
     g0_val = g0_ref_(delta_tau, p_index);
@@ -200,7 +200,7 @@ void DMatrixBuilder<CPU>::computeG0Init(Matrix& G0, const Sector& configuration,
       tau_j = configuration.getTau(j);
       r_j = configuration.getRightR(j);
 
-      G0(i,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_i, r_j)));
+      G0(i,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
     }
   }
 
@@ -214,7 +214,7 @@ void DMatrixBuilder<CPU>::computeG0Init(Matrix& G0, const Sector& configuration,
       tau_j = configuration.getTau(j);
       r_j = configuration.getRightR(j);
 
-      G0(i,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_i, r_j)));
+      G0(i,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
     }
   }
 }
@@ -238,7 +238,7 @@ void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, con
         tau_j = configuration.getTau(j);
         r_j = configuration.getRightR(j);
 
-        G0(i-n_init,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_i, r_j)));
+        G0(i-n_init,j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
       }
     }
   }
@@ -256,7 +256,7 @@ void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, con
         tau_j = configuration.getTau(j);
         r_j = configuration.getRightR(j);
 
-        G0(i,j-n_init) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_i, r_j)));
+        G0(i,j-n_init) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
       }
     }
   }

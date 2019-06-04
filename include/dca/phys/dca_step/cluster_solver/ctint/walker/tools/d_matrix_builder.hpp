@@ -91,6 +91,7 @@ protected:
   const double alpha_3_ = 0;
   const int n_bands_ = -1;
   const std::vector<int>& sbdm_step_;
+  // Note: site_diff is a matrix where site_diff(i,j) = r_j - r_i.
   const linalg::Matrix<int, linalg::CPU>& site_diff_;
 };
 
