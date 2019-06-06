@@ -36,6 +36,8 @@ DMatrixBuilder<CPU>::DMatrixBuilder(const G0Interpolation<CPU>& g0,
       sbdm_step_(sbdm_step),
       site_diff_(site_diff) {
   assert(sbdm_step.size() == 3);
+  if (alpha_3_ == 0)
+    throw(std::logic_error("All auxiliary fields must be non zero."));
 }
 
 void DMatrixBuilder<CPU>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
@@ -66,19 +68,6 @@ void DMatrixBuilder<CPU>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
 double DMatrixBuilder<CPU>::computeD(const int i, const int j, const Sector& configuration) const {
   assert(configuration.size() > i and configuration.size() > j);
 
-  auto alphaField = [&](const int type) {
-    switch (std::abs(type)) {
-      case 1:
-        return type < 0 ? (0.5 + alpha_1_) : (0.5 - alpha_1_);
-      case 2:
-        return type < 0 ? (0.5 + alpha_2_) : (0.5 - alpha_2_);
-      case 3:
-        return type < 0 ? alpha_3_ : -alpha_3_;
-      default:
-        throw(std::logic_error("type not recognized."));
-    }
-  };
-
   const int b1 = configuration.getLeftB(i);
   const int b2 = configuration.getRightB(j);
   const int delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(i));
@@ -86,7 +75,7 @@ double DMatrixBuilder<CPU>::computeD(const int i, const int j, const Sector& con
   const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const double g0_val = g0_ref_(delta_tau, p_index);
   if (i == j)
-    return g0_val - alphaField(configuration.getAuxFieldType(i));
+    return g0_val - computeAlpha(configuration.getAuxFieldType(i));
   else
     return g0_val;
 }

@@ -22,7 +22,7 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/util/integer_division.hpp"
@@ -44,6 +44,8 @@ public:
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
+  void initialize();
+
   void doSweep();
 
 protected:
@@ -52,7 +54,7 @@ protected:
   bool tryVertexRemoval();
 
   void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
-                 const std::pair<short, short>& vertex_indices);
+                 const std::vector<int>& vertex_indices);
 
   // Test handle.
   const auto& getM() const {
@@ -82,6 +84,7 @@ protected:
   using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
+  using BaseClass::nc_;
   using BaseClass::sign_;
   using BaseClass::thread_id_;
 
@@ -112,6 +115,13 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(const Parameters& parameters_r
     : BaseClass(parameters_ref, rng_ref, id), det_ratio_{1, 1} {}
 
 template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::initialize() {
+  BaseClass::initialize();
+  configuration_
+      .prepareForSubmatrixUpdate();  // Set internal state once, even if no submatrix update will be performed.
+}
+
+template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doSweep() {
   int nb_of_steps;
   if (nb_steps_per_sweep_ < 0)  // Not thermalized or fixed.
@@ -129,6 +139,9 @@ void CtintWalker<linalg::CPU, Parameters>::doSweep() {
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doStep() {
+  // TODO: remove
+  configuration_.prepareForSubmatrixUpdate();
+
   if (rng_() <= 0.5) {
     n_accepted_ += tryVertexInsert();
   }
@@ -139,6 +152,8 @@ void CtintWalker<linalg::CPU, Parameters>::doStep() {
       rng_(), rng_();  // Burn random numbers for testing consistency.
     }
   }
+
+  assert(configuration_.checkConsistency());
 }
 
 template <class Parameters>
@@ -201,13 +216,21 @@ double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delt
     det_ratio_[s] = details::smallDeterminant(S);
   }
 
-  const int combinatorial_factor =
-      delta_vertices == 1 ? old_size + 1
-                          : (old_size + 2) * configuration_.occupationNumber(old_size + 1);
+  const double combinatorial_factor =
+      delta_vertices == 1 ? old_size + 1 : (old_size + 2) * (configuration_.nPartners(old_size) + 1);
 
-  return details::computeAcceptanceProbability(
-      delta_vertices, det_ratio_[0] * det_ratio_[1], total_interaction_, beta_,
-      configuration_.getStrength(old_size), combinatorial_factor, details::VERTEX_INSERTION);
+  const double strength_factor =
+      delta_vertices == 1
+          ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
+          : total_interaction_ * beta_ * beta_ * std::abs(configuration_.getStrength(old_size)) * nc_;
+
+  const double det_ratio = det_ratio_[0] * det_ratio_[1];
+
+  return det_ratio * strength_factor / combinatorial_factor;
+
+  //  return details::computeAcceptanceProbability(
+  //      delta_vertices, det_ratio_[0] * det_ratio_[1], total_interaction_, beta_,
+  //      configuration_.getStrength(old_size), combinatorial_factor, details::VERTEX_INSERTION);
 }
 
 template <class Parameters>
@@ -252,6 +275,10 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
     linalg::matrixop::gemm(-1., Q_tilde, R_M, 1., M_bulk);
   }
+
+  const int delta_vertices = configuration_.lastInsertionSize();
+  for (int i = 0; i < delta_vertices; ++i)
+    configuration_.commitInsertion(configuration_.size() - delta_vertices + i);
 }
 
 template <class Parameters>
@@ -259,14 +286,12 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
   removal_candidates_ = configuration_.randomRemovalCandidate(rng_);
 
   const int n = configuration_.size();
-  const int n_removed = removal_candidates_.second == -1 ? 1 : 2;
+  const int n_removed = removal_candidates_.size();
 
   for (int s = 0; s < 2; ++s) {
     removal_matrix_indices_[s].clear();
-    for (int i = 0; i < n_removed; ++i) {
-      const int index = i ? removal_candidates_.second : removal_candidates_.first;
-      const auto vertex_indices =
-          configuration_.findIndices(configuration_.getTag(index), s);
+    for (auto index : removal_candidates_) {
+      const auto vertex_indices = configuration_.findIndices(configuration_.getTag(index), s);
       removal_matrix_indices_[s].insert(removal_matrix_indices_[s].end(), vertex_indices.begin(),
                                         vertex_indices.end());
     }
@@ -279,18 +304,24 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
   }
   assert((removal_matrix_indices_[0].size() + removal_matrix_indices_[1].size()) % 2 == 0);
 
-  const int combinatorial_factor =
-      n_removed == 1 ? n : n * configuration_.occupationNumber(removal_candidates_.second);
+  const double combinatorial_factor =
+      n_removed == 1 ? n : n * configuration_.nPartners(removal_candidates_[0]);
+  const double strength_factor =
+      n_removed == 1
+          ? -beta_ * total_interaction_ * configuration_.getSign(removal_candidates_[0])
+          : total_interaction_ * beta_ * beta_ * nc_ *
+          std::abs(configuration_.getStrength(removal_candidates_[0]));
 
-  return details::computeAcceptanceProbability(n_removed, det_ratio_[0] * det_ratio_[1],
-                                               total_interaction_, beta_,
-                                               configuration_.getStrength(removal_candidates_.first),
-                                               combinatorial_factor, details::VERTEX_REMOVAL);
+  const double det_ratio = det_ratio_[0] * det_ratio_[1];
+
+  return det_ratio * combinatorial_factor / strength_factor;
 }
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
-  const int n_removed = removal_candidates_.second == -1 ? 1 : 2;
+  const int n_removed = removal_candidates_.size();
+  for (auto idx : removal_candidates_)
+    configuration_.markForRemoval(idx);
   // TODO maybe: don't copy values to be popped.
   pushToEnd(removal_matrix_indices_, removal_candidates_);
   configuration_.pop(n_removed);
@@ -325,8 +356,7 @@ void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::pushToEnd(
-    const std::array<std::vector<ushort>, 2>& matrix_indices,
-    const std::pair<short, short>& vertex_indices) {
+    const std::array<std::vector<ushort>, 2>& matrix_indices, const std::vector<int>& vertex_indices) {
   for (int s = 0; s < 2; ++s) {
     auto& M = M_[s];
     const auto indices = matrix_indices[s];
@@ -341,16 +371,14 @@ void CtintWalker<linalg::CPU, Parameters>::pushToEnd(
     }
   }
 
-  if (vertex_indices.second == -1)
-    configuration_.swapVertices(vertex_indices.first, configuration_.size() - 1);
+  if (vertex_indices.size() == 1)
+    configuration_.swapVertices(vertex_indices[0], configuration_.size() - 1);
   else {
-    const ushort a = std::min(vertex_indices.first, vertex_indices.second);
-    const ushort b = std::max(vertex_indices.first, vertex_indices.second);
+    const ushort a = std::min(vertex_indices[0], vertex_indices[1]);
+    const ushort b = std::max(vertex_indices[0], vertex_indices[1]);
     configuration_.swapVertices(b, configuration_.size() - 1);
     configuration_.swapVertices(a, configuration_.size() - 2);
   }
-
-  assert(configuration_.checkConsistency());
 }
 
 template <class Parameters>

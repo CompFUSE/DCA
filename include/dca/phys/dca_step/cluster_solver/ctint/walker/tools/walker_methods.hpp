@@ -47,6 +47,8 @@ template <class MatrixA>
 inline void smallInverse(MatrixA& m) {
   assert(m.is_square());
   switch (m.nrCols()) {
+    case 0:
+      return;
     case 1:
       m(0, 0) = 1. / m(0, 0);
       break;
@@ -132,6 +134,8 @@ template <class MatrixType>
 inline double smallDeterminant(const MatrixType& M) {
   assert(M.is_square());
   switch (M.nrCols()) {
+    case 0:
+      return 1;
     case 1:
       return M(0, 0);
     case 2:
@@ -233,10 +237,10 @@ inline void removeIndices(linalg::Matrix<Scalar, linalg::CPU>& Q,
   R.resize(std::make_pair(R.nrRows(), R.nrCols() - indices.size()));
 }
 
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_WALKER_METHODS_HPP

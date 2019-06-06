@@ -26,7 +26,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
@@ -77,7 +77,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*> & /*streams*/) const;
+  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*>& /*streams*/) const;
 
   void markThermalized();
 
@@ -152,6 +152,7 @@ public:
 
 protected:
   // typedefs
+  using RDmn = typename Parameters::RClusterDmn;
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
   // Auxiliary methods.
@@ -173,6 +174,7 @@ protected:  // Members.
 
   const double beta_;
   static constexpr int n_bands_ = Parameters::bands;
+  const int nc_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -191,7 +193,7 @@ protected:  // Members.
   double acceptance_prob_;
 
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
-  std::pair<short, short> removal_candidates_;
+  std::vector<int> removal_candidates_;
 
   float flop_ = 0.;
 
@@ -215,17 +217,21 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       rng_(rng_ref),
 
       configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
-                     parameters_.getDoubleUpdateProb()),
+                     parameters_.getDoubleUpdate()),
 
       beta_(parameters_.get_beta()),
+      nc_(RDmn::dmn_size()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::initialize() {
   assert(total_interaction_);
   if (!configuration_.size()) {  // Do not initialize config if it was read.
-    while (parameters_.getInitialConfigurationSize() > configuration_.size())
+    while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
       configuration_.insertRandom(rng_);
+      for (int i = configuration_.lastInsertionSize(); i > 0; --i)
+        configuration_.commitInsertion(configuration_.size() - i);
+    }
   }
 
   setMFromConfig();
