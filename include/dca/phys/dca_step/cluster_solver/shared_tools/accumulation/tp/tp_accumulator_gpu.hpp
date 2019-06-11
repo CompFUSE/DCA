@@ -130,9 +130,8 @@ private:
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
 
-  using typename BaseClass::TpGreensFunction;
   using typename BaseClass::Complex;
-  using typename BaseClass::TpGreenFunction;
+  using typename BaseClass::TpGreensFunction;
 
   using Matrix = linalg::Matrix<Complex, linalg::GPU>;
 
@@ -161,7 +160,6 @@ private:
   using BaseClass::extension_index_offset_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
-  using BaseClass::mode_;
   using BaseClass::multiple_accumulators_;
   using BaseClass::n_bands_;
   using BaseClass::n_pos_frqs_;
