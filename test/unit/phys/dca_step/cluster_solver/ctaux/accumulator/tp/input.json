@@ -1,0 +1,37 @@
+{
+  "physics" :
+  {
+    "beta"                      :  2,
+    "chemical-potential"        : 0
+  },
+
+  "bilayer-Hubbard-model":
+  {
+    "t"       : 1,
+    "U"       : 2
+  },
+
+  "DCA": {
+    "interacting-orbitals": [0, 1]
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[4, 0],
+        [0, 4]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 128,
+      "time-intervals-for-time-measurements" : 8
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 128
+    }
+  },
+
+  "CT-AUX" : {
+    "additional-time-measurements" : true
+  }
+}
