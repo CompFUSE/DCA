@@ -79,7 +79,6 @@ protected:
       func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
 
 public:
-
   // Constructor:
   // In: G0: non interacting greens function.
   // In: pars: parameters object.
@@ -121,7 +120,6 @@ public:
   }
 
 protected:
-
   void initializeG0();
 
   double computeG();
@@ -447,7 +445,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
@@ -472,7 +470,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
             for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
               for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -500,7 +498,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
             for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
               for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
                                          w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                          w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
@@ -527,7 +525,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
             for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
               for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
 
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
@@ -555,7 +553,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
               const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex),
                                    !s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
@@ -577,7 +575,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
             for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
               for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
                                    q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),

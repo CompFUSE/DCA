@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class measures the equal time operator functions.
 
@@ -25,12 +26,12 @@
 #include "dca/math/interpolation/akima_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
-#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/plot.hpp"
 
 namespace dca {
@@ -72,9 +73,11 @@ public:
 public:
   TpEqualTimeAccumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
 
-  void initialize();
+  void resetAccumulation();
 
   void finalize();
+
+  void sumTo(TpEqualTimeAccumulator<parameters_type, MOMS_type>& other) const;
 
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
     return G_r_t;
@@ -104,6 +107,14 @@ public:
   void accumulate_moments(double sign);
 
   void accumulate_dwave_pp_correlator(double sign);
+
+  // Accumulate all relevant quantities. This is equivalent to calling compute_G_r_t followed by all
+  // the accumulation methods.
+  template <class configuration_type, typename RealInp>
+  void accumulateAll(const configuration_type& configuration_e_up,
+                     const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_up,
+                     const configuration_type& configuration_e_dn,
+                     const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_dn, int sign);
 
   double get_GFLOP();
 
@@ -241,7 +252,21 @@ TpEqualTimeAccumulator<parameters_type, MOMS_type>::TpEqualTimeAccumulator(
       charge_cluster_moment("charge-cluster-moment"),
       magnetic_cluster_moment("magnetic-cluster-moment"),
 
-      dwave_pp_correlator("dwave-pp-correlator") {}
+      dwave_pp_correlator("dwave-pp-correlator") {
+  for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
+    dwave_k_factor(k_ind) =
+        cos(k_dmn_t::get_elements()[k_ind][0]) - cos(k_dmn_t::get_elements()[k_ind][1]);
+
+  math::transform::FunctionTransform<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
+
+  initialize_my_configuration();
+
+  initialize_akima_coefficients();
+
+  initialize_G0_indices();
+
+  initialize_G0_original();
+}
 
 template <class parameters_type, class MOMS_type>
 double TpEqualTimeAccumulator<parameters_type, MOMS_type>::get_GFLOP() {
@@ -251,7 +276,7 @@ double TpEqualTimeAccumulator<parameters_type, MOMS_type>::get_GFLOP() {
 }
 
 template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize() {
+void TpEqualTimeAccumulator<parameters_type, MOMS_type>::resetAccumulation() {
   GFLOP = 0;
 
   G_r_t = 0;
@@ -264,36 +289,6 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize() {
   magnetic_cluster_moment = 0;
 
   dwave_pp_correlator = 0;
-
-  {
-    for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
-      dwave_k_factor(k_ind) =
-          cos(k_dmn_t::get_elements()[k_ind][0]) - cos(k_dmn_t::get_elements()[k_ind][1]);
-
-    math::transform::FunctionTransform<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
-
-    /*
-    if(thread_id==0)
-      {
-        std::cout << "\n\n";
-        for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); r_ind++)
-          std::cout << "\t" << r_ind
-               << "\t" << r_dmn_t::get_elements()[r_ind][0]
-               << "\t" << r_dmn_t::get_elements()[r_ind][1]
-               << "\t" << dwave_r_factor(r_ind) << "\n";
-
-        std::cout << "\n\n";
-      }
-    */
-  }
-
-  initialize_my_configuration();
-
-  initialize_akima_coefficients();
-
-  initialize_G0_indices();
-
-  initialize_G0_original();
 }
 
 template <class parameters_type, class MOMS_type>
@@ -694,8 +689,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_moments(doub
 
         double charge_val = G_r_t_up(i, j) * G_r_t_dn(i, j);  // double occupancy = <n_d*n_u>
         double magnetic_val =
-            1. -
-            2. * G_r_t_up(i, j) * G_r_t_dn(i, j);  // <m^2> = 1-2*<n_d*n_u> (T. Paiva, PRB 2001)
+            1. - 2. * G_r_t_up(i, j) * G_r_t_dn(i, j);  // <m^2> = 1-2*<n_d*n_u> (T. Paiva, PRB 2001)
 
         charge_cluster_moment(b_ind, r_i) += sign * charge_val / t_VERTEX::dmn_size();
         magnetic_cluster_moment(b_ind, r_i) += sign * magnetic_val / t_VERTEX::dmn_size();
@@ -893,9 +887,36 @@ inline double TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate_ak
   return result;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+template <class parameters_type, class MOMS_type>
+template <class configuration_type, typename RealInp>
+void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulateAll(
+    const configuration_type& configuration_e_up,
+    const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_up,
+    const configuration_type& configuration_e_dn,
+    const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_dn, int sign) {
+  compute_G_r_t(configuration_e_up, M_up, configuration_e_dn, M_dn);
+
+  accumulate_G_r_t(sign);
+
+  accumulate_moments(sign);
+
+  accumulate_dwave_pp_correlator(sign);
+}
+
+template <class parameters_type, class MOMS_type>
+void TpEqualTimeAccumulator<parameters_type, MOMS_type>::sumTo(
+    dca::phys::solver::ctaux::TpEqualTimeAccumulator<parameters_type, MOMS_type>& other) const {
+  other.G_r_t_accumulated += G_r_t_accumulated;
+  other.G_r_t_accumulated_squared += G_r_t_accumulated_squared;
+  other.charge_cluster_moment += charge_cluster_moment;
+  other.magnetic_cluster_moment += magnetic_cluster_moment;
+  other.dwave_pp_correlator += dwave_pp_correlator;
+  other.GFLOP += GFLOP;
+}
+
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_ACCUMULATOR_TP_TP_EQUAL_TIME_ACCUMULATOR_HPP
