@@ -866,25 +866,32 @@ inline double TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate_ak
   const static double beta = parameters.get_beta();
   const static double N_div_beta = parameters.get_sp_time_intervals() / beta;
 
-  // make sure that new_tau is positive !!
-  double new_tau = tau + beta;
+  int sign = 1;
+  if (tau < 0) {
+    tau += beta;
+    sign = -1;
+  }
 
-  double scaled_tau = new_tau * N_div_beta;
+  const double scaled_tau = tau * N_div_beta;
+  const int t_ind = scaled_tau;
 
-  int t_ind = scaled_tau;
-  assert(shifted_t::get_elements()[t_ind] <= tau &&
-         tau < shifted_t::get_elements()[t_ind] + 1. / N_div_beta);
+#ifndef NDEBUG
+  const double* positive_times =
+      shifted_t::get_elements().data() + shifted_t::get_elements().size() / 2;
+  assert(positive_times[t_ind] <= tau && tau < positive_times[t_ind] + 1. / N_div_beta);
+#endif  // NDEBUG
 
-  double delta_tau = scaled_tau - t_ind;
-  assert(delta_tau > -1.e-16 && delta_tau <= 1 + 1.e-16);
+  const double delta_tau = scaled_tau - t_ind;
+  assert(delta_tau >= 0 && delta_tau < 1);
 
-  int linind = 4 * nu_nu_r_dmn_t_t_shifted_dmn(b_i, s_i, b_j, s_j, delta_r, t_ind);
+  const int linind = 4 * nu_nu_r_dmn_t_t_shifted_dmn(b_i, s_i, b_j, s_j, delta_r, t_ind);
 
-  double* a_ptr = &akima_coefficients(linind);
+  const double* a_ptr = &akima_coefficients(linind);
 
-  double result = (a_ptr[0] + delta_tau * (a_ptr[1] + delta_tau * (a_ptr[2] + delta_tau * a_ptr[3])));
+  const double result =
+      (a_ptr[0] + delta_tau * (a_ptr[1] + delta_tau * (a_ptr[2] + delta_tau * a_ptr[3])));
 
-  return result;
+  return sign * result;
 }
 
 template <class parameters_type, class MOMS_type>
