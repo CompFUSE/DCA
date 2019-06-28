@@ -29,7 +29,7 @@ public:
   void min(Scalar& value) const {
     Scalar result;
 
-    MPI_Allreduce(&value, &result, MPITypeMap<Scalar>::factor(), MPITypeMap<Scalar>::value(),
+    MPI_Allreduce(&value, &result, 1, MPITypeMap<Scalar>::value(),
                   MPI_MIN, MPIProcessorGrouping::get());
 
     value = result;

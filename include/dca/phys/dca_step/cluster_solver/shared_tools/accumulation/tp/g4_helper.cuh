@@ -48,10 +48,10 @@ public:
 
   // Returns the linear index of G4 as a function of
   // band, band, band, band, k1, k2, k_ex, w1, w2, w_ex.
-  __device__ inline int g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k_ex, int w1,
-                                int w2, int w_ex) const;
+  __device__ inline unsigned int g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k_ex,
+                                         int w1, int w2, int w_ex) const;
   // Single band version of the above method.
-  __device__ inline int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
+  __device__ inline unsigned int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
 
 protected:
   int lda_;
@@ -59,7 +59,7 @@ protected:
   int nw_pos_;
   int ext_size_;
   int k0_;
-  int sbdm_steps_[10];
+  unsigned sbdm_steps_[10];
   int* add_matrix_;
   int* sub_matrix_;
   int* w_ex_indices_;
@@ -109,15 +109,16 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   }
 }
 
-inline __device__ int G4Helper::g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k_ex,
-                                        int w1, int w2, int w_ex) const {
+inline __device__ unsigned int G4Helper::g4Index(int b1, int b2, int b3, int b4, int k1, int k2,
+                                                 int k_ex, int w1, int w2, int w_ex) const {
   return sbdm_steps_[0] * b1 + sbdm_steps_[1] * b2 + sbdm_steps_[2] * b3 + sbdm_steps_[3] * b4 +
          sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k_ex + sbdm_steps_[7] * w1 +
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
   ;
 }
 
-inline __device__ int G4Helper::g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const {
+inline __device__ unsigned int G4Helper::g4Index(int k1, int k2, int k_ex, int w1, int w2,
+                                                 int w_ex) const {
   return sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k_ex + sbdm_steps_[7] * w1 +
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
 }
