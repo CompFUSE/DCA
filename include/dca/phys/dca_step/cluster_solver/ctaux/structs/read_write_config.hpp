@@ -24,16 +24,20 @@ namespace ctaux {
 
 template <class Parameters>
 io::Buffer& operator<<(io::Buffer& buff, const vertex_pair<Parameters>& v) {
-  return buff << v.bands << v.e_spins << v.spin_orbitals << v.r_sites << v.HS_spin << v.tau;
+  return buff << v.bands << v.e_spins << v.spin_orbitals << v.r_sites << v.delta_r << v.HS_spin
+              << v.tau;
 }
 
 template <class Parameters>
 io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Parameters>& v) {
   v.creatable = false;
   v.annihilatable = true;
+  v.successfully_flipped = false;
+  v.Bennett = false;
   v.shuffled = true;
 
-  return buff >> v.bands >> v.e_spins >> v.spin_orbitals >> v.r_sites >> v.HS_spin >> v.tau;
+  return buff >> v.bands >> v.e_spins >> v.spin_orbitals >> v.r_sites >> v.delta_r >> v.HS_spin >>
+         v.tau;
 }
 
 template <class Parameters>
@@ -74,9 +78,9 @@ io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Parameters>& co
   return buff;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_READ_WRITE_CONFIG_HPP
