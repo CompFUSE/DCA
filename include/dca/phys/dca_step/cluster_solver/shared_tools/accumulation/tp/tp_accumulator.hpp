@@ -439,11 +439,11 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       //                  = -1/2 sum_s G(k2+k_ex, k1+k_ex, s) G(k1, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                   Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
@@ -547,11 +547,11 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
       //                  = 1/2 sum_s G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
         const int w_ex = exchange_frq[w_ex_idx];
-        for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
-          for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
-              const int k_ex = exchange_mom[k_ex_idx];
-              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+        for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+          const int k_ex = exchange_mom[k_ex_idx];
+          for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+            for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+              for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                   Complex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
@@ -559,7 +559,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
                                    !s, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2,
                                    sign_over_2, false);
                 }
-            }
+        }
       }
       flops += n_loops * 4 * flops_update_atomic;
       break;
