@@ -97,7 +97,7 @@ public:
   int signature() const {
     return Nb_sbdms;
   }
-  int size() const {
+  std::size_t size() const {
     return Nb_elements;
   }
   // Returns the size of the leaf domain with the given index.
@@ -238,12 +238,12 @@ private:
 
   domain dmn;  // TODO: Remove domain object?
 
-  int Nb_elements;
+  std::size_t Nb_elements;
 
   // The subdomains (sbdmn) represent the leaf domains, not the branch domains.
   int Nb_sbdms;
-  const std::vector<int>& size_sbdm;  // TODO: Remove?
-  const std::vector<int>& step_sbdm;  // TODO: Remove?
+  const std::vector<std::size_t>& size_sbdm;  // TODO: Remove?
+  const std::vector<std::size_t>& step_sbdm;  // TODO: Remove?
 
   scalartype* fnc_values;
 };
