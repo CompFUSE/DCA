@@ -29,7 +29,6 @@
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "dca/util/get_stdout_from_command.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -71,7 +70,6 @@ private:
 
   void readConfigurations();
   void writeConfigurations() const;
-  int findAvailableFiles() const;
 
   void iterateOverLocalMeasurements(int walker_id, std::function<void(int, int, bool)>&& f);
 
@@ -475,43 +473,18 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     return;
 
   try {
-    const int n_available = findAvailableFiles();
-    const int id_to_read = concurrency_.id() % n_available;
-
     const std::string inp_name = parameters_.get_directory_config_read() + "/process_" +
-                                 std::to_string(id_to_read) + ".hdf5";
+                                 std::to_string(concurrency_.id()) + ".hdf5";
     io::HDF5Reader reader(false);
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
       reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
-
-    if (concurrency_.id() == 0) {
-      std::cout << "Read configuration from " << parameters_.get_directory_config_read() << ".\n";
-    }
   }
   catch (std::exception& err) {
     std::cerr << err.what() << "\nCould not read the configuration.\n";
     for (auto& config : config_dump_)
       config.clear();
   }
-}
-
-template <class QmciSolver>
-int StdThreadQmciClusterSolver<QmciSolver>::findAvailableFiles() const {
-  int result = 0;
-  if (concurrency_.id() == 0) {
-    try {
-      // Count the number of configuration files.
-      const std::string cmd =
-          "ls -1 " + parameters_.get_directory_config_read() + "/process_*.hdf5 | wc -l";
-      result = std::atoi(dca::util::getStdoutFromCommand(cmd).c_str());
-    }
-    catch (...) {
-    }
-  }
-
-  concurrency_.broadcast(result, 0);
-  return result;
 }
 
 template <class QmciSolver>
