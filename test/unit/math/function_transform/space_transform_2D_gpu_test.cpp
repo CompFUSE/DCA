@@ -65,8 +65,8 @@ using Matrix = dca::linalg::ReshapableMatrix<Scalar, device>;
 TEST(SpaceTransform2DGpuTest, Execute) {
   initialize();
 
-  using dca::func::function;
   using dca::func::dmn_variadic;
+  using dca::func::function;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> M_in;

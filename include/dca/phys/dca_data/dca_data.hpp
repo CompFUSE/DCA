@@ -97,12 +97,8 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
   using TpGreensFunction =
       func::function<std::complex<TpAccumulatorScalar>,
-                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
-                                        KExchangeDmn, WVertexDmn, WVertexDmn, WExchangeDmn>>;
-  // The following typedef is for testing purposes
-  using ReducedTpGreensFunction = func::function<
-      std::complex<TpAccumulatorScalar>,
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
+                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, WVertexDmn,
+                                        KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>>;
 
   DcaData(Parameters& parameters_ref);
 
@@ -132,7 +128,7 @@ public:
   func::function<int, NuNuDmn> H_symmetry;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> H_HOST;
 
   func::function<double, NuKCutDmn> band_structure;

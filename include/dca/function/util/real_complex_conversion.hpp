@@ -51,8 +51,8 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_ima
   return f_real;
 }
 
-}  // util
-}  // func
-}  // dca
+}  // namespace util
+}  // namespace func
+}  // namespace dca
 
 #endif  // DCA_FUNCTION_UTIL_REAL_COMPLEX_CONVERSION_HPP

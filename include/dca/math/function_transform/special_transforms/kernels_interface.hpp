@@ -23,15 +23,14 @@ namespace details {
 // dca::math::transform::details::
 
 template <typename Real>
-void phaseFactorsAndRearrange(const std::complex<Real> *in, const int ldi, std::complex<Real> *out,
+void phaseFactorsAndRearrange(const std::complex<Real>* in, const int ldi, std::complex<Real>* out,
                               const int ldo, const int nb, const int nk, const int nw,
-                              const std::complex<Real> *phase_factors,
-                              cudaStream_t const stream);
+                              const std::complex<Real>* phase_factors, cudaStream_t const stream);
 
-}  // details
-}  // transform
-}  // math
-}  // dca
+}  // namespace details
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE

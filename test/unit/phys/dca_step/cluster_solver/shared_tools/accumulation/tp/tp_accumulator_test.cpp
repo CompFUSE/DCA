@@ -46,7 +46,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  Data::ReducedTpGreensFunction G4_check("G4");
+  Data::TpGreensFunction G4_check("G4");
 
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;

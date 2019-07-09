@@ -47,8 +47,8 @@ class StdThreadQmciClusterSolver : public QmciSolver {
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
 
-  using typename BaseClass::Walker;
   using typename BaseClass::Accumulator;
+  using typename BaseClass::Walker;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
 public:
@@ -76,12 +76,12 @@ private:
   void printIntegrationMetadata() const;
 
 private:
-  using BaseClass::parameters_;
-  using BaseClass::data_;
-  using BaseClass::concurrency_;
-  using BaseClass::total_time_;
-  using BaseClass::dca_iteration_;
   using BaseClass::accumulator_;
+  using BaseClass::concurrency_;
+  using BaseClass::data_;
+  using BaseClass::dca_iteration_;
+  using BaseClass::parameters_;
+  using BaseClass::total_time_;
 
   std::atomic<int> walk_finished_;
   std::atomic<uint> measurements_done_;

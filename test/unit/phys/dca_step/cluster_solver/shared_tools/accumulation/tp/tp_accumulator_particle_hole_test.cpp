@@ -81,24 +81,11 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_up_check;
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_down_check;
 
-  for (int w_ex = 0; w_ex < TpAccumulatorType::WExchangeDmn::dmn_size(); ++w_ex)
-    for (int w2 = 0; w2 < TpAccumulatorType::WTpDmn::dmn_size(); ++w2)
-      for (int w1 = 0; w1 < TpAccumulatorType::WTpDmn::dmn_size(); ++w1)
-        for (int k_ex = 0; k_ex < TpAccumulatorType::KExchangeDmn::dmn_size(); ++k_ex)
-          for (int k2 = 0; k2 < TpAccumulatorType::KDmn::dmn_size(); ++k2)
-            for (int k1 = 0; k1 < TpAccumulatorType::KDmn::dmn_size(); ++k1)
-              for (int b4 = 0; b4 < TpAccumulatorType::BDmn::dmn_size(); ++b4)
-                for (int b3 = 0; b3 < TpAccumulatorType::BDmn::dmn_size(); ++b3)
-                  for (int b2 = 0; b2 < TpAccumulatorType::BDmn::dmn_size(); ++b2)
-                    for (int b1 = 0; b1 < TpAccumulatorType::BDmn::dmn_size(); ++b1) {
-                      G4_ph_long_up_up_check(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex) =
-                          0.5 * (G4_ph_charge(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex) +
-                                 G4_ph_magnetic(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex));
+  for (int l = 0; l < G4_ph_long_up_up_check.size(); ++l) {
+    G4_ph_long_up_up_check(l) = 0.5 * (G4_ph_charge(l) + G4_ph_magnetic(l));
 
-                      G4_ph_long_up_down_check(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex) =
-                          0.5 * (G4_ph_charge(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex) -
-                                 G4_ph_magnetic(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex));
-                    }
+    G4_ph_long_up_down_check(l) = 0.5 * (G4_ph_charge(l) - G4_ph_magnetic(l));
+  }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);
   EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());

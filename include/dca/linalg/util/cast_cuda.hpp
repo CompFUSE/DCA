@@ -74,14 +74,14 @@ template <>
 struct ComplexContainer<float> {
   using type = cuFloatComplex;
 };
-}  // details
+}  // namespace details
 // dca::linalg::util::
 
 template <typename Real>
 using CudaComplex = typename details::ComplexContainer<Real>::type;
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_CAST_CUDA_HPP

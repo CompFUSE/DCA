@@ -33,8 +33,8 @@ namespace details {
 // dca::phys::solver::accumulator::details::
 
 using namespace linalg;
-using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+using linalg::util::CudaComplex;
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
@@ -477,7 +477,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   }
 
   CudaComplex<Real>* const result_ptr =
-      G4 + g4_helper.g4Index(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex);
+      G4 + g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
 
   if (atomic)
     dca::linalg::atomicAdd(result_ptr, contribution * 0.5 * sign);

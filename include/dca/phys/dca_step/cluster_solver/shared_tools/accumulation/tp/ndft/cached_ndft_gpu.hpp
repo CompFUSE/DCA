@@ -85,17 +85,17 @@ private:
   void rearrangeOutput(RMatrix& output);
 
 private:
-  using BaseClass::w_;
-  using BaseClass::start_index_;
-  using BaseClass::end_index_;
-  using BaseClass::n_orbitals_;
   using BaseClass::config_left_;
   using BaseClass::config_right_;
-  using BaseClass::start_index_left_;
-  using BaseClass::start_index_right_;
+  using BaseClass::end_index_;
   using BaseClass::end_index_left_;
   using BaseClass::end_index_right_;
   using BaseClass::indexed_config_;
+  using BaseClass::n_orbitals_;
+  using BaseClass::start_index_;
+  using BaseClass::start_index_left_;
+  using BaseClass::start_index_right_;
+  using BaseClass::w_;
 
   linalg::Vector<Real, linalg::GPU> w_dev_;
   magma_queue_t magma_queue_;

@@ -137,8 +137,8 @@ bool MomentumToSpaceTransform<KDmn, RDmn>::hasPhaseFactor() {
   return SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor();
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_MOMENTUM_TO_SPACE_HPP

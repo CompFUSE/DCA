@@ -123,15 +123,15 @@ private:
   using Profiler = typename Parameters::profiler_type;
 
   using typename BaseClass::WTpDmn;
-  using typename BaseClass::WTpPosDmn;
   using typename BaseClass::WTpExtDmn;
   using typename BaseClass::WTpExtPosDmn;
+  using typename BaseClass::WTpPosDmn;
 
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
 
-  using typename BaseClass::TpGreensFunction;
   using typename BaseClass::Complex;
+  using typename BaseClass::TpGreensFunction;
 
   using Matrix = linalg::Matrix<Complex, linalg::GPU>;
 
@@ -156,16 +156,17 @@ private:
 private:
   constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
-  using BaseClass::thread_id_;
-  using BaseClass::multiple_accumulators_;
-  using BaseClass::n_bands_;
   using BaseClass::beta_;
+  using BaseClass::extension_index_offset_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
+  using BaseClass::multiple_accumulators_;
+  using BaseClass::n_bands_;
+  using BaseClass::n_pos_frqs_;
+
   using BaseClass::non_density_density_;
   using BaseClass::sign_;
-  using BaseClass::extension_index_offset_;
-  using BaseClass::n_pos_frqs_;
+  using BaseClass::thread_id_;
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =

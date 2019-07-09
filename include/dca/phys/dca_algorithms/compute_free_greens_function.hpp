@@ -94,7 +94,7 @@ void compute_G0_k_t(
   G0_k_t = std::move(func::util::real(f_cmplx, true));
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_ALGORITHMS_COMPUTE_FREE_GREENS_FUNCTION_HPP
