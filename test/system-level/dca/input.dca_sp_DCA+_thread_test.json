@@ -59,6 +59,7 @@
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1,
         "measurements": 800,
+        "store-configuration" : true,
 
         "threaded-solver": {
             "walkers": 1,

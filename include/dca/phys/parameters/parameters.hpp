@@ -427,8 +427,8 @@ std::string Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGene
   return str;
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_PARAMETERS_HPP
