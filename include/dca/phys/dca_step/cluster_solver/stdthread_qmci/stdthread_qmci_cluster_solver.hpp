@@ -281,7 +281,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     walker.printSummary();
   }
 
-  config_dump_[walker_index] = walker.dumpConfig();
+  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
+                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
+    config_dump_[walker_index] = walker.dumpConfig();
+
   walker_fingerprints_[walker_index] = walker.deviceFingerprint();
 
   Profiler::stop_threading(id);
@@ -296,8 +299,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
   Profiler profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
 
   // Read previous configuration.
-  if (config_dump_[walker_id].size())
+  if (config_dump_[walker_id].size()) {
     walker.readConfig(config_dump_[walker_id]);
+    config_dump_[walker_id].setg(0); // Ready to read again if it is not overwritten.
+  }
 
   walker.initialize();
 
@@ -439,7 +444,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
     std::lock_guard<std::mutex> lock(mutex_merge_);
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
-  config_dump_[id] = walker.dumpConfig();
+
+  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
+                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
+    config_dump_[id] = walker.dumpConfig();
+
   walker_fingerprints_[id] = walker.deviceFingerprint();
   accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
 

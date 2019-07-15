@@ -58,7 +58,8 @@
         "seed": 985456376,
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1,
-        "measurements": 800
+        "measurements": 800,
+        "store-configuration" : true
     },
 
     "CT-AUX": {
