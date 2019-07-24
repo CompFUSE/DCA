@@ -135,8 +135,6 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
       w_q_("w_q_"),
       w_tot_(0.),
       spin_symmetric_(checkSpinSymmetry()) {
-  interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
-
   // Compute H0(k+q) for each value of k and q.
   for (int k = 0; k < H0_q_.size(); ++k) {
     QDmn::parameter_type::set_elements(k);
