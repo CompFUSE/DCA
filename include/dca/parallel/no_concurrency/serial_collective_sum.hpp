@@ -31,23 +31,14 @@ namespace parallel {
 
 class SerialCollectiveSum {
 public:
-  template <typename Scalar>
-  void sum(Scalar&) const {}
-  template <typename Scalar>
-  void sum(std::vector<Scalar>&) const {}
-  template <typename Scalar>
-  void sum(std::map<std::string, std::vector<Scalar>>&) const {}
-  template <typename Scalar, class Domain>
-  void sum(func::function<Scalar, Domain>&) const {}
-  template <typename Scalar, class Domain>
-  void sum(func::function<Scalar, Domain>& /*f_in*/, func::function<Scalar, Domain>& /*f_out*/) const {
-  }
-  template <typename Scalar, class Domain>
-  void sum(func::function<std::vector<Scalar>, Domain>&) const {}
-  template <typename Scalar>
-  void sum(linalg::Vector<Scalar, linalg::CPU>&) const {}
-  template <typename Scalar>
-  void sum(dca::linalg::Matrix<Scalar, linalg::CPU>&) const {}
+  template <class T>
+  void sum(T&) const {}
+  template <class T1, class T2>
+  void sum(const T1&, T2&) const {}
+
+  template <class T>
+  void delayedSum(T&) const {}
+  void resolveSums() const {}
 
   template <typename T>
   void sum_and_average(T& obj, int measurements) const {
@@ -60,7 +51,7 @@ public:
   template <typename T>
   void leaveOneOutAvg(T&) const {}
   template <typename T>
-  void leaveOneOutSum(T&) const {}
+  void leaveOneOutSum(T&, bool = false) const {}
 
   template <typename Scalar, class Domain>
   func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>&,
@@ -80,7 +71,7 @@ public:
   }
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_NO_CONCURRENCY_SERIAL_COLLECTIVE_SUM_HPP

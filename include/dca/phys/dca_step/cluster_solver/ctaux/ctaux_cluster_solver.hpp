@@ -144,7 +144,7 @@ private:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
 
-  int accumulated_sign_;
+  double accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
@@ -413,20 +413,69 @@ void CtauxClusterSolver<device_t, Parameters, Data>::computeErrorBars() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
-  auto collect = [&](auto& f) {
+  auto collect_delayed = [&](auto& f) {
     if (compute_jack_knife_)
-      concurrency_.leaveOneOutSum(f);
+      concurrency_.leaveOneOutSum(f, true);
     else
-      concurrency_.sum(f);
+      concurrency_.delayedSum(f);
   };
 
   const double local_time = total_time_;
+
   {
-    Profiler profiler("Scalars", "QMC-collectives", __LINE__);
-    concurrency_.sum(total_time_);
-    concurrency_.sum(accumulator_.get_Gflop());
+    Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);
+    concurrency_.delayedSum(total_time_);
+    concurrency_.delayedSum(accumulator_.get_Gflop());
     accumulated_sign_ = accumulator_.get_accumulated_sign();
-    collect(accumulated_sign_);
+    collect_delayed(accumulated_sign_);
+
+    M_r_w_ = accumulator_.get_sign_times_M_r_w();
+    collect_delayed(M_r_w_);
+
+    if (accumulator_.compute_std_deviation()) {
+      M_r_w_squared_ = accumulator_.get_sign_times_M_r_w_sqr();
+      concurrency_.delayedSum(M_r_w_squared_);
+    }
+
+    if (parameters_.additional_time_measurements()) {
+      Profiler profiler("Additional time measurements.", "QMC-collectives", __LINE__);
+      concurrency_.delayedSum(accumulator_.get_G_r_t());
+      concurrency_.delayedSum(accumulator_.get_G_r_t_stddev());
+      concurrency_.delayedSum(accumulator_.get_charge_cluster_moment());
+      concurrency_.delayedSum(accumulator_.get_magnetic_cluster_moment());
+      concurrency_.delayedSum(accumulator_.get_dwave_pp_correlator());
+    }
+
+    // sum G4
+    if (parameters_.accumulateG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+      for (int g4_idx = 0; g4_idx < data_.get_G4().size(); ++g4_idx) {
+        auto& G4 = data_.get_G4()[g4_idx];
+        G4 = accumulator_.get_sign_times_G4()[g4_idx];
+        if (compute_jack_knife_)
+          concurrency_.leaveOneOutSum(G4, true);
+        else
+          concurrency_.delayedSum(G4);  // TODO: reduce only on rank 0.
+      }
+    }
+
+    concurrency_.delayedSum(accumulator_.get_visited_expansion_order_k());
+    concurrency_.delayedSum(accumulator_.get_error_distribution());
+
+    concurrency_.resolveSums();
+  }
+
+  M_r_w_ /= accumulated_sign_;
+  M_r_w_squared_ /= accumulated_sign_;
+  for (auto& G4 : data_.get_G4())
+    G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
+
+  if (parameters_.additional_time_measurements()) {
+    accumulator_.get_G_r_t() /= accumulated_sign_;
+    data_.G_r_t = accumulator_.get_G_r_t();
+    accumulator_.get_G_r_t_stddev() /= accumulated_sign_ * std::sqrt(parameters_.get_measurements());
+    accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
+    accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
+    accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
   }
 
   if (concurrency_.id() == concurrency_.first())
@@ -437,59 +486,6 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
               << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]"
               << "\n\t\t\t sign     : " << accumulated_sign_ / parameters_.get_measurements()
               << " \n";
-
-  // sum M_r_w
-  M_r_w_ = accumulator_.get_sign_times_M_r_w();
-  {
-    Profiler profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-    collect(M_r_w_);
-  }
-  M_r_w_ /= accumulated_sign_;
-
-  if (accumulator_.compute_std_deviation()) {
-    M_r_w_squared_ = accumulator_.get_sign_times_M_r_w_sqr();
-    {
-      Profiler profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency_.sum(M_r_w_squared_);
-    }
-    M_r_w_squared_ /= accumulated_sign_;
-  }
-
-  if (parameters_.additional_time_measurements()) {
-    Profiler profiler("Additional time measurements.", "QMC-collectives", __LINE__);
-    concurrency_.sum(accumulator_.get_G_r_t());
-    concurrency_.sum(accumulator_.get_G_r_t_stddev());
-
-    accumulator_.get_G_r_t() /= accumulated_sign_;
-    accumulator_.get_G_r_t_stddev() /= accumulated_sign_ * std::sqrt(parameters_.get_measurements());
-
-    concurrency_.sum(accumulator_.get_charge_cluster_moment());
-    concurrency_.sum(accumulator_.get_magnetic_cluster_moment());
-    concurrency_.sum(accumulator_.get_dwave_pp_correlator());
-
-    accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
-    accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
-    accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
-
-    data_.G_r_t = accumulator_.get_G_r_t();
-  }
-
-  // sum G4
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
-    Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-
-    auto& G4 = data_.get_G4();
-    G4 = accumulator_.get_sign_times_G4();
-
-    for (auto& G4_channel : G4) {
-      collect(G4_channel);
-      G4_channel /= accumulated_sign_;
-    }
-  }
-
-  concurrency_.sum(accumulator_.get_visited_expansion_order_k());
-
-  concurrency_.sum(accumulator_.get_error_distribution());
 
   averaged_ = true;
 }

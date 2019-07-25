@@ -326,6 +326,37 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
   EXPECT_NEAR(1.76190476, momenta[1], 1e-8);
 }
 
+TEST_F(MPICollectiveSumTest, DelayedSum) {
+  using TestDomain1 = dca::func::dmn_0<dca::func::dmn<2, char>>;
+  using TestDomain2 = dca::func::dmn_0<dca::func::dmn<3, char>>;
+
+  dca::func::function<double, TestDomain1> function_test("test");
+  dca::func::function<double, TestDomain1> function_expected("expected");
+
+  dca::func::function<std::complex<double>, TestDomain2> function_cmplx_test("test");
+  dca::func::function<std::complex<double>, TestDomain2> function_cmplx_expected("expected");
+
+  for (int i = 0; i < function_test.size(); i++) {
+    function_test(i) = i * rank_;
+    function_cmplx_test(i) = std::complex<double>(i * rank_, 1);
+    function_cmplx_expected(i) = std::complex<double>(i * size_ * (size_ - 1) / 2, size_);
+    function_expected(i) = i * size_ * (size_ - 1) / 2;
+  }
+
+  double scalar_test = rank_;
+  double scalar_expected = size_ * (size_ - 1) / 2;
+
+  sum_interface_.delayedSum(function_test);
+  sum_interface_.delayedSum(scalar_test);
+  sum_interface_.delayedSum(function_cmplx_test);
+
+  sum_interface_.resolveSums();
+
+  EXPECT_EQ(scalar_expected, scalar_test);
+  EXPECT_EQ(function_expected, function_test);
+  EXPECT_EQ(function_cmplx_expected, function_cmplx_test);
+}
+
 int main(int argc, char** argv) {
   int result = 0;
 
