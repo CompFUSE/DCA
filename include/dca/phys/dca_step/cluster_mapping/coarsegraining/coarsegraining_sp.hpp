@@ -304,40 +304,36 @@ void CoarsegrainingSp<Parameters>::updateSigmaInterpolated(const LatticeFreqFunc
 template <typename Parameters>
 template <typename RDmn>
 void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const {
+  phi_r = 0.;
+
   using KCluster = typename KClusterDmn::parameter_type;
   math::geometry::tetrahedron_mesh<KCluster> mesh(parameters_.get_k_mesh_recursion());
-
   using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<KClusterDmn>>;
   using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
   quadrature_dmn::translate_according_to_period(parameters_.get_coarsegraining_periods(), mesh);
-
   std::vector<math::geometry::tetrahedron<dimension>>& tetrahedra = mesh.get_tetrahedra();
-
-  phi_r = 0.;
-
-  RDmn r_domain;
-  std::pair<int, int> bounds = concurrency_.get_bounds(r_domain);
-
   std::vector<std::vector<double>> super_basis = RDmn::parameter_type::get_super_basis_vectors();
-
-  for (int l = bounds.first; l < bounds.second; l++) {
-    std::vector<double> r_vec = RDmn::get_elements()[l];
-    std::vector<std::vector<double>> r_vecs =
-        domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
-    for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
-      for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
-        phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(
-                        r_vecs[0], tetrahedra[tet_ind])) /
-                    r_vecs.size();
-  }
-
-  concurrency_.sum(phi_r);
 
   double tot_weight = 0;
   for (auto w : QDmn::parameter_type::get_weights())
     tot_weight += w;
 
-  phi_r /= tot_weight;
+  Threading().execute(parameters_.get_coarsegraining_threads(), [&](int id, int threads) {
+    const std::pair<int, int> bounds = parallel::util::getBounds(id, threads, RDmn());
+
+    for (int l = bounds.first; l < bounds.second; l++) {
+      std::vector<double> r_vec = RDmn::get_elements()[l];
+      std::vector<std::vector<double>> r_vecs =
+          domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
+      for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
+        for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
+          phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(
+                          r_vecs[0], tetrahedra[tet_ind])) /
+                      r_vecs.size();
+
+      phi_r(l) /= tot_weight;
+    }
+  });
 }
 
 }  // namespace clustermapping

@@ -25,20 +25,20 @@ namespace clustermapping {
 class tetrahedron_routines_harmonic_function {
 public:
   // 1D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<1>& tetrahedron);
+  static std::complex<double> execute(const std::vector<double>& r_vec,
+                                      const math::geometry::tetrahedron<1>& tetrahedron);
   // 2D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<2>& tetrahedron);
+  static std::complex<double> execute(const std::vector<double>& r_vec,
+                                      const math::geometry::tetrahedron<2>& tetrahedron);
 
   // 3D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<3>& tetrahedron);
+  static std::complex<double> execute(const std::vector<double>& r_vec,
+                                      const math::geometry::tetrahedron<3>& tetrahedron);
 
 private:
   // 2D cases:
   static void permute(math::geometry::tetrahedron<2>& tetrahedron_new,
-                      math::geometry::tetrahedron<2>& tetrahedron_old);
+                      const math::geometry::tetrahedron<2>& tetrahedron_old);
 
   static std::complex<double> case_2D(double dotRD1, double dotRD2, double dotRD2minD1);
   static std::complex<double> case_d1_2D(double dotRD1, double dotRD2, double dotRD2minD1);
@@ -46,7 +46,7 @@ private:
 
   // 3D
   static void permute(math::geometry::tetrahedron<3>& tetrahedron_new,
-                      math::geometry::tetrahedron<3>& tetrahedron_old);
+                      const math::geometry::tetrahedron<3>& tetrahedron_old);
 
   static std::complex<double> case_3D(double dotRD1, double dotRD2, double dotRD3,
                                       double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
@@ -73,8 +73,8 @@ private:
                                             double dotRD1minD3);
 };
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_ROUTINES_HARMONIC_FUNCTION_HPP
