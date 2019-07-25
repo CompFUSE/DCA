@@ -46,7 +46,7 @@ public:
   template <typename scalar_type>
   void sum(std::vector<scalar_type>& m) const;
   template <typename scalartype>
-  void sum(std::map<std::string, std::vector<scalartype>>& m) const;
+  void sum(std::map<std::string, std::vector<scalartype>>& m);
   template <typename scalar_type, class domain>
   void sum(func::function<scalar_type, domain>& f) const;
   template <typename scalar_type, class domain>
@@ -59,10 +59,12 @@ public:
   template <typename scalar_type>
   void sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const;
 
+  template <typename Scalar>
+  void delayedSum(Scalar& obj);
+  template <typename Scalar>
+  void delayedSum(std::vector<Scalar>& f);
   template <typename Scalar, class domain>
   void delayedSum(func::function<Scalar, domain>& f);
-  template <typename Scalar>
-  void delayedSum(Scalar& f);
 
   void resolveSums();
 
@@ -188,23 +190,23 @@ void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
   m = std::move(result);
 }
 
-template <typename scalar_type>
-void MPICollectiveSum::sum(std::map<std::string, std::vector<scalar_type>>& m) const {
-  typedef typename std::map<std::string, std::vector<scalar_type>>::iterator iterator_type;
+// template <typename Scalar>
+// void MPICollectiveSum::sum(std::map<std::string, std::vector<std::vector<Scalar>>>& m) {
+//  for (auto it = m.begin(); it != m.end(); ++it) {
+//    for (auto& vec : it->second)
+//      delayedSum(vec);
+//  }
+//
+//  resolveSums();
+//}
 
-  iterator_type it = m.begin();
-
-  for (; it != m.end(); ++it) {
-    std::vector<scalar_type> values((it->second).size());
-
-    for (size_t l = 0; l < (it->second).size(); l++)
-      values[l] = (it->second)[l];
-
-    sum(values);
-
-    for (size_t l = 0; l < (it->second).size(); l++)
-      (it->second)[l] = values[l];
+template <typename Scalar>
+void MPICollectiveSum::sum(std::map<std::string, std::vector<Scalar>>& m) {
+  for (auto it = m.begin(); it != m.end(); ++it) {
+    delayedSum((it->second));
   }
+
+  resolveSums();
 }
 
 template <typename scalar_type, class domain>
@@ -560,6 +562,11 @@ void MPICollectiveSum::delayedSum(Scalar& obj) {
   delayedSum(&obj, 1);
 }
 
+template <typename Scalar>
+void MPICollectiveSum::delayedSum(std::vector<Scalar>& v) {
+  delayedSum(v.data(), v.size());
+}
+
 template <typename Scalar, class Domain>
 void MPICollectiveSum::delayedSum(func::function<Scalar, Domain>& f) {
   delayedSum(f.values(), f.size());
@@ -589,6 +596,8 @@ inline void MPICollectiveSum::resolveSums() {
       return resolveSumsImplementation<double>();
     case MPI_FLOAT:
       return resolveSumsImplementation<float>();
+    case MPI_UNSIGNED_LONG:
+      return resolveSumsImplementation<unsigned long int>();
     default:
       throw(std::logic_error("Type not supported."));
   }
