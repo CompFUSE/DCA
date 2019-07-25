@@ -591,16 +591,15 @@ void MPICollectiveSum::delayedSum(T* in, std::size_t n) {
 
 // TODO: move to .cpp file.
 inline void MPICollectiveSum::resolveSums() {
-  switch (current_type_) {
-    case MPI_DOUBLE:
-      return resolveSumsImplementation<double>();
-    case MPI_FLOAT:
-      return resolveSumsImplementation<float>();
-    case MPI_UNSIGNED_LONG:
-      return resolveSumsImplementation<unsigned long int>();
-    default:
-      throw(std::logic_error("Type not supported."));
-  }
+  // Note: we can not use a switch statement as MPI_Datatype is not integer on the Summit system.
+  if (current_type_ == MPI_DOUBLE)
+    return resolveSumsImplementation<double>();
+  else if (current_type_ == MPI_FLOAT)
+    return resolveSumsImplementation<float>();
+  else if (current_type_ == MPI_UNSIGNED_LONG)
+    return resolveSumsImplementation<unsigned long int>();
+  else
+    throw(std::logic_error("Type not supported."));
 }
 
 template <typename T>
