@@ -96,7 +96,7 @@ TEST_F(SymmetrizeTest, G0_w) {
   // Compute the Green's functions in imaginary time.
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
 
-  dca::phys::compute_G0_k_w(H0_, parameters_.get_chemical_potential(), concurrency_, G0_k_w);
+  dca::phys::compute_G0_k_w(H0_, parameters_.get_chemical_potential(), 1, G0_k_w);
 
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);

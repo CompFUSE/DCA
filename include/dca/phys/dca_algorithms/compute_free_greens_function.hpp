@@ -26,19 +26,18 @@ namespace phys {
 
 // Computes the free Matsubara Green's function G_0(\vec{k}, i\omega_n) from the non-interacting
 // Hamiltonian H_0(\vec{k}).
-template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn,
-          typename ConcurrencyType>
+template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn>
 void compute_G0_k_w(
     const func::function<std::complex<Scalar>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
-    const Scalar mu, const ConcurrencyType& concurrency,
+    const Scalar mu, const int n_threads,
     func::function<std::complex<Scalar>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G0_k_w) {
   // Call compute_G_k_w with vanishing self-energy.
   const func::function<std::complex<Scalar>,
                        func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>
       zero;
-  compute_G_k_w(H0_k, zero, mu, concurrency, G0_k_w);
+  compute_G_k_w(H0_k, zero, mu, n_threads, G0_k_w);
 }
 
 // Computes the free imaginary time Green's function G_0(\vec{k}, \tau) from the non-interacting

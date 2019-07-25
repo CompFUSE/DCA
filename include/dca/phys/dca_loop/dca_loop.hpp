@@ -253,8 +253,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
   // Finite-size QMC
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
-                  MOMS.G_k_w);
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+                  parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   // DCA+
   else if (parameters.do_dca_plus())
     cluster_mapping_obj.compute_G_K_w(MOMS.Sigma_lattice, MOMS.G_k_w);

@@ -224,8 +224,8 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
-                  MOMS.G_k_w);
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+                  parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   else if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.Sigma_lattice, MOMS.G_k_w);
   else
@@ -354,8 +354,8 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   }
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
