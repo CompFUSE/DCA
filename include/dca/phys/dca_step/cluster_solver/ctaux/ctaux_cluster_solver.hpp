@@ -280,15 +280,11 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     }
   }
 
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
-    for (auto& G4_channel : data_.get_G4())
-      G4_channel /= parameters_.get_beta() * parameters_.get_beta();
-
-    if (compute_jack_knife_) {
-      for (std::size_t channel = 0; channel < data_.get_G4().size(); ++channel)
-        data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
-    }
+  if (compute_jack_knife_ && parameters_.accumulateG4()) {
+    for (std::size_t channel = 0; channel < parameters_.numG4Channels(); ++channel)
+      data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
   }
+
   double total = 1.e-6, integral = 0;
 
   for (int l = 0; l < accumulator_.get_visited_expansion_order_k().size(); l++) {
@@ -421,6 +417,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
   };
 
   const double local_time = total_time_;
+  const bool accumulate_g4 =
+      parameters_.accumulateG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1;
 
   {
     Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);
@@ -447,14 +445,14 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
     }
 
     // sum G4
-    if (parameters_.accumulateG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1) {
-      for (int g4_idx = 0; g4_idx < data_.get_G4().size(); ++g4_idx) {
-        auto& G4 = data_.get_G4()[g4_idx];
-        G4 = accumulator_.get_sign_times_G4()[g4_idx];
+    if (accumulate_g4) {
+      for (int channel = 0; channel < parameters_.numG4Channels(); ++channel) {
+        auto& G4 = data_.get_G4()[channel];
+        G4 = accumulator_.get_sign_times_G4()[channel];
         if (compute_jack_knife_)
-          concurrency_.leaveOneOutSum(G4, true);
+          concurrency_.leaveOneOutSum(G4);
         else
-          concurrency_.delayedSum(G4);  // TODO: reduce only on rank 0.
+          concurrency_.localSum(G4, concurrency_.first());
       }
     }
 
@@ -466,8 +464,10 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
 
   M_r_w_ /= accumulated_sign_;
   M_r_w_squared_ /= accumulated_sign_;
-  for (auto& G4 : data_.get_G4())
-    G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
+  if(accumulate_g4) {
+      for (auto &G4 : data_.get_G4())
+          G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
+  }
 
   if (parameters_.additional_time_measurements()) {
     accumulator_.get_G_r_t() /= accumulated_sign_;

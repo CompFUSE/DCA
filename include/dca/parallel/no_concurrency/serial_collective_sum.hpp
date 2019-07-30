@@ -36,6 +36,9 @@ public:
   template <class T1, class T2>
   void sum(const T1&, T2&) const {}
 
+  template<class T>
+  void localSum(const T& , int ){}
+
   template <class T>
   void delayedSum(T&) const {}
   void resolveSums() const {}
