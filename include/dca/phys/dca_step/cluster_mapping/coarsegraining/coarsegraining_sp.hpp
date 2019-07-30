@@ -21,6 +21,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/domains/local_domain.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
@@ -48,6 +49,7 @@ class CoarsegrainingSp : private coarsegraining_routines<Parameters>,
                          private tetrahedron_integration<Parameters> {
 public:
   using Concurrency = typename Parameters::concurrency_type;
+  using Gang = typename Concurrency::Gang;
   using Threading = typename Parameters::ThreadingType;
   using ThisType = CoarsegrainingSp<Parameters>;
 
@@ -78,6 +80,10 @@ private:
   using NuNuDmn = func::dmn_variadic<NuDmn, NuDmn, QDmn>;
   using NuNuTetDmn = func::dmn_variadic<NuDmn, NuDmn, TetDmn>;
 
+  using LocalWDmn = func::LocalDomain<domains::frequency_domain>;
+  using LocalClusterFunction =
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, func::dmn_0<LocalWDmn>>>;
+
 public:
   CoarsegrainingSp(Parameters& parameters_ref);
 
@@ -107,6 +113,7 @@ private:
 
   Parameters& parameters_;
   Concurrency& concurrency_;
+  Gang gang_;
 
   std::vector<func::function<std::complex<ScalarType>, NuNuDmn>> H0_q_;
 
@@ -120,6 +127,11 @@ private:
   LatticeFreqFunction Sigma_old_;
 
   bool spin_symmetric_;
+
+  // Limit the number of processes contributing to this computation to limit communication latency.
+  // Internal: This number was selected for running on Summit, but a different value < 1000 could
+  //           be optimal.
+  constexpr static int gang_size_ = 100;
 };
 
 template <typename Parameters>
@@ -129,6 +141,7 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
+      gang_(concurrency_, gang_size_),
 
       H0_q_(KClusterDmn::dmn_size()),
 
@@ -143,6 +156,9 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
   for (int l = 0; l < w_q_.size(); ++l)
     w_tot_ += w_q_(l) = QDmn::parameter_type::get_weights()[l];
+
+  if (!LocalWDmn::is_initialized())
+    LocalWDmn::initialize(gang_);
 }
 
 template <typename Parameters>
@@ -168,14 +184,12 @@ template <class SigmaType, typename>
 void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, ClusterFreqFunction& G_K_w) {
   // Computes G_K_w(k,w) = 1/N_q \sum_q 1/(i w + mu - H0(k+q,w) - Sigma(k+q,w)).
   updateSigmaInterpolated(S_K_w);
-  G_K_w = 0.;
+  LocalClusterFunction G_local;
 
-  func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
-  const std::pair<int, int> external_bounds = concurrency_.get_bounds(K_wm_dmn);
-
-  const int n_threads = parameters_.get_coarsegraining_threads();
-  Threading().execute(n_threads, [&](int id, int n_threads) {
-    const auto bounds = parallel::util::getBounds(id, n_threads, external_bounds);
+  Threading().execute(parameters_.get_coarsegraining_threads(), [&](int id, int n_threads) {
+    func::dmn_variadic<KClusterDmn, func::dmn_0<LocalWDmn>> K_wm_dmn;
+    const auto bounds = parallel::util::getBounds(id, n_threads, K_wm_dmn);
+    const int w_offset = LocalWDmn::get_offset();
     constexpr int n_bands = Parameters::bands;
     const int indep_spin_sectors = spin_symmetric_ ? 1 : 2;
 
@@ -183,14 +197,15 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
     linalg::Vector<int, linalg::CPU> ipiv;
     linalg::Vector<Complex, linalg::CPU> work;
     int coor[2];
-    func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
     const Complex im(0., 1.);
 
     for (int l = bounds.first; l < bounds.second; l++) {
       K_wm_dmn.linind_2_subind(l, coor);
       const int k(coor[0]), w(coor[1]);
+      if (w >= LocalWDmn::get_physical_size())  // Padding region.
+        break;
 
-      const auto w_val = WDmn::get_elements()[w];
+      const auto w_val = LocalWDmn::get_elements().at(w);
       const auto& H0 = H0_q_[k];
 
       for (int q = 0; q < QDmn::dmn_size(); ++q)
@@ -198,9 +213,10 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
           for (int j = 0; j < n_bands; j++)
             for (int i = 0; i < n_bands; i++) {
               if (std::is_same<SigmaType, ClusterFreqFunction>::value)
-                G_inv(i, j) = -H0(i, s, j, s, q) - S_K_w(i, s, j, s, k, w);
+                G_inv(i, j) = -H0(i, s, j, s, q) - S_K_w(i, s, j, s, k, w + w_offset);
               else
-                G_inv(i, j) = -H0(i, s, j, s, q) - (*Sigma_interpolated_)(i, s, j, s, q, k, w);
+                G_inv(i, j) =
+                    -H0(i, s, j, s, q) - (*Sigma_interpolated_)(i, s, j, s, q, k, w + w_offset);
               if (i == j)
                 G_inv(i, j) += im * w_val + parameters_.get_chemical_potential();
             }
@@ -209,20 +225,19 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
 
           for (int j = 0; j < n_bands; ++j)
             for (int i = 0; i < n_bands; ++i) {
-              G_K_w(i, s, j, s, k, w) += G_inv(i, j) * w_q_(q);
+              G_local(i, s, j, s, k, w) += G_inv(i, j) * w_q_(q);
             }
         }
 
       if (spin_symmetric_) {  // apply symmetry
         for (int j = 0; j < n_bands; ++j)
           for (int i = 0; i < n_bands; ++i)
-            G_K_w(i, 1, j, 1, k, w) = G_K_w(i, 0, j, 0, k, w);
+            G_local(i, 1, j, 1, k, w) = G_local(i, 0, j, 0, k, w);
       }
     }
   });
 
-  concurrency_.sum(G_K_w);
-
+  concurrency_.gather(G_local, G_K_w, gang_);
   G_K_w /= w_tot_;
 }
 

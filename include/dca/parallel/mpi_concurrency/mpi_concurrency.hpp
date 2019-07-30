@@ -25,6 +25,8 @@
 #include "dca/parallel/mpi_concurrency/mpi_collective_min.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_initializer.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_gang.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_gather.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_packing.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
@@ -34,12 +36,15 @@ namespace parallel {
 // dca::parallel::
 
 class MPIConcurrency final : public virtual MPIInitializer,
-                             private virtual MPIProcessorGrouping,
+                             public virtual MPIProcessorGrouping,
                              public MPIPacking,
                              public MPICollectiveMax,
                              public MPICollectiveMin,
-                             public MPICollectiveSum {
+                             public MPICollectiveSum,
+                             public MPIGather {
 public:
+  using Gang = MPIGang;
+
   MPIConcurrency(int argc, char** argv);
 
   inline int id() const {
@@ -67,6 +72,12 @@ public:
   std::pair<int, int> get_bounds(const domain_type& dmn) const {
     return util::getBounds(id(), number_of_processors(), dmn);
   }
+
+  // Using gather with no gang uses the entire concurrency.
+//  template <class Scalar, class DmnIn, class DmnOut>
+//  void gather(const func::function<Scalar, DmnIn>& f_in, func::function<Scalar, DmnOut>& f_out) const {
+//    gather(f_in, f_out, *this);
+//  }
 
   friend std::ostream& operator<<(std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
 
@@ -147,7 +158,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   return true;
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_CONCURRENCY_HPP

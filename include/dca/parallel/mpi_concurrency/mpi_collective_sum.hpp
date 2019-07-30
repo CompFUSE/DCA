@@ -41,6 +41,7 @@ class MPICollectiveSum : public virtual MPIProcessorGrouping {
 public:
   MPICollectiveSum() = default;
 
+  // Wrappers to MPI_Allreduce.
   template <typename scalar_type>
   void sum(scalar_type& value) const;
   template <typename scalar_type>
@@ -59,9 +60,12 @@ public:
   template <typename scalar_type>
   void sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const;
 
+  // Wrapper to MPI_Reduce.
   template <typename Scalar, class Domain>
   void localSum(func::function<Scalar, Domain>& f, int root_id) const;
 
+  // Delay the execution of sum (implemented with MPI_Allreduce) until 'resolveSums' is called,
+  // or 'delayedSum' is called with an object of different Scalar type.
   template <typename Scalar>
   void delayedSum(Scalar& obj);
   template <typename Scalar>
@@ -69,6 +73,7 @@ public:
   template <typename Scalar, class domain>
   void delayedSum(func::function<Scalar, domain>& f);
 
+  // Execute all the reductions scheduled with 'delayedSum' or delayed leaveOneOutSum out calls.
   void resolveSums();
 
   template <typename some_type>
@@ -87,11 +92,13 @@ public:
   // in s.
   // Does nothing, if there is only one rank.
   // In/Out: s
+  // In: delay. If true delay the sum until 'resolveSums' is called.
   template <typename T>
   void leaveOneOutSum(T& s, bool delay = 0);
 
   // Element-wise implementations for dca::func::function.
   // In/Out: f
+  // In: delay. If true delay the sum until 'resolveSums' is called.
   template <typename Scalar, class Domain>
   void leaveOneOutSum(func::function<Scalar, Domain>& f, bool delay = 0);
 
@@ -561,7 +568,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 
 template <typename T>
 void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int id) const {
-  // On summit large messages hangs if sizeof(floating point type) type * message_size > 2^31-1.
+  // On summit large messages hangs if sizeof(floating point type) * message_size > 2^31-1.
   constexpr std::size_t max_size = dca::util::IsComplex<T>::value
                                        ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
                                        : std::numeric_limits<int>::max() / sizeof(T);
