@@ -2,7 +2,7 @@
 #
 # Usage: cmake -C /path/to/this/file /path/to/DCA/source -D<option>=<value> ...
 
-add_compile_options(-fPIC -march=native -mtune=native)
+add_compile_options(-fPIC -march=native)
 
 set(FFTW_INCLUDE_DIR $ENV{FFTW_DIR}/include CACHE PATH "FFTW include path")
 set(FFTW_LIBRARY $ENV{FFTW_DIR}/lib/libfftw3.a CACHE FILEPATH "FFTW libary")
@@ -17,13 +17,6 @@ set(MPIEXEC_PREFLAGS "" CACHE STRING
 option(DCA_WITH_CUDA "Enable GPU support." OFF)
 option(DCA_WITH_MPI "Enable MPI support." ON)
 # Compile for Volta compute architecture.
-set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")
-
-# For the GPU support we also need MAGMA.
-#set(MAGMA_DIR $ENV{MAGMA_DIR} CACHE PATH)
-#  "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
-
-set(CUDA_TOOLKIT_ROOT_DIR $ENV{CUDA_DIR})
 
 option(DCA_WITH_TESTS_FAST "Enable fast tests" ON)
 
