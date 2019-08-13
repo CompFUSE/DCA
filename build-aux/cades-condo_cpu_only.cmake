@@ -2,7 +2,7 @@
 #
 # Usage: cmake -C /path/to/this/file /path/to/DCA/source -D<option>=<value> ...
 
-add_compile_options(-fPIC -march=native)
+add_compile_options(-fPIC -march=native -mtune=native)
 
 set(FFTW_INCLUDE_DIR $ENV{FFTW_DIR}/include CACHE PATH "FFTW include path")
 set(FFTW_LIBRARY $ENV{FFTW_DIR}/lib/libfftw3.a CACHE FILEPATH "FFTW libary")
