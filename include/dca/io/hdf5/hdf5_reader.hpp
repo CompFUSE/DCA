@@ -33,7 +33,9 @@ class HDF5Reader {
 public:
   typedef H5::H5File file_type;
 
+  // In: verbose. If true, the reader outputs a short log whenever it is executed.
   HDF5Reader(bool verbose = true) : my_file(NULL), my_paths(0), verbose_(verbose) {}
+
   ~HDF5Reader();
 
   bool is_reader() {
@@ -278,7 +280,7 @@ void HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca:
   }
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_HDF5_HDF5_READER_HPP
