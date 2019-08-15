@@ -110,7 +110,7 @@ protected:  // Protected for testing purposes.
                     SpGreensFunction& G_k_w) const;
 
   void computeSigma(const SpGreensFunction& G, const SpGreensFunction& G0,
-                    const SpGreensFunction& M, SpGreensFunction& Sigma) const;
+                    SpGreensFunction& Sigma) const;
 
   // Returns: average sign.
   double gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
@@ -232,7 +232,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
 
   // compute and  save Sigma into data_
   // TODO: check if a better estimate exists
-  computeSigma(data_.G_k_w, data_.G0_k_w_cluster_excluded, M, data_.Sigma);
+  computeSigma(data_.G_k_w, data_.G0_k_w_cluster_excluded, data_.Sigma);
 
   // compute error
   if (compute_error) {
@@ -360,32 +360,28 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeG_k_w(
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
-    const SpGreensFunction& G, const SpGreensFunction& G0, const SpGreensFunction& M,
-    SpGreensFunction& Sigma) const {
+    const SpGreensFunction& G, const SpGreensFunction& G0, SpGreensFunction& Sigma) const {
   const int matrix_dim = Nu::dmn_size();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> Ginv(matrix_dim);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> Ginv_M(matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv(matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_inv(matrix_dim);
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
   dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
-  // Sigma = -1/G * M * G0 (= 1/G0 - 1/G)
-  const char op = 'N';
+  // Sigma = 1/G0 - 1/G
   for (int k_ind = 0; k_ind < Kdmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < Wdmn::dmn_size(); w_ind++) {
       dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim, &G(0, 0, k_ind, w_ind),
-                                               matrix_dim, Ginv);
+                                               matrix_dim, G_inv);
+      dca::linalg::matrixop::smallInverse(G_inv, ipiv, work);
 
-      dca::linalg::matrixop::inverse(Ginv, ipiv, work);
+      dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim, &G0(0, 0, k_ind, w_ind),
+                                               matrix_dim, G0_inv);
+      dca::linalg::matrixop::smallInverse(G0_inv, ipiv, work);
 
-      // Ginv_M <- 1/G * M
-      dca::linalg::blas::gemm(&op, &op, matrix_dim, matrix_dim, matrix_dim, 1., Ginv.ptr(),
-                              Ginv.leadingDimension(), &M(0, 0, k_ind, w_ind), matrix_dim, 0.,
-                              Ginv_M.ptr(), Ginv_M.leadingDimension());
-      // S <- -Ginv_M *G0
-      dca::linalg::blas::gemm(&op, &op, matrix_dim, matrix_dim, matrix_dim, -1., Ginv_M.ptr(),
-                              Ginv_M.leadingDimension(), &G0(0, 0, k_ind, w_ind), matrix_dim, 0.,
-                              &Sigma(0, 0, k_ind, w_ind), matrix_dim);
+      for (int nu2 = 0; nu2 < matrix_dim; ++nu2)
+        for (int nu1 = 0; nu1 < matrix_dim; ++nu1)
+          Sigma(nu1, nu2, k_ind, w_ind) = G0_inv(nu1, nu2) - G_inv(nu1, nu2);
     }
   }
 

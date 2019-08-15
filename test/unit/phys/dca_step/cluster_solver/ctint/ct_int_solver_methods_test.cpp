@@ -55,7 +55,7 @@ TEST(CtintClusterSolvertest, ComputeSigma) {
   SolverWrapper::F_k_w G0, G, M, Sigma;
   solver.setGandMAnalytic(G, G0, M);
 
-  solver.computeSigma(G, G0, M, Sigma);
+  solver.computeSigma(G, G0, Sigma);
 
   const double U = parameters.get_U();
   const double tollerance = 1e-10;
