@@ -1,0 +1,14 @@
+{
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[4, 0],
+        [0, 4]]
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "momentum-transfer": [0., 3.1415],
+    "compute-all-transfers" :  true
+  }
+}
