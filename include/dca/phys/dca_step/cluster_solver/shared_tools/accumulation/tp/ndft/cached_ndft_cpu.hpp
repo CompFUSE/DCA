@@ -49,8 +49,7 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // In case OutDmn contains the spin domain as a subdomain, 'spin' is used to rearrange the output.
   // Out: M_r_r_w_w.
-  // Returns: the number of gigaflops performed by the method.
-  // TODO: remove the gigaflops if they are not necessary.
+  // Returns: the number of flops performed by the method.
   template <class Configuration, typename ScalarInp, class OutDmn>
   float execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
                  func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, int spin = 0);

@@ -59,11 +59,11 @@ void initialize() {
 
 // Perform the test in double and single precision.
 template <typename T>
-class SpaceTransform2DGpuTest : public ::testing::Test {};
+class SpaceTransform2DTest : public ::testing::Test {};
 using TestTypes = ::testing::Types<float, double>;
-TYPED_TEST_CASE(SpaceTransform2DGpuTest, TestTypes);
+TYPED_TEST_CASE(SpaceTransform2DTest, TestTypes);
 
-TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
+TYPED_TEST(SpaceTransform2DTest, Execute) {
   using Real = TypeParam;
   initialize();
 

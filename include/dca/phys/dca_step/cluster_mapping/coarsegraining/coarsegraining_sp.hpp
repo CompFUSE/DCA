@@ -119,7 +119,7 @@ private:
   std::unique_ptr<SigmaInterpolatedType> Sigma_interpolated_;
   LatticeFreqFunction Sigma_old_;
 
-  bool spin_simmetric_;
+  bool spin_symmetric_;
 };
 
 template <typename Parameters>
@@ -134,7 +134,7 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       w_q_("w_q_"),
       w_tot_(0.),
-      spin_simmetric_(checkSpinSymmetry()) {
+      spin_symmetric_(checkSpinSymmetry()) {
   interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
 
   // Compute H0(k+q) for each value of k and q.
@@ -179,7 +179,7 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
   Threading().execute(n_threads, [&](int id, int n_threads) {
     const auto bounds = parallel::util::getBounds(id, n_threads, external_bounds);
     constexpr int n_bands = Parameters::bands;
-    const int indep_spin_sectors = spin_simmetric_ ? 1 : 2;
+    const int indep_spin_sectors = spin_symmetric_ ? 1 : 2;
 
     linalg::Matrix<Complex, linalg::CPU> G_inv("G_inv", n_bands);
     linalg::Vector<int, linalg::CPU> ipiv;
@@ -215,7 +215,7 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
             }
         }
 
-      if (spin_simmetric_) {  // apply symmetry
+      if (spin_symmetric_) {  // apply symmetry
         for (int j = 0; j < n_bands; ++j)
           for (int i = 0; i < n_bands; ++i)
             G_K_w(i, 1, j, 1, k, w) = G_K_w(i, 0, j, 0, k, w);
