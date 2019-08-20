@@ -26,54 +26,36 @@ namespace blas {
 namespace kernels {
 // dca::linalg::blas::kernels::
 
-constexpr int copy_block_size_x = 32;
-constexpr int copy_block_size_y = 8;
+constexpr int copy_col_block_size = 128;
 constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
-constexpr int scale_block_size_y = 32;
 constexpr int swap_block_size_x = 32;
 constexpr int swap_block_size_y = 32;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
                          const int* i_y, Type* y, int ldy) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
-
   // Work on BlockDim.x rows and copyrows_block_size_y cols.
   int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  int ind_j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  int js = blockIdx.y * copy_block_size_y;
-  int je = min(row_size, (blockIdx.y + 1) * copy_block_size_y);
-
-  if (ind_i < n_rows) {
-    int iy = i_y[ind_i];
-    int ix = i_x[ind_i];
-
-    for (int j = js; j < je; ++j)
-      y[iy + j * ldy] = x[ix + j * ldx];
+  if (ind_i < n_rows && ind_j < row_size) {
+    y[i_y[ind_i] + ind_j * ldy] = x[i_x[ind_i] + ind_j * ldx];
   }
 }
 
 template <typename Type>
-__global__ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx,
-                         const int* j_y, Type* y, int ldy) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+__global__ void copyCols(int col_size, const int* j_x, const Type* x, int ldx, const int* j_y,
+                         Type* y, int ldy) {
+  // Each block copies a column.
+  const int col_in_start = j_x[blockIdx.x] * ldx;
+  const int col_out_start = j_y[blockIdx.x] * ldy;
+  constexpr int stride = copy_col_block_size;
 
-  // Work on BlockDim.x rows and copyrows_block_size_y cols.
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int ind_js = blockIdx.y * copy_block_size_y;
-  int ind_je = min(n_cols, (blockIdx.y + 1) * copy_block_size_y);
-
-  if (i < col_size) {
-    for (int ind_j = ind_js; ind_j < ind_je; ++ind_j)
-      y[i + j_y[ind_j] * ldy] = x[i + j_x[ind_j] * ldx];
-  }
+  // Coalesced memory access:
+  for (int i = threadIdx.x; i < col_size; i += stride)
+    y[i + col_out_start] = x[i + col_in_start];
 }
 
 template <typename Type>
@@ -164,7 +146,7 @@ __global__ void swapCols(int col_size, int n_cols, const int* j1, const int* j2,
   }
 }
 
-}  // kernels
+}  // namespace kernels
 // dca::linalg::blas::
 
 template <typename Type>
@@ -172,11 +154,13 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(n_rows, kernels::copy_block_size_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::copy_block_size_y);
+    constexpr int block_size = 32;
+    const int threads_x = std::min(block_size, n_rows);
+    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
+    int bl_y = dca::util::ceilDiv(row_size, block_size);
 
-    dim3 threads(kernels::copy_block_size_x);
-    dim3 blocks(bl_x, bl_y);
+    const dim3 threads(threads_x, block_size);
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
@@ -198,15 +182,10 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(col_size, kernels::copy_block_size_x);
-    int bl_y = dca::util::ceilDiv(n_cols, kernels::copy_block_size_y);
-
-    dim3 threads(kernels::copy_block_size_x);
-    dim3 blocks(bl_x, bl_y);
-
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
-    kernels::copyCols<<<blocks, threads, 0, stream>>>(col_size, n_cols, j_x, x, ldx, j_y, y, ldy);
+    kernels::copyCols<<<n_cols, kernels::copy_col_block_size, 0, stream>>>(col_size, j_x, x, ldx,
+                                                                           j_y, y, ldy);
     checkErrorsCudaDebug();
   }
 }
@@ -264,11 +243,15 @@ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* 
                int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(n_rows, kernels::scale_block_size_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::scale_block_size_y);
 
-    dim3 threads(kernels::scale_block_size_x, kernels::scale_block_size_y);
-    dim3 blocks(bl_x, bl_y);
+    const int threads_x = std::min(kernels::scale_block_size_x, n_rows);
+    const int threads_y = 1024 / threads_x;
+    const dim3 threads(threads_x, threads_y);
+
+    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
+    const int bl_y = dca::util::ceilDiv(row_size, threads_y);
+
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
@@ -289,12 +272,14 @@ template <typename Type>
 void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, int lda,
               int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
-    checkErrorsCudaDebug();
-    const int bl_x = dca::util::ceilDiv(n_rows, kernels::swap_block_size_x);
-    const int bl_y = dca::util::ceilDiv(row_size, kernels::swap_block_size_y);
+    const int threads_x = std::min(kernels::swap_block_size_x, n_rows);
+    const int threads_y = 1024 / threads_x;
+    const dim3 threads(threads_x, threads_y);
 
-    dim3 threads(kernels::swap_block_size_x, kernels::swap_block_size_y);
-    dim3 blocks(bl_x, bl_y);
+    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
+    const int bl_y = dca::util::ceilDiv(row_size, threads_y);
+
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
@@ -336,6 +321,6 @@ template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, c
                        int lda, int thread_id, int stream_id);
 template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, cuDoubleComplex* a,
                        int lda, int thread_id, int stream_id);
-}  // blas
-}  // linalg
-}  // dca
+}  // namespace blas
+}  // namespace linalg
+}  // namespace dca

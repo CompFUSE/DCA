@@ -15,50 +15,29 @@
 #include <gtest/gtest.h>
 
 #include "dca/math/util/vector_operations.hpp"
-
-constexpr int cluster_size = 6;
-
-struct MockParameters {
-  struct KClusterDmn {
-    static int dmn_size() {
-      return cluster_size;
-    }
-  };
-
-  bool compute_all_transfers() const {
-    return compute_all_transfers_;
-  }
-  int get_four_point_momentum_transfer_index() const {
-    return transfer_index_;
-  }
-
-  bool compute_all_transfers_ = false;
-  int transfer_index_ = -1;
-};
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 using dca::phys::domains::MomentumExchangeDomain;
 using dca::math::util::isSameVector;
 
-TEST(MomentumExchangeDomainTest, SingleExchange) {
-  const int exchange_id = -2;
-  MockParameters parameters{false, exchange_id};
+constexpr char input_file[] = DCA_SOURCE_DIR "/test/unit/phys/domains/cluster/input.json";
+using MomentumExchangeDomainTest =
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
 
-  MomentumExchangeDomain::initialize(parameters);
+
+TEST_F(MomentumExchangeDomainTest, MultipleExchanges) {
+  MomentumExchangeDomain::initialize(parameters_);
   EXPECT_TRUE(MomentumExchangeDomain::isInitialized());
 
-  EXPECT_EQ(1, MomentumExchangeDomain::get_size());
-  EXPECT_TRUE(isSameVector(std::vector<int>{-2}, MomentumExchangeDomain::get_elements()));
-}
+  // Cluster sites with their id:
+  // 12 13 14 15
+  // 08 09 10 11
+  // 04 05 06 07
+  // 00 01 02 03
+  //
+  // Independent sites due to rotations and reflections: 00, 01, 02, 05, 06, 10.
 
-TEST(MomentumExchangeDomainTest, MultipleExchanges) {
-  MockParameters parameters{true};
-
-  MomentumExchangeDomain::initialize(parameters);
-  EXPECT_TRUE(MomentumExchangeDomain::isInitialized());
-
-  EXPECT_EQ(cluster_size, MomentumExchangeDomain::get_size());
-
-  std::vector<int> expected_elements(cluster_size);
-  std::iota(expected_elements.begin(), expected_elements.end(), 0);
-  EXPECT_TRUE(isSameVector(expected_elements, MomentumExchangeDomain::get_elements()));
+  EXPECT_EQ(6, MomentumExchangeDomain::get_size());
+  const std::vector<int> expected_elements{00, 01, 02, 05, 06, 10};
+  EXPECT_TRUE(expected_elements == MomentumExchangeDomain::get_elements());
 }

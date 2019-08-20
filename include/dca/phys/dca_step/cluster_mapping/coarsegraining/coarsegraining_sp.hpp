@@ -6,9 +6,9 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
-//         Giovani Balduzzi(gbalduzz@itp.phys.ethz.ch)
+//         Giovanni Balduzzi(gbalduzz@itp.phys.ethz.ch)
 //
-// This class performs the coarsegraining of single-particle functions.
+// This class performs the coarse-graining of single-particle functions.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP
@@ -103,7 +103,8 @@ private:
   void updateSigmaInterpolated(const SigmaType& /*Sigma*/) const {}
   void updateSigmaInterpolated(const LatticeFreqFunction& Sigma);
 
-private:
+  bool checkSpinSymmetry() const;
+
   Parameters& parameters_;
   Concurrency& concurrency_;
 
@@ -117,6 +118,8 @@ private:
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, QDmn, KClusterDmn, WDmn>>;
   std::unique_ptr<SigmaInterpolatedType> Sigma_interpolated_;
   LatticeFreqFunction Sigma_old_;
+
+  bool spin_symmetric_;
 };
 
 template <typename Parameters>
@@ -130,8 +133,8 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
       H0_q_(KClusterDmn::dmn_size()),
 
       w_q_("w_q_"),
-      w_tot_(0.) {
-          
+      w_tot_(0.),
+      spin_symmetric_(checkSpinSymmetry()) {
   interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
 
   // Compute H0(k+q) for each value of k and q.
@@ -142,6 +145,24 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
   for (int l = 0; l < w_q_.size(); ++l)
     w_tot_ += w_q_(l) = QDmn::parameter_type::get_weights()[l];
+}
+
+template <typename Parameters>
+bool CoarsegrainingSp<Parameters>::checkSpinSymmetry() const {
+  func::function<std::complex<ScalarType>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H0;
+  Parameters::model_type::initialize_H_0(parameters_, H0);
+  func::function<ScalarType, func::dmn_variadic<NuDmn, NuDmn, typename CDA::RClusterDmn>> H_int;
+  Parameters::model_type::initialize_H_interaction(H_int, parameters_);
+
+  constexpr int bands = Parameters::bands;
+  for (int l = 0; l < KClusterDmn::dmn_size(); ++l)
+    for (int j = 0; j < bands; ++j)
+      for (int i = 0; i < bands; ++i) {
+        if (H0(i, 0, j, 0, l) != H0(i, 1, j, 1, l) || H_int(i, 0, j, 0, l) != H_int(i, 1, j, 1, l))
+          return false;
+      }
+
+  return true;
 }
 
 template <typename Parameters>
@@ -157,7 +178,10 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
   const int n_threads = parameters_.get_coarsegraining_threads();
   Threading().execute(n_threads, [&](int id, int n_threads) {
     const auto bounds = parallel::util::getBounds(id, n_threads, external_bounds);
-    linalg::Matrix<Complex, linalg::CPU> G_inv("G_inv", NuDmn::dmn_size());
+    constexpr int n_bands = Parameters::bands;
+    const int indep_spin_sectors = spin_symmetric_ ? 1 : 2;
+
+    linalg::Matrix<Complex, linalg::CPU> G_inv("G_inv", n_bands);
     linalg::Vector<int, linalg::CPU> ipiv;
     linalg::Vector<Complex, linalg::CPU> work;
     int coor[2];
@@ -170,24 +194,31 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
 
       const auto w_val = WDmn::get_elements()[w];
       const auto& H0 = H0_q_[k];
-      constexpr int n_spin_bands = Parameters::bands * 2;
 
-      for (int q = 0; q < QDmn::dmn_size(); ++q) {
-        for (int j = 0; j < n_spin_bands; j++) {
-          for (int i = 0; i < n_spin_bands; i++) {
-            if (std::is_same<SigmaType, ClusterFreqFunction>::value)
-              G_inv(i, j) = -H0(i, j, q) - S_K_w(i, j, k, w);
-            else
-              G_inv(i, j) = -H0(i, j, q) - (*Sigma_interpolated_)(i, j, q, k, w);
-            if (i == j)
-              G_inv(i, j) += im * w_val + parameters_.get_chemical_potential();
-          }
+      for (int q = 0; q < QDmn::dmn_size(); ++q)
+        for (int s = 0; s < indep_spin_sectors; ++s) {
+          for (int j = 0; j < n_bands; j++)
+            for (int i = 0; i < n_bands; i++) {
+              if (std::is_same<SigmaType, ClusterFreqFunction>::value)
+                G_inv(i, j) = -H0(i, s, j, s, q) - S_K_w(i, s, j, s, k, w);
+              else
+                G_inv(i, j) = -H0(i, s, j, s, q) - (*Sigma_interpolated_)(i, s, j, s, q, k, w);
+              if (i == j)
+                G_inv(i, j) += im * w_val + parameters_.get_chemical_potential();
+            }
+
+          linalg::matrixop::smallInverse(G_inv, ipiv, work);
+
+          for (int j = 0; j < n_bands; ++j)
+            for (int i = 0; i < n_bands; ++i) {
+              G_K_w(i, s, j, s, k, w) += G_inv(i, j) * w_q_(q);
+            }
         }
 
-        linalg::matrixop::inverse(G_inv, ipiv, work);
-        for (int j = 0; j < n_spin_bands; ++j)
-          for (int i = 0; i < n_spin_bands; ++i)
-            G_K_w(i, j, k, w) += G_inv(i, j) * w_q_(q);
+      if (spin_symmetric_) {  // apply symmetry
+        for (int j = 0; j < n_bands; ++j)
+          for (int i = 0; i < n_bands; ++i)
+            G_K_w(i, 1, j, 1, k, w) = G_K_w(i, 0, j, 0, k, w);
       }
     }
   });
@@ -311,8 +342,8 @@ void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn
   phi_r /= tot_weight;
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP

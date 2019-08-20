@@ -99,6 +99,11 @@ struct Vertex {
   double tau_;
 };
 
+namespace {
+// Flag for single initialization when multiple types are used.
+bool single_sector_accumulator_test_initialized = false;
+}  // namespace
+
 template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
@@ -110,26 +115,29 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
 
   using F_w_w =
-      dca::func::function<std::complex<double>,
-                          dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
+      dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
 
   static double get_beta() {
     return beta_;
   }
 
-protected:
+public:
   static void SetUpTestCase() {
-    // Initialize the frequency domains.
-    dca::phys::domains::frequency_domain::initialize(beta_, n_frqs);
-    PositiveFrq::initialize(n_frqs);
-    // Initialize the band domain.
-    int mock_parameter = 0;
-    BDmn::parameter_type::initialize(
-        mock_parameter, n_bands, std::vector<int>(),
-        std::vector<std::vector<double>>(n_bands, std::vector<double>(n_bands, 0)));
+    if (!single_sector_accumulator_test_initialized) {
+      // Initialize the frequency domains.
+      dca::phys::domains::frequency_domain::initialize(beta_, n_frqs);
+      PositiveFrq::initialize(n_frqs);
+      // Initialize the band domain.
+      int mock_parameter = 0;
+      BDmn::parameter_type::initialize(
+          mock_parameter, n_bands, std::vector<int>(),
+          std::vector<std::vector<double>>(n_bands, std::vector<double>(n_bands, 0)));
+
+      single_sector_accumulator_test_initialized = true;
+    }
   }
 
   void SetUp() {}

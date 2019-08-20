@@ -54,7 +54,7 @@ protected:
   using Profiler = typename Parameters::profiler_type;
 
 public:
-  using ScalarType = typename Parameters::MC_measurement_scalar_type;
+  using ScalarType = double;
 
   SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
 

@@ -76,7 +76,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
     accumulator.accumulate(M, config, sign);
     accumulator.finalize();
 
-    const std::vector<Data::TpGreensFunction>& G4 = accumulator.get_sign_times_G4();
+    const auto& G4 = accumulator.get_sign_times_G4();
 
     if (update_baseline) {
       writer.execute(func_names[type], G4[0]);

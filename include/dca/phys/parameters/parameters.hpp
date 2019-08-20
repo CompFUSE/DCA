@@ -103,7 +103,7 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using MC_measurement_scalar_type = config::AccumulationOptions::MCAccumulationScalar;
+  using TP_measurement_scalar_type = config::AccumulationOptions::TPAccumulationScalar;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 

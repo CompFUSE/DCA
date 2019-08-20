@@ -25,8 +25,8 @@ namespace solver {
 namespace accumulator {
 namespace details {
 
-using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+using linalg::util::CudaComplex;
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
   assert(i > 0 && j > 0);
@@ -38,7 +38,7 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
 }
 
-template <typename Real, typename InpScalar>
+template <typename InpScalar, typename Real>
 __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
                             CudaComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
                             const Triple<Real>* config2) {
@@ -54,7 +54,7 @@ __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
   sorted_M[id_i + lds * id_j].y = 0;
 }
 
-template <typename Real, typename InpScalar>
+template <typename InpScalar, typename Real>
 void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>* sorted_M,
            const int lds, const Triple<Real>* config1, const Triple<Real>* config2,
            const cudaStream_t stream) {
@@ -136,14 +136,17 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
 }
 
 // Explicit instantiation.
-template void sortM<double, double>(int, const double*, int, std::complex<double>*, const int,
+template void sortM<double, double>(int, const double*, int, std::complex<double>*, int,
                                     const Triple<double>*, const Triple<double>*, const cudaStream_t);
-template void sortM<float, float>(int, const float*, int, std::complex<float>*, const int,
-                                  const Triple<float>*, const Triple<float>*, const cudaStream_t);
+template void sortM<double, float>(int, const double*, int, std::complex<float>*, int,
+                                   const Triple<float>*, const Triple<float>*,
+                                   const cudaStream_t stream);
+
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);
 template void computeT<float>(int, int, std::complex<float>*, int, const Triple<float>*,
                               const float*, bool, const cudaStream_t);
+
 template void rearrangeOutput<double>(const int nw, const int no, const int nb,
                                       const std::complex<double>* in, const int ldi,
                                       std::complex<double>* out, const int ldo,
@@ -153,8 +156,8 @@ template void rearrangeOutput<float>(const int nw, const int no, const int nb,
                                      std::complex<float>* out, const int ldo,
                                      const cudaStream_t stream);
 
-}  // details
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

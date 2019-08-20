@@ -61,8 +61,8 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // Out: M_r_r_w_w.
   template <class Configuration>
-  void execute(const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M,
-               RMatrix& M_r_r_w_w);
+  float execute(const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M,
+                 RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
@@ -79,9 +79,9 @@ public:
   std::size_t deviceFingerprint() const;
 
 private:
-  void sortM(const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const;
+  void sortM(const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
-  void performFT(RMatrix& work);
+  double performFT(RMatrix& work);
   void rearrangeOutput(RMatrix& output);
 
 private:
@@ -126,12 +126,14 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_out) {
+float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
+    const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_out) {
+  float flop = 0.;
+
   if (configuration.size() == 0) {  // The result is zero
     M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(stream_);
-    return;
+    return flop;
   }
 
   BaseClass::sortConfiguration(configuration);
@@ -150,13 +152,15 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
   copy_event_.record(stream_);
 
   computeT();
-  performFT(M_out);
+  flop += performFT(M_out);
   rearrangeOutput(M_out);
+
+  return flop;
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
-    const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const {
+    const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(), stream_);
@@ -181,7 +185,9 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::co
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(RMatrix& M_out) {
+double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(
+    RMatrix& M_out) {
+  double flop = 0.;
   const auto& M_t_t = *workspace_;
   const int nw = w_.size();
   const int order = indexed_config_[0].size();
@@ -206,6 +212,8 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
       magma_plan1_.addGemm(nw / 2, order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
                            M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M.ptr(i * nw / 2, 0),
                            ldc);
+
+      flop += 8. * nw / 2 * order * n_i;
     }
     magma_plan1_.execute('N', 'N');
   }
@@ -228,9 +236,13 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
       magma_plan2_.addGemm(T_times_M.nrRows(), nw, n_j, T_times_M.ptr(0, start_index_right_[j]),
                            lda, T_r_dev_.ptr(start_index_right_[j], 0), ldb,
                            T_times_M_times_T.ptr(0, nw * j), ldc);
+
+      flop += 8. * T_times_M.nrRows() * nw * n_j;
     }
     magma_plan2_.execute('N', 'N');
   }
+
+  return flop;
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>

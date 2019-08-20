@@ -36,7 +36,10 @@ public:
   typedef H5::H5File file_type;
 
 public:
-  HDF5Writer() : my_file(NULL), file_id(-1), my_group(0), my_paths(0) {}
+  // In: verbose. If true, the writer outputs a short log whenever it is executed.
+  HDF5Writer(bool verbose = true)
+      : my_file(NULL), file_id(-1), my_group(0), my_paths(0), verbose_(verbose) {}
+
   ~HDF5Writer();
 
   bool is_reader() {
@@ -112,8 +115,8 @@ public:
   template <class T>
   void execute(const std::unique_ptr<T>& obj);
 
-  void execute(const std::string& name, const io::Buffer& buffer){
-      return execute(name, static_cast<io::Buffer::Container>(buffer));
+  void execute(const std::string& name, const io::Buffer& buffer) {
+    return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
 private:
@@ -125,6 +128,8 @@ private:
 
   std::vector<H5::Group*> my_group;
   std::vector<std::string> my_paths;
+
+  bool verbose_;
 };
 
 template <typename arbitrary_struct_t>
@@ -353,7 +358,8 @@ void HDF5Writer::execute(const func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -363,7 +369,8 @@ void HDF5Writer::execute(const func::function<std::complex<scalar_type>, domain_
   if (f.size() == 0)
     return;
 
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -646,7 +653,7 @@ void HDF5Writer::execute(const std::unique_ptr<T>& obj) {
     execute(*obj);
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_HDF5_HDF5_WRITER_HPP

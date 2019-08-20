@@ -256,8 +256,23 @@ bool operator==(const std::vector<T>& x, const std::vector<T>& y) {
   return true;
 }
 
-}  // util
-}  // math
-}  // dca
+// Operator definition of inner product and sum.
+template <typename T>
+auto operator*(const std::vector<T>& x, const std::vector<T>& y) {
+  return innerProduct(x, y);
+}
+template <typename T>
+auto operator+(const std::vector<T>& x, const std::vector<T>& y) {
+  return add(x, y);
+}
+template <typename T>
+auto operator-(const std::vector<T>& x, const std::vector<T>& y) {
+  return subtract(y, x); // Note: subtract(x, y) is defined as y - x;
+}
+
+
+}  // namespace util
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_UTIL_VECTOR_OPERATIONS_HPP

@@ -49,10 +49,9 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // In case OutDmn contains the spin domain as a subdomain, 'spin' is used to rearrange the output.
   // Out: M_r_r_w_w.
-  // Returns: the number of gigaflops performed by the method.
-  // TODO: remove the gigaflops if they are not necessary.
+  // Returns: the number of flops performed by the method.
   template <class Configuration, typename ScalarInp, class OutDmn>
-  double execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
+  float execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
                  func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, int spin = 0);
 
 private:
@@ -64,7 +63,7 @@ private:
 
   void computeTSubmatrices(int orb_i, int orb_j);
 
-  double executeTrimmedFT();
+  float executeTrimmedFT();
 
   void inline copyPartialResult(
       int orb1, int orb2, int /*spin*/,
@@ -110,12 +109,12 @@ private:
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration, typename ScalarInp, class OutDmn>
-double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::execute(
+float CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::execute(
     const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
     func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, const int spin) {
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 1] == WDmn::dmn_size());
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 2] == WPosDmn::dmn_size());
-  double gflop = 0.;
+  double flops = 0.;
 
   BaseClass::sortConfiguration(configuration);
 
@@ -132,7 +131,7 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
 
         computeTSubmatrices(orb_i, orb_j);
 
-        gflop += executeTrimmedFT();
+        flops += executeTrimmedFT();
 
         copyPartialResult(orb_i, orb_j, spin, M_r_r_w_w);
       }
@@ -141,7 +140,7 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
     }
   }
 
-  return gflop;
+  return flops;
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
@@ -209,8 +208,8 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::executeTrimmedFT() {
-  double flop = 0.;
+float CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::executeTrimmedFT() {
+  float flops = 0.;
 
   assert(WPosDmn::dmn_size() == WDmn::dmn_size() / 2);
 
@@ -227,13 +226,13 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
   }
 
   dca::linalg::matrixop::multiply(T_l_, M_ij_, T_l_times_M_ij_);
-  flop += 4 * T_l_[0].size().first * T_l_[0].size().second * M_ij_.size().second;
+  flops += 4 * T_l_[0].size().first * T_l_[0].size().second * M_ij_.size().second;
 
   dca::linalg::matrixop::multiply('N', 'C', T_l_times_M_ij_, T_r_, T_l_times_M_ij_times_T_r_, work_);
-  flop += 4. * T_l_times_M_ij_[0].size().first * T_l_times_M_ij_[0].size().second *
+  flops += 8. * T_l_times_M_ij_[0].size().first * T_l_times_M_ij_[0].size().second *
           T_l_times_M_ij_times_T_r_[0].size().second;
 
-  return 1e-9 * flop;
+  return flops;
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
