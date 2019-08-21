@@ -77,7 +77,7 @@
     },
 
     "four-point": {
-        "particle-particle-up-down": true,
+        "type": "PARTICLE_PARTICLE_UP_DOWN",
         "momentum-transfer": [0., 0.],
         "frequency-transfer": 0
     },
