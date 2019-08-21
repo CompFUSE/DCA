@@ -36,7 +36,6 @@
   },
 
   "four-point": {
-    "type": "NONE",
     "frequency-transfer": 3,
     "compute-all-transfers" : true
   },

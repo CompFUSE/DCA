@@ -131,7 +131,13 @@
     },
 
     "four-point": {
-        "type": "NONE",
+        "particle-hole-transverse": false,
+        "particle-hole-magnetic": false,
+        "particle-hole-charge": false,
+        "particle-hole-longitudinal-up-up": false,
+        "particle-hole-longitudinal-up-down": false,
+        "particle-particle-up-down": false,
+
         "momentum-transfer": [0., 0.],
         "frequency-transfer": 0,
         "compute-all-transfers" : false
