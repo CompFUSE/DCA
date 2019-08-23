@@ -27,6 +27,7 @@
 // #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 
 namespace dca {
@@ -58,6 +59,9 @@ class ModelParameters {};
 
 // Specialization for single-band Hubbard model
 #include "model_parameters_single_band_hubbard.inc"
+
+// Specialization for twoband Cu model
+#include "twoband_Cu_parameters.inc"
 
 #include "model_parameters_singleband_chain.inc"
 #include "model_parameters_twoband_chain.inc"

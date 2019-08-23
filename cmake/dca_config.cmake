@@ -1,5 +1,6 @@
 ################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#         Giovanni Badlduzzi (gbalduzz@itp.phys.ethz.ch)
 #
 # Build options for DCA++.
 
@@ -72,8 +73,8 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "bilayer" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | fe_as.")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund fe_as)
+    hund | twoband_Cu.")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -93,14 +94,18 @@ elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
-elseif (DCA_LATTICE STREQUAL "fe_as")
-  set(DCA_LATTICE_TYPE dca::phys::models::FeAsLattice<PointGroup>)
+#elseif (DCA_LATTICE STREQUAL "fe_as")
+#  set(DCA_LATTICE_TYPE dca::phys::models::FeAsLattice<PointGroup>)
+#  set(DCA_LATTICE_INCLUDE
+#      "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
+elseif (DCA_LATTICE STREQUAL "twoband_Cu")
+  set(DCA_LATTICE_TYPE dca::phys::models::TwobandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
-      "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
+      "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | fe_as.")
+          hund | twoband_Cu.")
 endif()
 
 # Model type
