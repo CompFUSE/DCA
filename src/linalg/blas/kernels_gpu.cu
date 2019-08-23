@@ -26,7 +26,7 @@ namespace blas {
 namespace kernels {
 // dca::linalg::blas::kernels::
 
-constexpr int copy_block_size = 32;
+constexpr int copy_col_block_size = 128;
 constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
@@ -58,25 +58,28 @@ __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x
 }
 
 template <typename Type>
-__global__ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, Type* y,
-                         int ldy) {
-  const int i = threadIdx.x + blockIdx.x * blockDim.x;
-  const int j = threadIdx.y + blockIdx.y * blockDim.y;
+__global__ void copyCols(int col_size, const int* j_x, const Type* x, int ldx, const int* j_y,
+                         Type* y, int ldy) {
+  // Each block copies a column.
+  const int col_in_start = j_x[blockIdx.x] * ldx;
+  const int col_out_start = j_y[blockIdx.x] * ldy;
+  constexpr int stride = copy_col_block_size;
 
-  if (i < col_size && j < n_cols) {
-    y[i + j * ldy] = x[i + j_x[j] * ldx];
-  }
+  // Coalesced memory access:
+  for (int i = threadIdx.x; i < col_size; i += stride)
+    y[i + col_out_start] = x[i + col_in_start];
 }
 
 template <typename Type>
-__global__ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx,
-                         const int* j_y, Type* y, int ldy) {
-  const int i = threadIdx.x + blockIdx.x * blockDim.x;
-  const int j = threadIdx.y + blockIdx.y * blockDim.y;
+__global__ void copyCols(int col_size, const int* j_x, const Type* x, int ldx, Type* y, int ldy) {
+  // Each block copies a column.
+  const int col_in_start = j_x[blockIdx.x] * ldx;
+  const int col_out_start = blockIdx.x * ldy;
+  constexpr int stride = copy_col_block_size;
 
-  if (i < col_size && j < n_cols) {
-    y[i + j_y[j] * ldy] = x[i + j_x[j] * ldx];
-  }
+  // Coalesced memory access:
+  for (int i = threadIdx.x; i < col_size; i += stride)
+    y[i + col_out_start] = x[i + col_in_start];
 }
 
 template <typename Type>
@@ -175,11 +178,12 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     checkErrorsCudaDebug();
-    const int threads_x = std::min(kernels::copy_block_size, n_rows);
+    constexpr int block_size = 32;
+    const int threads_x = std::min(block_size, n_rows);
     const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::copy_block_size);
+    int bl_y = dca::util::ceilDiv(row_size, block_size);
 
-    const dim3 threads(threads_x, kernels::copy_block_size);
+    const dim3 threads(threads_x, block_size);
     const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
@@ -188,26 +192,6 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
     checkErrorsCudaDebug();
   }
 }
-
-template <typename Type>
-void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, Type* y, int ldy,
-              int thread_id, int stream_id) {
-  if (row_size > 0 && n_rows > 0) {
-    checkErrorsCudaDebug();
-    const int threads_x = std::min(kernels::copy_block_size, n_rows);
-    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
-    int bl_y = dca::util::ceilDiv(row_size, kernels::copy_block_size);
-
-    const dim3 threads(threads_x, kernels::copy_block_size);
-    const dim3 blocks(bl_x, bl_y);
-
-    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
-
-    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, x, ldx, y, ldy);
-    checkErrorsCudaDebug();
-  }
-}
-
 template void copyRows(int row_size, int n_rows, const int* i_x, const float* x, int ldx,
                        const int* i_y, float* y, int ldy, int thread_id, int stream_id);
 template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
@@ -216,6 +200,26 @@ template void copyRows(int row_size, int n_rows, const int* i_x, const cuComplex
                        const int* i_y, cuComplex* y, int ldy, int thread_id, int stream_id);
 template void copyRows(int row_size, int n_rows, const int* i_x, const cuDoubleComplex* x, int ldx,
                        const int* i_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+
+template <typename Type>
+void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, Type* y, int ldy,
+              int thread_id, int stream_id) {
+  if (row_size > 0 && n_rows > 0) {
+    checkErrorsCudaDebug();
+    constexpr int block_size = 32;
+    const int threads_x = std::min(block_size, n_rows);
+    const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
+    int bl_y = dca::util::ceilDiv(row_size, block_size);
+
+    const dim3 threads(threads_x, block_size);
+    const dim3 blocks(bl_x, bl_y);
+
+    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
+
+    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, x, ldx, y, ldy);
+    checkErrorsCudaDebug();
+  }
+}
 template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
                        double* y, int ldy, int thread_id, int stream_id);
 
@@ -224,39 +228,13 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
               Type* y, int ldy, int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    const int bl_x = dca::util::ceilDiv(col_size, kernels::copy_block_size);
-    const int threads_y = std::min(kernels::copy_block_size, n_cols);
-    const int bl_y = dca::util::ceilDiv(n_cols, kernels::copy_block_size);
-
-    const dim3 threads(kernels::copy_block_size, threads_y);
-    const dim3 blocks(bl_x, bl_y);
-
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
-    kernels::copyCols<<<blocks, threads, 0, stream>>>(col_size, n_cols, j_x, x, ldx, j_y, y, ldy);
+    kernels::copyCols<<<n_cols, kernels::copy_col_block_size, 0, stream>>>(col_size, j_x, x, ldx,
+                                                                           j_y, y, ldy);
     checkErrorsCudaDebug();
   }
 }
-
-template <typename Type>
-void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, Type* y, int ldy,
-              int thread_id, int stream_id) {
-  if (col_size > 0 && n_cols > 0) {
-    checkErrorsCudaDebug();
-    const int bl_x = dca::util::ceilDiv(col_size, kernels::copy_block_size);
-    const int threads_y = std::min(kernels::copy_block_size, n_cols);
-    const int bl_y = dca::util::ceilDiv(n_cols, kernels::copy_block_size);
-
-    const dim3 threads(kernels::copy_block_size, threads_y);
-    const dim3 blocks(bl_x, bl_y);
-
-    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
-
-    kernels::copyCols<<<blocks, threads, 0, stream>>>(col_size, n_cols, j_x, x, ldx, y, ldy);
-    checkErrorsCudaDebug();
-  }
-}
-
 template void copyCols(int col_size, int n_cols, const int* j_x, const float* x, int ldx,
                        const int* j_y, float* y, int ldy, int thread_id, int stream_id);
 template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
@@ -265,6 +243,20 @@ template void copyCols(int col_size, int n_cols, const int* j_x, const cuComplex
                        const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
 template void copyCols(int col_size, int n_cols, const int* j_x, const cuDoubleComplex* x, int ldx,
                        const int* j_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+
+template <typename Type>
+void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, Type* y, int ldy,
+              int thread_id, int stream_id) {
+  if (col_size > 0 && n_cols > 0) {
+    checkErrorsCudaDebug();
+    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
+
+    kernels::copyCols<<<n_cols, kernels::copy_col_block_size, 0, stream>>>(col_size, j_x, x, ldx, y,
+                                                                           ldy);
+    checkErrorsCudaDebug();
+  }
+}
+
 template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
                        double* y, int ldy, int thread_id, int stream_id);
 

@@ -169,17 +169,19 @@ private:
   template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
             domains::CLUSTER_SHAPE S>
   static void executeCluster(
-      func::function<scalartype,
-                     func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
-                                                  scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
+      func::function<
+          scalartype,
+          func::dmn_variadic<
+              b, b, func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
       bool do_diff = false);
 
   template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
             domains::CLUSTER_SHAPE S>
   static void executeCluster(
-      func::function<scalartype,
-                     func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
-                                                  scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
+      func::function<
+          scalartype,
+          func::dmn_variadic<
+              b, b, func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
       bool do_diff = false);
 
   template <typename ClusterDmn>
@@ -653,9 +655,10 @@ void symmetrize_single_particle_function::executeCluster(
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::executeCluster(
-    func::function<scalartype,
-                   func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
-                                                scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
+    func::function<
+        scalartype,
+        func::dmn_variadic<
+            b, b, func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
     bool do_diff) {
   typedef domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S> k_cluster_type;
   typedef func::dmn_0<k_cluster_type> k_dmn_t;
@@ -712,7 +715,7 @@ int symmetrize_single_particle_function::oppositeSite(const int idx) {
   }
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_HPP

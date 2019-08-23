@@ -39,7 +39,8 @@ public:
         // TODO: consider setting default do true.
         fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
-        error_computation_type_(ErrorComputationType::NONE) {}
+        error_computation_type_(ErrorComputationType::NONE),
+        store_configuration_(false) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -89,6 +90,12 @@ public:
     return error_computation_type_;
   }
 
+  // If true, the MC configuration is stored between DCA iterations, and used to initialize the
+  // walker.
+  bool store_configuration() const {
+    return store_configuration_;
+  }
+
 private:
   void generateRandomSeed() {
     std::random_device rd;
@@ -108,6 +115,7 @@ private:
   bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
+  bool store_configuration_;
 };
 
 template <typename Concurrency>
@@ -124,6 +132,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
+  buffer_size += concurrency.get_buffer_size(store_configuration_);
 
   return buffer_size;
 }
@@ -141,6 +150,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
+  concurrency.pack(buffer, buffer_size, position, store_configuration_);
 }
 
 template <typename Concurrency>
@@ -156,6 +166,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
+  concurrency.unpack(buffer, buffer_size, position, store_configuration_);
 }
 
 template <typename ReaderOrWriter>
@@ -223,6 +234,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     catch (const std::exception& r_e) {
     }
 
+    try {
+      reader_or_writer.execute("store-configuration", store_configuration_);
+    }
+    catch (const std::exception& r_e) {
+    }
+
     // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
@@ -267,8 +284,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP

@@ -52,7 +52,7 @@ public:
 
   // Performs the 2D fourier transform from real to momentum space in place and rearranges the
   // order of M's labels from (r, b, w) to (b, r, w).
-  // The transform is equivalent to M(k1, k2) = \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) M(r1, r2)
+  // See space_transform_2D.hpp for a definition of the transform.
   // In/Out: M
   // Returns: number of flop.
   float execute(RMatrix& M);

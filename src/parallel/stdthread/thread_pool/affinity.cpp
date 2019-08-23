@@ -1,3 +1,14 @@
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi(gbalduzz@itp.phys.ethz.ch)
+//
+// This file implements the methods in affinity.hpp.
+
 #include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 
 #include <iostream>
@@ -9,16 +20,19 @@
 #endif
 
 #include <sched.h>
+#include <stdexcept>
 
-// returns a list of cores for which the calling thread has affinity
+namespace dca {
+namespace parallel {
+// dca::parallel::
+
 std::vector<int> get_affinity() {
   cpu_set_t cpu_set_mask;
 
   auto status = sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
 
   if (status == -1) {
-    std::cerr << "error: unable to get affinity for thread" << std::endl;
-    exit(1);
+    throw(std::runtime_error("Unable to get thread affinity."));
   }
 
   auto cpu_count = CPU_COUNT(&cpu_set_mask);
@@ -33,8 +47,7 @@ std::vector<int> get_affinity() {
   }
 
   if (cores.size() != cpu_count) {
-    std::cerr << "error: core count mismatch" << std::endl;
-    exit(1);
+    throw(std::logic_error("Core count mismatch."));
   }
 
   return cores;
@@ -56,3 +69,6 @@ int get_core_count() {
   sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
   return CPU_COUNT(&cpu_set_mask);
 }
+
+}  // namespace parallel
+}  // namespace dca

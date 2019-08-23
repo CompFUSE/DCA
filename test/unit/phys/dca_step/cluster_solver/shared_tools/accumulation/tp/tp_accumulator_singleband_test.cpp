@@ -79,13 +79,13 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     const auto& G4 = accumulator.get_sign_times_G4();
 
     if (update_baseline) {
-      writer.execute(func_names[type], G4);
+      writer.execute(func_names[type], G4[0]);
     }
     else {
       G4_check.set_name(func_names[type]);
       reader.execute(G4_check);
-      const auto diff = dca::func::util::difference(G4, G4_check);
-      EXPECT_GT(5e-7, diff.l_inf);
+      const auto diff = dca::func::util::difference(G4[0], G4_check);
+      EXPECT_GT(1e-8, diff.l_inf);
     }
   }
 

@@ -42,7 +42,7 @@ dca_add_gtest(ct_int_walker_submatrix_gpu_test
         FAST
         GTEST_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
-        LIBS     ${TEST_LIBS}
+        LIBS     ${TEST_LIBS};blas_kernels
         )
 
 dca_add_gtest(d_matrix_builder_test_gpu

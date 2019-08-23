@@ -78,7 +78,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
 
   if (!update_baseline) {
     // Read and confront with previous run
-    Data::TpGreensFunction G4_check(data.get_G4().get_name());
+    Data::TpGreensFunction G4_check(data.get_G4()[0].get_name());
     Data::SpGreensFunction G_check(data.G_k_w.get_name());
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
@@ -88,7 +88,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
     reader.close_group(), reader.close_file();
 
     const auto diff_g = dca::func::util::difference(G_check, data.G_k_w);
-    const auto diff_g4 = dca::func::util::difference(G4_check, data.get_G4());
+    const auto diff_g4 = dca::func::util::difference(G4_check, data.get_G4()[0]);
     EXPECT_GE(5e-7, diff_g.l_inf);
     EXPECT_GE(5e-7, diff_g4.l_inf);
   }
@@ -97,7 +97,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
     dca::io::HDF5Writer writer;
     writer.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     writer.open_group("functions");
-    writer.execute(data.get_G4());
+    writer.execute(data.get_G4()[0]);
     writer.execute(data.G_k_w);
     writer.close_group(), writer.close_file();
   }

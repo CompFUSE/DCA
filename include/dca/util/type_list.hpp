@@ -245,7 +245,7 @@ using Prepend = mp_prepend<T1, T2>;
 template <typename T1, typename T2, typename T3>
 using Swap = mp_swap<T1, T2, T3>;
 
-}  // util
-}  // dca
+}  // namespace util
+}  // namespace dca
 
 #endif  // DCA_UTIL_TYPE_LIST_HPP

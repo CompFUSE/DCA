@@ -25,8 +25,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/math/nfft/dnfft_1d_gpu.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
@@ -77,8 +77,8 @@ public:
       event.block(stream);
   }
 
-  const auto& get_streams() const {
-    return streams_;
+  auto get_streams() {
+    return std::array<linalg::util::CudaStream*, 2>{&streams_[0], &streams_[1]};
   }
 
   // Returns the allocated device memory in bytes.

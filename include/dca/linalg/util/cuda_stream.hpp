@@ -16,7 +16,7 @@
 #include <cuda.h>
 #else
 using cudaStream_t = void*;
-void cudaDeviceSynchronize(){}
+void cudaDeviceSynchronize() {}
 #endif
 
 namespace dca {

@@ -269,8 +269,8 @@ struct function_test<dca::func::function<double, Domain>> {
   fType& f;
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 TEST(Function, TestDomain4a) {
   try {
@@ -545,8 +545,8 @@ private:
 
 int VariableDmn::size_ = 0;
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 TEST(FunctionTest, Reset) {
   // Size of test_domain_0b = 2.

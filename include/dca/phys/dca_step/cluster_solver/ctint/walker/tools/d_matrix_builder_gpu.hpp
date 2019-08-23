@@ -38,7 +38,7 @@ private:
 public:
   DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<int>& sbdm_step, const std::array<double, 3>& alphas);
+                 const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas);
 
   const G0Interpolation<linalg::GPU>& getG0() const {
     return g0_ref_;
@@ -51,9 +51,9 @@ private:
   const G0Interpolation<linalg::GPU>& g0_ref_;
 };
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_GPU_HPP

@@ -28,7 +28,7 @@ using linalg::GPU;
 
 DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
                                             const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                            const std::vector<int>& sbdm_step,
+                                            const std::vector<std::size_t>& sbdm_step,
                                             const std::array<double, 3>& alpha)
     : BaseClass(g0, site_diff, sbdm_step, alpha), g0_ref_(g0) {
   ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff), sbdm_step);
@@ -42,7 +42,7 @@ void DMatrixBuilder<GPU>::computeG0(Matrix& G0, const details::DeviceConfigurati
                          configuration, g0_ref_, stream);
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

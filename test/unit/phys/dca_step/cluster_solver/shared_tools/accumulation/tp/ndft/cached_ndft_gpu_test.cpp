@@ -12,6 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 
 #include <complex>
+#include <limits>
 
 #include "gtest/gtest.h"
 
@@ -26,40 +27,54 @@
 constexpr int n_bands = 2;
 constexpr int n_sites = 3;
 constexpr int n_frqs = 7;
-using CachedNdftGpuTest =
-    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frqs>;
 
-double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
-                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);
+template <typename Real>
+using CachedNdftGpuTest = dca::testing::SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>;
+
+template <typename Real>
+double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration& config,
+                           const typename CachedNdftGpuTest<Real>::Matrix& M,
+                           typename CachedNdftGpuTest<Real>::F_w_w& f_w);
+
+using TestTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(CachedNdftGpuTest, TestTypes);
 
 // Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
 // NDFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
-TEST_F(CachedNdftGpuTest, Execute) {
+TYPED_TEST(CachedNdftGpuTest, Execute) {
   constexpr int n_samples = 31;
-  prepareConfiguration(configuration_, M_, n_samples);
+  TestFixture::prepareConfiguration(TestFixture::configuration_, TestFixture::M_, n_samples);
 
-  F_w_w f_w_fast("f_w_fast");
+  using Real = TypeParam;
+  typename TestFixture::F_w_w f_w_fast("f_w_fast");
 
   // Compute the NDFT with the CachedNdft class and rearrange the result with the same order as
   // f_baseline_.
-  const double time = computeWithFastNDFT(configuration_, M_, f_w_fast);
+  const double time =
+      computeWithFastNDFT<Real>(TestFixture::configuration_, TestFixture::M_, f_w_fast);
 
-  auto f_baseline = CachedNdftGpuTest::compute2DFTBaseline();
+  auto f_baseline = TestFixture::compute2DFTBaseline();
   const auto err = dca::func::util::difference(f_baseline, f_w_fast);
-  EXPECT_LT(err.l_inf, 1e-14);
+  EXPECT_LT(err.l_inf, 100 * std::numeric_limits<Real>::epsilon());
 
   std::cout << "\nCached GPU ndft time [sec]:\t " << time << "\n";
 }
 
-double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
-                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w) {
+template <typename Real>
+double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration& config,
+                           const typename CachedNdftGpuTest<Real>::Matrix& M,
+                           typename CachedNdftGpuTest<Real>::F_w_w& f_w) {
   dca::linalg::util::initializeMagma();
   magma_queue_t queue;
   magma_queue_create(&queue);
 
-  dca::phys::solver::accumulator::CachedNdft<double, CachedNdftGpuTest::RDmn, CachedNdftGpuTest::FreqDmn,
-                                             CachedNdftGpuTest::PosFreqDmn, dca::linalg::GPU>
-      nft_obj(queue);
+  using BDmn = typename CachedNdftGpuTest<Real>::BDmn;
+  using RDmn = typename CachedNdftGpuTest<Real>::RDmn;
+  using FreqDmn = typename CachedNdftGpuTest<Real>::FreqDmn;
+  using PosFreqDmn = typename CachedNdftGpuTest<Real>::PosFreqDmn;
+
+  dca::phys::solver::accumulator::CachedNdft<double, RDmn, FreqDmn, PosFreqDmn, dca::linalg::GPU> nft_obj(
+      queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
   dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M);
@@ -77,15 +92,15 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).
-  const int nb = CachedNdftGpuTest::BDmn::dmn_size();
-  const int nr = CachedNdftGpuTest::RDmn::dmn_size();
-  const int n_w = CachedNdftGpuTest::PosFreqDmn::dmn_size();
+  const int nb = BDmn::dmn_size();
+  const int nr = RDmn::dmn_size();
+  const int n_w = PosFreqDmn::dmn_size();
   auto invert_w = [=](const int w) { return 2 * n_w - 1 - w; };
   for (int b2 = 0; b2 < nb; ++b2)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int r2 = 0; r2 < nr; ++r2)
         for (int r1 = 0; r1 < nr; ++r1)
-          for (int w2 = 0; w2 < CachedNdftGpuTest::FreqDmn::dmn_size(); ++w2)
+          for (int w2 = 0; w2 < FreqDmn::dmn_size(); ++w2)
             for (int w1 = 0; w1 < n_w; ++w1) {
               const auto val = result_host(r1 + b1 * nr + w1 * nr * nb, r2 + b2 * nr + w2 * nr * nb);
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;

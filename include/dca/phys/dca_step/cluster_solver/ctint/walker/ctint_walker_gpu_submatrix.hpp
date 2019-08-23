@@ -43,12 +43,13 @@ public:
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
+  using typename BaseClass::CudaStream;
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 
   void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
-                const std::vector<cudaStream_t>& streams);
+                const std::vector<CudaStream*>& streams);
 
   void initialize();
 
@@ -348,7 +349,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
     std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
-    const std::vector<cudaStream_t>& streams) {
+    const std::vector<CudaStream*>& streams) {
   for (int s = 0; s < 2; ++s)
     m_accum[s].resizeNoCopy(M_dev_[s].size());
 
@@ -363,7 +364,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
   m_computed_event_.record(stream_[1]);
 
   for (auto stream : streams)
-    m_computed_event_.block(stream);
+    m_computed_event_.block(*stream);
 }
 
 }  // namespace ctint

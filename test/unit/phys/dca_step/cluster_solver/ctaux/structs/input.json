@@ -17,8 +17,8 @@
 
     "domains": {
         "real-space-grids": {
-            "cluster": [[2, 0],
-                [0, 2]]
+            "cluster": [[2, 2],
+                [-4, 2]]
         }
     },
 

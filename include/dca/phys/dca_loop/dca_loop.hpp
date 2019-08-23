@@ -193,8 +193,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
 
     perform_cluster_exclusion_step();
 
-    double L2_Sigma_difference =
-        solve_cluster_problem(i);  // returned from cluster_solver::finalize
+    double L2_Sigma_difference = solve_cluster_problem(i);  // returned from cluster_solver::finalize
 
     adjust_impurity_self_energy();  // double-counting-correction
 
@@ -358,7 +357,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
           parameters.get_beta() / M_PI;
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_LOOP_DCA_LOOP_HPP

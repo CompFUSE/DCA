@@ -22,6 +22,11 @@
 
 namespace dca {
 namespace testing {
+namespace {
+// Flag for single initialization when multiple types are used.
+bool accumulation_test_initialized = false;
+}  // namespace
+// dca::testing::
 
 template <typename AccumType, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class AccumulationTest : public SingleSectorAccumulationTest<AccumType, n_bands, n_sites, n_frqs> {
@@ -38,8 +43,12 @@ protected:
     BaseClass::SetUpTestCase();
 
     // Initialize time domain.
-    const int n_times = n_frqs;
-    dca::phys::domains::time_domain::initialize(BaseClass::beta_, n_times);
+    if (!accumulation_test_initialized) {
+      const int n_times = n_frqs;
+      dca::phys::domains::time_domain::initialize(BaseClass::beta_, n_times);
+
+      accumulation_test_initialized = true;
+    }
   }
 
   void SetUp() {}
@@ -60,7 +69,7 @@ protected:
   Parameters parameters_{BaseClass::get_beta()};
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATION_TEST_HPP

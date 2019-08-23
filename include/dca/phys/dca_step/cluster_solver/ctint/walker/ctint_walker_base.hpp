@@ -62,6 +62,7 @@ public:
 
   using Matrix = linalg::Matrix<double, linalg::CPU>;
   using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+  using CudaStream = linalg::util::CudaStream;
 
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
@@ -77,7 +78,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair& m_accum, const std::vector<cudaStream_t >& /*streams*/) const;
+  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*> & /*streams*/) const;
 
   void markThermalized();
 
@@ -139,7 +140,7 @@ public:
   template <linalg::DeviceType device_type>
   static void setDMatrixBuilder(const G0Interpolation<device_type>& g0,
                                 const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                const std::vector<int>& sbdm_step,
+                                const std::vector<std::size_t>& sbdm_step,
                                 const std::array<double, 3>& alphas);
 
   static void setInteractionVertices(const Parameters& parameters, Data& data);
@@ -316,8 +317,8 @@ template <class Parameters>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters>::setDMatrixBuilder(
     const dca::phys::solver::ctint::G0Interpolation<device_type>& g0,
-    const dca::linalg::Matrix<int, linalg::CPU>& site_diff, const std::vector<int>& sbdm_step,
-    const std::array<double, 3>& alphas) {
+    const dca::linalg::Matrix<int, linalg::CPU>& site_diff,
+    const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas) {
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
@@ -335,7 +336,7 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& param
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum,
-                                           const std::vector<cudaStream_t>&) const {
+                                           const std::vector<CudaStream*>&) const {
   m_accum = M_;
 }
 

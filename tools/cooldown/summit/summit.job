@@ -4,7 +4,7 @@
 #BSUB -P CPH102
 #BSUB -W 2:00
 #BSUB -nnodes NODES
-#BSUB -alloc_flags smt1   ## set simultaneous multithreading level (no. of hardware threads per physical core)
+#BSUB -alloc_flags smt4
 #BSUB -J dca_cooldown
 #BSUB -o dca_cooldown.%J
 #BSUB -e dca_cooldown.%J

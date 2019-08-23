@@ -36,8 +36,8 @@ void domain::reset() {
   branch_domain_steps.resize(0);
 }
 
-void domain::linind_2_subind(int linind, int* subind) const {
-  assert(linind >= 0 && linind < size);
+void domain::linind_2_subind(std::size_t linind, int* subind) const {
+  assert(linind < size);
 
   for (std::size_t i = 0; i < leaf_domain_sizes.size(); i++) {
     subind[i] = linind % leaf_domain_sizes[i];
@@ -47,7 +47,7 @@ void domain::linind_2_subind(int linind, int* subind) const {
   assert(linind == 0);
 }
 
-void domain::subind_2_linind(const int* const subind, int& linind) const {
+void domain::subind_2_linind(const int* const subind, std::size_t& linind) const {
   linind = 0;
 
   for (int i = leaf_domain_sizes.size() - 1; i >= 0; i--) {
@@ -55,8 +55,8 @@ void domain::subind_2_linind(const int* const subind, int& linind) const {
     linind = subind[i] + linind * leaf_domain_sizes[i];
   }
 
-  assert(linind >= 0 && linind < size);
+  assert(linind < size);
 }
 
-}  // func
-}  // dca
+}  // namespace func
+}  // namespace dca

@@ -10,10 +10,10 @@
 // This file tests affinity.hpp.
 
 #include "dca/parallel/stdthread/thread_pool/affinity.hpp"
-//#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
 #include <iostream>
 #include <future>
+#include <thread>
 
 #include "gtest/gtest.h"
 
@@ -33,20 +33,19 @@ TEST(AffinityTest, All) {
   };
 
   std::future<void> f = std::async(std::launch::async, [&]() {
-    auto a = get_affinity();
+    auto a = dca::parallel::get_affinity();
     std::cout << "Old affinity set: ";
     print(a);
     std::vector<int> new_set{1, 2, 4};
-    set_affinity(new_set);
+    dca::parallel::set_affinity(new_set);
 
-    auto b = get_affinity();
+    auto b = dca::parallel::get_affinity();
     EXPECT_TRUE(equal(new_set, b));
   });
 
   f.get();
 }
 
-// TODO: make general.
-// TEST(AffinityTest, Count) {
-//  EXPECT_EQ(8, get_core_count());
-//}
+ TEST(AffinityTest, Count) {
+  EXPECT_EQ(std::thread::hardware_concurrency(), dca::parallel::get_core_count());
+}

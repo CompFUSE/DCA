@@ -1551,7 +1551,8 @@ bool CtauxWalker<device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done, const int total) {
-  if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
+  const int milestone = std::max(total / 10, 1);
+  if (concurrency.id() == concurrency.first() && (done % milestone == 0)) {
     std::cout.unsetf(std::ios_base::floatfield);
 
     std::cout << "\t\t\t" << std::setw(14)
@@ -1610,9 +1611,9 @@ io::Buffer CtauxWalker<device_t, parameters_type, MOMS_type>::dumpConfig() const
   return buff;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_WALKER_HPP

@@ -165,8 +165,8 @@ const typename SpaceToMomentumTransform<RDmn, KDmn>::PhaseFactors& SpaceToMoment
   return phase_factors;
 }
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TO_MOMENTUM_HPP

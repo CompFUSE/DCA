@@ -125,14 +125,14 @@ bool GlobalMemoryManager::cluster_initialized_ = false;
 bool GlobalMemoryManager::interpolation_initialized_ = false;
 
 void GlobalMemoryManager::initialize(const linalg::MatrixView<int, linalg::CPU>& site_diff_matrix,
-                                     const std::vector<int>& sbdm_step, const int parameters_step,
-                                     bool override) {
+                                     const std::vector<std::size_t>& sbdm_step,
+                                     const int parameters_step, bool override) {
   initializeCluster(site_diff_matrix, sbdm_step, override);
   initializeInterpolation(parameters_step, override);
 }
 
 void GlobalMemoryManager::initializeCluster(const linalg::MatrixView<int, linalg::CPU>& site_diff_matrix,
-                                            const std::vector<int>& sbdm_step, bool override) {
+                                            const std::vector<std::size_t>& sbdm_step, bool override) {
   if (cluster_initialized_ and not override)
     return;
   constexpr int max_size = global::MAX_CLUSTER_SIZE;

@@ -105,6 +105,7 @@
         "sweeps-per-measurement": 1.,
         "measurements": 100,
         "error-computation-type" : "NONE",
+        "store-configuration" : false,
 
         "threaded-solver": {
             "walkers": 1,

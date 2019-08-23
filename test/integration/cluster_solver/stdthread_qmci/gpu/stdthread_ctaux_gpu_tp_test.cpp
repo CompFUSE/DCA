@@ -89,7 +89,7 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
   const auto err_g4 =
-      dca::func::util::difference(data_cpu.get_G4(), data_gpu.get_G4());
+      dca::func::util::difference(data_cpu.get_G4()[0], data_gpu.get_G4()[0]);
 
   EXPECT_GE(5e-7, err_g.l_inf);
   EXPECT_GE(5e-7, err_g4.l_inf);

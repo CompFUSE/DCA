@@ -39,9 +39,9 @@ using KClusterDmn = typename Parameters::KClusterDmn;
 using TDmn = typename Parameters::TDmn;
 using WDmn = typename Parameters::WDmn;
 
-using dca::func::function;
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
+using dca::func::function;
 using BDmn = dmn_0<dca::phys::domains::electron_band_domain>;
 using SDmn = dmn_0<dca::phys::domains::electron_spin_domain>;
 using NuDmn = dmn_variadic<BDmn, SDmn>;

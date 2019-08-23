@@ -15,6 +15,7 @@
 #define DCA_PHYS_DCA_DATA_DCA_DATA_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <complex>
 #include <cstring>
 #include <iostream>
@@ -47,6 +48,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/error_computation_type.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/models/traits.hpp"
@@ -199,19 +201,14 @@ public:  // Optional members getters.
     return *Sigma_err_;
   }
   auto& get_G4() {
-    if (not G4_)
-      G4_.reset(new TpGreensFunction("G4"));
-    return *G4_;
+    return G4_;
   }
   auto& get_G4_error() {
-    if (not G4_err_)
-      G4_err_.reset(new TpGreensFunction("G4-error"));
-    return *G4_err_;
+    return G4_err_;
   }
   auto& get_G4_stdv() {
-    if (not G4_err_)
-      G4_err_.reset(new TpGreensFunction("G4-stddev"));
-    return *G4_err_;
+    assert(!G4_err_.empty());
+    return G4_err_;
   }
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
@@ -228,8 +225,8 @@ private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
   std::unique_ptr<SpRGreensFunction> G_r_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
-  std::unique_ptr<TpGreensFunction> G4_;
-  std::unique_ptr<TpGreensFunction> G4_err_;
+  std::vector<TpGreensFunction> G4_;
+  std::vector<TpGreensFunction> G4_err_;
   std::unique_ptr<func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>
       non_density_interactions_;
 };
@@ -284,6 +281,65 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
 
       orbital_occupancy("orbital_occupancy") {
   H_symmetry = -1;
+
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  G4_.reserve(parameters_.numG4Channels());
+
+  // Allocate memory for G4.
+  // Ensure backward compatibility.
+  if (parameters_.get_four_point_type() != NONE)
+    G4_.emplace_back("G4");
+
+  // Check which four point types to accumulate.
+  else {
+    if (parameters_.accumulateG4ParticleHoleTransverse())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
+
+    if (parameters_.accumulateG4ParticleHoleMagnetic())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
+
+    if (parameters_.accumulateG4ParticleHoleCharge())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
+
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
+
+    if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
+
+    if (parameters_.accumulateG4ParticleParticleUpDown())
+      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
+  }
+
+  // Allocate memory for error on G4.
+  if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
+    G4_err_.reserve(parameters_.numG4Channels());
+
+    if (parameters_.get_four_point_type() != NONE)
+      G4_err_.emplace_back("G4-error");
+
+    else {
+      if (parameters_.accumulateG4ParticleHoleTransverse())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleMagnetic())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleCharge())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP) + "_err");
+
+      if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN) + "_err");
+
+      if (parameters_.accumulateG4ParticleParticleUpDown())
+        G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");
+    }
+  }
 }
 
 template <class Parameters>
@@ -316,53 +372,37 @@ void DcaData<Parameters>::read(std::string filename) {
 
   concurrency_.broadcast_object(Sigma);
 
-  if (parameters_.get_four_point_type() != NONE) {
+  if (parameters_.accumulateG4()) {
     concurrency_.broadcast_object(G_k_w);
-    concurrency_.broadcast_object(get_G4());
+
+    for (auto& G4_channel : G4_)
+      concurrency_.broadcast_object(G4_channel);
   }
 }
 
 template <class Parameters>
 template <typename Reader>
 void DcaData<Parameters>::read(Reader& reader) {
-  std::string four_point_type = "NONE";
+  reader.open_group("parameters");
 
-  {
-    reader.open_group("parameters");
+  reader.open_group("physics");
+  reader.execute("chemical-potential", parameters_.get_chemical_potential());
+  reader.close_group();
 
-    {
-      reader.open_group("physics");
+  reader.close_group();
 
-      // TODO: do not use parameters for starage.
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
+  reader.open_group("functions");
 
-      reader.close_group();
-    }
+  reader.execute(Sigma);
 
-    {
-      reader.open_group("four-point");
+  if (parameters_.accumulateG4()) {
+    reader.execute(G_k_w);
 
-      reader.execute("type", four_point_type);
-
-      reader.close_group();
-    }
-
-    reader.close_group();
+    for (auto& G4_channel : G4_)
+      reader.execute(G4_channel);
   }
 
-  {
-    reader.open_group("functions");
-
-    reader.execute(Sigma);
-
-    if (four_point_type != static_cast<const std::string>("NONE")) {
-      reader.execute(G_k_w);
-
-      reader.execute(get_G4());
-    }
-
-    reader.close_group();
-  }
+  reader.close_group();
 }
 
 template <class Parameters>
@@ -456,8 +496,20 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  writer.execute(G4_);
-  writer.execute(G4_err_);
+  if (parameters_.accumulateG4()) {
+    if (!(parameters_.dump_cluster_Greens_functions())) {
+      writer.execute(G_k_w);
+      writer.execute(G_k_w_err_);
+    }
+
+    for (const auto& G4_channel : G4_)
+      writer.execute(G4_channel);
+
+    if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
+      for (const auto& G4_channel_err : G4_err_)
+        writer.execute(G4_channel_err);
+    }
+  }
 
   writer.close_group();
 }
@@ -697,7 +749,7 @@ void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
   }
 }
 
-}  //  phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP

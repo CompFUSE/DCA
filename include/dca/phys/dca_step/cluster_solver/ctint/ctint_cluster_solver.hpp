@@ -238,8 +238,10 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   if (compute_error) {
     data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma);
     data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w);
-    if (perform_tp_accumulation_)
-      data_.get_G4_error() = concurrency_.jackknifeError(data_.get_G4());
+    if (perform_tp_accumulation_) {
+      for (int channel = 0; channel < data_.get_G4().size(); ++channel)
+        data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel]);
+    }
   }
 
   // Fourier transform the Green's function.
@@ -261,8 +263,9 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
               << "\n\t\t\t Gflop   : " << gflop << " [Gf]"
               << "\n\t\t\t Gflop/s   : " << gflop / local_time << " [Gf/s]"
-              << "\n\t\t\t sign     : " << avg_sign
-              << "\n\t\t\t Density = " << computeDensity() << "\n" << std::endl;
+              << "\n\t\t\t sign     : " << avg_sign << "\n\t\t\t Density = " << computeDensity()
+              << "\n"
+              << std::endl;
   }
 }
 
@@ -451,10 +454,12 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
   M /= std::complex<double>(sign, 0.);
 
   if (perform_tp_accumulation_) {
-    auto& G4 = data_.get_G4();
-    G4 = accumulator_.get_sign_times_G4();
-    collect(G4);
-    G4 /= std::complex<double>(sign, 0.);
+    for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
+      auto& G4 = data_.get_G4()[channel];
+      G4 = accumulator_.get_sign_times_G4()[channel];
+      collect(G4);
+      G4 /= sign * parameters_.get_beta() * parameters_.get_beta();
+    }
   }
 
   return sign / parameters_.get_measurements();

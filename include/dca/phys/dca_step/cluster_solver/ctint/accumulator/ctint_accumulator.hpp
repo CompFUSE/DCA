@@ -15,6 +15,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
@@ -85,7 +86,9 @@ public:
     return accumulator::TpAccumulator<Parameters, device>::staticDeviceFingerprint();
   }
 
-  float getFLOPs() const {return flop_;}
+  float getFLOPs() const {
+    return flop_;
+  }
 
 private:
   const Parameters& parameters_;
@@ -95,7 +98,7 @@ private:
   MatrixConfiguration configuration_;
   int sign_ = 0;
 
-  std::vector<cudaStream_t> streams_;
+  std::vector<linalg::util::CudaStream*> streams_;
 
   int total_sign_ = 0;
   uint total_meas_ = 0;
@@ -123,8 +126,7 @@ CtintAccumulator<Parameters, device>::CtintAccumulator(const Parameters& pars, c
       tp_accumulator_(data.G0_k_w_cluster_excluded, pars, thread_id_) {
   streams_.insert(streams_.end(), sp_accumulator_.get_streams().begin(),
                   sp_accumulator_.get_streams().end());
-  streams_.insert(streams_.end(), tp_accumulator_.get_streams().begin(),
-                  tp_accumulator_.get_streams().end());
+  streams_.push_back(tp_accumulator_.get_stream());
 }
 
 template <class Parameters, linalg::DeviceType device>

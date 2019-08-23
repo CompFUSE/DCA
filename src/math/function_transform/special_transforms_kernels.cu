@@ -23,8 +23,8 @@ namespace transform {
 namespace details {
 // dca::math::transform::details::
 
-using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+using linalg::util::CudaComplex;
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
   const int n_threads_i = std::min(32, i);
@@ -96,7 +96,7 @@ template void phaseFactorsAndRearrange<float>(const std::complex<float>* in, con
                                               const std::complex<float>* phase_factors,
                                               cudaStream_t const stream);
 
-}  // details
-}  // transform
-}  // math
-}  // dca
+}  // namespace details
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
