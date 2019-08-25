@@ -45,10 +45,10 @@ private:
 #ifndef DCA_HAVE_CUDA
 inline void GlobalMemoryManager::initialize(
     const linalg::MatrixView<int, linalg::CPU>& /*site_diff_matrix*/,
-    const std::vector<int>& /*sbdm_step*/, const int /*parameters_step*/, bool /*force*/) {}
+    const std::vector<std::size_t>& /*sbdm_step*/, const int /*parameters_step*/, bool /*force*/) {}
 inline void GlobalMemoryManager::initializeCluster(
     const linalg::MatrixView<int, linalg::CPU>& /*site_diff_matrix*/,
-    const std::vector<int>& /*sbdm_step*/, bool /*override*/) {}
+    const std::vector<std::size_t>& /*sbdm_step*/, bool /*override*/) {}
 inline void GlobalMemoryManager::initializeInterpolation(const int /*parameters_step*/,
                                                          bool /*override*/) {}
 #endif  // DCA_HAVE_CUDA
