@@ -318,6 +318,15 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hp
 
 
 ################################################################################
+# Symmetrization
+option(DCA_SYMMETRIZE "Apply cluster, time and frequency symmetries to single particle functions."
+       ON)
+
+if(DCA_SYMMETRIZE)
+  add_compile_definitions(DCA_WITH_SYMMETRIZATION)
+endif()
+
+################################################################################
 # Generate applications' config files.
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/analysis.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/analysis.hpp" @ONLY)

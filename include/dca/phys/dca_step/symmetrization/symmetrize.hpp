@@ -26,6 +26,8 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
+#ifdef DCA_WITH_SYMMETRIZATION
+
 class symmetrize : public symmetrize_single_particle_function,
                    public symmetrize_two_particle_function {
 public:
@@ -142,7 +144,25 @@ void symmetrize::execute(
   symmetrize_two_particle_function::execute(f, do_diff);
 }
 
-}  // phys
-}  // dca
+#else  // DCA_WITH_SYMMETRIZATION
+
+class symmetrize {
+public:
+  template <class Scalar1, class Dmn1>
+  static void execute(func::function<Scalar1, Dmn1>& /*f*/, bool /*do_diff*/ = false) {}
+
+  template <class Scalar1, class Scalar2, class Dmn1, class Dmn2>
+  static void execute(func::function<Scalar1, Dmn1>& /*f*/,
+                      const func::function<Scalar2, Dmn2>& /*H_0*/, bool /*do_diff*/ = false) {}
+
+  template <typename Scalar, class Dmn>
+  static void execute(func::function<Scalar, Dmn>& /*f*/, std::vector<double> /*Q*/,
+                      bool /*do_diff*/ = false) {}
+};
+
+#endif  // DCA_WITH_SYMMETRIZATION
+
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_HPP
