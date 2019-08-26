@@ -53,8 +53,8 @@ endif()
 # TODO: Add more point groups and lattices.
 
 # Point group
-set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4.")
-set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4)
+set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4 | no_symmetry<2>.")
+set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4 no_symmetry<2>)
 
 if (DCA_POINT_GROUP STREQUAL "C6")
   set(DCA_POINT_GROUP_INCLUDE
@@ -62,6 +62,9 @@ if (DCA_POINT_GROUP STREQUAL "C6")
 
 elseif (DCA_POINT_GROUP STREQUAL "D4")
   set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp")
+
+elseif (DCA_POINT_GROUP STREQUAL "no_symmetry<2>")
+  set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4.")

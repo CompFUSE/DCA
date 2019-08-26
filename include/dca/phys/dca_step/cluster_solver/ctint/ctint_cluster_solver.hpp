@@ -61,7 +61,7 @@ public:
   // gather the walker's measurements and average them across the processes.
   // Then it computes the final integration results.
   // Postcondition: DcaData contains Sigma, G_r_t, G_r_w, G_k_w, G_k_t
-  void finalize();
+  double finalize();
 
   // Calls finalize(). In addition:
   // Postcondition: dca_info_struct contains metadata on the integration.
@@ -204,7 +204,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
+double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   bool compute_error = false;
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     if (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE) {
@@ -267,12 +267,14 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
               << "\n"
               << std::endl;
   }
+
+  return avg_sign;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
     DcaLoopData<Parameters>& loop_data) {
-  finalize();
+  double avg_sign = finalize();
   // Compute and save into loop_data Sigma_zero_mom and std deviation
   for (int nu = 0; nu < Nu::dmn_size(); nu++) {
     for (int k = 0; k < Kdmn::dmn_size(); k++) {
@@ -291,12 +293,10 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
   concurrency_.sum_and_average(loop_data.average_expansion_order(dca_iteration_) =
                                    accumulator_.avgOrder());
 
-  loop_data.sign(dca_iteration_) =
-      static_cast<double>(accumulator_.get_accumulated_sign()) / parameters_.get_measurements();
-  concurrency_.sum_and_average(loop_data.sign(dca_iteration_));
+  loop_data.sign(dca_iteration_) = avg_sign;
+  loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_;
 
   concurrency_.sum_and_average(loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_);
-  concurrency_.sum_and_average(loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_);
 
   // Free walker memory for the dca loop.
   walker_.release();
