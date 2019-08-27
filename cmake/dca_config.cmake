@@ -69,8 +69,8 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING
-    "Lattice type, options are: bilayer | square | triangular | twoband_chain | singleband_chain .")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular)
+    "Lattice type, options are: bilayer | square | triangular | twoband_chain | singleband_chain.")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular twoband_chain singleband_chain)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -98,7 +98,7 @@ elseif (DCA_LATTICE STREQUAL "singleband_chain")
       "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp")
 else()
   message(FATAL_ERROR
-          "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | twoband_chain | singleband_chain .")
+          "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | twoband_chain | singleband_chain.")
 endif()
 
 # Model type
