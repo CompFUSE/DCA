@@ -174,7 +174,7 @@ protected:  // Members.
 
   const double beta_;
   static constexpr int n_bands_ = Parameters::bands;
-  const int nc_;
+  const int possible_partners_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -220,7 +220,7 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
                      parameters_.getDoubleUpdate()),
 
       beta_(parameters_.get_beta()),
-      nc_(RDmn::dmn_size()),
+      possible_partners_(configuration_.possiblePartners()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters>

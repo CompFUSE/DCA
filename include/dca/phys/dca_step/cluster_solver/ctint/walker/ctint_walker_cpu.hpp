@@ -84,7 +84,7 @@ protected:
   using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
-  using BaseClass::nc_;
+  using BaseClass::possible_partners_;
   using BaseClass::sign_;
   using BaseClass::thread_id_;
 
@@ -222,7 +222,7 @@ double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delt
   const double strength_factor =
       delta_vertices == 1
           ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
-          : total_interaction_ * beta_ * beta_ * std::abs(configuration_.getStrength(old_size)) * nc_;
+          : total_interaction_ * beta_ * beta_ * std::abs(configuration_.getStrength(old_size)) * possible_partners_;
 
   const double det_ratio = det_ratio_[0] * det_ratio_[1];
 
@@ -309,7 +309,7 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
   const double strength_factor =
       n_removed == 1
           ? -beta_ * total_interaction_ * configuration_.getSign(removal_candidates_[0])
-          : total_interaction_ * beta_ * beta_ * nc_ *
+          : total_interaction_ * beta_ * beta_ * possible_partners_ *
           std::abs(configuration_.getStrength(removal_candidates_[0]));
 
   const double det_ratio = det_ratio_[0] * det_ratio_[1];

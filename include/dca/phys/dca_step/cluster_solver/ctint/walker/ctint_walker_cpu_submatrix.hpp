@@ -121,7 +121,7 @@ protected:
   using BaseClass::M_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
-  using BaseClass::nc_;
+  using BaseClass::possible_partners_;
 
   using BaseClass::thermalized_;
 
@@ -660,7 +660,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
     }
     else if (delta_vertices == 2) {
       const double combinatorial_factor =
-          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<double>(nc_);
+          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<double>(possible_partners_);
       acceptance_probability *= configuration_.getStrength(n_ + 1) * K / combinatorial_factor;
     }
     else
@@ -672,7 +672,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
     }
     else if (delta_vertices == 2) {
       const int combinatorial_factor =
-          n_ * configuration_.nPartners(index_[0]) / static_cast<double>(nc_);
+          n_ * configuration_.nPartners(index_[0]) / static_cast<double>(possible_partners_);
       acceptance_probability *= combinatorial_factor / (configuration_.getStrength(index_[1]) * K);
     }
     else

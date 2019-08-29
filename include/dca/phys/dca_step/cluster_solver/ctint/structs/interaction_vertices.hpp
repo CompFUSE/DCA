@@ -73,6 +73,13 @@ public:
     return elements_[idx];
   }
 
+  // Returns the number of possible partners for each non density-density interaction.
+  int possiblePartners() const{
+      const int partners = elements_.back().partners_id.size();
+      assert(partners > 1);
+      return partners;
+  }
+
   std::vector<InteractionElement> elements_;
 
 private:

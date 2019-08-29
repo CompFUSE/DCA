@@ -128,6 +128,10 @@ public:
   // Return index corresponding to tag.
   int findTag(std::uint64_t tag) const;
 
+  auto possiblePartners() const {
+      return H_int_->possiblePartners();
+  }
+
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
 
