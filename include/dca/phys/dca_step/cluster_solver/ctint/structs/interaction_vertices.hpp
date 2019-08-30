@@ -53,6 +53,10 @@ public:
 
   void insertElement(const std::vector<double>& vec);
 
+  template <class Nu, class Rdmn, class TDmn>
+  void checkForInterbandPropagators(
+      const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, TDmn>>& G_r_t);
+
   void reset();
   // In: random number generator object.
   // Returns: first: random vertex sampled with probability proportional to |vertex.w|.
@@ -74,10 +78,10 @@ public:
   }
 
   // Returns the number of possible partners for each non density-density interaction.
-  int possiblePartners() const{
-      const int partners = elements_.back().partners_id.size();
-      assert(partners > 1);
-      return partners;
+  int possiblePartners() const {
+    const int partners = elements_.back().partners_id.size();
+    assert(partners > 1);
+    return partners;
   }
 
   std::vector<InteractionElement> elements_;
@@ -85,6 +89,7 @@ public:
 private:
   std::vector<double> cumulative_weigths_;
   double total_weigth_ = 0;
+  bool interband_propagator_ = false;
 };
 
 template <class Rng>
@@ -149,6 +154,23 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
               insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu2, nu3, nu4}, value});
             }
           }
+}
+
+template <class Nu, class RDmn, class TDmn>
+void InteractionVertices::checkForInterbandPropagators(
+    const func::function<double, func::dmn_variadic<Nu, Nu, RDmn, TDmn>>& G_r_t) {
+  interband_propagator_ = false;
+  const int t0 = TDmn::dmn_size() / 2;
+  const int nb = Nu::dmn_size() / 2;
+  const int r0 = RDmn::parameter_type::origin_index();
+  for (int r = 0; r < RDmn::dmn_size(); ++r)
+    for (int b1 = 0; b1 < nb; ++b1)
+      for (int b2 = 0; b2 < nb; ++b2) {
+        if (r != r0 && b1 != b2 && std::abs(G_r_t(b1, 0, b2, 0, r, t0)) > 1e-8) {
+          interband_propagator_ = true;
+          return;
+        }
+      }
 }
 
 }  // namespace ctint

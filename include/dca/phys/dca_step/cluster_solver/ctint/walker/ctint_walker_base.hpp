@@ -335,8 +335,10 @@ template <class Parameters>
 void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& parameters, Data& data) {
   vertices_.reset();
   vertices_.initializeFromHamiltonian(data.H_interactions, parameters.doubleCountedInteraction());
-  if (data.has_non_density_interactions())
+  if (data.has_non_density_interactions()) {
+    vertices_.checkForInterbandPropagators(data.G0_r_t_cluster_excluded);
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
+  }
 }
 
 template <class Parameters>
