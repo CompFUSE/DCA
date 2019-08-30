@@ -6,25 +6,97 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi(gbalduzz@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file implements the methods in affinity.hpp.
-
-#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
-
-#include <iostream>
-#include <cstdlib>
 
 // GNU extensions are required for linux-specific features for querying affinity
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 
+#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
+
+#include <pthread.h>
+#include <mach/thread_act.h>
 #include <sched.h>
+#include <sys/sysctl.h>
+
+#include <bitset>
+#include <cstdlib>
+#include <iostream>
+#include <limits>
 #include <stdexcept>
 
 namespace dca {
 namespace parallel {
 // dca::parallel::
+
+// Workaround for MacOS
+// Reference: https://yyshen.github.io/2015/01/18/binding_threads_to_cores_osx.html
+#ifdef __APPLE__
+
+#define SYSCTL_THREAD_COUNT "machdep.cpu.thread_count"
+
+typedef struct cpu_set {
+  using count_t = uint32_t;
+  count_t count;
+} cpu_set_t;
+
+static constexpr int CPU_SETSIZE = std::numeric_limits<cpu_set_t::count_t>::digits;
+
+static inline void CPU_ZERO(cpu_set_t* cpu_set) {
+  cpu_set->count = 0;
+}
+
+static inline void CPU_SET(int num, cpu_set_t* cpu_set) {
+  cpu_set->count |= (1 << num);
+}
+
+static inline int CPU_ISSET(int num, cpu_set_t* cpu_set) {
+  return (cpu_set->count & (1 << num));
+}
+
+static inline int CPU_COUNT(cpu_set_t* cpu_set) {
+  std::bitset<CPU_SETSIZE> bs(cpu_set->count);
+  return bs.count();
+}
+
+int sched_getaffinity(pid_t /*pid*/, size_t /*cpu_size*/, cpu_set_t* cpu_set) {
+  cpu_set_t::count_t core_count = 0;
+  size_t len = sizeof(core_count);
+  int ret = sysctlbyname(SYSCTL_THREAD_COUNT, &core_count, &len, 0, 0);
+  if (ret) {
+    std::cout << "Error while getting CPU thread count: " << ret << std::endl;
+    return -1;
+  }
+
+  cpu_set->count = 0;
+  for (cpu_set_t::count_t i = 0; i < core_count; ++i) {
+    cpu_set->count |= (1 << i);
+  }
+
+  return 0;
+}
+
+// Binds the calling thread to the first available logical core.
+int sched_setaffinity(pid_t /*pid*/, size_t cpu_size, cpu_set_t* cpu_set) {
+  int core = 0;
+
+  for (core = 0; core < 8 * cpu_size; ++core) {
+    if (CPU_ISSET(core, cpu_set))
+      break;
+  }
+
+  // std::cout << "Binding to logical core " << core << std::endl;
+  thread_affinity_policy_data_t policy = {core};
+  mach_port_t mach_thread = pthread_mach_thread_np(pthread_self());
+  thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
+
+  return 0;
+}
+
+#endif  // __APPLE__
 
 std::vector<int> get_affinity() {
   cpu_set_t cpu_set_mask;
