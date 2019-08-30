@@ -170,9 +170,8 @@ void TwobandCu<point_group_type>::initialize_H_interaction(
           if (b1 == b2 && s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = U;
 
-          if (b1 != b2)
-            H_interaction(b1, s1, b2, s2, origin) =
-                0.5 * V;  // factor 0.5 because of double counting
+          if (b1 < b2)
+            H_interaction(b1, s1, b2, s2, origin) = V;
         }
       }
     }
