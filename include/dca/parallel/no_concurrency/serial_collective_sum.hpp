@@ -78,9 +78,15 @@ public:
                                   func::function<Scalar, Domain>& f_stddev) const {
     f_stddev = Scalar(0);
   }
+
+  template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
+  void computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& /*f*/,
+                               func::function<Scalar, CovDomain>& cov) const {
+    cov = Scalar(0);
+  }
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_NO_CONCURRENCY_SERIAL_COLLECTIVE_SUM_HPP
