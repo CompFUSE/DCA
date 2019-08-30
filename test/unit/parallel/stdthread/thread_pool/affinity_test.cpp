@@ -46,6 +46,6 @@ TEST(AffinityTest, All) {
   f.get();
 }
 
- TEST(AffinityTest, Count) {
+TEST(AffinityTest, Count) {
   EXPECT_EQ(std::thread::hardware_concurrency(), dca::parallel::get_core_count());
 }
