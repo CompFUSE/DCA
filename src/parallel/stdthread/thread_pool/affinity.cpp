@@ -17,16 +17,20 @@
 
 #include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 
-#include <pthread.h>
-#include <mach/thread_act.h>
 #include <sched.h>
-#include <sys/sysctl.h>
 
-#include <bitset>
 #include <cstdlib>
 #include <iostream>
-#include <limits>
 #include <stdexcept>
+
+// Includes for MacOS workaround
+#ifdef __APPLE__
+#include <pthread.h>
+#include <mach/thread_act.h>
+#include <sys/sysctl.h>
+#include <bitset>
+#include <limits>
+#endif  // __APPLE__
 
 namespace dca {
 namespace parallel {
