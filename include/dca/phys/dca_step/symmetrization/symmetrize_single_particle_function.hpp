@@ -264,44 +264,43 @@ void symmetrize_single_particle_function::execute(
     func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f, bool do_diff) {
   symmetrize_over_electron_spin(f, do_diff);
 
-  {  // Symmetrize over real space or momentum.
-    func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0>> f0(f.get_name());
+  // Symmetrize over real space or momentum.
+  func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0>> f0(f.get_name());
 
-    for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1) {
-      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind) {
+  for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1) {
+    for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind) {
+      for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
         for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
           for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
-            for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
-              f0(b_0, b_1, ind_0) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
 
-        symmetrize_single_particle_function::executeCluster(f0, do_diff);
+            f0(b_0, b_1, ind_0) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
 
+      symmetrize_single_particle_function::executeCluster(f0, do_diff);
+
+      for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
         for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
           for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
-            for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
-              f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f0(b_0, b_1, ind_0);
-      }
+            f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f0(b_0, b_1, ind_0);
     }
   }
 
-  {  // Symmetrize over time or frequency.
-    func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0, f_dmn_1>> f1(f.get_name());
+  // Symmetrize over time or frequency.
+  func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0, f_dmn_1>> f1(f.get_name());
 
-    for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
-      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind)
-        for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
-          for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
-            for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
-              f1(b_0, b_1, ind_0, ind_1) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
+  for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind) {
+    for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
+      for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
+        for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
+          for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
+            f1(b_0, b_1, ind_0, ind_1) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
 
     symmetrize_single_particle_function::executeTimeOrFreq(f1, do_diff);
 
-    for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
-      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind)
-        for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
-          for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
-            for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
-              f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f1(b_0, b_1, ind_0, ind_1);
+    for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
+      for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
+        for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
+          for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
+            f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f1(b_0, b_1, ind_0, ind_1);
   }
 }
 
@@ -577,36 +576,29 @@ void symmetrize_single_particle_function::executeCluster(
 
   f_new = scalartype(0.);
 
-  for (int S_ind = 0; S_ind < sym_super_cell_dmn_t::dmn_size(); ++S_ind) {
-    for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
-      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
-        for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); ++r_ind) {
-          int R_new_ind = r_symmetry_matrix(r_ind, 0, S_ind).first;
+  for (int r_id = 0; r_id < r_dmn_t::dmn_size(); ++r_id)
+    // TODO: remove hardcoding of action on diagonal only.
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id)
+      for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
+        const int r_new = r_symmetry_matrix(r_id, b_id, l).first;
+        const int b_new = r_symmetry_matrix(r_id, b_id, l).second;
 
-          int b0_new = r_symmetry_matrix(0, b0, S_ind).second;
-          int b1_new = r_symmetry_matrix(r_ind, b1, S_ind).second;
-
-          f_new(b0, b1, r_ind) += f(b0_new, b1_new, R_new_ind);
-        }
+        f_new(b_id, b_id, r_id) += f(b_new, b_new, r_new);
       }
-    }
-  }
 
-  if (sym_super_cell_dmn_t::dmn_size() > 0)
-    f_new /= double(sym_super_cell_dmn_t::dmn_size());
-  else
-    throw std::logic_error(__FUNCTION__);
+  f_new /= double(sym_super_cell_dmn_t::dmn_size());
 
   double max = 0;
-  for (int ind = 0; ind < f.size(); ++ind) {
-    max = std::max(max, std::abs(f(ind) - f_new(ind)));
+  for (int r_id = 0; r_id < r_dmn_t::dmn_size(); ++r_id)
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
+      max = std::max(max, std::abs(f(b_id, b_id, r_id) - f_new(b_id, b_id, r_id)));
 
-    f(ind) = f_new(ind);
-  }
+      f(b_id, b_id, r_id) = f_new(b_id, b_id, r_id);
+    }
 
   if (do_diff)
     difference(max, f.get_name(), "r-cluster-domain of the function : " + f.get_name() + "\n");
-}
+}  // namespace phys
 
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
@@ -671,32 +663,28 @@ void symmetrize_single_particle_function::executeCluster(
       k_symmetry_matrix = domains::cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, func::dmn_variadic<b, b, k_dmn_t>> f_new;
+  f_new = 0;
 
-  f_new = scalartype(0.);
+  for (int k_id = 0; k_id < k_dmn_t::dmn_size(); ++k_id)
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id)
+      for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
+        // TODO: revert hardcoding of symmetrization of diagonal only.
+        const int k_new = k_symmetry_matrix(k_id, b_id, l).first;  // FIXME: b0 -> b1
+        const int b_new = k_symmetry_matrix(k_id, b_id, l).second;
+        assert(b_id == b_new);
 
-  for (int S_ind = 0; S_ind < sym_super_cell_dmn_t::dmn_size(); ++S_ind) {
-    for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
-      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
-        for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
-          int K_new_ind = k_symmetry_matrix(k_ind, b0, S_ind).first;  // FIXME: b0 -> b1
-
-          int b0_new = k_symmetry_matrix(0, b0, S_ind).second;
-          int b1_new = k_symmetry_matrix(k_ind, b1, S_ind).second;
-
-          f_new(b0, b1, k_ind) += f(b0_new, b1_new, K_new_ind);
-        }
+        f_new(b_id, b_id, k_id) += f(b_new, b_new, k_new);
       }
-    }
-  }
 
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
+  f_new /= sym_super_cell_dmn_t::dmn_size();
 
   double max = 0;
-  for (int ind = 0; ind < f.size(); ++ind) {
-    max = std::max(max, std::abs(f(ind) - f_new(ind)));
+  for (int k_id = 0; k_id < k_dmn_t::dmn_size(); ++k_id)
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
+      max = std::max(max, std::abs(f(b_id, b_id, k_id) - f_new(b_id, b_id, k_id)));
 
-    f(ind) = f_new(ind);
-  }
+      f(b_id, b_id, k_id) = f_new(b_id, b_id, k_id);
+    }
 
   if (do_diff)
     difference(max, f.get_name(), "k-clusterdomain of the function : " + f.get_name() + "\n");

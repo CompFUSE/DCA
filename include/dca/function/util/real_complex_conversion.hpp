@@ -16,6 +16,8 @@
 #include <limits>
 #include <stdexcept>
 
+#include <mpi.h>
+
 #include "dca/function/function.hpp"
 
 namespace dca {
@@ -40,12 +42,23 @@ auto complex(const function<Scalartype, Dmn>& f) {
 template <typename Scalartype, typename Dmn>
 auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_imaginary = false) {
   function<Scalartype, Dmn> f_real;
+  Scalartype max_img = 0;
 
   for (int i = 0; i < f_real.size(); ++i) {
-    if (check_imaginary && std::abs(f(i).imag()) > 500 * std::numeric_limits<Scalartype>::epsilon())
-      throw(std::logic_error("The function is not purely real."));
+    if (check_imaginary && std::abs(f(i).imag()) > 500 * std::numeric_limits<Scalartype>::epsilon()) {
+      max_img = std::max(std::abs(f(i)), max_img);
+      // throw(std::logic_error("The function is not purely real."));
+    }
 
     f_real(i) = f(i).real();
+  }
+
+  if (max_img) {
+    int id;
+    MPI_Comm_rank(MPI_COMM_WORLD, &id);
+    if (id == 0)
+      std::cerr << "WARNING: The function" << f.get_name() << " is not purely real. Max img "
+                                                          << max_img << std::endl;
   }
 
   return f_real;
