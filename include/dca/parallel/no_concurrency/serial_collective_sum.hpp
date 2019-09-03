@@ -52,9 +52,9 @@ public:
   void sum_and_average(T& /*obj*/) const {}
 
   template <typename T>
-  void leaveOneOutAvg(T&) const {}
+  void leaveOneOutAvg(T& /*obj*/) const {}
   template <typename T>
-  void leaveOneOutSum(T&, bool = false) const {}
+  void leaveOneOutSum(T& /*obj*/, bool /*delay*/ = false) const {}
 
   template <typename Scalar, class Domain>
   func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>&,

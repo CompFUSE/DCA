@@ -73,12 +73,6 @@ public:
     return util::getBounds(id(), number_of_processors(), dmn);
   }
 
-  // Using gather with no gang uses the entire concurrency.
-//  template <class Scalar, class DmnIn, class DmnOut>
-//  void gather(const func::function<Scalar, DmnIn>& f_in, func::function<Scalar, DmnOut>& f_out) const {
-//    gather(f_in, f_out, *this);
-//  }
-
   friend std::ostream& operator<<(std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
 
 private:

@@ -162,9 +162,9 @@ public:
                                            const std::vector<int>& orders) const;
 
 private:
-  // Compute the sum on process id 'rank', or all processes if rank == -1.
+  // Compute the sum on process 'rank_id', or all processes if rank_id == -1.
   template <typename T>
-  void sum(const T* in, T* out, std::size_t n, int rank = -1) const;
+  void sum(const T* in, T* out, std::size_t n, int rank_id = -1) const;
 
   template <typename T>
   void delayedSum(T* in, std::size_t n);
@@ -200,16 +200,6 @@ void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
 
   m = std::move(result);
 }
-
-// template <typename Scalar>
-// void MPICollectiveSum::sum(std::map<std::string, std::vector<std::vector<Scalar>>>& m) {
-//  for (auto it = m.begin(); it != m.end(); ++it) {
-//    for (auto& vec : it->second)
-//      delayedSum(vec);
-//  }
-//
-//  resolveSums();
-//}
 
 template <typename Scalar>
 void MPICollectiveSum::sum(std::map<std::string, std::vector<Scalar>>& m) {
@@ -567,7 +557,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 }
 
 template <typename T>
-void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int id) const {
+void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) const {
   // On summit large messages hangs if sizeof(floating point type) * message_size > 2^31-1.
   constexpr std::size_t max_size = dca::util::IsComplex<T>::value
                                        ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
@@ -575,12 +565,12 @@ void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int id) const {
 
   for (std::size_t start = 0; start < n; start += max_size) {
     const int msg_size = std::min(n - start, max_size);
-    if (id == -1) {
+    if (root_id == -1) {
       MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
                     MPIProcessorGrouping::get());
     }
     else {
-      MPI_Reduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM, id,
+      MPI_Reduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM, root_id,
                  MPIProcessorGrouping::get());
     }
   }
