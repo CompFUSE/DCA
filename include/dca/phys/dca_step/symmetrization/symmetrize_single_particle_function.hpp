@@ -40,6 +40,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -59,6 +60,14 @@
 namespace dca {
 namespace phys {
 // dca::phys::
+
+template <class T>
+std::vector<T> operator-(const std::vector<T>& v) {
+  auto v_cpy = v;
+  for (auto& x : v_cpy)
+    x = -x;
+  return v_cpy;
+}
 
 class symmetrize_single_particle_function {
 public:
@@ -107,6 +116,34 @@ protected:
   template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
   static void execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
                       bool do_diff = false);
+
+  inline static const auto& getInterbandSym() {
+    static std::vector<std::vector<int>> symmetries(16);
+    static std::once_flag flag;
+    std::call_once(flag, [&] {
+      symmetries[0] = std::vector<int>{0};
+      symmetries[1] = std::vector<int>{1, 3, -4, -12};
+      symmetries[2] = std::vector<int>{2, -8};
+      symmetries[3] = symmetries[1];
+
+      symmetries[4] = -symmetries[1];
+      symmetries[5] = std::vector<int>{};
+      symmetries[6] = std::vector<int>{6, 14, -11, -9};
+      symmetries[7] = std::vector<int>{};
+
+      symmetries[8] = -symmetries[2];
+      symmetries[9] = -symmetries[6];
+      symmetries[10] = std::vector<int>{};
+      symmetries[11] = -symmetries[6];
+
+      symmetries[12] = -symmetries[1];
+      symmetries[13] = std::vector<int>{};
+      symmetries[14] = symmetries[6];
+      symmetries[15] = std::vector<int>{};
+    });
+
+    return symmetries;
+  }
 
 public:
   static bool differenceDetected() {
@@ -575,26 +612,39 @@ void symmetrize_single_particle_function::executeCluster(
   static func::function<scalartype, func::dmn_variadic<b, b, r_dmn_t>> f_new;
 
   f_new = scalartype(0.);
+  const double norm_diag = 1. / sym_super_cell_dmn_t::dmn_size();
 
   for (int r_id = 0; r_id < r_dmn_t::dmn_size(); ++r_id)
-    // TODO: remove hardcoding of action on diagonal only.
-    for (int b_id = 0; b_id < b::dmn_size(); ++b_id)
+    // TODO: remove hardcoding
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
       for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
         const int r_new = r_symmetry_matrix(r_id, b_id, l).first;
         const int b_new = r_symmetry_matrix(r_id, b_id, l).second;
 
-        f_new(b_id, b_id, r_id) += f(b_new, b_new, r_new);
+        f_new(b_id, b_id, r_id) += f(b_new, b_new, r_new) * norm_diag;
       }
+      const int b1 = b_id;
+      const int b2 = 1 - b_id;
 
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
+      for (auto r_new : getInterbandSym()[r_id]) {
+        if (r_new >= 0)
+          f_new(b1, b2, r_id) += f(b1, b2, r_new);
+        else
+          f_new(b1, b2, r_id) -= f(b1, b2, -r_new);
+      }
+      const int n_points = getInterbandSym()[r_id].size();
+      if (n_points)
+        f_new(b1, b2, r_id) /= n_points;
+    }
 
   double max = 0;
   for (int r_id = 0; r_id < r_dmn_t::dmn_size(); ++r_id)
-    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
-      max = std::max(max, std::abs(f(b_id, b_id, r_id) - f_new(b_id, b_id, r_id)));
+    for (int b2 = 0; b2 < b::dmn_size(); ++b2)
+      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
+        max = std::max(max, std::abs(f(b1, b2, r_id) - f_new(b1, b2, r_id)));
 
-      f(b_id, b_id, r_id) = f_new(b_id, b_id, r_id);
-    }
+        f(b1, b2, r_id) = f_new(b1, b2, r_id);
+      }
 
   if (do_diff)
     difference(max, f.get_name(), "r-cluster-domain of the function : " + f.get_name() + "\n");
@@ -665,26 +715,39 @@ void symmetrize_single_particle_function::executeCluster(
   static func::function<scalartype, func::dmn_variadic<b, b, k_dmn_t>> f_new;
   f_new = 0;
 
+  const double norm_diag = 1. / sym_super_cell_dmn_t::dmn_size();
+
   for (int k_id = 0; k_id < k_dmn_t::dmn_size(); ++k_id)
-    for (int b_id = 0; b_id < b::dmn_size(); ++b_id)
+    // TODO: remove hardcoding
+    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
       for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
-        // TODO: revert hardcoding of symmetrization of diagonal only.
-        const int k_new = k_symmetry_matrix(k_id, b_id, l).first;  // FIXME: b0 -> b1
+        const int k_new = k_symmetry_matrix(k_id, b_id, l).first;
         const int b_new = k_symmetry_matrix(k_id, b_id, l).second;
-        assert(b_id == b_new);
 
-        f_new(b_id, b_id, k_id) += f(b_new, b_new, k_new);
+        f_new(b_id, b_id, k_id) += f(b_new, b_new, k_new) * norm_diag;
       }
+      const int b1 = b_id;
+      const int b2 = 1 - b_id;
 
-  f_new /= sym_super_cell_dmn_t::dmn_size();
+      for (auto k_new : getInterbandSym()[k_id]) {
+        if (k_new >= 0)
+          f_new(b1, b2, k_id) += f(b1, b2, k_new);
+        else
+          f_new(b1, b2, k_id) -= f(b1, b2, -k_new);
+      }
+      const int n_points = getInterbandSym()[k_id].size();
+      if (n_points)
+        f_new(b1, b2, k_id) /= n_points;
+    }
 
   double max = 0;
   for (int k_id = 0; k_id < k_dmn_t::dmn_size(); ++k_id)
-    for (int b_id = 0; b_id < b::dmn_size(); ++b_id) {
-      max = std::max(max, std::abs(f(b_id, b_id, k_id) - f_new(b_id, b_id, k_id)));
+    for (int b2 = 0; b2 < b::dmn_size(); ++b2)
+      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
+        max = std::max(max, std::abs(f(b1, b2, k_id) - f_new(b1, b2, k_id)));
 
-      f(b_id, b_id, k_id) = f_new(b_id, b_id, k_id);
-    }
+        f(b1, b2, k_id) = f_new(b1, b2, k_id);
+      }
 
   if (do_diff)
     difference(max, f.get_name(), "k-clusterdomain of the function : " + f.get_name() + "\n");
