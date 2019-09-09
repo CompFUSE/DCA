@@ -281,7 +281,7 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
   }
 
   if (compute_jack_knife_ && parameters_.accumulateG4()) {
-    for (std::size_t channel = 0; channel < parameters_.numG4Channels(); ++channel)
+    for (std::size_t channel = 0; channel < data_.get_G4_error().size(); ++channel)
       data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
   }
 
@@ -446,7 +446,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
 
     // sum G4
     if (accumulate_g4) {
-      for (int channel = 0; channel < parameters_.numG4Channels(); ++channel) {
+      for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
         auto& G4 = data_.get_G4()[channel];
         G4 = accumulator_.get_sign_times_G4()[channel];
         if (compute_jack_knife_)
@@ -464,9 +464,9 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
 
   M_r_w_ /= accumulated_sign_;
   M_r_w_squared_ /= accumulated_sign_;
-  if(accumulate_g4) {
-      for (auto &G4 : data_.get_G4())
-          G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
+  if (accumulate_g4) {
+    for (auto& G4 : data_.get_G4())
+      G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
   }
 
   if (parameters_.additional_time_measurements()) {
