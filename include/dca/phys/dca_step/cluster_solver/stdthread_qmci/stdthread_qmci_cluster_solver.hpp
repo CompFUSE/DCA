@@ -481,6 +481,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
   if (parameters_.get_directory_config_read() == "")
     return;
 
+  Profiler profiler(__FUNCTION__, "stdthread-MC", __LINE__);
+
   try {
     const std::string inp_name = parameters_.get_directory_config_read() + "/process_" +
                                  std::to_string(concurrency_.id()) + ".hdf5";

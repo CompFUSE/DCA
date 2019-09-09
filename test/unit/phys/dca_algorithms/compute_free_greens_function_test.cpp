@@ -88,7 +88,7 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
                                                           func::dmn_0<MatsubaraFreqDmn>>>
       G0_k_w;
 
-  phys::compute_G0_k_w(H_0, mu, concurrency_, G0_k_w);
+  phys::compute_G0_k_w(H_0, mu, 3, G0_k_w);
 
   // Check spin symmetry and that off-diagonal elements vanish.
   for (int wn = 0; wn < MatsubaraFreqDmn::get_size(); ++wn) {
@@ -216,7 +216,7 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
                                                           func::dmn_0<MatsubaraFreqDmn>>>
       G0_k_w;
 
-  phys::compute_G0_k_w(H_0, mu, concurrency_, G0_k_w);
+  phys::compute_G0_k_w(H_0, mu, 3, G0_k_w);
 
   // Check spin symmetry and that off-diagonal (in spin) elements vanish.
   for (int wn = 0; wn < MatsubaraFreqDmn::get_size(); ++wn) {

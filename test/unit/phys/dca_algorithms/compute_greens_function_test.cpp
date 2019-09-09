@@ -83,8 +83,8 @@ TEST_F(ComputeGreensFunctionTest, SquareLatticeNoninteracting) {
   const double mu = 0.9;  // chemical potential
 
   // Vanishing self-energy: G = G_0.
-  phys::compute_G0_k_w(H0_k, mu, concurrency_, G0_k_w);
-  phys::compute_G_k_w(H0_k, S_k_w, mu, concurrency_, G_k_w);
+  phys::compute_G0_k_w(H0_k, mu, 1, G0_k_w);
+  phys::compute_G_k_w(H0_k, S_k_w, mu, 2, G_k_w);
 
   for (int i = 0; i < G_k_w.size(); ++i) {
     EXPECT_DOUBLE_EQ(G0_k_w(i).real(), G_k_w(i).real());
@@ -128,8 +128,8 @@ TEST_F(ComputeGreensFunctionTest, BilayerLattice) {
   //
   // Vanishing self-energy: G = G_0
   //
-  phys::compute_G0_k_w(H0_k, mu, concurrency_, G0_k_w);
-  phys::compute_G_k_w(H0_k, S_k_w, mu, concurrency_, G_k_w);
+  phys::compute_G0_k_w(H0_k, mu, 2, G0_k_w);
+  phys::compute_G_k_w(H0_k, S_k_w, mu, 4, G_k_w);
 
   for (int i = 0; i < G_k_w.size(); ++i) {
     EXPECT_DOUBLE_EQ(G0_k_w(i).real(), G_k_w(i).real());
@@ -174,7 +174,7 @@ TEST_F(ComputeGreensFunctionTest, BilayerLattice) {
     }
   }
 
-  phys::compute_G_k_w(H0_k, S_k_w, mu, concurrency_, G_k_w);
+  phys::compute_G_k_w(H0_k, S_k_w, mu, 1, G_k_w);
 
   const double tol = 1.e-14;
   for (int i = 0; i < G_k_w.size(); ++i) {

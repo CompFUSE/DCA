@@ -547,7 +547,8 @@ void DcaData<Parameters>::initialize_G0() {
   util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
 
   // Compute G0_k_w.
-  compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(), concurrency_, G0_k_w);
+  compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
+                 parameters_.get_coarsegraining_threads(), G0_k_w);
   symmetrize::execute(G0_k_w, H_symmetry, true);
 
   // Compute G0_k_t.

@@ -29,6 +29,7 @@ template <typename ScalarType, DeviceType device_name = linalg::CPU>
 class MatrixView {
 public:
   using Pair = std::pair<int, int>;
+  MatrixView(ScalarType* data, Pair size);
   MatrixView(ScalarType* data, Pair size, int ld);
   MatrixView(ScalarType* data, int size, int ld);
   MatrixView(ScalarType* data, int size);
@@ -92,6 +93,10 @@ private:
   const int ldm_;
   const std::pair<int, int> size_;
 };
+
+template <typename ScalarType, DeviceType device_t>
+MatrixView<ScalarType, device_t>::MatrixView(ScalarType* const data, const Pair size)
+    : MatrixView(data, size, size.first) {}
 
 template <typename ScalarType, DeviceType device_t>
 MatrixView<ScalarType, device_t>::MatrixView(ScalarType* const data, const Pair size, const int ld)
@@ -189,7 +194,7 @@ auto inline makeConstantView(const Matrix<ScalarType, device_t>& mat, const int 
                                                 mat.leadingDimension());
 }
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIX_VIEW_HPP

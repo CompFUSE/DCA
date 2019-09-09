@@ -203,21 +203,18 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
   int Q_ind = domains::cluster_operations::index(parameters.get_four_point_momentum_transfer(),
                                                  K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
+  interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
 
   switch (parameters.get_four_point_type()) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
 
     case PARTICLE_PARTICLE_UP_DOWN: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::set_q_idx(Q_ind);
       compute_phi(H_k, Sigma, chi);
     } break;
 
@@ -240,16 +237,12 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
 
     case PARTICLE_PARTICLE_UP_DOWN: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::set_q_idx(Q_ind);
       compute_phi(H_k, Sigma, chi);
     } break;
 
@@ -709,8 +702,8 @@ double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
   }
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_TP_HPP
