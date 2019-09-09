@@ -15,13 +15,17 @@
 
 #include <utility>
 #include "dca/parallel/no_concurrency/serial_collective_sum.hpp"
+#include "dca/parallel/no_concurrency/serial_gang.hpp"
+#include "dca/parallel/no_concurrency/serial_gather.hpp"
 
 namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class NoConcurrency : public SerialCollectiveSum {
+class NoConcurrency : public SerialCollectiveSum, public SerialProcessorGrouping, public SerialGather {
 public:
+  using Gang = SerialGang;
+
   NoConcurrency(int /*argc*/, char** /*argv*/){};
 
   void abort() const;
@@ -63,7 +67,7 @@ private:
   constexpr static char parallel_type_str_[] = "NoConcurrency";
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_NO_CONCURRENCY_NO_CONCURRENCY_HPP

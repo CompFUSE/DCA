@@ -54,7 +54,6 @@ struct MPITypeMap<std::uint8_t> {
   }
 };
 
-
 template <>
 struct MPITypeMap<int> {
   static MPI_Datatype value() {

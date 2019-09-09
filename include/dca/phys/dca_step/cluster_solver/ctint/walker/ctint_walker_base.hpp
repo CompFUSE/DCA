@@ -20,7 +20,6 @@
 
 #include "dca/io/buffer.hpp"
 #include "dca/linalg/linalg.hpp"
-#include "dca/linalg/make_constant_view.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"

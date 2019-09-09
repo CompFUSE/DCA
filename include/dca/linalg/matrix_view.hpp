@@ -29,6 +29,7 @@ template <typename ScalarType, DeviceType device_name = linalg::CPU>
 class MatrixView {
 public:
   using Pair = std::pair<int, int>;
+  MatrixView(ScalarType* data, Pair size);
   MatrixView(ScalarType* data, Pair size, int ld);
   MatrixView(ScalarType* data, int size, int ld);
   MatrixView(ScalarType* data, int size);
@@ -99,6 +100,10 @@ private:
 };
 
 template <typename ScalarType, DeviceType device_t>
+MatrixView<ScalarType, device_t>::MatrixView(ScalarType* const data, const Pair size)
+    : MatrixView(data, size, size.first) {}
+
+template <typename ScalarType, DeviceType device_t>
 MatrixView<ScalarType, device_t>::MatrixView(ScalarType* const data, const Pair size, const int ld)
     : ptr_(data), ldm_(ld), size_(size) {}
 
@@ -167,7 +172,48 @@ void MatrixView<ScalarType, device_t>::print(std::ostream& out) const {
   out << "\n" << std::endl;
 }
 
-}  // linalg
-}  // dca
+// Methods for returning a pointer to constant matrix view from non const arguments
+template <typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(const ScalarType* data, const std::pair<int, int> size, const int ld) {
+  return std::make_unique<const MatrixView<ScalarType, device_t>>(const_cast<ScalarType*>(data),
+                                                                  size, ld);
+}
+
+template <typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(ScalarType* const data, const int size, const int ld) {
+  return makeConstantView<ScalarType, device_t>(data, std::make_pair(size, size), ld);
+}
+
+template <typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(ScalarType* const data, const int size) {
+  return makeConstantView<ScalarType, device_t>(data, std::make_pair(size, size), size);
+}
+
+template <template <typename, DeviceType> class Matrix, typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(const Matrix<ScalarType, device_t>& mat) {
+  return makeConstantView<ScalarType, device_t>(mat.ptr(), mat.size(), mat.leadingDimension());
+}
+
+template <template <typename, DeviceType> class Matrix, typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(const Matrix<ScalarType, device_t>& mat, const int offset_i,
+                             const int offset_j) {
+  assert(offset_i < mat.nrCols());
+  assert(offset_j < mat.nrRows());
+  return makeConstantView<ScalarType, device_t>(
+      mat.ptr(offset_i, offset_j), std::make_pair(mat.nrRows() - offset_i, mat.nrCols() - offset_j),
+      mat.leadingDimension());
+}
+
+template <template <typename, DeviceType> class Matrix, typename ScalarType, DeviceType device_t>
+auto inline makeConstantView(const Matrix<ScalarType, device_t>& mat, const int offset_i,
+                             const int offset_j, const int ni, const int nj) {
+  assert(ni + offset_i <= mat.nrRows());
+  assert(nj + offset_j <= mat.nrCols());
+  return makeConstantView<ScalarType, device_t>(mat.ptr(offset_i, offset_j), std::make_pair(ni, nj),
+                                                mat.leadingDimension());
+}
+
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIX_VIEW_HPP

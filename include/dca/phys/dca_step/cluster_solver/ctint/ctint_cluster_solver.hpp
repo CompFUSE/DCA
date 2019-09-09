@@ -121,7 +121,7 @@ protected:  // Protected for testing purposes.
 
 protected:
   const Parameters& parameters_;
-  const Concurrency& concurrency_;
+  Concurrency& concurrency_;
   Data& data_;
 
   // Stores the integration result
@@ -169,8 +169,8 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
   g0_.initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
-  perform_tp_accumulation_ = parameters_.get_four_point_type() != NONE and
-                             dca_iteration == parameters_.get_dca_iterations() - 1;
+  perform_tp_accumulation_ =
+      parameters_.accumulateG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
   accumulator_.initialize(dca_iteration_);
 }
 
@@ -441,6 +441,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
 
   symmetrize::execute(M, data_.H_symmetry);
 
+  // TODO: delay sum.
   auto collect = [&](auto& f) {
     if (compute_error)
       concurrency_.leaveOneOutSum(f);

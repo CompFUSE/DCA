@@ -415,15 +415,19 @@ TEST(FunctionTest, CopyConstructor) {
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
 
-  // Custom name
-  FunctionType f3(f1, "copied");
+  // Same name
+  FunctionType f3(f1);
 
-  EXPECT_EQ("copied", f3.get_name());
+  EXPECT_EQ(f1.get_name(), f3.get_name());
   EXPECT_EQ(f1.signature(), f3.signature());
   EXPECT_EQ(f1.size(), f3.size());
 
   for (int linind = 0; linind < f3.size(); ++linind)
     EXPECT_EQ(f1(linind), f3(linind));
+
+  // Different name
+  FunctionType f4(f3, "another name");
+  EXPECT_EQ("another name", f4.get_name());
 }
 
 TEST(FunctionTest, MoveConstructor) {
@@ -443,16 +447,20 @@ TEST(FunctionTest, MoveConstructor) {
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
 
-  // Custom name
+  // Copy name
   FunctionType f1_copy_2(f1);
-  FunctionType f3(std::move(f1_copy_2), "moved");
+  FunctionType f3(std::move(f1_copy_2));
 
-  EXPECT_EQ("moved", f3.get_name());
+  EXPECT_EQ(f1.get_name(), f3.get_name());
   EXPECT_EQ(f1.signature(), f3.signature());
   EXPECT_EQ(f1.size(), f3.size());
 
   for (int linind = 0; linind < f3.size(); ++linind)
     EXPECT_EQ(f1(linind), f3(linind));
+
+  // Different name
+  FunctionType f4(std::move(f3), "another name");
+  EXPECT_EQ("another name", f4.get_name());
 }
 
 TEST(FunctionTest, CopyAssignment) {

@@ -78,7 +78,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
 
   if (!update_baseline) {
     // Read and confront with previous run
-    Data::TpGreensFunction G4_check(data.get_G4()[0].get_name());
+    Data::TpGreensFunction G4_check("G4");
     Data::SpGreensFunction G_check(data.G_k_w.get_name());
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");

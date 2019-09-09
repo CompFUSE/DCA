@@ -203,21 +203,19 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
   int Q_ind = domains::cluster_operations::index(parameters.get_four_point_momentum_transfer(),
                                                  K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
+  interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
 
-  switch (parameters.get_four_point_type()) {
+  // TODO: allow more than one channel.
+  switch (parameters.get_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
 
     case PARTICLE_PARTICLE_UP_DOWN: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::set_q_idx(Q_ind);
       compute_phi(H_k, Sigma, chi);
     } break;
 
@@ -236,20 +234,17 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
   int Q_ind = domains::cluster_operations::index(parameters.get_four_point_momentum_transfer(),
                                                  K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
-  switch (parameters.get_four_point_type()) {
+  // TODO: allow more than one channel.
+  switch (parameters.get_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
 
     case PARTICLE_PARTICLE_UP_DOWN: {
-      interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
-
+      interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::set_q_idx(Q_ind);
       compute_phi(H_k, Sigma, chi);
     } break;
 
@@ -627,7 +622,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::find_w1_and_w2(std::vector<doubl
 
   assert(std::abs(w::get_elements()[w1] - elements[w_ind]) < 1.e-6);
 
-  switch (parameters.get_four_point_type()) {
+  // TODO: allow more than one channel.
+  switch (parameters.get_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
@@ -654,7 +650,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_bubble(
       for (int n2 = 0; n2 < b::dmn_size(); n2++) {
         for (int m1 = 0; m1 < b::dmn_size(); m1++) {
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-            switch (parameters.get_four_point_type()) {
+            // TODO: allow more than one channel.
+            switch (parameters.get_channels()[0]) {
               case PARTICLE_HOLE_TRANSVERSE:
                 bubble(n1, n2, m1, m2, q_ind) +=
                     G_q(n1, e_UP, m2, e_UP, q_ind) * G_q_plus_Q(n2, e_UP, m1, e_UP, q_ind);
@@ -687,7 +684,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_bubble(
 
 template <typename parameters_type, typename K_dmn>
 double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
-  switch (parameters.get_four_point_type()) {
+  // TODO: allow more than one channel.
+  switch (parameters.get_channels()[0]) {
     case PARTICLE_HOLE_TRANSVERSE:
       return -1.;
       break;
@@ -709,8 +707,8 @@ double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
   }
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_TP_HPP

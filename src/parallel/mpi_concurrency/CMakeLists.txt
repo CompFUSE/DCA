@@ -1,6 +1,6 @@
 # parallel mpi_concurrency
 add_library(parallel_mpi_concurrency STATIC mpi_concurrency.cpp mpi_processor_grouping.cpp
-            mpi_initializer.cpp)
+            mpi_initializer.cpp mpi_gang.cpp)
 
 if(DCA_HAVE_CUDA)
   cuda_add_library(kernel_test kernel_test.cu)

@@ -26,6 +26,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/io/buffer.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
@@ -40,12 +41,13 @@ class MPICollectiveSum : public virtual MPIProcessorGrouping {
 public:
   MPICollectiveSum() = default;
 
+  // Wrappers to MPI_Allreduce.
   template <typename scalar_type>
   void sum(scalar_type& value) const;
   template <typename scalar_type>
   void sum(std::vector<scalar_type>& m) const;
   template <typename scalartype>
-  void sum(std::map<std::string, std::vector<scalartype>>& m) const;
+  void sum(std::map<std::string, std::vector<scalartype>>& m);
   template <typename scalar_type, class domain>
   void sum(func::function<scalar_type, domain>& f) const;
   template <typename scalar_type, class domain>
@@ -57,6 +59,22 @@ public:
   void sum(linalg::Vector<scalar_type, linalg::CPU>& vec) const;
   template <typename scalar_type>
   void sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const;
+
+  // Wrapper to MPI_Reduce.
+  template <typename Scalar, class Domain>
+  void localSum(func::function<Scalar, Domain>& f, int root_id) const;
+
+  // Delay the execution of sum (implemented with MPI_Allreduce) until 'resolveSums' is called,
+  // or 'delayedSum' is called with an object of different Scalar type.
+  template <typename Scalar>
+  void delayedSum(Scalar& obj);
+  template <typename Scalar>
+  void delayedSum(std::vector<Scalar>& f);
+  template <typename Scalar, class domain>
+  void delayedSum(func::function<Scalar, domain>& f);
+
+  // Execute all the reductions scheduled with 'delayedSum' or delayed leaveOneOutSum out calls.
+  void resolveSums();
 
   template <typename some_type>
   void sum_and_average(some_type& obj, int nr_meas_rank = 1) const;
@@ -74,20 +92,22 @@ public:
   // in s.
   // Does nothing, if there is only one rank.
   // In/Out: s
+  // In: delay. If true delay the sum until 'resolveSums' is called.
   template <typename T>
-  void leaveOneOutSum(T& s) const;
+  void leaveOneOutSum(T& s, bool delay = 0);
 
   // Element-wise implementations for dca::func::function.
   // In/Out: f
+  // In: delay. If true delay the sum until 'resolveSums' is called.
   template <typename Scalar, class Domain>
-  void leaveOneOutSum(func::function<Scalar, Domain>& f) const;
+  void leaveOneOutSum(func::function<Scalar, Domain>& f, bool delay = 0);
 
   // Computes the average of s over all ranks excluding the local value and stores the result back
   // in s.
   // Does nothing, if there is only one rank.
   // In/Out: s
   template <typename T>
-  void leaveOneOutAvg(T& s) const;
+  void leaveOneOutAvg(T& s);
 
   // Computes and returns the element-wise jackknife error
   // \Delta f_{jack} = \sqrt( (n-1)/n \sum_i^n (f_i - f_avg)^2 ),
@@ -142,8 +162,25 @@ public:
                                            const std::vector<int>& orders) const;
 
 private:
+  // Compute the sum on process 'rank_id', or all processes if rank_id == -1.
   template <typename T>
-  void sum(const T* in, T* out, std::size_t n) const;
+  void sum(const T* in, T* out, std::size_t n, int rank_id = -1) const;
+
+  template <typename T>
+  void delayedSum(T* in, std::size_t n);
+  template <typename T>
+  void delayedSum(std::complex<T>* in, std::size_t n);
+
+  template <typename T>
+  void resolveSumsImplementation();
+
+  // Objects for delayed sums and "leave one out" sums.
+  MPI_Datatype current_type_ = 0;
+  io::Buffer packed_;
+  // Each vector entry stores the properties of a single delayed sum.
+  std::vector<char*> pointers_;
+  std::vector<std::size_t> sizes_;  // number of scalars involved in each operation, not bytes.
+  std::vector<std::int8_t> remove_local_value_;  // use int8_t to avoid vector<bool> issues.
 };
 
 template <typename scalar_type>
@@ -165,23 +202,13 @@ void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
   m = std::move(result);
 }
 
-template <typename scalar_type>
-void MPICollectiveSum::sum(std::map<std::string, std::vector<scalar_type>>& m) const {
-  typedef typename std::map<std::string, std::vector<scalar_type>>::iterator iterator_type;
-
-  iterator_type it = m.begin();
-
-  for (; it != m.end(); ++it) {
-    std::vector<scalar_type> values((it->second).size());
-
-    for (size_t l = 0; l < (it->second).size(); l++)
-      values[l] = (it->second)[l];
-
-    sum(values);
-
-    for (size_t l = 0; l < (it->second).size(); l++)
-      (it->second)[l] = values[l];
+template <typename Scalar>
+void MPICollectiveSum::sum(std::map<std::string, std::vector<Scalar>>& m) {
+  for (auto it = m.begin(); it != m.end(); ++it) {
+    delayedSum((it->second));
   }
+
+  resolveSums();
 }
 
 template <typename scalar_type, class domain>
@@ -255,6 +282,18 @@ void MPICollectiveSum::sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const {
   f = std::move(F);
 }
 
+template <typename scalar_type, class domain>
+void MPICollectiveSum::localSum(func::function<scalar_type, domain>& f, int id) const {
+  if (id < 0 || id > get_size())
+    throw(std::out_of_range("id out of range."));
+
+  func::function<scalar_type, domain> f_sum;
+
+  sum(f.values(), f_sum.values(), f.size(), id);
+
+  f = std::move(f_sum);
+}
+
 template <typename some_type>
 void MPICollectiveSum::sum_and_average(some_type& obj, const int nr_meas_rank) const {
   sum(obj);
@@ -275,29 +314,40 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
 }
 
 template <typename Scalar>
-void MPICollectiveSum::leaveOneOutSum(Scalar& s) const {
+void MPICollectiveSum::leaveOneOutSum(Scalar& s, bool delay) {
   if (MPIProcessorGrouping::get_size() == 1)
     return;
 
   const Scalar s_local(s);
-  sum(s);
-  s = s - s_local;
+  if (delay == false) {
+    sum(s);
+    s = s - s_local;
+  }
+  else {
+    delayedSum(s);
+    remove_local_value_.back() = true;
+  }
 }
 
 template <typename Scalar, class Domain>
-void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain>& f) const {
+void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain>& f, const bool delay) {
   if (MPIProcessorGrouping::get_size() == 1)
     return;
 
-  const func::function<Scalar, Domain> f_local(f);
-  sum(f_local, f);
-
-  for (int i = 0; i < f.size(); ++i)
-    f(i) = f(i) - f_local(i);
+  if (delay == false) {
+    const func::function<Scalar, Domain> f_local(f);
+    sum(f_local, f);
+    for (int i = 0; i < f.size(); ++i)
+      f(i) = f(i) - f_local(i);
+  }
+  else {
+    delayedSum(f);
+    remove_local_value_.back() = false;
+  }
 }
 
 template <typename T>
-void MPICollectiveSum::leaveOneOutAvg(T& x) const {
+void MPICollectiveSum::leaveOneOutAvg(T& x) {
   if (MPIProcessorGrouping::get_size() == 1)
     return;
 
@@ -508,17 +558,95 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 }
 
 template <typename T>
-void MPICollectiveSum::sum(const T* in, T* out, std::size_t n) const {
-  // On summit large messages hangs if sizeof(floating point type) type * message_size > 2^31-1.
+void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) const {
+  // On summit large messages hangs if sizeof(floating point type) * message_size > 2^31-1.
   constexpr std::size_t max_size = dca::util::IsComplex<T>::value
                                        ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
                                        : std::numeric_limits<int>::max() / sizeof(T);
 
   for (std::size_t start = 0; start < n; start += max_size) {
     const int msg_size = std::min(n - start, max_size);
-    MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
-                  MPIProcessorGrouping::get());
+    if (root_id == -1) {
+      MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
+                    MPIProcessorGrouping::get());
+    }
+    else {
+      MPI_Reduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM, root_id,
+                 MPIProcessorGrouping::get());
+    }
   }
+}
+
+template <typename Scalar>
+void MPICollectiveSum::delayedSum(Scalar& obj) {
+  delayedSum(&obj, 1);
+}
+
+template <typename Scalar>
+void MPICollectiveSum::delayedSum(std::vector<Scalar>& v) {
+  delayedSum(v.data(), v.size());
+}
+
+template <typename Scalar, class Domain>
+void MPICollectiveSum::delayedSum(func::function<Scalar, Domain>& f) {
+  delayedSum(f.values(), f.size());
+}
+
+template <typename T>
+void MPICollectiveSum::delayedSum(std::complex<T>* in, std::size_t n) {
+  delayedSum(reinterpret_cast<T*>(in), n * 2);
+}
+
+template <typename T>
+void MPICollectiveSum::delayedSum(T* in, std::size_t n) {
+  if (current_type_ != 0 && current_type_ != MPITypeMap<T>::value())
+    resolveSums();
+
+  current_type_ = MPITypeMap<T>::value();
+  pointers_.push_back(reinterpret_cast<char*>(in));
+  sizes_.push_back(n);
+  remove_local_value_.push_back(false);
+  packed_.write(in, n);
+}
+
+// TODO: move to .cpp file.
+inline void MPICollectiveSum::resolveSums() {
+  // Note: we can not use a switch statement as MPI_Datatype is not integer on the Summit system.
+  if (current_type_ == MPI_DOUBLE)
+    return resolveSumsImplementation<double>();
+  else if (current_type_ == MPI_FLOAT)
+    return resolveSumsImplementation<float>();
+  else if (current_type_ == MPI_UNSIGNED_LONG)
+    return resolveSumsImplementation<unsigned long int>();
+  else
+    throw(std::logic_error("Type not supported."));
+}
+
+template <typename T>
+inline void MPICollectiveSum::resolveSumsImplementation() {
+  io::Buffer output(packed_.size());
+
+  sum(reinterpret_cast<T*>(packed_.data()), reinterpret_cast<T*>(output.data()),
+      packed_.size() / sizeof(T));
+
+  for (int i = 0; i < pointers_.size(); ++i) {
+    const std::size_t position = output.tellg();
+    output.read(pointers_[i], sizes_[i] * sizeof(T));
+
+    if (remove_local_value_[i]) {
+      // Subtract local value from sum.
+      T* sum = reinterpret_cast<T*>(pointers_[i]);
+      const T* local = reinterpret_cast<T*>(packed_.data() + position);
+      // sum[0:n] = sum[0:n] - local[0:n]
+      std::transform(sum, sum + sizes_[i], local, sum, std::minus<T>());
+    }
+  }
+
+  current_type_ = 0;
+  sizes_.clear();
+  remove_local_value_.clear();
+  pointers_.clear();
+  packed_.clear();
 }
 
 }  // namespace parallel

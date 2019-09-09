@@ -35,12 +35,16 @@ public:
     return nr_threads_ - 1;
   }
 
+  auto get() {
+    return nullptr;
+  }
+
 private:
   const int id_;
   const int nr_threads_;
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
 #endif  // DCA_PARALLEL_NO_CONCURRENCY_SERIAL_PROCESSOR_GROUPING_HPP

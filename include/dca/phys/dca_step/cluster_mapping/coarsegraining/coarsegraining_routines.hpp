@@ -272,11 +272,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const {
   typedef interpolation_matrices<scalar_type, k_dmn_t, q_dmn_t> interpolation_matrices_type;
 
-  if (!interpolation_matrices_type::is_initialized())
-    interpolation_matrices_type::initialize(concurrency);
-
-  const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T =
-      interpolation_matrices_type::get(K_ind);
+  const auto T = interpolation_matrices_type::get(K_ind);
 
   scalar_type alpha(1.);
   scalar_type beta(0.);

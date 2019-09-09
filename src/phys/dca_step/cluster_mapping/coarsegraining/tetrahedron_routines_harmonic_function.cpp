@@ -28,7 +28,7 @@ namespace clustermapping {
  ************************************/
 
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math::geometry::tetrahedron<1>& tetrahedron) {
+    const std::vector<double>& r_vec, const math::geometry::tetrahedron<1>& tetrahedron) {
   assert(r_vec.size() == 1);
 
   double r = r_vec[0];
@@ -87,7 +87,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
  *
  */
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math::geometry::tetrahedron<2>& tetrahedron) {
+    const std::vector<double>& r_vec, const math::geometry::tetrahedron<2>& tetrahedron) {
   assert(r_vec.size() == 2);
 
   const static std::complex<double> I(0, 1);
@@ -148,7 +148,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 }
 
 void tetrahedron_routines_harmonic_function::permute(math::geometry::tetrahedron<2>& tetrahedron_new,
-                                                     math::geometry::tetrahedron<2>& tetrahedron_old) {
+                                                     const math::geometry::tetrahedron<2> &tetrahedron_old) {
   tetrahedron_new.vec_1 = tetrahedron_old.vec_0;
   tetrahedron_new.vec_2 = tetrahedron_old.vec_1;
   tetrahedron_new.vec_0 = tetrahedron_old.vec_2;
@@ -234,7 +234,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double d
  ************************************/
 
 void tetrahedron_routines_harmonic_function::permute(math::geometry::tetrahedron<3>& tetrahedron_new,
-                                                     math::geometry::tetrahedron<3>& tetrahedron_old) {
+                                                     const math::geometry::tetrahedron<3> &tetrahedron_old) {
   tetrahedron_new.vec_1 = tetrahedron_old.vec_0;
   tetrahedron_new.vec_2 = tetrahedron_old.vec_1;
   tetrahedron_new.vec_3 = tetrahedron_old.vec_2;
@@ -461,7 +461,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d3_d1_3D(
 }
 
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math::geometry::tetrahedron<3>& tetrahedron) {
+    const std::vector<double>& r_vec, const math::geometry::tetrahedron<3>& tetrahedron) {
   assert(r_vec.size() == 3);
 
   const static std::complex<double> I(0, 1);
@@ -509,8 +509,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
     if (std::abs(dot_R_D1) > EPSILON and std::abs(dot_R_D2) > EPSILON and
         std::abs(dot_R_D3) > EPSILON and std::abs(dot_R_D2_min_D1) > EPSILON and
-        std::abs(dot_R_D3_min_D2) > EPSILON and
-        std::abs(dot_R_D1_min_D3) > EPSILON)  // general case
+        std::abs(dot_R_D3_min_D2) > EPSILON and std::abs(dot_R_D1_min_D3) > EPSILON)  // general case
     {
       result =
           case_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3) *
@@ -580,6 +579,6 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
   return result;
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca

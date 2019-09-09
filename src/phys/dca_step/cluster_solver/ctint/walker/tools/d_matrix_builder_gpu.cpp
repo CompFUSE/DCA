@@ -12,7 +12,6 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
-#include "dca/linalg/make_constant_view.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
