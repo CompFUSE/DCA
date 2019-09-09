@@ -253,7 +253,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
     }
 
     // TODO: allow multiple channels.
-    switch (parameters.get_channel()[0]) {
+    switch (parameters.get_channels()[0]) {
       case PARTICLE_HOLE_TRANSVERSE:
         symmetrize_over_pi_rotations_ph(G);
         break;
