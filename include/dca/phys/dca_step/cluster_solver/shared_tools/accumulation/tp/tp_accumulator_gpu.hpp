@@ -158,6 +158,7 @@ private:
   constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
   using BaseClass::beta_;
+  using BaseClass::channels_;
   using BaseClass::extension_index_offset_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
@@ -398,10 +399,8 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
 
-  // Strip "G4_" prefix from G4 name and convert to FourPointType.
-  const std::string channel_str =
-      G4_[channel_index].get_name().substr(3, G4_[channel_index].get_name().size() - 3);
-  const FourPointType channel = stringToFourPointType(channel_str);
+
+  const FourPointType channel = channels_[channel_index];
 
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:

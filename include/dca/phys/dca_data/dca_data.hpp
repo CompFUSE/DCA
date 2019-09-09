@@ -287,60 +287,11 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
-  G4_.reserve(parameters_.numG4Channels());
-
-  // Allocate memory for G4.
-  // Ensure backward compatibility.
-  if (parameters_.get_four_point_type() != NONE)
-    G4_.emplace_back("G4");
-
-  // Check which four point types to accumulate.
-  else {
-    if (parameters_.accumulateG4ParticleHoleTransverse())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
-
-    if (parameters_.accumulateG4ParticleHoleMagnetic())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
-
-    if (parameters_.accumulateG4ParticleHoleCharge())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
-
-    if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
-
-    if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
-
-    if (parameters_.accumulateG4ParticleParticleUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
-  }
-
-  // Allocate memory for error on G4.
-  if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
-    G4_err_.reserve(parameters_.numG4Channels());
-
-    if (parameters_.get_four_point_type() != NONE)
-      G4_err_.emplace_back("G4-error");
-
-    else {
-      if (parameters_.accumulateG4ParticleHoleTransverse())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleMagnetic())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleCharge())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN) + "_err");
-
-      if (parameters_.accumulateG4ParticleParticleUpDown())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");
-    }
+  for (auto channel : parameters_.get_channels()) {
+    // Allocate memory for G4.
+    G4_.emplace_back("G4_" + toString(channel));
+    // Allocate memory for error on G4.
+    G4_err_.emplace_back("G4_" + toString(channel) + "_err");
   }
 }
 
@@ -399,6 +350,11 @@ void DcaData<Parameters>::read(Reader& reader) {
 
   if (parameters_.accumulateG4()) {
     reader.execute(G_k_w);
+
+    // Try to read G4 with a legacy name.
+    if (parameters_.get_channels().size() == 1) {
+      reader.execute("G4", G4_[0]);
+    }
 
     for (auto& G4_channel : G4_)
       reader.execute(G4_channel);

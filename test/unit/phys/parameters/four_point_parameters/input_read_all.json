@@ -2,12 +2,12 @@
     "four-point": {
         "type": "PARTICLE_PARTICLE_UP_DOWN",
 
-        "particle-hole-transverse": true,
-        "particle-hole-magnetic": true,
-        "particle-hole-charge": true,
-        "particle-hole-longitudinal-up-up": true,
-        "particle-hole-longitudinal-up-down": true,
-        "particle-particle-up-down": true,
+        "channels" : ["PARTICLE_HOLE_TRANSVERSE",
+            "PARTICLE_HOLE_MAGNETIC",
+            "PARTICLE_HOLE_CHARGE",
+            "PARTICLE_HOLE_LONGITUDINAL_UP_UP",
+            "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN",
+            "PARTICLE_PARTICLE_UP_DOWN"],
 
         "momentum-transfer": [3.14, -1.57],
         "frequency-transfer": 1,
