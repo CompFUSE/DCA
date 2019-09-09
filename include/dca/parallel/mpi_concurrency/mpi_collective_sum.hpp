@@ -174,12 +174,13 @@ private:
   template <typename T>
   void resolveSumsImplementation();
 
-  // Objects for delayed sums.
-  std::vector<char*> pointers_;
-  std::vector<std::size_t> sizes_;  // sizes in number of scalars.
-  std::vector<std::int8_t> leave_one_out_;
+  // Objects for delayed sums and "leave one out" sums.
   MPI_Datatype current_type_ = 0;
   io::Buffer packed_;
+  // Each vector entry stores the properties of a single delayed sum.
+  std::vector<char*> pointers_;
+  std::vector<std::size_t> sizes_;  // number of scalars involved in each operation, not bytes.
+  std::vector<std::int8_t> remove_local_value_;  // use int8_t to avoid vector<bool> issues.
 };
 
 template <typename scalar_type>
@@ -324,7 +325,7 @@ void MPICollectiveSum::leaveOneOutSum(Scalar& s, bool delay) {
   }
   else {
     delayedSum(s);
-    leave_one_out_.back() = true;
+    remove_local_value_.back() = true;
   }
 }
 
@@ -341,7 +342,7 @@ void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain>& f, const b
   }
   else {
     delayedSum(f);
-    leave_one_out_.back() = false;
+    remove_local_value_.back() = false;
   }
 }
 
@@ -604,7 +605,7 @@ void MPICollectiveSum::delayedSum(T* in, std::size_t n) {
   current_type_ = MPITypeMap<T>::value();
   pointers_.push_back(reinterpret_cast<char*>(in));
   sizes_.push_back(n);
-  leave_one_out_.push_back(false);
+  remove_local_value_.push_back(false);
   packed_.write(in, n);
 }
 
@@ -632,7 +633,7 @@ inline void MPICollectiveSum::resolveSumsImplementation() {
     const std::size_t position = output.tellg();
     output.read(pointers_[i], sizes_[i] * sizeof(T));
 
-    if (leave_one_out_[i]) {
+    if (remove_local_value_[i]) {
       // Subtract local value from sum.
       T* sum = reinterpret_cast<T*>(pointers_[i]);
       const T* local = reinterpret_cast<T*>(packed_.data() + position);
@@ -643,7 +644,7 @@ inline void MPICollectiveSum::resolveSumsImplementation() {
 
   current_type_ = 0;
   sizes_.clear();
-  leave_one_out_.clear();
+  remove_local_value_.clear();
   pointers_.clear();
   packed_.clear();
 }
