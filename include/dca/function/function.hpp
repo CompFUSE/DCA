@@ -50,17 +50,26 @@ public:
   function(const std::string& name = default_name_);
 
   // Copy constructor
-  // Constructs the function with the name name and a copy of the elements of other.
+  // Constructs the function with the a copy of elements and name of other.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
-  function(const function<scalartype, domain>& other, const std::string& name = default_name_);
+  function(const function<scalartype, domain>& other);
+  // Same as above, but with name = 'name'.
+  function(const function<scalartype, domain>& other, const std::string& name) : function(other) {
+    name_ = name;
+  }
 
   // Move constructor
-  // Constructs the function with the name name and the elements of other using move semantics.
+  // Constructs the function with elements and name of other using move semantics.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
   // Postcondition: The other function is in a non-specified state.
-  function(function<scalartype, domain>&& other, const std::string& name = default_name_);
+  function(function<scalartype, domain>&& other);
+  // Same as above, but with name = 'name'.
+  function(function<scalartype, domain>&& other, const std::string& name)
+      : function(std::move(other)) {
+    name_ = name;
+  }
 
   // Copy assignment operator
   // Replaces the function's elements with a copy of the elements of other.
@@ -191,7 +200,6 @@ public:
   void operator*=(const function<scalartype, domain>& other);
   void operator/=(const function<scalartype, domain>& other);
 
-
   void operator=(scalartype c);
   void operator+=(scalartype c);
   void operator-=(scalartype c);
@@ -267,9 +275,8 @@ function<scalartype, domain>::function(const std::string& name)
 }
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(const function<scalartype, domain>& other,
-                                       const std::string& name)
-    : name_(name),
+function<scalartype, domain>::function(const function<scalartype, domain>& other)
+    : name_(other.name_),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
       Nb_elements(dmn.get_size()),
@@ -286,8 +293,8 @@ function<scalartype, domain>::function(const function<scalartype, domain>& other
 }
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(function<scalartype, domain>&& other, const std::string& name)
-    : name_(name),
+function<scalartype, domain>::function(function<scalartype, domain>&& other)
+    : name_(std::move(other.name_)),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
       Nb_elements(dmn.get_size()),
@@ -463,7 +470,7 @@ void function<scalartype, domain>::operator*=(const scalartype c) {
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator/=(const scalartype c) {
-    for (int linind = 0; linind < Nb_elements; linind++)
+  for (int linind = 0; linind < Nb_elements; linind++)
     fnc_values[linind] /= c;
 }
 
@@ -623,7 +630,7 @@ void function<scalartype, domain>::unpack(const concurrency_t& concurrency, char
   concurrency.unpack(buffer, buffer_size, position, *this);
 }
 
-}  // func
-}  // dca
+}  // namespace func
+}  // namespace dca
 
 #endif  // DCA_FUNCTION_FUNCTION_HPP

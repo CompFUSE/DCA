@@ -80,7 +80,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   dca::linalg::util::initializeMagma();
 
-  parameters_.set_four_point_type(dca::phys::PARTICLE_HOLE_TRANSVERSE);
+  parameters_.set_channel(dca::phys::PARTICLE_HOLE_TRANSVERSE);
 
   using Accumulator =
       dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::linalg::GPU>;
