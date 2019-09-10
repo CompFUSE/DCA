@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
     std::cout << "\nN positive frequencies:\t" << parameters.get_four_point_fermionic_frequencies();
     std::cout << "\nN bands:\t" << BDmn::dmn_size();
     std::cout << "\nN cluster sites:\t" << RDmn::dmn_size();
-    std::cout << "\nType:\t" << parameters.get_four_point_type();
+    std::cout << "\nType:\t" << dca::phys::toString(parameters.get_channels().at(0));
     std::cout << "\n\nTpAccumulation CPU time [sec]:\t " << time << "\n";
   }
 
@@ -153,11 +153,11 @@ int main(int argc, char** argv) {
   cudaProfilerStart();
 
   // Time a single execution.
-  start_event.record(gpu_accumulator.get_streams()[0]);
+  start_event.record(*gpu_accumulator.get_stream());
   dca::profiling::WallTime host_start_time;
   gpu_accumulator.accumulate(M_dev, config, sign);
   dca::profiling::WallTime host_end_time;
-  stop_event.record(gpu_accumulator.get_streams()[0]);
+  stop_event.record(*gpu_accumulator.get_stream());
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
