@@ -141,7 +141,7 @@ TEST(WalkerMethodTest, Inverse) {
         M4(i, j) = i + j * j;
 
     const double det = dca::phys::solver::ctint::details::smallDeterminant(M4);
-    EXPECT_DOUBLE_EQ(dca::linalg::matrixop::determinantIP(M4), det);
+    EXPECT_NEAR(dca::linalg::matrixop::determinantIP(M4), det, 1e-14);
   }
 }
 
