@@ -42,6 +42,10 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 1;
 
+  constexpr static int transformationSign(int, int, int) {
+    return 1;
+  }
+
   static double* initialize_r_DCA_basis();
   static double* initialize_k_DCA_basis();
 

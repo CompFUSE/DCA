@@ -21,6 +21,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "dca/util/type_list.hpp"
@@ -43,15 +44,21 @@ public:
   const static int BANDS = 2;
 
   static double* initialize_r_DCA_basis();
+
   static double* initialize_k_DCA_basis();
 
   static double* initialize_r_LDA_basis();
+
   static double* initialize_k_LDA_basis();
 
   static std::vector<int> get_flavors();
+
   static std::vector<std::vector<double>> get_a_vectors();
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+
+  // Rotations of pi/2 are an anti-symmetry on the band off-diagonal.
+  static int transformationSign(int b1, int b2, int s);
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
@@ -73,67 +80,68 @@ public:
 };
 
 template <typename point_group_type>
+int TwobandCu<point_group_type>::transformationSign(int b1, int b2, int s) {
+  if (!std::is_same<point_group_type, domains::D4>::value)
+    return 1;
+
+  if (b1 == b2)
+    return 1;
+
+  //  using List = typename point_group_type::point_group_type_list;
+  using dca::util::IndexOf;
+
+  constexpr bool symmetrize_off_diagonal = true;
+
+  if (symmetrize_off_diagonal) {
+    //    const bool is_odd_rotation = IndexOf<domains::Cn_2D<1, 4>, List>::value == s ||
+    //                                 IndexOf<domains::Cn_2D<3, 4>, List>::value == s;
+    // TODO: generalize.
+    const bool is_odd_rotation = (s % 2) == 1;
+
+    return is_odd_rotation ? -1 : 1;
+  }
+
+  else {
+    // TODO: generalize.
+    const bool is_identity = s == 0;
+    return is_identity ? 1 : 0;
+  }
+}
+
+template <typename point_group_type>
 double* TwobandCu<point_group_type>::initialize_r_DCA_basis() {
-  static double* r_DCA = new double[4];
-
-  r_DCA[0] = 1.0;
-  r_DCA[1] = 0.0;
-  r_DCA[2] = 0.0;
-  r_DCA[3] = 1.0;
-
-  return r_DCA;
+  static std::array<double, 4> r_DCA{1, 0, 0, 1};
+  return r_DCA.data();
 }
 
 template <typename point_group_type>
 double* TwobandCu<point_group_type>::initialize_k_DCA_basis() {
-  static double* k_DCA = new double[4];
-
-  k_DCA[0] = 2 * M_PI;
-  k_DCA[1] = 0.;
-  k_DCA[2] = 0.;
-  k_DCA[3] = 2 * M_PI;
-
-  return k_DCA;
+  static std::array<double, 4> k_DCA{2 * M_PI, 0, 0, 2 * M_PI};
+  return k_DCA.data();
 }
 
 template <typename point_group_type>
 double* TwobandCu<point_group_type>::initialize_r_LDA_basis() {
-  static double* r_LDA = new double[4];
-
-  r_LDA[0] = 1.;
-  r_LDA[1] = 0.;
-  r_LDA[2] = 0.;
-  r_LDA[3] = 1.;
-
-  return r_LDA;
+  static std::array<double, 4> basis{1, 0, 0, 1};
+  return basis.data();
 }
 
 template <typename point_group_type>
 double* TwobandCu<point_group_type>::initialize_k_LDA_basis() {
-  static double* k_LDA = new double[4];
-
-  k_LDA[0] = 2. * M_PI;
-  k_LDA[1] = 0.;
-  k_LDA[2] = 0.;
-  k_LDA[3] = 2. * M_PI;
-
-  return k_LDA;
+  static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
+  return basis.data();
 }
 
 template <typename point_group_type>
 std::vector<int> TwobandCu<point_group_type>::get_flavors() {
-  static std::vector<int> flavors(BANDS);
-
-  flavors[0] = 0;
-  flavors[1] = 1;
-
+  static std::vector<int> flavors{0, 1};
+  assert(flavors.size() == BANDS);
   return flavors;
 }
 
 template <typename point_group_type>
 std::vector<std::vector<double>> TwobandCu<point_group_type>::get_a_vectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
-
   return a_vecs;
 }
 
