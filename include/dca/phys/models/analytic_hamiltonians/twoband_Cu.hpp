@@ -43,6 +43,9 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 2;
 
+  // Rotations of pi/2 are an anti-symmetry on the band off-diagonal.
+  static int transformationSign(int b1, int b2, int s);
+
   static double* initialize_r_DCA_basis();
 
   static double* initialize_k_DCA_basis();
@@ -56,9 +59,6 @@ public:
   static std::vector<std::vector<double>> get_a_vectors();
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
-
-  // Rotations of pi/2 are an anti-symmetry on the band off-diagonal.
-  static int transformationSign(int b1, int b2, int s);
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
@@ -171,6 +171,7 @@ void TwobandCu<point_group_type>::initialize_H_interaction(
 
   H_interaction = 0.;
 
+  // Note: the solvers expect a double counted Hamiltonian.
   for (int b1 = 0; b1 < BANDS; b1++) {
     for (int s1 = 0; s1 < 2; s1++) {
       for (int b2 = 0; b2 < BANDS; b2++) {
@@ -178,7 +179,7 @@ void TwobandCu<point_group_type>::initialize_H_interaction(
           if (b1 == b2 && s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = U;
 
-          if (b1 < b2)
+          if (b1 != b2)
             H_interaction(b1, s1, b2, s2, origin) = V;
         }
       }
