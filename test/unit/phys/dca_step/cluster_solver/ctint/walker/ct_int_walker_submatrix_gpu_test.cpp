@@ -51,14 +51,14 @@ TEST_F(G0Setup, doSteps) {
 
   // TODO: improve API.
   SubmatrixWalker<CPU>::setDMatrixBuilder(g0_cpu, RDmn::parameter_type::get_subtract_matrix(),
-                                          label_dmn.get_branch_domain_steps(),
-                                          parameters_.getAlphas());
+                                          label_dmn.get_branch_domain_steps());
+  SubmatrixWalker<CPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
   SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu, RDmn::parameter_type::get_subtract_matrix(),
-                                          label_dmn.get_branch_domain_steps(),
-                                          parameters_.getAlphas());
+                                          label_dmn.get_branch_domain_steps());
+  SubmatrixWalker<GPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
+
   SubmatrixWalker<CPU>::setInteractionVertices(parameters_, *data_);
   SubmatrixWalker<GPU>::setInteractionVertices(parameters_, *data_);
-
 
   // ************************************
   // Test vertex insertion / removal ****

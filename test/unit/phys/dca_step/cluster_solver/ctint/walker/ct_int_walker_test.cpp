@@ -41,8 +41,8 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   G0Setup::LabelDomain label_dmn;
 
   Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
-
+                            label_dmn.get_branch_domain_steps());
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), 0);
   Walker::setInteractionVertices(parameters_, *data_);
 
   Walker walker(parameters_, rng);

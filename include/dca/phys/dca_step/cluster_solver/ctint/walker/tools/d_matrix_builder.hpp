@@ -49,9 +49,11 @@ private:
 public:
   DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas);
+                 const std::vector<std::size_t>& sbdm_step);
 
   virtual ~DMatrixBuilder() {}
+
+  virtual void setAlphas(const std::array<double, 3> &alphas_base, bool adjust_dd);
 
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
@@ -60,7 +62,7 @@ public:
   }
 
   double computeD(const int i, const int j, const Sector& config) const;
-  double computeAlpha(const int aux_spin_type) const;
+  double computeAlpha(const int aux_spin_type, const int b) const;
   double computeDSubmatrix(const int i, const int j, const Sector& configuration) const;
   double computeF(const double alpha) const;
   double computeF(const int i, const Sector& configuration) const;
@@ -86,9 +88,9 @@ private:
 
 protected:
   const G0Interpolation<linalg::CPU>& g0_ref_;
-  const double alpha_1_ = 0;
-  const double alpha_2_ = 0;
-  const double alpha_3_ = 0;
+  std::vector<double> alpha_dd_;
+  double alpha_dd_neg_ = 0;
+  double alpha_ndd_ = 0;
   const int n_bands_ = -1;
   const std::vector<std::size_t>& sbdm_step_;
   // Note: site_diff is a matrix where site_diff(i,j) = r_j - r_i.

@@ -139,8 +139,9 @@ public:
   template <linalg::DeviceType device_type>
   static void setDMatrixBuilder(const G0Interpolation<device_type>& g0,
                                 const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                const std::vector<std::size_t>& sbdm_step,
-                                const std::array<double, 3>& alphas);
+                                const std::vector<std::size_t>& sbdm_step);
+
+  static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
   static void setInteractionVertices(const Parameters& parameters, Data& data);
 
@@ -159,7 +160,7 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<const DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
+  static std::unique_ptr<DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -174,6 +175,8 @@ protected:  // Members.
 
   const double beta_;
   static constexpr int n_bands_ = Parameters::bands;
+  static constexpr int n_alphas_ =
+      n_bands_ + 2;  // one positive d-d for each band, plus negative d-d and nd-d
   const int possible_partners_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
@@ -205,7 +208,7 @@ private:
 template <class Parameters>
 InteractionVertices CtintWalkerBase<Parameters>::vertices_;
 template <class Parameters>
-std::unique_ptr<const DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
+std::unique_ptr<DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
 
 template <class Parameters>
 CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref, int id)
@@ -323,12 +326,18 @@ template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters>::setDMatrixBuilder(
     const dca::phys::solver::ctint::G0Interpolation<device_type>& g0,
     const dca::linalg::Matrix<int, linalg::CPU>& site_diff,
-    const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas) {
+    const std::vector<std::size_t>& sbdm_step) {
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ =
-      std::make_unique<const DMatrixBuilder<device_type>>(g0, site_diff, sbdm_step, alphas);
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type>>(g0, site_diff, sbdm_step);
+}
+
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setDMatrixAlpha(const std::array<double, 3>& alphas,
+                                                  bool adjust_dd) {
+  assert(d_builder_ptr_);
+  d_builder_ptr_->setAlphas(alphas, adjust_dd);
 }
 
 template <class Parameters>

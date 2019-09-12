@@ -173,6 +173,12 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
   perform_tp_accumulation_ =
       parameters_.accumulateG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
   accumulator_.initialize(dca_iteration_);
+
+  if (parameters_.adjustAlphaDd()) {
+    auto alphas = parameters_.getAlphas();
+    // Increase auxiliary field  by g0(0+).
+    alphas[0] += data_.G0_r_t_cluster_excluded();
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>

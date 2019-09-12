@@ -26,18 +26,23 @@ using linalg::GPU;
 
 DMatrixBuilder<CPU>::DMatrixBuilder(const G0Interpolation<CPU>& g0,
                                     const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                    const std::vector<std::size_t>& sbdm_step,
-                                    const std::array<double, 3>& alphas)
-    : g0_ref_(g0),
-      alpha_1_(alphas[0]),
-      alpha_2_(alphas[1]),
-      alpha_3_(alphas[2]),
-      n_bands_(sbdm_step[1]),
-      sbdm_step_(sbdm_step),
-      site_diff_(site_diff) {
+                                    const std::vector<std::size_t>& sbdm_step)
+    : g0_ref_(g0), n_bands_(sbdm_step[1]), sbdm_step_(sbdm_step), site_diff_(site_diff) {
   assert(sbdm_step.size() == 3);
-  if (alpha_3_ == 0)
-    throw(std::logic_error("All auxiliary fields must be non zero."));
+}
+
+void DMatrixBuilder<CPU>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
+  alpha_dd_neg_ = alphas_base[1];
+  alpha_ndd_ = alphas_base[2];
+
+  const int r0 = site_diff_(0, 0);
+  alpha_dd_.resize(n_bands_);
+  for (int b = 0; b < n_bands_; ++b) {
+    alpha_dd_[b] = alphas_base[0];
+    // TODO: check if shifting by g0(0+) or g0(0-).
+    if (adjust_dd)  // shift by g0(0).
+      alpha_dd_[b] += std::abs(g0_ref_(0., label(b, b, r0)));
+  }
 }
 
 void DMatrixBuilder<CPU>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
@@ -75,7 +80,7 @@ double DMatrixBuilder<CPU>::computeD(const int i, const int j, const Sector& con
   const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const double g0_val = g0_ref_(delta_tau, p_index);
   if (i == j)
-    return g0_val - computeAlpha(configuration.getAuxFieldType(i));
+    return g0_val - computeAlpha(configuration.getAuxFieldType(i), b1);
   else
     return g0_val;
 }
@@ -84,14 +89,15 @@ int DMatrixBuilder<CPU>::label(const int b1, const int b2, const int r) const {
   return b1 + b2 * sbdm_step_[1] + r * sbdm_step_[2];
 }
 
-double DMatrixBuilder<CPU>::computeAlpha(const int aux_spin_type) const {
+double DMatrixBuilder<CPU>::computeAlpha(const int aux_spin_type, const int b) const {
+  assert(alpha_dd_.size());
   switch (std::abs(aux_spin_type)) {
     case 1:
-      return aux_spin_type < 0 ? (0.5 + alpha_1_) : (0.5 - alpha_1_);
+      return aux_spin_type < 0 ? (0.5 + alpha_dd_[b]) : (0.5 - alpha_dd_[b]);
     case 2:
-      return aux_spin_type < 0 ? (0.5 + alpha_2_) : (0.5 - alpha_2_);
+      return aux_spin_type < 0 ? (0.5 + alpha_dd_neg_) : (0.5 - alpha_dd_neg_);
     case 3:
-      return aux_spin_type < 0 ? alpha_3_ : -alpha_3_;
+      return aux_spin_type < 0 ? alpha_ndd_ : -alpha_ndd_;
     default:
       throw(std::logic_error("type not recognized."));
   }
@@ -108,10 +114,10 @@ double DMatrixBuilder<CPU>::computeDSubmatrix(const int i, const int j,
   const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const double g0_val = g0_ref_(delta_tau, p_index);
   if (i == j)
-    return computeF(computeAlpha(configuration.getAuxFieldType(i))) -
-           g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j))) - 1);
+    return computeF(computeAlpha(configuration.getAuxFieldType(i), 0)) -
+           g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j), 0)) - 1);
   else
-    return -g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j))) - 1);
+    return -g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j), 0)) - 1);
 }
 
 double DMatrixBuilder<CPU>::computeF(const double alpha) const {
@@ -119,14 +125,14 @@ double DMatrixBuilder<CPU>::computeF(const double alpha) const {
 }
 
 double DMatrixBuilder<CPU>::computeF(const int i, const Sector& configuration) const {
-  return computeF(computeAlpha(configuration.getAuxFieldType(i)));
+  return computeF(computeAlpha(configuration.getAuxFieldType(i), 0));
 }
 
 double DMatrixBuilder<CPU>::computeF(const int aux_spin_type) const {
   if (aux_spin_type == 0)
     return 1;
   else
-    return computeF(computeAlpha(aux_spin_type));
+    return computeF(computeAlpha(aux_spin_type, 0));
 }
 
 double DMatrixBuilder<CPU>::computeGamma(const int aux_spin_type, const int new_aux_spin_type) const {

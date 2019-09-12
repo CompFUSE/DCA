@@ -27,9 +27,8 @@ using linalg::GPU;
 
 DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
                                             const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                            const std::vector<std::size_t>& sbdm_step,
-                                            const std::array<double, 3>& alpha)
-    : BaseClass(g0, site_diff, sbdm_step, alpha), g0_ref_(g0) {
+                                            const std::vector<std::size_t>& sbdm_step)
+    : BaseClass(g0, site_diff, sbdm_step), g0_ref_(g0) {
   ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff), sbdm_step);
 }
 

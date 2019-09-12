@@ -38,7 +38,9 @@ private:
 public:
   DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas);
+                 const std::vector<std::size_t>& sbdm_step);
+
+  void setAlphas(const std::array<double, 3> &alphas_base, bool adjust_dd);
 
   const G0Interpolation<linalg::GPU>& getG0() const {
     return g0_ref_;
