@@ -186,6 +186,7 @@ void CtintAccumulator<Parameters, device>::sumTo(this_type& other_one) {
     tp_accumulator_.sumTo(other_one.tp_accumulator_);
   }
   other_one.flop_ += flop_;
+  other_one.order_sum_ += order_sum_;
 }
 
 template <class Parameters, linalg::DeviceType device>
