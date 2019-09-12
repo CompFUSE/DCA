@@ -288,16 +288,26 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
           math::statistics::util::standard_deviation(x);
     }
   }
-  concurrency_.sum_and_average(loop_data.Sigma_zero_moment);
-  concurrency_.sum_and_average(loop_data.standard_deviation);
 
-  concurrency_.sum_and_average(loop_data.average_expansion_order(dca_iteration_) =
-                                   accumulator_.avgOrder());
+  loop_data.average_expansion_order(dca_iteration_) = accumulator_.avgOrder();
+  loop_data.sign(dca_iteration_) = avg_sign;                            // This is already averaged.
+  loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_;  // This is already averaged.
+  loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_;
 
-  loop_data.sign(dca_iteration_) = avg_sign;
-  loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_;
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+    concurrency_.delayedSum(loop_data.Sigma_zero_moment);
+    concurrency_.delayedSum(loop_data.standard_deviation);
+    concurrency_.delayedSum(loop_data.average_expansion_order);
+    concurrency_.delayedSum(loop_data.thermalization_per_mpi_task);
 
-  concurrency_.sum_and_average(loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_);
+    concurrency_.resolveSums();
+
+    loop_data.Sigma_zero_moment /= concurrency_.number_of_processors();
+    loop_data.Sigma_zero_moment /= concurrency_.number_of_processors();
+    loop_data.standard_deviation /= concurrency_.number_of_processors();
+    loop_data.average_expansion_order /= concurrency_.number_of_processors();
+    loop_data.thermalization_per_mpi_task /= concurrency_.number_of_processors();
+  }
 
   // Free walker memory for the dca loop.
   walker_.release();
