@@ -402,7 +402,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
     // Diagonalize the symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
     // The origin in momentum space has always index = 0.
     // TODO: loop over multiple channels.
-    if (parameters.get_channels()[0] == PARTICLE_PARTICLE_UP_DOWN &&
+    if (parameters.get_four_point_channels()[0] == PARTICLE_PARTICLE_UP_DOWN &&
         parameters.get_four_point_momentum_transfer_index() == 0 &&
         parameters.get_four_point_frequency_transfer() == 0) {
       diagonalizeGammaChi0Symmetric();

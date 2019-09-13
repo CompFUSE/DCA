@@ -244,7 +244,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::initialize(int dca_iteration)
 
   MC_accumulator_data::initialize(dca_iteration);
 
-  if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4())
+  if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4())
     perform_tp_accumulation_ = true;
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)

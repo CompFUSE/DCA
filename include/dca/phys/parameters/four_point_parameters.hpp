@@ -53,21 +53,19 @@ public:
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
-  // Returns the number of channels of G4 to accumulate.
-  const auto& get_channels() const {
-    return channels_;
+  const auto& get_four_point_channels() const {
+    return four_point_channels_;
   }
 
-  // Returns true if at least one channel is accumulated.
-  bool accumulateG4() const {
-    return channels_.size();
+  bool isAccumulatingG4() const {
+    return four_point_channels_.size();
   }
 
-  void set_channel(FourPointType type) {
-    channels_ = std::vector<FourPointType>{type};
+  void set_four_point_channel(FourPointType type) {
+    four_point_channels_ = std::vector<FourPointType>{type};
   }
-  void set_channels(const std::vector<FourPointType>& channels) {
-    channels_ = channels;
+  void set_four_point_channels(const std::vector<FourPointType>& channels) {
+    four_point_channels_ = channels;
   }
 
   const std::vector<double>& get_four_point_momentum_transfer_input() const {
@@ -107,7 +105,7 @@ public:
   }
 
 private:
-  std::vector<FourPointType> channels_;
+  std::vector<FourPointType> four_point_channels_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
   bool compute_all_transfers_;
@@ -118,7 +116,7 @@ template <typename Concurrency>
 int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
-  buffer_size += concurrency.get_buffer_size(channels_);
+  buffer_size += concurrency.get_buffer_size(four_point_channels_);
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
   buffer_size += concurrency.get_buffer_size(compute_all_transfers_);
@@ -130,7 +128,7 @@ template <int lattice_dimension>
 template <typename Concurrency>
 void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency, char* buffer,
                                                   int buffer_size, int& position) const {
-  concurrency.pack(buffer, buffer_size, position, channels_);
+  concurrency.pack(buffer, buffer_size, position, four_point_channels_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.pack(buffer, buffer_size, position, compute_all_transfers_);
@@ -140,7 +138,7 @@ template <int lattice_dimension>
 template <typename Concurrency>
 void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurrency, char* buffer,
                                                     int buffer_size, int& position) {
-  concurrency.unpack(buffer, buffer_size, position, channels_);
+  concurrency.unpack(buffer, buffer_size, position, four_point_channels_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.unpack(buffer, buffer_size, position, compute_all_transfers_);
@@ -168,19 +166,19 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
       std::string four_point_name = "NONE";
       try_to_execute("type", four_point_name);
       if (four_point_name != "NONE")
-        channels_.push_back(stringToFourPointType(four_point_name));
+        four_point_channels_.push_back(stringToFourPointType(four_point_name));
 
       try_to_execute(channel_par_name, channel_names);
       for (auto name : channel_names)
-        channels_.push_back(stringToFourPointType(name));
+        four_point_channels_.push_back(stringToFourPointType(name));
 
       // Remove duplicates
-      std::sort(channels_.begin(), channels_.end());
-      channels_.erase(std::unique(channels_.begin(), channels_.end()), channels_.end());
+      std::sort(four_point_channels_.begin(), four_point_channels_.end());
+      four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()), four_point_channels_.end());
     }
 
     else {  // is writer.
-      for (auto channel : channels_)
+      for (auto channel : four_point_channels_)
         channel_names.push_back(toString(channel));
 
       try_to_execute(channel_par_name, channel_names);

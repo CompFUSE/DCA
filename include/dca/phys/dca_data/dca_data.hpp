@@ -287,7 +287,7 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
-  for (auto channel : parameters_.get_channels()) {
+  for (auto channel : parameters_.get_four_point_channels()) {
     // Allocate memory for G4.
     G4_.emplace_back("G4_" + toString(channel));
     // Allocate memory for error on G4.
@@ -325,7 +325,7 @@ void DcaData<Parameters>::read(std::string filename) {
 
   concurrency_.broadcast_object(Sigma);
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     concurrency_.broadcast_object(G_k_w);
 
     for (auto& G4_channel : G4_)
@@ -348,11 +348,11 @@ void DcaData<Parameters>::read(Reader& reader) {
 
   reader.execute(Sigma);
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     reader.execute(G_k_w);
 
     // Try to read G4 with a legacy name.
-    if (parameters_.get_channels().size() == 1) {
+    if (parameters_.get_four_point_channels().size() == 1) {
       reader.execute("G4", G4_[0]);
     }
 
@@ -454,7 +454,7 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_err_);

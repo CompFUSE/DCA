@@ -185,7 +185,7 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
       thread_id_(thread_id),
       multiple_accumulators_(pars.get_accumulators() > 1),
       beta_(pars.get_beta()),
-      channels_(pars.get_channels()),
+      channels_(pars.get_four_point_channels()),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
       n_pos_frqs_(WTpExtPosDmn::dmn_size()),
       G0_M_(n_bands_),
