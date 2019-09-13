@@ -25,6 +25,7 @@
 // #include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
 // #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 
 namespace dca {
@@ -44,6 +45,9 @@ class ModelParameters {};
 
 // Specialization for square lattice bilayer Hubbard model
 #include "model_parameters_bilayer_hubbard.inc"
+
+// Specialization for 2D bilayer model with a spin flip term
+#include "model_parameters_hund.inc"
 
 // Specialization for material models
 #include "model_parameters_material.inc"

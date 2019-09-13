@@ -120,6 +120,7 @@ set(DCA_LIBS
   timer
   cmake_options
   ctaux
+  ctint
   ss_ct_hyb
   function_transform
   gaussian_quadrature
