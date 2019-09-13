@@ -281,11 +281,7 @@ public:
   void setDoubleUpdateProb(const double p) {
     double_update_prob_ = p;
   }
-
-  bool doubleCountedInteraction() const {
-    return double_counted_interaction_;
-  }
-
+  
   int getMaxSubmatrixSize() const {
     return max_submatrix_size_;
   }
@@ -312,7 +308,6 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_dd_neg_);
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
   buffer_size += concurrency.get_buffer_size(double_update_prob_);
-  buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
   buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
 
   return buffer_size;
@@ -326,7 +321,6 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.pack(buffer, buffer_size, position, double_update_prob_);
-  concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
   concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
@@ -338,7 +332,6 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.unpack(buffer, buffer_size, position, double_update_prob_);
-  concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
   concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
@@ -361,7 +354,6 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("alpha-dd-neg", alpha_dd_neg_);
     tryToRead("alpha-ndd", alpha_ndd_);
     tryToRead("double-update-probability", double_update_prob_);
-    tryToRead("double-counted-interaction", double_counted_interaction_);
     tryToRead("max-submatrix-size", max_submatrix_size_);
     reader_or_writer.close_group();
   }

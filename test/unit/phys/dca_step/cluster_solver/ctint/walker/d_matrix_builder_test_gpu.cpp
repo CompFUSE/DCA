@@ -35,7 +35,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
       parameters_.getAlphas());
 
   ctint::InteractionVertices interaction_vertices;
-  interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
+    interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
 
   HostMatrix G0;
   DeviceMatrix G0_dev;

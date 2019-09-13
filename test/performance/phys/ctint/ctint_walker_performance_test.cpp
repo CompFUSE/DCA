@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
                                     bbr_dmn.get_branch_domain_steps(), parameters.getAlphas());
-    Walker<device>::setInteractionVertices(parameters, data);
+    Walker<device>::setInteractionVertices(data);
 
   auto printTime = [](const std::string& str, const auto& start, const auto& end) {
     dca::profiling::Duration time(end, start);

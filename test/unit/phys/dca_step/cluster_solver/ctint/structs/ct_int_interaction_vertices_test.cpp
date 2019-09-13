@@ -85,12 +85,11 @@ TEST_F(G0Setup, InitializeFromHamiltonians) {
     H_int(0, 1, 0, 0, 0) = U;
 
     dca::phys::solver::ctint::InteractionVertices vertices;
-    vertices.initializeFromHamiltonian(H_int, true /*double counting*/);
+    vertices.initializeFromHamiltonian(H_int);
     EXPECT_EQ(U * RDmn::dmn_size(), vertices.integratedInteraction());
 
-    vertices.reset();
-    vertices.initializeFromHamiltonian(H_int, false /*double counting*/);
-    EXPECT_EQ(2 * U * RDmn::dmn_size(), vertices.integratedInteraction());
+    // Note: use this check if the double counting is removed.
+    // EXPECT_EQ(2 * RDmn::dmn_size(), vertices.integratedInteraction());
   }
 
   //  ********************************

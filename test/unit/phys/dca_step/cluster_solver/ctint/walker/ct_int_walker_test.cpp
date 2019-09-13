@@ -43,7 +43,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
                             label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
 
-  Walker::setInteractionVertices(parameters_, *data_);
+    Walker::setInteractionVertices(*data_);
 
   Walker walker(parameters_, rng);
   walker.initialize();

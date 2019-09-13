@@ -54,8 +54,8 @@ template <class Lattice, class HType, class Parameters>
 typename std::enable_if_t<not has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_TRAITS_HPP

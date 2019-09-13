@@ -56,8 +56,8 @@ TEST_F(G0Setup, doSteps) {
   SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu, RDmn::parameter_type::get_subtract_matrix(),
                                           label_dmn.get_branch_domain_steps(),
                                           parameters_.getAlphas());
-  SubmatrixWalker<CPU>::setInteractionVertices(parameters_, *data_);
-  SubmatrixWalker<GPU>::setInteractionVertices(parameters_, *data_);
+    SubmatrixWalker<CPU>::setInteractionVertices(*data_);
+    SubmatrixWalker<GPU>::setInteractionVertices(*data_);
 
 
   // ************************************
