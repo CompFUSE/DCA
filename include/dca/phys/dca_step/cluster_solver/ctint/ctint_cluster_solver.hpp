@@ -153,7 +153,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
   Walker::setDMatrixBuilder(g0_, RDmn::parameter_type::get_subtract_matrix(),
                             label_dmn_.get_branch_domain_steps(), parameters_.getAlphas());
 
-  Walker::setInteractionVertices(parameters_, data_);
+    Walker::setInteractionVertices(data_);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";

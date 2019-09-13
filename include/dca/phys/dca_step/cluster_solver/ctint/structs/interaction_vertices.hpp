@@ -42,8 +42,7 @@ public:
   // Initialize vertices with a density-density Hamiltonian.
   // Precondition: Domain has the shape of dmn_variadic<Nu, Nu, Rdmn>
   template <class Nu, class Rdmn>
-  void initializeFromHamiltonian(const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn>>& H_int,
-                                 bool double_counted = true);
+  void initializeFromHamiltonian(const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn>>& H_int);
   template <class Nu, class Rdmn>
   void initializeFromNonDensityHamiltonian(
       const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, Rdmn>>& H_int);
@@ -78,16 +77,45 @@ private:
 
 template <class Nu, class Rdmn>
 void InteractionVertices::initializeFromHamiltonian(
-    const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn>>& H_int, bool double_counted) {
+    const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn>>& H_int) {
+  // Note: Use this version of the code if double counting in the interaction hamiltonian is removed.
+  //
+  //  for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
+  //    for (ushort nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
+  //      for (ushort delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
+  //        const double value = H_int(nu1, nu2, delta_r);
+  //        if (std::abs(value) < 1e-8)
+  //          continue;
+  //        for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
+  //          const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1); // delta_r = r1 - r2
+  //          insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value, short(-1)});
+  //        }
+  //      }
+  //  }
+
+  // Assume the density-density interaction Hamiltonian function is double counted, i.e.
+  // H(b1, b2, r1 - r2) == H(b2, b1, r -r2) and both terms describe the same addendum to the
+  // physical Hamiltonian.
+  func::function<bool, func::dmn_variadic<Nu, Nu, Rdmn>> already_inserted;
+  const int r0 = Rdmn::parameter_type::origin_index();
   for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
-    const ushort nu2_start = double_counted ? nu1 + 1 : 0;
-    for (ushort nu2 = nu2_start; nu2 < Nu::dmn_size(); nu2++)
+    for (ushort nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
       for (ushort delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
         const double value = H_int(nu1, nu2, delta_r);
         if (std::abs(value) < 1e-8)
           continue;
+
+        const double minus_delta_r = Rdmn::parameter_type::subtract(delta_r, r0);
+        if (std::abs(H_int(nu1, nu2, delta_r) - H_int(nu2, nu1, minus_delta_r)) > 1e-8)
+          throw(std::logic_error("The interaction double counting is not consistent."));
+
+        if (already_inserted(nu2, nu1, minus_delta_r))  // Avoid double counting.
+          continue;
+
+        // Insert
+        already_inserted(nu1, nu2, delta_r) = true;
         for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
-          const ushort r2 = Rdmn::parameter_type::add(delta_r, r1);
+          const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1);  // delta_r = r1 - r2
           insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value, short(-1)});
         }
       }
@@ -122,9 +150,9 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
           }
 }
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_INTERACTION_VERTICES_HPP

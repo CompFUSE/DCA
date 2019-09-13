@@ -77,7 +77,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*> & /*streams*/) const;
+  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*>& /*streams*/) const;
 
   void markThermalized();
 
@@ -142,7 +142,7 @@ public:
                                 const std::vector<std::size_t>& sbdm_step,
                                 const std::array<double, 3>& alphas);
 
-  static void setInteractionVertices(const Parameters& parameters, Data& data);
+  static void setInteractionVertices(Data &data);
 
   float stealFLOPs() {
     auto flop = flop_;
@@ -326,9 +326,9 @@ void CtintWalkerBase<Parameters>::setDMatrixBuilder(
 }
 
 template <class Parameters>
-void CtintWalkerBase<Parameters>::setInteractionVertices(const Parameters& parameters, Data& data) {
+void CtintWalkerBase<Parameters>::setInteractionVertices(Data& data) {
   vertices_.reset();
-  vertices_.initializeFromHamiltonian(data.H_interactions, parameters.doubleCountedInteraction());
+  vertices_.initializeFromHamiltonian(data.H_interactions);
   if (data.has_non_density_interactions())
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
 }
