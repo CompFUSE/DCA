@@ -252,7 +252,8 @@ void diagrammatic_symmetries<parameters_type>::execute(
       // cout << "\n\t q_vec is NOT reciprocal !!! \n\n";
     }
 
-    switch (parameters.get_four_point_type()) {
+    // TODO: allow multiple channels.
+    switch (parameters.get_four_point_channels()[0]) {
       case PARTICLE_HOLE_TRANSVERSE:
         symmetrize_over_pi_rotations_ph(G);
         break;

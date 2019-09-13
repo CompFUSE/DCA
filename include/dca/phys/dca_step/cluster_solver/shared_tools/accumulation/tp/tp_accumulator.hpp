@@ -136,7 +136,7 @@ protected:
   float computeM(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
-  double updateG4(TpGreensFunction& G4_channel);
+  double updateG4(int channel_id);
 
   void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
                              int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
@@ -163,6 +163,7 @@ protected:
   SpGreenFunction G_;
 
   std::vector<TpGreensFunction> G4_;
+  std::vector<FourPointType> channels_;
 
   func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
@@ -184,6 +185,7 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
       thread_id_(thread_id),
       multiple_accumulators_(pars.get_accumulators() > 1),
       beta_(pars.get_beta()),
+      channels_(pars.get_four_point_channels()),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
       n_pos_frqs_(WTpExtPosDmn::dmn_size()),
       G0_M_(n_bands_),
@@ -196,32 +198,8 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
-  G4_.reserve(pars.numG4Channels());
-
-  // Ensure backward compatibility.
-  if (pars.get_four_point_type() != NONE) {
-    G4_.emplace_back("G4_" + toString(pars.get_four_point_type()));
-  }
-
-  // Check which four point types to accumulate.
-  else {
-    if (pars.accumulateG4ParticleHoleTransverse())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
-
-    if (pars.accumulateG4ParticleHoleMagnetic())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
-
-    if (pars.accumulateG4ParticleHoleCharge())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
-
-    if (pars.accumulateG4ParticleHoleLongitudinalUpUp())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
-
-    if (pars.accumulateG4ParticleHoleLongitudinalUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
-
-    if (pars.accumulateG4ParticleParticleUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
+  for (auto channel : channels_) {
+    G4_.emplace_back("G4_" + toString(channel));
   }
 }
 
@@ -261,8 +239,8 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
   gflops += computeM(M_pair, configs);
   gflops += computeG();
 
-  for (auto& G4_channel : G4_)
-    gflops += updateG4(G4_channel);
+  for (int channel_id = 0; channel_id < G4_.size(); ++channel_id)
+    gflops += updateG4(channel_id);
 
   return gflops;
 }
@@ -402,7 +380,7 @@ void TpAccumulator<Parameters, linalg::CPU>::getGMultiband(int s, int k1, int k2
 }
 
 template <class Parameters>
-double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
+double TpAccumulator<Parameters, linalg::CPU>::updateG4(const int channel_id) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -429,9 +407,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
   const auto& exchange_frq = domains::FrequencyExchangeDomain::get_elements();
   const auto& exchange_mom = domains::MomentumExchangeDomain::get_elements();
 
-  // Strip "G4_" prefix from G4 name and convert to FourPointType.
-  const std::string channel_str = G4.get_name().substr(3, G4.get_name().size() - 3);
-  const FourPointType channel = stringToFourPointType(channel_str);
+  auto& G4 = G4_[channel_id];
+  auto channel = channels_[channel_id];
 
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
@@ -451,7 +428,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(TpGreensFunction& G4) {
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
                                    w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
-            }
+        }
       }
       flops += n_loops * 2 * flops_update_atomic;
       break;

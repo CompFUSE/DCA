@@ -91,7 +91,7 @@ void performTest(const std::string& input, const std::string& baseline) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
       Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
-      Data::TpGreensFunction G4_check(data.get_G4()[0].get_name());
+      Data::TpGreensFunction G4_check("G4");
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
       reader.open_file(input_dir + baseline);

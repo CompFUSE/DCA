@@ -401,7 +401,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
 #ifndef DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
     // Diagonalize the symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
     // The origin in momentum space has always index = 0.
-    if (parameters.get_four_point_type() == PARTICLE_PARTICLE_UP_DOWN &&
+    // TODO: loop over multiple channels.
+    if (parameters.get_four_point_channels()[0] == PARTICLE_PARTICLE_UP_DOWN &&
         parameters.get_four_point_momentum_transfer_index() == 0 &&
         parameters.get_four_point_frequency_transfer() == 0) {
       diagonalizeGammaChi0Symmetric();
@@ -618,8 +619,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
 
   {
     if (concurrency.id() == concurrency.first())
-      std::cout << "\n\n\t diagonalize P_Gamma_chi_0_lattice_P " << dca::util::print_time()
-                << " ...";
+      std::cout << "\n\n\t diagonalize P_Gamma_chi_0_lattice_P " << dca::util::print_time() << " ...";
 
     dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU> L("L (BseLatticeSolver)", M);
 
@@ -924,8 +924,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::characterizeLead
   }
 }
 
-}  // analysis
-}  // phys
-}  // dca
+}  // namespace analysis
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP

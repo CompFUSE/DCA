@@ -48,17 +48,16 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
                                         TpAccumulatorGpuTest::RDmn::dmn_size(),
                                         parameters_.get_beta(), n);
 
-  parameters_.accumulateG4ParticleHoleTransverse(true);
-  parameters_.accumulateG4ParticleHoleMagnetic(true);
-  parameters_.accumulateG4ParticleHoleCharge(true);
-  parameters_.accumulateG4ParticleHoleLongitudinalUpUp(true);
-  parameters_.accumulateG4ParticleHoleLongitudinalUpDown(true);
-  parameters_.accumulateG4ParticleParticleUpDown(true);
+  using namespace dca::phys;
+  parameters_.set_four_point_channels(
+      std::vector<FourPointType>{PARTICLE_HOLE_TRANSVERSE, PARTICLE_HOLE_MAGNETIC,
+                                 PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+                                 PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-    data_->G0_k_w_cluster_excluded, parameters_);
+      data_->G0_k_w_cluster_excluded, parameters_);
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
-    data_->G0_k_w_cluster_excluded, parameters_);
+      data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 
   accumulatorDevice.resetAccumulation(loop_counter);
@@ -81,7 +80,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   dca::linalg::util::initializeMagma();
 
-  parameters_.set_four_point_type(dca::phys::PARTICLE_HOLE_TRANSVERSE);
+  parameters_.set_four_point_channel(dca::phys::PARTICLE_HOLE_TRANSVERSE);
 
   using Accumulator =
       dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::linalg::GPU>;

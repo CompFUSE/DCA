@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file tests the accumulation of the two-particle Green's function G4 in the particle-hole
 // channels based on the relation between the particle-hole longitudinal up-up and up-down channels,
@@ -43,10 +44,9 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  parameters_.accumulateG4ParticleHoleLongitudinalUpUp(true);
-  parameters_.accumulateG4ParticleHoleLongitudinalUpDown(true);
-  parameters_.accumulateG4ParticleHoleMagnetic(true);
-  parameters_.accumulateG4ParticleHoleCharge(true);
+  parameters_.set_four_point_channels(std::vector<dca::phys::FourPointType>{
+      dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+      dca::phys::PARTICLE_HOLE_MAGNETIC, dca::phys::PARTICLE_HOLE_CHARGE});
 
   using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;
   TpAccumulatorType accumulator_ph(data_->G0_k_w_cluster_excluded, parameters_);

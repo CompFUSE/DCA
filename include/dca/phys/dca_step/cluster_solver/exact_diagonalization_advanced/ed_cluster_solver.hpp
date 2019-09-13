@@ -172,7 +172,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
 
     sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, false);
 
-    if (parameters.get_four_point_type() != NONE) {
+    if (parameters.isAccumulatingG4()) {
       if (concurrency.id() == concurrency.first()) {
         std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
       }
@@ -202,7 +202,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
 
   sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, true);
 
-  if (parameters.get_four_point_type() != NONE) {
+  if (parameters.isAccumulatingG4()) {
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
     }
@@ -274,7 +274,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string fi
     MOMS_imag.write(writer);
     MOMS_real.write(writer);
 
-    if (parameters.get_four_point_type() != NONE) {
+    if (parameters.isAccumulatingG4()) {
       std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
       tp_Greens_function_obj.write(writer);
     }
@@ -295,7 +295,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string fi
     std::cout << "\n\n\t\t start writing MOMS_real\n\n";
     MOMS_real.write(writer);
 
-    if (parameters.get_four_point_type() != NONE) {
+    if (parameters.isAccumulatingG4()) {
       std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
       tp_Greens_function_obj.write(writer);
     }

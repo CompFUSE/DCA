@@ -67,7 +67,7 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
         dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    parameters_.set_four_point_type(type);
+    parameters_.set_four_point_channel(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
         data_->G0_k_w_cluster_excluded, parameters_);

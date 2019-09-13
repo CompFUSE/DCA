@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file tests four_point_parameters.hpp
 //
@@ -21,19 +22,20 @@ TEST(FourPointParametersTest, DefaultValues) {
 
   std::vector<double> momentum_transfer_input_check{0., 0.};
 
-  EXPECT_EQ(dca::phys::NONE, pars.get_four_point_type());
-
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleTransverse());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleMagnetic());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleCharge());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpUp());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpDown());
-  EXPECT_EQ(false, pars.accumulateG4ParticleParticleUpDown());
+  EXPECT_EQ(0, pars.get_four_point_channels().size());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(0, pars.get_four_point_frequency_transfer());
   EXPECT_EQ(false, pars.compute_all_transfers());
 }
+
+using namespace dca::phys;
+const std::vector<FourPointType> all_channels{PARTICLE_HOLE_TRANSVERSE,
+                                              PARTICLE_HOLE_MAGNETIC,
+                                              PARTICLE_HOLE_CHARGE,
+                                              PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+                                              PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+                                              PARTICLE_PARTICLE_UP_DOWN};
 
 TEST(FourPointParametersTest, ReadAll) {
   dca::io::JSONReader reader;
@@ -46,14 +48,7 @@ TEST(FourPointParametersTest, ReadAll) {
 
   std::vector<double> momentum_transfer_input_check{3.14, -1.57};
 
-  EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_UP_DOWN, pars.get_four_point_type());
-
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleTransverse());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleMagnetic());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleCharge());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpUp());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpDown());
-  EXPECT_EQ(true, pars.accumulateG4ParticleParticleUpDown());
+  EXPECT_EQ(all_channels, pars.get_four_point_channels());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(1, pars.get_four_point_frequency_transfer());
@@ -63,108 +58,31 @@ TEST(FourPointParametersTest, ReadAll) {
 TEST(FourPointParametersTest, Setters) {
   dca::phys::params::FourPointParameters<2> pars;
 
-  EXPECT_EQ(dca::phys::NONE, pars.get_four_point_type());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleTransverse());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleMagnetic());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleCharge());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpUp());
-  EXPECT_EQ(false, pars.accumulateG4ParticleHoleLongitudinalUpDown());
-  EXPECT_EQ(false, pars.accumulateG4ParticleParticleUpDown());
+  EXPECT_EQ(0, pars.get_four_point_channels().size());
 
-  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
-  pars.accumulateG4ParticleHoleTransverse(true);
-  pars.accumulateG4ParticleHoleMagnetic(true);
-  pars.accumulateG4ParticleHoleCharge(true);
-  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
-  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
-  pars.accumulateG4ParticleParticleUpDown(true);
+  pars.set_four_point_channels(all_channels);
 
-  EXPECT_EQ(dca::phys::PARTICLE_HOLE_MAGNETIC, pars.get_four_point_type());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleTransverse());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleMagnetic());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleCharge());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpUp());
-  EXPECT_EQ(true, pars.accumulateG4ParticleHoleLongitudinalUpDown());
-  EXPECT_EQ(true, pars.accumulateG4ParticleParticleUpDown());
+  EXPECT_EQ(all_channels, pars.get_four_point_channels());
 }
 
 TEST(FourPointParametersTest, AccumulateG4) {
   dca::phys::params::FourPointParameters<2> pars;
 
-  EXPECT_EQ(false, pars.accumulateG4());
+  EXPECT_EQ(false, pars.isAccumulatingG4());
 
-  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
-  EXPECT_EQ(true, pars.accumulateG4());
+  pars.set_four_point_channel(PARTICLE_HOLE_MAGNETIC);
 
-  pars.set_four_point_type(dca::phys::NONE);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleTransverse(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleTransverse(false);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleCharge(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleCharge(false);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleMagnetic(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleMagnetic(false);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpUp(false);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpDown(false);
-  EXPECT_EQ(false, pars.accumulateG4());
-
-  pars.accumulateG4ParticleParticleUpDown(true);
-  EXPECT_EQ(true, pars.accumulateG4());
-
-  pars.accumulateG4ParticleParticleUpDown(false);
-  EXPECT_EQ(false, pars.accumulateG4());
+  EXPECT_EQ(true, pars.isAccumulatingG4());
 }
 
-TEST(FourPointParametersTest, NumG4Channels) {
-  dca::phys::params::FourPointParameters<2> pars;
+TEST(FourPointParametersTest, ReadLegacy) {
+    dca::io::JSONReader reader;
+    dca::phys::params::FourPointParameters<2> pars;
 
-  EXPECT_EQ(0, pars.numG4Channels());
+    reader.open_file(DCA_SOURCE_DIR
+                     "/test/unit/phys/parameters/four_point_parameters/input_read_legacy.json");
+    pars.readWrite(reader);
+    reader.close_file();
 
-  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
-  EXPECT_EQ(1, pars.numG4Channels());
-
-  pars.set_four_point_type(dca::phys::NONE);
-  EXPECT_EQ(0, pars.numG4Channels());
-
-  pars.accumulateG4ParticleHoleTransverse(true);
-  EXPECT_EQ(1, pars.numG4Channels());
-
-  pars.accumulateG4ParticleHoleCharge(true);
-  EXPECT_EQ(2, pars.numG4Channels());
-
-  pars.accumulateG4ParticleHoleMagnetic(true);
-  EXPECT_EQ(3, pars.numG4Channels());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpUp(true);
-  EXPECT_EQ(4, pars.numG4Channels());
-
-  pars.accumulateG4ParticleHoleLongitudinalUpDown(true);
-  EXPECT_EQ(5, pars.numG4Channels());
-
-  pars.accumulateG4ParticleParticleUpDown(true);
-  EXPECT_EQ(6, pars.numG4Channels());
-
-  pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
-  EXPECT_EQ(1, pars.numG4Channels());
+    EXPECT_EQ(std::vector<FourPointType>{PARTICLE_HOLE_MAGNETIC}, pars.get_four_point_channels());
 }
