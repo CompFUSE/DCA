@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class contains all functions needed for the MOMS DCA calculation.
 //
@@ -126,6 +127,13 @@ private:
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
+
+  // Interaction Hamiltonian. Each entry H_interactions(nu1, nu2, delta_r) represents the
+  // correlation strength between the two orbitals nu1 nu2 at distance delta_r. This correlation
+  // must be symmetric, or double counted, i.e.
+  // H_interactions(nu1, nu2, delta_r) == H_interactions(nu2, nu1, -delta_r). Each pair of terms
+  // represents a single addendum in the physical hamiltonian proportional to n_{nu1} * n_{nu2}, or
+  // H = \sum_{nu1, nu2, r1, r2} H_interactions(nu1, nu2, r1 - r2) n_{nu1} n_{nu2} / 2.
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
@@ -212,6 +220,8 @@ public:  // Optional members getters.
     assert(!G4_err_.empty());
     return G4_err_;
   }
+
+  // Note: this contribution to the Hamiltonian is not double counted.
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
       non_density_interactions_.reset(
@@ -486,6 +496,18 @@ void DcaData<Parameters>::initialize_H_0_and_H_i() {
   Parameters::model_type::initialize_H_0(parameters_, H_HOST);
 
   Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
+
+  // Check symmetry of H_interactions.
+  const int r0 = RClusterDmn::parameter_type::origin_index();
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
+    const int minus_r = RClusterDmn::parameter_type::subtract(r, r0);
+    for (int nu2 = 0; nu2 < NuDmn::dmn_size(); ++nu2)
+      for (int nu1 = 0; nu1 < NuDmn::dmn_size(); ++nu1) {
+        if (std::abs(H_interactions(nu1, nu2, r) - H_interactions(nu2, nu1, minus_r)) > 1e-8) {
+          throw(std::logic_error("Double counting is not consistent."));
+        }
+      }
+  }
 
   if (models::has_non_density_interaction<Lattice>::value) {
     models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
