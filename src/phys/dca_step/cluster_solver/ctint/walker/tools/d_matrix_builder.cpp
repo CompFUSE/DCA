@@ -12,9 +12,6 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 
-//#include "dca/linalg/make_constant_view.hpp"
-//#include "dca/linalg/matrix_view.hpp"
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -25,11 +22,8 @@ using linalg::CPU;
 using linalg::GPU;
 
 DMatrixBuilder<CPU>::DMatrixBuilder(const G0Interpolation<CPU>& g0,
-                                    const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                    const std::vector<std::size_t>& sbdm_step)
-    : g0_ref_(g0), n_bands_(sbdm_step[1]), sbdm_step_(sbdm_step), site_diff_(site_diff) {
-  assert(sbdm_step.size() == 3);
-}
+                                    const linalg::Matrix<int, linalg::CPU>& site_diff, const int nb)
+    : g0_ref_(g0), n_bands_(nb), sbdm_step_{nb, nb * nb}, site_diff_(site_diff) {}
 
 void DMatrixBuilder<CPU>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
   alpha_dd_neg_ = alphas_base[1];
@@ -86,7 +80,7 @@ double DMatrixBuilder<CPU>::computeD(const int i, const int j, const Sector& con
 }
 
 int DMatrixBuilder<CPU>::label(const int b1, const int b2, const int r) const {
-  return b1 + b2 * sbdm_step_[1] + r * sbdm_step_[2];
+  return b1 + b2 * sbdm_step_[0] + r * sbdm_step_[1];
 }
 
 double DMatrixBuilder<CPU>::computeAlpha(const int aux_spin_type, const int b) const {

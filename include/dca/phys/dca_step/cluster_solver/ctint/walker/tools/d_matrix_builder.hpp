@@ -18,7 +18,7 @@
 #include <type_traits>
 
 #include "dca/linalg/linalg.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
@@ -47,13 +47,15 @@ private:
   using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
 
 public:
+  template <class RDmn>
+  DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0, int nb, const RDmn& /*r_dmn*/);
+
   DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0,
-                 const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<std::size_t>& sbdm_step);
+                 const linalg::Matrix<int, linalg::CPU>& site_diff, int nb);
 
   virtual ~DMatrixBuilder() {}
 
-  virtual void setAlphas(const std::array<double, 3> &alphas_base, bool adjust_dd);
+  /*virtual*/ void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
 
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
@@ -92,10 +94,15 @@ protected:
   double alpha_dd_neg_ = 0;
   double alpha_ndd_ = 0;
   const int n_bands_ = -1;
-  const std::vector<std::size_t>& sbdm_step_;
+  std::array<int, 2> sbdm_step_;
   // Note: site_diff is a matrix where site_diff(i,j) = r_j - r_i.
   const linalg::Matrix<int, linalg::CPU>& site_diff_;
 };
+
+template <class RDmn>
+DMatrixBuilder<linalg::CPU>::DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0, int nb,
+                                            const RDmn& /*r_dmn*/)
+    : DMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(), nb) {}
 
 }  // namespace ctint
 }  // namespace solver

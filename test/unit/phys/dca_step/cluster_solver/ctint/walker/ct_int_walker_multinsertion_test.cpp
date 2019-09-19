@@ -42,8 +42,8 @@ TEST_F(G0Setup, NoSubmatrix) {
   ctint::G0Interpolation<dca::linalg::CPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+  Walker::setDMatrixBuilder(g0);
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
   Walker::setInteractionVertices(parameters_, *data_);
 
   parameters_.setDoubleUpdate(0);
@@ -130,8 +130,8 @@ TEST_F(G0Setup, Submatrix) {
   ctint::G0Interpolation<dca::linalg::CPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+  Walker::setDMatrixBuilder(g0);
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
   Walker::setInteractionVertices(parameters_, *data_);
   parameters_.setDoubleUpdate(1);
 
@@ -148,8 +148,8 @@ TEST_F(G0Setup, Submatrix) {
 
   /////////////////////////////
 
-  WalkerSubmatrix::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                     label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+  WalkerSubmatrix::setDMatrixBuilder(g0);
+  WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
   WalkerSubmatrix::setInteractionVertices(parameters_, *data_);
 
   WalkerSubmatrix walker_subm(parameters_, rng);

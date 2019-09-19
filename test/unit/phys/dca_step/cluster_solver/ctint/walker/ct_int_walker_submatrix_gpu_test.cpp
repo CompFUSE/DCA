@@ -50,11 +50,9 @@ TEST_F(G0Setup, doSteps) {
   G0Setup::LabelDomain label_dmn;
 
   // TODO: improve API.
-  SubmatrixWalker<CPU>::setDMatrixBuilder(g0_cpu, RDmn::parameter_type::get_subtract_matrix(),
-                                          label_dmn.get_branch_domain_steps());
+  SubmatrixWalker<CPU>::setDMatrixBuilder(g0_cpu);
   SubmatrixWalker<CPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
-  SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu, RDmn::parameter_type::get_subtract_matrix(),
-                                          label_dmn.get_branch_domain_steps());
+  SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu);
   SubmatrixWalker<GPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
 
   SubmatrixWalker<CPU>::setInteractionVertices(parameters_, *data_);

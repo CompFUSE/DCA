@@ -14,7 +14,7 @@
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 
 namespace dca {
 namespace phys {
@@ -26,10 +26,23 @@ using linalg::CPU;
 using linalg::GPU;
 
 DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
+                                            const linalg::Matrix<int, linalg::CPU>& site_add,
                                             const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                            const std::vector<std::size_t>& sbdm_step)
-    : BaseClass(g0, site_diff, sbdm_step), g0_ref_(g0) {
-  ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff), sbdm_step);
+                                            const int nb, const int r0)
+    : BaseClass(g0, site_diff, nb), g0_ref_(g0) {
+  assert(site_add.size() == site_diff.size());
+  CtintHelper::set(site_add.ptr(), site_add.leadingDimension(), site_diff.ptr(),
+                   site_diff.leadingDimension(), nb, site_add.nrRows(), r0);
+}
+
+void DMatrixBuilder<linalg::GPU>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
+  BaseClass::setAlphas(alphas_base, adjust_dd);
+
+  std::vector<double> alphas(alpha_dd_);
+  alphas.push_back(alpha_dd_neg_);
+  alphas.push_back(alpha_ndd_);
+
+  CtintHelper::updateAlpha(alphas);
 }
 
 void DMatrixBuilder<GPU>::computeG0(Matrix& G0, const details::DeviceConfiguration& configuration,

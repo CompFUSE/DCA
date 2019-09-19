@@ -13,13 +13,20 @@ add_library(ctint
     ${CTINT_CUDA_CPP_FILES}
     )
 
-# INTERNAL: consider using --relocatable-device-code true and splitting the .cu files.
 if (DCA_HAVE_CUDA)
   CUDA_ADD_LIBRARY(ctint_kernels
       walker/walker_kernels.cu
       walker/tools/d_matrix_kernels.cu
+      device_helper/ctint_helper.cu
+      walker/tools/g0_interpolation_gpu.cu
+      ../shared_tools/cluster_helper.cu
       )
+
+  set_target_properties(ctint_kernels PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  target_link_libraries(ctint_kernels mc_tools_kernels)
   target_compile_definitions(ctint_kernels PUBLIC  "-DDCA_HAVE_CUDA")
+
+
 
   target_compile_definitions(ctint PUBLIC "-DDCA_HAVE_CUDA")
   target_include_directories(ctint PRIVATE ${MAGMA_INCLUDE_DIR})

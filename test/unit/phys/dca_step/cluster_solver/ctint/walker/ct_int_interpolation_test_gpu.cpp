@@ -4,7 +4,7 @@
 #include <cmath>
 #include "gtest/gtest.h"
 
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/mock_parameters.hpp"
 
 using std::cout;
@@ -34,7 +34,6 @@ TEST(G0Interpolation, G0Interpolation) {
   dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU> g0_cpu(f);
 
   dca::phys::solver::ctint::G0Interpolation<dca::linalg::GPU> g0_gpu(f);
-  dca::phys::solver::ctint::GlobalMemoryManager::initializeInterpolation(g0_cpu.getStride());
 
   for (double x : {0., 0.5, 3., M_PI - 1e-3}) {
     EXPECT_NEAR(g0_cpu(x, 0), g0_gpu(x, 0), 1e-12);
