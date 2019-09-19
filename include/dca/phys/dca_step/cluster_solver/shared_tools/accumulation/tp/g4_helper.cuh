@@ -61,8 +61,8 @@ protected:
   int nw_pos_;
   int ext_size_;
   unsigned sbdm_steps_[10];
-  int* w_ex_indices_;
-  int* k_ex_indices_;
+  const int* w_ex_indices_;
+  const int* k_ex_indices_;
 };
 
 // Global instance to be used in the tp accumulation kernel.

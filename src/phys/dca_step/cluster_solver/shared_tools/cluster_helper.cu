@@ -33,10 +33,12 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
     host_helper.id_0_ = id_0;
 
     cudaMalloc(&host_helper.add_matrix_, sizeof(int) * lda * nc);
-    cudaMemcpy(host_helper.add_matrix_, add, sizeof(int) * lda * nc, cudaMemcpyHostToDevice);
+    cudaMemcpy(const_cast<int*>(host_helper.add_matrix_), const_cast<int*>(add),
+               sizeof(int) * lda * nc, cudaMemcpyHostToDevice);
 
     cudaMalloc(&host_helper.sub_matrix_, sizeof(int) * lds * nc);
-    cudaMemcpy(host_helper.sub_matrix_, sub, sizeof(int) * lds * nc, cudaMemcpyHostToDevice);
+    cudaMemcpy(const_cast<int*>(host_helper.sub_matrix_), const_cast<int*>(sub),
+               sizeof(int) * lds * nc, cudaMemcpyHostToDevice);
 
     if (momentum) {
       cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper));

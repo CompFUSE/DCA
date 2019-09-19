@@ -61,12 +61,12 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
     std::copy_n(steps.data(), steps.size(), host_helper.sbdm_steps_);
 
     cudaMalloc(&host_helper.w_ex_indices_, sizeof(int) * delta_w.size());
-    cudaMemcpy(host_helper.w_ex_indices_, delta_w.data(), sizeof(int) * delta_w.size(),
-               cudaMemcpyHostToDevice);
+    cudaMemcpy(const_cast<int*>(host_helper.w_ex_indices_), const_cast<int*>(delta_w.data()),
+               sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
 
     cudaMalloc(&host_helper.k_ex_indices_, sizeof(int) * delta_k.size());
-    cudaMemcpy(host_helper.k_ex_indices_, delta_k.data(), sizeof(int) * delta_k.size(),
-               cudaMemcpyHostToDevice);
+    cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), const_cast<int*>(delta_k.data()),
+               sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
 
     cudaMemcpyToSymbol(g4_helper, &host_helper, sizeof(G4Helper));
   });

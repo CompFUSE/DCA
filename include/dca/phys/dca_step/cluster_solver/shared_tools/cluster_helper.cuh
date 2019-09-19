@@ -39,8 +39,8 @@ private:
   int lds_;
   int id_0_;
   unsigned sbdm_steps_[10];
-  int* add_matrix_;
-  int* sub_matrix_;
+  const int* add_matrix_;
+  const int* sub_matrix_;
 };
 
 // Global instance for real space and momentum clusters.
