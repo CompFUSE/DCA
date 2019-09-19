@@ -31,11 +31,11 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
   static std::once_flag flag;
 
   std::call_once(flag, [=]() {
+    // Initialize the reciprocal cluster if not done already.
+    solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, k0, true);
+
     G4Helper host_helper;
-    host_helper.lda_ = lda;
-    host_helper.lds_ = lds;
     host_helper.nw_pos_ = nw_pos;
-    host_helper.k0_ = k0;
 
     host_helper.ext_size_ = 0;
     for (const int idx : delta_w)
@@ -59,12 +59,6 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
       steps[i] = steps[i - 1] * sizes[i - 1];
 
     std::copy_n(steps.data(), steps.size(), host_helper.sbdm_steps_);
-
-    cudaMalloc(&host_helper.add_matrix_, sizeof(int) * lda * nk);
-    cudaMemcpy(host_helper.add_matrix_, add_k, sizeof(int) * lda * nk, cudaMemcpyHostToDevice);
-
-    cudaMalloc(&host_helper.sub_matrix_, sizeof(int) * lds * nk);
-    cudaMemcpy(host_helper.sub_matrix_, sub_k, sizeof(int) * lds * nk, cudaMemcpyHostToDevice);
 
     cudaMalloc(&host_helper.w_ex_indices_, sizeof(int) * delta_w.size());
     cudaMemcpy(host_helper.w_ex_indices_, delta_w.data(), sizeof(int) * delta_w.size(),
