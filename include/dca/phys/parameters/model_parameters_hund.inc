@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Template specialization of model parameters for a 2D bilayer model with Hund's interaction.
 
