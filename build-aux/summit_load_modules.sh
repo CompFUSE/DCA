@@ -6,12 +6,12 @@
 # Usage: source summit_load_modules.sh
 
 module reset
-module load gcc/6.4.0
+module load gcc/8.1.1
 module load cuda
+module load magma/2.5.1
 module load hdf5
 module load fftw
 module load cmake
-module load magma
 module load netlib-lapack
 module load essl
 
