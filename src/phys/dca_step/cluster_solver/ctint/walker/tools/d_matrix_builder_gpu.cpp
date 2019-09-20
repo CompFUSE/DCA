@@ -35,16 +35,6 @@ DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
                    site_diff.leadingDimension(), nb, site_add.nrRows(), r0);
 }
 
-void DMatrixBuilder<linalg::GPU>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
-  BaseClass::setAlphas(alphas_base, adjust_dd);
-
-  std::vector<double> alphas(alpha_dd_);
-  alphas.push_back(alpha_dd_neg_);
-  alphas.push_back(alpha_ndd_);
-
-  CtintHelper::updateAlpha(alphas);
-}
-
 void DMatrixBuilder<GPU>::computeG0(Matrix& G0, const details::DeviceConfiguration& configuration,
                                     const int n_init, bool right_section, cudaStream_t stream) const {
   if (G0.nrRows() * G0.nrCols() == 0)

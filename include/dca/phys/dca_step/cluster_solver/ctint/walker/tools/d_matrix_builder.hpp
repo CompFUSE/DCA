@@ -55,7 +55,7 @@ public:
 
   virtual ~DMatrixBuilder() {}
 
-  /*virtual*/ void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
+  void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
 
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
@@ -65,15 +65,9 @@ public:
 
   double computeD(const int i, const int j, const Sector& config) const;
   double computeAlpha(const int aux_spin_type, const int b) const;
-  double computeDSubmatrix(const int i, const int j, const Sector& configuration) const;
   double computeF(const double alpha) const;
-  double computeF(const int i, const Sector& configuration) const;
   double computeF(const int aux_spin_type) const;
-  double computeG(const int i, const int j, const Sector& configuration, const Matrix& M) const;
-  double computeGFast(const int i, const int j, const int aux_spin_type, const double M_ij) const;
-  double computeG0(const int i, const int j, const Sector& configuration) const;
   double computeGamma(const int aux_spin_type, const int new_aux_spin_type) const;
-  void computeG0Init(Matrix& G0, const Sector& configuration, const int n_init, const int n_max) const;
   void computeG0(linalg::Matrix<double, linalg::CPU>& G0, const Sector& configuration,
                  const int n_init, const int n_max, const int which_section) const;
 

@@ -97,29 +97,8 @@ double DMatrixBuilder<CPU>::computeAlpha(const int aux_spin_type, const int b) c
   }
 }
 
-double DMatrixBuilder<CPU>::computeDSubmatrix(const int i, const int j,
-                                              const Sector& configuration) const {
-  assert(configuration.size() > i and configuration.size() > j);
-
-  const int b1 = configuration.getLeftB(i);
-  const int b2 = configuration.getRightB(j);
-  const int delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(i));
-  const int p_index = label(b1, b2, delta_r);
-  const double delta_tau = configuration.getTau(i) - configuration.getTau(j);
-  const double g0_val = g0_ref_(delta_tau, p_index);
-  if (i == j)
-    return computeF(computeAlpha(configuration.getAuxFieldType(i), 0)) -
-           g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j), 0)) - 1);
-  else
-    return -g0_val * (computeF(computeAlpha(configuration.getAuxFieldType(j), 0)) - 1);
-}
-
 double DMatrixBuilder<CPU>::computeF(const double alpha) const {
   return alpha / (alpha - 1);
-}
-
-double DMatrixBuilder<CPU>::computeF(const int i, const Sector& configuration) const {
-  return computeF(computeAlpha(configuration.getAuxFieldType(i), 0));
 }
 
 double DMatrixBuilder<CPU>::computeF(const int aux_spin_type) const {
@@ -133,84 +112,7 @@ double DMatrixBuilder<CPU>::computeGamma(const int aux_spin_type, const int new_
   return (computeF(new_aux_spin_type) - computeF(aux_spin_type)) / computeF(aux_spin_type);
 }
 
-double DMatrixBuilder<CPU>::computeG(const int i, const int j, const Sector& configuration,
-                                     const Matrix& M) const {
-  double result = 0;
-  int b1, b2, delta_r, p_index;
-  double delta_tau, g0_val;
-
-  for (int k = 0; k < M.size().first; ++k) {
-    b1 = configuration.getLeftB(k);
-    b2 = configuration.getRightB(j);
-    delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(k));
-    p_index = label(b1, b2, delta_r);
-    delta_tau = configuration.getTau(k) - configuration.getTau(j);
-    g0_val = g0_ref_(delta_tau, p_index);
-
-    result += M(i, k) * g0_val;
-  }
-
-  return result;
-}
-
-// Compute G with fastest formula. Works only when auxilliary spin at index j is not zero.
-
-double DMatrixBuilder<CPU>::computeGFast(const int i, const int j, const int aux_spin_type,
-                                         const double M_ij) const {
-  double f = computeF(aux_spin_type);
-
-  return (M_ij * f - int(i == j)) / (f - 1);
-}
-
-double DMatrixBuilder<CPU>::computeG0(const int i, const int j, const Sector& configuration) const {
-  int b1 = configuration.getLeftB(i);
-  int b2 = configuration.getRightB(j);
-  int delta_r = site_diff_(configuration.getLeftR(i), configuration.getRightR(j));
-  int p_index = label(b1, b2, delta_r);
-  double delta_tau = configuration.getTau(i) - configuration.getTau(j);
-  double g0_val = g0_ref_(delta_tau, p_index);
-
-  return g0_val;
-}
-
-void DMatrixBuilder<CPU>::computeG0Init(Matrix& G0, const Sector& configuration, const int n_init,
-                                        const int n_max) const {
-  int b_i, b_j, r_i, r_j;
-  double tau_i, tau_j;
-
-  G0.resize(n_max);
-
-  for (int i = 0; i < n_init; ++i) {
-    b_i = configuration.getLeftB(i);
-    tau_i = configuration.getTau(i);
-    r_i = configuration.getLeftR(i);
-
-    for (int j = n_init; j < n_max; ++j) {
-      b_j = configuration.getRightB(j);
-      tau_j = configuration.getTau(j);
-      r_j = configuration.getRightR(j);
-
-      G0(i, j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
-    }
-  }
-
-  for (int i = n_init; i < n_max; ++i) {
-    b_i = configuration.getLeftB(i);
-    tau_i = configuration.getTau(i);
-    r_i = configuration.getLeftR(i);
-
-    for (int j = 0; j < n_max; ++j) {
-      b_j = configuration.getRightB(j);
-      tau_j = configuration.getTau(j);
-      r_j = configuration.getRightR(j);
-
-      G0(i, j) = g0_ref_(tau_i - tau_j, label(b_i, b_j, site_diff_(r_j, r_i)));
-    }
-  }
-}
-
 // Compute only the parts of G0 required at a given moment. (Re)Computing every element is not needed in most situations.
-
 void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, const int n_init,
                                     const int n_max, const int which_section) const {
   int b_i, b_j, r_i, r_j;

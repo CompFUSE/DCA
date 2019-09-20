@@ -28,15 +28,10 @@ class CtintHelper {
 public:
   static void set(const int* sum_r, int lda, const int* sub_r, int lds, int nb, int nc, int r0);
 
-  static void updateAlpha(const std::vector<double>& alphas);
-
-  static bool is_initialized();
-
   // Return the index of a single particle function of b1, b2, r1 - r2.
   __device__ std::size_t index(int b1, int b2, int r1, int r2) const;
 
 private:
-  const double* alpha_;
   std::size_t subdm_step_[2];
 };
 

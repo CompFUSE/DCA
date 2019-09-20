@@ -23,8 +23,6 @@ namespace ctint {
 // Global helper instance.
 __device__ __constant__ CtintHelper ctint_helper;
 
-double* alpha_device_handle = nullptr;
-
 void CtintHelper::set(const int* add_r, int lda, const int* sub_r, int lds, const int nb,
                       const int nc, const int r0) {
   static std::once_flag flag;
@@ -36,26 +34,9 @@ void CtintHelper::set(const int* add_r, int lda, const int* sub_r, int lds, cons
     host_helper.subdm_step_[0] = nb;
     host_helper.subdm_step_[1] = nb * nb;
 
-    cudaMalloc(&host_helper.alpha_, nb + 2 * sizeof(double));
-    alpha_device_handle = const_cast<double*>(host_helper.alpha_);
-
     cudaMemcpyToSymbol(ctint_helper, &host_helper, sizeof(CtintHelper));
   });
 }
-
-bool CtintHelper::is_initialized() {
-  return alpha_device_handle != nullptr;
-}
-
-void CtintHelper::updateAlpha(const std::vector<double>& alpha) {
-  if (!alpha_device_handle)
-    throw(std::logic_error("CtintHelper was not set."));
-  //  if (alpha.size() != n_bands + 2) {
-  //    throw(std::logic_error("Wrong number of alpha parameters."));
-  //  }
-  cudaMemcpy(alpha_device_handle, alpha.data(), alpha.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
-}  // namespace ctint
 
 }  // namespace ctint
 }  // namespace solver

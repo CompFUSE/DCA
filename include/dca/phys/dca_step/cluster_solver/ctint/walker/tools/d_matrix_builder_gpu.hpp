@@ -43,7 +43,6 @@ public:
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
                  const linalg::Matrix<int, linalg::CPU>& site_add, int nb, int r0);
 
-  void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
 
   const G0Interpolation<linalg::GPU>& getG0() const {
     return g0_ref_;

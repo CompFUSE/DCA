@@ -26,9 +26,9 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-void buildG0Matrix(linalg::MatrixView<double, linalg::GPU> G0, int n_init, bool right_section,
-                   DeviceConfiguration config, DeviceInterpolationData g0_interp,
-                   cudaStream_t stream);
+void buildG0Matrix(linalg::MatrixView<double, linalg::GPU> G0, const int n_init,
+                   const bool right_section, DeviceConfiguration config,
+                   DeviceInterpolationData g0_interp, cudaStream_t stream);
 
 }  // namespace details
 }  // namespace ctint

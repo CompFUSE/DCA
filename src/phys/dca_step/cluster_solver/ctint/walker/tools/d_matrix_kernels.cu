@@ -53,7 +53,7 @@ __global__ void buildG0MatrixKernel(linalg::MatrixView<double, linalg::GPU> G0, 
 void buildG0Matrix(linalg::MatrixView<double, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
                    DeviceInterpolationData g0_interp, cudaStream_t stream) {
-  assert(CtintHelper::is_initialized());
+  // assert(CtintHelper::is_initialized());
   const auto blocks = dca::util::getBlockSize(G0.nrRows(), G0.nrCols());
 
   buildG0MatrixKernel<<<blocks[0], blocks[1], 0, stream>>>(G0, n_init, right_section, config,
