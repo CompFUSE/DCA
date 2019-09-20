@@ -11,9 +11,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 
-#include <climits>
 #include <cuda.h>
-#include <cuda_runtime.h>
 
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
@@ -26,8 +24,9 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-__global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool right_section,
-                                    Configuration config, Interpolation g0_interp) {
+__global__ void buildG0MatrixKernel(linalg::MatrixView<double, linalg::GPU> G0, const int n_init,
+                                    const bool right_section, DeviceConfiguration config,
+                                    DeviceInterpolationData g0_interp) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   if (id_i >= G0.nrRows() || id_j >= G0.nrCols())
@@ -51,8 +50,9 @@ __global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool 
   G0(id_i, id_j) = g0_interp(tau_i - tau_j, label);
 }
 
-void buildG0Matrix(MatrixView G0, const int n_init, const bool right_section, Configuration config,
-                   Interpolation g0_interp, cudaStream_t stream) {
+void buildG0Matrix(linalg::MatrixView<double, linalg::GPU> G0, const int n_init,
+                   const bool right_section, DeviceConfiguration config,
+                   DeviceInterpolationData g0_interp, cudaStream_t stream) {
   assert(CtintHelper::is_initialized());
   const auto blocks = dca::util::getBlockSize(G0.nrRows(), G0.nrCols());
 
