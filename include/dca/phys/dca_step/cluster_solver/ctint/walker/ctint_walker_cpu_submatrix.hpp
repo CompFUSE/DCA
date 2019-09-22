@@ -154,9 +154,9 @@ protected:
   std::array<std::vector<double>, 2> gamma_;
 
   double det_ratio_;
-  std::map<int, double> f_;
-  std::map<int, double> prob_const_;
-  std::map<std::pair<int, int>, double> gamma_values_;
+  std::map<int, std::array<double, n_bands_>> f_;
+  std::map<int, std::array<double, n_bands_>> prob_const_;
+  std::map<std::pair<int, int>, std::array<double, n_bands_>> gamma_values_;
 
   using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
@@ -206,18 +206,20 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(const Parame
                                                                     const Data& /*data*/,
                                                                     Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id) {
-  for (int i = 1; i <= 3; ++i) {
-    f_[i] = d_builder_ptr_->computeF(i);
-    f_[-i] = d_builder_ptr_->computeF(-i);
+  for (int b = 0; b < n_bands_; ++b) {
+    for (int i = 1; i <= 3; ++i) {
+      f_[i][b] = d_builder_ptr_->computeF(i, b);
+      f_[-i][b] = d_builder_ptr_->computeF(-i, b);
 
-    gamma_values_[std::make_pair(0, i)] = d_builder_ptr_->computeGamma(0, i);
-    gamma_values_[std::make_pair(0, -i)] = d_builder_ptr_->computeGamma(0, -i);
-    gamma_values_[std::make_pair(i, 0)] = d_builder_ptr_->computeGamma(i, 0);
-    gamma_values_[std::make_pair(-i, 0)] = d_builder_ptr_->computeGamma(-i, 0);
+      gamma_values_[std::make_pair(0, i)][b] = d_builder_ptr_->computeGamma(0, i, b);
+      gamma_values_[std::make_pair(0, -i)][b] = d_builder_ptr_->computeGamma(0, -i, b);
+      gamma_values_[std::make_pair(i, 0)][b] = d_builder_ptr_->computeGamma(i, 0, b);
+      gamma_values_[std::make_pair(-i, 0)][b] = d_builder_ptr_->computeGamma(-i, 0, b);
 
-    prob_const_[i] = prob_const_[-i] = -beta_ / (f_[i] - 1) / (f_[-i] - 1);
+      prob_const_[i][b] = prob_const_[-i][b] = -beta_ / (f_[i][b] - 1) / (f_[-i][b] - 1);
+    }
+    f_[0][b] = 1;
   }
-  f_[0] = 1;
 
   if (BaseClass::concurrency_.id() == BaseClass::concurrency_.first() && thread_id_ == 0)
     std::cout << "\nCT-INT submatrix walker created." << std::endl;
@@ -353,7 +355,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
     insertion_Gamma_indices_[s].clear();
   }
 
-  std::vector<int> aux_spin_type, new_aux_spin_type;
+  std::vector<int> aux_spin_type, new_aux_spin_type, move_band;
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     move_type = delayed_moves_[delay_ind].move_type;
@@ -378,6 +380,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
       Gamma_indices_[s].clear();
       new_aux_spin_type.clear();
       aux_spin_type.clear();
+      move_band.clear();
 
       findSectorIndices(s);
 
@@ -403,15 +406,17 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
           }
         }
       }  // endif removal
+      for (int index : sector_indices_[s])
+        move_band.push_back(configuration_.getSector(s).getLeftB(index));
 
       for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
         if (move_type == INSERTION || !recentlyAdded(ind, s))
           gamma_[s].push_back(
-              gamma_values_[std::make_pair(aux_spin_type[ind], new_aux_spin_type[ind])]);
+              gamma_values_[std::make_pair(aux_spin_type[ind], new_aux_spin_type[ind])][move_band[ind]]);
         else {
           // TODO: find instead of adding.
           gamma_[s].push_back(
-              gamma_values_[std::make_pair(new_aux_spin_type[ind], aux_spin_type[ind])]);
+              gamma_values_[std::make_pair(new_aux_spin_type[ind], aux_spin_type[ind])][move_band[ind]]);
         }
       }
 
@@ -566,7 +571,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
       d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
       for (int j = 0; j < n_init_[s]; ++j) {
-        f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
+        const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
+        const auto b = configuration_.getSector(s).getRightB(j);
+        f_j = f_[field_type][b] - 1;
 
         for (int i = 0; i < delta; ++i) {
           D_(i, j) *= f_j;
@@ -606,7 +613,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
     G_[s].resizeNoCopy(n_max_[s]);
 
     for (int j = 0; j < n_init_[s]; ++j) {
-      f = f_[configuration_.getSector(s).getAuxFieldType(j)];
+      const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
+      const auto b = configuration_.getSector(s).getRightB(j);
+      f = f_[field_type][b];
 
       for (int i = 0; i < n_max_[s]; ++i) {
         G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
@@ -648,9 +657,11 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
 
   double K = total_interaction_;
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
-    K *= prob_const_.at(configuration_.getSector(non_empty_sector)
-                            .getAuxFieldType(sector_indices_[non_empty_sector][v_id])) *
-         interaction_sign;
+    const auto field_type = configuration_.getSector(non_empty_sector)
+                                .getAuxFieldType(sector_indices_[non_empty_sector][v_id]);
+    const auto b =
+        configuration_.getSector(non_empty_sector).getLeftB(sector_indices_[non_empty_sector][v_id]);
+    K *= prob_const_[field_type][b] * interaction_sign;
   }
 
   // Account for combinatorial factor and update acceptance probability.
@@ -879,7 +890,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
   for (int s = 0; s < 2; ++s) {
     for (int j = 0; j < M_[s].size().second; ++j) {
       for (int i = 0; i < M_[s].size().first; ++i) {
-        const double f_i = -(f_[configuration_.getSector(s).getAuxFieldType(i)] - 1);
+        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
+        const auto b = configuration_.getSector(s).getLeftB(i);
+        const double f_i = -(f_[field_type][b] - 1);
         M_[s](i, j) /= f_i;
       }
     }
@@ -894,7 +907,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass:
 
     for (int j = 0; j < M_[s].size().second; ++j) {
       for (int i = 0; i < M_[s].size().first; ++i) {
-        const double factor = -(f_[configuration_.getSector(s).getAuxFieldType(i)] - 1.);
+        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
+        const auto b = configuration_.getSector(s).getLeftB(i);
+        const double factor = -(f_[field_type][b] - 1.);
         m_accum[s](i, j) = M_[s](i, j) * factor;
       }
     }

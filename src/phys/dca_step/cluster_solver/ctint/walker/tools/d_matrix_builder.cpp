@@ -101,15 +101,16 @@ double DMatrixBuilder<CPU>::computeF(const double alpha) const {
   return alpha / (alpha - 1);
 }
 
-double DMatrixBuilder<CPU>::computeF(const int aux_spin_type) const {
+double DMatrixBuilder<CPU>::computeF(const int aux_spin_type, int b) const {
   if (aux_spin_type == 0)
     return 1;
   else
-    return computeF(computeAlpha(aux_spin_type, 0));
+    return computeF(computeAlpha(aux_spin_type, b));
 }
 
-double DMatrixBuilder<CPU>::computeGamma(const int aux_spin_type, const int new_aux_spin_type) const {
-  return (computeF(new_aux_spin_type) - computeF(aux_spin_type)) / computeF(aux_spin_type);
+double DMatrixBuilder<CPU>::computeGamma(const int aux_spin_type, const int new_aux_spin_type,
+                                         int b) const {
+  return (computeF(new_aux_spin_type, b) - computeF(aux_spin_type, b)) / computeF(aux_spin_type, b);
 }
 
 // Compute only the parts of G0 required at a given moment. (Re)Computing every element is not needed in most situations.

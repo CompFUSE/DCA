@@ -18,7 +18,6 @@
 #include <type_traits>
 
 #include "dca/linalg/linalg.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
@@ -66,8 +65,8 @@ public:
   double computeD(const int i, const int j, const Sector& config) const;
   double computeAlpha(const int aux_spin_type, const int b) const;
   double computeF(const double alpha) const;
-  double computeF(const int aux_spin_type) const;
-  double computeGamma(const int aux_spin_type, const int new_aux_spin_type) const;
+  double computeF(const int aux_spin_type, int b) const;
+  double computeGamma(int aux_spin_type, int new_aux_spin_type, int b) const;
   void computeG0(linalg::Matrix<double, linalg::CPU>& G0, const Sector& configuration,
                  const int n_init, const int n_max, const int which_section) const;
 
