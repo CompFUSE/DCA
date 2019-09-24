@@ -13,6 +13,8 @@
 
 #include <mutex>
 
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -22,23 +24,25 @@ namespace details {
 __device__ __constant__ ClusterHelper cluster_real_helper;
 __device__ __constant__ ClusterHelper cluster_momentum_helper;
 
-void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds, int id_0,
-                        bool momentum) {
+void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds, bool momentum) {
   static std::array<std::once_flag, 2> flags;
 
   std::call_once(flags[momentum], [=]() {
     ClusterHelper host_helper;
-    host_helper.lda_ = lda;
-    host_helper.lds_ = lds;
-    host_helper.id_0_ = id_0;
+    host_helper.nc_ = nc;
 
-    cudaMalloc(&host_helper.add_matrix_, sizeof(int) * lda * nc);
-    cudaMemcpy(const_cast<int*>(host_helper.add_matrix_), const_cast<int*>(add),
-               sizeof(int) * lda * nc, cudaMemcpyHostToDevice);
+    auto compact_transfer = [=](const int* matrix, int ldm, int** dest) {
+      linalg::util::HostVector<int> compact(nc * nc);
+      for (int j = 0; j < nc; ++j)
+        for (int i = 0; i < nc; ++i)
+          compact[i + nc * j] = matrix[i + ldm * j];
 
-    cudaMalloc(&host_helper.sub_matrix_, sizeof(int) * lds * nc);
-    cudaMemcpy(const_cast<int*>(host_helper.sub_matrix_), const_cast<int*>(sub),
-               sizeof(int) * lds * nc, cudaMemcpyHostToDevice);
+      cudaMalloc(dest, sizeof(int) * lds * nc);
+      cudaMemcpy(*dest, compact.data(), sizeof(int) * nc * nc, cudaMemcpyHostToDevice);
+    };
+
+    compact_transfer(add, lda, const_cast<int**>(&host_helper.add_matrix_));
+    compact_transfer(sub, lds, const_cast<int**>(&host_helper.sub_matrix_));
 
     if (momentum) {
       cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper));

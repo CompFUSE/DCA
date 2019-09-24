@@ -25,7 +25,7 @@ namespace details {
 class ClusterHelper {
 public:
   // Initialize real reciprocal cluster if mometnum == true.
-  static void set(int nc, const int* add, int lda, const int* sub, int lds, int id_0, bool momentum);
+  static void set(int nc, const int* add, int lda, const int* sub, int lds, bool momentum);
 
   // Returns the index of id_1 + id_2.
   __device__ inline int add(int id_1, int id_2) const;
@@ -35,10 +35,7 @@ public:
   __device__ inline int minus(int id) const;
 
 private:
-  int lda_;
-  int lds_;
-  int id_0_;
-  unsigned sbdm_steps_[10];
+  int nc_;
   const int* add_matrix_;
   const int* sub_matrix_;
 };
@@ -48,15 +45,16 @@ extern __device__ __constant__ ClusterHelper cluster_real_helper;
 extern __device__ __constant__ ClusterHelper cluster_momentum_helper;
 
 inline __device__ int ClusterHelper::add(const int id_1, const int id_2) const {
-  return add_matrix_[id_1 + lda_ * id_2];
+  return add_matrix_[id_1 + nc_ * id_2];
 }
 
 inline __device__ int ClusterHelper::subtract(int id_1, int id_2) const {
-  return sub_matrix_[id_1 + lds_ * id_2];
+  return sub_matrix_[id_1 + nc_ * id_2];
 }
 
 inline __device__ int ClusterHelper::minus(const int id) const {
-  return sub_matrix_[id + lds_ * id_0_];
+  const int id_0 = sub_matrix_[0];
+  return sub_matrix_[id + nc_ * id_0];
 }
 
 }  // namespace details

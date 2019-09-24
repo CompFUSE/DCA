@@ -28,7 +28,7 @@ void CtintHelper::set(const int* add_r, int lda, const int* sub_r, int lds, cons
   static std::once_flag flag;
   std::call_once(flag, [&] {
     // Initialize real space cluster.
-    solver::details::ClusterHelper::set(nc, add_r, lda, sub_r, lds, r0, 0);
+    solver::details::ClusterHelper::set(nc, add_r, lda, sub_r, lds, 0);
 
     CtintHelper host_helper;
     host_helper.subdm_step_[0] = nb;

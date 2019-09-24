@@ -32,7 +32,7 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
 
   std::call_once(flag, [=]() {
     // Initialize the reciprocal cluster if not done already.
-    solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, k0, true);
+    solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, true);
 
     G4Helper host_helper;
     host_helper.nw_pos_ = nw_pos;
