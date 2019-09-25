@@ -46,7 +46,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
   Walker::setInteractionVertices(parameters_, *data_);
 
-  parameters_.setDoubleUpdate(0);
+  parameters_.setDoubleUpdateProbability(0);
   Walker walker_single(parameters_, rng);
 
   // interaction, tau, aux, accept
@@ -80,7 +80,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   ASSERT_EQ(M1[0].nrCols(), final_size);
   ASSERT_EQ(M1[1].nrCols(), final_size);
 
-  parameters_.setDoubleUpdate(1);
+  parameters_.setDoubleUpdateProbability(1);
   Walker walker_double(parameters_, rng);
 
   ////////////////////////////////
@@ -133,7 +133,7 @@ TEST_F(G0Setup, Submatrix) {
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
   Walker::setInteractionVertices(parameters_, *data_);
-  parameters_.setDoubleUpdate(1);
+  parameters_.setDoubleUpdateProbability(1);
 
   Walker walker(parameters_, rng);
 

@@ -62,7 +62,7 @@ public:
   // Returns: first: random vertex sampled with probability proportional to |vertex.w|.
   //          second: first vertex partner's id if it exists, -1 otherwise.
   template <class Rng>
-  std::pair<short, short> getInsertionIndices(Rng& rng, bool double_update) const;
+  std::pair<short, short> getInsertionIndices(Rng& rng, double double_update_prob) const;
 
   // Returns: the sum of the absolute values of the interaction strengths.
   double integratedInteraction() const {
@@ -93,7 +93,8 @@ private:
 };
 
 template <class Rng>
-std::pair<short, short> InteractionVertices::getInsertionIndices(Rng& rng, bool double_update) const {
+std::pair<short, short> InteractionVertices::getInsertionIndices(Rng& rng,
+                                                                 double double_update_prob) const {
   const double random = rng() * total_weigth_;
   // search in reverse order.
   const auto it_to_vertex =
@@ -101,7 +102,17 @@ std::pair<short, short> InteractionVertices::getInsertionIndices(Rng& rng, bool 
   const int index = cumulative_weigths_.rend() - it_to_vertex - 1;
   assert(index >= 0 && index < size());
 
-  if (double_update && elements_[index].partners_id.size()) {  // double insertion
+  assert(double_update_prob >= 0 && double_update_prob <= 1);
+  auto do_double = [&]() -> bool {
+    if (double_update_prob == 0)
+      return 0;
+    else if (double_update_prob == 1)
+      return 1;
+    else
+      return rng() < double_update_prob;
+  };
+
+  if (elements_[index].partners_id.size() && do_double()) {  // double insertion
     const auto& partners = elements_[index].partners_id;
     auto partner_id = partners[rng() * partners.size()];
     return std::make_pair(index, partner_id);

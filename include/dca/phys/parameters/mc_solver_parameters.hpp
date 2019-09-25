@@ -274,16 +274,17 @@ public:
     return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
   }
 
+
   bool adjustAlphaDd() const {
     return adjust_alpha_dd_;
   }
 
-  double getDoubleUpdate() const {
-    return double_update_;
+  double getDoubleUpdateProbability() const {
+    return double_update_probability_;
   }
 
-  void setDoubleUpdate(const double p) {
-    double_update_ = p;
+  void setDoubleUpdateProbability(const double p) {
+    double_update_probability_ = p;
   }
 
   bool doubleCountedInteraction() const {
@@ -304,7 +305,7 @@ private:
   double alpha_dd_neg_ = 0;
   double alpha_ndd_ = 1e-4;
   bool adjust_alpha_dd_ = false;
-  bool double_update_ = false;
+  double double_update_probability_ = 0;
   bool double_counted_interaction_ = true;
   int max_submatrix_size_ = 1;
 };
@@ -317,7 +318,7 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_dd_neg_);
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
   buffer_size += concurrency.get_buffer_size(adjust_alpha_dd_);
-  buffer_size += concurrency.get_buffer_size(double_update_);
+  buffer_size += concurrency.get_buffer_size(double_update_probability_);
   buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
   buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
 
@@ -332,7 +333,7 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.pack(buffer, buffer_size, position, adjust_alpha_dd_);
-  concurrency.pack(buffer, buffer_size, position, double_update_);
+  concurrency.pack(buffer, buffer_size, position, double_update_probability_);
   concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
   concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
 }
@@ -345,7 +346,7 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.unpack(buffer, buffer_size, position, adjust_alpha_dd_);
-  concurrency.unpack(buffer, buffer_size, position, double_update_);
+  concurrency.unpack(buffer, buffer_size, position, double_update_probability_);
   concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
   concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
 }
@@ -369,7 +370,7 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("alpha-dd-neg", alpha_dd_neg_);
     tryToRead("alpha-ndd", alpha_ndd_);
     tryToRead("adjust-alpha-dd", adjust_alpha_dd_);
-    tryToRead("double-update", double_update_);
+    tryToRead("double-update-probability", double_update_probability_);
     tryToRead("double-counted-interaction", double_counted_interaction_);
     tryToRead("max-submatrix-size", max_submatrix_size_);
     reader_or_writer.close_group();

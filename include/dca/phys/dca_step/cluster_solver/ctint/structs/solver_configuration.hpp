@@ -3,7 +3,7 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
@@ -19,6 +19,7 @@
 #include "dca/io/buffer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
 #include "dca/linalg/device_type.hpp"
 
 namespace dca {
@@ -47,9 +48,9 @@ public:
 
   // TODO: pass output as argument.
   template <class RngType>
-  std::vector<int> randomRemovalCandidate(RngType& rng, double removal_rand) const;
+  std::vector<int> randomRemovalCandidate(RngType& rng, double removal_rand);
   template <class RngType>
-  std::vector<int> randomRemovalCandidate(RngType& rng) const;
+  std::vector<int> randomRemovalCandidate(RngType& rng);
 
   // Remove elements with id remove by copying elements from the end.
   // Postcondition: from and sector_from contains the indices that where moved into the place
@@ -142,6 +143,16 @@ private:
   }
   void addSectorSizes(int idx, std::array<int, 2>& sizes) const;
 
+  template <class Rng>
+  bool doDoubleUpdate(Rng& rng) const {
+    if (double_insertion_prob_ == 0)
+      return false;
+    else if (double_insertion_prob_ == 1)
+      return true;
+    else
+      return rng() < double_insertion_prob_;
+  }
+
   // List of points entering into the first or second member of g0
   const double double_insertion_prob_ = 0;
 
@@ -149,6 +160,7 @@ private:
 
   const InteractionVertices* H_int_ = nullptr;
   std::vector<std::vector<std::uint64_t>> existing_;
+  std::vector<std::vector<std::size_t>*> partners_lists_;
   std::vector<int> removable_;
   ushort last_insertion_size_ = 1;
   const double max_tau_ = 0;
@@ -192,26 +204,25 @@ void SolverConfiguration::insertRandom(RngType& rng) {
 }
 
 template <class RngType>
-std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng) const {
+std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng)  {
   return randomRemovalCandidate(rng, rng());
 }
 
 template <class RngType>
-std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) const {
+std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
   std::vector<int> candidates;
   if (removable_.size() == 0)
     return candidates;
 
   candidates.push_back(removable_[removal_rand * removable_.size()]);
 
-  if (double_insertion_prob_ &&
-      (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
-    // TODO: avoid copy
-    std::vector<std::size_t> partners;
+  if ((*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size() &&
+      doDoubleUpdate(rng)) {  // Double removal.
+    partners_lists_.clear();
     for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id)
-      partners.insert(partners.end(), existing_[partner_id].begin(), existing_[partner_id].end());
+      partners_lists_.push_back(&existing_[partner_id]);
 
-    const auto tag = partners[partners.size() * rng()];
+    const auto tag = details::getRandomElement(partners_lists_, rng());
     candidates.push_back(findTag(tag));
     assert(candidates[1] < int(size()) && candidates[1] >= 0);
   }

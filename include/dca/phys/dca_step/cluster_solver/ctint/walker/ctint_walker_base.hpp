@@ -218,7 +218,7 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       rng_(rng_ref),
 
       configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
-                     parameters_.getDoubleUpdate()),
+                     parameters_.getDoubleUpdateProbability()),
 
       beta_(parameters_.get_beta()),
       possible_partners_(configuration_.possiblePartners()),
