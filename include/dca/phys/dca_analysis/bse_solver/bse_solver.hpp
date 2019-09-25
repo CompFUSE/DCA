@@ -101,6 +101,10 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
       wave_functions_names_("wave-functions-names"),
       harmonics_("harmonics") {
+  if (parameters_.get_four_point_channels().size() != 1) {
+    throw(std::logic_error("The analysis code can analyze exactly one channel."));
+  }
+
   initialize_wave_functions();
 
   {
@@ -227,8 +231,8 @@ void BseSolver<ParametersType, DcaDataType>::calculateSusceptibilities() {
   bse_lattice_solver_.diagonalizeGammaChi0();
 }
 
-}  // analysis
-}  // phys
-}  // dca
+}  // namespace analysis
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP

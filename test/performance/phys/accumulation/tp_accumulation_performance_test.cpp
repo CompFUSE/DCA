@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
     std::cout << "\nN positive frequencies:\t" << parameters.get_four_point_fermionic_frequencies();
     std::cout << "\nN bands:\t" << BDmn::dmn_size();
     std::cout << "\nN cluster sites:\t" << RDmn::dmn_size();
-    std::cout << "\nType:\t" << parameters.get_four_point_type();
+    std::cout << "\nType:\t" << dca::phys::toString(parameters.get_four_point_channels().at(0));
     std::cout << "\n\nTpAccumulation CPU time [sec]:\t " << time << "\n";
   }
 

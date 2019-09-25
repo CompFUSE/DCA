@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class reads, stores, and writes parameters for measurements of four-point functions.
 //
@@ -16,6 +17,7 @@
 #ifndef DCA_PHYS_PARAMETERS_FOUR_POINT_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_FOUR_POINT_PARAMETERS_HPP
 
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -37,14 +39,7 @@ public:
                               domains::BRILLOUIN_ZONE>;
 
   FourPointParameters()
-      : four_point_type_(NONE),
-        ph_transverse_(false),
-        ph_magnetic_(false),
-        ph_charge_(false),
-        ph_longitudinal_up_up_(false),
-        ph_longitudinal_up_down_(false),
-        pp_up_down_(false),
-        four_point_momentum_transfer_input_(lattice_dimension, 0.),
+      : four_point_momentum_transfer_input_(lattice_dimension, 0.),
         four_point_frequency_transfer_(0),
         compute_all_transfers_(false) {}
 
@@ -58,68 +53,19 @@ public:
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
-  // Returns true, if any G4 channel should be accumulated. Otherwise returns false.
-  bool accumulateG4() const {
-    return four_point_type_ != NONE || ph_transverse_ || ph_magnetic_ || ph_charge_ ||
-           ph_longitudinal_up_up_ || ph_longitudinal_up_down_ || pp_up_down_;
+  const auto& get_four_point_channels() const {
+    return four_point_channels_;
   }
 
-  // Returns the number of channels of G4 to accumulate.
-  std::size_t numG4Channels() const {
-    if (four_point_type_ != NONE)
-      return 1;
-    else
-      return ph_transverse_ + ph_magnetic_ + ph_charge_ + ph_longitudinal_up_up_ +
-             ph_longitudinal_up_down_ + pp_up_down_;
+  bool isAccumulatingG4() const {
+    return four_point_channels_.size();
   }
 
-  FourPointType get_four_point_type() const {
-    return four_point_type_;
+  void set_four_point_channel(FourPointType type) {
+    four_point_channels_ = std::vector<FourPointType>{type};
   }
-  void set_four_point_type(FourPointType type) {
-    four_point_type_ = type;
-  }
-
-  bool accumulateG4ParticleHoleTransverse() const {
-    return ph_transverse_;
-  }
-  void accumulateG4ParticleHoleTransverse(const bool accumulate_channel) {
-    ph_transverse_ = accumulate_channel;
-  }
-
-  bool accumulateG4ParticleHoleMagnetic() const {
-    return ph_magnetic_;
-  }
-  void accumulateG4ParticleHoleMagnetic(const bool accumulate_channel) {
-    ph_magnetic_ = accumulate_channel;
-  }
-
-  bool accumulateG4ParticleHoleCharge() const {
-    return ph_charge_;
-  }
-  void accumulateG4ParticleHoleCharge(const bool accumulate_channel) {
-    ph_charge_ = accumulate_channel;
-  }
-
-  bool accumulateG4ParticleHoleLongitudinalUpUp() const {
-    return ph_longitudinal_up_up_;
-  }
-  void accumulateG4ParticleHoleLongitudinalUpUp(const bool accumulate_channel) {
-    ph_longitudinal_up_up_ = accumulate_channel;
-  }
-
-  bool accumulateG4ParticleHoleLongitudinalUpDown() const {
-    return ph_longitudinal_up_down_;
-  }
-  void accumulateG4ParticleHoleLongitudinalUpDown(const bool accumulate_channel) {
-    ph_longitudinal_up_down_ = accumulate_channel;
-  }
-
-  bool accumulateG4ParticleParticleUpDown() const {
-    return pp_up_down_;
-  }
-  void accumulateG4ParticleParticleUpDown(const bool accumulate_channel) {
-    pp_up_down_ = accumulate_channel;
+  void set_four_point_channels(const std::vector<FourPointType>& channels) {
+    four_point_channels_ = channels;
   }
 
   const std::vector<double>& get_four_point_momentum_transfer_input() const {
@@ -159,17 +105,7 @@ public:
   }
 
 private:
-  // There is no utility to communicate enumerations over mpi, so four_point_type_ is stored
-  // as an int rather than a FourPointType.
-  FourPointType four_point_type_;
-
-  bool ph_transverse_;
-  bool ph_magnetic_;
-  bool ph_charge_;
-  bool ph_longitudinal_up_up_;
-  bool ph_longitudinal_up_down_;
-  bool pp_up_down_;
-
+  std::vector<FourPointType> four_point_channels_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
   bool compute_all_transfers_;
@@ -180,13 +116,7 @@ template <typename Concurrency>
 int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
-  buffer_size += concurrency.get_buffer_size(four_point_type_);
-  buffer_size += concurrency.get_buffer_size(ph_transverse_);
-  buffer_size += concurrency.get_buffer_size(ph_magnetic_);
-  buffer_size += concurrency.get_buffer_size(ph_charge_);
-  buffer_size += concurrency.get_buffer_size(ph_longitudinal_up_up_);
-  buffer_size += concurrency.get_buffer_size(ph_longitudinal_up_down_);
-  buffer_size += concurrency.get_buffer_size(pp_up_down_);
+  buffer_size += concurrency.get_buffer_size(four_point_channels_);
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
   buffer_size += concurrency.get_buffer_size(compute_all_transfers_);
@@ -198,13 +128,7 @@ template <int lattice_dimension>
 template <typename Concurrency>
 void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency, char* buffer,
                                                   int buffer_size, int& position) const {
-  concurrency.pack(buffer, buffer_size, position, four_point_type_);
-  concurrency.pack(buffer, buffer_size, position, ph_transverse_);
-  concurrency.pack(buffer, buffer_size, position, ph_magnetic_);
-  concurrency.pack(buffer, buffer_size, position, ph_charge_);
-  concurrency.pack(buffer, buffer_size, position, ph_longitudinal_up_up_);
-  concurrency.pack(buffer, buffer_size, position, ph_longitudinal_up_down_);
-  concurrency.pack(buffer, buffer_size, position, pp_up_down_);
+  concurrency.pack(buffer, buffer_size, position, four_point_channels_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.pack(buffer, buffer_size, position, compute_all_transfers_);
@@ -214,13 +138,7 @@ template <int lattice_dimension>
 template <typename Concurrency>
 void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurrency, char* buffer,
                                                     int buffer_size, int& position) {
-  concurrency.unpack(buffer, buffer_size, position, four_point_type_);
-  concurrency.unpack(buffer, buffer_size, position, ph_transverse_);
-  concurrency.unpack(buffer, buffer_size, position, ph_magnetic_);
-  concurrency.unpack(buffer, buffer_size, position, ph_charge_);
-  concurrency.unpack(buffer, buffer_size, position, ph_longitudinal_up_up_);
-  concurrency.unpack(buffer, buffer_size, position, ph_longitudinal_up_down_);
-  concurrency.unpack(buffer, buffer_size, position, pp_up_down_);
+  concurrency.unpack(buffer, buffer_size, position, four_point_channels_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.unpack(buffer, buffer_size, position, compute_all_transfers_);
@@ -229,61 +147,46 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
 template <int lattice_dimension>
 template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
+  auto try_to_execute = [&](const std::string& name, auto& obj) {
+    try {
+      reader_or_writer.execute(name, obj);
+    }
+    catch (const std::exception& r_e) {
+    }
+  };
+
   try {
     reader_or_writer.open_group("four-point");
 
-    std::string four_point_name = toString(four_point_type_);
-    try {
-      reader_or_writer.execute("type", four_point_name);
-      four_point_type_ = stringToFourPointType(four_point_name);
+    const std::string channel_par_name = "channels";
+
+    std::vector<std::string> channel_names;
+    if (reader_or_writer.is_reader()) {
+      // Support legacy input files specifying a single channel name.
+      std::string four_point_name = "NONE";
+      try_to_execute("type", four_point_name);
+      if (four_point_name != "NONE")
+        four_point_channels_.push_back(stringToFourPointType(four_point_name));
+
+      try_to_execute(channel_par_name, channel_names);
+      for (auto name : channel_names)
+        four_point_channels_.push_back(stringToFourPointType(name));
+
+      // Remove duplicates
+      std::sort(four_point_channels_.begin(), four_point_channels_.end());
+      four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()), four_point_channels_.end());
     }
-    catch (const std::exception& r_e) {
+
+    else {  // is writer.
+      for (auto channel : four_point_channels_)
+        channel_names.push_back(toString(channel));
+
+      try_to_execute(channel_par_name, channel_names);
     }
-    try {
-      reader_or_writer.execute("particle-hole-transverse", ph_transverse_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("particle-hole-magnetic", ph_magnetic_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("particle-hole-charge", ph_charge_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("particle-hole-longitudinal-up-up", ph_longitudinal_up_up_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("particle-hole-longitudinal-up-down", ph_longitudinal_up_down_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("particle-particle-up-down", pp_up_down_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("momentum-transfer", four_point_momentum_transfer_input_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
-    }
-    catch (const std::exception& r_e) {
-    }
+
+    try_to_execute("momentum-transfer", four_point_momentum_transfer_input_);
+    try_to_execute("frequency-transfer", four_point_frequency_transfer_);
+    try_to_execute("compute-all-transfers", compute_all_transfers_);
 
     reader_or_writer.close_group();
   }

@@ -233,7 +233,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
       for (int n2 = 0; n2 < b::dmn_size(); n2++) {
         for (int m1 = 0; m1 < b::dmn_size(); m1++) {
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-            switch (parameters.get_four_point_type()) {
+            // TODO: allow more than one channel.
+            switch (parameters.get_four_point_channels()[0]) {
               case PARTICLE_HOLE_TRANSVERSE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *

@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class contains all functions needed for the MOMS DCA calculation.
 //
@@ -126,6 +127,13 @@ private:
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
+
+  // Interaction Hamiltonian. Each entry H_interactions(nu1, nu2, delta_r) represents the
+  // correlation strength between the two orbitals nu1 nu2 at distance delta_r. This correlation
+  // must be symmetric, or double counted, i.e.
+  // H_interactions(nu1, nu2, delta_r) == H_interactions(nu2, nu1, -delta_r). Each pair of terms
+  // represents a single addendum in the physical hamiltonian proportional to n_{nu1} * n_{nu2}, or
+  // H = \sum_{nu1, nu2, r1, r2} H_interactions(nu1, nu2, r1 - r2) n_{nu1} n_{nu2} / 2.
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
@@ -216,6 +224,7 @@ public:  // Optional members getters.
   // The non density-density Hamiltonian is given by:
   // H = \sum(nu1, nu2, nu3, nu4, r1, r2) c^+(nu1, r1) c(nu2, r1) c^+(nu3, r2) c(nu4, r2) *
   //     non_density_interactions_(nu1, nu2, nu3, nu4, r1 - r2)
+  // Note: this contribution to the Hamiltonian is not double counted.
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
       non_density_interactions_.reset(
@@ -291,60 +300,11 @@ DcaData<Parameters>::DcaData(Parameters& parameters_ref)
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
-  G4_.reserve(parameters_.numG4Channels());
-
-  // Allocate memory for G4.
-  // Ensure backward compatibility.
-  if (parameters_.get_four_point_type() != NONE)
-    G4_.emplace_back("G4");
-
-  // Check which four point types to accumulate.
-  else {
-    if (parameters_.accumulateG4ParticleHoleTransverse())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE));
-
-    if (parameters_.accumulateG4ParticleHoleMagnetic())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC));
-
-    if (parameters_.accumulateG4ParticleHoleCharge())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE));
-
-    if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP));
-
-    if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN));
-
-    if (parameters_.accumulateG4ParticleParticleUpDown())
-      G4_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN));
-  }
-
-  // Allocate memory for error on G4.
-  if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
-    G4_err_.reserve(parameters_.numG4Channels());
-
-    if (parameters_.get_four_point_type() != NONE)
-      G4_err_.emplace_back("G4-error");
-
-    else {
-      if (parameters_.accumulateG4ParticleHoleTransverse())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_TRANSVERSE) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleMagnetic())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_MAGNETIC) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleCharge())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_CHARGE) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleLongitudinalUpUp())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_UP) + "_err");
-
-      if (parameters_.accumulateG4ParticleHoleLongitudinalUpDown())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_HOLE_LONGITUDINAL_UP_DOWN) + "_err");
-
-      if (parameters_.accumulateG4ParticleParticleUpDown())
-        G4_err_.emplace_back("G4_" + toString(PARTICLE_PARTICLE_UP_DOWN) + "_err");
-    }
+  for (auto channel : parameters_.get_four_point_channels()) {
+    // Allocate memory for G4.
+    G4_.emplace_back("G4_" + toString(channel));
+    // Allocate memory for error on G4.
+    G4_err_.emplace_back("G4_" + toString(channel) + "_err");
   }
 }
 
@@ -378,7 +338,7 @@ void DcaData<Parameters>::read(std::string filename) {
 
   concurrency_.broadcast_object(Sigma);
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     concurrency_.broadcast_object(G_k_w);
 
     for (auto& G4_channel : G4_)
@@ -401,8 +361,13 @@ void DcaData<Parameters>::read(Reader& reader) {
 
   reader.execute(Sigma);
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     reader.execute(G_k_w);
+
+    // Try to read G4 with a legacy name.
+    if (parameters_.get_four_point_channels().size() == 1) {
+      reader.execute("G4", G4_[0]);
+    }
 
     for (auto& G4_channel : G4_)
       reader.execute(G4_channel);
@@ -502,7 +467,7 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.accumulateG4()) {
+  if (parameters_.isAccumulatingG4()) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_err_);
@@ -534,6 +499,18 @@ void DcaData<Parameters>::initialize_H_0_and_H_i() {
   Parameters::model_type::initialize_H_0(parameters_, H_HOST);
 
   Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
+
+  // Check symmetry of H_interactions.
+  const int r0 = RClusterDmn::parameter_type::origin_index();
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
+    const int minus_r = RClusterDmn::parameter_type::subtract(r, r0);
+    for (int nu2 = 0; nu2 < NuDmn::dmn_size(); ++nu2)
+      for (int nu1 = 0; nu1 < NuDmn::dmn_size(); ++nu1) {
+        if (std::abs(H_interactions(nu1, nu2, r) - H_interactions(nu2, nu1, minus_r)) > 1e-8) {
+          throw(std::logic_error("Double counting is not consistent."));
+        }
+      }
+  }
 
   if (models::has_non_density_interaction<Lattice>::value) {
     models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
