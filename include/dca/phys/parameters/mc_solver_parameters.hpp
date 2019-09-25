@@ -276,7 +276,11 @@ public:
 
 
   bool adjustAlphaDd() const {
-    return adjust_alpha_dd_;
+      return adjust_alpha_dd_;
+  }
+
+  double getDoubleUpdateProbability() const {
+    return double_update_probability_;
   }
 
   double getDoubleUpdateProbability() const {
