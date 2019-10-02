@@ -75,7 +75,7 @@ private:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(const Parameters& parameters_ref, Data& MOMS_ref);
+  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -125,7 +125,7 @@ private:
   double mix_self_energy(double alpha);
 
 protected:
-  const Parameters& parameters_;
+  Parameters& parameters_;
   Data& data_;
   Concurrency& concurrency_;
 
@@ -153,7 +153,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(const Parameters& parameters_ref,
+CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& parameters_ref,
                                                                    Data& data_ref)
     : parameters_(parameters_ref),
       data_(data_ref),
@@ -280,7 +280,7 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     }
   }
 
-  if (compute_jack_knife_ && parameters_.accumulateG4()) {
+  if (compute_jack_knife_ && parameters_.isAccumulatingG4()) {
     for (std::size_t channel = 0; channel < data_.get_G4_error().size(); ++channel)
       data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
   }
@@ -392,7 +392,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::computeErrorBars() {
   concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
 
   // sum G4
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.accumulateG4()) {
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4()) {
     if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
@@ -418,7 +418,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
 
   const double local_time = total_time_;
   const bool accumulate_g4 =
-      parameters_.accumulateG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1;
+      parameters_.isAccumulatingG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1;
 
   {
     Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);

@@ -2,9 +2,9 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // CT-INT configuration test.
 
@@ -75,7 +75,7 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
   EXPECT_EQ(1, config.getSector(1).size());
 
   // Note: The matrix configuration is swapped by another function.
-  // TODO: always leave cofig consitent.
+  // TODO: always leave config consitent.
   EXPECT_FALSE(config.checkConsistency());
 }
 

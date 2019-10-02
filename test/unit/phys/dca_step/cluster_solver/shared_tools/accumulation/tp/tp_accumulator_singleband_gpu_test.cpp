@@ -49,7 +49,7 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
                                         parameters_.get_beta(), n);
 
   using namespace dca::phys;
-  parameters_.set_channels(
+  parameters_.set_four_point_channels(
       std::vector<FourPointType>{PARTICLE_HOLE_TRANSVERSE, PARTICLE_HOLE_MAGNETIC,
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});

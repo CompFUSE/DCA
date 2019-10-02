@@ -132,7 +132,7 @@ CtintAccumulator<Parameters, device>::CtintAccumulator(const Parameters& pars, c
 template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
-      parameters_.accumulateG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
+      parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
   total_sign_ = 0;
   total_meas_ = 0;
 

@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This class organizes the vertex configuration for ct-int.
 
@@ -48,7 +48,7 @@ public:
 
   // Remove elements with id remove by copying elements from the end.
   // Postcondition: from and sector_from contains the indices that where moved into the place
-  //                of the oldelements.
+  //                of the old elements.
   // Postcondition: all vectors are ordered, resized, and ready to be used for moving the rows of
   //                the M matrix
   // In/Out: sector_remove, remove.

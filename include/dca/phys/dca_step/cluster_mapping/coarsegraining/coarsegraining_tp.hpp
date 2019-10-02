@@ -80,7 +80,7 @@ public:
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
 public:
-  coarsegraining_tp(const parameters_type &parameters_ref);
+  coarsegraining_tp(parameters_type& parameters_ref);
 
   // DCA coarsegraining
   template <typename w_dmn_t>
@@ -136,8 +136,8 @@ private:
   double get_integration_factor();
 
 private:
-  const parameters_type& parameters;
-  const concurrency_type& concurrency;
+  parameters_type& parameters;
+  concurrency_type& concurrency;
 
   func::function<scalar_type, q_dmn> w_q;
 
@@ -163,7 +163,7 @@ private:
 };
 
 template <typename parameters_type, typename K_dmn>
-coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(const parameters_type &parameters_ref)
+coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(parameters_type& parameters_ref)
     : BaseClass(parameters_ref),
 
       parameters(parameters_ref),
@@ -206,7 +206,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
   interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
 
   // TODO: allow more than one channel.
-  switch (parameters.get_channels()[0]) {
+  switch (parameters.get_four_point_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
@@ -235,7 +235,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
                                                  K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
   // TODO: allow more than one channel.
-  switch (parameters.get_channels()[0]) {
+  switch (parameters.get_four_point_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
@@ -623,7 +623,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::find_w1_and_w2(std::vector<doubl
   assert(std::abs(w::get_elements()[w1] - elements[w_ind]) < 1.e-6);
 
   // TODO: allow more than one channel.
-  switch (parameters.get_channels()[0]) {
+  switch (parameters.get_four_point_channels()[0]) {
     case PARTICLE_HOLE_CHARGE:
     case PARTICLE_HOLE_MAGNETIC:
     case PARTICLE_HOLE_TRANSVERSE: {
@@ -651,7 +651,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_bubble(
         for (int m1 = 0; m1 < b::dmn_size(); m1++) {
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
             // TODO: allow more than one channel.
-            switch (parameters.get_channels()[0]) {
+            switch (parameters.get_four_point_channels()[0]) {
               case PARTICLE_HOLE_TRANSVERSE:
                 bubble(n1, n2, m1, m2, q_ind) +=
                     G_q(n1, e_UP, m2, e_UP, q_ind) * G_q_plus_Q(n2, e_UP, m1, e_UP, q_ind);
@@ -685,7 +685,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_bubble(
 template <typename parameters_type, typename K_dmn>
 double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
   // TODO: allow more than one channel.
-  switch (parameters.get_channels()[0]) {
+  switch (parameters.get_four_point_channels()[0]) {
     case PARTICLE_HOLE_TRANSVERSE:
       return -1.;
       break;

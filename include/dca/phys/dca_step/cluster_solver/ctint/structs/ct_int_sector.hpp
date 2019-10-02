@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This structure organize the data of MatrixConfiguration for each sector in {up, down}
 
@@ -68,7 +68,9 @@ public:
     return entries_[i].aux_field_type_;
   }
 
-  auto getTag(int i) const { return tags_[i];}
+  auto getTag(int i) const {
+    return tags_[i];
+  }
 
   bool operator==(const Sector& rhs) const {
     return entries_ == rhs.entries_;
@@ -79,9 +81,9 @@ protected:
   std::vector<std::uint64_t> tags_;
 };
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_CT_INT_SECTOR_HPP

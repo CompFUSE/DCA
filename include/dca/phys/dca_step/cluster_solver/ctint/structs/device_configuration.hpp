@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This class defines a trivially copiable object to hold the CT-INT configuration on the device.
 

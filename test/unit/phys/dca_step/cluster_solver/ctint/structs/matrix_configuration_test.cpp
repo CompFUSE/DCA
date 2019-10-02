@@ -2,15 +2,15 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-//
-
-#include "gtest/gtest.h"
+// This file tests  ct_int_matrix_configuration.hpp.
 
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
+
+#include "gtest/gtest.h"
 
 using dca::phys::solver::ctint::InteractionVertices;
 using dca::phys::solver::ctint::InteractionElement;

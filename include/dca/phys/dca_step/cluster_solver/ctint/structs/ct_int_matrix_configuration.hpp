@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This class process the information contained in the SolverConfiguration class into a
 // representation of the M matrix.
@@ -115,7 +115,7 @@ std::array<int, 2> MatrixConfiguration::addVertex(const Vertex& v) {
     else if (elem.w > 0)
       return leg == 1 ? -1 * sign : 1 * sign;  // positive dd interaction.
     else
-      return 2 * sign;  // negative  dd interaction.
+      return 2 * sign;  // negative dd interaction.
   };
 
   std::array<int, 2> sizes{0, 0};

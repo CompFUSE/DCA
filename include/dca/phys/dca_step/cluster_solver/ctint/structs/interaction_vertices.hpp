@@ -2,17 +2,17 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-//
+// This class represent all possible interaction terms of the hamiltonian, and provide
+// functionalities to randomly sample from them and pair non density-density terms together.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_INTERACTION_VERTICES_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_INTERACTION_VERTICES_HPP
 
 #include <algorithm>
-#include <assert.h>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
@@ -143,7 +143,7 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
                   "Format input hamiltonian s.t. pair of creation and annihilation "
                   "operators have same spin."));
             for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
-              const ushort r2 = Rdmn::parameter_type::add(delta_r, r1);
+              const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1);
               insertElement(
                   InteractionElement{{r1, r1, r2, r2}, {nu1, nu2, nu3, nu4}, value, short(-1)});
             }
