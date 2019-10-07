@@ -45,6 +45,8 @@ struct CMakeOptions {
 
   static const std::string dca_with_qmc_bit;
 
+  static const std::string dca_symmetrize;
+
   static void print();
 };
 

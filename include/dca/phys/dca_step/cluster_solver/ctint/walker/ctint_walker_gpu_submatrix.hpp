@@ -214,8 +214,11 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
     auto& values = f_values_[s];
     const auto& sector = configuration_.getSector(s);
     values.resizeNoCopy(sector.size());
-    for (int i = 0; i < sector.size(); ++i)
-      values[i] = f_[sector.getAuxFieldType(i)];
+    for (int i = 0; i < sector.size(); ++i) {
+      const auto field_type = sector.getAuxFieldType(i);
+      const auto b = sector.getLeftB(i);
+      values[i] = f_[field_type][b];
+    }
     f_dev_[s].setAsync(values, stream_[s]);
   }
 

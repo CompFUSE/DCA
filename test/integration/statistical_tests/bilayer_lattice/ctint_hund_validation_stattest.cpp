@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Verification test of CT-INT against a reference run
+// Validation test of CT-INT against ED with a non density-density coupling.
 
 #include <string>
 #include <iostream>
@@ -51,7 +51,7 @@ using dca::math::util::cutFrequency;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/bilayer_lattice/";
-const int n_frequencies = 10;
+const int n_frequencies = 5;
 
 TEST(CtintHundValidationTest, GreensFunction) {
   using namespace dca::testing;

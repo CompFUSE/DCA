@@ -61,6 +61,11 @@ public:
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
+
+  static int get_global_id() {
+    return 0;
+  }
+
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoConcurrency& this_concurrency);
 
 private:

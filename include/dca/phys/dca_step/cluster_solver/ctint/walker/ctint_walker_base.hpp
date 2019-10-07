@@ -26,7 +26,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
@@ -137,10 +137,9 @@ public:
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type>& g0,
-                                const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                const std::vector<std::size_t>& sbdm_step,
-                                const std::array<double, 3>& alphas);
+  static void setDMatrixBuilder(const G0Interpolation<device_type>& g0);
+
+  static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
   static void setInteractionVertices(Data &data);
 
@@ -152,13 +151,14 @@ public:
 
 protected:
   // typedefs
+  using RDmn = typename Parameters::RClusterDmn;
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
   // Auxiliary methods.
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<const DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
+  static std::unique_ptr<DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -173,6 +173,7 @@ protected:  // Members.
 
   const double beta_;
   static constexpr int n_bands_ = Parameters::bands;
+  const int possible_partners_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -191,7 +192,7 @@ protected:  // Members.
   double acceptance_prob_;
 
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
-  std::pair<short, short> removal_candidates_;
+  std::vector<int> removal_candidates_;
 
   float flop_ = 0.;
 
@@ -199,11 +200,13 @@ private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<double, linalg::CPU> work_;
 };
+template<class Parameters>
+constexpr int CtintWalkerBase<Parameters>::n_bands_;
 
 template <class Parameters>
 InteractionVertices CtintWalkerBase<Parameters>::vertices_;
 template <class Parameters>
-std::unique_ptr<const DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
+std::unique_ptr<DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
 
 template <class Parameters>
 CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref, int id)
@@ -215,17 +218,21 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       rng_(rng_ref),
 
       configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
-                     parameters_.getDoubleUpdateProb()),
+                     parameters_.getDoubleUpdateProbability()),
 
       beta_(parameters_.get_beta()),
+      possible_partners_(configuration_.possiblePartners()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::initialize() {
   assert(total_interaction_);
   if (!configuration_.size()) {  // Do not initialize config if it was read.
-    while (parameters_.getInitialConfigurationSize() > configuration_.size())
+    while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
       configuration_.insertRandom(rng_);
+      for (int i = configuration_.lastInsertionSize(); i > 0; --i)
+        configuration_.commitInsertion(configuration_.size() - i);
+    }
   }
 
   setMFromConfig();
@@ -315,22 +322,30 @@ void CtintWalkerBase<Parameters>::printSummary() const {
 template <class Parameters>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type>& g0,
-    const dca::linalg::Matrix<int, linalg::CPU>& site_diff,
-    const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas) {
+    const dca::phys::solver::ctint::G0Interpolation<device_type>& g0) {
+  using RDmn = typename Parameters::RClusterDmn;
+
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ =
-      std::make_unique<const DMatrixBuilder<device_type>>(g0, site_diff, sbdm_step, alphas);
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type>>(g0, n_bands_, RDmn());
+}
+
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setDMatrixAlpha(const std::array<double, 3>& alphas,
+                                                  bool adjust_dd) {
+  assert(d_builder_ptr_);
+  d_builder_ptr_->setAlphas(alphas, adjust_dd);
 }
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::setInteractionVertices(Data& data) {
   vertices_.reset();
   vertices_.initializeFromHamiltonian(data.H_interactions);
-  if (data.has_non_density_interactions())
+  if (data.has_non_density_interactions()) {
+    vertices_.checkForInterbandPropagators(data.G0_r_t_cluster_excluded);
     vertices_.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
+  }
 }
 
 template <class Parameters>

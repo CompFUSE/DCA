@@ -9,7 +9,7 @@
 //
 // This file tests the reading and writing of the CT-INT configuration to a buffer.
 
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 
 #include <random>
 #include <functional>

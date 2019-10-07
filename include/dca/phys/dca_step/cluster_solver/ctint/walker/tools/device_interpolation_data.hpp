@@ -20,8 +20,7 @@ namespace dca {
 namespace phys {
 namespace solver {
 namespace ctint {
-namespace details {
-// dca::phys::solver::ctint::details::
+// dca::phys::solver::ctint::
 
 class DeviceInterpolationData {
 public:
@@ -29,20 +28,19 @@ public:
 
   __DEVICE__ double operator()(double tau, int lindex) const;
 
-
 protected:
   DeviceInterpolationData() = default;
 
-  constexpr static int coeff_size_ = 4; // Same as G0Interpolation<linalg::CPU>.
+  constexpr static int coeff_size_ = 4;  // Same as G0Interpolation<linalg::CPU>.
+  unsigned stride_;
   double beta_, n_div_beta_;
   double *values_, *g0_minus_;
 };
 
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
-}  // details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP

@@ -176,9 +176,9 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     try_to_read_or_write("directory", directory_);
     try_to_read_or_write("output-format", output_format_);
-      try_to_read_or_write("filename-dca", filename_dca_);
-      try_to_read_or_write("directory-config-read", directory_config_read_);
-      try_to_read_or_write("directory-config-write", directory_config_write_);
+    try_to_read_or_write("filename-dca", filename_dca_);
+    try_to_read_or_write("directory-config-read", directory_config_read_);
+    try_to_read_or_write("directory-config-write", directory_config_write_);
     try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("filename-ed", filename_ed_);
     try_to_read_or_write("filename-qmc", filename_qmc_);
@@ -194,8 +194,8 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_OUTPUT_PARAMETERS_HPP

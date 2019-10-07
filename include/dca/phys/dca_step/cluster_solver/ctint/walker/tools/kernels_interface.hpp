@@ -26,20 +26,15 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-using Configuration = DeviceConfiguration;
-using Interpolation = details::DeviceInterpolationData;
-using MatrixView = linalg::MatrixView<double, linalg::GPU>;
+void buildG0Matrix(linalg::MatrixView<double, linalg::GPU> G0, const int n_init,
+                   const bool right_section, DeviceConfiguration config,
+                   DeviceInterpolationData g0_interp, cudaStream_t stream);
 
-void buildG0Matrix(MatrixView G0, int n_init, bool right_section, Configuration config,
-                   Interpolation g0_interp, cudaStream_t stream);
-
-double deviceInterpolationTest(DeviceInterpolationData data, double tau, int linindex);
-
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP

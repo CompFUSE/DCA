@@ -83,23 +83,24 @@ protected:  // thread jacket interface.
   using Rng = typename Parameters::random_number_generator;
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
+  using Lattice = typename Parameters::lattice_type;
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
 
 private:
-  using Bdmn = func::dmn_0<domains::electron_band_domain>;
-  using Sdmn = func::dmn_0<domains::electron_spin_domain>;
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
-  using Kdmn = typename CDA::KClusterDmn;
+  using KDmn = typename CDA::KClusterDmn;
   using RDmn = typename CDA::RClusterDmn;
-  using Nu = func::dmn_variadic<Bdmn, Sdmn>;
-  using Tdmn = func::dmn_0<domains::time_domain>;
-  using Wdmn = func::dmn_0<domains::frequency_domain>;
-  using LabelDomain = func::dmn_variadic<Bdmn, Bdmn, RDmn>;
+  using Nu = func::dmn_variadic<BDmn, SDmn>;
+  using TDmn = func::dmn_0<domains::time_domain>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
+  using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, Kdmn, Wdmn>>;
+      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
 
 protected:  // Protected for testing purposes.
   void warmUp();
@@ -150,8 +151,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
       accumulator_(parameters_, data_),
 
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
-  Walker::setDMatrixBuilder(g0_, RDmn::parameter_type::get_subtract_matrix(),
-                            label_dmn_.get_branch_domain_steps(), parameters_.getAlphas());
+  Walker::setDMatrixBuilder(g0_);
 
     Walker::setInteractionVertices(data_);
 
@@ -168,7 +168,12 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::~CtintClusterSolver() {
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
+
   g0_.initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
+
+  if (dca_iteration == 0 || parameters_.adjustAlphaDd())
+    Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
+
   perform_tp_accumulation_ =
       parameters_.accumulateG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
   accumulator_.initialize(dca_iteration_);
@@ -224,11 +229,11 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
 
   // compute G_r_t and save it into data_.
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);
-  symmetrize::execute(data_.G_k_w);
+  symmetrize::execute<Lattice>(data_.G_k_w);
 
   // transform  G_k_w and save into data_.
-  math::transform::FunctionTransform<Kdmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
-  symmetrize::execute(data_.G_r_w);
+  math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
+  symmetrize::execute<Lattice>(data_.G_r_w);
 
   // compute and  save Sigma into data_
   // TODO: check if a better estimate exists
@@ -248,9 +253,9 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   // TODO check and write function
   auto G_k_w_copy = data_.G_k_w;
   G_k_w_copy -= data_.G0_k_w_cluster_excluded;
-  math::transform::FunctionTransform<Wdmn, Tdmn>::execute(G_k_w_copy, data_.G_k_t);
+  math::transform::FunctionTransform<WDmn, TDmn>::execute(G_k_w_copy, data_.G_k_t);
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
-  math::transform::FunctionTransform<Kdmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
+  math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
 
   auto local_time = total_time_;
   concurrency_.sum(total_time_);
@@ -277,9 +282,9 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
   double avg_sign = finalize();
   // Compute and save into loop_data Sigma_zero_mom and std deviation
   for (int nu = 0; nu < Nu::dmn_size(); nu++) {
-    for (int k = 0; k < Kdmn::dmn_size(); k++) {
+    for (int k = 0; k < KDmn::dmn_size(); k++) {
       std::vector<double> x;
-      for (int l = 0; l < Wdmn::dmn_size() / 4; l++)
+      for (int l = 0; l < WDmn::dmn_size() / 4; l++)
         x.push_back(real(data_.Sigma(nu, nu, k, l)));
 
       loop_data.Sigma_zero_moment(nu, k, dca_iteration_) = math::statistics::util::mean(x);
@@ -356,8 +361,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeG_k_w(
 
   // G(w) = g0_(w) - g0_(w) *M(w)* g0_(w) / beta
   G_k_w = G0;
-  for (int k_ind = 0; k_ind < Kdmn::dmn_size(); k_ind++) {
-    for (int w_ind = 0; w_ind < Wdmn::dmn_size(); w_ind++) {
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); k_ind++) {
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++) {
       // G0_M <- G0 * M
       dca::linalg::blas::gemm(&op, &op, matrix_dim, matrix_dim, matrix_dim, 1.,
                               &G0(0, 0, k_ind, w_ind), matrix_dim, &M_k_w(0, 0, k_ind, w_ind),
@@ -382,8 +387,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
   dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   // Sigma = 1/G0 - 1/G
-  for (int k_ind = 0; k_ind < Kdmn::dmn_size(); k_ind++) {
-    for (int w_ind = 0; w_ind < Wdmn::dmn_size(); w_ind++) {
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); k_ind++) {
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++) {
       dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim, &G(0, 0, k_ind, w_ind),
                                                matrix_dim, G_inv);
       dca::linalg::matrixop::smallInverse(G_inv, ipiv, work);
@@ -398,7 +403,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
     }
   }
 
-  symmetrize::execute(data_.Sigma, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
   // TODO : if it is needed implement.
   //   if (parameters_.adjust_self_energy_for_double_counting())
   //    adjust_self_energy_for_double_counting();
@@ -411,11 +416,11 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() c
   for (int l = 0; l < data_.Sigma.size(); l++)
     data_.Sigma(l) = alpha * data_.Sigma(l) + (1. - alpha) * data_.Sigma_cluster(l);
 
-  const int offset = std::min(1, Wdmn::dmn_size() / 2);
+  const int offset = std::min(1, WDmn::dmn_size() / 2);
 
   double diff_L2 = 0.;
-  for (int w_ind = Wdmn::dmn_size() / 2; w_ind < Wdmn::dmn_size() / 2 + offset; w_ind++) {
-    for (int k_ind = 0; k_ind < Kdmn::dmn_size(); k_ind++) {
+  for (int w_ind = WDmn::dmn_size() / 2; w_ind < WDmn::dmn_size() / 2 + offset; w_ind++) {
+    for (int k_ind = 0; k_ind < KDmn::dmn_size(); k_ind++) {
       for (int l1 = 0; l1 < Nu::dmn_size(); l1++) {
         diff_L2 += std::pow(
             std::abs(data_.Sigma(l1, l1, k_ind, w_ind) - data_.Sigma_cluster(l1, l1, k_ind, w_ind)),
@@ -424,7 +429,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() c
     }
   }
 
-  double L2_error = std::sqrt(diff_L2) / double(Kdmn::dmn_size());
+  double L2_error = std::sqrt(diff_L2) / double(KDmn::dmn_size());
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
 
@@ -434,7 +439,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() c
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity() const {
   double result(0.);
-  const int t0_minus = Tdmn::dmn_size() / 2 - 1;
+  const int t0_minus = TDmn::dmn_size() / 2 - 1;
   for (int i = 0; i < Nu::dmn_size(); i++)
     result += data_.G_r_t(i, i, RDmn::parameter_type::origin_index(), t0_minus);
 
@@ -445,11 +450,11 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
                                                                              bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
-  math::transform::FunctionTransform<RDmn, Kdmn>::execute(M_r, M);
+  math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
 
   double sign = accumulator_.get_accumulated_sign();
 
-  symmetrize::execute(M, data_.H_symmetry);
+  symmetrize::execute<Lattice>(M, data_.H_symmetry);
 
   // TODO: delay sum.
   auto collect = [&](auto& f) {
@@ -480,7 +485,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   SpGreensFunction M;
-  math::transform::FunctionTransform<RDmn, Kdmn>::execute(M_r, M);
+  math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
 
   const double sign = accumulator_.get_accumulated_sign();
 

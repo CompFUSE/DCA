@@ -22,6 +22,10 @@ public:
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
+  constexpr static int transformationSign(int, int, int) {
+    return 1;
+  }
+
   static double* initialize_r_DCA_basis();
   static double* initialize_r_LDA_basis();
 
@@ -237,6 +241,10 @@ public:
 
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
+
+  constexpr static int transformationSign(int, int, int) {
+    return 1;
+  }
 
   static double* initialize_r_DCA_basis();
   static double* initialize_r_LDA_basis();

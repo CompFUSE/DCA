@@ -23,18 +23,29 @@ namespace ctint {
 
 using namespace dca::phys::solver::ctint;
 template <class Parameters>
-struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
+class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
+public:
   using BaseClass = CtintWalker<dca::linalg::CPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
-      BaseClass::initialize();
+    BaseClass::initialize();
   }
 
   using BaseClass::doStep;
-  using BaseClass::tryVertexInsert;
-  using BaseClass::tryVertexRemoval;
+
+  bool tryVertexInsert() {
+    // TODO: remove
+    configuration_.prepareForSubmatrixUpdate();
+    return BaseClass::tryVertexInsert();
+  }
+  bool tryVertexRemoval() {
+    // TODO: remove
+    configuration_.prepareForSubmatrixUpdate();
+    return BaseClass::tryVertexRemoval();
+  }
+
   using BaseClass::setMFromConfig;
   using BaseClass::getM;
 
@@ -55,11 +66,14 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   const auto& getWalkerConfiguration() const {
     return BaseClass::configuration_;
   }
+
+private:
+  using BaseClass::configuration_;
 };
 
-}  // ctint
-}  // solver
-}  // phys
-}  // testing
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace testing
 
 #endif  //  TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_HPP

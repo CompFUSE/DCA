@@ -73,6 +73,12 @@ public:
     return util::getBounds(id(), number_of_processors(), dmn);
   }
 
+  static int get_global_id(){
+      int id;
+      MPI_Comm_rank(MPI_COMM_WORLD, &id);
+      return id;
+  }
+
   friend std::ostream& operator<<(std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
 
 private:

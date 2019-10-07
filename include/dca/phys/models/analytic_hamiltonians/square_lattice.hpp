@@ -39,6 +39,10 @@ public:
   static double* initialize_r_DCA_basis();
   static double* initialize_r_LDA_basis();
 
+  constexpr static int transformationSign(int, int, int) {
+    return 1;
+  }
+
   static std::vector<int> get_flavors();
   static std::vector<std::vector<double>> get_a_vectors();
 
@@ -170,8 +174,8 @@ void square_lattice<point_group_type>::initialize_H_0(
   }
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP

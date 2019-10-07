@@ -40,9 +40,8 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
 
-  Walker::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                            label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
-
+  Walker::setDMatrixBuilder(g0);
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), 0);
     Walker::setInteractionVertices(*data_);
 
   Walker walker(parameters_, rng);

@@ -36,9 +36,13 @@ private:
   using BaseClass = DMatrixBuilder<linalg::CPU>;
 
 public:
+  template <class RDmn>
+  DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0, int nb, const RDmn& /*rdmn*/);
+
   DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas);
+                 const linalg::Matrix<int, linalg::CPU>& site_add, int nb, int r0);
+
 
   const G0Interpolation<linalg::GPU>& getG0() const {
     return g0_ref_;
@@ -50,6 +54,13 @@ public:
 private:
   const G0Interpolation<linalg::GPU>& g0_ref_;
 };
+
+template <class RDmn>
+DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0, int nb,
+                                            const RDmn& /*rdmn*/)
+    : DMatrixBuilder(g0, RDmn::parameter_type::get_add_matrix(),
+                     RDmn::parameter_type::get_subtract_matrix(), nb,
+                     RDmn::parameter_type::origin_index()) {}
 
 }  // namespace ctint
 }  // namespace solver

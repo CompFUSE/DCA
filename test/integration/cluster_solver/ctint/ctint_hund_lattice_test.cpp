@@ -65,7 +65,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
 
   // Do one integration step.
   QmcSolverType qmc_solver(parameters, data);
-  qmc_solver.initialize(1);
+  qmc_solver.initialize();
   qmc_solver.integrate();
   qmc_solver.finalize();
 

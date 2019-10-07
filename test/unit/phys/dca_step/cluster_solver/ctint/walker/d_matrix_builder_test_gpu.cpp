@@ -27,12 +27,13 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   ctint::G0Interpolation<dca::linalg::GPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
 
-  ctint::DMatrixBuilder<dca::linalg::GPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                                  label_dmn.get_branch_domain_steps(),
-                                                  parameters_.getAlphas());
-  ctint::DMatrixBuilder<dca::linalg::CPU> builder_cpu(
-      g0, RDmn::parameter_type::get_subtract_matrix(), label_dmn.get_branch_domain_steps(),
-      parameters_.getAlphas());
+  const int nb = BDmn::dmn_size();
+
+  ctint::DMatrixBuilder<dca::linalg::GPU> builder(g0, nb, RDmn());
+  builder.setAlphas(parameters_.getAlphas(), false);
+
+  ctint::DMatrixBuilder<dca::linalg::CPU> builder_cpu(g0, nb, RDmn());
+  builder_cpu.setAlphas(parameters_.getAlphas(), false);
 
   ctint::InteractionVertices interaction_vertices;
     interaction_vertices.initializeFromHamiltonian(data_->H_interactions);

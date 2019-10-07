@@ -14,14 +14,14 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
 #ifdef DCA_HAVE_CUDA
 
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/vector.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 
@@ -32,13 +32,12 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <>
-class G0Interpolation<linalg::GPU> final : public details::DeviceInterpolationData,
+class G0Interpolation<linalg::GPU> final : public DeviceInterpolationData,
                                            public G0Interpolation<linalg::CPU> {
 private:
   using PDmn = G0ParametersDomain;
   using PDmn0 = func::dmn_0<G0ParametersDomain>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using DeviceInterpolation = details::DeviceInterpolationData;
   using HostInterpolation = G0Interpolation<linalg::CPU>;
 
 public:
@@ -57,13 +56,13 @@ public:
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   // Call from the CPU only for testing purposes.
-  double inline operator()(double tau, int lindex) const;
+  double operator()(double tau, int lindex) const;
 
-  int getStride() const {
-    if (time_slices_ == -1)
-      throw(std::logic_error("The interpolation was not initialized."));
-    return time_slices_ * COEFF_SIZE;
-  }
+  //  int getStride() const {
+  //    if (time_slices_ == -1)
+  //      throw(std::logic_error("The interpolation was not initialized."));
+  //    return time_slices_ * COEFF_SIZE;
+  //  }
 
   using HostInterpolation::COEFF_SIZE;
 
@@ -83,19 +82,17 @@ void G0Interpolation<linalg::GPU>::initialize(const func::function<double, Input
   assert(HostInterpolation::beta_);
 
   time_slices_ = getTimeSlices();
-  DeviceInterpolation::beta_ = HostInterpolation::beta_;
-  DeviceInterpolation::n_div_beta_ = HostInterpolation::n_div_beta_;
+  DeviceInterpolationData::beta_ = HostInterpolation::beta_;
+  DeviceInterpolationData::n_div_beta_ = HostInterpolation::n_div_beta_;
+  DeviceInterpolationData::stride_ = HostInterpolation::getStride();
 
   g0_minus_dev_.set(HostInterpolation::g0_minus_, 0, 0);
   G0_coeff_.resizeNoCopy(HostInterpolation::G0_coeff_.size());
   cudaMemcpy(G0_coeff_.ptr(), HostInterpolation::G0_coeff_.values(),
              G0_coeff_.size() * sizeof(decltype(G0_coeff_.ptr())), cudaMemcpyHostToDevice);
   // Copy pointer to the data structure.
-  DeviceInterpolation::values_ = G0_coeff_.ptr();
-  DeviceInterpolation::g0_minus_ = g0_minus_dev_.ptr();
-
-  GlobalMemoryManager::initializeInterpolation(getStride());
-  cudaDeviceSynchronize();
+  DeviceInterpolationData::values_ = G0_coeff_.ptr();
+  DeviceInterpolationData::g0_minus_ = g0_minus_dev_.ptr();
 }
 
 template <class InputDmn>
@@ -103,14 +100,10 @@ G0Interpolation<linalg::GPU>::G0Interpolation(const func::function<double, Input
   initialize(G0_pars_t);
 }
 
-double G0Interpolation<linalg::GPU>::operator()(double tau, int lindex) const {
-  return details::deviceInterpolationTest(*this, tau, lindex);
-}
-
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP

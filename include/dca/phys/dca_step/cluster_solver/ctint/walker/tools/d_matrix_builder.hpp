@@ -18,8 +18,7 @@
 #include <type_traits>
 
 #include "dca/linalg/linalg.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 
@@ -47,11 +46,15 @@ private:
   using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
 
 public:
+  template <class RDmn>
+  DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0, int nb, const RDmn& /*r_dmn*/);
+
   DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0,
-                 const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<std::size_t>& sbdm_step, const std::array<double, 3>& alphas);
+                 const linalg::Matrix<int, linalg::CPU>& site_diff, int nb);
 
   virtual ~DMatrixBuilder() {}
+
+  void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
 
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
@@ -60,16 +63,10 @@ public:
   }
 
   double computeD(const int i, const int j, const Sector& config) const;
-  double computeAlpha(const int aux_spin_type) const;
-  double computeDSubmatrix(const int i, const int j, const Sector& configuration) const;
+  double computeAlpha(const int aux_spin_type, const int b) const;
   double computeF(const double alpha) const;
-  double computeF(const int i, const Sector& configuration) const;
-  double computeF(const int aux_spin_type) const;
-  double computeG(const int i, const int j, const Sector& configuration, const Matrix& M) const;
-  double computeGFast(const int i, const int j, const int aux_spin_type, const double M_ij) const;
-  double computeG0(const int i, const int j, const Sector& configuration) const;
-  double computeGamma(const int aux_spin_type, const int new_aux_spin_type) const;
-  void computeG0Init(Matrix& G0, const Sector& configuration, const int n_init, const int n_max) const;
+  double computeF(const int aux_spin_type, int b) const;
+  double computeGamma(int aux_spin_type, int new_aux_spin_type, int b) const;
   void computeG0(linalg::Matrix<double, linalg::CPU>& G0, const Sector& configuration,
                  const int n_init, const int n_max, const int which_section) const;
 
@@ -86,14 +83,19 @@ private:
 
 protected:
   const G0Interpolation<linalg::CPU>& g0_ref_;
-  const double alpha_1_ = 0;
-  const double alpha_2_ = 0;
-  const double alpha_3_ = 0;
+  std::vector<double> alpha_dd_;
+  double alpha_dd_neg_ = 0;
+  double alpha_ndd_ = 0;
   const int n_bands_ = -1;
-  const std::vector<std::size_t>& sbdm_step_;
+  std::array<int, 2> sbdm_step_;
   // Note: site_diff is a matrix where site_diff(i,j) = r_j - r_i.
   const linalg::Matrix<int, linalg::CPU>& site_diff_;
 };
+
+template <class RDmn>
+DMatrixBuilder<linalg::CPU>::DMatrixBuilder(const G0Interpolation<linalg::CPU>& g0, int nb,
+                                            const RDmn& /*r_dmn*/)
+    : DMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(), nb) {}
 
 }  // namespace ctint
 }  // namespace solver

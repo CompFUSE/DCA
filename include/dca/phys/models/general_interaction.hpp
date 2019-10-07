@@ -76,7 +76,7 @@ void general_interaction<parameters_type>::set_vertex(
 
   // Get a random pair of correlated spin-orbitals.
   const int pos = rng() * correlated_orbitals.size();
-  const int lin_ind = correlated_orbitals[pos];
+  const int lin_ind = correlated_orbitals.at(pos);
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2
   get_spin_orbital_pair_domain<BandDmn, SpinDmn, RDmn>().linind_2_subind(lin_ind, sub_ind.data());

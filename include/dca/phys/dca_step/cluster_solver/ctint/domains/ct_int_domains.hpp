@@ -32,7 +32,6 @@ public:
   // Creates a domain that contains the elements in the range [0, beta] of the base domain.
   static void initialize();
 
-  // Use '_' (underscore) to be consistent with other domain classes.
   static std::size_t get_size() {
     return elements_.size();
   }

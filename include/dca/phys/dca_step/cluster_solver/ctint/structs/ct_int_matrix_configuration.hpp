@@ -110,7 +110,7 @@ std::array<int, 2> MatrixConfiguration::addVertex(const Vertex& v) {
   auto field_type = [&](const Vertex& v, const int leg) -> short {
     const short sign = v.aux_spin ? 1 : -1;
     const InteractionElement& elem = (*H_int_)[v.interaction_id];
-    if (elem.partner_id != -1)
+    if (elem.partners_id.size())
       return leg == 1 ? -3 * sign : 3 * sign;  // non density-density.
     else if (elem.w > 0)
       return leg == 1 ? -1 * sign : 1 * sign;  // positive dd interaction.

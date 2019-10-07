@@ -28,10 +28,11 @@ namespace ctint {
 // Represent a matrix element W(i,j,k,l) of the interaction hamiltonian.
 // Each index represent a cluster position and a spin-band index.
 struct InteractionElement {
-  ushort r[4];
-  ushort nu[4];
+  std::array<ushort, 4> r;
+  std::array<ushort, 4> nu;
   double w;
-  short partner_id = -1;
+  // TODO: write proper constructor.
+  std::vector<ushort> partners_id = std::vector<ushort>();
   // Returns true if r and nu members are equal.
   bool operator==(const InteractionElement& other) const;
 };
@@ -51,11 +52,17 @@ public:
 
   void insertElement(const std::vector<double>& vec);
 
+  template <class Nu, class Rdmn, class TDmn>
+  void checkForInterbandPropagators(
+      const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, TDmn>>& G_r_t);
+
   void reset();
   // In: random number generator object.
   // Returns: first: random vertex sampled with probability proportional to |vertex.w|.
   //          second: first vertex partner's id if it exists, -1 otherwise.
-  std::pair<short, short> getInsertionIndices(double rand) const;
+  template <class Rng>
+  std::pair<short, short> getInsertionIndices(Rng& rng, double double_update_prob) const;
+
   // Returns: the sum of the absolute values of the interaction strengths.
   double integratedInteraction() const {
     return total_weigth_;
@@ -69,11 +76,50 @@ public:
     return elements_[idx];
   }
 
-private:
+  // Returns the number of possible partners for each non density-density interaction.
+  int possiblePartners() const {
+    const int partners = elements_.back().partners_id.size();
+    // TODO: generalize if number of possible pairings is not constant or at the back.
+    return partners;
+  }
+
   std::vector<InteractionElement> elements_;
+
+private:
   std::vector<double> cumulative_weigths_;
   double total_weigth_ = 0;
+  bool interband_propagator_ = false;
 };
+
+template <class Rng>
+std::pair<short, short> InteractionVertices::getInsertionIndices(Rng& rng,
+                                                                 double double_update_prob) const {
+  const double random = rng() * total_weigth_;
+  // search in reverse order.
+  const auto it_to_vertex =
+      std::upper_bound(cumulative_weigths_.rbegin(), cumulative_weigths_.rend(), random);
+  const int index = cumulative_weigths_.rend() - it_to_vertex - 1;
+  assert(index >= 0 && index < size());
+
+  assert(double_update_prob >= 0 && double_update_prob <= 1);
+  auto do_double = [&]() -> bool {
+    if (double_update_prob == 0)
+      return 0;
+    else if (double_update_prob == 1)
+      return 1;
+    else
+      return rng() < double_update_prob;
+  };
+
+  if (elements_[index].partners_id.size() && do_double()) {  // double insertion
+    const auto& partners = elements_[index].partners_id;
+    auto partner_id = partners[rng() * partners.size()];
+    return std::make_pair(index, partner_id);
+  }
+  else {
+    return std::make_pair(index, -1);
+  }
+}
 
 template <class Nu, class Rdmn>
 void InteractionVertices::initializeFromHamiltonian(
@@ -116,7 +162,7 @@ void InteractionVertices::initializeFromHamiltonian(
         already_inserted(nu1, nu2, delta_r) = true;
         for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
           const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1);  // delta_r = r1 - r2
-          insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value, short(-1)});
+          insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value});
         }
       }
   }
@@ -127,7 +173,7 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
     const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, Rdmn>>& H_int) {
   auto spin = [](ushort nu) { return nu >= Nu::dmn_size() / 2; };
   auto check_spins = [&](ushort nu1, ushort nu2, ushort nu3, ushort nu4) -> bool {
-    return spin(nu1) == spin(nu2) and spin(nu3) == spin(nu4);
+    return spin(nu1) == spin(nu2) && spin(nu3) == spin(nu4);
   };
 
   for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++)
@@ -144,10 +190,26 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
                   "operators have same spin."));
             for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
               const ushort r2 = Rdmn::parameter_type::add(delta_r, r1);
-              insertElement(
-                  InteractionElement{{r1, r1, r2, r2}, {nu1, nu2, nu3, nu4}, value, short(-1)});
+              insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu2, nu3, nu4}, value});
             }
           }
+}
+
+template <class Nu, class RDmn, class TDmn>
+void InteractionVertices::checkForInterbandPropagators(
+    const func::function<double, func::dmn_variadic<Nu, Nu, RDmn, TDmn>>& G_r_t) {
+  interband_propagator_ = false;
+  const int t0 = TDmn::dmn_size() / 2;
+  const int nb = Nu::dmn_size() / 2;
+  const int r0 = RDmn::parameter_type::origin_index();
+  for (int r = 0; r < RDmn::dmn_size(); ++r)
+    for (int b1 = 0; b1 < nb; ++b1)
+      for (int b2 = 0; b2 < nb; ++b2) {
+        if (r != r0 && b1 != b2 && std::abs(G_r_t(b1, 0, b2, 0, r, t0)) > 1e-8) {
+          interband_propagator_ = true;
+          return;
+        }
+      }
 }
 
 }  // namespace ctint
