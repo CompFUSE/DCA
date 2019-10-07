@@ -22,7 +22,7 @@ TEST(FourPointParametersTest, DefaultValues) {
 
   std::vector<double> momentum_transfer_input_check{0., 0.};
 
-  EXPECT_EQ(0, pars.get_channels().size());
+  EXPECT_EQ(0, pars.get_four_point_channels().size());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(0, pars.get_four_point_frequency_transfer());
@@ -48,7 +48,7 @@ TEST(FourPointParametersTest, ReadAll) {
 
   std::vector<double> momentum_transfer_input_check{3.14, -1.57};
 
-  EXPECT_EQ(all_channels, pars.get_channels());
+  EXPECT_EQ(all_channels, pars.get_four_point_channels());
 
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(1, pars.get_four_point_frequency_transfer());
@@ -58,21 +58,21 @@ TEST(FourPointParametersTest, ReadAll) {
 TEST(FourPointParametersTest, Setters) {
   dca::phys::params::FourPointParameters<2> pars;
 
-  EXPECT_EQ(0, pars.get_channels().size());
+  EXPECT_EQ(0, pars.get_four_point_channels().size());
 
-  pars.set_channels(all_channels);
+  pars.set_four_point_channels(all_channels);
 
-  EXPECT_EQ(all_channels, pars.get_channels());
+  EXPECT_EQ(all_channels, pars.get_four_point_channels());
 }
 
 TEST(FourPointParametersTest, AccumulateG4) {
   dca::phys::params::FourPointParameters<2> pars;
 
-  EXPECT_EQ(false, pars.accumulateG4());
+  EXPECT_EQ(false, pars.isAccumulatingG4());
 
-  pars.set_channel(PARTICLE_HOLE_MAGNETIC);
+  pars.set_four_point_channel(PARTICLE_HOLE_MAGNETIC);
 
-  EXPECT_EQ(true, pars.accumulateG4());
+  EXPECT_EQ(true, pars.isAccumulatingG4());
 }
 
 TEST(FourPointParametersTest, ReadLegacy) {
@@ -84,5 +84,5 @@ TEST(FourPointParametersTest, ReadLegacy) {
     pars.readWrite(reader);
     reader.close_file();
 
-    EXPECT_EQ(std::vector<FourPointType>{PARTICLE_HOLE_MAGNETIC}, pars.get_channels());
+    EXPECT_EQ(std::vector<FourPointType>{PARTICLE_HOLE_MAGNETIC}, pars.get_four_point_channels());
 }

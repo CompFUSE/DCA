@@ -175,7 +175,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
     Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
   perform_tp_accumulation_ =
-      parameters_.accumulateG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
+      parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
   accumulator_.initialize(dca_iteration_);
 }
 

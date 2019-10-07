@@ -50,7 +50,7 @@ public:
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
-  BseClusterSolver(const ParametersType& parameters, DcaDataType& data);
+  BseClusterSolver(ParametersType& parameters, DcaDataType& data);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -74,8 +74,8 @@ private:
   void solve_BSE_on_cluster(func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II,
                             func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0);
 
-  const ParametersType& parameters;
-  const concurrency_t& concurrency;
+  ParametersType& parameters;
+  concurrency_t& concurrency;
 
   DcaDataType& data_;
 
@@ -89,7 +89,7 @@ private:
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
-    const ParametersType& parameters_ref, DcaDataType& data_ref)
+    ParametersType& parameters_ref, DcaDataType& data_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       data_(data_ref),
@@ -236,7 +236,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
         for (int m1 = 0; m1 < b::dmn_size(); m1++) {
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
             // TODO: allow more than one channel.
-            switch (parameters.get_channels()[0]) {
+            switch (parameters.get_four_point_channels()[0]) {
               case PARTICLE_HOLE_TRANSVERSE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *

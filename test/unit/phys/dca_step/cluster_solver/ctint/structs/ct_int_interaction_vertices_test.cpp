@@ -1,8 +1,8 @@
 // Copyright (C) 2018 ETH Zurich
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
-// See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See LICENSE.txt for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
@@ -47,32 +47,6 @@ TEST(InteractionVerticesTest, SamplingProb) {
   //  EXPECT_EQ(0, H.getInsertionIndices(0.8).first);
 }
 
-// TEST(InteractionVertices, Statistic) {
-//  dca::phys::solver::ctint::InteractionVertices vertices;
-//  using dca::phys::solver::ctint::InteractionElement;
-//  const InteractionElement zero{{3, 0, 0, 0}, {0, 0, 0, 0}};
-//
-//  vertices.insertElement(zero, 1);
-//  vertices.insertElement(zero, 1);
-//  vertices.insertElement(zero, 2);
-//
-//  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
-//  std::array<int, 3> results{0, 0, 0};
-//  const int n_samples = 1e4;
-//
-//  // Count the number of vertices of each type.
-//  for (int i = 0; i < n_samples; i++) {
-//    const int res = &vertices.getRandomElement(rng()) - &vertices.getElements()[0];
-//    results[res]++;
-//  }
-//
-//  const std::array<double, 3> p{0.25, 0.25, 0.5};
-//  for (int i = 0; i < p.size(); i++) {
-//    const double var = std::sqrt(p[i] * (1 - p[i]) * n_samples);
-//    EXPECT_NEAR(p[i], results[i] / n_samples, 3 * var);
-//  }
-//}
-
 using G0Setup = dca::testing::G0Setup<dca::testing::LatticeHund>;
 TEST_F(G0Setup, InitializeFromHamiltonians) {
   //  ****************************
@@ -110,7 +84,6 @@ TEST_F(G0Setup, InitializeFromHamiltonians) {
     vertices.initializeFromNonDensityHamiltonian(H_nd);
 
     const double Jh = G0Setup::parameters_.get_Jh();
-    // Double insertion is proposed with w**2 probability.
     EXPECT_EQ(Jh, vertices[0].w);
     EXPECT_NEAR(Jh * 16, vertices.integratedInteraction(), 1e-10);
 

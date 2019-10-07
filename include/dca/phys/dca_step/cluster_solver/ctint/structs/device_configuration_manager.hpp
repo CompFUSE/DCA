@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author:Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This class provides an interface to upload  to the GPU.
 

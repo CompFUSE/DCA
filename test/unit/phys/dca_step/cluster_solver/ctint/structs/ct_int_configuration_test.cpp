@@ -2,9 +2,9 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // CT-INT configuration test.
 
@@ -45,10 +45,11 @@ TEST(SolverConfigurationTest, InsertAndSwap) {
   EXPECT_EQ(2, config[0].interaction_id);
   EXPECT_EQ(0, config[1].interaction_id);
 
+  // Pop is used by the class CtintWalker after the matrix configuration has been reordered
+  // accordingly. Using it right after a reorder of the configuration will leave it inconsistent.
   config.pop();
   EXPECT_EQ(2, config.size());
-
-  //  EXPECT_TRUE(config.checkConsistency());
+  EXPECT_FALSE(config.checkConsistency());
 }
 
 TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
@@ -74,9 +75,9 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
   EXPECT_EQ(3, config.getSector(0).size());
   EXPECT_EQ(1, config.getSector(1).size());
 
-  // Note: The matrix configuration is swapped by another function.
-  // TODO: always leave cofig consitent.
-  //  EXPECT_FALSE(config.checkConsistency());
+  // See above test regarding the consistency of the configuration.
+  // TODO: always leave config consitent.
+  EXPECT_FALSE(config.checkConsistency());
 }
 
 TEST(SolverConfigurationTest, ShrinkAndMove) {

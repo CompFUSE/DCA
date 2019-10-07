@@ -44,7 +44,7 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  parameters_.set_channels(std::vector<dca::phys::FourPointType>{
+  parameters_.set_four_point_channels(std::vector<dca::phys::FourPointType>{
       dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
       dca::phys::PARTICLE_HOLE_MAGNETIC, dca::phys::PARTICLE_HOLE_CHARGE});
 
