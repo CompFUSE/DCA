@@ -42,7 +42,7 @@ auto complex(const function<Scalartype, Dmn>& f) {
 template <typename Scalartype, typename Dmn>
 auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_imaginary = false) {
   function<Scalartype, Dmn> f_real;
-  Scalartype max_img = 0, max_rel;
+  Scalartype max_img = 0, max_rel = 0;
 
   for (int i = 0; i < f_real.size(); ++i) {
     max_img = std::max(std::abs(f(i).imag()), max_img);
@@ -51,7 +51,7 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_ima
     f_real(i) = f(i).real();
   }
 
-  if (check_imaginary && max_img > 500 * std::numeric_limits<Scalartype>::epsilon()) {
+  if (check_imaginary && max_img > 1e3 * std::numeric_limits<Scalartype>::epsilon()) {
     // throw(std::logic_error("The function is not purely real."));
     int initialized;
     MPI_Initialized(&initialized);
