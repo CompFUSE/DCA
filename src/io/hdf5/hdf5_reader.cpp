@@ -56,7 +56,7 @@ std::string HDF5Reader::get_path() {
   return path;
 }
 
-void HDF5Reader::execute(std::string name,
+bool HDF5Reader::execute(std::string name,
                          std::string& value)  //, H5File& file, std::string path)
 {
   std::string full_name = get_path() + "/" + name;
@@ -70,26 +70,25 @@ void HDF5Reader::execute(std::string name,
 
     H5Dread(dataset.getId(), HDF5_TYPE<char>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &value[0]);
+    return true;
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    return false;
   }
 }
 
-void HDF5Reader::execute(std::string name,
-                         std::vector<std::string>& value)  //, H5File& file, std::string path)
-{
-  try {
-    open_group(name);
+bool HDF5Reader::execute(std::string name, std::vector<std::string>& value) {
+  open_group(name);
+  open_group("data");
+  bool success = true;
 
+  try {
     int size = -1;
     execute("size", size);
 
     value.resize(size);
-
-    open_group("data");
 
     for (size_t l = 0; l < value.size(); l++) {
       std::stringstream ss;
@@ -104,17 +103,17 @@ void HDF5Reader::execute(std::string name,
       H5Dread(dataset.getId(), HDF5_TYPE<char>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
               &value[l][0]);
     }
-
-    close_group();
-
-    close_group();
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    success = false;
   }
+
+  close_group();
+  close_group();
+  return success;
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca

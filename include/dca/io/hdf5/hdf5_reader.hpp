@@ -60,39 +60,43 @@ public:
   template <typename arbitrary_struct_t>
   static void from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);
 
+  // `execute` returns true if the object is read correctly.
+
   template <typename scalartype>
-  void execute(std::string name, scalartype& value);
+  bool execute(std::string name, scalartype& value);
 
   template <typename scalar_type>
-  void execute(std::string name, std::vector<scalar_type>& value);
+  bool execute(std::string name, std::vector<scalar_type>& value);
 
   template <typename scalar_type>
-  void execute(std::string name, std::vector<std::complex<scalar_type>>& value);
+  bool execute(std::string name, std::vector<std::complex<scalar_type>>& value);
 
-  void execute(std::string name, std::string& value);
+  bool execute(std::string name, std::string& value);
 
-  void execute(std::string name, std::vector<std::string>& value);
+  bool execute(std::string name, std::vector<std::string>& value);
 
   // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
-  void execute(std::string /*name*/, func::dmn_0<domain_type>& /*dmn*/) {}
+  bool execute(std::string /*name*/, func::dmn_0<domain_type>& /*dmn*/) {
+    return false;
+  }
 
   template <typename scalartype, typename domain_type>
-  void execute(func::function<scalartype, domain_type>& f);
+  bool execute(func::function<scalartype, domain_type>& f);
 
   template <typename scalartype, typename domain_type>
-  void execute(std::string name, func::function<scalartype, domain_type>& f);
+  bool execute(std::string name, func::function<scalartype, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
+  bool execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
+  bool execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+  bool execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
-  void execute(std::string name, io::Buffer& buff) {
+  bool execute(std::string name, io::Buffer& buff) {
     return execute(name, static_cast<io::Buffer::Container&>(buff));
   }
 
@@ -114,7 +118,7 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name, scalar_type& value) {
+bool HDF5Reader::execute(std::string name, scalar_type& value) {
   std::string full_name = get_path() + "/" + name;
 
   try {
@@ -124,15 +128,18 @@ void HDF5Reader::execute(std::string name, scalar_type& value) {
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &value);
+
+    return true;
   }
   catch (...) {
     std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
+    return false;
   }
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name, std::vector<scalar_type>& value) {
+bool HDF5Reader::execute(std::string name, std::vector<scalar_type>& value) {
   std::string full_name = get_path() + "/" + name;
 
   try {
@@ -144,16 +151,17 @@ void HDF5Reader::execute(std::string name, std::vector<scalar_type>& value) {
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &value[0]);
+    return true;
   }
   catch (...) {
     std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    return false;
   }
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name, std::vector<std::complex<scalar_type>>& value) {
+bool HDF5Reader::execute(std::string name, std::vector<std::complex<scalar_type>>& value) {
   std::string full_name = get_path() + "/" + name;
 
   try {
@@ -165,26 +173,27 @@ void HDF5Reader::execute(std::string name, std::vector<std::complex<scalar_type>
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &value[0]);
+    return true;
   }
   catch (...) {
     std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    return false;
   }
 }
 
 template <typename scalartype, typename domain_type>
-void HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
-  execute(f.get_name(), f);
+bool HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
+  return execute(f.get_name(), f);
 }
 
 template <typename scalartype, typename domain_type>
-void HDF5Reader::execute(std::string name, func::function<scalartype, domain_type>& f) {
+bool HDF5Reader::execute(std::string name, func::function<scalartype, domain_type>& f) {
   std::cout << "\n\tstart reading function : " << name;
+  open_group(name);
+  bool success = true;
 
   try {
-    open_group(name);
-
     std::string full_name = get_path() + "/data";
 
     H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
@@ -193,21 +202,23 @@ void HDF5Reader::execute(std::string name, func::function<scalartype, domain_typ
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalartype>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &f(0));
-
-    close_group();
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    success = false;
   }
+
+  close_group();
+  return success;
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
-  try {
-    open_group(name);
+bool HDF5Reader::execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
+  open_group(name);
+  bool success = true;
 
+  try {
     std::string full_name = get_path() + "/data";
 
     H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
@@ -218,21 +229,23 @@ void HDF5Reader::execute(std::string name, dca::linalg::Vector<scalar_type, dca:
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &V[0]);
-
-    close_group();
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
-    // throw std::logic_error(__FUNCTION__);
+    success = false;
   }
+
+  close_group();
+  return success;
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name,
+bool HDF5Reader::execute(std::string name,
                          dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
-  try {
-    open_group(name);
+  open_group(name);
+  bool success = true;
 
+  try {
     std::string full_name = get_path() + "/data";
 
     H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
@@ -243,19 +256,22 @@ void HDF5Reader::execute(std::string name,
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &V[0]);
-
-    close_group();
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
+    success = false;
   }
+
+  close_group();
+  return success;
 }
 
 template <typename scalar_type>
-void HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
-  try {
-    open_group(name);
+bool HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+  open_group(name);
+  bool success = true;
 
+  try {
     std::string full_name = get_path() + "/data";
 
     H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
@@ -271,13 +287,15 @@ void HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca:
 
     H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
             &A(0, 0));
-
-    close_group();
   }
-  catch (...) {
+  catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
+    success = false;
   }
+
+  close_group();
+  return success;
 }
 
 }  // namespace io

@@ -646,3 +646,16 @@ TEST(FunctionTest, MemoryLayout) {
         ++count;
       }
 }
+
+TEST(FunctionTest, RangeBasedLoop) {
+  using Dmn = dmn_variadic<dmn_0<dmn<5>>, dmn_0<dmn<7>>>;
+
+  dca::func::function<float, Dmn> f;
+
+  int i = 0;
+  for (auto& x : f)
+    x = i++;
+
+  for (int i = 0; i < f.size(); ++i)
+    EXPECT_EQ(i, f(i));
+}

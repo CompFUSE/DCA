@@ -40,7 +40,7 @@ TEST(HDF5ReaderWriterTest, ReaderDestructorCleanUp) {
 
   reader.open_file(test_file_name);
   reader.open_group(group_name);
-  reader.execute(object_name, j);
+  EXPECT_TRUE(reader.execute(object_name, j));
 
   EXPECT_EQ(i, j);
 
@@ -84,7 +84,7 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   dca::io::HDF5Reader reader;
   std::vector<std::complex<double>> vector_read;
   reader.open_file(file_name);
-  reader.execute(object_name, vector_read);
+  EXPECT_TRUE(reader.execute(object_name, vector_read));
 
   ASSERT_EQ(a_vector.size(), vector_read.size());
   for (int i = 0; i < a_vector.size(); ++i) {
@@ -101,4 +101,29 @@ TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
 
   dca::io::HDF5Reader reader;
   EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
+}
+
+TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
+  using Dmn = dca::func::dmn_0<dca::func::dmn<5, int>>;
+
+  dca::func::function<int, Dmn> present("present");
+  present = 1;
+
+  dca::io::HDF5Writer writer;
+  writer.open_file("hdf5_missing_func.hdf5");
+  writer.execute(present);
+  writer.close_file();
+
+  dca::func::function<int, Dmn> not_present("not_present");
+  present = 0;
+
+  dca::io::HDF5Reader reader;
+  reader.open_file("hdf5_missing_func.hdf5");
+  EXPECT_FALSE(reader.execute(not_present));
+  EXPECT_TRUE(reader.execute(present));
+
+  for (int val : not_present)
+    EXPECT_EQ(0, val);
+  for (int val : present)
+    EXPECT_EQ(1, val);
 }
