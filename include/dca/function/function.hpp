@@ -115,6 +115,20 @@ public:
     return size_sbdm[index];
   }
 
+  // Begin and end methods for compatibility with range for loop.
+  scalartype* begin() {
+    return fnc_values;
+  }
+  scalartype* end() {
+    return fnc_values + Nb_elements;
+  }
+  const scalartype* begin() const {
+    return fnc_values;
+  }
+  const scalartype* end() const {
+    return fnc_values + Nb_elements;
+  }
+
   // Returns a pointer to the function's elements.
   scalartype* values() {
     return fnc_values;
