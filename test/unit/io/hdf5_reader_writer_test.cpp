@@ -40,7 +40,7 @@ TEST(HDF5ReaderWriterTest, ReaderDestructorCleanUp) {
 
   reader.open_file(test_file_name);
   reader.open_group(group_name);
-  reader.execute(object_name, j);
+  EXPECT_TRUE(reader.execute(object_name, j));
 
   EXPECT_EQ(i, j);
 
@@ -84,7 +84,7 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   dca::io::HDF5Reader reader;
   std::vector<std::complex<double>> vector_read;
   reader.open_file(file_name);
-  reader.execute(object_name, vector_read);
+  EXPECT_TRUE(reader.execute(object_name, vector_read));
 
   ASSERT_EQ(a_vector.size(), vector_read.size());
   for (int i = 0; i < a_vector.size(); ++i) {
@@ -119,8 +119,8 @@ TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
 
   dca::io::HDF5Reader reader;
   reader.open_file("hdf5_missing_func.hdf5");
-  reader.execute(not_present);
-  reader.execute(present);
+  EXPECT_FALSE(reader.execute(not_present));
+  EXPECT_TRUE(reader.execute(present));
 
   for (int val : not_present)
     EXPECT_EQ(0, val);
