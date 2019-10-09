@@ -102,3 +102,28 @@ TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
   dca::io::HDF5Reader reader;
   EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
 }
+
+TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
+  using Dmn = dca::func::dmn_0<dca::func::dmn<5, int>>;
+
+  dca::func::function<int, Dmn> present("present");
+  present = 1;
+
+  dca::io::HDF5Writer writer;
+  writer.open_file("hdf5_missing_func.hdf5");
+  writer.execute(present);
+  writer.close_file();
+
+  dca::func::function<int, Dmn> not_present("not_present");
+  present = 0;
+
+  dca::io::HDF5Reader reader;
+  reader.open_file("hdf5_missing_func.hdf5");
+  reader.execute(not_present);
+  reader.execute(present);
+
+  for (int val : not_present)
+    EXPECT_EQ(0, val);
+  for (int val : present)
+    EXPECT_EQ(1, val);
+}

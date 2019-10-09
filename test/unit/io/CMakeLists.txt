@@ -13,4 +13,4 @@ dca_add_gtest(writer_test
 
 dca_add_gtest(hdf5_reader_writer_test
   GTEST_MAIN
-  LIBS dca_hdf5 ${HDF5_LIBRARIES})
+  LIBS dca_hdf5 ${HDF5_LIBRARIES};function)
