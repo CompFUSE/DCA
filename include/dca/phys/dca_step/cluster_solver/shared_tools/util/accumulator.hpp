@@ -68,6 +68,12 @@ public:
     ++count_;
   }
 
+  Accumulator& operator +=(const Accumulator& other){
+      count_ += other.count_;
+      sum_ += other.sum_;
+      return *this;
+  }
+
   CountType count() const {
     return count_;
   }

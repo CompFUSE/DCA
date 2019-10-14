@@ -317,9 +317,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   if (q_vector_is_invertible) {
     for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
       for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
@@ -355,9 +352,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   if (parameters.get_four_point_frequency_transfer() == 0) {
     for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
       for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
@@ -403,9 +397,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
     for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
       for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
@@ -460,9 +451,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
     for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
       for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
@@ -524,9 +512,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
     for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
       for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
@@ -571,9 +556,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
     for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
       for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
@@ -618,9 +600,6 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::set_real(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
   for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
     for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
       for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
@@ -647,33 +626,10 @@ template <typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::set_real(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
-  if (b::dmn_size() > 1)
-    throw std::logic_error(__FUNCTION__);
-
-  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
-    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
-      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
-        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
-          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
-            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
-              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
-                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
-                  for (int q = 0; q < k_dmn::dmn_size(); q++) {
-                    scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q);
-
-                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q) = real(tmp1);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  G = func::util::real(G);
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_HPP

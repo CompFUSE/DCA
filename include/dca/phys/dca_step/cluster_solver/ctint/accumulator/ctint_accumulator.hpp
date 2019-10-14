@@ -20,6 +20,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 
 #ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
@@ -61,21 +62,21 @@ public:
   const auto& get_sign_times_G4() const;
 
   double avgSign() const {
-    return double(total_sign_) / double(total_meas_);
+    return accumulated_sign_.mean();
   }
 
   int get_accumulated_sign() const {
-    return total_sign_;
+    return accumulated_sign_.sum();
   }
   int get_number_of_measurements() const {
-    return total_meas_;
+    return accumulated_sign_.count();
   }
 
   int order() const {
     return (configuration_.size(0) + configuration_.size(1)) / 2;
   }
   double avgOrder() const {
-    return (double)order_sum_ / (double)total_meas_;
+    return accumulated_order_.mean();
   }
 
   std::size_t deviceFingerprint() const {
@@ -100,9 +101,8 @@ private:
 
   std::vector<linalg::util::CudaStream*> streams_;
 
-  int total_sign_ = 0;
-  uint total_meas_ = 0;
-  ulong order_sum_ = 0;
+  util::Accumulator<int> accumulated_sign_;
+  util::Accumulator<unsigned long> accumulated_order_;
 
   const int thread_id_;
 
@@ -133,8 +133,8 @@ template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
       parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
-  total_sign_ = 0;
-  total_meas_ = 0;
+  accumulated_order_.reset();
+  accumulated_sign_.reset();
 
   sp_accumulator_.resetAccumulation();
   if (perform_tp_accumulation_)
@@ -166,9 +166,9 @@ void CtintAccumulator<Parameters, device>::measure() {
   if (!ready_ || sign_ == 0)
     throw(std::logic_error("No or invalid configuration to accumulate."));
 
-  total_sign_ += sign_;
-  ++total_meas_;
-  order_sum_ += order();
+  accumulated_sign_.addSample(sign_);
+  accumulated_order_.addSample(order());
+
   sp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
   if (perform_tp_accumulation_)
     tp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
@@ -178,15 +178,15 @@ void CtintAccumulator<Parameters, device>::measure() {
 
 template <class Parameters, linalg::DeviceType device>
 void CtintAccumulator<Parameters, device>::sumTo(this_type& other_one) {
-  other_one.total_meas_ += total_meas_;
-  other_one.total_sign_ += total_sign_;
+  other_one.accumulated_order_ += accumulated_order_;
+  other_one.accumulated_sign_ += accumulated_sign_;
+
   sp_accumulator_.sumTo(other_one.sp_accumulator_);
   if (perform_tp_accumulation_) {
     assert(other_one.perform_tp_accumulation_);
     tp_accumulator_.sumTo(other_one.tp_accumulator_);
   }
   other_one.flop_ += flop_;
-  other_one.order_sum_ += order_sum_;
 }
 
 template <class Parameters, linalg::DeviceType device>

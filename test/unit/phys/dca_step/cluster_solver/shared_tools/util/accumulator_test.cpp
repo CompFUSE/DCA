@@ -72,6 +72,13 @@ TEST(AccumulatorTest, IntegerType) {
   EXPECT_EQ(1, acc.count());
   EXPECT_EQ(j, acc.sum());
   EXPECT_EQ(j, acc.mean());
+
+  dca::phys::solver::util::Accumulator<int> acc2;
+  acc2.addSample(0);
+  acc2 += acc;
+  EXPECT_EQ(2, acc2.count());
+  EXPECT_EQ(j / 2., acc2.mean());
+  EXPECT_EQ(j, acc2.sum());
 }
 
 TEST(AccumulatorTest, ComplexType) {

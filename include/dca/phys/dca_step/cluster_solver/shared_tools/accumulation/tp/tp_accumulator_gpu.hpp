@@ -220,9 +220,9 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::resetAccumulation(const unsigned int dca_loop) {
-  static util::OncePerLoopFlag flag;
+  static dca::util::OncePerLoopFlag flag;
 
-  util::callOncePerLoop(flag, dca_loop, [&]() {
+  dca::util::callOncePerLoop(flag, dca_loop, [&]() {
     resetG4();
     initializeG0();
     synchronizeStreams();
