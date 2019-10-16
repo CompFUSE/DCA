@@ -8,7 +8,7 @@
 //
 // CT-INT configuration test.
 
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 
 #include <functional>
 #include <random>
@@ -45,10 +45,11 @@ TEST(SolverConfigurationTest, InsertAndSwap) {
   EXPECT_EQ(2, config[0].interaction_id);
   EXPECT_EQ(0, config[1].interaction_id);
 
+  // Pop is used by the class CtintWalker after the matrix configuration has been reordered
+  // accordingly. Using it right after a reorder of the configuration will leave it inconsistent.
   config.pop();
   EXPECT_EQ(2, config.size());
-
-  EXPECT_TRUE(config.checkConsistency());
+  EXPECT_FALSE(config.checkConsistency());
 }
 
 TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
@@ -74,7 +75,7 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
   EXPECT_EQ(3, config.getSector(0).size());
   EXPECT_EQ(1, config.getSector(1).size());
 
-  // Note: The matrix configuration is swapped by another function.
+  // See above test regarding the consistency of the configuration.
   // TODO: always leave config consitent.
   EXPECT_FALSE(config.checkConsistency());
 }

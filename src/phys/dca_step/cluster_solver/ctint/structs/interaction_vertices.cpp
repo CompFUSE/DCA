@@ -16,30 +16,18 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-
-std::pair<short, short> InteractionVertices::getInsertionIndices(double random) const {
-  random *= total_weigth_;
-  // search in reverse order.
-  const auto it_to_vertex =
-      std::upper_bound(cumulative_weigths_.rbegin(), cumulative_weigths_.rend(), random);
-  const int index = cumulative_weigths_.rend() - it_to_vertex - 1;
-
-  assert(index >= 0 && index < size());
-  return std::make_pair(index, elements_[index].partner_id);
-}
-
 void InteractionVertices::insertElement(InteractionElement v) {
   const short id = size();
- // Find the partner and exchange id.
+  // Find the partner and exchange id.
   const auto& nu = v.nu;
   const auto& r = v.r;
   if (nu[0] != nu[1] or nu[2] != nu[3] or r[0] != r[1] or r[2] != r[3]) {  // non density-denity
-    InteractionElement partner{{r[1], r[0], r[3], r[2]}, {nu[1], nu[0], nu[3], nu[2]}, v.w};
+    const std::array<ushort, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
+
     for (auto& elem : elements_)
-      if(elem == partner) {
-        elem.partner_id = id;
-        v.partner_id = &elem - elements_.data();
-        break;
+      if (elem.nu == nu_opposite or (interband_propagator_ && (elem.nu == v.nu && elem.r != v.r))) {
+        elem.partners_id.push_back(id);
+        v.partners_id.push_back(&elem - elements_.data());
       }
   }
 
@@ -77,8 +65,7 @@ bool InteractionElement::operator==(const InteractionElement& other) const {
   return true;
 }
 
-
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

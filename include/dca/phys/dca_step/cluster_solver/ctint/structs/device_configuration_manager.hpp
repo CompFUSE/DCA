@@ -17,7 +17,7 @@
 #endif
 
 #include "dca/linalg/device_type.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/sector_entry.hpp"
 #include "dca/util/cuda_definitions.hpp"
