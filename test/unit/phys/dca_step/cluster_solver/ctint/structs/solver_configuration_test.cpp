@@ -80,7 +80,7 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate) {
   EXPECT_FALSE(config.checkConsistency());
 }
 
-TEST(SolverConfigurationTest, ShrinkAndMove) {
+TEST(SolverConfigurationTest, MoveAndShrink) {
   dca::phys::solver::ctint::InteractionVertices interactions;
   interactions.insertElement({{0, 0, 0, 0}, {0, 0, 1, 1}, 1});  // up-down
   interactions.insertElement({{1, 1, 1, 1}, {0, 0, 1, 1}, 1});

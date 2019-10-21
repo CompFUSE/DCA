@@ -23,7 +23,7 @@ namespace details {
 // dca::phys::solver::ctint::details::
 
 template<class T>
-T getRandomElement(const std::vector<std::vector<T>*>& v_ptrs, const double rand){
+T getRandomElement(const std::vector<const std::vector<T>*>& v_ptrs, const double rand){
     assert(rand >= 0 && rand <= 1);
 
     unsigned size = 0;
