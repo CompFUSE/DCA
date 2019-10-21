@@ -148,16 +148,23 @@ void symmetrize::execute(
 
 class symmetrize {
 public:
-  template <class Scalar1, class Dmn1>
-  static void execute(func::function<Scalar1, Dmn1>& /*f*/, bool /*do_diff*/ = false) {}
+  template <class Scalar, class Dmn>
+  static void execute(func::function<Scalar, Dmn>& /*f*/, bool /*do_diff*/ = false) {}
 
-  template <class Scalar1, class Scalar2, class Dmn1, class Dmn2>
+  template <class Lattice, class Scalar, class Dmn>
+  static void execute(func::function<Scalar, Dmn>& /*f*/, bool /*do_diff*/ = false) {}
+
+  template <class Lattice, class Scalar1, class Scalar2, class Dmn1, class Dmn2>
   static void execute(func::function<Scalar1, Dmn1>& /*f*/,
                       const func::function<Scalar2, Dmn2>& /*H_0*/, bool /*do_diff*/ = false) {}
 
   template <typename Scalar, class Dmn>
   static void execute(func::function<Scalar, Dmn>& /*f*/, std::vector<double> /*Q*/,
                       bool /*do_diff*/ = false) {}
+
+  static constexpr bool differenceDetected() {
+    return false;
+  }
 };
 
 #endif  // DCA_WITH_SYMMETRIZATION
