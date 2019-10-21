@@ -160,7 +160,7 @@ private:
 
   const InteractionVertices* H_int_ = nullptr;
   std::vector<std::vector<std::uint64_t>> existing_;
-  std::vector<std::vector<std::size_t>*> partners_lists_;
+  std::vector<const std::vector<std::size_t>*> partners_lists_;
   std::vector<int> removable_;
   ushort last_insertion_size_ = 1;
   const double max_tau_ = 0;
