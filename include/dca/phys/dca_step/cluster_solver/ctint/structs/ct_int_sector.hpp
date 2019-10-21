@@ -76,7 +76,7 @@ public:
     return entries_ == rhs.entries_;
   }
 
-protected:
+private:
   linalg::util::HostVector<details::SectorEntry> entries_;
   std::vector<std::uint64_t> tags_;
 };

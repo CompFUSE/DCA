@@ -61,8 +61,8 @@ public:
   // Out: sector_from, from.
   template <class Alloc>
   void moveAndShrink(std::array<std::vector<int, Alloc>, 2>& sector_from,
-                     std::array<std::vector<int, Alloc>, 2>& sector_to, std::vector<int>& from,
-                     std::vector<int>& to);
+                     std::array<std::vector<int, Alloc>, 2>& sector_remove, std::vector<int>& from,
+                     std::vector<int>& remove);
 
   inline void swapVertices(short i, short j);
 
@@ -130,7 +130,7 @@ public:
   int findTag(std::uint64_t tag) const;
 
   auto possiblePartners() const {
-      return H_int_->possiblePartners();
+    return H_int_->possiblePartners();
   }
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
@@ -283,17 +283,17 @@ int SolverConfiguration::nPartners(int vertex_index) const {
 
 template <class Alloc>
 inline void SolverConfiguration::moveAndShrink(std::array<std::vector<int, Alloc>, 2>& sector_from,
-                                               std::array<std::vector<int, Alloc>, 2>& sector_to,
-                                               std::vector<int>& from, std::vector<int>& to) {
+                                               std::array<std::vector<int, Alloc>, 2>& sector_remove,
+                                               std::vector<int>& from, std::vector<int>& remove) {
   for (int s = 0; s < 2; ++s) {
     // Sort and prepare source array.
     auto& sector = BaseClass::sectors_[s].entries_;
-    std::sort(sector_to[s].begin(), sector_to[s].end());
+    std::sort(sector_remove[s].begin(), sector_remove[s].end());
     auto& tags = BaseClass::sectors_[s].tags_;
     sector_from[s].clear();
-    int source_idx = sector.size() - sector_to[s].size();
-    for (int i = 0; source_idx < sector.size(); ++i, ++source_idx) {
-      while (std::binary_search(sector_to[s].begin(), sector_to[s].end(), source_idx))
+    int source_idx = sector.size() - sector_remove[s].size();
+    for (; source_idx < sector.size(); ++source_idx) {
+      while (std::binary_search(sector_remove[s].begin(), sector_remove[s].end(), source_idx))
         ++source_idx;
       if (source_idx < sector.size())
         sector_from[s].push_back(source_idx);
@@ -301,19 +301,19 @@ inline void SolverConfiguration::moveAndShrink(std::array<std::vector<int, Alloc
 
     // Move configuration elements.
     for (int i = 0; i < sector_from[s].size(); ++i) {
-      sector[sector_to[s][i]] = sector[sector_from[s][i]];
-      tags[sector_to[s][i]] = tags[sector_from[s][i]];
+      sector[sector_remove[s][i]] = sector[sector_from[s][i]];
+      tags[sector_remove[s][i]] = tags[sector_from[s][i]];
     }
     // Shrink sector configuration.
-    sector.erase(sector.end() - sector_to[s].size(), sector.end());
-    tags.erase(tags.end() - sector_to[s].size(), tags.end());
+    sector.erase(sector.end() - sector_remove[s].size(), sector.end());
+    tags.erase(tags.end() - sector_remove[s].size(), tags.end());
   }
 
-  std::sort(to.begin(), to.end());
+  std::sort(remove.begin(), remove.end());
   from.clear();
-  int source_idx = size() - to.size();
-  for (int i = 0; source_idx < size(); ++i, ++source_idx) {
-    while (std::binary_search(to.begin(), to.end(), source_idx))
+  int source_idx = size() - remove.size();
+  for (; source_idx < size(); ++source_idx) {
+    while (std::binary_search(remove.begin(), remove.end(), source_idx))
       ++source_idx;
     if (source_idx < size())
       from.push_back(source_idx);
@@ -321,8 +321,8 @@ inline void SolverConfiguration::moveAndShrink(std::array<std::vector<int, Alloc
 
   // Move and shrink configuration.
   for (int i = 0; i < from.size(); ++i)
-    vertices_[to[i]] = vertices_[from[i]];
-  vertices_.erase(vertices_.end() - to.size(), vertices_.end());
+    vertices_[remove[i]] = vertices_[from[i]];
+  vertices_.erase(vertices_.end() - remove.size(), vertices_.end());
 
   assert(checkConsistency());
 }
