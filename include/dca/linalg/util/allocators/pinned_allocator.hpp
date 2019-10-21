@@ -57,13 +57,16 @@ public:
     ptr = nullptr;
   }
 
-  constexpr bool operator==(const PinnedAllocator<T>& /*other*/) {
-    return true;
-  }
-  constexpr bool operator!=(const PinnedAllocator<T>& /*other*/) {
-    return false;
-  }
 };
+
+// These are part of the requirements for a C++ Allocator however these are insufficient
+// and they do not appear to be relevant to our codebase yet.
+// They are part of what's needed to do a std::move on a PinnedAllocator backed object
+// and avoid deallocation and reallocation.
+template <class T, class U>
+bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return true; }
+template <class T, class U>
+bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return false; }
 
 }  // util
 }  // linalg
