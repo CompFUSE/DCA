@@ -221,6 +221,9 @@ public:  // Optional members getters.
     return G4_err_;
   }
 
+  // The non density-density Hamiltonian is given by:
+  // H = \sum(nu1, nu2, nu3, nu4, r1, r2) c^+(nu1, r1) c(nu2, r1) c^+(nu3, r2) c(nu4, r2) *
+  //     non_density_interactions_(nu1, nu2, nu3, nu4, r1 - r2)
   // Note: this contribution to the Hamiltonian is not double counted.
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)

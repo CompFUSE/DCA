@@ -17,12 +17,14 @@
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -38,6 +40,7 @@ constexpr char default_input[] =
 
 using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
+using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 
 template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX,
           const char* input_name = default_input>
@@ -57,12 +60,13 @@ struct G0Setup : public ::testing::Test {
   using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<phys::domains::frequency_domain>;
+  using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
-  Concurrency concurrency;
+  Concurrency concurrency_;
   Parameters parameters_;
   std::unique_ptr<Data> data_;
 
-  G0Setup() : concurrency(0, nullptr), parameters_("", concurrency) {}
+  G0Setup() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
 
   virtual void SetUp() {
     parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
@@ -73,7 +77,7 @@ struct G0Setup : public ::testing::Test {
       parameters_.update_domains();
       domain_initialized = true;
     }
-    data_= std::make_unique<Data>(parameters_);
+    data_ = std::make_unique<Data>(parameters_);
     data_->initialize();
   }
 

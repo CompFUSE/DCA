@@ -26,9 +26,16 @@ namespace util {
 // dca::linalg::util::
 
 template <typename T>
-class PinnedAllocator : public std::allocator<T> {
+class PinnedAllocator {
 public:
-  T* allocate(std::size_t n) {
+  PinnedAllocator() = default;
+
+  using size_type = std::size_t;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using value_type = T;
+
+  T* allocate(std::size_t n, const void* /*hint*/ = nullptr) {
     if (n == 0)
       return nullptr;
     T* ptr;
@@ -49,7 +56,17 @@ public:
     }
     ptr = nullptr;
   }
+
 };
+
+// These are part of the requirements for a C++ Allocator however these are insufficient
+// and they do not appear to be relevant to our codebase yet.
+// They are part of what's needed to do a std::move on a PinnedAllocator backed object
+// and avoid deallocation and reallocation.
+template <class T, class U>
+bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return true; }
+template <class T, class U>
+bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return false; }
 
 }  // util
 }  // linalg
