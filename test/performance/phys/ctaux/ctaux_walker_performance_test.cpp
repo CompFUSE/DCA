@@ -18,8 +18,6 @@
 #include <cuda_profiler_api.h>
 #endif
 
-#include "dca/config/mc_options.hpp"
-#include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
