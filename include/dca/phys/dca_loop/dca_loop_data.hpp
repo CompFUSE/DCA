@@ -42,7 +42,7 @@ public:
   DcaLoopData();
 
   template <typename Writer>
-  void write(Writer& writer);
+  void write(Writer& writer) const;
 
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
@@ -102,7 +102,7 @@ DcaLoopData<ParametersType>::DcaLoopData()
 
 template <typename ParametersType>
 template <typename Writer>
-void DcaLoopData<ParametersType>::write(Writer& writer) {
+void DcaLoopData<ParametersType>::write(Writer& writer) const {
   writer.open_group("DCA-loop-functions");
 
   {
