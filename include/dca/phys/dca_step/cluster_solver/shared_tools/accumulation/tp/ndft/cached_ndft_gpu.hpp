@@ -43,7 +43,7 @@ namespace accumulator {
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
     : public CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
-private:
+public:
   using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
 
   using typename BaseClass::BDmn;
@@ -54,7 +54,7 @@ private:
                                            config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
-public:
+
   CachedNdft(magma_queue_t queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency

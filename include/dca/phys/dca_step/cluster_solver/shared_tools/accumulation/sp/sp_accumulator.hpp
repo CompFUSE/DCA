@@ -41,6 +41,9 @@ class SpAccumulator;
 
 template <class Parameters, typename Real>
 class SpAccumulator<Parameters, linalg::CPU, Real> {
+public:
+    using Profiler = typename Parameters::profiler_type;
+    using Scalar = Real;
 protected:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -50,8 +53,6 @@ protected:
 
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
-
-  using Profiler = typename Parameters::profiler_type;
 
 public:
   SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
