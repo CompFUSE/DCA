@@ -26,7 +26,7 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 // Empty class template
-template <dca::linalg::DeviceType device_t>
+template <dca::linalg::DeviceType device_t, typename Real>
 class SHRINK_TOOLS_ALGORITHMS {};
 
 // Specialization for CPU

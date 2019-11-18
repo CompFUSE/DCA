@@ -236,16 +236,6 @@ if (DCA_WITH_QMC_BIT)
 endif()
 
 ################################################################################
-# Single precision measurements
-# TODO: maybe change to ON by default.
-option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure in single precision." OFF)
-mark_as_advanced(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-
-if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-endif()
-
-################################################################################
 # Gnuplot
 option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 
@@ -267,7 +257,7 @@ else()
 endif()
 
 ################################################################################
-# Accumulation options.
+# MC options.
 option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
        cost." OFF)
 mark_as_advanced(DCA_WITH_MEMORY_SAVINGS)
@@ -277,11 +267,22 @@ else()
   set(MEMORY_SAVINGS false)
 endif()
 
-if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+option(DCA_WITH_SINGLE_PRECISION_MC "Perform Monte Carlo and measurements in single precision." OFF)
+option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure two particle function in single precision." OFF)
+
+if (DCA_WITH_SINGLE_PRECISION_MC)
+  set(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS ON CACHE BOOL "Measure two particle function in single precision." FORCE)
+  set(MC_SCALAR float)
+else()
+  set(MC_SCALAR double)
+endif()
+
+if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
   set(TP_ACCUMULATION_SCALAR float)
 else()
   set(TP_ACCUMULATION_SCALAR double)
 endif()
+
 
 option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
 mark_as_advanced(DCA_WITH_MANAGED_MEMORY)
@@ -291,8 +292,8 @@ else()
   set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::DeviceAllocator<T>")
 endif()
 
-configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"
-        "${CMAKE_BINARY_DIR}/include/dca/config/accumulation_options.hpp" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
+        "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
 
 ################################################################################

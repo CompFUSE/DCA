@@ -347,7 +347,18 @@ private:
 
     matrix_type& T = basis_transformation_type::get_transformation_matrix();
 
-    TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, T);
+    // TODO make better
+    if constexpr (std::is_same<float, scalartype_input>::value &&
+                  std::is_same<float, scalartype_output>::value) {
+      func::function<double, domain_input> f_copy;
+      f_copy = f_input;
+      func::function<double, domain_output> f_out_cpy;
+      TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_copy, f_out_cpy, T);
+      f_output = f_out_cpy;
+    }
+    else {
+      TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, T);
+    }
   }
 };
 
@@ -567,8 +578,8 @@ private:
   }
 };
 
-}  // transform
-}  // math
-}  // dca
+}  // namespace transform
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_HPP

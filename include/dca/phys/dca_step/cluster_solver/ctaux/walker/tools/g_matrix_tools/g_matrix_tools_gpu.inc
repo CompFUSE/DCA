@@ -10,15 +10,15 @@
 // G-matrix tools class.
 // Template specialization for GPU.
 
-template <typename parameters_type>
-class G_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
+template <class Parameters, typename Real>
+class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
-  typedef typename parameters_type::concurrency_type concurrency_type;
-  typedef typename parameters_type::profiler_type profiler_t;
+  using Concurrency = typename Parameters::concurrency_type;
+  using Profiler = typename Parameters::profiler_type;
 
 public:
-  G_MATRIX_TOOLS(int id, parameters_type& parameters_ref)
+  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -32,10 +32,10 @@ public:
   void read_G_matrix_elements(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
                               dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
                               dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
-                              dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj,
-                              dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                              dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
-                              double* result_ptr, int incr) {
+                              dca::linalg::Vector<Real, dca::linalg::CPU>& exp_Vj,
+                              dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+                              dca::linalg::Matrix<Real, dca::linalg::GPU>& G_precomputed,
+                              Real* result_ptr, int incr) {
     assert(i_index.size() == j_index.size());
     assert(i_index.size() == is_Bennett.size());
     assert(i_index.size() == exp_Vj.size());
@@ -54,10 +54,10 @@ public:
   }
 
   void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, dca::linalg::GPU>& indices,
-                                   dca::linalg::Vector<double, dca::linalg::GPU>& exp_V,
-                                   dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                                   dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
-                                   double* row_ptr, int incr) {
+                                   dca::linalg::Vector<Real, dca::linalg::GPU>& exp_V,
+                                   dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+                                   dca::linalg::Matrix<Real, dca::linalg::GPU>& G_precomputed,
+                                   Real* row_ptr, int incr) {
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     gkernels::compute_row_on_Gamma_matrix(row_index, indices.size(), vertex_index,
@@ -69,10 +69,10 @@ public:
   }
 
   void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, dca::linalg::GPU>& indices,
-                                   dca::linalg::Vector<double, dca::linalg::GPU>& exp_V,
-                                   dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                                   dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
-                                   double* col_ptr, int incr) {
+                                   dca::linalg::Vector<Real, dca::linalg::GPU>& exp_V,
+                                   dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+                                   dca::linalg::Matrix<Real, dca::linalg::GPU>& G_precomputed,
+                                   Real* col_ptr, int incr) {
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     gkernels::compute_col_on_Gamma_matrix(col_index, indices.size(), vertex_index,
@@ -85,16 +85,16 @@ public:
 
   int deviceFingerprint() const {
     return (i_index_gpu.capacity() + j_index_gpu.capacity()) * sizeof(int) +
-           is_Bennett_gpu.capacity() * sizeof(bool) + exp_Vj_gpu.capacity() * sizeof(double);
+           is_Bennett_gpu.capacity() * sizeof(bool) + exp_Vj_gpu.capacity() * sizeof(Real);
   }
 
 private:
   int thread_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  Parameters& parameters;
+  Concurrency& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> i_index_gpu, j_index_gpu;
   dca::linalg::Vector<bool, dca::linalg::GPU> is_Bennett_gpu;
-  dca::linalg::Vector<double, dca::linalg::GPU> exp_Vj_gpu;
+  dca::linalg::Vector<Real, dca::linalg::GPU> exp_Vj_gpu;
 };

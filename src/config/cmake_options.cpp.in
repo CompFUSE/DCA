@@ -28,6 +28,7 @@ const std::string CMakeOptions::dca_rng = "@DCA_RNG@";
 const std::string CMakeOptions::dca_profiler = "@DCA_PROFILER@";
 const std::string CMakeOptions::dca_with_autotuning = "@DCA_WITH_AUTOTUNING@";
 const std::string CMakeOptions::dca_with_gnuplot = "@DCA_WITH_GNUPLOT@";
+const std::string CMakeOptions::dca_with_single_precision_mc = "@DCA_WITH_SINGLE_PRECISION_MC@";
 const std::string CMakeOptions::dca_with_single_precision_tp_measurements =
     "@DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS@";
 const std::string CMakeOptions::dca_with_qmc_bit = "@DCA_WITH_QMC_BIT@";
@@ -57,6 +58,7 @@ void CMakeOptions::print() {
             << "DCA_PROFILER = " << CMakeOptions::dca_profiler << "\n"
             << "DCA_WITH_AUTOTUNING = " << CMakeOptions::dca_with_autotuning << "\n"
             << "DCA_WITH_GNUPLOT = " << CMakeOptions::dca_with_gnuplot << "\n"
+            << "DCA_WITH_SINGLE_PRECISION_MC = " << dca_with_single_precision_mc << "\n"
             << "DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS = "
             << dca_with_single_precision_tp_measurements << "\n"
             << "DCA_WITH_MEMORY_SAVINGS = " << CMakeOptions::dca_with_memory_savings << "\n"

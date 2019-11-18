@@ -314,11 +314,12 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
 const static int BLOCK_SIZE_x = 32;
 const static int BLOCK_SIZE_y = 16;
 
-__global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, double beta, int Nc, int Nv,
-                                               int* b, int* r, double* t, double* G0,
+template<typename Real>
+__global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv,
+                                               int* b, int* r, Real* t, Real* G0,
                                                std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
-                                               double* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
-                                               std::pair<int, int> r0_min_r1_gs, double* alpha,
+                                               Real* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
+                                               std::pair<int, int> r0_min_r1_gs, Real* alpha,
                                                std::pair<int, int> alpha_cs,
                                                std::pair<int, int> alpha_gs) {
   assert(blockDim.x == BLOCK_SIZE_x);
@@ -334,12 +335,12 @@ __global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, double be
   if (I > -1 && I < Nv) {
     for (int J = J_min; J < J_max; ++J) {
       int delta_r = r0_min_r1[r[J] + r[I] * r0_min_r1_gs.first];
-      double tau = t[I] - t[J];
+      Real tau = t[I] - t[J];
 
-      double scaled_tau = (tau + beta) * double(Nt) / (2. * beta);
+      Real scaled_tau = (tau + beta) * Real(Nt) / (2. * beta);
 
       int t_ind = scaled_tau;
-      double delta_tau = scaled_tau - t_ind;
+      Real delta_tau = scaled_tau - t_ind;
 
       assert(delta_tau > -1.e-16 and delta_tau < 1 + -1.e-16);
 
@@ -350,7 +351,7 @@ __global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, double be
       assert(row_ind > -1 and row_ind < alpha_cs.first);
       assert(col_ind > -1 and col_ind < alpha_cs.second);
 
-      double* a_ptr = &alpha[row_ind + col_ind * alpha_LD];
+      Real* a_ptr = &alpha[row_ind + col_ind * alpha_LD];
 
       assert(I > -1 and I < G0_cs.first);
       assert(J > -1 and J < G0_cs.second);
@@ -378,11 +379,12 @@ __global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, double be
   }
 }
 
-__global__ void akima_interpolation_fat_row(int Nb, int Nr, int Nt, double beta, int Nc, int Nv,
-                                            int* b, int* r, double* t, double* G0,
+template <typename Real>
+__global__ void akima_interpolation_fat_row(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv,
+                                            int* b, int* r, Real* t, Real* G0,
                                             std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
-                                            double* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
-                                            std::pair<int, int> r0_min_r1_gs, double* alpha,
+                                            Real* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
+                                            std::pair<int, int> r0_min_r1_gs, Real* alpha,
                                             std::pair<int, int> alpha_cs,
                                             std::pair<int, int> alpha_gs) {
   int I = Nc + threadIdx.x + BLOCK_SIZE_x * blockIdx.x;
@@ -396,12 +398,12 @@ __global__ void akima_interpolation_fat_row(int Nb, int Nr, int Nt, double beta,
   if (I >= Nc && I < Nv) {
     for (int J = J_min; J < J_max; ++J) {
       int delta_r = r0_min_r1[r[J] + r[I] * r0_min_r1_gs.first];
-      double tau = t[I] - t[J];
+      Real tau = t[I] - t[J];
 
-      double scaled_tau = (tau + beta) * double(Nt) / (2. * beta);
+      Real scaled_tau = (tau + beta) * Real(Nt) / (2. * beta);
 
       int t_ind = scaled_tau;
-      double delta_tau = scaled_tau - t_ind;
+      Real delta_tau = scaled_tau - t_ind;
 
       assert(delta_tau > -1.e-16 and delta_tau < 1 + -1.e-16);
 
@@ -412,7 +414,7 @@ __global__ void akima_interpolation_fat_row(int Nb, int Nr, int Nt, double beta,
       assert(row_ind > -1 and row_ind < alpha_cs.first);
       assert(col_ind > -1 and col_ind < alpha_cs.second);
 
-      double* a_ptr = &alpha[row_ind + col_ind * alpha_LD];
+      Real* a_ptr = &alpha[row_ind + col_ind * alpha_LD];
 
       assert(I > -1 and I < G0_cs.first);
       assert(J > -1 and J < G0_cs.second);
@@ -423,11 +425,12 @@ __global__ void akima_interpolation_fat_row(int Nb, int Nr, int Nt, double beta,
   }
 }
 
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
+template <class Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
+                                Real* t, Real* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, Real* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
+                                Real* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs) {
   // assert(cuda_check_for_errors("init 2 interpolation_kernel"));
 
@@ -462,12 +465,25 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     checkErrorsCudaDebug();
   }
 }
+template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, float beta, int Nc, int Nv, int* b,
+                                         int* r, float* t, float* G0, std::pair<int, int> G0_cs,
+                                         std::pair<int, int> G0_gs, float* r0_min_r1,
+                                         std::pair<int, int> r0_min_r1_cs,
+                                         std::pair<int, int> r0_min_r1_gs, float* alpha,
+                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs);
+template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv,
+                                         int* b, int* r, double* t, double* G0,
+                                         std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
+                                         double* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
+                                         std::pair<int, int> r0_min_r1_gs, double* alpha,
+                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs);
 
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
+template <typename Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
+                                Real* t, Real* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, Real* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
+                                Real* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs, int thread_id, int stream_id) {
   // assert(cuda_check_for_errors("init 2 interpolation_kernel"));
 
@@ -507,9 +523,23 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     checkErrorsCudaDebug();
   }
 }
+template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, float beta, int Nc, int Nv, int* b,
+                                         int* r, float* t, float* G0, std::pair<int, int> G0_cs,
+                                         std::pair<int, int> G0_gs, float* r0_min_r1,
+                                         std::pair<int, int> r0_min_r1_cs,
+                                         std::pair<int, int> r0_min_r1_gs, float* alpha,
+                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs,
+                                         int thread_id, int stream_id);
+template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv,
+                                         int* b, int* r, double* t, double* G0,
+                                         std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
+                                         double* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
+                                         std::pair<int, int> r0_min_r1_gs, double* alpha,
+                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs,
+                                         int thread_id, int stream_id);
 
-}  // g0kernels
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace g0kernels
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
