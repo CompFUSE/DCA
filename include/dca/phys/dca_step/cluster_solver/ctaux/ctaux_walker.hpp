@@ -284,6 +284,8 @@ private:
   std::array<linalg::util::CudaEvent, 2> m_computed_events_;
 
   bool config_initialized_;
+
+  linalg::util::CudaEvent sync_streams_event_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -586,18 +588,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_non_interacting_spins_to
     check_G0_matrices(configuration, G0_up, G0_dn);
 #endif  // DCA_WITH_QMC_BIT
   }
-
-  /*
-    if(true)
-    {
-    std::cout << "\n\n\t G0-TOOLS \n\n";
-    G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
-    G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
-    dca::linalg::matrixop::difference(G0_up_CPU, G0_up);
-    dca::linalg::matrixop::difference(G0_dn_CPU, G0_dn);
-    }
-  */
-
   {  // update N for new shuffled vertices
      // profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
@@ -609,17 +599,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_non_interacting_spins_to
 #endif  // DCA_WITH_QMC_BIT
   }
 
-  /*
-    if(true)
-    {
-    std::cout << "\n\n\t N-TOOLS : " << sign << "\t" << configuration.size() << "\n\n";
-    N_CPU_tools_obj.build_N_matrix(configuration, N_up_CPU, G0_up_CPU, e_UP);
-    N_CPU_tools_obj.build_N_matrix(configuration, N_dn_CPU, G0_dn_CPU, e_DN);
-    dca::linalg::matrixop::difference(N_up_CPU, N_up);
-    dca::linalg::matrixop::difference(N_dn_CPU, N_dn);
-    }
-  */
-
   {  // update N for new shuffled vertices
      // profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
@@ -630,26 +609,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_non_interacting_spins_to
     check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
 #endif  // DCA_WITH_QMC_BIT
   }
-
-  /*
-    {
-    std::cout << "\n\n\t G-TOOLS\n\n";
-    G_CPU_tools_obj.build_G_matrix(configuration, N_up_CPU, G0_up_CPU, G_up_CPU, e_UP);
-    G_CPU_tools_obj.build_G_matrix(configuration, N_dn_CPU, G0_dn_CPU, G_dn_CPU, e_DN);
-    dca::linalg::matrixop::difference(G_up_CPU, G_up);
-    dca::linalg::matrixop::difference(G_dn_CPU, G_dn);
-    }
-  */
-
-  /*
-#ifdef DCA_WITH_QMC_BIT
-    if(concurrency.id()==0 and thread_id==0)
-    std::cout << "\t N-update check :" << std::endl;
-
-    N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
-    N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-#endif  // DCA_WITH_QMC_BIT
-  */
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -1427,23 +1386,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::clean_up_the_configuration()
   SHRINK_tools_obj.reorganize_configuration_test(configuration, N_up, N_dn, G0_up, G0_dn);
 
   assert(configuration.assert_consistency());
-
-  // #ifdef DCA_WITH_QMC_BIT
-  //   check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
-
-  //   if (concurrency.id() == concurrency.first()) {
-  //     std::cout << "\t\t <k>               = " <<
-  //     configuration.get_number_of_interacting_HS_spins()
-  //               << std::endl;
-  //     std::cout << "\t\t # creatable spins = " <<
-  //     configuration.get_number_of_creatable_HS_spins()
-  //               << std::endl;
-  //     std::cout << "\t N-woodburry check (2) :" << std::endl;
-  //   }
-
-  //   N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
-  //   N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-  // #endif  // DCA_WITH_QMC_BIT
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -1560,6 +1502,10 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, typena
 template <typename AccumType>
 const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data, Real>::compute_M(
     std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
+  // Stream 1 waits on stream 0.
+  sync_streams_event_.record(linalg::util::getStream(thread_id, 0));
+  sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
+
   for (int s = 0; s < 2; ++s) {
     const auto& config = get_configuration().get(s == 0 ? e_UP : e_DN);
     exp_v_minus_one_[s].resizeNoCopy(config.size());

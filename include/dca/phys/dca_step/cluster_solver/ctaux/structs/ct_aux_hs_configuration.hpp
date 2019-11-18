@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_pair.hpp"
@@ -70,7 +71,8 @@ public:
   std::vector<int>& get_changed_spin_indices();
   std::vector<HS_spin_states_type>& get_changed_spin_values();
 
-  std::vector<int>& get_changed_spin_indices_e_spin(e_spin_states_type e_spin_type);
+  auto& get_changed_spin_indices_e_spin(e_spin_states_type e_spin_type);
+
   std::vector<HS_spin_states_type>& get_changed_spin_values_e_spin(e_spin_states_type e_spin_type);
 
   int get_number_of_interacting_HS_spins();
@@ -127,10 +129,11 @@ private:
   std::vector<int> changed_spin_indices;
   std::vector<HS_spin_states_type> changed_spin_values;
 
-  std::vector<int> changed_spin_indices_e_UP;  // = { changed_spin_indices of configuration_e_UP}
-  std::vector<HS_spin_states_type> changed_spin_values_e_UP;
+  using HostVector = linalg::util::HostVector<int>;
+  HostVector changed_spin_indices_e_UP;  // = { changed_spin_indices of configuration_e_UP}
+  HostVector changed_spin_indices_e_DN;  // = { changed_spin_indices of configuration_e_DN}
 
-  std::vector<int> changed_spin_indices_e_DN;  // = { changed_spin_indices of configuration_e_DN}
+  std::vector<HS_spin_states_type> changed_spin_values_e_UP;
   std::vector<HS_spin_states_type> changed_spin_values_e_DN;
 
   const int max_num_noninteracting_spins_;
@@ -143,23 +146,6 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
                                                                   rng_type& rng_ref)
     : parameters(parameters_ref),
       rng(rng_ref),
-
-      configuration(),
-
-      configuration_e_UP(0),
-      configuration_e_DN(0),
-
-      current_Nb_of_creatable_spins(0),
-      current_Nb_of_annihilatable_spins(0),
-
-      changed_spin_indices(0),
-      changed_spin_values(0),
-
-      changed_spin_indices_e_UP(0),
-      changed_spin_values_e_UP(0),
-
-      changed_spin_indices_e_DN(0),
-      changed_spin_values_e_DN(0),
 
       // Rounding up ensures a value >= 1.
       max_num_noninteracting_spins_((parameters.get_max_submatrix_size() + 1) / 2),
@@ -426,12 +412,12 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 template <class parameters_type>
 void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin_to_configuration_e_spin(
     int configuration_index, HS_spin_states_type spin_value) {
-  std::vector<int>& changed_spin_indices_e_spin_first =
+  auto& changed_spin_indices_e_spin_first =
       get_changed_spin_indices_e_spin(configuration[configuration_index].get_e_spins().first);
   std::vector<HS_spin_states_type>& changed_spin_values_e_spin_first =
       get_changed_spin_values_e_spin(configuration[configuration_index].get_e_spins().first);
 
-  std::vector<int>& changed_spin_indices_e_spin_second =
+  auto& changed_spin_indices_e_spin_second =
       get_changed_spin_indices_e_spin(configuration[configuration_index].get_e_spins().second);
   std::vector<HS_spin_states_type>& changed_spin_values_e_spin_second =
       get_changed_spin_values_e_spin(configuration[configuration_index].get_e_spins().second);
@@ -473,7 +459,7 @@ std::vector<HS_spin_states_type>& CT_AUX_HS_configuration<parameters_type>::get_
 }
 
 template <class parameters_type>
-std::vector<int>& CT_AUX_HS_configuration<parameters_type>::get_changed_spin_indices_e_spin(
+auto& CT_AUX_HS_configuration<parameters_type>::get_changed_spin_indices_e_spin(
     e_spin_states_type e_spin) {
   if (e_spin == e_UP)
     return changed_spin_indices_e_UP;
