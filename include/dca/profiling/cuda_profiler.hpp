@@ -41,6 +41,7 @@ public:
   static void stop_threading(int /*id*/){}
   template<class Concurrency>
   static void stop(Concurrency& /*conc*/, const std::string& /*name*/){}
+  static void stop(const std::string& /*name*/){}
 
 private:
   inline static bool active_ = false;

@@ -14,9 +14,6 @@
 
 #include <iostream>
 #include <string>
-#ifdef DCA_HAVE_CUDA
-#include <cuda_profiler_api.h>
-#endif
 
 #include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -29,25 +26,37 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/events/time.hpp"
+#include "dca/profiling/null_profiler.hpp"
+
+#ifdef DCA_HAVE_CUDA
+#include <cuda_profiler_api.h>
 #include "dca/profiling/cuda_profiler.hpp"
+#endif
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctaux/";
+
+#ifdef DCA_HAVE_CUDA
+constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
+const std::string device_name = "GPU";
+using Profiler = dca::profiling::CudaProfiler;
+#else
+constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
+const std::string device_name = "CPU";
+using Profiler = dca::profiling::NullProfiler;
+#endif  // DCA_HAVE_CUDA
 
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
-using Profiler = dca::profiling::CudaProfiler;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using Real = dca::config::McOptions::MCScalar;
-template <dca::linalg::DeviceType device_t>
-using Walker = dca::phys::solver::ctaux::CtauxWalker<device_t, Parameters, Data, Real>;
+using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;
 
 int main(int argc, char** argv) {
-#ifdef DCA_HAVE_CUDA
   int submatrix_size = -1;
   int n_warmup = 30;
   int n_sweeps = 5;
@@ -92,15 +101,17 @@ int main(int argc, char** argv) {
         walker.updateShell(i, n);
     }
   };
-  std::cout << "\n\n  *********** GPU integration  ***************\n";
+  std::cout << "\n\n  *********** " + device_name + " integration  ***************\n";
   std::cout << "Nr walkers: " << n_walkers << "\n\n";
 
+#ifdef DCA_HAVE_CUDA
   dca::linalg::util::initializeMagma();
   dca::linalg::util::resizeHandleContainer(n_walkers);
+#endif  // DCA_HAVE_CUDA
 
   RngType::resetCounter();
   std::vector<RngType> rngs;
-  std::vector<Walker<dca::linalg::GPU>> walkers;
+  std::vector<Walker> walkers;
   rngs.reserve(n_walkers);
   walkers.reserve(n_walkers);
   for (int i = 0; i < n_walkers; ++i) {
@@ -124,7 +135,9 @@ int main(int argc, char** argv) {
   std::cout << "\n Warmed up.\n" << std::endl;
 
   // Timed section.
+#ifdef DCA_HAVE_CUDA
   cudaProfilerStart();
+#endif  // DCA_HAVE_CUDA
   Profiler::start();
   dca::profiling::WallTime start_t;
 
@@ -136,11 +149,11 @@ int main(int argc, char** argv) {
     f.get();
 
   dca::profiling::WallTime integration_t;
-  Profiler::stop();
+  Profiler::stop("profile.txt");
+#ifdef DCA_HAVE_CUDA
   cudaProfilerStop();
+#endif  // DCA_HAVE_CUDA
 
   std::cout << std::endl;
-  printTime("Integration GPU", start_t, integration_t);
-
-#endif  // DCA_HAVE_CUDA
+  printTime("Integration " + device_name, start_t, integration_t);
 }
