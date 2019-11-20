@@ -63,28 +63,16 @@ private:
                                   e_spin_states_type e_spin);
 
   template <class configuration_type>
-  static void swap_interacting_vertices_to_left(configuration_type& full_configuration,
-                                                linalg::util::HostVector<int>& source_index,
-                                                linalg::util::HostVector<int>& target_index,
-                                                e_spin_states_type e_spin);
-
-  template <class configuration_type>
-  static void swap_non_changed_vertices_to_left(configuration_type& full_configuration,
-                                                linalg::util::HostVector<int>& source_index,
-                                                linalg::util::HostVector<int>& target_index,
-                                                e_spin_states_type e_spin);
+  static void swap_and_remove_vertices(configuration_type& full_configuration,
+                                       linalg::util::HostVector<int>& source_index,
+                                       linalg::util::HostVector<int>& target_index,
+                                       e_spin_states_type e_spin);
 
   template <class configuration_type>
   static void erase_non_creatable_and_non_annihilatable_spins(
       configuration_type& full_configuration, dca::linalg::Matrix<Real, device_t>& N_up,
       dca::linalg::Matrix<Real, device_t>& N_dn, dca::linalg::Matrix<Real, device_t>& G0_up,
       dca::linalg::Matrix<Real, device_t>& G0_dn);
-
-  template <class configuration_type>
-  static void erase_non_creatable_and_non_annihilatable_spins(configuration_type& full_configuration,
-                                                              dca::linalg::Matrix<Real, device_t>& N,
-                                                              dca::linalg::Matrix<Real, device_t>& G0,
-                                                              e_spin_states_type e_spin);
 
 private:
   void test_swap_vectors(const linalg::util::HostVector<int>& source_index,
@@ -94,11 +82,10 @@ private:
   int thread_id;
   int stream_id;
 
-  std::array<HostVector, 2> source_index_up_;
-  std::array<HostVector, 2> source_index_dn_;
-
-  std::array<HostVector, 2> target_index_up_;
-  std::array<HostVector, 2> target_index_dn_;
+  HostVector source_index_up_;
+  HostVector source_index_dn_;
+  HostVector target_index_up_;
+  HostVector target_index_dn_;
 
   SHRINK_TOOLS_ALGORITHMS<device_t, Real> shrink_tools_algorithm_obj_;
 };
@@ -201,62 +188,34 @@ void SHRINK_TOOLS<device_t, Real>::reorganize_configuration_test(
     configuration_type& full_configuration, dca::linalg::Matrix<Real, device_t>& N_up,
     dca::linalg::Matrix<Real, device_t>& N_dn, dca::linalg::Matrix<Real, device_t>& G0_up,
     dca::linalg::Matrix<Real, device_t>& G0_dn) {
-  {
-    auto& source_index_up = source_index_up_[0];
-    auto& source_index_dn = source_index_dn_[0];
-    auto& target_index_up = target_index_up_[0];
-    auto& target_index_dn = target_index_dn_[0];
+  source_index_up_.resize(0);
+  target_index_up_.resize(0);
+  source_index_dn_.resize(0);
+  target_index_dn_.resize(0);
 
-    source_index_up.resize(0);
-    target_index_up.resize(0);
-    source_index_dn.resize(0);
-    target_index_dn.resize(0);
-
-    swap_interacting_vertices_to_left(full_configuration, source_index_up, target_index_up, e_UP);
-    swap_interacting_vertices_to_left(full_configuration, source_index_dn, target_index_dn, e_DN);
+  swap_and_remove_vertices(full_configuration, source_index_up_, target_index_up_, e_UP);
+  swap_and_remove_vertices(full_configuration, source_index_dn_, target_index_dn_, e_DN);
 
 #ifndef NDEBUG
-    test_swap_vectors(source_index_up, target_index_up, N_up.size().first);
-    test_swap_vectors(source_index_dn, target_index_dn, N_dn.size().first);
+  test_swap_vectors(source_index_up_, target_index_up_, N_up.size().first);
+  test_swap_vectors(source_index_dn_, target_index_dn_, N_dn.size().first);
 #endif  // NDEBUG
 
-    shrink_tools_algorithm_obj_.execute(source_index_up, target_index_up, N_up, G0_up,
-                                        source_index_dn, target_index_dn, N_dn, G0_dn);
-  }
-
-  {
-    auto& source_index_up = source_index_up_[1];
-    auto& source_index_dn = source_index_dn_[1];
-    auto& target_index_up = target_index_up_[1];
-    auto& target_index_dn = target_index_dn_[1];
-
-    source_index_up.resize(0);
-    target_index_up.resize(0);
-    source_index_dn.resize(0);
-    target_index_dn.resize(0);
-
-    swap_non_changed_vertices_to_left(full_configuration, source_index_up, target_index_up, e_UP);
-    swap_non_changed_vertices_to_left(full_configuration, source_index_dn, target_index_dn, e_DN);
-
-#ifndef NDEBUG
-    test_swap_vectors(source_index_up, target_index_up, N_up.size().first);
-    test_swap_vectors(source_index_dn, target_index_dn, N_dn.size().first);
-#endif  // NDEBUG
-
-    shrink_tools_algorithm_obj_.execute(source_index_up, target_index_up, N_up, G0_up,
-                                        source_index_dn, target_index_dn, N_dn, G0_dn);
-  }
+  shrink_tools_algorithm_obj_.execute(source_index_up_, target_index_up_, N_up, G0_up,
+                                      source_index_dn_, target_index_dn_, N_dn, G0_dn);
 
   erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_up, N_dn, G0_up, G0_dn);
-
   assert(full_configuration.assert_consistency());
 }
 
 template <dca::linalg::DeviceType device_t, typename Real>
 template <class configuration_type>
-void SHRINK_TOOLS<device_t, Real>::swap_interacting_vertices_to_left(
-    configuration_type& full_configuration, HostVector& source_index, HostVector& target_index,
-    e_spin_states_type e_spin) {
+void SHRINK_TOOLS<device_t, Real>::swap_and_remove_vertices(configuration_type& full_configuration,
+                                                            HostVector& source_index,
+                                                            HostVector& target_index,
+                                                            e_spin_states_type e_spin) {
+  const auto death_condition = [](const vertex_singleton& v) { return v.get_HS_spin() == HS_ZERO; };
+
   std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
@@ -265,132 +224,51 @@ void SHRINK_TOOLS<device_t, Real>::swap_interacting_vertices_to_left(
   }
 
   int dead_spin = 0;
-  int configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
-
   int living_spin = configuration_size - 1;
-  int configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
+
+  auto update_config_idx = [&](int index, int new_index) {
+    const int configuration_index = configuration_e_spin[index].get_configuration_index();
+    auto& e_spin_indices = full_configuration[configuration_index].get_configuration_e_spin_indices();
+    if (configuration_e_spin[index].get_HS_field() == HS_FIELD_DN) {
+      e_spin_indices.first = new_index;
+    }
+    else {
+      e_spin_indices.second = new_index;
+    }
+  };
 
   while (true) {
-    while (dead_spin < configuration_size - 1 &&
-           full_configuration[configuration_index_dead_spin].is_annihilatable()) {
+    while (dead_spin < configuration_size && !death_condition(configuration_e_spin[dead_spin])) {
       dead_spin++;
-      configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
     }
 
-    while (living_spin > 0 &&
-           !full_configuration[configuration_index_living_spin].is_annihilatable()) {
+    while (living_spin >= 0 && death_condition(configuration_e_spin[living_spin])) {
+      update_config_idx(living_spin, -1);
+      configuration_e_spin.pop_back();
       living_spin--;
-      configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
     }
 
-    // if(dead_spin > living_spin)
-    if (dead_spin >= living_spin)
+    if (dead_spin >= living_spin) {
       break;
-    else {
-      HS_field_sign_type HS_field_dead_spin = configuration_e_spin[dead_spin].get_HS_field();
-      HS_field_sign_type HS_field_living_spin = configuration_e_spin[living_spin].get_HS_field();
-
-      std::pair<int, int>& pair_dead_spin =
-          full_configuration[configuration_index_dead_spin].get_configuration_e_spin_indices();
-      std::pair<int, int>& pair_living_spin =
-          full_configuration[configuration_index_living_spin].get_configuration_e_spin_indices();
-
-      source_index.push_back(dead_spin);
-      target_index.push_back(living_spin);
-
-      std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
-
-      if (HS_field_dead_spin == HS_FIELD_DN)
-        pair_dead_spin.first = living_spin;
-      else
-        pair_dead_spin.second = living_spin;
-
-      if (HS_field_living_spin == HS_FIELD_DN)
-        pair_living_spin.first = dead_spin;
-      else
-        pair_living_spin.second = dead_spin;
     }
+
+    assert(configuration_e_spin[dead_spin].get_HS_spin() == HS_ZERO);
+    assert(configuration_e_spin[living_spin].get_HS_spin() != HS_ZERO);
+
+    // Update index of vertex singletons in the vertex pair configuration.
+    update_config_idx(living_spin, dead_spin);
+    update_config_idx(dead_spin, -1);
+
+    // Move living spin to the left and delete dead spin.
+    configuration_e_spin[dead_spin] = configuration_e_spin[living_spin];
+    configuration_e_spin.pop_back();
+
+    // Store moves to apply to N and G0 matrices columns and rows.
+    target_index.push_back(dead_spin);
+    source_index.push_back(living_spin);
 
     dead_spin++;
     living_spin--;
-
-    if (dead_spin == int(configuration_e_spin.size()) || living_spin == -1)
-      break;
-    else {
-      configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
-      configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
-    }
-  }
-}
-
-template <dca::linalg::DeviceType device_t, typename Real>
-template <class configuration_type>
-void SHRINK_TOOLS<device_t, Real>::swap_non_changed_vertices_to_left(
-    configuration_type& full_configuration, HostVector& source_index, HostVector& target_index,
-    e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
-  int configuration_size = configuration_e_spin.size();
-
-  if (configuration_size == 0) {
-    return;
-  }
-
-  int dead_spin = 0;
-  int configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
-
-  int living_spin = configuration_size - 1;
-  int configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
-
-  while (true) {
-    while (dead_spin < configuration_size - 1 &&
-           !(!full_configuration[configuration_index_dead_spin].is_annihilatable() &&
-             !full_configuration[configuration_index_dead_spin].is_creatable())) {
-      dead_spin++;
-      configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
-    }
-
-    while (living_spin > 0 && !full_configuration[configuration_index_living_spin].is_creatable()) {
-      living_spin--;
-      configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
-    }
-
-    // if(dead_spin > living_spin)
-    if (dead_spin >= living_spin)
-      break;
-    else {
-      HS_field_sign_type HS_field_dead_spin = configuration_e_spin[dead_spin].get_HS_field();
-      HS_field_sign_type HS_field_living_spin = configuration_e_spin[living_spin].get_HS_field();
-
-      std::pair<int, int>& pair_dead_spin =
-          full_configuration[configuration_index_dead_spin].get_configuration_e_spin_indices();
-      std::pair<int, int>& pair_living_spin =
-          full_configuration[configuration_index_living_spin].get_configuration_e_spin_indices();
-
-      source_index.push_back(dead_spin);
-      target_index.push_back(living_spin);
-
-      std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
-
-      if (HS_field_dead_spin == HS_FIELD_DN)
-        pair_dead_spin.first = living_spin;
-      else
-        pair_dead_spin.second = living_spin;
-
-      if (HS_field_living_spin == HS_FIELD_DN)
-        pair_living_spin.first = dead_spin;
-      else
-        pair_living_spin.second = dead_spin;
-    }
-
-    dead_spin++;
-    living_spin--;
-
-    if (dead_spin == int(configuration_e_spin.size()) || living_spin == -1)
-      break;
-    else {
-      configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
-      configuration_index_living_spin = configuration_e_spin[living_spin].get_configuration_index();
-    }
   }
 }
 
@@ -400,39 +278,23 @@ void SHRINK_TOOLS<device_t, Real>::erase_non_creatable_and_non_annihilatable_spi
     configuration_type& full_configuration, dca::linalg::Matrix<Real, device_t>& N_up,
     dca::linalg::Matrix<Real, device_t>& N_dn, dca::linalg::Matrix<Real, device_t>& G0_up,
     dca::linalg::Matrix<Real, device_t>& G0_dn) {
-  erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_up, G0_up, e_UP);
-  erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_dn, G0_dn, e_DN);
+  const int new_size_up = full_configuration.get(e_UP).size();
+  N_up.resize(new_size_up);
+  G0_up.resize(new_size_up);
 
-  for (int i = 0; i < full_configuration.size();) {
-    if (!full_configuration[i].is_annihilatable() && !full_configuration[i].is_creatable())
-      full_configuration.remove_HS_spin(i);
-    else
-      i++;
+  const int new_size_dn = full_configuration.get(e_DN).size();
+  N_dn.resize(new_size_dn);
+  G0_dn.resize(new_size_dn);
+
+  auto& configuration = full_configuration.get();
+  for (unsigned i = 0; i < configuration.size();) {
+    if (configuration[i].get_HS_spin() == HS_ZERO) {
+      full_configuration.erase(i);
+    }
+    else {
+      ++i;
+    }
   }
-}
-
-template <dca::linalg::DeviceType device_t, typename Real>
-template <class configuration_type>
-void SHRINK_TOOLS<device_t, Real>::erase_non_creatable_and_non_annihilatable_spins(
-    configuration_type& full_configuration, dca::linalg::Matrix<Real, device_t>& N,
-    dca::linalg::Matrix<Real, device_t>& G0, e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
-
-  for (size_t i = 0; i < configuration_e_spin.size();) {
-    int configuration_index = configuration_e_spin[i].get_configuration_index();
-    if (!full_configuration[configuration_index].is_annihilatable() &&
-        !full_configuration[configuration_index].is_creatable())
-      configuration_e_spin.erase(configuration_e_spin.begin() + i);
-    else
-      i++;
-  }
-
-  //     N .size() = configuration_e_spin.size();
-  //     G0.size() = configuration_e_spin.size();
-  int SIZE = configuration_e_spin.size();
-
-  N.resize(SIZE);
-  G0.resize(SIZE);
 }
 
 template <dca::linalg::DeviceType device_t, typename Real>

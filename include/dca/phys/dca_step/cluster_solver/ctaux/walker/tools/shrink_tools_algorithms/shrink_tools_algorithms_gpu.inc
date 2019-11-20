@@ -53,17 +53,17 @@ public:
     i_s_dn.setAsync(source_index_dn, thread_id, stream_id);
     i_t_dn.setAsync(target_index_dn, thread_id, stream_id);
 
-    dca::linalg::matrixop::swapRows(N_up, i_s_up, i_t_up, thread_id, stream_id);
-    dca::linalg::matrixop::swapCols(N_up, i_s_up, i_t_up, thread_id, stream_id);
+    dca::linalg::matrixop::copyRows(N_up, i_s_up, N_up, i_t_up, thread_id, stream_id);
+    dca::linalg::matrixop::copyCols(N_up, i_s_up, N_up, i_t_up, thread_id, stream_id);
 
-    dca::linalg::matrixop::swapRows(G0_up, i_s_up, i_t_up, thread_id, stream_id);
-    dca::linalg::matrixop::swapCols(G0_up, i_s_up, i_t_up, thread_id, stream_id);
+    dca::linalg::matrixop::copyRows(G0_up, i_s_up, G0_up, i_t_up, thread_id, stream_id);
+    dca::linalg::matrixop::copyCols(G0_up, i_s_up, G0_up, i_t_up, thread_id, stream_id);
 
-    dca::linalg::matrixop::swapRows(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-    dca::linalg::matrixop::swapCols(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+    dca::linalg::matrixop::copyRows(N_dn, i_s_dn, N_dn, i_t_dn, thread_id, stream_id);
+    dca::linalg::matrixop::copyCols(N_dn, i_s_dn, N_dn, i_t_dn, thread_id, stream_id);
 
-    dca::linalg::matrixop::swapRows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-    dca::linalg::matrixop::swapCols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+    dca::linalg::matrixop::copyRows(G0_dn, i_s_dn, G0_dn, i_t_dn, thread_id, stream_id);
+    dca::linalg::matrixop::copyCols(G0_dn, i_s_dn, G0_dn, i_t_dn, thread_id, stream_id);
 
 #ifdef DCA_WITH_QMC_BIT
     SHRINK_TOOLS_ALGORITHMS_CPU_obj.execute(source_index_up, target_index_up, N_up_CPU, G0_up_CPU,

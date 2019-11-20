@@ -66,8 +66,7 @@ io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Parameters>& co
 
   for (int i = 0; i < n; ++i) {
     vertex_pair<Parameters> vertex(config.parameters, config.rng, config.configuration.size(),
-                                   config.configuration_e_DN.size(),
-                                   config.configuration_e_UP.size(), config.next_vertex_id_++);
+                                   config.next_vertex_id_++);
 
     buff >> vertex;
 

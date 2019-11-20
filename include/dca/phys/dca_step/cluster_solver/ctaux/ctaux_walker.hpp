@@ -1030,8 +1030,8 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_delayed_spins_to_the_con
         configuration.add_delayed_HS_spin(configuration_index, delayed_spins[i].new_HS_spin_value);
       }
       else {
-        configuration[configuration_index].is_creatable() = false;
-        configuration[configuration_index].is_annihilatable() = false;
+        configuration[configuration_index].set_creatable(false);
+        configuration[configuration_index].set_annihilatable(false);
       }
     }
   }

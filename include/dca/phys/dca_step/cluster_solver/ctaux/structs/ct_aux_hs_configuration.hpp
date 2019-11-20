@@ -49,6 +49,9 @@ public:
   vertex_pair_type& operator[](int index);
 
   std::vector<vertex_singleton_type>& get(e_spin_states_type e_spin_type);
+  auto& get() {
+    return configuration;
+  }
 
   void reset();
 
@@ -85,6 +88,10 @@ public:
   // a later annihilation proposal.
   int get_random_noninteracting_vertex(bool mark_annihilatable);
 
+  // Remove element at index 'idx' in O(1). Vertices order is not preserved. The electron spin
+  // configuration needs to be updated independently.
+  void erase(unsigned idx);
+
   // debug tools
   void print();
   void print(e_spin_states_type e_spin_type);
@@ -99,7 +106,7 @@ public:
   //           temporarily been marked as annihilatable by get_random_noninteracting_vertex.
   void unmarkAsAnnihilatable(const int vertex_index) {
     assert(configuration[vertex_index].is_annihilatable() == true);
-    configuration[vertex_index].is_annihilatable() = false;
+    configuration[vertex_index].set_annihilatable(false);
     --current_Nb_of_annihilatable_spins;
   }
 
@@ -219,8 +226,7 @@ void CT_AUX_HS_configuration<parameters_type>::initialize() {
   reset();
 
   for (int i = 0; i < parameters.get_initial_configuration_size(); ++i) {
-    vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size(), next_vertex_id_++);
+    vertex_pair_type vertex(parameters, rng, configuration.size(), next_vertex_id_++);
     vertex.set_random_interacting();
 
     ++current_Nb_of_annihilatable_spins;
@@ -236,9 +242,9 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   assert(changed_spin_indices.size() == 0);
 
   for (size_t i = 0; i < configuration.size(); i++) {
-    configuration[i].is_shuffled() = false;
-    configuration[i].is_successfully_flipped() = false;
-    configuration[i].is_Bennett() = false;
+    configuration[i].set_shuffled(false);
+    configuration[i].set_successfully_flipped(false);
+    configuration[i].set_Bennett(false);
 
     assert(configuration[i].is_annihilatable() || configuration[i].is_creatable());
     assert(configuration[i].is_annihilatable() != configuration[i].is_creatable());
@@ -246,8 +252,7 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
 
   // Add non-interacting spins.
   while (current_Nb_of_creatable_spins < max_num_noninteracting_spins_) {
-    vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size(), next_vertex_id_++);
+    vertex_pair_type vertex(parameters, rng, configuration.size(), next_vertex_id_++);
     vertex.set_random_noninteracting();
 
     ++current_Nb_of_creatable_spins;
@@ -283,64 +288,34 @@ void CT_AUX_HS_configuration<parameters_type>::update_configuration_e_spin(
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::get_first_non_interacting_spin_index(
     e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = get(e_spin);
-  int configuration_size = configuration_e_spin.size();
+  std::vector<vertex_singleton_type>& spin_configuration = get(e_spin);
 
   // FIXME: What and when to return if configuration_size = 0?
+  // Note: should be handled by the caller
 
-  int first_non_interacting_index, configuration_index;
-  for (first_non_interacting_index = 0; first_non_interacting_index < configuration_size;
-       first_non_interacting_index++) {
-    configuration_index = configuration_e_spin[first_non_interacting_index].get_configuration_index();
-
-    if (!configuration[configuration_index].is_annihilatable())
-      break;
-  }
-
-  assert(
-      (first_non_interacting_index == 0 &&
-       !configuration[configuration_e_spin[first_non_interacting_index].get_configuration_index()]
-            .is_annihilatable()) ||
-      (first_non_interacting_index > 0 && first_non_interacting_index < configuration_size &&
-       !configuration[configuration_e_spin[first_non_interacting_index].get_configuration_index()]
-            .is_annihilatable() &&
-       configuration[configuration_e_spin[first_non_interacting_index - 1].get_configuration_index()]
-           .is_annihilatable()) ||
-      (first_non_interacting_index == configuration_size &&
-       configuration[configuration_e_spin[first_non_interacting_index - 1].get_configuration_index()]
-           .is_annihilatable()));
+  const int first_non_interacting_index = std::distance(
+      spin_configuration.begin(),
+      std::find_if(spin_configuration.begin(), spin_configuration.end(), [&](const auto& elem) {
+        const int configuration_index = elem.get_configuration_index();
+        return !configuration[configuration_index].is_annihilatable();
+      }));
 
   return first_non_interacting_index;
 }
 
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::get_first_shuffled_spin_index(e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = get(e_spin);
-  int configuration_size = configuration_e_spin.size();
-
+  std::vector<vertex_singleton_type>& spin_configuration = get(e_spin);
   // FIXME: What and when to return if configuration_size = 0?
 
   assert(assert_block_form(e_spin));
 
-  int first_shuffled_index, configuration_index;
-  for (first_shuffled_index = 0; first_shuffled_index < configuration_size; first_shuffled_index++) {
-    configuration_index = configuration_e_spin[first_shuffled_index].get_configuration_index();
-
-    if (configuration[configuration_index].is_shuffled())
-      break;
-  }
-
-  assert((first_shuffled_index == 0 &&
-          configuration[configuration_e_spin[first_shuffled_index].get_configuration_index()]
-              .is_shuffled()) ||
-         (first_shuffled_index > 0 && first_shuffled_index < configuration_size &&
-          configuration[configuration_e_spin[first_shuffled_index].get_configuration_index()]
-              .is_shuffled() &&
-          !configuration[configuration_e_spin[first_shuffled_index - 1].get_configuration_index()]
-               .is_shuffled()) ||
-         (first_shuffled_index == configuration_size &&
-          !configuration[configuration_e_spin[first_shuffled_index - 1].get_configuration_index()]
-               .is_shuffled()));
+  const int first_shuffled_index = std::distance(
+      spin_configuration.begin(),
+      std::find_if(spin_configuration.begin(), spin_configuration.end(), [&](const auto& elem) {
+        const int index = elem.get_configuration_index();
+        return configuration[index].is_shuffled();
+      }));
 
   return first_shuffled_index;
 }
@@ -382,8 +357,8 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].is_annihilatable() = false;
-    configuration[configuration_index].is_Bennett() = true;
+    configuration[configuration_index].set_annihilatable(false);
+    configuration[configuration_index].set_Bennett(true);
 
     return;
   }
@@ -396,17 +371,17 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].is_annihilatable() = false;
+    configuration[configuration_index].set_annihilatable(false);
   }
   else {
     // cout << "\t--> create spin : " << configuration_index << std::endl;
 
     current_Nb_of_annihilatable_spins += 1;
 
-    configuration[configuration_index].is_annihilatable() = true;
+    configuration[configuration_index].set_annihilatable(true);
   }
 
-  configuration[configuration_index].is_successfully_flipped() = true;
+  configuration[configuration_index].set_successfully_flipped(true);
 }
 
 template <class parameters_type>
@@ -502,18 +477,49 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex(b
   assert(!configuration[vertex_index].is_Bennett());
 
   // Make sure that this spin will not be proposed for insertion again.
-  configuration[vertex_index].is_creatable() = false;
+  configuration[vertex_index].set_creatable(false);
   --current_Nb_of_creatable_spins;
 
   if (mark_annihilatable) {
     // However, this "virtual" interacting spin is eligible for removal.
     // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks the "virtual" interacting
     //           spins as annihilatable when all delayed spins have been generated.
-    configuration[vertex_index].is_annihilatable() = true;
+    configuration[vertex_index].set_annihilatable(true);
     ++current_Nb_of_annihilatable_spins;
   }
 
   return vertex_index;
+}
+
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::erase(unsigned idx) {
+  assert(configuration[idx].get_HS_spin() == HS_ZERO);
+  assert(configuration[idx].get_configuration_e_spin_indices().first == -1);
+  assert(configuration[idx].get_configuration_e_spin_indices().second == -1);
+
+  if (configuration[idx].is_annihilatable())
+    --current_Nb_of_annihilatable_spins;
+  if (configuration[idx].is_creatable())
+    --current_Nb_of_creatable_spins;
+
+  configuration[idx] = configuration.back();
+
+  const auto& e_spin_indices = configuration[idx].get_configuration_e_spin_indices();
+  const auto& e_spins = configuration[idx].get_e_spins();
+
+  const auto update_index = [&](const auto& e_spin, const int spin_index) {
+    if (spin_index >= 0) {
+      assert(spin_index < get(e_spin).size());
+      get(e_spin)[spin_index].get_configuration_index() = idx;
+    }
+  };
+
+  update_index(e_spins.first, e_spin_indices.first);
+  update_index(e_spins.second, e_spin_indices.second);
+
+  configuration[idx].get_configuration_index() = idx;
+
+  configuration.pop_back();
 }
 
 template <class parameters_type>
@@ -576,9 +582,8 @@ bool CT_AUX_HS_configuration<parameters_type>::assert_counters() {
 
 template <class parameters_type>
 bool CT_AUX_HS_configuration<parameters_type>::assert_consistency() {
-  // std::cout << __FUNCTION__ <<std::endl;
-
   assert(2 * configuration.size() == (configuration_e_UP.size() + configuration_e_DN.size()));
+
   assert_counters();
 
   // assert configuration-index
@@ -861,9 +866,9 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
          current_Nb_of_creatable_spins == rhs.current_Nb_of_creatable_spins;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP
