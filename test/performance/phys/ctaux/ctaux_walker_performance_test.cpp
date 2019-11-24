@@ -20,7 +20,7 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
@@ -46,7 +46,7 @@ using Profiler = dca::profiling::NullProfiler;
 #endif  // DCA_HAVE_CUDA
 
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
-using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
+using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
@@ -74,8 +74,7 @@ int main(int argc, char** argv) {
 
   Concurrency concurrency(argc, argv);
   Parameters parameters("", concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
-                                                           "bilayer_lattice_input.json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "square_lattice_input.json");
 
   parameters.update_model();
   parameters.update_domains();
