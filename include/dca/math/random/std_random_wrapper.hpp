@@ -63,7 +63,7 @@ public:
     counter_ = 0;
   }
 
-  // Returns a uniformly distributied pseudo-random number in the interval [0, 1).
+  // Returns a uniformly distributed pseudo-random number in the interval [0, 1).
   inline double operator()() {
     return distro_(engine_);
   }

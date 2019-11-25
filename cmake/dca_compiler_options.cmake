@@ -21,7 +21,7 @@
 set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-dangling-else)
 
 # Languange standard
-set(DCA_STD_FLAG -std=c++14)
+set(DCA_STD_FLAG -std=c++17)
 
 # Set C and CXX flags.
 add_compile_options(${DCA_WARNINGS})

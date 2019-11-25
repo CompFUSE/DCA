@@ -14,6 +14,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_base.hpp"
 
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -53,13 +54,15 @@ protected:
   bool tryVertexInsert();
   bool tryVertexRemoval();
 
-  void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
-                 const std::vector<int>& vertex_indices);
+  void moveRemovalToEnd();
+  void popBack(int delta_vertices);
 
   // Test handle.
   const auto& getM() const {
     return M_;
   }
+
+  void initializeStep();
 
 private:
   double insertionProbability(int delta_vertices);
@@ -75,7 +78,6 @@ private:
 
   virtual void smallInverse(const MatrixView& in, MatrixView& out, int s);
   virtual void smallInverse(MatrixView& in_out, int s);
-  virtual double separateIndexDeterminant(Matrix& m, const std::vector<ushort>& indices, int s);
 
 protected:
   using BaseClass::parameters_;
@@ -91,8 +93,6 @@ protected:
   using BaseClass::thermalized_;
   using BaseClass::nb_steps_per_sweep_;
   using BaseClass::n_accepted_;
-  using BaseClass::removal_candidates_;
-  using BaseClass::removal_matrix_indices_;
 
   using BaseClass::M_;
 
@@ -107,6 +107,10 @@ private:
   Matrix ws_dn_;
   linalg::Vector<double, linalg::CPU> v_work_;
   linalg::Vector<int, linalg::CPU> ipiv_;
+
+  std::array<linalg::util::HostVector<int>, 2> matrix_removal_list_;
+  std::array<linalg::util::HostVector<int>, 2> matrix_source_list_;
+  std::vector<int> removal_list_;
 };
 
 template <class Parameters>
@@ -139,8 +143,7 @@ void CtintWalker<linalg::CPU, Parameters>::doSweep() {
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doStep() {
-  // TODO: remove
-  configuration_.prepareForSubmatrixUpdate();
+  initializeStep();
 
   if (rng_() <= 0.5) {
     n_accepted_ += tryVertexInsert();
@@ -168,8 +171,10 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
 
   const bool accept = rng_() < std::min(std::abs(acceptance_prob_), 1.);
 
-  if (not accept)
-    configuration_.pop(delta_vertices);
+  if (!accept) {
+    popBack(delta_vertices);
+  }
+
   else {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
@@ -220,9 +225,9 @@ double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delt
       delta_vertices == 1 ? old_size + 1 : (old_size + 2) * (configuration_.nPartners(old_size) + 1);
 
   const double strength_factor =
-      delta_vertices == 1
-          ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
-          : total_interaction_ * beta_ * beta_ * std::abs(configuration_.getStrength(old_size)) * possible_partners_;
+      delta_vertices == 1 ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
+                          : total_interaction_ * beta_ * beta_ *
+                                std::abs(configuration_.getStrength(old_size)) * possible_partners_;
 
   const double det_ratio = det_ratio_[0] * det_ratio_[1];
 
@@ -283,34 +288,31 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 
 template <class Parameters>
 double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
-  removal_candidates_ = configuration_.randomRemovalCandidate(rng_);
+  removal_list_ = configuration_.randomRemovalCandidate(rng_);
 
   const int n = configuration_.size();
-  const int n_removed = removal_candidates_.size();
+  const int n_removed = removal_list_.size();
 
   for (int s = 0; s < 2; ++s) {
-    removal_matrix_indices_[s].clear();
-    for (auto index : removal_candidates_) {
-      const auto vertex_indices = configuration_.findIndices(configuration_.getTag(index), s);
-      removal_matrix_indices_[s].insert(removal_matrix_indices_[s].end(), vertex_indices.begin(),
-                                        vertex_indices.end());
+    matrix_removal_list_[s].clear();
+    for (auto index : removal_list_) {
+      configuration_.findIndices(matrix_removal_list_[s], index, s);
     }
-    if (removal_matrix_indices_[s].size() == 0) {
+    if (matrix_removal_list_[s].size() == 0) {
       det_ratio_[s] = 1.;
       continue;
     }
-    std::sort(removal_matrix_indices_[s].begin(), removal_matrix_indices_[s].end());
-    det_ratio_[s] = separateIndexDeterminant(M_[s], removal_matrix_indices_[s], s);
+    std::sort(matrix_removal_list_[s].begin(), matrix_removal_list_[s].end());
+    det_ratio_[s] = details::separateIndexDeterminant(M_[s], matrix_removal_list_[s]);
   }
-  assert((removal_matrix_indices_[0].size() + removal_matrix_indices_[1].size()) % 2 == 0);
+  assert((matrix_removal_list_[0].size() + matrix_removal_list_[1].size()) % 2 == 0);
 
   const double combinatorial_factor =
-      n_removed == 1 ? n : n * configuration_.nPartners(removal_candidates_[0]);
+      n_removed == 1 ? n : n * configuration_.nPartners(removal_list_[0]);
   const double strength_factor =
-      n_removed == 1
-          ? -beta_ * total_interaction_ * configuration_.getSign(removal_candidates_[0])
-          : total_interaction_ * beta_ * beta_ * possible_partners_ *
-          std::abs(configuration_.getStrength(removal_candidates_[0]));
+      n_removed == 1 ? -beta_ * total_interaction_ * configuration_.getSign(removal_list_[0])
+                     : total_interaction_ * beta_ * beta_ * possible_partners_ *
+                           std::abs(configuration_.getStrength(removal_list_[0]));
 
   const double det_ratio = det_ratio_[0] * det_ratio_[1];
 
@@ -319,16 +321,21 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
-  const int n_removed = removal_candidates_.size();
-  for (auto idx : removal_candidates_)
+  for (auto idx : removal_list_)
     configuration_.markForRemoval(idx);
-  // TODO maybe: don't copy values to be popped.
-  pushToEnd(removal_matrix_indices_, removal_candidates_);
-  configuration_.pop(n_removed);
+
+  std::array<int, 2> removal_size;
+  for (int s = 0; s < 2; ++s)
+    removal_size[s] = configuration_.getSector(s).size();
+
+  moveRemovalToEnd();
+
+  for (int s = 0; s < 2; ++s)
+    removal_size[s] -= configuration_.getSector(s).size();
 
   for (int s = 0; s < 2; ++s) {
     auto& M = M_[s];
-    const int delta = removal_matrix_indices_[s].size();
+    const int delta = removal_size[s];
     if (delta == 0)  // Nothing to update.
       continue;
     const int m_size = M.nrCols() - delta;
@@ -355,29 +362,25 @@ void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
 }
 
 template <class Parameters>
-void CtintWalker<linalg::CPU, Parameters>::pushToEnd(
-    const std::array<std::vector<ushort>, 2>& matrix_indices, const std::vector<int>& vertex_indices) {
-  for (int s = 0; s < 2; ++s) {
-    auto& M = M_[s];
-    const auto indices = matrix_indices[s];
-    ushort destination = M.nrCols() - 1;
-    assert(M.nrCols() >= indices.size());
-    // TODO check
-    for (int idx = indices.size() - 1; idx >= 0; --idx) {
-      const ushort source = indices[idx];
-      linalg::matrixop::swapRowAndCol(M, source, destination, thread_id_, s);
-      configuration_.swapSectorLabels(source, destination, s);
-      --destination;
-    }
+void CtintWalker<linalg::CPU, Parameters>::popBack(int delta_vertices) {
+  for (int i = configuration_.size() - delta_vertices; i < configuration_.size(); ++i) {
+    removal_list_.push_back(i);
   }
 
-  if (vertex_indices.size() == 1)
-    configuration_.swapVertices(vertex_indices[0], configuration_.size() - 1);
-  else {
-    const ushort a = std::min(vertex_indices[0], vertex_indices[1]);
-    const ushort b = std::max(vertex_indices[0], vertex_indices[1]);
-    configuration_.swapVertices(b, configuration_.size() - 1);
-    configuration_.swapVertices(a, configuration_.size() - 2);
+  configuration_.moveAndShrink(matrix_source_list_, matrix_removal_list_, removal_list_);
+
+  for (int s = 0; s < 2; ++s) {
+    M_[s].resize(configuration_.getSector(s).size());
+  }
+}
+
+template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::moveRemovalToEnd() {
+  configuration_.moveAndShrink(matrix_source_list_, matrix_removal_list_, removal_list_);
+
+  for (int s = 0; s < 2; ++s) {
+    for (int i = 0; i < matrix_source_list_[s].size(); ++i)
+      linalg::matrixop::swapRowAndCol(M_[s], matrix_source_list_[s][i], matrix_removal_list_[s][i]);
   }
 }
 
@@ -392,9 +395,14 @@ void CtintWalker<linalg::CPU, Parameters>::smallInverse(MatrixView& in_out, cons
 }
 
 template <class Parameters>
-double CtintWalker<linalg::CPU, Parameters>::separateIndexDeterminant(
-    Matrix& m, const std::vector<ushort>& indices, int /*s*/) {
-  return details::separateIndexDeterminant(m, indices);
+void CtintWalker<linalg::CPU, Parameters>::initializeStep() {
+  // TODO: remove
+  configuration_.prepareForSubmatrixUpdate();
+  removal_list_.clear();
+  for (int s = 0; s < 2; ++s) {
+    matrix_removal_list_[s].clear();
+    matrix_source_list_[s].clear();
+  }
 }
 
 }  // namespace ctint

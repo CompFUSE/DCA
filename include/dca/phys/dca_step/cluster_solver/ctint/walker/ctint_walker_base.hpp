@@ -191,8 +191,8 @@ protected:  // Members.
   // Store for testing purposes:
   double acceptance_prob_;
 
-  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
-  std::vector<int> removal_candidates_;
+//  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
+//  std::vector<int> removal_candidates_;
 
   float flop_ = 0.;
 

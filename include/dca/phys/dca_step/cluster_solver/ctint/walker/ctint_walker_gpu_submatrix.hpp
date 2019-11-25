@@ -191,8 +191,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
-  for (auto& event : config_copied_)
-    event.block();
   BaseClass::generateDelayedMoves(BaseClass::nbr_of_moves_to_delay_);
   uploadConfiguration();
 
@@ -205,8 +203,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
-  //  for (int s = 0; s < 2; ++s)
-  //    config_copied_[s].block();
+  for (int s = 0; s < 2; ++s)
+    config_copied_[s].block();
 
   // Upload configuration and f values.
   device_config_.upload(configuration_, thread_id_);
@@ -330,11 +328,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
   }
 
   // Remove non-interacting rows and columns.
-  configuration_.moveAndShrink(source_list_, removal_list_, BaseClass::conf_source_,
-                               conf_removal_list_);
+  configuration_.moveAndShrink(source_list_, removal_list_, conf_removal_list_);
   for (int s = 0; s < 2; ++s) {
-    const int removal_size = removal_list_[s].size();
-    removal_list_[s].resize(source_list_[s].size());
     removal_list_dev_[s].setAsync(removal_list_[s], stream_[s]);
     source_list_dev_[s].setAsync(source_list_[s], stream_[s]);
     config_copied_[s].record(stream_[s]);
@@ -342,7 +337,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
                                thread_id_, s);
     linalg::matrixop::copyCols(M_dev_[s], source_list_dev_[s], M_dev_[s], removal_list_dev_[s],
                                thread_id_, s);
-    M_dev_[s].resize(n_max_[s] - removal_size);
+    M_dev_[s].resize(configuration_.getSector(s).size());
   }
 
   assert(configuration_.getSector(0).size() == M_dev_[0].nrRows());

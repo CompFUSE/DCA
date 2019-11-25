@@ -161,9 +161,9 @@ inline double smallDeterminant(const MatrixType& M) {
   }
 }
 
-template <template <typename, linalg::DeviceType> class MatrixType>
+template <template <typename, linalg::DeviceType> class MatrixType, class Vector>
 inline double separateIndexDeterminant(const MatrixType<double, linalg::CPU>& M,
-                                       const std::vector<ushort>& indices) {
+                                       const Vector& indices) {
   switch (indices.size()) {
     case 1:
       return M(indices[0], indices[0]);

@@ -36,13 +36,11 @@ public:
   using BaseClass::doStep;
 
   bool tryVertexInsert() {
-    // TODO: remove
-    configuration_.prepareForSubmatrixUpdate();
+    BaseClass::initializeStep();
     return BaseClass::tryVertexInsert();
   }
   bool tryVertexRemoval() {
-    // TODO: remove
-    configuration_.prepareForSubmatrixUpdate();
+    BaseClass::initializeStep();
     return BaseClass::tryVertexRemoval();
   }
 

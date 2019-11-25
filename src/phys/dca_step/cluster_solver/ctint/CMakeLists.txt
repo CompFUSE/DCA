@@ -9,7 +9,9 @@ add_library(ctint
     structs/interaction_vertices.cpp
     walker/tools/g0_interpolation.cpp
     walker/tools/d_matrix_builder.cpp
+    structs/ctint_matrix_configuration.cpp
     structs/read_write_configuration.cpp
+    structs/solver_configuration.cpp
     ${CTINT_CUDA_CPP_FILES}
     )
 
