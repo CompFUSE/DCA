@@ -1,8 +1,10 @@
 # CT-INT
 
 add_library(ctint
+    structs/ctint_matrix_configuration.cpp
     structs/interaction_vertices.cpp
     structs/read_write_configuration.cpp
+    structs/solver_configuration.cpp
     )
 
 if (DCA_HAVE_CUDA)
