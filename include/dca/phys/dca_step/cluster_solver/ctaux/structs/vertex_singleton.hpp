@@ -41,7 +41,7 @@ public:
   this_type& operator=(const this_type& other_vertex_couple);
 
   template <class configuration_type>
-  vertex_singleton& get_partner(configuration_type& configuration);
+  const vertex_singleton& get_partner(configuration_type& configuration) const;
 
   int get_band() const {
     return band;
@@ -113,7 +113,7 @@ private:
 };
 
 template <class configuration_type>
-vertex_singleton& vertex_singleton::get_partner(configuration_type& configuration) {
+const vertex_singleton& vertex_singleton::get_partner(configuration_type& configuration) const {
   e_spin_states_type e_spin;
   int configuration_e_spin;
 

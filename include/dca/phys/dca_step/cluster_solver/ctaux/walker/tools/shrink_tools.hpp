@@ -286,9 +286,8 @@ void SHRINK_TOOLS<device_t, Real>::erase_non_creatable_and_non_annihilatable_spi
   N_dn.resize(new_size_dn);
   G0_dn.resize(new_size_dn);
 
-  auto& configuration = full_configuration.get();
-  for (unsigned i = 0; i < configuration.size();) {
-    if (configuration[i].get_HS_spin() == HS_ZERO) {
+  for (unsigned i = 0; i < full_configuration.size();) {
+    if (full_configuration[i].get_HS_spin() == HS_ZERO) {
       full_configuration.erase(i);
     }
     else {
