@@ -18,6 +18,7 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -39,6 +40,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
+constexpr bool update_baseline = false;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
@@ -95,39 +97,39 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   dca_loop.execute();
   dca_loop.finalize();
 
+  auto& Sigma_DCA = dca_data.Sigma;
+
+  // Read QMC self-energy from check_data file and compare it with the newly
+  // computed QMC self-energy.
+  const std::string filename =
+      DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5";
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
-              << std::endl;
+    if (!update_baseline) {
+      dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_DCA_check(
+          "Self_Energy");
+      dca::io::HDF5Reader reader;
+      reader.open_file(filename);
+      reader.open_group("functions");
+      reader.execute(Sigma_DCA_check);
+      reader.close_file();
 
-    // Read self-energy from check_data file.
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
-        "Self_Energy");
-    dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
-    reader.open_group("functions");
-    reader.execute(Sigma_check);
-    reader.close_file();
-
-    // Compare the computed self-energy with the expected result.
-    for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-      for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-        for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
-          for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
-          }
-        }
-      }
+      auto diff = dca::func::util::difference(Sigma_DCA_check, Sigma_DCA);
+      EXPECT_GT(1e-10, diff.l_inf);
     }
-  }
+    else {
+      // Write results
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data "
+                << std::endl;
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data." << std::endl;
-    dca_loop.write();
-
-    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+      dca::io::HDF5Writer writer;
+      writer.open_file(filename);
+      writer.open_group("functions");
+      Sigma_DCA.set_name("Self_Energy");
+      writer.execute(Sigma_DCA);
+      writer.close_group();
+      writer.close_file();
+    }
+    std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
 

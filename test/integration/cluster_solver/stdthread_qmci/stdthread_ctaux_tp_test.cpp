@@ -38,7 +38,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
