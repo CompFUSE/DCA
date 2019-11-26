@@ -113,6 +113,10 @@ function(dca_add_gtest name)
   # tests.
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
+  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
+      hpx_setup_target(${name})
+  endif()
+
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
     target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest_main)

@@ -7,6 +7,7 @@
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch) 
 //         Weile Wei (wwei9@lsu.edu)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for parallelizing with HPX.

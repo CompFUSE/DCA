@@ -10,9 +10,6 @@
 //
 // This file implements the methods of thead_pool.hpp
 
-#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
-
-#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 #include "dca/config/threading.hpp"
 
 namespace dca {
