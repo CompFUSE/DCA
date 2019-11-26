@@ -21,3 +21,7 @@ dca_add_gtest(read_write_ctint_config_test
   INCLUDE_DIRS ${TEST_INCLUDES}
   LIBS random;time_and_frequency_domains;function;ctint
   )
+
+if (DCA_HAVE_CUDA)
+  target_link_libraries(read_write_ctint_config_test  PRIVATE cuda_utils)
+endif()

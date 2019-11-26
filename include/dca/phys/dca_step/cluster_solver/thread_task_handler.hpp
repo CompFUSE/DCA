@@ -121,4 +121,4 @@ private:
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_QMCI_THREAD_TASK_HANDLER_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_THREAD_TASK_HANDLER_HPP

@@ -94,12 +94,16 @@ function(dca_add_gtest name)
   # tests.
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
+  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
+      hpx_setup_target(${name})
+  endif()
+
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
-    target_link_libraries(${name} PRIVATE gtest_main ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest_main)
   else()
     # Test has its own main.
-    target_link_libraries(${name} PRIVATE gtest ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest)
   endif()
 
   if (DCA_HAVE_CUDA)
@@ -111,7 +115,7 @@ function(dca_add_gtest name)
   endif()
   
   if (DCA_ADD_GTEST_CUDA)
-    target_include_directories(${name} PRIVATE ${CUDATookit_INCLUDE_DIRS})
+    target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
     target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     if(DCA_HAVE_MAGMA)
@@ -139,13 +143,13 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${THIS_CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
-                 target_link_libraries(${name} ${MPI_C_LIBRARIES})
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>")
+                 target_link_libraries(${name}  PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
+                   ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
     else (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND "$<TARGET_FILE:${name}>")
