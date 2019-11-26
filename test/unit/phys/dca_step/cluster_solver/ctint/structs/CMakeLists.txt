@@ -23,7 +23,7 @@ dca_add_gtest(read_write_ctint_config_test
   )
 
 if (DCA_HAVE_CUDA)
-  target_link_libraries(read_write_ctint_config_test cuda_utils)
+  target_link_libraries(read_write_ctint_config_test  PRIVATE cuda_utils)
 endif()
 
 dca_add_gtest(matrix_configuration_test

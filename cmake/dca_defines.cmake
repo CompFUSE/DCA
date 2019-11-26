@@ -68,8 +68,11 @@ function(dca_write_haves_definitions_file)
 
   set(dca_haves_defines "")
   foreach(def ${DCA_HAVES_DEFINITIONS_VAR})
-    set(dca_haves_defines "${dca_haves_defines}#ifndef ${def}\n#define ${def} ${${def}_define}\n
-        #endif\n")
+    string(CONCAT dca_haves_defines
+        "${dca_haves_defines}"
+        "#ifndef ${def}\n"
+        " #define ${def} ${${def}_define}\n"
+        "#endif\n\n")
   endforeach()
 
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/haves_defines.hpp.in"

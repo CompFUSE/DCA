@@ -10,11 +10,8 @@
 //
 // This file tests stdthread.hpp.
 
-#include "dca/parallel/stdthread/stdthread.hpp"
-
 #include "gtest/gtest.h"
-
-using Threading = dca::parallel::stdthread;
+#include "dca/config/threading.hpp"
 
 TEST(StdthreadTest, Execute) {
   auto routine = [](const int id, const int num_threads, std::vector<int>& vec) {
@@ -36,7 +33,7 @@ TEST(StdthreadTest, Execute) {
 TEST(NoThreadingTest, SumReduction) {
   auto routine = [](const int id, const int /*num_threads*/) { return id * id; };
 
-  dca::parallel::stdthread threading;
+  Threading threading;
   const int n_threads = 3;
   const int result = threading.sumReduction(n_threads, routine);
 
