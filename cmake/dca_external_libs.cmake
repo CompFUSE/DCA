@@ -33,7 +33,7 @@ if (NOT HDF5_FOUND)
 endif()
 
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${HDF5_INCLUDE_DIR})
 
 ################################################################################
 # ADIOS2
