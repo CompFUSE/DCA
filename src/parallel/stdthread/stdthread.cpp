@@ -9,7 +9,7 @@
 //
 // This file implements stdthread.hpp.
 
-#include "dca/parallel/stdthread/stdthread.hpp"
+#include "dca/config/threading.hpp"
 
 namespace dca {
 namespace parallel {

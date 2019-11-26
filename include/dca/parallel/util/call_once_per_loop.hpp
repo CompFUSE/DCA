@@ -16,6 +16,9 @@
 #ifndef DCA_PARALLEL_UTIL_CALL_ONCE_PER_LOOP_HPP
 #define DCA_PARALLEL_UTIL_CALL_ONCE_PER_LOOP_HPP
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/config/threading.hpp"
+
 namespace dca {
 namespace util {
 // dca::util::
@@ -24,7 +27,7 @@ struct OncePerLoopFlag {
   OncePerLoopFlag() : loop_done(-1) {}
 
   std::atomic<int> loop_done;
-  std::mutex mutex;
+  dca::parallel::thread_traits::mutex_type mutex;
 };
 
 // This routine ensures f(args...) is called by a single thread for each value of loop index. Other
@@ -43,7 +46,7 @@ void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... 
   else if (loop_id > currently_done + 1 && currently_done != -1)
     throw(std::logic_error("Loop id called out of order."));
 
-  std::unique_lock<std::mutex> lock(flag.mutex);
+  dca::parallel::thread_traits::unique_lock lock(flag.mutex);
   // Check if flag.loop_done changed before locking the mutex.
   if (loop_id <= flag.loop_done)
     return;

@@ -9,12 +9,11 @@
 //
 // Tests call_once_per_loop.hpp
 
+#include "dca/config/threading.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
 
 #include <vector>
 #include <gtest/gtest.h>
-
-#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
 void task(unsigned int loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
