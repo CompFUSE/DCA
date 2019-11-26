@@ -29,6 +29,20 @@
 namespace dca {
 namespace parallel {
 
+struct thread_traits {
+    template <typename T>
+    using promise_type              = std::promise<T>;
+    template <typename T>
+    using future_type               = std::future<T>;
+    using mutex_type                = std::mutex;
+    using condition_variable_type   = std::condition_variable;
+    using scoped_lock               = std::lock_guard<mutex_type>;
+    using unique_lock               = std::unique_lock<mutex_type>;
+    static void yield() {
+        std::this_thread::yield();
+    }
+};
+
 class ThreadPool {
 public:
   // Creates a pool with the specified number of threads.
@@ -44,7 +58,7 @@ public:
   // Adds to the queue of tasks the execution of f(args...). This method is thread safe.
   // Returns: a future to the return value of f(args...).
   template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+  auto enqueue(F&& f, Args&&... args) -> thread_traits::future_type<typename std::result_of<F(Args...)>::type>;
 
   // The destructor concludes all the pending work gracefully before merging all spawned threads.
   ~ThreadPool();
@@ -66,8 +80,9 @@ private:
   std::vector<std::thread> workers_;
   std::vector<std::unique_ptr<std::queue<std::packaged_task<void()>>>> tasks_;
 
-  std::vector<std::unique_ptr<std::mutex>> queue_mutex_;
-  std::vector<std::unique_ptr<std::condition_variable>> condition_;
+  // synchronization
+  std::vector<std::unique_ptr<thread_traits::mutex_type>> queue_mutex_;
+  std::vector<std::unique_ptr<thread_traits::condition_variable_type>> condition_;
   std::atomic<bool> stop_;
   std::atomic<unsigned int> active_id_;
 
@@ -77,7 +92,7 @@ private:
 
 template <class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
-    -> std::future<typename std::result_of<F(Args...)>::type> {
+    -> thread_traits::future_type<typename std::result_of<F(Args...)>::type> {
   using return_type = typename std::result_of<F(Args...)>::type;
   unsigned int id = active_id_++;
   id = id % size();
@@ -87,9 +102,9 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
   auto task =
       std::packaged_task<return_type()>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
-  std::future<return_type> res = task.get_future();
+  thread_traits::future_type<return_type> res = task.get_future();
   {
-    std::unique_lock<std::mutex> lock(*queue_mutex_[id]);
+    std::unique_lock<thread_traits::mutex_type> lock(*queue_mutex_[id]);
 
     if (stop_)
       throw std::runtime_error("enqueue on stopped ThreadPool");

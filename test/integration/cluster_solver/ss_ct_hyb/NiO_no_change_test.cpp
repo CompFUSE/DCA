@@ -11,10 +11,10 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/threading.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
@@ -41,7 +41,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
       dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
-      dca::phys::params::Parameters<Concurrency, dca::parallel::stdthread, dca::profiling::NullProfiler,
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                     Model, Rng, dca::phys::solver::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<

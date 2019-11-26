@@ -10,11 +10,7 @@
 //
 // This file implements the methods of thead_pool.hpp
 
-#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
-
-#include "mpi.h"
-
-#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
+#include "dca/config/threading.hpp"
 
 namespace dca {
 namespace parallel {
@@ -39,9 +35,9 @@ void ThreadPool::enlarge(size_t n_threads) {
     return;
 
   // Lock all queues to avoid modifications while enlarging the pool.
-  std::vector<std::unique_lock<std::mutex>> locks;
+  std::vector<thread_traits::unique_lock> locks;
   for (auto& mutex_ptr : queue_mutex_)
-    locks.emplace_back(std::unique_lock<std::mutex>(*mutex_ptr));
+    locks.emplace_back(thread_traits::unique_lock(*mutex_ptr));
 
   // Create enough resources for the new workers.
   queue_mutex_.reserve(n_threads);
@@ -52,8 +48,8 @@ void ThreadPool::enlarge(size_t n_threads) {
   locks.clear();
 
   for (size_t id = workers_.size(); id < n_threads; ++id) {
-    queue_mutex_.emplace_back(std::make_unique<std::mutex>());
-    condition_.emplace_back(std::make_unique<std::condition_variable>());
+    queue_mutex_.emplace_back(std::make_unique<thread_traits::mutex_type>());
+    condition_.emplace_back(std::make_unique<thread_traits::condition_variable_type>());
     tasks_.emplace_back(std::make_unique<std::queue<std::packaged_task<void()>>>());
 
     // Start a loop on each new thread.
@@ -74,7 +70,7 @@ void ThreadPool::workerLoop(int id) {
     std::packaged_task<void()> task;
 
     {  // Acquire new task.
-      std::unique_lock<std::mutex> lock(*queue_mutex_[id]);
+      thread_traits::unique_lock lock(*queue_mutex_[id]);
       condition_[id]->wait(lock, [this, id] { return stop_ || !tasks_[id]->empty(); });
       // If all the work is done and no more will be posted, return.
       if (stop_ && tasks_[id]->empty())
