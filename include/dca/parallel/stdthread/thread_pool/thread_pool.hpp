@@ -41,6 +41,13 @@ struct thread_traits {
     static void yield() {
         std::this_thread::yield();
     }
+    //
+    template <typename F>
+    static void yield_while(F &&f) {
+        while (f()) {
+            std::this_thread::yield();
+        }
+    }
 };
 
 class ThreadPool {
