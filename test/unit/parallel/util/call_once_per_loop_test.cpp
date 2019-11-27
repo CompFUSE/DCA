@@ -15,13 +15,14 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-void task(unsigned int loop_id, std::vector<int>& data) {
+int task(unsigned int loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
 
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
     ++data[loop_id];
     std::this_thread::sleep_for(std::chrono::microseconds(100));
   });
+  return 0;
 }
 
 TEST(CallOncePerLoopTest, All) {
