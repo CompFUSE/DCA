@@ -286,7 +286,12 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 
 template <class Parameters>
 double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
-  removal_list_ = configuration_.randomRemovalCandidate(rng_);
+  const auto candidates = configuration_.randomRemovalCandidate(rng_);
+  removal_list_.clear();
+  for (int candidate : candidates) {
+    if (candidate != -1)
+      removal_list_.push_back(candidate);
+  }
 
   const int n = configuration_.size();
   const int n_removed = removal_list_.size();

@@ -361,7 +361,14 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
     if (move_type == INSERTION)
       index_ = delayed_moves_[delay_ind].indices;
     else {  // move_type == REMOVAL
-      index_ = configuration_.randomRemovalCandidate(rng_, delayed_moves_[delay_ind].removal_rng);
+      index_.clear();
+      const auto candidates =
+          configuration_.randomRemovalCandidate(rng_, delayed_moves_[delay_ind].removal_rng);
+      for (const int candidate : candidates) {
+        if (candidate != -1)
+          index_.push_back(candidate);
+      }
+
       // Check if the vertex to remove was inserted during the current submatrix update.
       all_recently_added = true;
       for (auto index : index_) {

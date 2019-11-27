@@ -72,12 +72,10 @@ TEST(SolverConfigurationTest, randomRemovalCandidate) {
     tags.insert(tag);
   }
 
-  std::vector<int> candidates;
-
   auto execute_test = [&](int n_attempts) {
     for (int i = 0; i < n_attempts; ++i) {
-      candidates = config.randomRemovalCandidate(rng);
-      ASSERT_EQ(candidates.size(), 1);
+      const auto candidates = config.randomRemovalCandidate(rng);
+      EXPECT_EQ(candidates[1], -1);
       const auto tag = config[candidates[0]].tag;
       EXPECT_EQ(tags.count(tag), 1);
     }
