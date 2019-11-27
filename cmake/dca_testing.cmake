@@ -81,15 +81,18 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
+    set(oldname ${name})
+    set(name ${name}_hpx)
+    add_executable(${name} ${oldname}.cpp ${DCA_ADD_GTEST_SOURCES})
+    hpx_setup_target(${name})
+  else()
+    add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+  endif()
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
   # tests.
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-
-  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
-      hpx_setup_target(${name})
-  endif()
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
