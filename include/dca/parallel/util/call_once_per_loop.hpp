@@ -35,25 +35,32 @@ struct OncePerLoopFlag {
 // completion of f(args...).
 // Precondition: each call must use a non decreasing value of the loop index.
 template <class F, class... Args>
-void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args) {
-  const int currently_done = flag.loop_done;
-
-  if (loop_id < 0)
-    throw(std::out_of_range("Negative loop index."));
-
-  if (loop_id <= currently_done)
+void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args)
+{
+  // if this Id has been done, exit immediately
+  if (loop_id <= flag.loop_done) {
     return;
-  else if (loop_id > currently_done + 1 && currently_done != -1)
-    throw(std::logic_error("Loop id called out of order."));
+  }
 
+  // if this Id is too far ahead, then wait
+  dca::parallel::thread_traits::yield_while([&flag, loop_id](){
+      return (loop_id > (flag.loop_done+1));
+  });
+
+  // whilst we were yielding, someone else took the Id slot
+  if (loop_id <= flag.loop_done) {
+      return;
+  }
+
+  // take the lock
   dca::parallel::thread_traits::unique_lock lock(flag.mutex);
-  // Check if flag.loop_done changed before locking the mutex.
-  if (loop_id <= flag.loop_done)
-    return;
+  // whilst we were waiting, someone else took the Id slot
+  if (loop_id <= flag.loop_done) {
+      return;
+  }
 
   // Run the task.
-  f(args...);
-
+  f(std::forward<Args>(args)...);
   flag.loop_done = loop_id;
 }
 
