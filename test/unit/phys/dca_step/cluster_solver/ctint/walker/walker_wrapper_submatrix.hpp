@@ -33,10 +33,13 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   using Data = typename BaseClass::Data;
 
   WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
-      //cudaDeviceSynchronize();
-      BaseClass::initialize();
-      //cudaDeviceSynchronize();
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
+        streams_(3) {
+    BaseClass::initialize();
+
+    for (auto& stream : streams_) {
+      stream_ptrs_.push_back(&stream);
+    }
   }
 
   void doStep(const int n_steps_to_delay) {
@@ -48,10 +51,8 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
   MatrixPair getM() {
     std::array<dca::linalg::Matrix<double, device_t>, 2> M;
-    std::vector<dca::linalg::util::CudaStream> s(2);
-    std::vector<dca::linalg::util::CudaStream*> s_ptr{&s[0], &s[1]};
     cudaDeviceSynchronize();
-    BaseClass::computeM(M, s_ptr);
+    BaseClass::computeM(M, stream_ptrs_);
     cudaDeviceSynchronize();
 
     std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
@@ -70,6 +71,10 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   double getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
+
+private:
+  std::vector<dca::linalg::util::CudaStream> streams_;
+  std::vector<dca::linalg::util::CudaStream*> stream_ptrs_;
 };
 
 }  // namespace ctint

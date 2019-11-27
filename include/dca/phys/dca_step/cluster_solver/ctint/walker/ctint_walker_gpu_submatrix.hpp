@@ -357,12 +357,18 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
     details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), stream_[s]);
   }
 
-  m_computed_event_.record(stream_[0]);
-  m_computed_event_.block(stream_[1]);
-  m_computed_event_.record(stream_[1]);
+  // TODO: understand why this is necessary.
+  config_copied_[0].block();
+  config_copied_[1].block();
 
-  for (auto stream : streams)
-    m_computed_event_.block(*stream);
+  assert(streams.size() == 3);
+  m_computed_event_.record(stream_[0]);
+  m_computed_event_.block(*streams[0]);  // sp stream.
+  m_computed_event_.block(*streams[2]);  // tp stream
+
+  m_computed_event_.record(stream_[1]);
+  m_computed_event_.block(*streams[1]);  // sp stream
+  m_computed_event_.block(*streams[2]);  // tp stream
 }
 
 }  // namespace ctint
