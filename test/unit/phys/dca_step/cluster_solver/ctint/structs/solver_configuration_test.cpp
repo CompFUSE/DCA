@@ -33,8 +33,9 @@ TEST(SolverConfigurationTest, MoveAndShrink) {
 
   auto execute_test = [&](int conf_size, std::vector<int> remove) {
     dca::phys::solver::ctint::SolverConfiguration config(1, 1, interactions);
-    for (int i = 0; i < conf_size; ++i)
-      config.insertRandom(rng);
+    for (int i = 0; i < conf_size; ++i) {
+        config.insertRandom(rng);
+    }
 
     EXPECT_EQ(conf_size, config.size());
     EXPECT_TRUE(config.checkConsistency());
@@ -56,4 +57,47 @@ TEST(SolverConfigurationTest, MoveAndShrink) {
   execute_test(4, {0, 2});
   execute_test(8, {0, 1, 2, 3, 4});
   execute_test(4, {0, 1, 2});
+}
+
+TEST(SolverConfigurationTest, randomRemovalCandidate) {
+  dca::phys::solver::ctint::InteractionVertices interactions;
+  interactions.insertElement({{0, 0, 0, 0}, {0, 0, 1, 1}, 1});  // up-down
+
+  dca::phys::solver::ctint::SolverConfiguration config(1, 1, interactions);
+
+  std::set<uint64_t> tags;
+  for (uint64_t tag = 0; tag < 20; ++tag) {
+    config.insertRandom(rng);
+    config.commitInsertion(tag);
+    tags.insert(tag);
+  }
+
+  std::vector<int> candidates;
+
+  auto execute_test = [&](int n_attempts) {
+    for (int i = 0; i < n_attempts; ++i) {
+      candidates = config.randomRemovalCandidate(rng);
+      ASSERT_EQ(candidates.size(), 1);
+      const auto tag = config[candidates[0]].tag;
+      EXPECT_EQ(tags.count(tag), 1);
+    }
+  };
+
+  execute_test(10);
+
+  // Remove some indices from the possible candidates.
+  for (int idx : {0, 3, 7, 4, 2, 19}) {
+    config.markForRemoval(idx);
+    tags.erase(idx);
+  }
+
+  execute_test(10);
+
+  // Remove more indices to have less than 10 candidates.
+  for (int idx : {1, 5, 6, 8, 9, 10, 11}) {
+    config.markForRemoval(idx);
+    tags.erase(idx);
+  }
+
+  execute_test(10);
 }

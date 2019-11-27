@@ -15,6 +15,7 @@
 #include <array>
 #include <numeric>
 #include <vector>
+#include <vector>
 
 #include "dca/io/buffer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
@@ -55,7 +56,7 @@ public:
   std::vector<int> randomRemovalCandidate(RngType& rng);
 
   // Out: indices. Appends the result of the search to indices.
-  template<class Alloc>
+  template <class Alloc>
   void findIndices(std::vector<int, Alloc>& indices, unsigned config_index, int s) const;
 
   // Remove elements with index in 'remove' by copying elements from the end.
@@ -68,8 +69,6 @@ public:
   void push_back(Vertex& v);
 
   int nPartners(int vertex_index) const;
-
-  void prepareForSubmatrixUpdate();
 
   void commitInsertion(int idx);
   void markForRemoval(int idx);
@@ -130,11 +129,11 @@ private:
   // TODO: use a structure with fast (log N?) removal/insertion and random access.
   // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
   std::vector<const std::vector<std::size_t>*> partners_lists_;
-  std::vector<int> removable_;
   ushort last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
 
+  unsigned n_annihilatable_ = 0;
   std::uint64_t current_tag_ = 0;
 };
 
@@ -162,6 +161,7 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
 
+// TODO: remove.
 template <class RngType>
 std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
   return randomRemovalCandidate(rng, rng());
@@ -170,13 +170,42 @@ std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
 template <class RngType>
 std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
   std::vector<int> candidates;
-  if (removable_.size() == 0)
+  if (n_annihilatable_ == 0)
     return candidates;
 
-  candidates.push_back(removable_[removal_rand * removable_.size()]);
+  // Note:
+  // When sampling by retrying in case of failure, the probability of success is p_s n /
+  // n_annihlatable, with n = size(). This translates to an expected cost of \sum_l l p_s (1 -
+  // p_s)^(l - 1) = 1 / p_s. Therefore this algorithm is faster than a read on all the
+  // vertices when n_annihlatable > cost(random _number) / cost(vertex_read).
 
-  if ((*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size() &&
-      doDoubleUpdate(rng)) {  // Double removal.
+  // Lets assume cost(random _number) / cost(vertex_read) =~ 10
+  // This also helps when testing on a small configuration as we need only one random number.
+  constexpr unsigned threshold = 10;
+
+  if (n_annihilatable_ >= threshold) {
+    int candidate = removal_rand * size();
+    while (!vertices_[candidate].annihilatable) {
+      candidate = rng() * size();
+    }
+    candidates.push_back(candidate);
+  }
+  else {
+    unsigned annihilatable_idx = removal_rand * n_annihilatable_;
+    unsigned annihilatable_found = 0;
+    for (int i = 0; i < vertices_.size(); ++i) {
+      if (vertices_[i].annihilatable) {
+        if (annihilatable_found == annihilatable_idx) {
+          candidates.push_back(i);
+          break;
+        }
+        ++annihilatable_found;
+      }
+    }
+  }
+
+  if (doDoubleUpdate(rng) &&
+      (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
     partners_lists_.clear();
     for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id)
       partners_lists_.push_back(&existing_[partner_id]);
@@ -184,6 +213,7 @@ std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, doubl
     const auto tag = details::getRandomElement(partners_lists_, rng());
     candidates.push_back(findTag(tag));
     assert(candidates[1] < int(size()) && candidates[1] >= 0);
+    assert(vertices_[candidates[1]].annihilatable);
   }
 
   assert(candidates[0] < int(size()));

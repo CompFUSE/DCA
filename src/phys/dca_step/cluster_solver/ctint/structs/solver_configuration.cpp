@@ -62,14 +62,10 @@ int SolverConfiguration::nPartners(int vertex_index) const {
   return n_partners;
 }
 
-void SolverConfiguration::prepareForSubmatrixUpdate() {
-  removable_.resize(vertices_.size());
-  std::iota(removable_.begin(), removable_.end(), 0);
-}
-
 void SolverConfiguration::commitInsertion(int idx) {
-  assert(idx < size() && idx >= removable_.size());
-  removable_.push_back(idx);
+  assert(vertices_[idx].annihilatable == false);
+  vertices_[idx].annihilatable = true;
+  ++n_annihilatable_;
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
@@ -78,8 +74,10 @@ void SolverConfiguration::commitInsertion(int idx) {
 }
 
 void SolverConfiguration::markForRemoval(int idx) {
-  // TODO: optimize.
-  removable_.erase(std::find(removable_.begin(), removable_.end(), idx));
+  assert(vertices_[idx].annihilatable == true);
+  vertices_[idx].annihilatable = false;
+  --n_annihilatable_;
+
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
