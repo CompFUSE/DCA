@@ -49,11 +49,11 @@ public:
   template <class RngType>
   void insertRandom(RngType& rng);
 
-  // TODO: pass output as argument.
+  // Returns at most two candidates. -1 stands for a missing candidate.
   template <class RngType>
-  std::vector<int> randomRemovalCandidate(RngType& rng, double removal_rand);
+  std::array<int, 2> randomRemovalCandidate(RngType& rng, double removal_rand);
   template <class RngType>
-  std::vector<int> randomRemovalCandidate(RngType& rng);
+  std::array<int, 2> randomRemovalCandidate(RngType& rng);
 
   // Out: indices. Appends the result of the search to indices.
   template <class Alloc>
@@ -161,15 +161,16 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
 
-// TODO: remove.
 template <class RngType>
-std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
+std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
   return randomRemovalCandidate(rng, rng());
 }
 
+// TODO: possibly use only the above signature.
 template <class RngType>
-std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
-  std::vector<int> candidates;
+std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
+  // TODO: generalize to n > 2.
+  std::array<int, 2> candidates{-1, -1};
   if (n_annihilatable_ == 0)
     return candidates;
 
@@ -184,11 +185,10 @@ std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, doubl
   constexpr unsigned threshold = 10;
 
   if (n_annihilatable_ >= threshold) {
-    int candidate = removal_rand * size();
-    while (!vertices_[candidate].annihilatable) {
-      candidate = rng() * size();
+    candidates[0] = removal_rand * size();
+    while (!vertices_[candidates[0]].annihilatable) {
+      candidates[0] = rng() * size();
     }
-    candidates.push_back(candidate);
   }
   else {
     unsigned annihilatable_idx = removal_rand * n_annihilatable_;
@@ -196,7 +196,7 @@ std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, doubl
     for (int i = 0; i < vertices_.size(); ++i) {
       if (vertices_[i].annihilatable) {
         if (annihilatable_found == annihilatable_idx) {
-          candidates.push_back(i);
+          candidates[0] = i;
           break;
         }
         ++annihilatable_found;
@@ -211,7 +211,7 @@ std::vector<int> SolverConfiguration::randomRemovalCandidate(RngType& rng, doubl
       partners_lists_.push_back(&existing_[partner_id]);
 
     const auto tag = details::getRandomElement(partners_lists_, rng());
-    candidates.push_back(findTag(tag));
+    candidates[1] = findTag(tag);
     assert(candidates[1] < int(size()) && candidates[1] >= 0);
     assert(vertices_[candidates[1]].annihilatable);
   }
