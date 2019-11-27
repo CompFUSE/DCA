@@ -121,8 +121,6 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(const Parameters& parameters_r
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::initialize() {
   BaseClass::initialize();
-  configuration_
-      .prepareForSubmatrixUpdate();  // Set internal state once, even if no submatrix update will be performed.
 }
 
 template <class Parameters>
@@ -396,8 +394,6 @@ void CtintWalker<linalg::CPU, Parameters>::smallInverse(MatrixView& in_out, cons
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::initializeStep() {
-  // TODO: remove
-  configuration_.prepareForSubmatrixUpdate();
   removal_list_.clear();
   for (int s = 0; s < 2; ++s) {
     matrix_removal_list_[s].clear();

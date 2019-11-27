@@ -289,9 +289,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(const i
   for (int s = 0; s < 2; ++s) {
     n_init_[s] = configuration_.getSector(s).size();
   }
-
   n_ = config_size_init_ = configuration_.size();
-  configuration_.prepareForSubmatrixUpdate();
 
   // Generate delayed moves.
   while (nbr_of_moves < nbr_of_movesto_delay) {

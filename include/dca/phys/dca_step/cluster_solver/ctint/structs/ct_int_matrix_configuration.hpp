@@ -44,6 +44,9 @@ struct Vertex {
   std::array<std::uint8_t, 2> spins;
   std::array<unsigned, 2> matrix_config_indices;
 
+  // Marks if this vertex is part of the accepted configuration.
+  bool annihilatable = false;
+
   bool operator==(const Vertex& b) const {
     return aux_spin == b.aux_spin && interaction_id == b.interaction_id && tau == b.tau;
   }
