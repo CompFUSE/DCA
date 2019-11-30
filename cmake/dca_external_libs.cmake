@@ -12,16 +12,19 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 ################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
-  mark_as_advanced(LAPACK_LIBRARIES)
-  find_package(MKL QUIET)
-  if (MKL_FOUND)
-     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
-     set(LAPACK_LIBRARIES mkl::mkl)
-  else()
+#  mark_as_advanced(LAPACK_LIBRARIES)
+#  find_package(MKL QUIET)
+#  if (MKL_FOUND)
+#     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
+#     set(LAPACK_LIBRARIES mkl::mkl)
+#  else()
     find_package(LAPACK REQUIRED)
-  endif()
-  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+#  endif()
+#  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 endif()
+
+mark_as_advanced(LAPACK_LIBRARIES)
+list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
 # HDF5
