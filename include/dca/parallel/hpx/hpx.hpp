@@ -146,9 +146,7 @@ public:
   // The DCA unit testing expects the size set to be returned
   // so we ignore the true thread pool size and return what DCA expects
   std::size_t size() const {
-    std::cout << "HPX threadpool size" << std::endl;
-    return pool_size;
-    // return hpx::get_num_worker_threads();
+    return pool_size; // hpx::get_num_worker_threads();
   }
 
   // Returns a static instance.
