@@ -31,7 +31,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
 
 ################################################################################
 # Enable CUDA.
-option(DCA_WITH_CUDA "Enable GPU support." OFF)
+option(DCA_WITH_CUDA "Enable GPU support." ON)
 
 if (DCA_WITH_CUDA)
   include(dca_cuda)
@@ -224,7 +224,7 @@ endif()
 
 ################################################################################
 # Enable HPX threading support if desired
-option(DCA_WITH_HPX "Enable HPX for multi-threading" OFF)
+option(DCA_WITH_HPX "Enable HPX for multi-threading" ON)
 if (DCA_WITH_HPX)
   # if HPX is not found then DCA_HAVE_HPX will not be set
   include(dca_hpx)

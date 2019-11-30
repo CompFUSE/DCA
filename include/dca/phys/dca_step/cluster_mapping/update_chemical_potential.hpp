@@ -32,6 +32,8 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
+#undef B0
+
 namespace dca {
 namespace phys {
 namespace clustermapping {
