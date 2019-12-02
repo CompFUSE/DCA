@@ -16,6 +16,8 @@
 
 #include <cuda.h>
 
+#include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -58,12 +60,9 @@ protected:
   int lds_;
   int nw_pos_;
   int ext_size_;
-  int k0_;
   unsigned sbdm_steps_[10];
-  int* add_matrix_;
-  int* sub_matrix_;
-  int* w_ex_indices_;
-  int* k_ex_indices_;
+  const int* w_ex_indices_;
+  const int* k_ex_indices_;
 };
 
 // Global instance to be used in the tp accumulation kernel.
@@ -80,16 +79,16 @@ inline __device__ int G4Helper::wexMinus(const int w_idx, const int w_ex_idx) co
 
 inline __device__ int G4Helper::addKex(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return add_matrix_[k_idx + lda_ * k_ex];
+  return solver::details::cluster_momentum_helper.add(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kexMinus(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return sub_matrix_[k_idx + lds_ * k_ex];
+  return solver::details::cluster_momentum_helper.subtract(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kMinus(const int k_idx) const {
-  return sub_matrix_[k_idx + lds_ * k0_];
+  return solver::details::cluster_momentum_helper.minus(k_idx);
 }
 
 inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
