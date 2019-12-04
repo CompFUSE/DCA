@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.edu)
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
@@ -25,7 +26,7 @@
 constexpr bool update_baseline = false;
 
 #define INPUT_DIR \
-  DCA_SOURCE_DIR "/test/integration/cluster_solver/shared_tools/accumulation/tp/"
+  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
 constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer.json";
 
@@ -39,103 +40,46 @@ using DistributedTpAccumulatorGpuTest =
 uint loop_counter = 0;
 
 TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
-  dca::linalg::util::initializeMagma();
+    dca::linalg::util::initializeMagma();
 
-  const std::array<int, 2> n{27, 24};
-  Sample M;
-  Configuration config;
-  ConfigGenerator::prepareConfiguration(config, M, DistributedTpAccumulatorGpuTest::BDmn::dmn_size(),
+    const std::array<int, 2> n{3, 4};
+    Sample M;
+    Configuration config;
+    ConfigGenerator::prepareConfiguration(config, M, DistributedTpAccumulatorGpuTest::BDmn::dmn_size(),
           DistributedTpAccumulatorGpuTest::RDmn::dmn_size(),
                                         parameters_.get_beta(), n);
 
-  using namespace dca::phys;
-  parameters_.set_four_point_channels(
+    using namespace dca::phys;
+    parameters_.set_four_point_channels(
       std::vector<FourPointType>{PARTICLE_HOLE_TRANSVERSE, PARTICLE_HOLE_MAGNETIC,
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-//  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-//      data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
-  const int sign = 1;
+    const int sign = 1;
 
-  accumulatorDevice.resetAccumulation(loop_counter);
-  accumulatorDevice.accumulate(M, config, sign);
-//  accumulatorDevice.finalize();
+    accumulatorDevice.resetAccumulation(loop_counter);
+    accumulatorDevice.accumulate(M, config, sign);
+    accumulatorDevice.finalize();
 
-//  accumulatorHost.resetAccumulation(loop_counter);
-//  accumulatorHost.accumulate(M, config, sign);
-//  accumulatorHost.finalize();
+    ++loop_counter;
 
-  ++loop_counter;
-
-//  for (std::size_t channel = 0; channel < accumulatorHost.get_sign_times_G4().size(); ++channel) {
-//    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[channel],
-//                                                  accumulatorDevice.get_sign_times_G4()[channel]);
-//    EXPECT_GT(5e-7, diff.l_inf);
-//  }
-
-  auto& concurrency = parameters_.get_concurrency();
-    for (int channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
-//        auto& G4 = accumulatorDevice.get_sign_times_G4()[channel];
-        auto G4 = accumulatorDevice.get_sign_times_G4()[channel];
-//        if (compute_jack_knife_)
-//            concurrency.leaveOneOutSum(G4);
-//        else
-            concurrency_.localSum(G4, concurrency.first());
+    std::vector<DcaData<Parameters>::TpGreensFunction> G4s;
+    for (std::size_t channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
+        G4s.push_back(accumulatorDevice.get_sign_times_G4()[channel]);
     }
 
-//    concurrency.delayedSum(accumulatorDevice.get_visited_expansion_order_k());
-//    concurrency.delayedSum(accumulatorDevice.get_error_distribution());
-//
-//    concurrency.resolveSums();
+    auto& concurrency = parameters_.get_concurrency();
 
+    for (int channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
+        auto G4 = accumulatorDevice.get_sign_times_G4()[channel];
+        concurrency_.localSum(G4, concurrency.first());
+        if (concurrency.get_id() == 0){
+            G4s[channel] *= concurrency.number_of_processors();
+            const auto diff_mpi = dca::func::util::difference(G4, G4s[channel]);
+            std::cout <<  diff_mpi.l_inf <<"\n";
+            EXPECT_DOUBLE_EQ(0, diff_mpi.l_inf);
+        }
+    }
 }
-//
-//TEST_F(DistributedTpAccumulatorGpuTest, SumToAndFinalize) {
-//  dca::linalg::util::initializeMagma();
-//
-//  parameters_.set_four_point_channel(dca::phys::PARTICLE_HOLE_TRANSVERSE);
-//
-//  using Accumulator =
-//      dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::linalg::GPU>;
-//  Accumulator accumulator_sum(data_->G0_k_w_cluster_excluded, parameters_, 0);
-//  Accumulator accumulator1(data_->G0_k_w_cluster_excluded, parameters_, 1);
-//  Accumulator accumulator2(data_->G0_k_w_cluster_excluded, parameters_, 2);
-//  Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_, 3);
-//
-//  auto prepare_configuration = [&](auto& M, auto& configuration, const auto& n) {
-//    ConfigGenerator::prepareConfiguration(M, configuration, DistributedTpAccumulatorGpuTest::BDmn::dmn_size(),
-//                                          DistributedTpAccumulatorGpuTest::RDmn::dmn_size(),
-//                                          parameters_.get_beta(), n);
-//  };
-//
-//  const std::array<int, 2> n{3, 4};
-//  const int sign = -1;
-//  Sample M1, M2;
-//  Configuration config1, config2;
-//  prepare_configuration(config1, M1, n);
-//  prepare_configuration(config2, M2, n);
-//
-//  const int loop_id = loop_counter++;
-//  accumulator1.resetAccumulation(loop_id);
-//  accumulator2.resetAccumulation(loop_id);
-//  accumulator_sum.resetAccumulation(loop_id);
-//
-//  accumulator1.accumulate(M1, config1, sign);
-//  accumulator2.accumulate(M2, config2, sign);
-//  accumulator1.sumTo(accumulator_sum);
-//  accumulator2.sumTo(accumulator_sum);
-//  accumulator_sum.finalize();
-//
-//  // Reset the G4 on the GPU to zero.
-//  accumulator3.resetAccumulation(loop_counter++);
-//  accumulator3.accumulate(M1, config1, sign);
-//  accumulator3.accumulate(M2, config2, sign);
-//  accumulator3.finalize();
-//
-//  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_G4()[0],
-//                                                accumulator_sum.get_sign_times_G4()[0]);
-//  EXPECT_GT(5e-7, diff.l_inf);
-//}

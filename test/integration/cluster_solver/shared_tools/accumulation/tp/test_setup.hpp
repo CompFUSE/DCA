@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.edu)
 //
 // This file provides a setup for Parameters and DcaData used by cluster solver tests.
 
@@ -25,7 +26,6 @@
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
-//#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "include/dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
