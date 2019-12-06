@@ -20,7 +20,7 @@
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
-#include "test/integration/cluster_solver/shared_tools/accumulation/tp/accumulation_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/integration/cluster_solver/shared_tools/accumulation/tp/test_setup.hpp"
 
 constexpr bool update_baseline = false;
@@ -77,9 +77,10 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
         concurrency_.localSum(G4, concurrency.first());
         if (concurrency.get_id() == 0){
             G4s[channel] *= concurrency.number_of_processors();
-            const auto diff_mpi = dca::func::util::difference(G4, G4s[channel]);
-            std::cout <<  diff_mpi.l_inf <<"\n";
-            EXPECT_DOUBLE_EQ(0, diff_mpi.l_inf);
+            const auto diff_mpi_allreduce = dca::func::util::difference(G4, G4s[channel]);
+            EXPECT_DOUBLE_EQ(0, diff_mpi_allreduce.l1);
+            EXPECT_DOUBLE_EQ(0, diff_mpi_allreduce.l2);
+            EXPECT_DOUBLE_EQ(0, diff_mpi_allreduce.l_inf);
         }
     }
 }
