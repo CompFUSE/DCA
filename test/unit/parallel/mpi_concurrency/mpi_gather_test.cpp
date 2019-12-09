@@ -9,7 +9,7 @@
 //
 // This file tests mpi_collective_sum.hpp.
 //
-// This test only passes for 8 MPI processes.
+// This test only passes for 6 MPI processes.
 
 #include "dca/parallel/mpi_concurrency/mpi_gather.hpp"
 
@@ -43,7 +43,7 @@ TEST(MPIGatherTest, GatherLocalDmn) {
     val2[i] = i;
   Dmn2::set_elements(val2);
 
-  dca::parallel::MPIGang gang(*concurrency, 4);
+  dca::parallel::MPIGang gang(*concurrency, 3);
 
   LocalDmn::initialize(gang);
 
@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
   }
 
   result = RUN_ALL_TESTS();
+  
+  concurrency.reset();
 
   return result;
 }
