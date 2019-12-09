@@ -1,0 +1,65 @@
+{
+  "output" :
+  {
+    "output-format"         : "HDF5",
+
+    "output-ED"  : "ed_results.hdf5",
+    "output-QMC" : "output_QMC.hdf5"
+  },
+
+  "physics" :
+  {
+    "beta"                      :  2,
+    "chemical-potential"        : 0
+  },
+
+  "bilayer-Hubbard-model":
+  {
+    "t"       : 1,
+    "U"       : 2
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 2]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies" : 4
+    }
+  },
+
+  "four-point": {
+    "type": "NONE",
+    "frequency-transfer": 3,
+    "compute-all-transfers" : true
+  },
+
+
+  "Monte-Carlo-integration" :
+  {
+    "Sigma-file" : "zero",
+
+    "warm-up-sweeps"         : 100,
+    "sweeps-per-measurement" : 1,
+    "measurements-per-process-and-accumulator" : 500,
+    "seed" : 0,
+
+    "threaded-solver" : {
+      "accumulators" : 3
+    }
+  },
+
+
+  "CT-INT" :
+  {
+    "initial-configuration-size" :5,
+    "alpha-dd-pos" : 0.51
+  }
+}
