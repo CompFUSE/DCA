@@ -41,6 +41,11 @@ if (DCA_HAVE_CUDA)
       -Xcompiler -Wno-unused-parameter
       -Xcompiler -Wno-switch
       -Xcompiler ${DCA_THREADING_FLAGS})
+    if (CMAKE_BUILD_TYPE MATCHES "Debug")
+      list(APPEND CUDA_NVCC_FALGS
+        -Xcompiler -G
+        -Xcompiler -O0)
+    endif()
   else (CUDA_VERSION VERSION_GREATER "8.1.0")
     list(APPEND CUDA_NVCC_FLAGS
       -arch=${CUDA_GPU_ARCH}
