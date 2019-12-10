@@ -28,7 +28,7 @@
 //
 #include <vector>
 #include <thread>
-
+#include <algorithm>
 // #define DCA_HPX_THREAD_POOL_DEBUG
 
 namespace dca {
@@ -115,7 +115,8 @@ public:
   // we don't do anything here, just update the size
   // so that DCA tests pass
   void enlarge(std::size_t n_threads) {
-      pool_size = std::max(pool_size, n_threads);
+      std::cout << "HPX threadpool enlarge: " << n_threads << std::endl;
+      pool_size = (std::max)(n_threads, pool_size);
   }
 
   // Call asynchronously the function f with arguments args. This method is thread safe.
@@ -131,7 +132,7 @@ public:
     std::cout << "enqueue: Arguments   : "
               << hpx::util::debug::print_type<Args...>(" | ") << std::endl;
 #endif
-    return hpx::async(exec, std::forward<F>(f), std::forward<Args>(args)...);
+    return hpx::async(exec, f, args...);
   }
 
   // We will not be using the pool for a while - put threads to sleep
@@ -153,7 +154,7 @@ public:
   }
 
   // this is just to make the DCA tests pass
-  std::size_t pool_size;
+  size_t pool_size;
 
   hpx::threads::executors::limiting_executor
     <hpx::threads::executors::default_executor> exec;
