@@ -43,7 +43,8 @@ TEST(MPIGatherTest, GatherLocalDmn) {
     val2[i] = i;
   Dmn2::set_elements(val2);
 
-  dca::parallel::MPIGang gang(*concurrency, 3);
+  int ranks_div2 = concurrency->number_of_processors() / 2; 
+  dca::parallel::MPIGang gang(*concurrency, ranks_div2);
 
   LocalDmn::initialize(gang);
 

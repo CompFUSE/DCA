@@ -7,7 +7,7 @@ dca_add_gtest(mpi_collective_min_test
   MPI MPI_NUMPROC 4
   LIBS parallel_mpi_concurrency)
 dca_add_gtest(mpi_collective_sum_test
-  MPI MPI_NUMPROC 8
+  MPI MPI_NUMPROC 6
   LIBS parallel_mpi_concurrency;function)
 dca_add_gtest(mpi_packing_test
   MPI MPI_NUMPROC 1
