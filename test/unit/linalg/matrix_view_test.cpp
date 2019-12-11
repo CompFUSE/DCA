@@ -66,6 +66,24 @@ TEST(MatrixViewTest, ReadWrite) {
   EXPECT_DEBUG_DEATH(view(0, 4), "Assertion.");
 }
 
+TEST(MatrixViewTest, Assignment) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
+  auto init_func = [](int i, int j) { return i >= 2 ? 1 : 0; };
+  testing::setMatrixElements(mat, init_func);
+
+  dca::linalg::MatrixView<int, dca::linalg::CPU> upper_left(mat, 0, 0, 2, 2);
+  dca::linalg::MatrixView<int, dca::linalg::CPU> lower_right(mat, 2, 2, 2, 2);
+
+  upper_left = lower_right;  // Assign ones to upper left submatrix.
+  for (int j = 0; j < 2; ++j)
+    for (int i = 0; i < 2; ++i)
+      EXPECT_EQ(1, mat(i, j));
+
+  dca::linalg::MatrixView<int, dca::linalg::CPU> another_size(mat, 0, 0, 3, 3);
+  // Invalid assignment:
+  EXPECT_THROW(upper_left = another_size       , std::invalid_argument);
+}
+
 TEST(MatrixViewTest, MakeConstantView) {
   dca::linalg::Matrix<double, dca::linalg::CPU> mat(std::make_pair(4, 2));
   auto init_func = [](int i, int j) { return j + 10. * i; };

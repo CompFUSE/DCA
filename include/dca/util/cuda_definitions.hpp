@@ -2,9 +2,9 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Redefine keyword like __device__ and __host__
 // so that code can be compiled either by nvcc or the host compiler.

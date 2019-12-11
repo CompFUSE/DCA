@@ -3,12 +3,12 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Jérémie Bouquet (bouquetj@gmail.com).
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//          Jérémie Bouquet (bouquetj@gmail.com).
 //
-//
+// GPU implementation of d_matrix_builder.hpp
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 

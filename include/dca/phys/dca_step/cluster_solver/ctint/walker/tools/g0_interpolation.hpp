@@ -3,9 +3,9 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class organizes the interpolation G0(tau) for tau in [0, beta]
 // specialization for CPU.
@@ -50,7 +50,7 @@ public:
   template <class InputDmn>
   G0Interpolation(const func::function<double, InputDmn>& G0_pars_t);
 
-  virtual ~G0Interpolation(){}
+  virtual ~G0Interpolation() {}
 
   // In: G0_pars_t. Assumed to be a function of discrete labels and time (in this order) and to
   //             be antiperiodic in time.
@@ -63,10 +63,10 @@ public:
   double operator()(double tau, int lindex) const;
 
   // Number of value if g0 stored per parameter value.
-  int getTimeSlices() const{
+  int getTimeSlices() const {
     return G0_coeff_[1];
   }
-  int getStride() const{
+  int getStride() const {
     return getTimeSlices() * COEFF_SIZE;
   }
 
@@ -102,10 +102,9 @@ void G0Interpolation<linalg::CPU>::initialize(const func::function<double, Input
   initialize(FunctionProxy<double, PTdmn>(G0_pars_t));
 }
 
-
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_HPP

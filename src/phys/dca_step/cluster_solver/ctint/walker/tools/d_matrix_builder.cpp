@@ -3,12 +3,12 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Jérémie Bouquet (bouquetj@gmail.com).
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//          Jérémie Bouquet (bouquetj@gmail.com).
 //
-//
+// CPU implementation of d_matrix_builder.hpp
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 
@@ -120,8 +120,6 @@ void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, con
   double tau_i, tau_j;
 
   if (which_section == 0) {
-    // G0.resize(std::make_pair(n_max - n_init, n_init));
-
     for (int i = n_init; i < n_max; ++i) {
       b_i = configuration.getLeftB(i);
       tau_i = configuration.getTau(i);
@@ -138,8 +136,6 @@ void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, con
   }
 
   else {
-    // G0.resize(std::make_pair(n_max, n_max - n_init));
-
     for (int i = 0; i < n_max; ++i) {
       b_i = configuration.getLeftB(i);
       tau_i = configuration.getTau(i);

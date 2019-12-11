@@ -3,12 +3,12 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Jérémie Bouquet (bouquetj@gmail.com)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//          Jérémie Bouquet (bouquetj@gmail.com)
 //
-//
+// Builds G0 matrices used by the GPU walker.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_GPU_HPP

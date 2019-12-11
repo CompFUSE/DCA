@@ -2,10 +2,12 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
+//  See LICENSE.txt for terms of usage.
 //  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// CPU implementation of g0_interpolation.hpp.
 
 #include <dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp>
 
@@ -14,7 +16,6 @@ namespace phys {
 namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
-
 
 void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
   beta_ = PositiveTimeDomain::get_elements().back();
@@ -74,7 +75,7 @@ double G0Interpolation<linalg::CPU>::operator()(double tau, int lindex) const {
           delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
 }
 
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

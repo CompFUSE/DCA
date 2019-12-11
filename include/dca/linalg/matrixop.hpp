@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file provides the matrix interface for the following matrix operations:
 // - copyCol, copyRow, copyCols, copyRows
@@ -88,7 +89,8 @@ inline void copyCol(const Matrix<Scalar, device_name>& mat_x, int jx,
 //                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
 template <typename Scalar, class Vec>
 inline void copyCols(const Matrix<Scalar, CPU>& mat_x, const Vec& j_x, Matrix<Scalar, CPU>& mat_y,
-                     const Vec& j_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+                     const Vec& j_y, int /*thread_id*/ = 0,
+                     int /*stream_id*/ = 0) {
   assert(j_x.size() <= j_y.size());
 
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
@@ -143,7 +145,8 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
 template <typename Scalar, class Vec>
 inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vec& i_x, Matrix<Scalar, CPU>& mat_y,
-                     const Vec& i_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+                     const Vec& i_y, int /*thread_id*/ = 0,
+                     int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 

@@ -142,7 +142,10 @@ template <typename ScalarType, DeviceType device_t>
 template <template <typename, DeviceType> class Matrix>
 MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(
     const Matrix<ScalarType, device_t>& rhs) {
-  assert(nrCols() == rhs.nrCols() and nrRows() == rhs.nrRows());
+  if (nrCols() != rhs.nrCols() || nrRows() != rhs.nrRows()) {
+    throw(std::invalid_argument("Matrix size mismatch."));
+  }
+
   for (int j = 0; j < nrCols(); ++j)
     for (int i = 0; i < nrRows(); ++i)
       (*this)(i, j) = rhs(i, j);
@@ -152,7 +155,10 @@ MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(
 template <typename ScalarType, DeviceType device_t>
 MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(
     const MatrixView<ScalarType, device_t>& rhs) {
-  assert(nrCols() == rhs.nrCols() and nrRows() == rhs.nrRows());
+  if (nrCols() != rhs.nrCols() || nrRows() != rhs.nrRows()) {
+    throw(std::invalid_argument("Matrix size mismatch."));
+  }
+
   for (int j = 0; j < nrCols(); ++j)
     for (int i = 0; i < nrRows(); ++i)
       (*this)(i, j) = rhs(i, j);
