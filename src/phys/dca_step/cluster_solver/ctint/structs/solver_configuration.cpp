@@ -142,6 +142,7 @@ void SolverConfiguration::moveAndShrink(std::array<HostVector<int>, 2>& sector_f
 
   for (int left_index = 0; left_index <= right_index; ++left_index) {
     const int dead_index = remove[left_index];
+    assert(vertices_[dead_index].annihilatable == false);
     while (right_index >= left_index &&
            living_index == remove[right_index]) {  // Living not found: remove from back.
       vertices_.pop_back();
@@ -196,6 +197,15 @@ bool SolverConfiguration::checkConsistency() const {
       if (v.tau != matrix_elem.get_tau())
         return false;
     }
+  }
+
+  // Count annihilatable.
+  unsigned n_annihilatable = 0;
+  for (const auto& v : vertices_)
+    n_annihilatable += v.annihilatable;
+  if (n_annihilatable != n_annihilatable_) {
+    std::cerr << "Non consistant annihilatable count." << std::endl;
+    return false;
   }
 
   if (double_insertion_prob_) {
