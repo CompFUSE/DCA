@@ -64,7 +64,7 @@ public:
   // Out: sector remove, sector_from. Lists of matrix indices to be moved to maintain consistency.
   void moveAndShrink(std::array<HostVector<int>, 2>& sector_from,
                      std::array<HostVector<int>, 2>& sector_remove, std::vector<int>& remove);
-  
+
   // In/Out: v. Matrix indices are updated.
   void push_back(Vertex& v);
 
