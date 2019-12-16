@@ -38,10 +38,9 @@ void accumulateOnDevice(const ScalarType* M, int ldm, ScalarType sign, ScalarTyp
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);
 
-template <typename ScalarType>
-void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversampling,
-                          int window_sampling, ScalarType t0, ScalarType delta_t,
-                          ScalarType t0_window, ScalarType delta_t_window, ScalarType beta);
+void initializeNfftHelper(int nb, int nc, const int *add_r, int lda, const int *sub_r, int lds,
+                          double t0, double delta_t, double t0_window, double delta_t_window,
+                          double beta);
 
 }  // details
 }  // nfft

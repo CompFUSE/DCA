@@ -149,7 +149,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
     const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
     using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn::parameter_type;
     using WindowTimeDmn = typename BaseClass::WindowFunctionTimeDmn::parameter_type;
-    details::initializeNfftHelper<ScalarType>(
+      details::initializeNfftHelper < ScalarType>(
         BDmn::dmn_size(), RDmn::dmn_size(), sub_matrix.ptr(), sub_matrix.leadingDimension(),
         oversampling, BaseClass::get_window_sampling(), PaddedTimeDmn::first_element(),
         PaddedTimeDmn::get_Delta(), WindowTimeDmn::first_element(), WindowTimeDmn::get_delta(),
