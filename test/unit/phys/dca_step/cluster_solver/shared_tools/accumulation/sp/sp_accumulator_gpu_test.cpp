@@ -13,15 +13,15 @@
 
 #include <array>
 #include <limits>
-#include <string>
 #include <vector>
 #include "gtest/gtest.h"
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/util/difference.hpp"
-#include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-using SpAccumulatorGpuTest = dca::testing::AccumulationTest<float, 1, 3, 128>;
+using Scalar = typename dca::config::McOptions::MCScalar;
+using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
 
 using MatrixPair = SpAccumulatorGpuTest::Sample;
 using Configuration = SpAccumulatorGpuTest::Configuration;
