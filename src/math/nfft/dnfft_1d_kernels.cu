@@ -47,10 +47,10 @@ template <int oversampling, int window_sampling, typename ScalarIn, typename Sca
           bool accumulate_m_sqr = false>
 __global__ void accumulateOnDeviceKernel(
     const ScalarIn* __restrict__ M, const int ldm, const ScalarIn sign, ScalarOut* __restrict__ out,
-    ScalarOut* __restrict__ out_sqr, int ldo, const ConfigElem* config_left,
-    const ConfigElem* config_right, const ScalarIn* __restrict__ times,
+    ScalarOut* __restrict__ out_sqr, int ldo, const ConfigElem* __restrict__ config_left,
+    const ConfigElem* __restrict__ config_right, const ScalarIn* __restrict__ times,
     const ScalarOut* __restrict__ cubic_coeff, const int m_size) {
-  constexpr int conv_size = 2 * oversampling + 1;
+  constexpr int conv_size = 2 * oversampling;
   int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (thread_idx >= m_size * m_size * conv_size)
     return;
@@ -59,7 +59,7 @@ __global__ void accumulateOnDeviceKernel(
   const int m_j = thread_idx / (m_size * conv_size);
   thread_idx -= m_j * (m_size * conv_size);
   const int m_i = thread_idx / conv_size;
-  const int conv_idx = thread_idx - m_i * conv_size;
+  const int conv_idx = thread_idx - m_i * conv_size + 1;
 
   const ScalarOut tau = nfft_helper.computeTau(times[m_i], times[m_j]);
 
@@ -89,10 +89,8 @@ void accumulateOnDevice(const ScalarIn* M, const int ldm, const ScalarIn sign, S
                         ScalarOut* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarIn* tau,
                         const ScalarOut* cubic_coeff, const int size, cudaStream_t stream_) {
-  const auto blocks = getBlockSize(size * size * (2 * oversampling + 1), 128);
+  const auto blocks = getBlockSize(size * size * (2 * oversampling), 128);
 
-  // TODO: check if there is a performance gain in using a block size that is a multiple of
-  //       convolution_size.
   if (out_sqr) {
     accumulateOnDeviceKernel<oversampling, window_sampling, ScalarIn, ScalarOut, true>
         <<<blocks[0], blocks[1], 0, stream_>>>(M, ldm, sign, out, out_sqr, ldo, config_left,
