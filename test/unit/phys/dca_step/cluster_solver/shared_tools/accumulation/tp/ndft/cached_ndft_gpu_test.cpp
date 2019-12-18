@@ -79,7 +79,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   NftType nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
-  dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M);
+  dca::linalg::Matrix<Real, dca::linalg::GPU> M_dev(M);
   typename NftType::RMatrix result_device(64);
 
   dca::profiling::WallTime start_time;

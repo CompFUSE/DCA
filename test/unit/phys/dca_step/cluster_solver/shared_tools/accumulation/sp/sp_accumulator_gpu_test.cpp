@@ -33,9 +33,9 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
   Configuration config;
   prepareConfiguration(config, M, n);
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU, Scalar> accumulatorHost(
       parameters_);
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar> accumulatorDevice(
       parameters_);
 
   const int sign = 1;
@@ -54,7 +54,8 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
 }
 
 TEST_F(SpAccumulatorGpuTest, SumTo) {
-  using Accumulator = dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU>;
+  using Accumulator =
+      dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar>;
   Accumulator accumulator1(parameters_);
   Accumulator accumulator2(parameters_);
   Accumulator accumulator_sum(parameters_);

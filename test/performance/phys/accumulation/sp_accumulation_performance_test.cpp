@@ -22,6 +22,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
 
+#include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
@@ -71,7 +72,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoT
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
-using Real = double;
+using Real = typename dca::config::McOptions::MCScalar;
 template <dca::linalg::DeviceType device>
 using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
 
@@ -101,7 +102,8 @@ int main(int argc, char** argv) {
   Configuration config;
   prepareRandomConfig(config, M, n);
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulator(parameters);
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU, Real> accumulator(
+      parameters);
   accumulator.resetAccumulation();
 
   // Allows memory to be assigned.
@@ -122,7 +124,7 @@ int main(int argc, char** argv) {
   const double time = duration(end_time, start_time);
 
   std::string precision("double");
-  if (std::is_same<float, dca::phys::solver::accumulator::SpAccumulator<Parameters>::Scalar>::value)
+  if (std::is_same<float, Real>::value)
     precision = "single";
 
   std::cout << "\nExpansion order:\t" << n;
@@ -136,7 +138,7 @@ int main(int argc, char** argv) {
   dca::linalg::util::CudaEvent start_event;
   dca::linalg::util::CudaEvent stop_event;
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Real> gpu_accumulator(
       parameters);
   MatrixPair<GPU> M_dev{M[0], M[1]};
 
