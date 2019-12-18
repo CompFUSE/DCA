@@ -15,6 +15,7 @@
 #ifndef DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
 
+#include <array>
 #include <iostream>
 #include <stdexcept>
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
@@ -61,9 +62,6 @@ public:
   }
   int get_max_submatrix_size() const {
     return max_submatrix_size_;
-  }
-  void set_max_submatrix_size(int submatrix_size) {
-    max_submatrix_size_ = submatrix_size;
   }
   bool neglect_bennett_updates() const {
     return neglect_bennett_updates_;
@@ -245,6 +243,123 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
   }
   catch (const std::exception& r_e) {
   }
+}
+
+// Specialization for CT-INT
+template <>
+class McSolverParameters<solver::CT_INT> {
+public:
+  template <typename Concurrency>
+  int getBufferSize(const Concurrency& concurrency) const;
+  template <typename Concurrency>
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
+  template <typename Concurrency>
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
+
+  template <typename ReaderOrWriter>
+  void readWrite(ReaderOrWriter& reader_or_writer);
+
+  int getInitialConfigurationSize() const {
+    return initial_configuration_size_;
+  }
+
+  std::array<double, 3> getAlphas() const {
+    return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
+  }
+
+  double getDoubleUpdateProb() const {
+    return double_update_prob_;
+  }
+
+  void setDoubleUpdateProb(const double p){
+    double_update_prob_ = p;
+  }
+
+  bool doubleCountedInteraction() const {
+    return double_counted_interaction_;
+  }
+  bool computeError() const {
+    return compute_error_;
+  }
+
+private:
+  int initial_configuration_size_ = 0;
+  double alpha_dd_pos_ = 0.501;
+  double alpha_dd_neg_ = 0;
+  double alpha_ndd_ = 1e-4;
+  double double_update_prob_= 0;
+  bool double_counted_interaction_ = true;
+  bool compute_error_ = false;
+};
+
+template <typename Concurrency>
+int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurrency) const {
+  int buffer_size = 0;
+  buffer_size += concurrency.get_buffer_size(initial_configuration_size_);
+  buffer_size += concurrency.get_buffer_size(alpha_dd_pos_);
+  buffer_size += concurrency.get_buffer_size(alpha_dd_neg_);
+  buffer_size += concurrency.get_buffer_size(alpha_ndd_);
+  buffer_size += concurrency.get_buffer_size(double_update_prob_);
+  buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
+  buffer_size += concurrency.get_buffer_size(compute_error_);
+
+  return buffer_size;
+}
+
+template <typename Concurrency>
+void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, char* buffer,
+                                              const int buffer_size, int& position) const {
+  concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
+  concurrency.pack(buffer, buffer_size, position, alpha_dd_pos_);
+  concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
+  concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
+  concurrency.pack(buffer, buffer_size, position, double_update_prob_);
+  concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
+  concurrency.pack(buffer, buffer_size, position, compute_error_);
+}
+
+template <typename Concurrency>
+void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, char* buffer,
+                                                const int buffer_size, int& position) {
+  concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_dd_pos_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
+  concurrency.unpack(buffer, buffer_size, position, double_update_prob_);
+  concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
+  concurrency.unpack(buffer, buffer_size, position, compute_error_);
+}
+
+// TODO: None of the open_group methods seem to throw.
+template <typename ReaderOrWriter>
+void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_writer) {
+  try {
+    reader_or_writer.open_group("CT-INT");
+
+    auto tryToRead = [&](const std::string& name, auto& obj) {
+      try {
+        reader_or_writer.execute(name, obj);
+      }
+      catch (const std::exception& /*err*/) {
+      }
+    };
+
+    tryToRead("initial-configuration-size", initial_configuration_size_);
+    tryToRead("alpha-dd-pos", alpha_dd_pos_);
+    tryToRead("alpha-dd-neg", alpha_dd_neg_);
+    tryToRead("alpha-ndd", alpha_ndd_);
+    tryToRead("double-update-probability", double_update_prob_);
+    tryToRead("double-counted-interaction", double_counted_interaction_);
+    tryToRead("compute-error-bar", compute_error_);
+    reader_or_writer.close_group();
+  }
+  catch (const std::exception& /*r_e*/) {
+    std::cout << "\nNo CT-INT solver parameters defined!\n" << std::endl;
+    throw std::logic_error(__PRETTY_FUNCTION__);
+  }
+
+  if(double_update_prob_ < 0 or double_update_prob_> 1.)
+    throw(std::out_of_range("double-update-probability must be in [0,1]."));
 }
 
 }  // params
