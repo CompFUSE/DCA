@@ -63,6 +63,9 @@ public:
   int get_max_submatrix_size() const {
     return max_submatrix_size_;
   }
+  void set_max_submatrix_size(int max_submatrix_size) {
+    max_submatrix_size_ = max_submatrix_size;
+  }
   bool neglect_bennett_updates() const {
     return neglect_bennett_updates_;
   }
@@ -271,7 +274,7 @@ public:
     return double_update_prob_;
   }
 
-  void setDoubleUpdateProb(const double p){
+  void setDoubleUpdateProb(const double p) {
     double_update_prob_ = p;
   }
 
@@ -287,7 +290,7 @@ private:
   double alpha_dd_pos_ = 0.501;
   double alpha_dd_neg_ = 0;
   double alpha_ndd_ = 1e-4;
-  double double_update_prob_= 0;
+  double double_update_prob_ = 0;
   bool double_counted_interaction_ = true;
   bool compute_error_ = false;
 };
@@ -358,12 +361,12 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 
-  if(double_update_prob_ < 0 or double_update_prob_> 1.)
+  if (double_update_prob_ < 0 or double_update_prob_ > 1.)
     throw(std::out_of_range("double-update-probability must be in [0,1]."));
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
