@@ -57,6 +57,7 @@ public:
       throw(std::out_of_range(__FUNCTION__));
     return (j - i + size) % size;
   }
+
   static const auto& get_subtract_matrix() {
     auto initialize_subtract_matrix = []() {
       linalg::Matrix<int, linalg::CPU> m(size);
@@ -65,9 +66,27 @@ public:
           m(i, j) = subtract(i, j);
       return m;
     };
+    static auto sub_matrix = initialize_subtract_matrix();
+    return sub_matrix;
+  }
 
-    static const auto m_diff = initialize_subtract_matrix();
-    return m_diff;
+  static int add(int i, int j) {
+    if (i >= size || j >= size)
+      throw(std::out_of_range(__FUNCTION__));
+    return (j + i) % size;
+  }
+
+  static const auto& get_add_matrix() {
+    auto initialize_add_matrix = []() {
+      linalg::Matrix<int, linalg::CPU> m(size);
+      for (int j = 0; j < size; ++j)
+        for (int i = 0; i < size; ++i)
+          m(i, j) = add(i, j);
+      return m;
+    };
+
+    static const auto m_add = initialize_add_matrix();
+    return m_add;
   }
 };
 
