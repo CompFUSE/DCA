@@ -95,6 +95,34 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   reader.close_file();
 }
 
+TEST(HDF5ReaderWriterTest, MatrixReadWrite) {
+  const std::string name = "a_matrix";
+  const std::string file_name = "hdf5_reader_matrix_test.hdf5";
+  dca::linalg::Matrix<double, dca::linalg::CPU> matrix(std::make_pair(65, 123));
+
+  for (int j = 0; j < matrix.nrCols(); ++j)
+    for (int i = 0; i < matrix.nrRows(); ++i)
+      matrix(i, j) = i + 0.013 * j;
+
+  // Create test file.
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
+  writer.execute(name, matrix);
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  dca::linalg::Matrix<double, dca::linalg::CPU> matrix_read;
+  matrix_read.resizeNoCopy(std::make_pair(234, 189));
+
+  reader.open_file(file_name);
+  ASSERT_TRUE(reader.execute(name, matrix_read));
+
+  EXPECT_EQ(matrix, matrix_read);
+
+  reader.close_file();
+}
+
 TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
   dca::io::HDF5Writer writer;
   EXPECT_THROW(writer.open_file("not_existing_directory/file.txt"), std::runtime_error);

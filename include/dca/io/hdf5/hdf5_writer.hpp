@@ -566,27 +566,27 @@ void HDF5Writer::execute(const std::string& name,
     execute("name", A.get_name());
 
     execute("current-size", A.size());
-    execute("global-size", A.capacity());
   }
 
-  hsize_t dims[2];
-
-  dims[0] = A.capacity().first;
-  dims[1] = A.capacity().second;
+  hsize_t dims[2]{static_cast<hsize_t>(A.size().first), static_cast<hsize_t>(A.size().second)};
 
   H5::DataSet* dataset = NULL;
   H5::DataSpace* dataspace = NULL;
 
-  {
-    dataspace = new H5::DataSpace(2, dims);
+  std::vector<scalar_type> a_compressed(dims[0] * dims[1]);
+  unsigned index = 0;
+  for (int j = 0; j < A.nrCols(); ++j)
+    for (int i = 0; i < A.nrRows(); ++i)
+      a_compressed[index++] = A(i, j);
 
-    std::string full_name = get_path() + "/data";
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
+  dataspace = new H5::DataSpace(2, dims);
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &A(0, 0));
-  }
+  std::string full_name = get_path() + "/data";
+  dataset = new H5::DataSet(
+      file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
+
+  H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+           H5P_DEFAULT, a_compressed.data());
 
   delete dataset;
   delete dataspace;

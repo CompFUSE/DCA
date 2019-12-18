@@ -37,7 +37,7 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 // Empty class template
-template <dca::linalg::DeviceType device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type, typename Real>
 class G0_INTERPOLATION {};
 
 // Specialization for CPU
