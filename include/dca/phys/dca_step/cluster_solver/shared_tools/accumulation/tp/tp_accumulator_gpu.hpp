@@ -21,7 +21,7 @@
 #include <mutex>
 #include <vector>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
@@ -155,7 +155,7 @@ private:
   void synchronizeStreams();
 
 private:
-  constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
+  constexpr static int n_ndft_streams_ = config::McOptions::memory_savings ? 1 : 2;
 
   using BaseClass::beta_;
   using BaseClass::channels_;
@@ -172,7 +172,7 @@ private:
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
+      linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::CudaStream, 2> streams_;
@@ -194,7 +194,7 @@ private:
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
   using G4DevType =
-      linalg::Vector<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
+      linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
 

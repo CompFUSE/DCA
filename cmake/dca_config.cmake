@@ -125,8 +125,8 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/lattice_model.hpp.in"
 
 ################################################################################
 # Select the profiler type and enable auto-tuning.
-set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
-set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI)
+set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI | Cuda.")
+set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI Cuda)
 
 if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILING_EVENT_TYPE dca::profiling::time_event<std::size_t>)
@@ -139,6 +139,14 @@ elseif (DCA_PROFILER STREQUAL "PAPI")
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
   set(DCA_PROFILER_TYPE dca::profiling::CountingProfiler<Event>)
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
+
+# Note: this profiler requires using the PTHREAD library and CUDA_TOOLS_EXT_LIBRARY
+elseif (DCA_PROFILER STREQUAL "Cuda")
+  set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/time.hpp")
+  set(DCA_PROFILING_EVENT_TYPE "void")
+  set(DCA_PROFILER_TYPE dca::profiling::CudaProfiler)
+  set(DCA_PROFILER_INCLUDE "dca/profiling/cuda_profiler.hpp")
+  link_libraries(${CUDA_nvToolsExt_LIBRARY})
 
 else()  # DCA_PROFILER = None
   # The NullProfiler doesn't have an event type.
@@ -258,16 +266,6 @@ if (DCA_WITH_QMC_BIT)
 endif()
 
 ################################################################################
-# Single precision measurements
-# TODO: maybe change to ON by default.
-option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure in single precision." OFF)
-mark_as_advanced(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-
-if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-endif()
-
-################################################################################
 # Gnuplot
 option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 
@@ -289,7 +287,7 @@ else()
 endif()
 
 ################################################################################
-# Accumulation options.
+# MC options.
 option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
        cost." OFF)
 mark_as_advanced(DCA_WITH_MEMORY_SAVINGS)
@@ -299,11 +297,22 @@ else()
   set(MEMORY_SAVINGS false)
 endif()
 
-if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+option(DCA_WITH_SINGLE_PRECISION_MC "Perform Monte Carlo and measurements in single precision." OFF)
+option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure two particle function in single precision." OFF)
+
+if (DCA_WITH_SINGLE_PRECISION_MC)
+  set(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS ON CACHE BOOL "Measure two particle function in single precision." FORCE)
+  set(MC_SCALAR float)
+else()
+  set(MC_SCALAR double)
+endif()
+
+if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
   set(TP_ACCUMULATION_SCALAR float)
 else()
   set(TP_ACCUMULATION_SCALAR double)
 endif()
+
 
 option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
 mark_as_advanced(DCA_WITH_MANAGED_MEMORY)
@@ -313,8 +322,8 @@ else()
   set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::DeviceAllocator<T>")
 endif()
 
-configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"
-        "${CMAKE_BINARY_DIR}/include/dca/config/accumulation_options.hpp" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
+        "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
 
 ################################################################################
