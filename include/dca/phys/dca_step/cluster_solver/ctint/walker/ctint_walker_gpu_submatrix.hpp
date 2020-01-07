@@ -48,16 +48,16 @@ public:
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 
-  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
-                const std::vector<CudaStream*>& streams);
+  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum);
 
   void initialize();
 
   void doSweep() override;
 
-  void synchronize() const;
+  void synchronize();
 
   using BaseClass::order;
+  using RootClass::get_stream;
 
   std::size_t deviceFingerprint() const {
     std::size_t res = 0;
@@ -133,15 +133,12 @@ private:
 
   using BaseClass::concurrency_;
   using BaseClass::thread_id_;
-  std::array<cudaStream_t, 2> stream_;
 
   // Initial and current sector sizes.
   using BaseClass::n_init_;
 
   // Maximal sector size after submatrix update.
   using BaseClass::n_max_;
-
-  linalg::util::CudaEvent m_computed_event_;
 
   using BaseClass::flop_;
 };
@@ -160,18 +157,17 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::initialize() {
   BaseClass::initialize();
 
   for (int s = 0; s < 2; ++s) {
-    stream_[s] = linalg::util::getStream(thread_id_, s);
-    M_dev_[s].setAsync(M_[s], stream_[s]);
+    M_dev_[s].setAsync(M_[s], get_stream(s));
   }
   uploadConfiguration();
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters>::synchronize() const {
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::synchronize() {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
-  cudaStreamSynchronize(stream_[0]);
-  cudaStreamSynchronize(stream_[1]);
+  cudaStreamSynchronize(get_stream(0));
+  cudaStreamSynchronize(get_stream(1));
 }
 
 template <class Parameters>
@@ -217,11 +213,11 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
       const auto b = sector.getLeftB(i);
       values[i] = f_[field_type][b];
     }
-    f_dev_[s].setAsync(values, stream_[s]);
+    f_dev_[s].setAsync(values, get_stream(s));
   }
 
   for (int s = 0; s < 2; ++s)
-    config_copied_[s].record(stream_[s]);
+    config_copied_[s].record(get_stream(s));
 }
 
 template <class Parameters>
@@ -236,10 +232,10 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
     if (delta > 0) {
       D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
       d_builder_ptr_->computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
-                                stream_[s]);
+                                get_stream(s));
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
-      details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), stream_[s]);
+      details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), get_stream(s));
 
       MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
@@ -248,7 +244,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
       flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
 
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
-                                  n_max_[s], stream_[s]);
+                                  n_max_[s], get_stream(s));
     }
   }
 }
@@ -265,19 +261,19 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
 
     MatrixView<> G(G_dev_[s]);
     const MatrixView<> M(M_dev_[s]);
-    details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], stream_[s]);
+    details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], get_stream(s));
 
     if (delta > 0) {
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
       d_builder_ptr_->computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
-                                stream_[s]);
+                                get_stream(s));
 
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
       flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
     }
-    G_[s].setAsync(G_dev_[s], stream_[s]);
+    G_[s].setAsync(G_dev_[s], get_stream(s));
   }
 }
 
@@ -286,7 +282,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s)
-    Gamma_inv_dev_[s].setAsync(Gamma_inv_[s], stream_[s]);
+    Gamma_inv_dev_[s].setAsync(Gamma_inv_[s], get_stream(s));
 
   // Copy gamma factors.
   for (int s = 0; s < 2; ++s) {
@@ -295,7 +291,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     gamma_index.resize(n);
     for (int i = 0; i < n; ++i)
       gamma_index[i] = std::make_pair(move_indices_[s][i], gamma_[s][i]);
-    gamma_index_dev_[s].setAsync(gamma_index, stream_[s]);
+    gamma_index_dev_[s].setAsync(gamma_index, get_stream(s));
   }
 
   for (int s = 0; s < 2; ++s) {
@@ -310,7 +306,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
     old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
 
-    move_indices_dev_[s].setAsync(move_indices_[s], stream_[s]);
+    move_indices_dev_[s].setAsync(move_indices_[s], get_stream(s));
     // Note: an event synchronization might be necessary if the order of operation is changed.
     linalg::matrixop::copyCols(G_dev_[s], move_indices_dev_[s], old_G, thread_id_, s);
     linalg::matrixop::copyRows(M_dev_[s], move_indices_dev_[s], old_M, thread_id_, s);
@@ -324,15 +320,15 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     flop_ += 2 * old_G.nrRows() * old_G.nrCols() * tmp.nrCols();
 
     details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
-                                 gamma_size, stream_[s]);
+                                 gamma_size, get_stream(s));
   }
 
   // Remove non-interacting rows and columns.
   configuration_.moveAndShrink(source_list_, removal_list_, conf_removal_list_);
   for (int s = 0; s < 2; ++s) {
-    removal_list_dev_[s].setAsync(removal_list_[s], stream_[s]);
-    source_list_dev_[s].setAsync(source_list_[s], stream_[s]);
-    config_copied_[s].record(stream_[s]);
+    removal_list_dev_[s].setAsync(removal_list_[s], get_stream(s));
+    source_list_dev_[s].setAsync(source_list_[s], get_stream(s));
+    config_copied_[s].record(get_stream(s));
     linalg::matrixop::copyRows(M_dev_[s], source_list_dev_[s], M_dev_[s], removal_list_dev_[s],
                                thread_id_, s);
     linalg::matrixop::copyCols(M_dev_[s], source_list_dev_[s], M_dev_[s], removal_list_dev_[s],
@@ -346,29 +342,19 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
-    std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum,
-    const std::vector<CudaStream*>& streams) {
+    std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum) {
   for (int s = 0; s < 2; ++s)
     m_accum[s].resizeNoCopy(M_dev_[s].size());
 
   for (int s = 0; s < 2; ++s) {
     MatrixView<linalg::GPU> m_in(M_dev_[s]);
     MatrixView<linalg::GPU> m_out(m_accum[s]);
-    details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), stream_[s]);
+    details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), get_stream(s));
   }
 
   // TODO: understand why this is necessary.
   config_copied_[0].block();
   config_copied_[1].block();
-
-  assert(streams.size() == 3);
-  m_computed_event_.record(stream_[0]);
-  m_computed_event_.block(*streams[0]);  // sp stream.
-  m_computed_event_.block(*streams[2]);  // tp stream
-
-  m_computed_event_.record(stream_[1]);
-  m_computed_event_.block(*streams[1]);  // sp stream
-  m_computed_event_.block(*streams[2]);  // tp stream
 }
 
 }  // namespace ctint

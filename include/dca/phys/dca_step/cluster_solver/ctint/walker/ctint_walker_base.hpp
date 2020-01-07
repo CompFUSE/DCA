@@ -77,7 +77,7 @@ public:
     return sign_;
   }
 
-  void computeM(MatrixPair& m_accum, const std::vector<CudaStream*>& /*streams*/) const;
+  void computeM(MatrixPair& m_accum) const;
 
   void markThermalized();
 
@@ -141,12 +141,17 @@ public:
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
-  static void setInteractionVertices(Data &data);
+  static void setInteractionVertices(Data& data);
 
   float stealFLOPs() {
     auto flop = flop_;
     flop_ = 0.;
     return flop;
+  }
+
+  const auto& get_stream(int s) {
+    assert(s >= 0 && s < 2);
+    return *streams_[s];
   }
 
 protected:
@@ -165,6 +170,7 @@ protected:  // Members.
   const Concurrency& concurrency_;
 
   const int thread_id_;
+  std::array<linalg::util::CudaStream*, 2> streams_;
 
   Rng& rng_;
   SolverConfiguration configuration_;
@@ -191,8 +197,8 @@ protected:  // Members.
   // Store for testing purposes:
   double acceptance_prob_;
 
-//  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
-//  std::vector<int> removal_candidates_;
+  //  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
+  //  std::vector<int> removal_candidates_;
 
   float flop_ = 0.;
 
@@ -200,7 +206,7 @@ private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<double, linalg::CPU> work_;
 };
-template<class Parameters>
+template <class Parameters>
 constexpr int CtintWalkerBase<Parameters>::n_bands_;
 
 template <class Parameters>
@@ -214,6 +220,9 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       concurrency_(parameters_.get_concurrency()),
 
       thread_id_(id),
+
+      streams_{&linalg::util::getStreamContainer()(thread_id_, 0),
+               &linalg::util::getStreamContainer()(thread_id_, 1)},
 
       rng_(rng_ref),
 
@@ -349,8 +358,7 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(Data& data) {
 }
 
 template <class Parameters>
-void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum,
-                                           const std::vector<CudaStream*>&) const {
+void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
 }
 

@@ -13,6 +13,7 @@
 #define DCA_LINALG_UTIL_STREAM_FUNCTIONS_HPP
 
 #ifdef DCA_HAVE_CUDA
+#include <functional>
 #include <cuda_runtime.h>
 #include "dca/linalg/util/stream_container.hpp"
 #endif  // DCA_HAVE_CUDA
@@ -58,8 +59,8 @@ inline void resizeStreamContainer(int /*max_threads*/) {}
 
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_STREAM_FUNCTIONS_HPP

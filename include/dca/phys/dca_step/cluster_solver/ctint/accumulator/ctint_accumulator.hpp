@@ -15,6 +15,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
@@ -100,6 +101,7 @@ private:
   int sign_ = 0;
 
   std::vector<linalg::util::CudaStream*> streams_;
+  linalg::util::CudaEvent event_;
 
   util::Accumulator<int> accumulated_sign_;
   util::Accumulator<unsigned long> accumulated_order_;
@@ -146,7 +148,19 @@ void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
 template <class Parameters, linalg::DeviceType device>
 template <class Walker>
 void CtintAccumulator<Parameters, device>::updateFrom(Walker& walker) {
-  walker.computeM(M_, streams_);
+  // Compute M.
+  walker.computeM(M_);
+
+  if (device == linalg::GPU) {
+    for (int s = 0; s < 2; ++s) {
+      event_.record(walker.get_stream(s));
+      //  Synchronize sp accumulator streams with walker.
+      event_.block(*sp_accumulator_.get_streams()[s]);
+      //  Synchronize both walker streams with tp accumulator.
+      event_.block(*tp_accumulator_.get_stream());
+    }
+  }
+
   configuration_ = walker.getConfiguration();
   sign_ = walker.getSign();
   flop_ += walker.stealFLOPs();

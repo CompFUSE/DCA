@@ -36,10 +36,6 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
         streams_(3) {
     BaseClass::initialize();
-
-    for (auto& stream : streams_) {
-      stream_ptrs_.push_back(&stream);
-    }
   }
 
   void doStep(const int n_steps_to_delay) {
@@ -51,8 +47,8 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
   MatrixPair getM() {
     std::array<dca::linalg::Matrix<double, device_t>, 2> M;
-    cudaDeviceSynchronize();
-    BaseClass::computeM(M, stream_ptrs_);
+
+    BaseClass::computeM(M);
     cudaDeviceSynchronize();
 
     std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
@@ -74,7 +70,6 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
 private:
   std::vector<dca::linalg::util::CudaStream> streams_;
-  std::vector<dca::linalg::util::CudaStream*> stream_ptrs_;
 };
 
 }  // namespace ctint

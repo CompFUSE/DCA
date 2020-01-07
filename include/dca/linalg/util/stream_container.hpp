@@ -14,8 +14,10 @@
 #define DCA_LINALG_UTIL_STREAM_CONTAINER_HPP
 
 #include <cassert>
-#include <cuda_runtime.h>
+#include <functional>
 #include <vector>
+
+#include <cuda_runtime.h>
 
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
@@ -47,7 +49,7 @@ public:
   // Returns the 'stream_id'-th stream associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
-  cudaStream_t operator()(int thread_id, int stream_id) {
+  CudaStream& operator()(int thread_id, int stream_id) {
     assert(thread_id >= 0 && thread_id < get_max_threads());
     assert(stream_id >= 0 && stream_id < streams_per_thread_);
     return streams_[stream_id + streams_per_thread_ * thread_id];
@@ -57,8 +59,7 @@ public:
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
   void sync(int thread_id, int stream_id) {
-    cudaError_t ret = cudaStreamSynchronize(operator()(thread_id, stream_id));
-    checkRC(ret);
+    checkRC(cudaStreamSynchronize(operator()(thread_id, stream_id)));
   }
 
 private:
@@ -66,8 +67,8 @@ private:
   std::vector<CudaStream> streams_;
 };
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_STREAM_CONTAINER_HPP

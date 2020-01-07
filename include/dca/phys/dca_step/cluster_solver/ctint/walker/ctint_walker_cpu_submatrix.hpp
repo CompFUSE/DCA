@@ -55,8 +55,7 @@ public:
 
   virtual void doSweep();
 
-  virtual void computeM(typename BaseClass::MatrixPair& m_accum,
-                        const std::vector<CudaStream*>& /*streams*/);
+  virtual void computeM(typename BaseClass::MatrixPair& m_accum);
 
   using BaseClass::order;
 
@@ -883,8 +882,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass::MatrixPair& m_accum,
-                                                             const std::vector<CudaStream*>&) {
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass::MatrixPair& m_accum) {
   for (int s = 0; s < 2; ++s) {
     m_accum[s].resizeNoCopy(M_[s].size());
 
