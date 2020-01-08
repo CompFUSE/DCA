@@ -42,7 +42,7 @@ if (DCA_HAVE_CUDA)
       -Xcompiler -Wno-switch
       -Xcompiler ${DCA_THREADING_FLAGS})
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
-      list(APPEND CUDA_NVCC_FALGS
+      list(APPEND CUDA_NVCC_FLAGS
         -Xcompiler -G
         -Xcompiler -O0)
     endif()
