@@ -31,11 +31,11 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <typename point_group_type>
+template <typename PointGroup>
 class TwobandCu {
 public:
   typedef domains::no_symmetry<2> LDA_point_group;
-  typedef point_group_type DCA_point_group;
+  typedef PointGroup DCA_point_group;
 
   const static ClusterShapeType DCA_cluster_shape = BETT_CLUSTER;
   const static ClusterShapeType LDA_cluster_shape = PARALLELEPIPED;
@@ -67,6 +67,9 @@ public:
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
+  template <class HType, class Parameters>
+  static void initializeNonDensityInteraction(HType& interaction, const Parameters& pars);
+
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
@@ -79,15 +82,15 @@ public:
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
-template <typename point_group_type>
-int TwobandCu<point_group_type>::transformationSign(int b1, int b2, int s) {
-  if (!std::is_same<point_group_type, domains::D4>::value)
+template <typename PointGroup>
+int TwobandCu<PointGroup>::transformationSign(int b1, int b2, int s) {
+  if (!std::is_same<PointGroup, domains::D4>::value)
     return 1;
 
   if (b1 == b2)
     return 1;
 
-  //  using List = typename point_group_type::point_group_type_list;
+  //  using List = typename PointGroup::PointGroup_list;
   using dca::util::IndexOf;
 
   constexpr bool symmetrize_off_diagonal = true;
@@ -108,53 +111,53 @@ int TwobandCu<point_group_type>::transformationSign(int b1, int b2, int s) {
   }
 }
 
-template <typename point_group_type>
-double* TwobandCu<point_group_type>::initialize_r_DCA_basis() {
+template <typename PointGroup>
+double* TwobandCu<PointGroup>::initialize_r_DCA_basis() {
   static std::array<double, 4> r_DCA{1, 0, 0, 1};
   return r_DCA.data();
 }
 
-template <typename point_group_type>
-double* TwobandCu<point_group_type>::initialize_k_DCA_basis() {
+template <typename PointGroup>
+double* TwobandCu<PointGroup>::initialize_k_DCA_basis() {
   static std::array<double, 4> k_DCA{2 * M_PI, 0, 0, 2 * M_PI};
   return k_DCA.data();
 }
 
-template <typename point_group_type>
-double* TwobandCu<point_group_type>::initialize_r_LDA_basis() {
+template <typename PointGroup>
+double* TwobandCu<PointGroup>::initialize_r_LDA_basis() {
   static std::array<double, 4> basis{1, 0, 0, 1};
   return basis.data();
 }
 
-template <typename point_group_type>
-double* TwobandCu<point_group_type>::initialize_k_LDA_basis() {
+template <typename PointGroup>
+double* TwobandCu<PointGroup>::initialize_k_LDA_basis() {
   static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
   return basis.data();
 }
 
-template <typename point_group_type>
-std::vector<int> TwobandCu<point_group_type>::get_flavors() {
+template <typename PointGroup>
+std::vector<int> TwobandCu<PointGroup>::get_flavors() {
   static std::vector<int> flavors{0, 1};
   assert(flavors.size() == BANDS);
   return flavors;
 }
 
-template <typename point_group_type>
-std::vector<std::vector<double>> TwobandCu<point_group_type>::get_a_vectors() {
+template <typename PointGroup>
+std::vector<std::vector<double>> TwobandCu<PointGroup>::get_a_vectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
-template <typename point_group_type>
+template <typename PointGroup>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> TwobandCu<
-    point_group_type>::get_orbital_permutations() {
+    PointGroup>::get_orbital_permutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
-template <typename point_group_type>
+template <typename PointGroup>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void TwobandCu<point_group_type>::initialize_H_interaction(
+void TwobandCu<PointGroup>::initialize_H_interaction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -167,6 +170,7 @@ void TwobandCu<point_group_type>::initialize_H_interaction(
 
   const double U = parameters.get_U();  // Intra-orbital interaction.
   const double V = parameters.get_V();  // Inter-orbital interaction.
+  const double J = parameters.get_J();  // Spin-spin term.
   // const double V_prime = parameters.get_V_prime();  // Different orbital, same spin.
 
   H_interaction = 0.;
@@ -180,16 +184,34 @@ void TwobandCu<point_group_type>::initialize_H_interaction(
             H_interaction(b1, s1, b2, s2, origin) = U;
 
           if (b1 != b2)
-            H_interaction(b1, s1, b2, s2, origin) = V;
+            H_interaction(b1, s1, b2, s2, origin) = V - (s1 == s2) * J;
         }
       }
     }
   }
 }
 
-template <typename point_group_type>
+template <typename PointGroup>
+template <class HType, class Parameters>
+void TwobandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
+                                                            const Parameters& pars) {
+  const double J = pars.get_J();
+  const double Jp = pars.get_Jp();
+
+  constexpr int up(0), down(1);
+
+  interaction = 0.;
+  for (int b1 = 0; b1 < BANDS; b1++)
+    for (int b2 = 0; b2 < BANDS; b2++) {
+      if (b1 == b2)
+        continue;
+      interaction(b1, up, b2, up, b2, down, b1, down, 0) = J;
+      interaction(b1, up, b2, up, b1, down, b2, down, 0) = Jp;
+    }
+}
+template <typename PointGroup>
 template <class domain>
-void TwobandCu<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
+void TwobandCu<PointGroup>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   H_symmetries(0, 0, 0, 0) = 0;
@@ -199,9 +221,9 @@ void TwobandCu<point_group_type>::initialize_H_symmetry(func::function<int, doma
   H_symmetries(1, 1, 1, 1) = 1;
 }
 
-template <typename point_group_type>
+template <typename PointGroup>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void TwobandCu<point_group_type>::initialize_H_0(
+void TwobandCu<PointGroup>::initialize_H_0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {

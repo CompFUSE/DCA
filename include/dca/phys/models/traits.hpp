@@ -16,6 +16,7 @@
 
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
 
 namespace dca {
 namespace phys {
@@ -34,6 +35,11 @@ struct has_non_density_interaction<HundLattice<BaseLattice>> {
 
 template <class BaseLattice>
 struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
+  constexpr static bool value = true;
+};
+
+template <class PointGroup>
+struct has_non_density_interaction<TwobandCu<PointGroup>> {
   constexpr static bool value = true;
 };
 

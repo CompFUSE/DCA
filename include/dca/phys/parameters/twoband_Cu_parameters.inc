@@ -61,6 +61,12 @@ public:
   auto get_V() const {
     return V_;
   }
+  auto get_J() const {
+    return J_;
+  }
+  auto get_Jp() const {
+    return Jp_;
+  }
 
 private:
   double t00_ = 0;
@@ -78,6 +84,9 @@ private:
 
   double U_ = 0;
   double V_ = 0;
+
+  double J_ = 0;
+  double Jp_ = 0;
 };
 
 template <typename PointGroup>
@@ -97,6 +106,8 @@ int ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::g
   buffer_size += concurrency.get_buffer_size(delta_E_);
   buffer_size += concurrency.get_buffer_size(U_);
   buffer_size += concurrency.get_buffer_size(V_);
+  buffer_size += concurrency.get_buffer_size(J_);
+  buffer_size += concurrency.get_buffer_size(Jp_);
 
   return buffer_size;
 }
@@ -116,6 +127,8 @@ void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::
   concurrency.pack(buffer, buffer_size, position, delta_E_);
   concurrency.pack(buffer, buffer_size, position, U_);
   concurrency.pack(buffer, buffer_size, position, V_);
+  concurrency.pack(buffer, buffer_size, position, J_);
+  concurrency.pack(buffer, buffer_size, position, Jp_);
 }
 
 template <typename PointGroup>
@@ -133,6 +146,8 @@ void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::
   concurrency.unpack(buffer, buffer_size, position, delta_E_);
   concurrency.unpack(buffer, buffer_size, position, U_);
   concurrency.unpack(buffer, buffer_size, position, V_);
+  concurrency.unpack(buffer, buffer_size, position, J_);
+  concurrency.unpack(buffer, buffer_size, position, Jp_);
 }
 
 template <typename PointGroup>
@@ -163,9 +178,10 @@ void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::
     try_to_read("U", U_);
     try_to_read("V", V_);
 
-    reader_or_writer.
+    try_to_read("J", J_);
+    try_to_read("Jp", Jp_);
 
-        close_group();
+    reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
     throw(std::logic_error("No model parameters in input file."));
