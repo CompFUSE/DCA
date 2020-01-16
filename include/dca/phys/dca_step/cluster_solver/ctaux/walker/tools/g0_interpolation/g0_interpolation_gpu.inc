@@ -222,7 +222,7 @@ void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::update_G0_matrix(
     tau[l] = configuration_e_spin[l].get_tau();
   }
 
-  auto stream = linalg::util::getStream(thread_id, stream_id);
+  cudaStream_t stream = linalg::util::getStream(thread_id, stream_id);
   b_ind_GPU.setAsync(b_ind, stream);
   r_ind_GPU.setAsync(r_ind, stream);
   tau_GPU.setAsync(tau, stream);

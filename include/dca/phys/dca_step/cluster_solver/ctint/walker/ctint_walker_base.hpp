@@ -21,6 +21,7 @@
 #include "dca/io/buffer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/stream_container.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"

@@ -13,11 +13,9 @@
 #define DCA_LINALG_UTIL_CUDA_STREAM_HPP
 
 #ifdef DCA_HAVE_CUDA
-#include <cuda.h>
-#else
-using cudaStream_t = void*;
-void cudaDeviceSynchronize() {}
-#endif
+#include <cuda_runtime.h>
+#include "dca/linalg/util/error_cuda.hpp"
+#endif  // DCA_HAVE_CUDA
 
 namespace dca {
 namespace linalg {
@@ -36,6 +34,10 @@ public:
 
   CudaStream(CudaStream&& other) {
     std::swap(stream_, other.stream_);
+  }
+
+  void sync() const {
+    checkRC(cudaStreamSynchronize(stream_));
   }
 
   ~CudaStream() {
@@ -62,6 +64,8 @@ inline CudaStream* cudaStreamPtr(cudaStream_t s) {
 class CudaStream {
 public:
   CudaStream() = default;
+
+  void sync() const {}
 };
 
 #endif  // DCA_HAVE_CUDA

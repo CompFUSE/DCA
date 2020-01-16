@@ -17,10 +17,7 @@
 #include <functional>
 #include <vector>
 
-#include <cuda_runtime.h>
-
 #include "dca/linalg/util/cuda_stream.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace linalg {
@@ -59,7 +56,7 @@ public:
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
   void sync(int thread_id, int stream_id) {
-    checkRC(cudaStreamSynchronize(operator()(thread_id, stream_id)));
+    operator()(thread_id, stream_id).sync();
   }
 
 private:

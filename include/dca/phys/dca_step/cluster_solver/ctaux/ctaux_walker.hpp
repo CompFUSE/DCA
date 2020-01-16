@@ -23,6 +23,7 @@
 
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ctaux_walker_data.hpp"

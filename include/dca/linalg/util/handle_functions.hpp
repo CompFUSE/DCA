@@ -65,13 +65,14 @@ inline cublasHandle_t getHandle(const int thread_id, const int stream_id) {
 
 #else
 
-// Implement SFINAE.
-inline void resizeHandleContainer(int /*max_threads*/) {}
+inline void resizeHandleContainer(int max_threads) {
+  resizeStreamContainer(max_threads);
+}
 
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP
