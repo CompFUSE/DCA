@@ -901,7 +901,6 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeInsertionMatrices(
     const std::vector<int>& insertion_indices, const int s) {
   const int delta = insertion_indices.size();
-  assert(delta == nbr_of_indices_[s]);
 
   s_[s].resizeNoCopy(delta);
   if (delta == 0)
