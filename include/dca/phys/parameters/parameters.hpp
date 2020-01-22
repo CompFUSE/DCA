@@ -146,7 +146,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(),
-      DcaParameters(),
+      DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
       EdSolverParameters(),
