@@ -64,4 +64,4 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(FFTW DEFAULT_MSG FFTW_INCLUDE_DIRS FFTW_LIBRARIES)
 
 # ==================================================================================================
-
+message("FFTW found ${FFTW_FOUND} ${FFTW_INCLUDE_DIRS} ${FFTW_LIBRARIES}")
