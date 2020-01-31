@@ -5,18 +5,18 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Andrei Plamada (plamada@phys.ethz.ch)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Verification test of CT-AUX against a reference run
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
+#include "test/integration/statistical_tests/bilayer_lattice/bilayer_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
+TEST(CtauxBilayerLatticeVerificationTest, GreensFunction) {
   dca::linalg::util::initializeMagma();
+
   using namespace dca::testing;
 
   const int id = dca_test_env->concurrency.id();
@@ -29,6 +29,11 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
 
   ParametersType<CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
+
+
+  const int meas_per_node = parameters.get_measurements();
+  parameters.set_measurements(meas_per_node * dca_test_env->concurrency.get_size());
+
   parameters.update_model();
   parameters.update_domains();
 
@@ -36,7 +41,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration.
-  ThreadedSolver<CT_AUX> qmc_solver(parameters, data);
+  ThreadedSolver<CT_AUX, default_device> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
@@ -53,7 +58,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
     function<double, SigmaCutDomain> G_k_w_expected("G_k_w");
     dca::io::HDF5Reader reader;
-    reader.open_file("verification_covariance_input.hdf5");
+    reader.open_file(test_directory + "verification_covariance_input.hdf5");
     reader.open_group("functions");
     reader.execute(G_k_w_covariance);
     reader.execute(G_k_w_expected);
@@ -61,7 +66,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements());
+    EXPECT_EQ(reference_n_meas, meas_per_node);
     reader.close_file();
 
     dca::math::StatisticalTesting test(G_k_w_measured, G_k_w_expected, G_k_w_covariance, 1);
@@ -79,14 +84,14 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     if (id == dca_test_env->concurrency.last()) {
       std::cout << "\nProcessor " << id << " is writing the covariance" << std::endl;
       dca::io::HDF5Writer writer;
-      writer.open_file("verification_covariance_output.hdf5");
+      writer.open_file(test_directory + "verification_covariance_output.hdf5");
       writer.open_group("functions");
       writer.execute(covariance_measured);
       writer.execute(G_k_w_measured);
       writer.close_group();
       // store the number of used measurements
       writer.open_group("parameters");
-      writer.execute("measurements_per_node", parameters.get_measurements());
+      writer.execute("measurements_per_node", meas_per_node);
       writer.execute("nodes", number_of_samples);
       writer.close_group();
       writer.close_file();
@@ -113,7 +118,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, dca::testing::test_directory + "square_lattice_input.json");
+      argc, argv, dca::testing::test_directory + "bilayer_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

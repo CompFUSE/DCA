@@ -5,18 +5,18 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Andrei Plamada (plamada@phys.ethz.ch)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Verification test of CT-AUX against a reference run
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
+#include "test/integration/statistical_tests/bilayer_lattice/bilayer_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
+TEST(CtauxBilayerLatticeVerificationTest, GreensFunction) {
   dca::linalg::util::initializeMagma();
+
   using namespace dca::testing;
 
   const int id = dca_test_env->concurrency.id();
@@ -36,7 +36,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration.
-  ThreadedSolver<CT_AUX> qmc_solver(parameters, data);
+  ThreadedSolver<CT_AUX, default_device> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
@@ -46,7 +46,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
 
   function<double, SigmaCutDomain> G_k_w_measured(G_on_node, "G_k_w");
   dca_test_env->concurrency.sum_and_average(G_k_w_measured);
-
+  
   // End of concurrent section.
   if (id == dca_test_env->concurrency.first()) {
     // read the stored reference data
@@ -71,7 +71,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     std::cout << "\n***\nThe p-value is " << p_value << "\n***\n";
     EXPECT_LT(p_value_default, p_value);
   }
-
+  
   // If many MPI ranks where used store covariance and mean for future testing.
   if (number_of_samples > G_k_w_measured.size()) {
     function<double, CovarianceDomain> covariance_measured("G_k_w_covariance");
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, dca::testing::test_directory + "square_lattice_input.json");
+      argc, argv, dca::testing::test_directory + "bilayer_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

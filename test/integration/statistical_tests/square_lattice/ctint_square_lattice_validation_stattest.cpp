@@ -21,6 +21,8 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
+  dca::linalg::util::initializeMagma();
+
   using namespace dca::testing;
   const std::string ed_data_name = "data.ed.hdf5";
 

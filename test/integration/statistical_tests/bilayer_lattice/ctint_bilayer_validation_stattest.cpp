@@ -21,6 +21,8 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(CtintBilayerValidationTest, GreensFunction) {
+  //  dca::linalg::util::initializeMagma();
+
   using namespace dca::testing;
   const std::string ed_data_name = dca::testing::test_directory + "/data.ed.hdf5";
 
@@ -43,7 +45,7 @@ TEST(CtintBilayerValidationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_INT> qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_INT, CPU> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
