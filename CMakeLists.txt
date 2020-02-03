@@ -26,8 +26,10 @@ endif()
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-  enable_testing()
-  include(CTest)
+################################################################################
+# Enable CTest/CDash dashboard testing
+enable_testing()
+include(CTest)
 
 ################################################################################
 # Load global variables to store preprocessor definitions.
