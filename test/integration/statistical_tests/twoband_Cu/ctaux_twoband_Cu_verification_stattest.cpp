@@ -71,7 +71,7 @@ TEST(CtauxBilayerLatticeVerificationTest, GreensFunction) {
 
     dca::math::StatisticalTesting test(G_k_w_measured, G_k_w_expected, G_k_w_covariance, 1);
     double p_value = test.computePValue(true, number_of_samples);
-    test.printInfo("verification_testinfo.out", true);
+    test.printInfo("ctaux_verification_testinfo.out", true);
     double p_value_default = 0.05;
     std::cout << "\n***\nThe p-value is " << p_value << "\n***\n";
     EXPECT_LT(p_value_default, p_value);
