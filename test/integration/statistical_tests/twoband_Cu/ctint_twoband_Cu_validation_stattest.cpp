@@ -91,7 +91,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   if (id == 0) {
     std::cout << "\nProcessor " << id << " is writing data " << std::endl;
     dca::io::HDF5Writer writer;
-    writer.open_file("ctaux_Cu_results.hdf5");
+    writer.open_file("ctint_Cu_results.hdf5");
     writer.open_group("functions");
     writer.execute(data.G_k_w);
     writer.close_group();

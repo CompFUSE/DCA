@@ -5,12 +5,12 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Andrei Plamada (plamada@phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Verification test of CT-INT against a reference run
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "test/integration/statistical_tests/twoband_Cu/twoband_Cu_setup.hpp"
+#include "test/integration/statistical_tests/bilayer_lattice/bilayer_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -29,6 +29,7 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
 
   ParametersType<CT_INT> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
+
 
   const int meas_per_node = parameters.get_measurements();
   parameters.set_measurements(meas_per_node * dca_test_env->concurrency.get_size());
@@ -57,7 +58,7 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
     function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
     function<double, SigmaCutDomain> G_k_w_expected("G_k_w");
     dca::io::HDF5Reader reader;
-    reader.open_file(test_directory + "verification_ctint_covariance.hdf5");
+    reader.open_file(test_directory + "verification_covariance_input.hdf5");
     reader.open_group("functions");
     reader.execute(G_k_w_covariance);
     reader.execute(G_k_w_expected);
@@ -83,7 +84,7 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
     if (id == dca_test_env->concurrency.last()) {
       std::cout << "\nProcessor " << id << " is writing the covariance" << std::endl;
       dca::io::HDF5Writer writer;
-      writer.open_file("verification_covariance_output.hdf5");
+      writer.open_file(test_directory + "verification_covariance_output.hdf5");
       writer.open_group("functions");
       writer.execute(covariance_measured);
       writer.execute(G_k_w_measured);
@@ -117,7 +118,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, dca::testing::test_directory + "twoband_Cu_input.json");
+      argc, argv, dca::testing::test_directory + "bilayer_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

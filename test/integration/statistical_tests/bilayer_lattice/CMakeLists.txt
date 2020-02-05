@@ -37,3 +37,10 @@ dca_add_gtest(ctaux_bilayer_verification_stattest
     LIBS     ${TEST_LIBS}
     )
 
+dca_add_gtest(ctint_bilayer_verification_stattest
+        STOCHASTIC
+        # Run with more ranks for better error detection.
+        MPI MPI_NUMPROC 1
+        INCLUDE_DIRS ${TEST_INCLUDES}
+        LIBS     ${TEST_LIBS}
+        )
