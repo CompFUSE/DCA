@@ -6,6 +6,9 @@
 
 include(CMakeParseArguments)
 
+include(ProcessorCount)
+ProcessorCount(CPUS)
+
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
@@ -86,6 +89,15 @@ function(dca_add_gtest name)
     set(name ${name}_hpx)
     add_executable(${name} ${oldname}.cpp ${DCA_ADD_GTEST_SOURCES})
     hpx_setup_target(${name})
+    set(DCA_TESTING_ARGS_HPX "--hpx:threads=${CPUS}")
+    if (DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
+      math(EXPR NUMTHREADS "${CPUS} / ${DCA_ADD_GTEST_MPI_NUMPROC}")
+      if ("${NUMTHREADS}" LESS "1")
+        set(NUMTHREADS "1")
+      endif()
+      message("MPI args are ${DCA_ADD_GTEST_MPI_NUMPROC} ${NUMTHREADS}")
+      set(DCA_TESTING_ARGS_HPX "--hpx:threads=${NUMTHREADS}")
+    endif()
   else()
     add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
   endif()
@@ -124,16 +136,19 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>"
+                     ${DCA_TESTING_ARGS_HPX})
                  target_link_libraries(${name}  PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-                   ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
+                   ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>"
+                   ${DCA_TESTING_ARGS_HPX})
     else (TEST_RUNNER)
       add_test(NAME ${name}
-               COMMAND "$<TARGET_FILE:${name}>")
+               COMMAND "$<TARGET_FILE:${name}>"
+               ${DCA_TESTING_ARGS_HPX})
     endif (TEST_RUNNER)
   endif()
 
