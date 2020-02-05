@@ -310,6 +310,7 @@ void Vector<ScalarType, device_name, Allocator>::setAsync(const Container& rhs,
                                                           const cudaStream_t stream) {
   resizeNoCopy(rhs.size());
   util::memoryCopyAsync(data_, rhs.data(), size_, stream);
+//  cudaDeviceSynchronize();
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>

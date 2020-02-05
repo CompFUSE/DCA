@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.eth.ch)
 //
 // This class organizes the interpolation of \f$G^{0}\f$ towards the \f$G^{0}\f$-matrix.
 // Template specialization for GPU.
@@ -80,6 +81,8 @@ private:
   dca::linalg::Vector<double, dca::linalg::GPU> tau_GPU;
 
   using G0_INTERPOLATION_TEMPLATE<parameters_type>::beta;
+
+  linalg::util::CudaEvent config_copied_;
 };
 
 template <typename parameters_type>
@@ -172,6 +175,7 @@ void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::build_G0_matrix(
 
   G0_e_spin.resizeNoCopy(configuration_size);
 
+  config_copied_.block();
   b_ind.resize(configuration_size);
   r_ind.resize(configuration_size);
   tau.resize(configuration_size);
@@ -212,6 +216,7 @@ void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::update_G0_matrix(
 
   int first_shuffled_index = configuration.get_first_shuffled_spin_index(e_spin);
 
+  config_copied_.block();
   b_ind.resize(configuration_size);
   r_ind.resize(configuration_size);
   tau.resize(configuration_size);
@@ -223,9 +228,11 @@ void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::update_G0_matrix(
   }
 
   cudaStream_t stream = linalg::util::getStream(thread_id, stream_id);
+  // TODO: create generic container for AoS.
   b_ind_GPU.setAsync(b_ind, stream);
   r_ind_GPU.setAsync(r_ind, stream);
   tau_GPU.setAsync(tau, stream);
+  config_copied_.record(stream);
 
   g0kernels::akima_interpolation_on_GPU(
       Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_GPU.ptr(), r_ind_GPU.ptr(),
