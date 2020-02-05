@@ -16,14 +16,14 @@
 #define DCA_PARALLEL_HPX_HPX_HPP
 
 #include <hpx/hpx.hpp>
-#include <hpx/lcos/local/spinlock.hpp>
-#include <hpx/lcos/local/condition_variable.hpp>
+#include <hpx/synchronization/spinlock.hpp>
+#include <hpx/synchronization/condition_variable.hpp>
 #include <hpx/lcos/future.hpp>
 #include <hpx/include/threads.hpp>
 #include <hpx/runtime/threads/thread.hpp>
 #include <hpx/runtime/threads/executors/limiting_executor.hpp>
 #include <hpx/debugging/demangle_helper.hpp>
-#include <hpx/parallel/executors/parallel_executor.hpp>
+#include <hpx/execution/executors/parallel_executor.hpp>
 #include <hpx/util/yield_while.hpp>
 //
 #include <vector>
