@@ -12,11 +12,13 @@
 #ifndef DCA_LINALG_MULTI_VECTOR_HPP
 #define DCA_LINALG_MULTI_VECTOR_HPP
 
-#include <dca/linalg/util/cuda_stream.hpp>
 #include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/util/type_list.hpp"
 #include "dca/util/pack_operations.hpp"
+#ifdef DCA_HAVE_CUDA
+#include <cuda_runtime.h>
+#endif
 
 namespace dca {
 namespace linalg {
@@ -35,9 +37,13 @@ public:
   // Resize the container so that each sub-array has size n, invalidating references and values.
   void resizeNocopy(std::size_t n);
 
+#ifdef DCA_HAVE_CUDA
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, linalg::util::CudaStream& stream);
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, cudaStream_t stream) {
+    data_.setAsync(rhs.data_, stream);
+  }
+#endif  // DCA_HAVE_CUDA
 
   // Returns a pointer to the beginning of the id-th array
   // Preconditions: 0 <= id < length(Ts...).
@@ -71,13 +77,6 @@ template <DeviceType device, typename... Ts>
 void MultiVector<device, Ts...>::resizeNocopy(std::size_t n) {
   data_.resizeNoCopy(n * dca::util::size_sum<Ts...>);
   size_ = n;
-}
-
-template <DeviceType device, typename... Ts>
-template <DeviceType other_device>
-void MultiVector<device, Ts...>::setAsync(const MultiVector<other_device, Ts...>& rhs,
-                                          util::CudaStream& stream) {
-  data_.setAsync(rhs.data_, stream);
 }
 
 template <DeviceType device, typename... Ts>

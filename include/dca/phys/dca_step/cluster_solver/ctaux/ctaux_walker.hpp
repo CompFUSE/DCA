@@ -29,7 +29,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/read_write_config.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
@@ -217,7 +217,7 @@ private:
   rng_type& rng;
   configuration_type configuration;
 
-  G0_INTERPOLATION<device_t, parameters_type> G0_tools_obj;
+  G0Interpolation<device_t, parameters_type> G0_tools_obj;
   N_TOOLS<device_t, parameters_type> N_tools_obj;
   G_TOOLS<device_t, parameters_type> G_tools_obj;
 
