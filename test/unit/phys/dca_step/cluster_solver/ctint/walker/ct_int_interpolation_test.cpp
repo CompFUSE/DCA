@@ -9,7 +9,14 @@
 using std::cout;
 using std::endl;
 
-TEST(G0Interpolation, G0Interpolation) {
+template <typename Real>
+class G0InterpolationTest : public ::testing::Test{};
+
+using FloatingPointTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(G0InterpolationTest, FloatingPointTypes);
+
+
+TYPED_TEST(G0InterpolationTest, G0Interpolation) {
   using dca::phys::domains::time_domain;
   using dca::func::dmn_0;
   using dca::func::dmn_variadic;
@@ -30,7 +37,7 @@ TEST(G0Interpolation, G0Interpolation) {
     f(0, i) = std::sin(t);
     f(1, i) = std::sin(2 * t);
   }
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU> g0(f);
+  dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU, TypeParam> g0(f);
 
   for (double x : {0., 0.5, 3., M_PI - 1e-3}) {
     EXPECT_NEAR(std::sin(x), g0(x, 0), 1e-3);

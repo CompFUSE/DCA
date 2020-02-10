@@ -22,19 +22,20 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
+template <typename Real>
 class DeviceInterpolationData {
 public:
   DeviceInterpolationData(const DeviceInterpolationData& other) = default;
 
-  __DEVICE__ double operator()(double tau, int lindex) const;
+  __DEVICE__ Real operator()(Real tau, int lindex) const;
 
 protected:
   DeviceInterpolationData() = default;
 
   constexpr static int coeff_size_ = 4;  // Same as G0Interpolation<linalg::CPU>.
   unsigned stride_;
-  double beta_, n_div_beta_;
-  double *values_, *g0_minus_;
+  Real beta_, n_div_beta_;
+  Real *values_, *g0_minus_;
 };
 
 }  // namespace ctint

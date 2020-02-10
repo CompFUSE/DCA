@@ -31,18 +31,18 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <>
-class G0Interpolation<linalg::GPU> final : public DeviceInterpolationData,
-                                           public G0Interpolation<linalg::CPU> {
+template <typename Real>
+class G0Interpolation<linalg::GPU, Real> final : public DeviceInterpolationData<Real>,
+                                                 public G0Interpolation<linalg::CPU, Real> {
 private:
   using PDmn = G0ParametersDomain;
   using PDmn0 = func::dmn_0<G0ParametersDomain>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using HostInterpolation = G0Interpolation<linalg::CPU>;
+  using HostInterpolation = G0Interpolation<linalg::CPU, Real>;
 
 public:
   G0Interpolation() = default;
-  G0Interpolation(const G0Interpolation<linalg::GPU>& other) = delete;
+  G0Interpolation(const G0Interpolation& other) = delete;
 
   // See this->initialize(G0_pars_t).
   template <class InputDmn>
@@ -56,7 +56,7 @@ public:
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   // Call from the CPU only for testing purposes.
-  double operator()(double tau, int lindex) const;
+  Real operator()(Real tau, int lindex) const;
 
   //  int getStride() const {
   //    if (time_slices_ == -1)
@@ -71,32 +71,34 @@ private:
   using HostInterpolation::PTime0;
   using HostInterpolation::InterpolationDmn;
 
-  linalg::Vector<double, linalg::GPU> G0_coeff_;
-  linalg::Vector<double, linalg::GPU> g0_minus_dev_;
+  linalg::Vector<Real, linalg::GPU> G0_coeff_;
+  linalg::Vector<Real, linalg::GPU> g0_minus_dev_;
   int time_slices_ = -1;
 };
 
+template <typename Real>
 template <class InputDmn>
-void G0Interpolation<linalg::GPU>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
+void G0Interpolation<linalg::GPU, Real>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
   HostInterpolation::initialize(G0_pars_t);
   assert(HostInterpolation::beta_);
 
-  time_slices_ = getTimeSlices();
-  DeviceInterpolationData::beta_ = HostInterpolation::beta_;
-  DeviceInterpolationData::n_div_beta_ = HostInterpolation::n_div_beta_;
-  DeviceInterpolationData::stride_ = HostInterpolation::getStride();
+  time_slices_ = this->getTimeSlices();
+  DeviceInterpolationData<Real>::beta_ = HostInterpolation::beta_;
+  DeviceInterpolationData<Real>::n_div_beta_ = HostInterpolation::n_div_beta_;
+  DeviceInterpolationData<Real>::stride_ = HostInterpolation::getStride();
 
   g0_minus_dev_.set(HostInterpolation::g0_minus_, 0, 0);
   G0_coeff_.resizeNoCopy(HostInterpolation::G0_coeff_.size());
   cudaMemcpy(G0_coeff_.ptr(), HostInterpolation::G0_coeff_.values(),
              G0_coeff_.size() * sizeof(decltype(G0_coeff_.ptr())), cudaMemcpyHostToDevice);
   // Copy pointer to the data structure.
-  DeviceInterpolationData::values_ = G0_coeff_.ptr();
-  DeviceInterpolationData::g0_minus_ = g0_minus_dev_.ptr();
+  DeviceInterpolationData<Real>::values_ = G0_coeff_.ptr();
+  DeviceInterpolationData<Real>::g0_minus_ = g0_minus_dev_.ptr();
 }
 
+template <typename Real>
 template <class InputDmn>
-G0Interpolation<linalg::GPU>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
+G0Interpolation<linalg::GPU, Real>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
   initialize(G0_pars_t);
 }
 

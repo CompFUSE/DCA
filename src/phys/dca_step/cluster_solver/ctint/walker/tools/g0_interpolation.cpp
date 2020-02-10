@@ -17,16 +17,17 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
+template<typename Real>
+void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
   beta_ = PositiveTimeDomain::get_elements().back();
-  n_div_beta_ = double(PositiveTimeDomain::get_size() - 1) / beta_;
+  n_div_beta_ = Real(PositiveTimeDomain::get_size() - 1) / beta_;
 
   const int t_pos_size = PositiveTimeDomain::get_size();
-  dca::math::interpolation::akima_interpolation<double> akima_obj(t_pos_size);
+  dca::math::interpolation::akima_interpolation<Real> akima_obj(t_pos_size);
   G0_coeff_.reset();
   g0_minus_.resize(Pdmn::get_size());
 
-  std::vector<double> y(t_pos_size), x(t_pos_size);
+  std::vector<Real> y(t_pos_size), x(t_pos_size);
   // The abscissa is scaled to integer steps
   for (int i = 0; i < x.size(); i++)
     x[i] = i;
@@ -49,7 +50,8 @@ void G0Interpolation<linalg::CPU>::initialize(const FunctionProxy<double, PTdmn>
   }
 }
 
-double G0Interpolation<linalg::CPU>::operator()(double tau, int lindex) const {
+template<typename Real>
+Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const {
   assert(beta_ != 0);
   if (tau == 0)  // returns G0(tau = 0+)
     return g0_minus_[lindex];
@@ -63,17 +65,21 @@ double G0Interpolation<linalg::CPU>::operator()(double tau, int lindex) const {
   assert(lindex >= 0 and lindex < Pdmn::get_size());
 
   // Scale tau in [0, n_time_slices). Assume even spacing in time.
-  const double scaled_tau = tau * n_div_beta_;
+  const Real scaled_tau = tau * n_div_beta_;
   const int tau_index(scaled_tau);
-  const double delta_tau = scaled_tau - tau_index;
+  const Real delta_tau = scaled_tau - tau_index;
 
   // Get the pointer to the first akima coeff.
-  const double* const coeff_ptr = &G0_coeff_(0, tau_index, lindex);
+  const Real* const coeff_ptr = &G0_coeff_(0, tau_index, lindex);
   // Return akima interpolation.
   return factor *
          (coeff_ptr[0] +
           delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
 }
+
+// Instantation
+template class G0Interpolation<linalg::CPU, float>;
+template class G0Interpolation<linalg::CPU, double>;
 
 }  // namespace ctint
 }  // namespace solver

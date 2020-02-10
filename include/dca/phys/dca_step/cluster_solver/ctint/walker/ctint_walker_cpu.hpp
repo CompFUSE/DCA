@@ -65,15 +65,17 @@ protected:
   void initializeStep();
 
 private:
-  double insertionProbability(int delta_vertices);
+  using typename BaseClass::Real;
+
+  auto insertionProbability(int delta_vertices) -> Real;
 
   using Matrix = typename BaseClass::Matrix;
   using MatrixPair = typename BaseClass::MatrixPair;
-  using MatrixView = typename linalg::MatrixView<double, linalg::CPU>;
+  using MatrixView = typename linalg::MatrixView<Real, linalg::CPU>;
 
   void applyInsertion(const MatrixPair& S, const MatrixPair& Q, const MatrixPair& R);
 
-  double removalProbability();
+  auto removalProbability() -> Real;
   void applyRemoval();
 
   virtual void smallInverse(const MatrixView& in, MatrixView& out, int s);
@@ -98,14 +100,14 @@ protected:
 
   // For testing purposes.
   using BaseClass::acceptance_prob_;
-  std::array<double, 2> det_ratio_;
+  std::array<Real, 2> det_ratio_;
 
 private:
-  std::array<linalg::Matrix<double, linalg::CPU>, 2> S_, Q_, R_;
+  std::array<linalg::Matrix<Real, linalg::CPU>, 2> S_, Q_, R_;
   // work spaces
   MatrixPair M_Q_;
   Matrix ws_dn_;
-  linalg::Vector<double, linalg::CPU> v_work_;
+  linalg::Vector<Real, linalg::CPU> v_work_;
   linalg::Vector<int, linalg::CPU> ipiv_;
 
   std::array<linalg::util::HostVector<int>, 2> matrix_removal_list_;
@@ -195,7 +197,7 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexRemoval() {
 }
 
 template <class Parameters>
-double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delta_vertices) {
+auto CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delta_vertices) -> Real {
   const int old_size = configuration_.size() - delta_vertices;
 
   for (int s = 0; s < 2; ++s) {
@@ -219,15 +221,15 @@ double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delt
     det_ratio_[s] = details::smallDeterminant(S);
   }
 
-  const double combinatorial_factor =
+  const Real combinatorial_factor =
       delta_vertices == 1 ? old_size + 1 : (old_size + 2) * (configuration_.nPartners(old_size) + 1);
 
-  const double strength_factor =
+  const Real strength_factor =
       delta_vertices == 1 ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
                           : total_interaction_ * beta_ * beta_ *
                                 std::abs(configuration_.getStrength(old_size)) * possible_partners_;
 
-  const double det_ratio = det_ratio_[0] * det_ratio_[1];
+  const Real det_ratio = det_ratio_[0] * det_ratio_[1];
 
   return det_ratio * strength_factor / combinatorial_factor;
 
@@ -268,7 +270,7 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 
     // R_tilde = - S * R * M
     MatrixView R_tilde(M, m_size, 0, delta, m_size);
-    linalg::matrixop::gemm(-1., S_tilde, R_M, double(0.), R_tilde);
+    linalg::matrixop::gemm(-1., S_tilde, R_M, Real(0.), R_tilde);
 
     // Q_tilde = -M * Q * S
     MatrixView Q_tilde(M, 0, m_size, m_size, delta);
@@ -285,7 +287,7 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 }
 
 template <class Parameters>
-double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
+auto CtintWalker<linalg::CPU, Parameters>::removalProbability() -> Real {
   const auto candidates = configuration_.randomRemovalCandidate(rng_);
   removal_list_.clear();
   for (int candidate : candidates) {
@@ -310,14 +312,14 @@ double CtintWalker<linalg::CPU, Parameters>::removalProbability() {
   }
   assert((matrix_removal_list_[0].size() + matrix_removal_list_[1].size()) % 2 == 0);
 
-  const double combinatorial_factor =
+  const Real combinatorial_factor =
       n_removed == 1 ? n : n * configuration_.nPartners(removal_list_[0]);
-  const double strength_factor =
+  const Real strength_factor =
       n_removed == 1 ? -beta_ * total_interaction_ * configuration_.getSign(removal_list_[0])
                      : total_interaction_ * beta_ * beta_ * possible_partners_ *
                            std::abs(configuration_.getStrength(removal_list_[0]));
 
-  const double det_ratio = det_ratio_[0] * det_ratio_[1];
+  const Real det_ratio = det_ratio_[0] * det_ratio_[1];
 
   return det_ratio * combinatorial_factor / strength_factor;
 }

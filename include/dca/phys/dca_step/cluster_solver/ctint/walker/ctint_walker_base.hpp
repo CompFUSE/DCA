@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
@@ -54,14 +55,16 @@ class CtintWalkerSubmatrix;
 template <class Parameters>
 class CtintWalkerBase {
 public:
+  using Real = config::McOptions::MCScalar;
+
   using parameters_type = Parameters;
   using Data = DcaData<Parameters>;
   using Rng = typename Parameters::random_number_generator;
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+  using Matrix = linalg::Matrix<Real, linalg::CPU>;
+  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
 
 protected:  // The class is not instantiable.
@@ -100,7 +103,7 @@ public:
   }
 
   double acceptanceRatio() const {
-    return double(n_accepted_) / double(n_steps_);
+    return Real(n_accepted_) / Real(n_steps_);
   }
 
   void initialize();
@@ -138,7 +141,7 @@ public:
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type>& g0);
+  static void setDMatrixBuilder(const G0Interpolation<device_type, Real>& g0);
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
@@ -164,7 +167,8 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
+  using BuilderPtr = std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>>;
+  static BuilderPtr d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -178,11 +182,11 @@ protected:  // Members.
 
   MatrixPair M_;
 
-  const double beta_;
+  const Real beta_;
   static constexpr int n_bands_ = Parameters::bands;
   const int possible_partners_;
 
-  const double total_interaction_;  // Space integrated interaction Hamiltonian.
+  const Real total_interaction_;  // Space integrated interaction Hamiltonian.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
@@ -196,7 +200,7 @@ protected:  // Members.
   int sign_ = 1;
 
   // Store for testing purposes:
-  double acceptance_prob_;
+  Real acceptance_prob_;
 
   //  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   //  std::vector<int> removal_candidates_;
@@ -205,7 +209,7 @@ protected:  // Members.
 
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
-  linalg::Vector<double, linalg::CPU> work_;
+  linalg::Vector<Real, linalg::CPU> work_;
 };
 template <class Parameters>
 constexpr int CtintWalkerBase<Parameters>::n_bands_;
@@ -213,7 +217,7 @@ constexpr int CtintWalkerBase<Parameters>::n_bands_;
 template <class Parameters>
 InteractionVertices CtintWalkerBase<Parameters>::vertices_;
 template <class Parameters>
-std::unique_ptr<DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
+typename CtintWalkerBase<Parameters>::BuilderPtr CtintWalkerBase<Parameters>::d_builder_ptr_;
 
 template <class Parameters>
 CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref, int id)
@@ -263,7 +267,7 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
       for (int i = 0; i < n; ++i)
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
-    const double det = linalg::matrixop::inverseAndDeterminant(M);
+    const Real det = linalg::matrixop::inverseAndDeterminant(M);
 
     // Set the initial sign
     if (det < 0)
@@ -332,13 +336,13 @@ void CtintWalkerBase<Parameters>::printSummary() const {
 template <class Parameters>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type>& g0) {
+    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type>>(g0, n_bands_, RDmn());
+  d_builder_ptr_ = std::make_unique<BuilderPtr::element_type>(g0, n_bands_, RDmn());
 }
 
 template <class Parameters>

@@ -44,11 +44,12 @@ public:
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
   using typename BaseClass::CudaStream;
+  using typename BaseClass::Real;
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 
-  void computeM(std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum);
+  void computeM(std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum);
 
   void initialize();
 
@@ -90,8 +91,8 @@ protected:
 
 private:
   template <linalg::DeviceType dev = linalg::GPU>
-  using MatrixView = linalg::MatrixView<double, dev>;
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using MatrixView = linalg::MatrixView<Real, dev>;
+  using Matrix = linalg::Matrix<Real, linalg::CPU>;
 
   DeviceConfigurationManager device_config_;
 
@@ -108,7 +109,7 @@ private:
 
 private:
   template <linalg::DeviceType device_t>
-  using MatrixPair = std::array<linalg::Matrix<double, device_t>, 2>;
+  using MatrixPair = std::array<linalg::Matrix<Real, device_t>, 2>;
 
   using BaseClass::G_;
   MatrixPair<linalg::GPU> M_dev_;
@@ -120,14 +121,14 @@ private:
   using BaseClass::Gamma_inv_;
   using BaseClass::f_;
 
-  std::array<linalg::Vector<double, linalg::GPU>, 2> f_dev_;
-  std::array<linalg::Vector<double, linalg::CPU>, 2> f_values_;
+  std::array<linalg::Vector<Real, linalg::GPU>, 2> f_dev_;
+  std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values_;
 
   using BaseClass::gamma_;
   using BaseClass::move_indices_;
   std::array<linalg::Vector<int, linalg::GPU>, 2> move_indices_dev_;
-  std::array<linalg::util::HostVector<std::pair<int, double>>, 2> gamma_index_;
-  std::array<linalg::Vector<std::pair<int, double>, linalg::GPU>, 2> gamma_index_dev_;
+  std::array<linalg::util::HostVector<std::pair<int, Real>>, 2> gamma_index_;
+  std::array<linalg::Vector<std::pair<int, Real>, linalg::GPU>, 2> gamma_index_dev_;
 
   std::array<linalg::util::CudaEvent, 2> config_copied_;
 
@@ -342,7 +343,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeM(
-    std::array<dca::linalg::Matrix<double, linalg::GPU>, 2>& m_accum) {
+    std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum) {
   for (int s = 0; s < 2; ++s)
     m_accum[s].resizeNoCopy(M_dev_[s].size());
 

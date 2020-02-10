@@ -46,6 +46,7 @@ public:
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::CudaStream;
+  using typename BaseClass::Real;
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
@@ -78,7 +79,7 @@ private:
 
   void doSubmatrixUpdate();
 
-  double computeAcceptanceProbability();
+  auto computeAcceptanceProbability() -> Real;
 
   void updateGammaInv(int s);
 
@@ -107,8 +108,8 @@ private:
   }
 
 protected:
-  using MatrixView = linalg::MatrixView<double, linalg::CPU>;
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using MatrixView = linalg::MatrixView<Real, linalg::CPU>;
+  using Matrix = linalg::Matrix<Real, linalg::CPU>;
 
   using BaseClass::parameters_;
   using BaseClass::configuration_;
@@ -130,8 +131,8 @@ protected:
   struct DelayedMoveType {
     Move move_type;
 
-    double removal_rng;
-    double acceptance_rng;
+    Real removal_rng;
+    Real acceptance_rng;
     // TODO: store on the stack for n <= 2.
     std::vector<int> indices;
   };
@@ -142,7 +143,7 @@ protected:
 protected:
   std::vector<DelayedMoveType> delayed_moves_;
 
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   MatrixPair G_;
   MatrixPair G0_;
   MatrixPair Gamma_inv_;      // TODO: don't pin
@@ -150,12 +151,12 @@ protected:
   MatrixPair q_;              // TODO: don't pin or store in Gamma inv
   MatrixPair r_;
   MatrixPair s_;
-  std::array<std::vector<double>, 2> gamma_;
+  std::array<std::vector<Real>, 2> gamma_;
 
-  double det_ratio_;
-  std::map<int, std::array<double, n_bands_>> f_;
-  std::map<int, std::array<double, n_bands_>> prob_const_;
-  std::map<std::pair<int, int>, std::array<double, n_bands_>> gamma_values_;
+  Real det_ratio_;
+  std::map<int, std::array<Real, n_bands_>> f_;
+  std::map<int, std::array<Real, n_bands_>> prob_const_;
+  std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
 
   using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
@@ -554,7 +555,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
     const int delta = n_max_[s] - n_init_[s];
 
     if (delta > 0) {
-      double f_j;
+      Real f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
       d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
@@ -596,7 +597,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
 
-    double f;
+    Real f;
     Matrix G0(std::make_pair(n_max_[s], delta));
 
     G_[s].resizeNoCopy(n_max_[s]);
@@ -607,7 +608,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
       f = f_[field_type][b];
 
       for (int i = 0; i < n_max_[s]; ++i) {
-        G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
+        G_[s](i, j) = (M_[s](i, j) * f - Real(i == j)) / (f - 1);
       }
     }
 
@@ -623,10 +624,10 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
 }
 
 template <class Parameters>
-double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
-  double acceptance_probability = det_ratio_;
+auto CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() -> Real {
+  Real acceptance_probability = det_ratio_;
 
-  double gamma_factor = 1;
+  Real gamma_factor = 1;
   for (int s = 0; s < 2; ++s) {
     if (!sector_indices_[s].size())
       continue;
@@ -644,7 +645,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
   const int interaction_sign = configuration_.getSign(index_[0]);
   const int non_empty_sector = sector_indices_[0].size() ? 0 : 1;
 
-  double K = total_interaction_;
+  Real K = total_interaction_;
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
     const auto field_type = configuration_.getSector(non_empty_sector)
                                 .getAuxFieldType(sector_indices_[non_empty_sector][v_id]);
@@ -659,8 +660,8 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
       acceptance_probability *= K / (n_ + 1);
     }
     else if (delta_vertices == 2) {
-      const double combinatorial_factor =
-          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<double>(possible_partners_);
+      const Real combinatorial_factor =
+          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<Real>(possible_partners_);
       acceptance_probability *= configuration_.getStrength(n_ + 1) * K / combinatorial_factor;
     }
     else
@@ -672,7 +673,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
     }
     else if (delta_vertices == 2) {
       const int combinatorial_factor =
-          n_ * configuration_.nPartners(index_[0]) / static_cast<double>(possible_partners_);
+          n_ * configuration_.nPartners(index_[0]) / static_cast<Real>(possible_partners_);
       acceptance_probability *= combinatorial_factor / (configuration_.getStrength(index_[1]) * K);
     }
     else
@@ -874,7 +875,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const double f_i = -(f_[field_type][b] - 1);
+        const Real f_i = -(f_[field_type][b] - 1);
         M_[s](i, j) /= f_i;
       }
     }
@@ -890,7 +891,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass:
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const double factor = -(f_[field_type][b] - 1.);
+        const Real factor = -(f_[field_type][b] - 1.);
         m_accum[s](i, j) = M_[s](i, j) * factor;
       }
     }
@@ -910,7 +911,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeInsertionMatrices(
     for (int j = 0; j < delta; ++j) {
       s_[s](i, j) = G_[s](insertion_indices[i], insertion_indices[j]);
       if (i == j) {
-        const double gamma_val = gamma_[s].at(gamma_[s].size() + i - nbr_of_indices_[s]);
+        const Real gamma_val = gamma_[s].at(gamma_[s].size() + i - nbr_of_indices_[s]);
         s_[s](i, j) -= (1 + gamma_val) / gamma_val;
       }
     }
