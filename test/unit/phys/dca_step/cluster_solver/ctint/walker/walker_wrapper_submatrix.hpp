@@ -49,7 +49,9 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
     std::array<dca::linalg::Matrix<double, device_t>, 2> M;
 
     BaseClass::computeM(M);
+#ifdef DCA_HAVE_CUDA
     cudaDeviceSynchronize();
+#endif
 
     std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
     return M_copy;
