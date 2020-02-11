@@ -8,17 +8,18 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-using G0Setup = dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
+using DMatrixBuilderGpuTest =
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
 using namespace dca::phys::solver;
 using HostMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
 using DeviceMatrix = dca::linalg::Matrix<double, dca::linalg::GPU>;
 
-TEST_F(G0Setup, RemoveAndInstertVertex) {
+TEST_F(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   // Setup rng values
   std::vector<double> rng_values(100);
   for (double& x : rng_values)
     x = double(std::rand()) / RAND_MAX;
-  G0Setup::RngType rng(rng_values);
+  DMatrixBuilderGpuTest::RngType rng(rng_values);
 
   using namespace dca::testing;
   dca::func::dmn_variadic<BDmn, BDmn, RDmn> label_dmn;
@@ -36,7 +37,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
   builder_cpu.setAlphas(parameters_.getAlphas(), false);
 
   ctint::InteractionVertices interaction_vertices;
-    interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
+  interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
 
   HostMatrix G0;
   DeviceMatrix G0_dev;

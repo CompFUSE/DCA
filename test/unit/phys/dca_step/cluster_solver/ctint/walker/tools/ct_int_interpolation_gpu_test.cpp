@@ -7,10 +7,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/mock_parameters.hpp"
 
-using std::cout;
-using std::endl;
-
-TEST(G0Interpolation, G0Interpolation) {
+TEST(G0InterpolationGpuTest, G0Interpolation) {
   using dca::phys::domains::time_domain;
   using dca::func::dmn_0;
   using dca::func::dmn_variadic;
@@ -27,7 +24,7 @@ TEST(G0Interpolation, G0Interpolation) {
 
   // Write function values.
   for (int i = 0; i < time_domain::get_size(); i++) {
-    const double t = time_domain::get_elements()[i];
+    double t = time_domain::get_elements()[i];
     f(0, i) = std::exp(t);
     f(1, i) = std::sin(t);
   }

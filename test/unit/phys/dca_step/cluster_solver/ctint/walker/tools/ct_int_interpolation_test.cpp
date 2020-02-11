@@ -1,13 +1,3 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
-// See LICENSE.txt for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//
-// This file tests interpolation of G0 on the CPU.
-
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 
 #include "gtest/gtest.h"
@@ -16,10 +6,8 @@
 
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/mock_parameters.hpp"
 
-using std::cout;
-using std::endl;
 
-TEST(G0Interpolation, G0Interpolation) {
+TEST(G0InterpolationTest, G0Interpolation) {
   using dca::phys::domains::time_domain;
   using dca::func::dmn_0;
   using dca::func::dmn_variadic;
@@ -29,7 +17,7 @@ TEST(G0Interpolation, G0Interpolation) {
 
   // Initialize the domains.
   time_domain::initialize(pars);
-  // dca::phys::solver::ctint::PositiveTimeDomain::initialize();
+  //dca::phys::solver::ctint::PositiveTimeDomain::initialize();
 
   using TestDomain = dmn_variadic<LabelDmn, dmn_0<time_domain>>;
   dca::func::function<double, TestDomain> f;
