@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include <iostream>
 #include <cmath>
+#include <mutex>
 
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/mock_parameters.hpp"
 
@@ -10,12 +11,12 @@ using std::cout;
 using std::endl;
 
 template <typename Real>
-class G0InterpolationTest : public ::testing::Test{};
+class G0InterpolationTest : public ::testing::Test {};
 
 using FloatingPointTypes = ::testing::Types<float, double>;
 TYPED_TEST_CASE(G0InterpolationTest, FloatingPointTypes);
 
-
+std::once_flag flag;
 TYPED_TEST(G0InterpolationTest, G0Interpolation) {
   using dca::phys::domains::time_domain;
   using dca::func::dmn_0;
@@ -25,8 +26,10 @@ TYPED_TEST(G0InterpolationTest, G0Interpolation) {
   dca::ctint::testing::MockParameters pars(M_PI, 20);
 
   // Initialize the domains.
-  time_domain::initialize(pars);
-  //dca::phys::solver::ctint::PositiveTimeDomain::initialize();
+  std::call_once(flag, [&] {
+    time_domain::initialize(pars);
+    // dca::phys::solver::ctint::PositiveTimeDomain::initialize();
+  });
 
   using TestDomain = dmn_variadic<LabelDmn, dmn_0<time_domain>>;
   dca::func::function<double, TestDomain> f;

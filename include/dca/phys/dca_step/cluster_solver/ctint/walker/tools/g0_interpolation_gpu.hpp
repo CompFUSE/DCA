@@ -87,10 +87,17 @@ void G0Interpolation<linalg::GPU, Real>::initialize(const func::function<double,
   DeviceInterpolationData<Real>::n_div_beta_ = HostInterpolation::n_div_beta_;
   DeviceInterpolationData<Real>::stride_ = HostInterpolation::getStride();
 
-  g0_minus_dev_.set(HostInterpolation::g0_minus_, 0, 0);
   G0_coeff_.resizeNoCopy(HostInterpolation::G0_coeff_.size());
-  cudaMemcpy(G0_coeff_.ptr(), HostInterpolation::G0_coeff_.values(),
-             G0_coeff_.size() * sizeof(decltype(G0_coeff_.ptr())), cudaMemcpyHostToDevice);
+  g0_minus_dev_.setAsync(HostInterpolation::g0_minus_, 0, 0);
+
+  linalg::Vector<Real, linalg::CPU> host_coeff(HostInterpolation::G0_coeff_.size());
+  for (std::size_t i = 0; i < host_coeff.size(); ++i) {
+    host_coeff[i] = HostInterpolation::G0_coeff_(i);
+  }
+  G0_coeff_.setAsync(host_coeff, 0, 0);
+
+  linalg::util::syncStream(0, 0);
+
   // Copy pointer to the data structure.
   DeviceInterpolationData<Real>::values_ = G0_coeff_.ptr();
   DeviceInterpolationData<Real>::g0_minus_ = g0_minus_dev_.ptr();

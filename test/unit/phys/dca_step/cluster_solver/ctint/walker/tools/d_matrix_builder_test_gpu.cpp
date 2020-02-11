@@ -81,7 +81,8 @@ void testBody(const Parameters& parameters, const Data& data) {
       cudaStreamSynchronize(stream);
 
       Matrix<Real, CPU> G0_dev_copy(G0_dev);
-      EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, 1e-10));
+      constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
+      EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, tolerance));
     }
   }
 }

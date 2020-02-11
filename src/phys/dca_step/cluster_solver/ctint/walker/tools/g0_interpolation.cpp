@@ -17,7 +17,7 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template<typename Real>
+template <typename Real>
 void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
   beta_ = PositiveTimeDomain::get_elements().back();
   n_div_beta_ = Real(PositiveTimeDomain::get_size() - 1) / beta_;
@@ -45,12 +45,13 @@ void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, 
     for (int t = 0; t < t_pos_size - 1; t++) {
       for (int l = 0; l < 4; l++)
         G0_coeff_(l, t, p) = akima_obj.get_alpha(l, t);
-      assert(G0_coeff_(0, t, p) == G0_pars_t(p, t + t_pos_size));
+      assert(std::abs(G0_coeff_(0, t, p) - G0_pars_t(p, t + t_pos_size)) <
+             10 * std::numeric_limits<Real>::epsilon());
     }
   }
 }
 
-template<typename Real>
+template <typename Real>
 Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const {
   assert(beta_ != 0);
   if (tau == 0)  // returns G0(tau = 0+)
