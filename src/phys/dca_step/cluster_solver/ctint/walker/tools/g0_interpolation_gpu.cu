@@ -22,32 +22,6 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <typename Real>
-__device__ Real DeviceInterpolationData<Real>::operator()(Real tau, int lindex) const {
-  assert(tau >= -beta_ && tau <= beta_);
-
-  if (tau == 0)  // returns G0(tau = 0+)
-    return g0_minus_[lindex];
-
-  short int factor = 1;
-  if (tau < 0) {
-    tau += beta_;
-    factor = -1;
-  }
-
-  // Scale tau in [0, n_time_slices). Assume even spacing in time.
-  const Real scaled_tau = tau * n_div_beta_;
-  const int tau_index(scaled_tau);
-  const Real delta_tau = scaled_tau - tau_index;
-
-  // Get the pointer to the first akima coeff.
-  const Real* coeff_ptr = &values_[tau_index * coeff_size_ + lindex * stride_];
-
-  // Return akima interpolation.
-  return factor *
-         (coeff_ptr[0] +
-          delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
-}
 
 template <typename Real>
 __global__ void g0InterpolationTestKernel(Real tau, const int lindex,
@@ -68,6 +42,9 @@ Real G0Interpolation<linalg::GPU, Real>::operator()(Real tau, int lindex) const 
   cudaFree(d_result);
   return result;
 }
+
+template class G0Interpolation<linalg::GPU, float>;
+template class G0Interpolation<linalg::GPU, double>;
 
 }  // namespace ctint
 }  // namespace solver

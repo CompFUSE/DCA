@@ -43,9 +43,13 @@ void DMatrixBuilder<GPU, Real>::computeG0(Matrix& G0,
                                           cudaStream_t stream) const {
   if (G0.nrRows() * G0.nrCols() == 0)
     return;
-  details::buildG0Matrix(linalg::MatrixView<double, linalg::GPU>(G0), n_init, right_section,
+  details::buildG0Matrix(linalg::MatrixView<Real, linalg::GPU>(G0), n_init, right_section,
                          configuration, g0_ref_, stream);
 }
+
+// Instantation.
+template class DMatrixBuilder<GPU, float>;
+template class DMatrixBuilder<GPU, double>;
 
 }  // namespace ctint
 }  // namespace solver

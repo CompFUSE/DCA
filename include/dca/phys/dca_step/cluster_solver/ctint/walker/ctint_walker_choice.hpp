@@ -48,9 +48,9 @@ struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real> {
 };
 }  // namespace
 
-template <linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Real>
 using CtintWalkerChoice =
-    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix>::type;
+    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix, Real>::type;
 
 }  // namespace ctint
 }  // namespace solver

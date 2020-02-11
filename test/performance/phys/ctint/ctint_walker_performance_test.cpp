@@ -49,7 +49,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profile
                                                  dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
-using Walker = dca::phys::solver::ctint::CtintWalkerSubmatrix<device_t, Parameters>;
+using Walker = dca::phys::solver::ctint::CtintWalkerSubmatrix<device_t, Parameters, Real>;
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = Parameters::RClusterDmn;

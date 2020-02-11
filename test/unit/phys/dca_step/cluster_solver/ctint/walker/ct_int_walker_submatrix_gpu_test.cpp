@@ -45,8 +45,8 @@ TEST_F(G0Setup, doSteps) {
   G0Setup::RngType rng(setup_rngs);
 
   const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t);
-  ctint::G0Interpolation<CPU> g0_cpu(g0_func);
-  ctint::G0Interpolation<GPU> g0_gpu(g0_func);
+  ctint::G0Interpolation<CPU, double> g0_cpu(g0_func);
+  ctint::G0Interpolation<GPU, double> g0_gpu(g0_func);
   G0Setup::LabelDomain label_dmn;
 
   // TODO: improve API.

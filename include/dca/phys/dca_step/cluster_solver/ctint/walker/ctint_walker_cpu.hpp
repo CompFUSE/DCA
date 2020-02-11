@@ -65,8 +65,6 @@ protected:
   void initializeStep();
 
 private:
-  using typename BaseClass::Real;
-
   Real insertionProbability(int delta_vertices);
 
   using Matrix = typename BaseClass::Matrix;

@@ -46,7 +46,6 @@ public:
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::CudaStream;
-  using typename BaseClass::Real;
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 

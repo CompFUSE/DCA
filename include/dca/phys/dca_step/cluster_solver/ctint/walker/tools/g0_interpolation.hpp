@@ -85,7 +85,7 @@ private:
   func::function<Real, InterpolationDmn> G0_coeff_;
   Real beta_ = 0;
   // value at tau = 0
-  std::vector<double> g0_minus_;
+  std::vector<Real> g0_minus_;
   // Spacing between time bins.
   double n_div_beta_;
 };

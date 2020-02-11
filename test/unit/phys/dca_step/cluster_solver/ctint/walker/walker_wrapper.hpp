@@ -22,10 +22,10 @@ namespace ctint {
 // testing::phys::solver::ctint::
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters>
-class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
+template <class Parameters, typename Real = double>
+class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters, Real> {
 public:
-  using BaseClass = CtintWalker<dca::linalg::CPU, Parameters>;
+  using BaseClass = CtintWalker<dca::linalg::CPU, Parameters, Real>;
   using Rng = typename BaseClass::Rng;
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)

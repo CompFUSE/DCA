@@ -63,6 +63,12 @@ void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
   checkErrorsCudaDebug();
 }
 
+template void buildG0Matrix<float>(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
+                                   DeviceConfiguration, DeviceInterpolationData<float>, cudaStream_t);
+template void buildG0Matrix<double>(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
+                                    DeviceConfiguration, DeviceInterpolationData<double>,
+                                    cudaStream_t);
+
 }  // namespace details
 }  // namespace ctint
 }  // namespace solver

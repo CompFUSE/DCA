@@ -164,8 +164,7 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  using BuilderPtr = std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>>;
-  static BuilderPtr d_builder_ptr_;
+  static std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -214,7 +213,7 @@ constexpr int CtintWalkerBase<Parameters, Real>::n_bands_;
 template <class Parameters, typename Real>
 InteractionVertices CtintWalkerBase<Parameters, Real>::vertices_;
 template <class Parameters, typename Real>
-typename CtintWalkerBase<Parameters, Real>::BuilderPtr CtintWalkerBase<Parameters, Real>::d_builder_ptr_;
+std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> CtintWalkerBase<Parameters, Real>::d_builder_ptr_;
 
 template <class Parameters, typename Real>
 CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
@@ -340,7 +339,7 @@ void CtintWalkerBase<Parameters, Real>::setDMatrixBuilder(
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ = std::make_unique<BuilderPtr::element_type>(g0, n_bands_, RDmn());
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Real>>(g0, n_bands_, RDmn());
 }
 
 template <class Parameters, typename Real>

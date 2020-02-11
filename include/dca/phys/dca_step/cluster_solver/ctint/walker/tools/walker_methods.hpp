@@ -85,12 +85,15 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
   }
 }
 
-template <class MatrixA, class MatrixB>
-inline void smallInverse(const MatrixA& in, MatrixB& out, const typename MatrixB::ValueType det,
+template <class MatrixA, class MatrixB, typename Real>
+inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
                          linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<typename MatrixB::ValueType, linalg::CPU>& work) {
-  static_assert(std::is_same<typename MatrixA::ValueType, typename MatrixB::ValueType>::value,
-                "Scalar type mismatch.");
+                         linalg::Vector<Real, linalg::CPU>& work) {
+  static_assert(std::is_same<typename MatrixA::ValueType, Real>::value,
+                "Scalar type MatrixA mismatch.");
+  static_assert(std::is_same<typename MatrixB::ValueType, Real>::value,
+                "Scalar type MatrixB mismatch.");
+
   assert(in.size() == out.size());
   switch (in.nrCols()) {
     case 1:
