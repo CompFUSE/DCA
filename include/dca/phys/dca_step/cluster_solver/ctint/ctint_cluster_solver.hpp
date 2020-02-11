@@ -88,7 +88,7 @@ protected:  // thread jacket interface.
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
 
-  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
 
 private:
