@@ -65,18 +65,19 @@ TEST(SquareLatticeTest, GpuSolver) {
   qmc_solver_gpu.integrate();
   cudaProfilerStop();
   qmc_solver_gpu.finalize();
-  EXPECT_NEAR(1.0, qmc_solver_gpu.computeDensity(), 1e-5);
+  EXPECT_NEAR(1.0, qmc_solver_gpu.computeDensity(), 1e-3);
 
   // Confront with CPU run.
   Data data_cpu(parameters);
   data_cpu.initialize();
   RngType::resetCounter();  // Use the same random numbers.
-  dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true> qmc_solver_cpu(
-      parameters, data_cpu);
+  using GpuSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true>;
+  GpuSolver qmc_solver_cpu(parameters, data_cpu);
   qmc_solver_cpu.initialize();
   qmc_solver_cpu.integrate();
   qmc_solver_cpu.finalize();
 
   auto diff = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
-  EXPECT_GE(5e-7, diff.l_inf);
+  auto tolerance = 100 * std::numeric_limits<GpuSolver::Real>::epsilon();
+  EXPECT_GE(tolerance, diff.l_inf);
 }

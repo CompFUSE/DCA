@@ -167,7 +167,7 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
 
   acceptance_prob_ = insertionProbability(delta_vertices);
 
-  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), 1.);
+  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), Real(1.));
 
   if (!accept) {
     popBack(delta_vertices);
@@ -184,7 +184,7 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
 template <class Parameters, typename Real>
 bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
   acceptance_prob_ = removalProbability();
-  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), 1.);
+  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), Real(1.));
 
   if (accept) {
     if (acceptance_prob_ < 0)
@@ -213,7 +213,7 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
       M_Q.resizeNoCopy(Q.size());
       linalg::matrixop::gemm(M, Q, M_Q);
       // S <- S_tilde^(-1) = S - R*M*Q
-      linalg::matrixop::gemm(-1., R, M_Q, 1., S);
+      linalg::matrixop::gemm(Real(-1.), R, M_Q, Real(1.), S);
     }
 
     det_ratio_[s] = details::smallDeterminant(S);
@@ -307,15 +307,15 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair
 
     // R_tilde = - S * R * M
     MatrixView R_tilde(M, m_size, 0, delta, m_size);
-    linalg::matrixop::gemm(-1., S_tilde, R_M, Real(0.), R_tilde);
+    linalg::matrixop::gemm(Real(-1.), S_tilde, R_M, Real(0.), R_tilde);
 
     // Q_tilde = -M * Q * S
     MatrixView Q_tilde(M, 0, m_size, m_size, delta);
-    linalg::matrixop::gemm(-1., M_Q, S_tilde, 0., Q_tilde);
+    linalg::matrixop::gemm(Real(-1.), M_Q, S_tilde, Real(0.), Q_tilde);
 
     // update bulk: M += M*Q*S*R*M
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_tilde, R_M, 1., M_bulk);
+    linalg::matrixop::gemm(Real(-1.), Q_tilde, R_M, Real(1.), M_bulk);
   }
 
   const int delta_vertices = configuration_.lastInsertionSize();
@@ -360,7 +360,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyRemoval() {
 
     // M -= Q*S^-1*R
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk);
+    linalg::matrixop::gemm(Real(-1.), Q_S, R, Real(1.), M_bulk);
     M.resize(m_size);
   }
 }

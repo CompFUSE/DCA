@@ -141,6 +141,12 @@ template void sortM<double, double>(int, const double*, int, std::complex<double
 template void sortM<double, float>(int, const double*, int, std::complex<float>*, int,
                                    const Triple<float>*, const Triple<float>*,
                                    const cudaStream_t stream);
+template void sortM<float, double>(int, const float*, int, std::complex<double>*, int,
+                                   const Triple<double>*, const Triple<double>*,
+                                   const cudaStream_t stream);
+template void sortM<float, float>(int, const float*, int, std::complex<float>*, int,
+                                  const Triple<float>*, const Triple<float>*,
+                                  const cudaStream_t stream);
 
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);

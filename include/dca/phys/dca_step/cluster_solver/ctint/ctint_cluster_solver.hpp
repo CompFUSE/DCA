@@ -89,7 +89,7 @@ protected:  // thread jacket interface.
   using Lattice = typename Parameters::lattice_type;
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real>;
-  using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
+  using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real>;
 
 private:
   using BDmn = func::dmn_0<domains::electron_band_domain>;

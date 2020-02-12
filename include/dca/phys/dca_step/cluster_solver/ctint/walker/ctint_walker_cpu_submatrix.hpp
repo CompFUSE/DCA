@@ -440,7 +440,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
     const bool accepted =
-        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), 1.);
+        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), Real(1.));
 
     // NB: recomputeGammaInv is just a inefficient alternative to updateGammaInv. Only for testing
     // or debbuging.
@@ -700,15 +700,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateGammaInv(int s) 
     details::smallInverse(s_[s], s_inv);
 
     auto& Gamma_q = Gamma_q_[s];
-    linalg::matrixop::gemm(-1., Gamma_q, s_inv, 0., q_inv);
+    linalg::matrixop::gemm(Real(-1.), Gamma_q, s_inv, Real(0.), q_inv);
 
     auto& r_Gamma = workspace_;
     r_Gamma.resizeNoCopy(r_[s].size());
     linalg::matrixop::gemm(r_[s], bulk, r_Gamma);
-    linalg::matrixop::gemm(-1., s_inv, r_Gamma, 0., r_inv);
+    linalg::matrixop::gemm(Real(-1.), s_inv, r_Gamma, Real(0.), r_inv);
 
     // Gamma_ += Gamma_ * q_ * s_^-1 * r_ * Gamma_
-    linalg::matrixop::gemm(-1., q_inv, r_Gamma, 1., bulk);
+    linalg::matrixop::gemm(Real(-1.), q_inv, r_Gamma, Real(1.), bulk);
   }
   else {
     Gamma_inv_[s].resizeNoCopy(delta);
@@ -738,7 +738,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateM() {
       }
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
-      linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
+      linalg::matrixop::gemm(Real(-1.), old_G, result_matrix, Real(1.), M_[s]);
       flop_ += 2 * Gamma_inv_[s].nrRows() * Gamma_inv_[s].nrCols() * old_M.nrCols();
       flop_ += 2 * old_G.nrRows() * old_G.nrCols() * result_matrix.nrCols();
 
@@ -826,7 +826,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::removeRowAndColOfGamma
       linalg::matrixop::gemm(q_[s], s_[s], q_s);
 
       // Gamma_inv_ -= Q*S^-1*R
-      linalg::matrixop::gemm(-1., q_s, r_[s], 1., Gamma_inv_[s]);
+      linalg::matrixop::gemm(Real(-1.), q_s, r_[s], Real(1.), Gamma_inv_[s]);
     }  // if n
     else {
       Gamma_inv_[s].resizeNoCopy(0);
@@ -930,7 +930,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeInsertionMatric
     auto& Gamma_q = Gamma_q_[s];
     Gamma_q.resizeNoCopy(q_[s].size());
     linalg::matrixop::gemm(Gamma_inv_[s], q_[s], Gamma_q);
-    linalg::matrixop::gemm(-1., r_[s], Gamma_q, 1., s_[s]);
+    linalg::matrixop::gemm(Real(-1.), r_[s], Gamma_q, Real(1.), s_[s]);
   }
 }
 

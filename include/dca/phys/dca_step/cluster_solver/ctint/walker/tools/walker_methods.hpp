@@ -112,10 +112,12 @@ inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
   }
 }
 
-template <class MatrixType>
-inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<double, linalg::CPU>& work) {
+template <class Matrix, typename Real>
+inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::CPU>& ipiv,
+                         linalg::Vector<Real, linalg::CPU>& work) {
+  static_assert(std::is_same<typename Matrix::ValueType, Real>::value, "Matrix type mismatch.");
   assert(m.size() == m.size());
+
   switch (m.nrCols()) {
     case 1:
       m(0, 0) = 1. / m(0, 0);
@@ -123,7 +125,7 @@ inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, li
     case 2:
       assert(det);
       {
-        const double tmp = m(0, 0);
+        const Real tmp = m(0, 0);
         m(0, 0) = m(1, 1) / det;
         m(1, 0) /= -det;
         m(0, 1) /= -det;
