@@ -20,7 +20,7 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtauxBilayerValidationTest, GreensFunction) {
+TEST(CtintBilayerValidationTest, GreensFunction) {
   //  dca::linalg::util::initializeMagma();
 
   using namespace dca::testing;
@@ -79,7 +79,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
     // read the stored reference data
     dca::math::StatisticalTesting test(G_k_w_sample, G_k_w_expected, G_k_w_covariance, 1);
     double p_value = test.computePValue(false, number_of_samples);
-    test.printInfo("ctaux_Cu_testinfo.out", true);
+    test.printInfo("ctint_Cu_testinfo.out", true);
     double p_value_default = 0.05;
     std::cout << "\n***\nThe p-value is " << p_value << "\n***\n";
     EXPECT_LT(p_value_default, p_value);
