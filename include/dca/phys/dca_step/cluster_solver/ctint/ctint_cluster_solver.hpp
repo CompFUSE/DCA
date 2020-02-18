@@ -153,7 +153,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
   Walker::setDMatrixBuilder(g0_);
 
-    Walker::setInteractionVertices(data_);
+  Walker::setInteractionVertices(data_);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";
@@ -171,8 +171,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
 
   g0_.initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
 
-  if (dca_iteration == 0 || parameters_.adjustAlphaDd())
-    Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
   perform_tp_accumulation_ =
       parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
