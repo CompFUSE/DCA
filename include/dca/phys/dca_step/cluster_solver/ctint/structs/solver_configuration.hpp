@@ -49,7 +49,7 @@ public:
   template <class RngType>
   void insertRandom(RngType& rng);
 
-  // Returns at most two candidates. -1 stands for a missing candidate.
+  // Returns the indices of the removal candidates. -1 stands for a missing candidate.
   template <class RngType>
   std::array<int, 2> randomRemovalCandidate(RngType& rng, double removal_rand);
   template <class RngType>

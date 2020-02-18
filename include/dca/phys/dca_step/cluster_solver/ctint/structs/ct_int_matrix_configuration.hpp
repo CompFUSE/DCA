@@ -56,8 +56,8 @@ struct ConfigRef {
   ConfigRef() = default;
   ConfigRef(unsigned _config_id, std::uint8_t _leg_id) : config_id(_config_id), leg_id(_leg_id) {}
 
-  unsigned config_id;   // Index of the interaction in the SolverConfiguration.
-  std::uint8_t leg_id;  // Stores if this is the first or second leg of the interaction.
+  unsigned config_id;  // Index of the interaction in the SolverConfiguration.
+  std::uint8_t leg_id;  // In {0, 1}. Stores if this is the first or second leg of an interaction vertex.
 };
 
 class MatrixConfiguration {
