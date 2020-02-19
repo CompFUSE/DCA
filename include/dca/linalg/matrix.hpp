@@ -38,6 +38,7 @@ public:
   using ThisType = Matrix<ScalarType, device_name>;
   using ValueType = ScalarType;
   using Allocator = util::DefaultAllocator<ScalarType, device_name>;
+  constexpr static DeviceType device = device_name;
 
   Matrix(const std::string& name = default_name_);
 

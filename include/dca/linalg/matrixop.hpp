@@ -15,6 +15,7 @@
 // - real
 // - insertCol, insertRow (for CPU matrices only)
 // - inverse
+// - inverseAndDeterminant
 // - removeCol, removeCols, removeRow, removeRows, removeRowAndCol, removeRowAndCols
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
@@ -22,6 +23,7 @@
 // - gemm
 // - multiply
 // - trsm
+// - determinant
 // - eigensolver (non-symmetric / symmetric / Hermitian)
 // - pseudoInverse
 
@@ -128,9 +130,9 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 // Preconditions: i_x.size() <= i_y.size(), mat_x.nrCols() == mat_y.nrCols()
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
-template <typename Scalar>
-inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vector<int, CPU>& i_x,
-                     Matrix<Scalar, CPU>& mat_y, const Vector<int, CPU>& i_y, int /*thread_id*/ = 0,
+template <typename Scalar, class Vec>
+inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vec& i_x, Matrix<Scalar, CPU>& mat_y,
+                     const Vec& i_y, int /*thread_id*/ = 0,
                      int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
@@ -149,6 +151,19 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  i_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the i_x rows of mat_x into  mat_y, for 0 <= i < i_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrCols() == mat_y.nrCols()
+//                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size().
+template <typename Scalar>
+inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i_x,
+                     Matrix<Scalar, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 
@@ -323,6 +338,33 @@ void smallInverse(Matrix<Scalar, CPU>& m_inv) {
   Vector<int, CPU> ipiv;
   Vector<Scalar, CPU> work;
   smallInverse(m_inv, ipiv, work);
+}
+
+// Computes in place the inverse of mat and the determinant of the inverse.
+// In/Out: mat
+// Returns: the determinant of mat^-1
+// Precondition: mat is a non-singular real matrix.
+template <typename Scalar, template <typename, DeviceType> class MatrixType>
+Scalar inverseAndDeterminant(MatrixType<Scalar, CPU>& mat) {
+  assert(mat.is_square());
+  std::vector<int> ipiv(mat.nrRows());
+
+  lapack::UseDevice<CPU>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
+                                ipiv.data());
+
+  Scalar det = 1;
+  for (int i = 0; i < mat.nrCols(); ++i) {
+    det *= mat(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+
+  const int lwork = util::getInverseWorkSize(mat);
+  std::vector<Scalar> work(lwork);
+  lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
+                                work.data(), lwork);
+
+  return 1. / det;
 }
 
 // Remove the j-th column. The data is moved accordingly.
@@ -1158,6 +1200,42 @@ void pseudoInverse(const Matrix<Scalar, CPU>& a, Matrix<Scalar, CPU>& a_inv, dou
     gemm('N', 'C', v, vt, at_a);
     gemm('N', 'C', at_a, a, a_inv);
   }
+}
+
+// Computes (in place) the determinant of the matrix.
+// Returns: determinant.
+// Postcondition: M is its LU decomposition.
+template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
+double determinantIP(MatrixType<Scalar, device>& M) {
+  assert(M.nrCols() == M.nrRows());
+  const int n = M.nrCols();
+  std::vector<int> ipiv(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return 0;
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  double det = 1.;
+  for (int i = 0; i < n; i++) {
+    det *= M(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+  return det;
+}
+
+// Copy and computes the determinant of the matrix.
+// Returns: determinant.
+template <typename Scalar>
+double determinant(const Matrix<Scalar, CPU>& M) {
+  Matrix<Scalar, CPU> M_copy(M);
+  return determinantIP(M_copy);
 }
 
 template <typename Scalar>
