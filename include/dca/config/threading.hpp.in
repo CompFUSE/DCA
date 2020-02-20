@@ -1,0 +1,33 @@
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: John Biddiscombe (biddisco@cscs.ch)
+//
+// This is a CMake generated header file.
+// It contains preprocessor definitions to configure the applications according to the options set
+// via CMake.
+
+#ifndef DCA_CONFIG_THREADING_DEFINES_HPP
+#define DCA_CONFIG_THREADING_DEFINES_HPP
+
+#include "dca/config/haves_defines.hpp"
+#include "dca/config/config_defines.hpp"
+
+#if defined(DCA_HAVE_HPX)
+# include "dca/parallel/hpx/hpx.hpp"
+  using Threading = dca::parallel::hpxthread;
+# ifdef DCA_HPX_MAIN
+#  include <hpx/hpx_main.hpp>
+# endif
+#else
+# include "dca/parallel/stdthread/stdthread.hpp"
+# include "dca/parallel/stdthread/thread_pool/affinity.hpp"
+  using Threading = dca::parallel::stdthread;
+#endif
+
+
+#endif  // DCA_CONFIG_THREADING_DEFINES_HPP

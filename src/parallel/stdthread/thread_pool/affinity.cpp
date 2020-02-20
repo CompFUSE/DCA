@@ -9,7 +9,7 @@
 //
 // This file implements the methods in affinity.hpp.
 
-#include "dca/parallel/stdthread/thread_pool/affinity.hpp"
+#include "dca/config/threading.hpp"
 
 #include <iostream>
 #include <cstdlib>

@@ -12,3 +12,4 @@ dca_add_gtest(cached_ndft_gpu_test
   FAST
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS ${DCA_CUDA_LIBS} time_and_frequency_domains random function mc_kernels cuda_utils)
+# ${LAPACK_LIBRARIES}

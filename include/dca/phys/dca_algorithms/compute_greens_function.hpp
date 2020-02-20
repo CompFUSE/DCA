@@ -15,11 +15,11 @@
 #include <complex>
 #include <utility>
 
+#include "dca/config/threading.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 
 namespace dca {
@@ -41,7 +41,7 @@ void compute_G_k_w(
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G_k_w) {
   G_k_w = 0.;
 
-  parallel::stdthread().execute(n_threads, [&](int id, int n_threads) {
+  Threading().execute(n_threads, [&](int id, int n_threads) {
     // Work space for inverse.
     linalg::Matrix<std::complex<Scalar>, linalg::CPU> G_inv("G_inv", OrbitalSpinDmn::dmn_size());
     linalg::Vector<int, linalg::CPU> ipiv;
