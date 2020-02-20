@@ -23,7 +23,7 @@ TEST(ThreadPoolTest, Enqueue) {
   std::iota(input.begin(), input.end(), 0);
 
   auto workload = [](const std::size_t id, const std::vector<int>& inp, std::vector<int>& out) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    hpx::this_thread::sleep_for(std::chrono::milliseconds(5));
     out[id] = inp[id] * inp[id];
   };
 
@@ -35,11 +35,11 @@ TEST(ThreadPoolTest, Enqueue) {
     auto task = std::bind(workload, std::placeholders::_1, std::ref(input), std::ref(output));
     std::vector<dca::parallel::thread_traits::future_type<void>> futures;
     for (std::size_t id = 0; id < n_items; ++id)
-      futures.emplace_back(pool.enqueue(task, id));
+      futures.emplace_back(hpx::async(task, id));
 
     // Check the synchronization with futures.
     for (std::size_t id = 0; id < n_immediate_checks; ++id) {
-      futures[id].wait();
+      futures[id].get();
       EXPECT_EQ(input[id] * input[id], output[id]);
     }
   }
@@ -67,13 +67,13 @@ TEST(ThreadPoolTest, Enlarge) {
   std::vector<dca::parallel::thread_traits::future_type<int>> futures;
 
   for (std::size_t i = 0; i < 5; ++i)
-    futures.emplace_back(pool.enqueue(workload, i));
+    futures.emplace_back(hpx::async(workload, i));
 
   pool.enlarge(5);
   EXPECT_EQ(std::size_t(5), pool.size());
 
   for (int i = 5; i < 12; ++i)
-    futures.emplace_back(pool.enqueue(workload, i));
+    futures.emplace_back(hpx::async(workload, i));
 
   for (std::size_t i = 0; i < 12; ++i)
     EXPECT_EQ(i, futures[i].get());

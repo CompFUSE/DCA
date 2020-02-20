@@ -20,24 +20,27 @@ int task(unsigned int loop_id, std::vector<int>& data) {
 
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
     ++data[loop_id];
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    hpx::this_thread::sleep_for(std::chrono::microseconds(100));
   });
   return 0;
 }
 
 TEST(CallOncePerLoopTest, All) {
-  const int n_loops(1000);
+  const int n_loops(10);
   std::vector<int> result(n_loops, 0);
 
   {
     const int n_threads = 8;
-    dca::parallel::ThreadPool pool(n_threads);
+//    dca::parallel::ThreadPool pool(n_threads);
 
     for (unsigned int loop_id = 0; loop_id < n_loops; ++loop_id) {
+    std::vector<dca::parallel::thread_traits::future_type<int>> futures;
       for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
-        pool.enqueue(task, loop_id, std::ref(result));
+        futures.push_back(hpx::async(task, loop_id, std::ref(result)));
       }
+        hpx::wait_all(futures);
     }
+
   }
 
   for (int elem : result)
