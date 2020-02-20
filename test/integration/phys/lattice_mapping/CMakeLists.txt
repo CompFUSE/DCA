@@ -7,4 +7,4 @@ dca_add_gtest(lattice_mapping_sp_test EXTENSIVE
   LIBS json function cluster_domains ${DCA_THREADING_LIBS} parallel_util time_and_frequency_domains
        quantum_domains gaussian_quadrature
        tetrahedron_mesh coarsegraining enumerations dca_hdf5 ${LAPACK_LIBRARIES} ${HDF5_LIBRARIES}
-       lapack)
+       lapack cuda_utils)
