@@ -183,11 +183,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   auto& pool = dca::parallel::ThreadPool::get_instance();
   for (int i = 0; i < thread_task_handler_.size(); ++i) {
     if (thread_task_handler_.getTask(i) == "walker")
-      futures.emplace_back(pool.enqueue(&ThisType::startWalker, this, i));
+      futures.emplace_back(hpx::async(&ThisType::startWalker, this, i));
     else if (thread_task_handler_.getTask(i) == "accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::startAccumulator, this, i));
+      futures.emplace_back(hpx::async(&ThisType::startAccumulator, this, i));
     else if (thread_task_handler_.getTask(i) == "walker and accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::startWalkerAndAccumulator, this, i));
+      futures.emplace_back(hpx::async(&ThisType::startWalkerAndAccumulator, this, i));
     else
       throw std::logic_error("Thread task is undefined.");
   }
