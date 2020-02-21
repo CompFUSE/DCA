@@ -115,7 +115,7 @@ public:
   // we don't do anything here, just update the size
   // so that DCA tests pass
   void enlarge(std::size_t n_threads) {
-      std::cout << "HPX threadpool enlarge: " << n_threads << std::endl;
+      //std::cout << "HPX threadpool enlarge: " << n_threads << std::endl;
       pool_size = (std::max)(n_threads, pool_size);
   }
 
