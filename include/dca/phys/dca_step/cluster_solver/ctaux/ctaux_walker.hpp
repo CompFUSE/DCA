@@ -284,6 +284,9 @@ private:
   std::array<linalg::util::CudaEvent, 2> m_computed_events_;
 
   bool config_initialized_;
+
+  std::size_t meas_id_ = 0;
+  io::HDF5Writer config_file_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -341,6 +344,10 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
       num_delayed_spins_(),
 
       config_initialized_(false) {
+  if (parameters.stamping_period()) {
+    config_file_.open_file(parameters.get_configuration_stamps());
+  }
+
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n"
               << "\t\t"
@@ -486,6 +493,13 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::doSweep() {
 
   if (!thermalized)
     ++warm_up_sweeps_done_;
+
+  ++meas_id_;
+  if (parameters.stamping_period()) {
+    if ((meas_id_ % parameters.stamping_period()) == 0) {
+      configuration.write(config_file_, std::to_string(meas_id_));
+    }
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

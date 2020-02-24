@@ -18,6 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <dca/io/hdf5/hdf5_writer.hpp>
 
 #include "dca/io/buffer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
@@ -106,6 +107,8 @@ public:
   std::size_t find(uint64_t vertex_id) const;
 
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  void write(io::HDF5Writer& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -875,9 +878,42 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
          current_Nb_of_creatable_spins == rhs.current_Nb_of_creatable_spins;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::write(io::HDF5Writer& file,
+                                                     const std::string& stamp) const {
+  file.open_group(stamp);
+
+  const auto n = configuration.size();
+  std::vector<double> times(n);
+  std::vector<std::array<int, 2>> bands(n);
+  std::vector<std::array<int, 2>> e_spins(n);
+  std::vector<std::array<int, 2>> sites(n);
+  std::vector<std::int8_t> hs_spin(n);
+
+  auto to_array = [](const std::pair<int, int>& pair) {
+    return std::array<int, 2>{pair.first, pair.second};
+  };
+
+  for (int i = 0; i < configuration.size(); ++i) {
+    times[i] = configuration[i].get_tau();
+    bands[i] = to_array(configuration[i].get_bands());
+    e_spins[i] = to_array(configuration[i].get_e_spins());
+    sites[i] = to_array(configuration[i].get_r_sites());
+    hs_spin[i] = configuration[i].get_HS_spin();
+  }
+
+  file.execute("times", times);
+  file.execute("bands", bands);
+  file.execute("e_spinds", e_spins);
+  file.execute("sites", sites);
+  file.execute("hs_spin", hs_spin);
+
+  file.close_group();
+}
+
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP
