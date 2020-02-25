@@ -164,8 +164,8 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
-  static InteractionVertices vertices_;
+  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
+  static inline InteractionVertices vertices_;
 
   const Parameters& parameters_;
   const Concurrency& concurrency_;
@@ -179,7 +179,7 @@ protected:  // Members.
   MatrixPair M_;
 
   const Real beta_;
-  static constexpr int n_bands_ = Parameters::bands;
+  static inline constexpr int n_bands_ = Parameters::bands;
   const int possible_partners_;
 
   const Real total_interaction_;  // Space integrated interaction Hamiltonian.
@@ -204,13 +204,6 @@ private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<Real, linalg::CPU> work_;
 };
-template <class Parameters, typename Real>
-constexpr int CtintWalkerBase<Parameters, Real>::n_bands_;
-
-template <class Parameters, typename Real>
-InteractionVertices CtintWalkerBase<Parameters, Real>::vertices_;
-template <class Parameters, typename Real>
-std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> CtintWalkerBase<Parameters, Real>::d_builder_ptr_;
 
 template <class Parameters, typename Real>
 CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,

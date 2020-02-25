@@ -42,6 +42,10 @@ public:
   using typename BaseClass::Rng;
   using typename BaseClass::Data;
 
+  using Matrix = typename BaseClass::Matrix;
+  using MatrixPair = typename BaseClass::MatrixPair;
+  using MatrixView = typename linalg::MatrixView<Real, linalg::CPU>;
+
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
@@ -66,10 +70,6 @@ protected:
 
 private:
   Real insertionProbability(int delta_vertices);
-
-  using Matrix = typename BaseClass::Matrix;
-  using MatrixPair = typename BaseClass::MatrixPair;
-  using MatrixView = typename linalg::MatrixView<Real, linalg::CPU>;
 
   void applyInsertion(const MatrixPair& S, const MatrixPair& Q, const MatrixPair& R);
 

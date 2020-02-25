@@ -47,6 +47,8 @@ public:
     return g0_ref_;
   }
 
+  // See DMatrixBuilder<linalg::CPU, Real>::computeG0.
+  // Out: G0. Device matrix
   void computeG0(Matrix& G0, const details::DeviceConfiguration& configuration, int n_init,
                  bool right_section, cudaStream_t stream) const override;
 

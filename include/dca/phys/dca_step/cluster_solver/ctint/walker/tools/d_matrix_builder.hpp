@@ -8,7 +8,7 @@
 // Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //          Jérémie Bouquet (bouquetj@gmail.com)
 //
-// Class to compute matrices made by different combinations of G0 and auxiliary fields.
+// Class to compute new entries of the D matrix.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_HPP
@@ -51,19 +51,32 @@ public:
 
   virtual ~DMatrixBuilder() {}
 
+  // Set the parameters of the alpha field (see next function).
   void setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd);
 
+  // Computes the right (Q), bottom(R), and right-bottom (S) blocks of the D matrix (M^-1) with elements
+  // D_i,j = G0(v_i, v_j) + delta(i, j) alpha_field(v_i), where v_i is an interaction vertex.
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R, const SolverConfiguration& config) const;
 
   const G0Interpolation<linalg::CPU, Real>& getG0() const {
     return g0_ref_;
   }
 
+  // Computes the i, j entry of the D matrix.
   Real computeD(const int i, const int j, const Sector& config) const;
+
+  // Computes the alpha field given auxiliary spin and band.
   Real computeAlpha(const int aux_spin_type, const int b) const;
+
+  // Computes the quantity f = alpha_field / (1 - alpha_field). Used by the submatrix solver.
   Real computeF(const Real alpha) const;
   Real computeF(const int aux_spin_type, int b) const;
+
+  // computes the gamma factor: gamma = (f(new_spin) - f(old_spin)) / f(old_spin)
   Real computeGamma(int aux_spin_type, int new_aux_spin_type, int b) const;
+
+  // Computes a sector of the G0 matrix.
+  // If which_section == 0, computes the bottom sector. If which_sector == 1 computes the right sector.
   void computeG0(Matrix& G0, const Sector& configuration, const int n_init, const int n_max,
                  const int which_section) const;
 
@@ -80,9 +93,11 @@ private:
 
 protected:
   const G0Interpolation<linalg::CPU, Real>& g0_ref_;
-  std::vector<Real> alpha_dd_;
-  Real alpha_dd_neg_ = 0;
-  Real alpha_ndd_ = 0;
+
+  std::vector<Real> alpha_dd_;  // alpha parameters for density-density interactions. One for each band.
+  Real alpha_dd_neg_ = 0;  // parameter for density-density interactions with negative coupling.
+  Real alpha_ndd_ = 0;     // parameter for non-density-density interactions.
+
   const int n_bands_ = -1;
   std::array<int, 2> sbdm_step_;
   // Note: site_diff is a matrix where site_diff(i,j) = r_j - r_i.
