@@ -89,7 +89,7 @@ public:
   }
 };
 
-}  // detail
+}  // namespace detail
 // dca::phys::solver::ed::
 
 template <typename parameters_type, typename ed_options>
@@ -135,8 +135,9 @@ public:
       /*const*/ func::function<std::complex<double>,
                                func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
                                                   func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                          func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
+      /*const*/ func::function<
+          double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                     func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
 
   void construct_Hamiltonians(bool interacting);
   void diagonalize_Hamiltonians_st();
@@ -167,8 +168,9 @@ private:
       /*const*/ func::function<std::complex<double>,
                                func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
                                                   func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                          func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
+      /*const*/ func::function<
+          double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                     func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
 
   void shift_the_energies();
 
@@ -234,7 +236,8 @@ void Hamiltonian<parameters_type, ed_options>::initialize(
                              func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
                                                 func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
     /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int) {
+                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>&
+        H_int) {
   initialize_t_ij_and_U_ij(H_0, H_int);
 }
 
@@ -244,16 +247,16 @@ void Hamiltonian<parameters_type, ed_options>::initialize_t_ij_and_U_ij(
                              func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
                                                 func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
     /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int) {
+                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>&
+        H_int) {
   {
     for (int r_j = 0; r_j < RClusterDmn::dmn_size(); r_j++) {
       for (int s_j = 0; s_j < s_dmn::dmn_size(); s_j++) {
         for (int b_j = 0; b_j < b_dmn::dmn_size(); b_j++) {
           detail::V_struct<scalar_type> V_obj;
 
-          V_obj.index =
-              b_j +
-              b_dmn::dmn_size() * (s_j + s_dmn::dmn_size() * r_j);  // index: r -> spin -> band
+          V_obj.index = b_j + b_dmn::dmn_size() *
+                                  (s_j + s_dmn::dmn_size() * r_j);  // index: r -> spin -> band
 
           V_obj.value = -parameters.get_chemical_potential();  // ???: V = -mu = const?
 
@@ -330,7 +333,7 @@ void Hamiltonian<parameters_type, ed_options>::construct_Hamiltonians(bool inter
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < V_i.size(); ++l) {
@@ -357,7 +360,7 @@ void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, m
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < t_ij.size(); ++l) {
@@ -390,7 +393,7 @@ void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, m
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < U_ij.size(); ++l) {
@@ -586,7 +589,7 @@ void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matri
 
 template <typename parameters_type, typename ed_options>
 bool Hamiltonian<parameters_type, ed_options>::check_block_structure(int N, matrix_type& H,
-                                                                    Hilbert_space_type& subspace) {
+                                                                     Hilbert_space_type& subspace) {
   for (int state_f = 0; state_f < N; ++state_f) {
     psi_state_type& Psi_f = subspace.get_element(state_f);
     for (int state_i = 0; state_i < N; ++state_i) {
@@ -638,7 +641,7 @@ void Hamiltonian<parameters_type, ed_options>::diagonalize_Hamiltonians_st() {
     }
   }
 
-  int end = clock();
+  int end = clock();5
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__
@@ -819,9 +822,9 @@ void Hamiltonian<parameters_type, ed_options>::print_eigen_states(const char* fi
   data.close();
 }
 
-}  // ed
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ed
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HAMILTONIAN_HPP

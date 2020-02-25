@@ -15,11 +15,13 @@
 
 #include <complex>
 #include <iostream>
+#include <mutex>
 #include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fermionic_overlap_matrices.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fock_space.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/c_operator.hpp"
@@ -47,7 +49,7 @@ public:
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
-    
+
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -107,19 +109,19 @@ private:
       func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w_im,
       func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_re,
       func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
-          G_nu_nu_r_r_w_w,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
-          G_nu_nu_k_k_w_w);
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn,
+                                                      w_VERTEX, w_VERTEX>>& G_nu_nu_r_r_w_w,
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn,
+                                                      w_VERTEX, w_VERTEX>>& G_nu_nu_k_k_w_w);
 
   void renormalize_real_space_Greens_functions(
       func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w_im,
       func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_re,
       func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
-          G_nu_nu_r_r_w_w,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
-          G_nu_nu_k_k_w_w);
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn,
+                                                      w_VERTEX, w_VERTEX>>& G_nu_nu_r_r_w_w,
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn,
+                                                      w_VERTEX, w_VERTEX>>& G_nu_nu_k_k_w_w);
 
   void compute_Greens_functions_ac_slow(std::vector<sp_Greens_function_data_type>& data_vec);  // ,
 
@@ -146,7 +148,7 @@ private:
   void compute_sp_Greens_function_slow(int nu_i_nu_j_delta_r, scalar_type E_i, scalar_type E_j,
                                        complex_type factor, sp_Greens_function_data_type& data);
 
-  void compute_Greens_functions_slow(std::vector<sp_Greens_function_data_type>& data_vec);
+  void compute_Greens_functions_slow(sp_Greens_function_data_type& data_vec, int id, int threads);
 
   /*!
    *  old functions ...
@@ -199,14 +201,18 @@ private:
 
   func::function<int, func::dmn_variadic<RClusterDmn, RClusterDmn>> rj_minus_ri;
 
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type,
+                 func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
       G0_nonlocal_nu_nu_r_r_w_w;
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type,
+                 func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
       G0_nonlocal_nu_nu_k_k_w_w;
 
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type,
+                 func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
       G_nonlocal_nu_nu_r_r_w_w;
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type,
+                 func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
       G_nonlocal_nu_nu_k_k_w_w;
 };
 
@@ -308,9 +314,12 @@ void SpGreensFunction<parameters_type, ed_options>::compute_all_sp_functions_slo
     renormalize_real_space_Greens_functions(MOMS_imag.G_r_w, MOMS_real.G_r_w, MOMS_imag.G_r_t,
                                             G_nonlocal_nu_nu_r_r_w_w, G_nonlocal_nu_nu_k_k_w_w);
 
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G_r_w, MOMS_imag.G_k_w);
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_real.G_r_w, MOMS_real.G_k_w);
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G_r_t, MOMS_imag.G_k_t);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G_r_w,
+                                                                          MOMS_imag.G_k_w);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_real.G_r_w,
+                                                                          MOMS_real.G_k_w);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G_r_t,
+                                                                          MOMS_imag.G_k_t);
   }
   else {
     compute_real_space_Greens_functions(MOMS_imag.G0_r_w, MOMS_real.G0_r_w, MOMS_imag.G0_r_t,
@@ -318,9 +327,12 @@ void SpGreensFunction<parameters_type, ed_options>::compute_all_sp_functions_slo
     renormalize_real_space_Greens_functions(MOMS_imag.G0_r_w, MOMS_real.G0_r_w, MOMS_imag.G0_r_t,
                                             G0_nonlocal_nu_nu_r_r_w_w, G0_nonlocal_nu_nu_k_k_w_w);
 
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G0_r_w, MOMS_imag.G0_k_w);
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_real.G0_r_w, MOMS_real.G0_k_w);
-    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G0_r_t, MOMS_imag.G0_k_t);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G0_r_w,
+                                                                          MOMS_imag.G0_k_w);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_real.G0_r_w,
+                                                                          MOMS_real.G0_k_w);
+    math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(MOMS_imag.G0_r_t,
+                                                                          MOMS_imag.G0_k_t);
   }
 }
 
@@ -329,10 +341,10 @@ void SpGreensFunction<parameters_type, ed_options>::compute_real_space_Greens_fu
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w_im,
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_re,
     func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t,
-    func::function<complex_type,
-                   func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>& /*G_nu_nu_r_r_w_w*/,
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX,
-                                                    w_VERTEX>>& /*G_nu_nu_k_k_w_w*/) {
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn,
+                                                    w_VERTEX, w_VERTEX>>& /*G_nu_nu_r_r_w_w*/,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn,
+                                                    w_VERTEX, w_VERTEX>>& /*G_nu_nu_k_k_w_w*/) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -342,20 +354,17 @@ void SpGreensFunction<parameters_type, ed_options>::compute_real_space_Greens_fu
 
   int start = clock();
 
-  {
-    int n_threads = 1;
+  const int n_threads = parameters.get_ed_threads();
+  std::mutex mutex_sum;
 
-    std::vector<sp_Greens_function_data_type> data_vec(n_threads);
+  parallel::stdthread().execute(n_threads, [&](int id, int n_threads) {
+    sp_Greens_function_data_type data;
+    data.initialize(parameters);
+    compute_Greens_functions_slow(data, id, n_threads);
 
-    for (int l = 0; l < n_threads; l++)
-      data_vec[l].initialize(parameters);
-
-    compute_Greens_functions_slow(data_vec);
-
-    for (int l = 0; l < n_threads; l++) {
-      data_vec[l].sum_to(G_r_w_im, G_r_w_re, G_r_t);
-    }
-  }
+    std::unique_lock<std::mutex> lock(mutex_sum);
+    data.sum_to(G_r_w_im, G_r_w_re, G_r_t);
+  });
 
   {
     for (int t_i = t::dmn_size() / 2; t_i < t::dmn_size(); t_i++)
@@ -377,10 +386,10 @@ void SpGreensFunction<parameters_type, ed_options>::renormalize_real_space_Green
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w_im,
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_re,
     func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t,
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
-        G_nu_nu_r_r_w_w,
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
-        G_nu_nu_k_k_w_w) {
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn,
+                                                    w_VERTEX, w_VERTEX>>& G_nu_nu_r_r_w_w,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn,
+                                                    w_VERTEX, w_VERTEX>>& G_nu_nu_k_k_w_w) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
   }
@@ -592,7 +601,7 @@ void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function(
 
 template <typename parameters_type, typename ed_options>
 int SpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
-                                                                      bool is_creation, int bsr_ind) {
+                                                                       bool is_creation, int bsr_ind) {
   if (is_creation)
     return creation_set_all(HS_i, HS_j, bsr_ind);
   else
@@ -600,10 +609,8 @@ int SpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i,
 }
 
 template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(int HS_i, int HS_j,
-                                                                       bool is_creation, int bsr_ind,
-                                                                       matrix_type& matrix,
-                                                                       matrix_type& tmp) {
+void SpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(
+    int HS_i, int HS_j, bool is_creation, int bsr_ind, matrix_type& matrix, matrix_type& tmp) {
   if (is_creation)
     overlap.compute_creation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
   else
@@ -693,30 +700,31 @@ void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function_s
  */
 template <typename parameters_type, typename ed_options>
 void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_slow(
-    std::vector<sp_Greens_function_data_type>& data_vec) {
-  if (concurrency.id() == concurrency.first())
+    sp_Greens_function_data_type& data, int id, int threads) {
+  if (concurrency.id() == concurrency.first() && id == 0)
     std::cout << "\t" << __FUNCTION__ << std::endl;
-  ;
 
-  int origin = RClusterDmn::parameter_type::origin_index();
+  const int origin = RClusterDmn::parameter_type::origin_index();
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  for (int HS_0 = 0; HS_0 < Hilbert_spaces.size(); ++HS_0) {
+  auto bounds = parallel::util::getBounds(id, threads, std::make_pair(0, int(Hilbert_spaces.size())));
+
+  std::vector<std::vector<c_operator>> sp_perms;
+
+  for (int HS_0 = bounds.first; HS_0 < bounds.second; ++HS_0) {
     for (int HS_1 = 0; HS_1 < Hilbert_spaces.size(); ++HS_1) {
       for (int nu_0 = 0; nu_0 < nu_dmn::dmn_size(); nu_0++) {
         for (int nu_1 = 0; nu_1 < nu_dmn::dmn_size(); nu_1++) {
           for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
             int r_1 = origin;
 
-            sp_Greens_function_data_type& data = data_vec[0];
-
             int nu_0_nu_1_r_0 = data.nu_nu_r_dmn(nu_0, nu_1, r_0);
 
             int bsr_0 = data.nu_r_dmn(nu_0, r_0);
             int bsr_1 = data.nu_r_dmn(nu_1, r_1);
 
-            std::vector<std::vector<c_operator>> sp_perms;
+            sp_perms.clear();
 
             compute_sp_permutations(bsr_0, bsr_1, sp_perms);
 
@@ -763,9 +771,9 @@ void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_slo
   }
 }
 
-}  // ed
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ed
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_SP_GREENS_FUNCTION_HPP
