@@ -641,7 +641,7 @@ void Hamiltonian<parameters_type, ed_options>::diagonalize_Hamiltonians_st() {
     }
   }
 
-  int end = clock();5
+  int end = clock();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__

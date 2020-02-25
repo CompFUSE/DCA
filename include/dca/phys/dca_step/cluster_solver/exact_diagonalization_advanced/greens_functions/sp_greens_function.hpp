@@ -366,6 +366,10 @@ void SpGreensFunction<parameters_type, ed_options>::compute_real_space_Greens_fu
     data.sum_to(G_r_w_im, G_r_w_re, G_r_t);
   });
 
+  concurrency.sum(G_r_w_im);
+  concurrency.sum(G_r_w_re);
+  concurrency.sum(G_r_t);
+
   {
     for (int t_i = t::dmn_size() / 2; t_i < t::dmn_size(); t_i++)
       for (int r_i = 0; r_i < RClusterDmn::dmn_size(); r_i++)
@@ -708,12 +712,16 @@ void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_slo
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  auto bounds = parallel::util::getBounds(id, threads, std::make_pair(0, int(Hilbert_spaces.size())));
+  const auto bounds_local =
+      parallel::util::getBounds(id, threads, std::make_pair(0, int(Hilbert_spaces.size())));
+  const auto bounds_distributed =
+      parallel::util::getBounds(concurrency.id(), concurrency.number_of_processors(),
+                                std::make_pair(0, int(Hilbert_spaces.size())));
 
   std::vector<std::vector<c_operator>> sp_perms;
 
-  for (int HS_0 = bounds.first; HS_0 < bounds.second; ++HS_0) {
-    for (int HS_1 = 0; HS_1 < Hilbert_spaces.size(); ++HS_1) {
+  for (int HS_0 = bounds_distributed.first; HS_0 < bounds_distributed.second; ++HS_0) {
+    for (int HS_1 = bounds_local.first; HS_1 < bounds_local.second; ++HS_1) {
       for (int nu_0 = 0; nu_0 < nu_dmn::dmn_size(); nu_0++) {
         for (int nu_1 = 0; nu_1 < nu_dmn::dmn_size(); nu_1++) {
           for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
