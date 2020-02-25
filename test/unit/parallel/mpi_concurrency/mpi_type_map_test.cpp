@@ -31,9 +31,9 @@ TEST(MPITypeMapTest, All) {
 
   EXPECT_EQ(MPI_DOUBLE, MPITypeMap<double>::value());
 
-  EXPECT_EQ(MPI_COMPLEX, MPITypeMap<std::complex<float>>::value());
+  EXPECT_EQ(MPI_CXX_FLOAT_COMPLEX, MPITypeMap<std::complex<float>>::value());
 
-  EXPECT_EQ(MPI_DOUBLE_COMPLEX, MPITypeMap<std::complex<double>>::value());
+  EXPECT_EQ(MPI_CXX_DOUBLE_COMPLEX, MPITypeMap<std::complex<double>>::value());
 }
 
 TEST(MPITypeMapTest, Enums) {
