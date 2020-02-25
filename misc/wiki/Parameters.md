@@ -610,11 +610,16 @@ Only required if the exact diagonalization solver is used, e.g. in the applicati
 `"eigenvalue-cut-off":` double (1.e-6)  
 Only keep energy eigenvalues *E* for which e<sup>-*&beta;E*</sup> > *eigenvalue-cut-off*.
 
+`"threads":` int (1)  
+Number of threads participating in the ED solver.
+
+
 #### Example
 
     {
         "ED": {
-            "eigenvalue-cut-off": 1.e-6
+            "eigenvalue-cut-off": 1.e-6,
+            "threads" : 8
         }
     }
 

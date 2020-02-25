@@ -640,8 +640,8 @@ void Hamiltonian<parameters_type, ed_options>::diagonalize_Hamiltonians_st() {
         std::cout << double(end - start) / double(CLOCKS_PER_SEC) << "\n";
     }
   }
+    int end = clock();
 
-  int end = clock();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__
