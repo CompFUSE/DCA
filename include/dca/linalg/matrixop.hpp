@@ -132,8 +132,7 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
 template <typename Scalar, class Vec>
 inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vec& i_x, Matrix<Scalar, CPU>& mat_y,
-                     const Vec& i_y, int /*thread_id*/ = 0,
-                     int /*stream_id*/ = 0) {
+                     const Vec& i_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 

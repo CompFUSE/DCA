@@ -54,7 +54,7 @@ private:
   const G0Interpolation<linalg::GPU, Real>& g0_ref_;
 };
 
-template<typename Real>
+template <typename Real>
 template <class RDmn>
 DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
                                                   int nb, const RDmn& /*rdmn*/)

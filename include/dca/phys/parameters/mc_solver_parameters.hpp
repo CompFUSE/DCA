@@ -275,9 +275,8 @@ public:
     return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
   }
 
-
   bool adjustAlphaDd() const {
-      return adjust_alpha_dd_;
+    return adjust_alpha_dd_;
   }
 
   double getDoubleUpdateProbability() const {

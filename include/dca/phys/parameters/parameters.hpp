@@ -123,9 +123,9 @@ public:
     return concurrency_;
   }
   // TODO: remove non-const
-    concurrency_type& get_concurrency() {
-        return concurrency_;
-    }
+  concurrency_type& get_concurrency() {
+    return concurrency_;
+  }
 
 private:
   template <typename ReaderOrWriter>

@@ -22,7 +22,6 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-
 template <typename Real>
 __global__ void g0InterpolationTestKernel(Real tau, const int lindex,
                                           DeviceInterpolationData<Real> g0, Real* result) {
