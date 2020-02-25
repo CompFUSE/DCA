@@ -302,7 +302,6 @@ private:
   double alpha_ndd_ = 1e-4;
   bool adjust_alpha_dd_ = false;
   double double_update_probability_ = 0;
-  bool double_counted_interaction_ = true;
   int max_submatrix_size_ = 1;
 };
 
