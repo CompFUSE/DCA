@@ -23,7 +23,7 @@
 #include <hpx/runtime/threads/thread.hpp>
 #include <hpx/runtime/threads/executors/limiting_executor.hpp>
 #include <hpx/debugging/demangle_helper.hpp>
-#include <hpx/execution/executors/parallel_executor.hpp>
+#include <hpx/include/parallel_executors.hpp>
 #include <hpx/util/yield_while.hpp>
 //
 #include <vector>
