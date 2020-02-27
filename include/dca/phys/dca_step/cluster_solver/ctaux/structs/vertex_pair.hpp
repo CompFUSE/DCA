@@ -74,14 +74,46 @@ public:
 
   // algorithm-information
 
-  int& get_configuration_index();
+  int& get_configuration_index() {
+    return configuration_index;
+  }
+  const int& get_configuration_index() const {
+    return configuration_index;
+  }
   std::pair<int, int>& get_configuration_e_spin_indices();
 
-  bool& is_creatable();
-  bool& is_annihilatable();
-  bool& is_shuffled();
-  bool& is_Bennett();
-  bool& is_successfully_flipped();
+  void set_creatable(bool val) {
+    creatable = val;
+  }
+  void set_annihilatable(bool val) {
+    annihilatable = val;
+  }
+  void set_shuffled(bool val) {
+    shuffled = val;
+  }
+  void set_successfully_flipped(bool val) {
+    successfully_flipped = val;
+  }
+  void set_Bennett(bool val) {
+    Bennett = val;
+  }
+
+  bool is_creatable() const {
+    return creatable;
+  }
+  bool is_annihilatable() const {
+    return annihilatable;
+  }
+  bool is_shuffled() const {
+    return shuffled;
+  }
+
+  bool is_Bennett() const {
+    return Bennett;
+  }
+  bool is_successfully_flipped() const {
+    return successfully_flipped;
+  }
 
   bool operator==(const vertex_pair<parameters_type>& rhs) const;
 
@@ -286,38 +318,8 @@ double& vertex_pair<parameters_type>::get_tau() {
 }
 
 template <class parameters_type>
-int& vertex_pair<parameters_type>::get_configuration_index() {
-  return configuration_index;
-}
-
-template <class parameters_type>
 std::pair<int, int>& vertex_pair<parameters_type>::get_configuration_e_spin_indices() {
   return configuration_e_spin_indices;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_creatable() {
-  return creatable;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_annihilatable() {
-  return annihilatable;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_successfully_flipped() {
-  return successfully_flipped;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_Bennett() {
-  return Bennett;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_shuffled() {
-  return shuffled;
 }
 
 template <class parameters_type>
@@ -335,9 +337,9 @@ bool vertex_pair<parameters_type>::operator==(
          shuffled == rhs.shuffled;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_VERTEX_PAIR_HPP

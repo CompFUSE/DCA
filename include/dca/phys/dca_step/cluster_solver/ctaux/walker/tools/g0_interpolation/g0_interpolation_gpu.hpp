@@ -27,8 +27,9 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <typename Parameters>
-class G0Interpolation<dca::linalg::GPU, Parameters> : public G0InterpolationBase<Parameters> {
+template <typename Parameters, typename Real>
+class G0Interpolation<dca::linalg::GPU, Parameters, Real>
+    : public G0InterpolationBase<Parameters, Real> {
 public:
   using vertex_singleton_type = vertex_singleton;
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
@@ -41,19 +42,21 @@ public:
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
 
+  using Base = G0InterpolationBase<Parameters, Real>;
+
 public:
-  G0Interpolation(int id, Parameters& parameters);
+  G0Interpolation(int id, const Parameters& parameters);
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
 
   template <class Configuration>
   void build_G0_matrix(Configuration& configuration,
-                       dca::linalg::Matrix<double, dca::linalg::GPU>& G0, e_spin_states_type spin);
+                       dca::linalg::Matrix<Real, dca::linalg::GPU>& G0, e_spin_states_type spin);
 
   template <class Configuration>
   void update_G0_matrix(Configuration& configuration,
-                        dca::linalg::Matrix<double, dca::linalg::GPU>& G0, e_spin_states_type spin);
+                        dca::linalg::Matrix<Real, dca::linalg::GPU>& G0, e_spin_states_type spin);
 
   int deviceFingerprint() const {
     return G0_r_t_GPU.deviceFingerprint() + akima_coefficients_GPU.deviceFingerprint() +
@@ -67,41 +70,42 @@ private:
   int thread_id;
   int stream_id;
 
-  using G0InterpolationBase<Parameters>::parameters;
-  using G0InterpolationBase<Parameters>::concurrency;
+  using Base::parameters;
+  using Base::concurrency;
 
-  using G0InterpolationBase<Parameters>::G0_r_t_shifted;
-  using G0InterpolationBase<Parameters>::grad_G0_r_t_shifted;
+  using Base::G0_r_t_shifted;
+  using Base::grad_G0_r_t_shifted;
 
-  using G0InterpolationBase<Parameters>::akima_coefficients;
+  using Base::akima_coefficients;
 
-  using G0InterpolationBase<Parameters>::r1_minus_r0;
+  using Base::r1_minus_r0;
 
-  dca::linalg::Matrix<double, dca::linalg::GPU> r1_min_r0_GPU;
+  dca::linalg::Matrix<Real, dca::linalg::GPU> r1_min_r0_GPU;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> G0_r_t_CPU;
-  dca::linalg::Matrix<double, dca::linalg::GPU> G0_r_t_GPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_r_t_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::GPU> G0_r_t_GPU;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> grad_G0_r_t_CPU;
-  dca::linalg::Matrix<double, dca::linalg::GPU> grad_G0_r_t_GPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> grad_G0_r_t_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::GPU> grad_G0_r_t_GPU;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> akima_coefficients_CPU;
-  dca::linalg::Matrix<double, dca::linalg::GPU> akima_coefficients_GPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> akima_coefficients_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::GPU> akima_coefficients_GPU;
 
   int Nb, Nr, Nt;
 
   // Store indices of band and site, and the imaginary time.
-  linalg::MultiVector<linalg::CPU, int, int, double> g0_labels_cpu_;
-  linalg::MultiVector<linalg::GPU, int, int, double> g0_labels_gpu_;
+  linalg::MultiVector<linalg::CPU, int, int, Real> g0_labels_cpu_;
+  linalg::MultiVector<linalg::GPU, int, int, Real> g0_labels_gpu_;
 
-  using G0InterpolationBase<Parameters>::beta;
+  using Base::beta;
 
   linalg::util::CudaEvent config_copied_;
 };
 
-template <typename Parameters>
-G0Interpolation<dca::linalg::GPU, Parameters>::G0Interpolation(int id, Parameters& parameters_ref)
-    : G0InterpolationBase<Parameters>(id, parameters_ref),
+template <typename Parameters, typename Real>
+G0Interpolation<dca::linalg::GPU, Parameters, Real>::G0Interpolation(int id,
+                                                                     const Parameters& parameters_ref)
+    : Base(id, parameters_ref),
 
       thread_id(id),
       stream_id(0),
@@ -130,10 +134,10 @@ G0Interpolation<dca::linalg::GPU, Parameters>::G0Interpolation(int id, Parameter
 /*!
  *  \brief  Set the functions 'G0_r_t_shifted' and 'grad_G0_r_t_shifted'
  */
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0Interpolation<dca::linalg::GPU, Parameters>::initialize(MOMS_type& MOMS) {
-  G0InterpolationBase<Parameters>::initialize(MOMS);
+void G0Interpolation<dca::linalg::GPU, Parameters, Real>::initialize(MOMS_type& MOMS) {
+  Base::initialize(MOMS);
 
   for (int t_ind = 0; t_ind < shifted_t::dmn_size(); t_ind++) {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
@@ -162,10 +166,10 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::initialize(MOMS_type& MOMS) 
   akima_coefficients_GPU = akima_coefficients_CPU;
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class Configuration>
-void G0Interpolation<dca::linalg::GPU, Parameters>::build_G0_matrix(
-    Configuration& configuration, dca::linalg::Matrix<double, dca::linalg::GPU>& G0_e_spin,
+void G0Interpolation<dca::linalg::GPU, Parameters, Real>::build_G0_matrix(
+    Configuration& configuration, dca::linalg::Matrix<Real, dca::linalg::GPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
 
@@ -182,9 +186,9 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::build_G0_matrix(
 
   uploadConfiguration(configuration_e_spin);
 
-  const auto b_ind_gpu = g0_labels_gpu_.get<0>();
-  const auto r_ind_gpu = g0_labels_gpu_.get<1>();
-  const auto tau_gpu = g0_labels_gpu_.get<2>();
+  const auto b_ind_gpu = g0_labels_gpu_.template get<0>();
+  const auto r_ind_gpu = g0_labels_gpu_.template get<1>();
+  const auto tau_gpu = g0_labels_gpu_.template get<2>();
 
   int first_shuffled_index = 0;  // configuration.get_first_shuffled_spin_index(e_spin);
   g0kernels::akima_interpolation_on_GPU(
@@ -194,10 +198,10 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::build_G0_matrix(
       akima_coefficients_GPU.size(), akima_coefficients_GPU.capacity(), thread_id, stream_id);
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class Configuration>
-void G0Interpolation<dca::linalg::GPU, Parameters>::update_G0_matrix(
-    Configuration& configuration, dca::linalg::Matrix<double, dca::linalg::GPU>& G0_e_spin,
+void G0Interpolation<dca::linalg::GPU, Parameters, Real>::update_G0_matrix(
+    Configuration& configuration, dca::linalg::Matrix<Real, dca::linalg::GPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
@@ -214,9 +218,9 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::update_G0_matrix(
 
   int first_shuffled_index = configuration.get_first_shuffled_spin_index(e_spin);
 
-  const auto b_ind_gpu = g0_labels_gpu_.get<0>();
-  const auto r_ind_gpu = g0_labels_gpu_.get<1>();
-  const auto tau_gpu = g0_labels_gpu_.get<2>();
+  const auto b_ind_gpu = g0_labels_gpu_.template get<0>();
+  const auto r_ind_gpu = g0_labels_gpu_.template get<1>();
+  const auto tau_gpu = g0_labels_gpu_.template get<2>();
 
   g0kernels::akima_interpolation_on_GPU(
       Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_gpu, r_ind_gpu, tau_gpu,
@@ -225,9 +229,9 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::update_G0_matrix(
       akima_coefficients_GPU.size(), akima_coefficients_GPU.capacity(), thread_id, stream_id);
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class Configuration>
-void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
+void G0Interpolation<dca::linalg::GPU, Parameters, Real>::uploadConfiguration(
     const Configuration& configuration) {
   const int configuration_size = configuration.size();
 
@@ -235,9 +239,9 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
   g0_labels_cpu_.resizeNoCopy(configuration_size);
   g0_labels_gpu_.resizeNoCopy(configuration_size);
 
-  auto band = g0_labels_cpu_.get<0>();
-  auto site = g0_labels_cpu_.get<1>();
-  auto tau = g0_labels_cpu_.get<2>();
+  auto band = g0_labels_cpu_.template get<0>();
+  auto site = g0_labels_cpu_.template get<1>();
+  auto tau = g0_labels_cpu_.template get<2>();
 
   for (int l = 0; l < configuration_size; ++l) {
     band[l] = configuration[l].get_band();
@@ -245,7 +249,7 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
     tau[l] = configuration[l].get_tau();
   }
 
-  auto stream = linalg::util::getStream(thread_id, stream_id);
+  const auto& stream = linalg::util::getStream(thread_id, stream_id);
   g0_labels_gpu_.setAsync(g0_labels_cpu_, stream);
   config_copied_.record(stream);
 }

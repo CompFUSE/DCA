@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "dca/linalg/linalg.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
 namespace phys {
@@ -26,7 +28,7 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 // Empty class template
-template <dca::linalg::DeviceType device_t>
+template <dca::linalg::DeviceType device_t, typename Real>
 class SHRINK_TOOLS_ALGORITHMS {};
 
 // Specialization for CPU

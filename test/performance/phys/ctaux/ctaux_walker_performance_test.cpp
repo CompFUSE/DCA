@@ -43,8 +43,9 @@ using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
+using Real = typename dca::config::McOptions::MCScalar;
 template <dca::linalg::DeviceType device_t>
-using Walker = dca::phys::solver::ctaux::CtauxWalker<device_t, Parameters, Data>;
+using Walker = dca::phys::solver::ctaux::CtauxWalker<device_t, Parameters, Data, Real>;
 
 int main(int argc, char** argv) {
   bool test_cpu(true), test_gpu(true);
