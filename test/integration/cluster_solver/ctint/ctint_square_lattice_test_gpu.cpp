@@ -78,6 +78,6 @@ TEST(SquareLatticeTest, GpuSolver) {
   qmc_solver_cpu.finalize();
 
   auto diff = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
-  auto tolerance = 100 * std::numeric_limits<GpuSolver::Real>::epsilon();
+  auto tolerance = std::max(1e-10, 100 * std::numeric_limits<GpuSolver::Real>::epsilon());
   EXPECT_GE(tolerance, diff.l_inf);
 }

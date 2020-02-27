@@ -51,7 +51,7 @@ public:
   using Data = DcaData<Parameters>;
   static constexpr linalg::DeviceType device = device_t;
 
-  CtintClusterSolver(const Parameters& parameters_ref, Data& Data_ref);
+  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref);
 
   ~CtintClusterSolver();
 
@@ -124,7 +124,7 @@ protected:  // Protected for testing purposes.
   void computeErrorBars() const {}
 
 protected:
-  const Parameters& parameters_;
+  Parameters& parameters_;
   Concurrency& concurrency_;
   Data& data_;
 
@@ -145,8 +145,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
-    const Parameters& parameters_ref, Data& data_ref)
+CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Parameters& parameters_ref,
+                                                                            Data& data_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
