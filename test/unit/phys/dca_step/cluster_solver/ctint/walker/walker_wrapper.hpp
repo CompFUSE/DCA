@@ -6,7 +6,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-//
+// Wrapper to access protected members of the CT-INT walker inside the tests.
 
 #ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_HPP
 #define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_HPP

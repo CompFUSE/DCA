@@ -125,9 +125,13 @@
     },
 
     "CT-INT": {
-        "use-submatrix" : true,
-        "max-submatrix-size": 10.,
-	    "initial-configuration-size": 10
+        "initial-configuration-size": 10,
+        "alpha-dd-pos": 0.1,
+        "alpha-dd-neg": 0,
+        "alpha-ndd" : 0.01,
+        "adjust-alpha-dd" : true,
+        "double-update-probability" : 0,
+        "max-submatrix-size": 128
     },
 
     "SS-CT-HYB": {

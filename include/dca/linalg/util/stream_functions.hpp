@@ -43,8 +43,8 @@ inline void syncStream(int thread_id, int stream_id) {
   getStreamContainer().sync(thread_id, stream_id);
 }
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_STREAM_FUNCTIONS_HPP

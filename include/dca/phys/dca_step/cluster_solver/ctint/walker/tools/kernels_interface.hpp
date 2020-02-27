@@ -26,7 +26,7 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-template<typename Real>
+template <typename Real>
 void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
                    DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);

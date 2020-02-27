@@ -36,6 +36,7 @@ DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<GPU, Rea
                    site_diff.leadingDimension(), nb, site_add.nrRows(), r0);
 }
 
+
 template <typename Real>
 void DMatrixBuilder<GPU, Real>::computeG0(Matrix& G0,
                                           const details::DeviceConfiguration& configuration,

@@ -47,6 +47,8 @@ public:
     return g0_ref_;
   }
 
+  // See DMatrixBuilder<linalg::CPU, Real>::computeG0.
+  // Out: G0. Device matrix
   void computeG0(Matrix& G0, const details::DeviceConfiguration& configuration, int n_init,
                  bool right_section, cudaStream_t stream) const override;
 
@@ -54,7 +56,7 @@ private:
   const G0Interpolation<linalg::GPU, Real>& g0_ref_;
 };
 
-template<typename Real>
+template <typename Real>
 template <class RDmn>
 DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
                                                   int nb, const RDmn& /*rdmn*/)

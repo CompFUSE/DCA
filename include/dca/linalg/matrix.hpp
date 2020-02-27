@@ -518,7 +518,7 @@ std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
     return 0;
 }
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIX_HPP

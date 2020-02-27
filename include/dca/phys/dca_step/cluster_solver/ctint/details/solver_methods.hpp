@@ -18,26 +18,25 @@ namespace dca {
 namespace phys {
 namespace solver {
 namespace ctint {
-namespace details{
+namespace details {
 // dca::phys::solver::ctint::details::
 
-template<class Rdmn>
-auto shrinkG0(const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, Tdmn>>& G0){
+template <class Rdmn>
+auto shrinkG0(const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, Tdmn>>& G0) {
   func::function<double, func::dmn_variadic<Bdmn, Bdmn, Rdmn, Tdmn>> g0_trimmed;
   const int s = 0;
-  for(int b1 =0; b1 < Bdmn::dmn_size(); b1++)
-    for(int b2 =0; b2 < Bdmn::dmn_size(); b2++)
-      for(int r = 0; r < Rdmn::dmn_size(); r++)
-          for(int t = 0; t < Tdmn::dmn_size(); t++)
-            g0_trimmed(b1,b2,r,t) = G0(b1, s, b2, s, r, t);
+  for (int b1 = 0; b1 < Bdmn::dmn_size(); b1++)
+    for (int b2 = 0; b2 < Bdmn::dmn_size(); b2++)
+      for (int r = 0; r < Rdmn::dmn_size(); r++)
+        for (int t = 0; t < Tdmn::dmn_size(); t++)
+          g0_trimmed(b1, b2, r, t) = G0(b1, s, b2, s, r, t);
   return g0_trimmed;
 }
 
-
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DETAILS_SOLVER_METHODS_G_HPP

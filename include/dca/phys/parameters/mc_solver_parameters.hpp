@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class reads, stores, and writes the Monte Carlo solver parameters.
 // It is templated on the MC solver name and only implemented when specialized for CT-AUX and
@@ -302,7 +303,6 @@ private:
   double alpha_ndd_ = 1e-4;
   bool adjust_alpha_dd_ = false;
   double double_update_probability_ = 0;
-  bool double_counted_interaction_ = true;
   int max_submatrix_size_ = 1;
 };
 
