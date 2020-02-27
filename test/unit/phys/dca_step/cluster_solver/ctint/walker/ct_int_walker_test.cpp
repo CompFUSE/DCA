@@ -36,7 +36,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     x = double(std::rand()) / RAND_MAX;
   G0Setup::RngType rng(rng_values);
 
-  ctint::G0Interpolation<dca::linalg::CPU> g0(
+  ctint::G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
 

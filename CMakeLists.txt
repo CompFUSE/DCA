@@ -154,6 +154,7 @@ if (DCA_HAVE_CUDA)
     lapack_kernels
     mc_kernels
     special_transform_kernels
+    cuda_utils
     ${DCA_CUDA_LIBS})
 endif()
 

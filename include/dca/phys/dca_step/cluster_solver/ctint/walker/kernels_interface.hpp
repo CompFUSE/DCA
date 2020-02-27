@@ -20,20 +20,26 @@ namespace solver {
 namespace ctint {
 namespace details {
 
-void setRightSectorToId(double* m, int ldm, int n0, int n_max, cudaStream_t stream);
+template <typename Real>
+void setRightSectorToId(Real* m, int ldm, int n0, int n_max, cudaStream_t stream);
 
-using MatrixView = linalg::MatrixView<double, linalg::GPU>;
+template <typename Real>
+using MatrixView = linalg::MatrixView<Real, linalg::GPU>;
 
-void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_init,
+template <typename Real>
+void computeGLeft(MatrixView<Real>& G, const MatrixView<Real>& M, const Real* f, int n_init,
                   cudaStream_t stream);
 
-void multiplyByFColFactor(MatrixView& M, const double* f_vals, cudaStream_t stream);
+template <typename Real>
+void multiplyByFColFactor(MatrixView<Real>& M, const Real* f_vals, cudaStream_t stream);
 
-void multiplyByInverseFFactor(const MatrixView& m_in, MatrixView& m_out, const double* f_vals,
-                              cudaStream_t stream);
+template <typename Real>
+void multiplyByInverseFFactor(const MatrixView<Real>& m_in, MatrixView<Real>& m_out,
+                              const Real* f_vals, cudaStream_t stream);
 
-void divideByGammaFactor(MatrixView m, const std::pair<int, double>* gamma_indices, int n_indices,
-                         cudaStream_t stream);
+template <typename Real>
+void divideByGammaFactor(MatrixView<Real> m, const std::pair<int, Real>* gamma_indices,
+                         int n_indices, cudaStream_t stream);
 
 }  // namespace details
 }  // namespace ctint

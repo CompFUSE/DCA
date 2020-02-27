@@ -16,6 +16,7 @@
 #include <cuda_profiler_api.h>
 #endif
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
@@ -36,6 +37,8 @@
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
 
+using Real = dca::config::McOptions::MCScalar;
+
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
@@ -46,7 +49,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profile
                                                  dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
-using Walker = dca::phys::solver::ctint::CtintWalkerSubmatrix<device_t, Parameters>;
+using Walker = dca::phys::solver::ctint::CtintWalkerSubmatrix<device_t, Parameters, Real>;
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = Parameters::RClusterDmn;
@@ -91,7 +94,7 @@ int main(int argc, char** argv) {
   constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
 #endif  // DCA_HAVE_CUDA
 
-  dca::phys::solver::ctint::G0Interpolation<device> g0(
+  dca::phys::solver::ctint::G0Interpolation<device, Real> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
   BBRDmn bbr_dmn;

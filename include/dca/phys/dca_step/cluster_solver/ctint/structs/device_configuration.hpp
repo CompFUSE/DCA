@@ -23,6 +23,7 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
+// TODO: consider if single precision tau storage.
 struct DeviceConfiguration {
   const SectorEntry* data;
 

@@ -1,14 +1,3 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
-// See LICENSE.txt for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//
-// This file compares the CPU and GBU implementations of the DMatrixBuilder class.
-
-
 #include <dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
@@ -19,7 +8,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-template <typename Real>
 using DMatrixBuilderGpuTest =
     dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
 using namespace dca::phys::solver;
@@ -28,14 +16,11 @@ using dca::linalg::Matrix;
 using dca::linalg::CPU;
 using dca::linalg::GPU;
 
-using FloatingPointTypes = ::testing::Types<float, double>;
-TYPED_TEST_CASE(DMatrixBuilderGpuTest, FloatingPointTypes);
-
-TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
-  using Rng = typename TestFixture::RngType;
-  using BDmn = typename TestFixture::BDmn;
-  using RDmn = typename TestFixture::RDmn;
-  using Real = TypeParam;
+template <typename Real, class Parameters, class Data>
+void testBody(const Parameters& parameters, const Data& data) {
+  using Rng = DMatrixBuilderGpuTest::RngType;
+  using BDmn = DMatrixBuilderGpuTest::BDmn;
+  using RDmn = DMatrixBuilderGpuTest::RDmn;
 
   // Setup rng values
   std::vector<double> rng_values(100);
@@ -45,9 +30,6 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
 
   using namespace dca::testing;
   dca::func::dmn_variadic<BDmn, BDmn, RDmn> label_dmn;
-
-  const auto& parameters = TestFixture::parameters_;
-  const auto& data = *TestFixture::data_;
 
   // Setup interpolation and matrix builder class.
   ctint::G0Interpolation<dca::linalg::GPU, Real> g0(
@@ -103,4 +85,12 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
       EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, tolerance));
     }
   }
+}
+
+TEST_F(DMatrixBuilderGpuTest, RemoveAndInstertVertexFloat) {
+  testBody<float>(parameters_, *data_);
+}
+
+TEST_F(DMatrixBuilderGpuTest, RemoveAndInstertVertexDouble) {
+  testBody<double>(parameters_, *data_);
 }

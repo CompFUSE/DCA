@@ -45,13 +45,13 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <linalg::DeviceType device_type, class Parameters>
+template <linalg::DeviceType device_type, class Parameters, typename Real>
 class CtintWalker;
 
-template <linalg::DeviceType device_type, class Parameters>
+template <linalg::DeviceType device_type, class Parameters, typename Real>
 class CtintWalkerSubmatrix;
 
-template <class Parameters>
+template <class Parameters, typename Real = double>
 class CtintWalkerBase {
 public:
   using parameters_type = Parameters;
@@ -60,8 +60,8 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+  using Matrix = linalg::Matrix<Real, linalg::CPU>;
+  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
 
 protected:  // The class is not instantiable.
@@ -100,7 +100,7 @@ public:
   }
 
   double acceptanceRatio() const {
-    return double(n_accepted_) / double(n_steps_);
+    return Real(n_accepted_) / Real(n_steps_);
   }
 
   void initialize();
@@ -138,7 +138,7 @@ public:
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type>& g0);
+  static void setDMatrixBuilder(const G0Interpolation<device_type, Real>& g0);
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
@@ -164,7 +164,7 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static std::unique_ptr<DMatrixBuilder<linalg::CPU>> d_builder_ptr_;
+  static std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
   static InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -178,11 +178,11 @@ protected:  // Members.
 
   MatrixPair M_;
 
-  const double beta_;
+  const Real beta_;
   static constexpr int n_bands_ = Parameters::bands;
   const int possible_partners_;
 
-  const double total_interaction_;  // Space integrated interaction Hamiltonian.
+  const Real total_interaction_;  // Space integrated interaction Hamiltonian.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
@@ -196,7 +196,7 @@ protected:  // Members.
   int sign_ = 1;
 
   // Store for testing purposes:
-  double acceptance_prob_;
+  Real acceptance_prob_;
 
   //  std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   //  std::vector<int> removal_candidates_;
@@ -205,18 +205,19 @@ protected:  // Members.
 
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
-  linalg::Vector<double, linalg::CPU> work_;
+  linalg::Vector<Real, linalg::CPU> work_;
 };
-template <class Parameters>
-constexpr int CtintWalkerBase<Parameters>::n_bands_;
+template <class Parameters, typename Real>
+constexpr int CtintWalkerBase<Parameters, Real>::n_bands_;
 
-template <class Parameters>
-InteractionVertices CtintWalkerBase<Parameters>::vertices_;
-template <class Parameters>
-std::unique_ptr<DMatrixBuilder<linalg::CPU>> CtintWalkerBase<Parameters>::d_builder_ptr_;
+template <class Parameters, typename Real>
+InteractionVertices CtintWalkerBase<Parameters, Real>::vertices_;
+template <class Parameters, typename Real>
+std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> CtintWalkerBase<Parameters, Real>::d_builder_ptr_;
 
-template <class Parameters>
-CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref, int id)
+template <class Parameters, typename Real>
+CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
+                                                   int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -234,8 +235,8 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, R
       possible_partners_(configuration_.possiblePartners()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::initialize() {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::initialize() {
   assert(total_interaction_);
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
@@ -248,8 +249,8 @@ void CtintWalkerBase<Parameters>::initialize() {
   setMFromConfig();
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::setMFromConfig() {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
   // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
   sign_ = 1;
   for (int s = 0; s < 2; ++s) {
@@ -263,7 +264,7 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
       for (int i = 0; i < n; ++i)
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
-    const double det = linalg::matrixop::inverseAndDeterminant(M);
+    const Real det = linalg::matrixop::inverseAndDeterminant(M);
 
     // Set the initial sign
     if (det < 0)
@@ -271,8 +272,8 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
   }
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::updateSweepAverages() {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::updateSweepAverages() {
   order_avg_.addSample(order());
   sign_avg_.addSample(sign_);
   // Track avg order for the final number of steps / sweep.
@@ -280,8 +281,8 @@ void CtintWalkerBase<Parameters>::updateSweepAverages() {
     partial_order_avg_.addSample(order());
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::markThermalized() {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::markThermalized() {
   if (partial_order_avg_.mean() == 0)
     throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
@@ -295,8 +296,8 @@ void CtintWalkerBase<Parameters>::markThermalized() {
   n_steps_ = 0;
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
       (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
@@ -312,8 +313,8 @@ void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const
   }
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::printSummary() const {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::printSummary() const {
   std::cout << "\n"
             << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
             << "-------------------------------------------\n";
@@ -329,27 +330,27 @@ void CtintWalkerBase<Parameters>::printSummary() const {
   std::cout << std::endl;
 }
 
-template <class Parameters>
+template <class Parameters, typename Real>
 template <linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type>& g0) {
+void CtintWalkerBase<Parameters, Real>::setDMatrixBuilder(
+    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type>>(g0, n_bands_, RDmn());
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Real>>(g0, n_bands_, RDmn());
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::setDMatrixAlpha(const std::array<double, 3>& alphas,
-                                                  bool adjust_dd) {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::setDMatrixAlpha(const std::array<double, 3>& alphas,
+                                                        bool adjust_dd) {
   assert(d_builder_ptr_);
   d_builder_ptr_->setAlphas(alphas, adjust_dd);
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::setInteractionVertices(Data& data) {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::setInteractionVertices(Data& data) {
   vertices_.reset();
   vertices_.initializeFromHamiltonian(data.H_interactions);
   if (data.has_non_density_interactions()) {
@@ -358,8 +359,8 @@ void CtintWalkerBase<Parameters>::setInteractionVertices(Data& data) {
   }
 }
 
-template <class Parameters>
-void CtintWalkerBase<Parameters>::computeM(MatrixPair& m_accum) const {
+template <class Parameters, typename Real>
+void CtintWalkerBase<Parameters, Real>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
 }
 

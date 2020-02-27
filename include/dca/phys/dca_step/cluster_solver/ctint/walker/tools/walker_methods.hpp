@@ -85,10 +85,15 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
   }
 }
 
-template <class MatrixA, class MatrixB>
-inline void smallInverse(const MatrixA& in, MatrixB& out, const double det,
+template <class MatrixA, class MatrixB, typename Real>
+inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
                          linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<double, linalg::CPU>& work) {
+                         linalg::Vector<Real, linalg::CPU>& work) {
+  static_assert(std::is_same<typename MatrixA::ValueType, Real>::value,
+                "Scalar type MatrixA mismatch.");
+  static_assert(std::is_same<typename MatrixB::ValueType, Real>::value,
+                "Scalar type MatrixB mismatch.");
+
   assert(in.size() == out.size());
   switch (in.nrCols()) {
     case 1:
@@ -107,10 +112,12 @@ inline void smallInverse(const MatrixA& in, MatrixB& out, const double det,
   }
 }
 
-template <class MatrixType>
-inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<double, linalg::CPU>& work) {
+template <class Matrix, typename Real>
+inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::CPU>& ipiv,
+                         linalg::Vector<Real, linalg::CPU>& work) {
+  static_assert(std::is_same<typename Matrix::ValueType, Real>::value, "Matrix type mismatch.");
   assert(m.size() == m.size());
+
   switch (m.nrCols()) {
     case 1:
       m(0, 0) = 1. / m(0, 0);
@@ -118,7 +125,7 @@ inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, li
     case 2:
       assert(det);
       {
-        const double tmp = m(0, 0);
+        const Real tmp = m(0, 0);
         m(0, 0) = m(1, 1) / det;
         m(1, 0) /= -det;
         m(0, 1) /= -det;
@@ -132,6 +139,7 @@ inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, li
 
 template <class MatrixType>
 inline double smallDeterminant(const MatrixType& M) {
+  static_assert(MatrixType::device == linalg::CPU, "GPU small inverse is not defined.");
   assert(M.is_square());
   switch (M.nrCols()) {
     case 0:
@@ -161,9 +169,8 @@ inline double smallDeterminant(const MatrixType& M) {
   }
 }
 
-template <template <typename, linalg::DeviceType> class MatrixType, class Vector>
-inline double separateIndexDeterminant(const MatrixType<double, linalg::CPU>& M,
-                                       const Vector& indices) {
+template <class Matrix, class Vector>
+inline double separateIndexDeterminant(const Matrix& M, const Vector& indices) {
   switch (indices.size()) {
     case 1:
       return M(indices[0], indices[0]);
@@ -209,12 +216,6 @@ inline double separateIndexDeterminant(const MatrixType<double, linalg::CPU>& M,
     default:
       throw(std::logic_error("General case not supported."));
   }
-}
-
-template <template <typename, linalg::DeviceType> class MatrixType>
-inline double separateIndexDeterminant(const MatrixType<double, linalg::GPU>& M,
-                                       const std::vector<ushort>& indices) {
-  throw(std::logic_error("not defined"));
 }
 
 template <typename Scalar>

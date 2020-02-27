@@ -12,7 +12,6 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CHOICE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CHOICE_HPP
 
-
 #include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
@@ -27,35 +26,35 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 namespace {
-template <linalg::DeviceType device, class Parameters, bool use_submatrix>
+template <linalg::DeviceType device, class Parameters, bool use_submatrix, typename Real>
 struct CtintWalkerChoicheSelector;
 
-template <class Parameters>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true> {
-  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
+template <class Parameters, typename Real>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Real> {
+  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
 };
-template <class Parameters>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false> {
-  using type = CtintWalker<linalg::CPU, Parameters>;
+template <class Parameters, typename Real>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
+  using type = CtintWalker<linalg::CPU, Parameters, Real>;
 };
 
-template <class Parameters>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true> {
-  using type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
+template <class Parameters, typename Real>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real> {
+  using type = CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>;
 };
-template <class Parameters>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false> {
+template <class Parameters, typename Real>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real> {
   // There is only a submatrix implementation of the GPU walker.
 };
-}
+}  // namespace
 
-template <linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Real>
 using CtintWalkerChoice =
-    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix>::type;
+    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix, Real>::type;
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CHOICE_HPP

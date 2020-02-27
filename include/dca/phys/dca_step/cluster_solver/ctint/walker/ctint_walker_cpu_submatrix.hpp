@@ -37,11 +37,11 @@ namespace phys {
 namespace solver {
 namespace ctint {
 
-template <class Parameters>
-class CtintWalkerSubmatrix<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
+template <class Parameters, typename Real>
+class CtintWalkerSubmatrix<linalg::CPU, Parameters, Real> : public CtintWalkerBase<Parameters, Real> {
 public:
-  using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalkerBase<Parameters>;
+  using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
+  using BaseClass = CtintWalkerBase<Parameters, Real>;
   using typename BaseClass::Rng;
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
@@ -78,7 +78,7 @@ private:
 
   void doSubmatrixUpdate();
 
-  double computeAcceptanceProbability();
+  auto computeAcceptanceProbability() -> Real;
 
   void updateGammaInv(int s);
 
@@ -107,8 +107,8 @@ private:
   }
 
 protected:
-  using MatrixView = linalg::MatrixView<double, linalg::CPU>;
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using MatrixView = linalg::MatrixView<Real, linalg::CPU>;
+  using Matrix = linalg::Matrix<Real, linalg::CPU>;
 
   using BaseClass::parameters_;
   using BaseClass::configuration_;
@@ -130,8 +130,8 @@ protected:
   struct DelayedMoveType {
     Move move_type;
 
-    double removal_rng;
-    double acceptance_rng;
+    Real removal_rng;
+    Real acceptance_rng;
     // TODO: store on the stack for n <= 2.
     std::vector<int> indices;
   };
@@ -142,7 +142,7 @@ protected:
 protected:
   std::vector<DelayedMoveType> delayed_moves_;
 
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   MatrixPair G_;
   MatrixPair G0_;
   MatrixPair Gamma_inv_;      // TODO: don't pin
@@ -150,12 +150,12 @@ protected:
   MatrixPair q_;              // TODO: don't pin or store in Gamma inv
   MatrixPair r_;
   MatrixPair s_;
-  std::array<std::vector<double>, 2> gamma_;
+  std::array<std::vector<Real>, 2> gamma_;
 
-  double det_ratio_;
-  std::map<int, std::array<double, n_bands_>> f_;
-  std::map<int, std::array<double, n_bands_>> prob_const_;
-  std::map<std::pair<int, int>, std::array<double, n_bands_>> gamma_values_;
+  Real det_ratio_;
+  std::map<int, std::array<Real, n_bands_>> f_;
+  std::map<int, std::array<Real, n_bands_>> prob_const_;
+  std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
 
   using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
@@ -199,10 +199,9 @@ protected:
   using BaseClass::flop_;
 };
 
-template <class Parameters>
-CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(const Parameters& parameters_ref,
-                                                                    const Data& /*data*/,
-                                                                    Rng& rng_ref, int id)
+template <class Parameters, typename Real>
+CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::CtintWalkerSubmatrix(
+    const Parameters& parameters_ref, const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id) {
   for (int b = 0; b < n_bands_; ++b) {
     for (int i = 1; i <= 3; ++i) {
@@ -223,20 +222,20 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(const Parame
     std::cout << "\nCT-INT submatrix walker created." << std::endl;
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::initialize() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::initialize() {
   BaseClass::initialize();
   transformM();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   doSteps();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSteps() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSteps() {
   // Here nbr_of_steps is the number of single steps/moves during the current sweep,
   // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
 
@@ -259,15 +258,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSteps() {
   BaseClass::updateSweepAverages();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doStep() {
   generateDelayedMoves(nbr_of_moves_to_delay_);
   doSubmatrixUpdate();
 }
 
 // Do one step with arbitrary number of moves. For testing.
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_movesto_delay) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doStep(const int nbr_of_movesto_delay) {
   std::cout << "\nStarted doStep() function for testing." << std::endl;
 
   generateDelayedMoves(nbr_of_movesto_delay);
@@ -277,8 +276,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_move
   doSubmatrixUpdate();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(const int nbr_of_movesto_delay) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
+    const int nbr_of_movesto_delay) {
   assert(nbr_of_movesto_delay > 0);
 
   delayed_moves_.clear();
@@ -327,16 +327,16 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(const i
   std::iota(conf_removal_list_.begin(), conf_removal_list_.end(), config_size_init_);
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSubmatrixUpdate() {
   computeMInit();
   computeGInit();
   mainSubmatrixProcess();
   updateM();
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -440,7 +440,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
     const bool accepted =
-        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), 1.);
+        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), Real(1.));
 
     // NB: recomputeGammaInv is just a inefficient alternative to updateGammaInv. Only for testing
     // or debbuging.
@@ -536,8 +536,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
   }
 }  // namespace ctint
 
-template <class Parameters>
-Move CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateMoveType() {
+template <class Parameters, typename Real>
+Move CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateMoveType() {
   if (rng_() <= 0.5)
     return INSERTION;
   else
@@ -546,15 +546,15 @@ Move CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateMoveType() {
 
 // Extend M by adding non-interacting vertices.
 // M is not computed again and should be up-to-date.
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeMInit() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
 
     if (delta > 0) {
-      double f_j;
+      Real f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
       d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
@@ -589,14 +589,14 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeGInit() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
 
-    double f;
+    Real f;
     Matrix G0(std::make_pair(n_max_[s], delta));
 
     G_[s].resizeNoCopy(n_max_[s]);
@@ -607,7 +607,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
       f = f_[field_type][b];
 
       for (int i = 0; i < n_max_[s]; ++i) {
-        G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
+        G_[s](i, j) = (M_[s](i, j) * f - Real(i == j)) / (f - 1);
       }
     }
 
@@ -622,11 +622,11 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
   }
 }
 
-template <class Parameters>
-double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
-  double acceptance_probability = det_ratio_;
+template <class Parameters, typename Real>
+auto CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeAcceptanceProbability() -> Real {
+  Real acceptance_probability = det_ratio_;
 
-  double gamma_factor = 1;
+  Real gamma_factor = 1;
   for (int s = 0; s < 2; ++s) {
     if (!sector_indices_[s].size())
       continue;
@@ -644,7 +644,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
   const int interaction_sign = configuration_.getSign(index_[0]);
   const int non_empty_sector = sector_indices_[0].size() ? 0 : 1;
 
-  double K = total_interaction_;
+  Real K = total_interaction_;
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
     const auto field_type = configuration_.getSector(non_empty_sector)
                                 .getAuxFieldType(sector_indices_[non_empty_sector][v_id]);
@@ -659,8 +659,8 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
       acceptance_probability *= K / (n_ + 1);
     }
     else if (delta_vertices == 2) {
-      const double combinatorial_factor =
-          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<double>(possible_partners_);
+      const Real combinatorial_factor =
+          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<Real>(possible_partners_);
       acceptance_probability *= configuration_.getStrength(n_ + 1) * K / combinatorial_factor;
     }
     else
@@ -672,7 +672,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
     }
     else if (delta_vertices == 2) {
       const int combinatorial_factor =
-          n_ * configuration_.nPartners(index_[0]) / static_cast<double>(possible_partners_);
+          n_ * configuration_.nPartners(index_[0]) / static_cast<Real>(possible_partners_);
       acceptance_probability *= combinatorial_factor / (configuration_.getStrength(index_[1]) * K);
     }
     else
@@ -682,8 +682,8 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
   return acceptance_probability;
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv(int s) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateGammaInv(int s) {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   const int delta = s_[s].nrRows();
   if (delta == 0)
@@ -700,15 +700,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv(int s) {
     details::smallInverse(s_[s], s_inv);
 
     auto& Gamma_q = Gamma_q_[s];
-    linalg::matrixop::gemm(-1., Gamma_q, s_inv, 0., q_inv);
+    linalg::matrixop::gemm(Real(-1.), Gamma_q, s_inv, Real(0.), q_inv);
 
     auto& r_Gamma = workspace_;
     r_Gamma.resizeNoCopy(r_[s].size());
     linalg::matrixop::gemm(r_[s], bulk, r_Gamma);
-    linalg::matrixop::gemm(-1., s_inv, r_Gamma, 0., r_inv);
+    linalg::matrixop::gemm(Real(-1.), s_inv, r_Gamma, Real(0.), r_inv);
 
     // Gamma_ += Gamma_ * q_ * s_^-1 * r_ * Gamma_
-    linalg::matrixop::gemm(-1., q_inv, r_Gamma, 1., bulk);
+    linalg::matrixop::gemm(Real(-1.), q_inv, r_Gamma, Real(1.), bulk);
   }
   else {
     Gamma_inv_[s].resizeNoCopy(delta);
@@ -716,8 +716,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv(int s) {
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateM() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -738,7 +738,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
       }
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
-      linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
+      linalg::matrixop::gemm(Real(-1.), old_G, result_matrix, Real(1.), M_[s]);
       flop_ += 2 * Gamma_inv_[s].nrRows() * Gamma_inv_[s].nrCols() * old_M.nrCols();
       flop_ += 2 * old_G.nrRows() * old_G.nrCols() * result_matrix.nrCols();
 
@@ -762,8 +762,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int s) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::findSectorIndices(const int s) {
   sector_indices_[s].clear();
   for (auto index : index_) {
     configuration_.findIndices(sector_indices_[s], index, s);
@@ -776,8 +776,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int 
 
 // Remove row and column of Gamma_inv with Woodbury's formula.
 // Gamma <- Gamma - U.V => GammaInv <- GammaInv + GammaInv.U.(Id-V.GammaInv.U)^(-1).V.GammaInv.
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::removeRowAndColOfGammaInv() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   for (int s = 0; s < 2; ++s) {
     const int delta = Gamma_indices_[s].size();
@@ -826,7 +826,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv() 
       linalg::matrixop::gemm(q_[s], s_[s], q_s);
 
       // Gamma_inv_ -= Q*S^-1*R
-      linalg::matrixop::gemm(-1., q_s, r_[s], 1., Gamma_inv_[s]);
+      linalg::matrixop::gemm(Real(-1.), q_s, r_[s], Real(1.), Gamma_inv_[s]);
     }  // if n
     else {
       Gamma_inv_[s].resizeNoCopy(0);
@@ -835,8 +835,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv() 
 }
 
 // This method is unused and left to potentially use as a testing reference.
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::recomputeGammaInv() {
   for (int s = 0; s < 2; ++s) {
     if (Gamma_inv_[s].nrRows() > 0)
       linalg::matrixop::inverse(Gamma_inv_[s]);
@@ -867,22 +867,23 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::transformM() {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::transformM() {
   for (int s = 0; s < 2; ++s) {
     for (int j = 0; j < M_[s].size().second; ++j) {
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const double f_i = -(f_[field_type][b] - 1);
+        const Real f_i = -(f_[field_type][b] - 1);
         M_[s](i, j) /= f_i;
       }
     }
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass::MatrixPair& m_accum) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeM(
+    typename BaseClass::MatrixPair& m_accum) {
   for (int s = 0; s < 2; ++s) {
     m_accum[s].resizeNoCopy(M_[s].size());
 
@@ -890,15 +891,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeM(typename BaseClass:
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const double factor = -(f_[field_type][b] - 1.);
+        const Real factor = -(f_[field_type][b] - 1.);
         m_accum[s](i, j) = M_[s](i, j) * factor;
       }
     }
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeInsertionMatrices(
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeInsertionMatrices(
     const std::vector<int>& insertion_indices, const int s) {
   const int delta = insertion_indices.size();
 
@@ -910,7 +911,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeInsertionMatrices(
     for (int j = 0; j < delta; ++j) {
       s_[s](i, j) = G_[s](insertion_indices[i], insertion_indices[j]);
       if (i == j) {
-        const double gamma_val = gamma_[s].at(gamma_[s].size() + i - nbr_of_indices_[s]);
+        const Real gamma_val = gamma_[s].at(gamma_[s].size() + i - nbr_of_indices_[s]);
         s_[s](i, j) -= (1 + gamma_val) / gamma_val;
       }
     }
@@ -929,12 +930,12 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeInsertionMatrices(
     auto& Gamma_q = Gamma_q_[s];
     Gamma_q.resizeNoCopy(q_[s].size());
     linalg::matrixop::gemm(Gamma_inv_[s], q_[s], Gamma_q);
-    linalg::matrixop::gemm(-1., r_[s], Gamma_q, 1., s_[s]);
+    linalg::matrixop::gemm(Real(-1.), r_[s], Gamma_q, Real(1.), s_[s]);
   }
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeRemovalMatrix(const int s) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeRemovalMatrix(const int s) {
   const int delta = Gamma_indices_[s].size();
   s_[s].resizeNoCopy(delta);
   for (int j = 0; j < delta; ++j)
@@ -942,8 +943,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeRemovalMatrix(const i
       s_[s](i, j) = Gamma_inv_[s](Gamma_indices_[s][i], Gamma_indices_[s][j]);
 }
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMixedInsertionAndRemoval(int s) {
+template <class Parameters, typename Real>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeMixedInsertionAndRemoval(int s) {
   Gamma_inv_cpy_[s] = Gamma_inv_[s];
 
   if (sector_indices_[s].size() == 0) {

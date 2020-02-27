@@ -220,6 +220,9 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
     checkErrorsCudaDebug();
   }
 }
+
+template void copyRows(int row_size, int n_rows, const int* i_x, const float* x, int ldx, float* y,
+                       int ldy, int thread_id, int stream_id);
 template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
                        double* y, int ldy, int thread_id, int stream_id);
 
@@ -257,8 +260,8 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
   }
 }
 
-template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
-                       double* y, int ldy, int thread_id, int stream_id);
+template void copyCols(int, int, const int*, const float*, int, float*, int, int, int);
+template void copyCols(int, int, const int*, const double*, int, double*, int, int, int);
 
 template <typename Type>
 void moveLeft(int m, int n, Type* a, int lda) {

@@ -39,7 +39,7 @@ TEST_F(G0Setup, doSteps) {
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   G0Setup::RngType rng(setup_rngs);
 
-  ctint::G0Interpolation<dca::linalg::CPU> g0(
+  ctint::G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);

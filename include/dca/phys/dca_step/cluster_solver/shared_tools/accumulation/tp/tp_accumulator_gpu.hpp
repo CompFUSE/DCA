@@ -69,8 +69,8 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   // Returns: number of flop.
-  template <class Configuration>
-  float accumulate(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+  template <class Configuration, typename RealIn>
+  float accumulate(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
                    const std::array<Configuration, 2>& configs, int sign);
 
   // CPU input. For testing purposes.
@@ -146,8 +146,8 @@ private:
 
   void computeGSingleband(int s);
 
-  template <class Configuration>
-  float computeM(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+  template <class Configuration, typename RealIn>
+  float computeM(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   float updateG4(const std::size_t channel_index);
@@ -291,9 +291,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
@@ -327,9 +327,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU>::computeM(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
 

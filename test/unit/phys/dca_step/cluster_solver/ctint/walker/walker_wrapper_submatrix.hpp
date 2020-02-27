@@ -26,9 +26,9 @@ namespace ctint {
 // testing::phys::solver::ctint::
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
-struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
-  using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
+template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU, typename Real = double>
+struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters, Real> {
+  using BaseClass = CtintWalkerSubmatrix<device_t, Parameters, Real>;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
 
@@ -42,18 +42,18 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
     BaseClass::doStep(n_steps_to_delay);
   }
 
-  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 
   MatrixPair getM() {
-    std::array<dca::linalg::Matrix<double, device_t>, 2> M;
+    std::array<dca::linalg::Matrix<Real, device_t>, 2> M;
 
     BaseClass::computeM(M);
 #ifdef DCA_HAVE_CUDA
     cudaDeviceSynchronize();
 #endif
 
-    std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
+    std::array<dca::linalg::Matrix<Real, dca::linalg::CPU>, 2> M_copy{M[0], M[1]};
     return M_copy;
   }
 
@@ -66,7 +66,7 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
     return BaseClass::configuration_;
   }
 
-  double getAcceptanceProbability() const {
+  Real getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
 

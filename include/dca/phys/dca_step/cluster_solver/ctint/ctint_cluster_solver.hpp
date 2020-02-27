@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
@@ -45,6 +46,8 @@ namespace solver {
 template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
 class CtintClusterSolver {
 public:
+  using Real = typename config::McOptions::MCScalar;
+
   using Data = DcaData<Parameters>;
   static constexpr linalg::DeviceType device = device_t;
 
@@ -85,8 +88,8 @@ protected:  // thread jacket interface.
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
 
-  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix>;
-  using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real>;
+  using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real>;
 
 private:
   using BDmn = func::dmn_0<domains::electron_band_domain>;
@@ -137,7 +140,7 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  ctint::G0Interpolation<device_t> g0_;
+  ctint::G0Interpolation<device_t, Real> g0_;
   Rng rng_;
 };
 
