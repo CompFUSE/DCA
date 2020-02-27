@@ -145,7 +145,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca
     Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions, H_nd);
   }
   else
-    Ham_obj.initialize(func::util::real(H_DCA), MOMS_imag.H_interactions);
+    Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
