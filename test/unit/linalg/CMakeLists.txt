@@ -53,4 +53,6 @@ dca_add_gtest(reshapable_matrix_cpu_test GTEST_MAIN)
 
 dca_add_gtest(reshapable_matrix_gpu_test CUDA GTEST_MAIN LIBS cuda_utils)
 
+dca_add_gtest(multi_vector_test GTEST_MAIN)
+
 add_subdirectory(util)

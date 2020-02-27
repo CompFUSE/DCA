@@ -220,6 +220,28 @@ constexpr bool contained() {
   return mp_index_of<T1, Ts>::value != -1;
 }
 
+// mp_sublist
+// Creates a sublist with the first n elements of a given list.
+template <unsigned n, typename T1, typename... Ts>
+struct mp_sublist {
+  using next = typename mp_sublist<n - 1, Ts...>::type;
+
+  using type = typename mp_prepend<next, T1>::type;
+};
+template <typename T1, typename... Ts>
+struct mp_sublist<1, T1, Ts...> {
+  using type = mp_list<T1>;
+};
+template <typename T1, typename... Ts>
+struct mp_sublist<0, T1, Ts...> {
+  using type = mp_list<>;
+};
+
+template <unsigned id, typename... Ts>
+struct mp_sublist<id, mp_list<Ts...>> {
+  using type = typename mp_sublist<id, Ts...>::type;
+};
+
 // Create aliases for backward naming compatibility with old typelist and typelist operations.
 template <class... Ts>
 using Typelist = mp_list<Ts...>;
@@ -244,6 +266,9 @@ using Prepend = mp_prepend<T1, T2>;
 
 template <typename T1, typename T2, typename T3>
 using Swap = mp_swap<T1, T2, T3>;
+
+template <unsigned n, typename... Ts>
+using Sublist = typename mp_sublist<n, Ts...>::type;
 
 }  // namespace util
 }  // namespace dca

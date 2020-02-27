@@ -81,7 +81,7 @@ private:
 
   CV<parameters_type> CV_obj;
 
-  G0_INTERPOLATION<dca::linalg::CPU, parameters_type> G0_CPU_tools_obj;
+  G0Interpolation<dca::linalg::CPU, parameters_type> G0_CPU_tools_obj;
   N_TOOLS<dca::linalg::CPU, parameters_type> N_CPU_tools_obj;
   G_TOOLS<dca::linalg::CPU, parameters_type> G_CPU_tools_obj;
 
