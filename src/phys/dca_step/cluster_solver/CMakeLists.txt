@@ -20,10 +20,14 @@ if (DCA_HAVE_CUDA)
             ctaux/walker/tools/n_matrix_tools/n_matrix_tools_kernels.cu
 
             # Shared Tools
+            # Tp tools.
             shared_tools/accumulation/tp/ndft/ndft_kernels.cu
             shared_tools/accumulation/tp/tp_accumulator_kernels.cu
             shared_tools/accumulation/tp/g4_helper.cu
             shared_tools/cluster_helper.cu
+            # Sp tools
+            ../../../math/nfft/dnfft_1d_kernels.cu
+            ../../../math/nfft/nfft_helper.cu
             )
 
 

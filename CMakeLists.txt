@@ -150,7 +150,6 @@ set(DCA_LIBS
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS
     blas_kernels
-    dnfft_kernels
     lapack_kernels
     mc_kernels
     special_transform_kernels
