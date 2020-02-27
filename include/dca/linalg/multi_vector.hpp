@@ -35,7 +35,7 @@ public:
   MultiVector(std::size_t n = 0);
 
   // Resize the container so that each sub-array has size n, invalidating references and values.
-  void resizeNocopy(std::size_t n);
+  void resizeNoCopy(std::size_t n);
 
 #ifdef DCA_HAVE_CUDA
   // Copy the values of rhs asynchronously.
@@ -70,11 +70,11 @@ private:
 
 template <DeviceType device, typename... Ts>
 MultiVector<device, Ts...>::MultiVector(std::size_t n) {
-  resizeNocopy(n);
+  resizeNoCopy(n);
 }
 
 template <DeviceType device, typename... Ts>
-void MultiVector<device, Ts...>::resizeNocopy(std::size_t n) {
+void MultiVector<device, Ts...>::resizeNoCopy(std::size_t n) {
   data_.resizeNoCopy(n * dca::util::size_sum<Ts...>);
   size_ = n;
 }

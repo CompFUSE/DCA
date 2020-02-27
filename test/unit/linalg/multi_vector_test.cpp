@@ -17,7 +17,7 @@
 
 TEST(MultiVector, ResizeAndGet) {
   dca::linalg::MultiVector<dca::linalg::CPU, int, double, char> v;
-  v.resizeNocopy(2);
+  v.resizeNoCopy(2);
 
   const std::vector<int> v_int{0, 1};
   const std::vector<double> v_double{0.5, 1.5};

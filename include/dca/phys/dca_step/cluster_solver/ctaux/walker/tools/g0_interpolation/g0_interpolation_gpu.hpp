@@ -232,8 +232,8 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
   const int configuration_size = configuration.size();
 
   config_copied_.block();
-  g0_labels_cpu_.resizeNocopy(configuration_size);
-  g0_labels_gpu_.resizeNocopy(configuration_size);
+  g0_labels_cpu_.resizeNoCopy(configuration_size);
+  g0_labels_gpu_.resizeNoCopy(configuration_size);
 
   auto band = g0_labels_cpu_.get<0>();
   auto site = g0_labels_cpu_.get<1>();
