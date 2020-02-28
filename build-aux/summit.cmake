@@ -14,10 +14,10 @@ mark_as_advanced(DCA_ESSL_INCLUDES)
 
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
-set(MPIEXEC_NUMPROC_FLAG "-a" CACHE STRING
+set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING
   "Flag used by TEST_RUNNER to specify the number of processes.")
-# Use 1 resource set with 1 GPU and 8 cores for executing the tests.
-set(MPIEXEC_PREFLAGS "-n 1 -g 1 -c 8" CACHE STRING
+# Use 1 resource set with 1 GPU and 7 cores for executing the tests.
+set(MPIEXEC_PREFLAGS "-a 1 -g 1 -c 7" CACHE STRING
   "Flags to pass to TEST_RUNNER directly before the executable to run.")
 # The flag "--smpiargs=none" is needed to execute tests with no MPI functionalities.
 set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING

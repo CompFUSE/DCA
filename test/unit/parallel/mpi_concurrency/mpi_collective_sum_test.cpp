@@ -11,7 +11,7 @@
 //
 // This file tests mpi_collective_sum.hpp.
 //
-// This test only passes for 8 MPI processes.
+// This test only passes for 6 MPI processes.
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
 
@@ -50,11 +50,13 @@ TEST_F(MPICollectiveSumTest, SumScalar) {
 }
 
 TEST_F(MPICollectiveSumTest, SumFunction) {
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<6, int>>;
 
   dca::func::function<double, TestDomain> function_test("test");
   dca::func::function<double, TestDomain> function_expected("expected");
 
+  EXPECT_EQ(sum_interface_.get_size(), function_test.size());
+  
   for (int i = 0; i < function_test.size(); i++)
     function_test(i) = i * rank_;
 
@@ -87,7 +89,7 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   EXPECT_DOUBLE_EQ(expected * (size_ - 1), sum_one_out);
 
   // Check dca::func::function version.
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<6, int>>;
   dca::func::function<double, TestDomain> f;
   f(0) = values[rank_];
   f(1) = 0.;
@@ -109,6 +111,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
 
   FunctionType f;
 
+  EXPECT_EQ(size_, sum_interface_.get_size());
+  
   // Trivial case
   // All jackknife estimates are identical: jackknife error = 0
   f(0) = 3.14;
@@ -120,14 +124,14 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   EXPECT_NEAR(0., err_trivial(1), epsilon_);
 
   // Non-trivial case
-  const double d = 42.1;
+  const double d = 17.6;
   f(0) = rank_;
   f(1) = d;
 
   const FunctionType f_copy(f);
 
   FunctionType err_expected;
-  err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 17.5);
   err_expected(1) = 0.;
 
   // Do not overwrite the jackknife estimates with their average.
@@ -169,7 +173,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   EXPECT_NEAR(0., err_trivial(1).imag(), epsilon_);
 
   // Non-trivial case
-  const double d = 42.1;
+  const double d = 17.6;
   const double r = 1.4;
   f(0) = std::complex<double>(rank_, rank_ + r);
   f(1) = std::complex<double>(rank_, d);
@@ -177,7 +181,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   const FunctionType f_copy(f);
 
   FunctionType err_expected;
-  const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 17.5);
   err_expected(0) = std::complex<double>(err_tmp, err_tmp);
   err_expected(1) = std::complex<double>(err_tmp, 0.);
 
@@ -220,6 +224,7 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   sum_interface_.sum(f_mean);
   f_mean /= size_;
 
+  // Theses are magic numbers for 8 ranks
   dca::func::function<double, CovarianceDomain> covariance_expected("expected");
   covariance_expected(0, 0) = 0.;
   covariance_expected(0, 1) = 0.;
@@ -258,8 +263,8 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   using FunctionDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
-  using CovarianceDomain = dca::func::dmn_variadic<dca::func::dmn_0<dca::func::dmn<4, int>>,
-                                                   dca::func::dmn_0<dca::func::dmn<4, int>>>;
+  using CovarianceDomain = dca::func::dmn_variadic<dca::func::dmn_0<dca::func::dmn<3, int>>,
+                                                   dca::func::dmn_0<dca::func::dmn<3, int>>>;
 
   dca::func::function<std::complex<double>, FunctionDomain> f("f");
   dca::func::function<std::complex<double>, FunctionDomain> f_mean("f_mean");
@@ -271,6 +276,7 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   sum_interface_.sum(f_mean);
   f_mean /= size_;
 
+  // again magic numbers for 8 ranks
   dca::func::function<double, CovarianceDomain> covariance_expected("expected");
   covariance_expected(0, 0) = 0.;
   covariance_expected(0, 1) = 0.;
@@ -310,7 +316,7 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
 }
 
 TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
-  using FunctionDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using FunctionDomain = dca::func::dmn_0<dca::func::dmn<6, int>>;
   const std::vector<int> orders{3, 4};
 
   dca::func::function<double, FunctionDomain> f("f");
