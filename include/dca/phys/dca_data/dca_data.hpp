@@ -122,8 +122,8 @@ public:
   void print_Sigma_QMC_versus_Sigma_cg();
 
 private:
-  Parameters& parameters_;
-  Concurrency& concurrency_;
+  /*const*/ Parameters& parameters_;
+  const Concurrency& concurrency_;
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
@@ -232,6 +232,11 @@ public:  // Optional members getters.
               "non_density_interaction"));
     return *non_density_interactions_;
   }
+  const auto& get_nondensity_interactions() const {
+    assert(non_density_interactions_);
+    return non_density_interactions_;
+  }
+
   bool has_non_density_interactions() const {
     return (bool)non_density_interactions_;
   }
@@ -247,7 +252,7 @@ private:  // Optional members.
 };
 
 template <class Parameters>
-DcaData<Parameters>::DcaData(Parameters& parameters_ref)
+DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -530,19 +535,19 @@ void DcaData<Parameters>::initialize_G0() {
   // Compute G0_k_w.
   compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
                  parameters_.get_coarsegraining_threads(), G0_k_w);
-  symmetrize::execute(G0_k_w, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_k_w, H_symmetry, true);
 
   // Compute G0_k_t.
   compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
-  symmetrize::execute(G0_k_t, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_k_t, H_symmetry, true);
 
   // Compute G0_r_w.
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
-  symmetrize::execute(G0_r_w, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_r_w, H_symmetry, true);
 
   // Compute G0_r_t.
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t);
-  symmetrize::execute(G0_r_t, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_r_t, H_symmetry, true);
 
   // Initialize the cluster excluded Green's functions with the corresponding free Green's
   // functions.

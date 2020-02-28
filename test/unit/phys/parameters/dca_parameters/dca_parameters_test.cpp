@@ -17,6 +17,8 @@
 
 class DcaParametersTest : public ::testing::Test {
 protected:
+  DcaParametersTest() : pars_(2), reader_() {}
+
   dca::phys::params::DcaParameters pars_;
   dca::io::JSONReader reader_;
 };

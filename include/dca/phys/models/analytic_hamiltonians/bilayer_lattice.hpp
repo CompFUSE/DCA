@@ -5,9 +5,10 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Peizhi Mai peizhimai@gmail.com
+//         Giovanni Balduzzi gbalduzz@itp.phys.ethz.ch
 //
-// Bilayer lattice.
+// Threeband copper-oxide lattice.
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP
@@ -39,6 +40,13 @@ public:
 
   const static int DIMENSION = 2;
   const static int BANDS = 2;
+
+  constexpr static int transformationSignofR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignofK(int, int, int) {
+    return 1;
+  }
 
   static double* initialize_r_DCA_basis();
   static double* initialize_k_DCA_basis();
@@ -215,20 +223,18 @@ void bilayer_lattice<point_group_type>::initialize_H_0(
     const auto val =
         -2. * t * (std::cos(k[0]) + std::cos(k[1])) - 4. * t_prime * std::cos(k[0]) * std::cos(k[1]);
 
-    H_0(0, 0, 0, 0, k_ind) = val;
-    H_0(0, 1, 0, 1, k_ind) = val;
-    H_0(1, 0, 1, 0, k_ind) = val;
-    H_0(1, 1, 1, 1, k_ind) = val;
+    for (int s = 0; s < 2; ++s) {
+      H_0(0, s, 0, s, k_ind) = val;
+      H_0(1, s, 1, s, k_ind) = val;
 
-    H_0(0, 0, 1, 0, k_ind) = -t_perp;
-    H_0(0, 1, 1, 1, k_ind) = -t_perp;
-    H_0(1, 0, 0, 0, k_ind) = -t_perp;
-    H_0(1, 1, 0, 1, k_ind) = -t_perp;
+      H_0(0, s, 1, s, k_ind) = -t_perp;
+      H_0(1, s, 0, s, k_ind) = -t_perp;
+    }
   }
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP

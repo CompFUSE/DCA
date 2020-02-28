@@ -938,7 +938,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_tp_Greens_function(
 
   int origin = KClusterDmn::parameter_type::origin_index();
 
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   // #ifdef USE_OPENMP_DIRECTIVES
   // #pragma omp parallel for

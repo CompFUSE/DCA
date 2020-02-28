@@ -38,6 +38,8 @@ public:
   using profiler_t = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
 
+  using Lattice = typename ParametersType::lattice_type;
+
   using w = func::dmn_0<domains::frequency_domain>;
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -129,9 +131,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute(data_.Sigma, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute(data_.G_k_w, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>

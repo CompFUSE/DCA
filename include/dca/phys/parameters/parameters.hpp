@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
@@ -103,12 +103,12 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using TP_measurement_scalar_type = config::AccumulationOptions::TPAccumulationScalar;
+  using TP_measurement_scalar_type = config::McOptions::TPAccumulationScalar;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>
-  void write(Writer& writer);
+  void write(Writer& writer) const;
   template <typename Reader>
   void read_input_and_broadcast(const std::string& file_name);
 
@@ -119,9 +119,12 @@ public:
   void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
   void unpack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position);
 
-  concurrency_type& get_concurrency() {
+  concurrency_type& get_concurrency() const {
     return concurrency_;
   }
+//  const concurrency_type& get_concurrency() const {
+//    return concurrency_;
+//  }
 
 private:
   template <typename ReaderOrWriter>
@@ -143,7 +146,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(),
-      DcaParameters(),
+      DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
       EdSolverParameters(),
@@ -174,9 +177,11 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 template <typename Writer>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::write(
-    Writer& writer) {
+    Writer& writer) const {
   writer.open_group("parameters");
-  this->readWrite(writer);
+  const_cast<Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>*>(
+      this)
+      ->readWrite(writer);
   writer.close_group();
 
   writer.open_group("domains");
@@ -244,8 +249,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_domains() {
   domains::DCA_iteration_domain::initialize(*this);
-  domains::electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(),
-                                            Model::get_a_vectors());
+  domains::electron_band_domain::initialize(*this);
 
   // time and frequency-domains
   domains::time_domain::initialize(*this);
