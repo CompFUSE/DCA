@@ -38,7 +38,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_baseline = true;
+constexpr bool update_baseline = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
@@ -116,7 +116,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       writer.open_file(input_dir + baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
-      writer.execute(data.get_G4()[0]);
+      writer.execute("G4", data.get_G4()[0]);
       writer.close_group(), writer.close_file();
     }
   }
