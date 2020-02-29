@@ -1,4 +1,4 @@
-// Copyright (C) 2018 ETH Zurich
+1;// Copyright (C) 2018 ETH Zurich
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@phys.itp.ethz.ch)
 //
 // Rotation over a 2*pi*n/m.
 
@@ -13,7 +14,6 @@
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_SYMMETRY_OPERATIONS_2D_CN_2D_HPP
 
 #include "dca/phys/domains/cluster/symmetries/symmetry_operations/group_action.hpp"
-#include "dca/phys/domains/cluster/symmetries/symmetry_operations/trigoniometric_ops/trig_ops.h"
 
 namespace dca {
 namespace phys {
@@ -35,10 +35,10 @@ public:
 
 private:
   static double* init() {
-    static double* matrix = new double[4];
+    static std::array<double, 4> matrix;
 
-    double c = COSINE_EVAL<n, m>::value();  // cos(2.*M_PI*theta);
-    double s = SINE_EVAL<n, m>::value();    // sin(2.*M_PI*theta);
+    constexpr double c = std::cos(2 * M_PI * double(n) / double(m));
+    constexpr double s = std::sin(2 * M_PI * double(n) / double(m));
 
     // in column major order !
     matrix[0] = c;
@@ -46,12 +46,12 @@ private:
     matrix[2] = -s;
     matrix[3] = c;
 
-    return matrix;
+    return matrix.data();
   }
 };
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_SYMMETRY_OPERATIONS_2D_CN_2D_HPP
