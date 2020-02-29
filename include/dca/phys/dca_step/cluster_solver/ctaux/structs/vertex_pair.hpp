@@ -46,8 +46,8 @@ public:
   typedef vertex_pair<parameters_type> this_type;
 
 public:
-  vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
-              int configuration_e_DN_index_in, int configuration_e_UP_index_in, uint64_t id);
+  vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index,
+              uint64_t id);
 
   this_type& operator=(const this_type& other_vertex_pair);
 
@@ -82,9 +82,6 @@ public:
   }
   std::pair<int, int>& get_configuration_e_spin_indices();
 
-  void set_creatable(bool val) {
-    creatable = val;
-  }
   void set_annihilatable(bool val) {
     annihilatable = val;
   }
@@ -98,9 +95,6 @@ public:
     Bennett = val;
   }
 
-  bool is_creatable() const {
-    return creatable;
-  }
   bool is_annihilatable() const {
     return annihilatable;
   }
@@ -136,7 +130,6 @@ private:
   std::pair<int, int> bands;
   std::pair<e_spin_states_type, e_spin_states_type> e_spins;
   std::pair<int, int> spin_orbitals;
-  std::pair<HS_field_sign_type, HS_field_sign_type> HS_fields;
   std::pair<int, int> r_sites;
 
   HS_spin_states_type HS_spin;
@@ -144,10 +137,9 @@ private:
   double tau;
 
   // algorithm-information
-  int configuration_index;
+  int configuration_index;  // TODO: remove redundant info.
   std::pair<int, int> configuration_e_spin_indices;
 
-  bool creatable;
   bool annihilatable;
   bool successfully_flipped;
   bool Bennett;
@@ -156,12 +148,9 @@ private:
 
 template <class parameters_type>
 vertex_pair<parameters_type>::vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref,
-                                          int configuration_index_in,
-                                          int /*configuration_e_DN_index_in*/,
-                                          int /*configuration_e_UP_index_in*/, uint64_t id)
+                                          int configuration_index_in, uint64_t id)
     : parameters(parameters_ref),
       rng(rng_ref),
-      //     concurrency(parameters.get_concurrency()),
 
       id_(id),
 
@@ -171,7 +160,6 @@ vertex_pair<parameters_type>::vertex_pair(const parameters_type& parameters_ref,
       bands(0, 0),
       e_spins(e_DN, e_UP),
       spin_orbitals(0, 1),
-      HS_fields(HS_FIELD_DN, HS_FIELD_UP),
       r_sites(0, 0),
 
       HS_spin(HS_ZERO),
@@ -182,7 +170,6 @@ vertex_pair<parameters_type>::vertex_pair(const parameters_type& parameters_ref,
 
       configuration_e_spin_indices(-1, -1),
 
-      creatable(true),
       annihilatable(false),
       successfully_flipped(false),
       Bennett(false),
@@ -206,7 +193,6 @@ vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
   configuration_index = other_vertex_pair.configuration_index;
   configuration_e_spin_indices = other_vertex_pair.configuration_e_spin_indices;
 
-  creatable = other_vertex_pair.creatable;
   annihilatable = other_vertex_pair.annihilatable;
   successfully_flipped = other_vertex_pair.successfully_flipped;
   Bennett = other_vertex_pair.Bennett;
@@ -245,7 +231,6 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
   tau = parameters.get_beta() * rng();
 
-  creatable = false;
   annihilatable = true;
 
   successfully_flipped = false;
@@ -267,7 +252,6 @@ void vertex_pair<parameters_type>::set_random_noninteracting() {
 
   tau = parameters.get_beta() * rng();
 
-  creatable = true;
   annihilatable = false;
 
   successfully_flipped = false;
@@ -329,12 +313,11 @@ bool vertex_pair<parameters_type>::operator==(
 
   return id_ == rhs.id_ && interacting_bands == rhs.interacting_bands && BANDS == rhs.BANDS &&
          bands == rhs.bands && e_spins == rhs.e_spins && spin_orbitals == rhs.spin_orbitals &&
-         HS_fields == rhs.HS_fields && r_sites == rhs.r_sites && HS_spin == rhs.HS_spin &&
-         delta_r == rhs.delta_r && tau == rhs.tau && configuration_index == rhs.configuration_index &&
+         r_sites == rhs.r_sites && HS_spin == rhs.HS_spin && delta_r == rhs.delta_r &&
+         tau == rhs.tau && configuration_index == rhs.configuration_index &&
          configuration_e_spin_indices == rhs.configuration_e_spin_indices &&
-         creatable == rhs.creatable && annihilatable == rhs.annihilatable &&
-         successfully_flipped == rhs.successfully_flipped && Bennett == rhs.Bennett &&
-         shuffled == rhs.shuffled;
+         annihilatable == rhs.annihilatable && successfully_flipped == rhs.successfully_flipped &&
+         Bennett == rhs.Bennett && shuffled == rhs.shuffled;
 }
 
 }  // namespace ctaux

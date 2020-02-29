@@ -10,20 +10,23 @@
 // N-matrix tools class.
 // Template specialization for CPU.
 
- template <class Parameters, typename Real>
-class N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real> {
+template <class Parameters, typename Real>
+class N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
+
+  template <class T>
+  using HostVector = linalg::util::HostVector<T>;
 
 public:
   N_MATRIX_TOOLS(int id, const Parameters& parameters_ref);
 
   Real* get_device_ptr(dca::linalg::Vector<Real, dca::linalg::CPU>& v);
 
-  int* get_permutation();
-  void set_permutation(std::vector<int>& p);
+  const int* get_permutation() const;
+  void set_permutation(const HostVector<int>& p);
 
   void set_d_vector(dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv);
 
@@ -32,7 +35,7 @@ public:
   void copy_rows(dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
                  dca::linalg::Matrix<Real, dca::linalg::CPU>& N_new_spins);
 
-  void compute_G_cols(std::vector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+  void compute_G_cols(HostVector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
                       dca::linalg::Matrix<Real, dca::linalg::CPU>& G,
                       dca::linalg::Matrix<Real, dca::linalg::CPU>& G_cols);
 
@@ -52,9 +55,9 @@ private:
   // dca::linalg::Matrix<Real, dca::linalg::CPU> data;
 };
 
- template <class Parameters, typename Real>
-N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::N_MATRIX_TOOLS(int id,
-                                                                 const Parameters& parameters_ref)
+template <class Parameters, typename Real>
+N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::N_MATRIX_TOOLS(int id,
+                                                                   const Parameters& parameters_ref)
     : thread_id(id),
       stream_id(0),
 
@@ -70,38 +73,38 @@ N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::N_MATRIX_TOOLS(int id,
     identity[l] = l;
 }
 
- template <class Parameters, typename Real>
-Real* N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::get_device_ptr(
+template <class Parameters, typename Real>
+Real* N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::get_device_ptr(
     dca::linalg::Vector<Real, dca::linalg::CPU>& v) {
   return v.ptr();
 }
 
- template <class Parameters, typename Real>
-int* N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::get_permutation() {
+template <class Parameters, typename Real>
+const int* N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::get_permutation() const {
   return permutation.ptr();
 }
 
- template <class Parameters, typename Real>
-void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::set_permutation(std::vector<int>& p) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::set_permutation(const HostVector<int>& p) {
   permutation = p;
 }
 
- template <class Parameters, typename Real>
-void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::set_d_vector(
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::set_d_vector(
     dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv) {
   d_vec = d_inv;
 }
 
- template <class Parameters, typename Real>
-void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::scale_rows(
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::scale_rows(
     dca::linalg::Matrix<Real, dca::linalg::CPU>& N) {
   assert(permutation.size() == d_vec.size());
 
   dca::linalg::matrixop::scaleRows(N, permutation, d_vec, thread_id, stream_id);
 }
 
- template <class Parameters, typename Real>
-void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::copy_rows(
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::copy_rows(
     dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
     dca::linalg::Matrix<Real, dca::linalg::CPU>& N_new_spins) {
   assert(N_new_spins.nrCols() == N.nrCols());
@@ -111,9 +114,9 @@ void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::copy_rows(
   dca::linalg::matrixop::copyRows(N, permutation, N_new_spins, identity, thread_id, stream_id);
 }
 
- template <class Parameters, typename Real>
-void N_MATRIX_TOOLS<dca::linalg::CPU,Parameters, Real>::compute_G_cols(
-    std::vector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real>::compute_G_cols(
+    HostVector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
     dca::linalg::Matrix<Real, dca::linalg::CPU>& G,
     dca::linalg::Matrix<Real, dca::linalg::CPU>& G_cols) {
   assert(N.nrRows() == G.nrRows());
