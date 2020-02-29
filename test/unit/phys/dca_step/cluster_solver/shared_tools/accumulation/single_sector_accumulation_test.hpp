@@ -134,7 +134,7 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
@@ -200,18 +200,18 @@ template <typename Real, int n_bands, int n_sites, int n_frqs>
 auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
     -> F_w_w {
   F_w_w f_w("2D frequency transform baseline.");
-  const std::complex<double> imag(0, 1);
+  const std::complex<Real> imag(0, 1);
 
   for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
-    const double w_val2 = FreqDmn::get_elements()[w_ind2];
+    const Real w_val2 = FreqDmn::get_elements()[w_ind2];
     for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
-      const double w_val1 = FreqDmn::get_elements()[w_ind1];
+      const Real w_val1 = FreqDmn::get_elements()[w_ind1];
       for (int j = 0; j < configuration_.size(); ++j) {
-        const auto t_val2 = configuration_[j].get_tau();
+        const Real t_val2 = configuration_[j].get_tau();
         const int b2 = configuration_[j].b_;
         const int r2 = configuration_[j].r_;
         for (int i = 0; i < configuration_.size(); ++i) {
-          const auto t_val1 = configuration_[i].get_tau();
+          const Real t_val1 = configuration_[i].get_tau();
           const int b1 = configuration_[i].b_;
           const int r1 = configuration_[i].r_;
 

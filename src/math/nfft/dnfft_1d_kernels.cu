@@ -45,47 +45,42 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
 // TODO: consider constant or texture memory for the coefficients.
 template <int oversampling, int window_sampling, typename ScalarIn, typename ScalarOut,
           bool accumulate_m_sqr = false>
-__global__ void accumulateOnDeviceKernel(const ScalarIn* M, const int ldm, const ScalarIn sign,
-                                         ScalarOut* out, ScalarOut* out_sqr, int ldo,
-                                         const ConfigElem* config_left,
-                                         const ConfigElem* config_right, const ScalarIn* times,
-                                         const ScalarOut* cubic_coeff, const int size) {
-  //  const int conv_size = 2 * oversampling + 1;
-  const int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (thread_idx >= size * size)
+__global__ void accumulateOnDeviceKernel(
+    const ScalarIn* __restrict__ M, const int ldm, const ScalarIn sign, ScalarOut* __restrict__ out,
+    ScalarOut* __restrict__ out_sqr, int ldo, const ConfigElem* __restrict__ config_left,
+    const ConfigElem* __restrict__ config_right, const ScalarIn* __restrict__ times,
+    const ScalarOut* __restrict__ cubic_coeff, const int m_size) {
+  constexpr int conv_size = 2 * oversampling;
+  int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (thread_idx >= m_size * m_size * conv_size)
     return;
 
-  // Compute input indices.
-  //  const int m_idx = thread_idx / conv_size;
-  const int id_j = thread_idx / size;
-  const int id_i = thread_idx - size * id_j;
-  const ScalarOut tau = nfft_helper.computeTau(times[id_i], times[id_j]);
-  // Compute index of the convolution output index relative to a single input value.
-  //  const int conv_idx = thread_idx - conv_size * m_idx;
+  // Unroll thread index.
+  const int m_j = thread_idx / (m_size * conv_size);
+  thread_idx -= m_j * (m_size * conv_size);
+  const int m_i = thread_idx / conv_size;
+  const int conv_idx = thread_idx - m_i * conv_size + 1;
+
+  const ScalarOut tau = nfft_helper.computeTau(times[m_i], times[m_j]);
 
   int t_idx, conv_coeff_idx;
   ScalarOut delta_t;
   nfft_helper.computeInterpolationIndices<CUBIC, oversampling, window_sampling>(
       tau, t_idx, conv_coeff_idx, delta_t);
 
-  const int linindex =
-      nfft_helper.computeLinearIndex(config_left[id_i].band, config_right[id_j].band,
-                                     config_left[id_i].site, config_right[id_j].site);
-  ScalarOut* const out_ptr = out + t_idx + ldo * linindex;
+  const int linindex = nfft_helper.computeLinearIndex(
+      config_left[m_i].band, config_right[m_j].band, config_left[m_i].site, config_right[m_j].site);
 
-  const auto f_val = sign * M[id_i + ldm * id_j];
+  const auto f_val = M[m_i + ldm * m_j];
+  const auto* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
+  ScalarOut* const out_ptr = out + t_idx + ldo * linindex + conv_idx;
 
-  const auto* conv_coeff = cubic_coeff + conv_coeff_idx;
-  for (int l = 0; l < 2 * oversampling + 1; ++l) {
-    const auto conv_function_value =
-        ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t +
-        conv_coeff[0];
-    const auto contribution = f_val * conv_function_value;
-    linalg::atomicAdd(out_ptr, contribution);
-    if (accumulate_m_sqr) {
-      linalg::atomicAdd(out_sqr, f_val * conv_function_value * M[id_i + ldm * id_j]);
-    }
-    conv_coeff += 4;
+  const auto conv_function_value =
+      ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t + conv_coeff[0];
+  const auto contribution = f_val * sign * conv_function_value;
+  linalg::atomicAdd(out_ptr, contribution);
+  if (accumulate_m_sqr) {
+    linalg::atomicAdd(out_sqr, f_val * f_val * conv_function_value);
   }
 }
 
@@ -94,10 +89,8 @@ void accumulateOnDevice(const ScalarIn* M, const int ldm, const ScalarIn sign, S
                         ScalarOut* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarIn* tau,
                         const ScalarOut* cubic_coeff, const int size, cudaStream_t stream_) {
-  const auto blocks = getBlockSize(size * size, 128);
+  const auto blocks = getBlockSize(size * size * (2 * oversampling), 128);
 
-  // TODO: check if there is a performance gain in using a block size that is a multiple of
-  //       convolution_size.
   if (out_sqr) {
     accumulateOnDeviceKernel<oversampling, window_sampling, ScalarIn, ScalarOut, true>
         <<<blocks[0], blocks[1], 0, stream_>>>(M, ldm, sign, out, out_sqr, ldo, config_left,

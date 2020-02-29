@@ -17,8 +17,8 @@
 #include <cuda.h>
 #include <stdexcept>
 
-#include "dca/math/nfft/nfft_mode_names.hpp"
 #include "dca/config/mc_options.hpp"
+#include "dca/math/nfft/nfft_mode_names.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 
 namespace dca {
@@ -31,7 +31,7 @@ class NfftHelper {
 public:
   using Scalar = dca::config::McOptions::MCScalar;
 
-  static void set(int nb, const int nc, const int *add_r, int lda, const int *sub_r, int lds,
+  static void set(int nb, const int nc, const int* add_r, int lda, const int* sub_r, int lds,
                   Scalar t0, Scalar delta_t, const Scalar t0_window, const Scalar delta_t_window,
                   const Scalar beta);
 
@@ -79,8 +79,8 @@ __device__ void NfftHelper::computeInterpolationIndices(TType t, int& t_idx, int
 
   t_idx -= oversampling;
   const int delta_tau_index = t_wnd_idx - oversampling * window_sampling;
-  const int j = delta_tau_index % window_sampling;
-  const int i = (delta_tau_index - j) / window_sampling;
+  const int i = delta_tau_index / window_sampling;
+  const int j = delta_tau_index - i * window_sampling;
 
   constexpr int interpolation_size = mode == CUBIC ? 4 : 2;
   conv_coeff_idx = interpolation_size * i + interpolation_size * 4 * oversampling * j;

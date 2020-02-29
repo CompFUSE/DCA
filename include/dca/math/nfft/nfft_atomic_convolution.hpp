@@ -18,12 +18,12 @@ namespace nfft {
 // dca::math::nfft::
 
 template <int max_count, int count>
-struct nfft_atomic_convolution {
+struct NfftAtomicConvolutionImpl {
   template <typename ScalarType>
   inline static void execute_linear(ScalarType* f, const ScalarType* M, const ScalarType* y) {
     f[count] += (M[0 + 2 * count] * y[0] + M[1 + 2 * count] * y[1]);
 
-    nfft_atomic_convolution<max_count, count + 1>::execute_linear(f, M, y);
+    NfftAtomicConvolutionImpl<max_count, count + 1>::execute_linear(f, M, y);
   }
 
   template <typename ScalarType>
@@ -31,7 +31,7 @@ struct nfft_atomic_convolution {
     f[count] += (M[0 + 4 * count] * y[0] + M[1 + 4 * count] * y[1] + M[2 + 4 * count] * y[2] +
                  M[3 + 4 * count] * y[3]);
 
-    nfft_atomic_convolution<max_count, count + 1>::execute_cubic(f, M, y);
+    NfftAtomicConvolutionImpl<max_count, count + 1>::execute_cubic(f, M, y);
   }
 
   template <typename ScalarType>
@@ -54,14 +54,14 @@ struct nfft_atomic_convolution {
   inline static void execute_Mt_y_1(ScalarType* f, const ScalarType* M, const ScalarType* y) {
     f[count] += M[count] * y[0];
 
-    nfft_atomic_convolution<max_count, count + 1>::execute_Mt_y_1(f, M, y);
+    NfftAtomicConvolutionImpl<max_count, count + 1>::execute_Mt_y_1(f, M, y);
   }
 
   template <typename ScalarType>
   inline static void execute_Mt_y_2(ScalarType* f, const ScalarType* M, const ScalarType* y) {
     f[count] += (M[0 + 2 * count] * y[0] + M[1 + 2 * count] * y[1]);
 
-    nfft_atomic_convolution<max_count, count + 1>::execute_Mt_y_2(f, M, y);
+    NfftAtomicConvolutionImpl<max_count, count + 1>::execute_Mt_y_2(f, M, y);
   }
 
   template <typename ScalarType>
@@ -69,12 +69,12 @@ struct nfft_atomic_convolution {
     f[count] += (M[0 + 4 * count] * y[0] + M[1 + 4 * count] * y[1] + M[2 + 4 * count] * y[2] +
                  M[3 + 4 * count] * y[3]);
 
-    nfft_atomic_convolution<max_count, count + 1>::execute_Mt_y_4(f, M, y);
+    NfftAtomicConvolutionImpl<max_count, count + 1>::execute_Mt_y_4(f, M, y);
   }
 };
 
 template <int max_count>
-struct nfft_atomic_convolution<max_count, max_count> {
+struct NfftAtomicConvolutionImpl<max_count, max_count> {
   template <typename ScalarType>
   inline static void execute_linear(ScalarType* /*f*/, const ScalarType* /*y*/,
                                     const ScalarType* /*M*/) {}
@@ -92,8 +92,23 @@ struct nfft_atomic_convolution<max_count, max_count> {
                                     const ScalarType* /*y*/) {}
 };
 
-}  // nfft
-}  // math
-}  // dca
+template <int oversampling>
+struct NfftAtomicConvolution {
+  template <typename ScalarType>
+  inline static void execute_linear(ScalarType* f, const ScalarType* y, const ScalarType* M) {
+    static_assert(oversampling > 1, "Invalid oversampling size.");
+    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_linear(f, y, M);
+  }
+
+  template <typename ScalarType>
+  inline static void execute_cubic(ScalarType* f, const ScalarType* y, const ScalarType* M) {
+    static_assert(oversampling > 1, "Invalid oversampling size.");
+    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_cubic(f, y, M);
+  }
+};
+
+}  // namespace nfft
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_NFFT_NFFT_ATOMIC_CONVOLUTION_HPP
