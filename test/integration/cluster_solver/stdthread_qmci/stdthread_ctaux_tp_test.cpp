@@ -114,7 +114,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       writer.open_file(input_dir + baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
-      writer.execute(data.get_G4()[0]);
+      writer.execute("G4", data.get_G4()[0]);
       writer.close_group(), writer.close_file();
     }
   }
