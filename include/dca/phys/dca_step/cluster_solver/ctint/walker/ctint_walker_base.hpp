@@ -64,6 +64,9 @@ public:
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
 
+  using Scalar = Real;
+  constexpr static linalg::DeviceType device = linalg::CPU;
+
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
 
@@ -72,10 +75,6 @@ protected:  // The class is not instantiable.
 public:
   const auto& getConfiguration() const {
     return configuration_;
-  }
-
-  int getSign() const {
-    return sign_;
   }
 
   void computeM(MatrixPair& m_accum) const;
@@ -95,7 +94,7 @@ public:
   double avgOrder() const {
     return order_avg_.count() ? order_avg_.mean() : order();
   }
-  int sign() const {
+  int get_sign() const {
     return sign_;
   }
 
@@ -107,6 +106,10 @@ public:
 
   const auto& get_configuration() const {
     return configuration_;
+  }
+
+  const auto& get_matrix_configuration() const {
+    return configuration_.get_sectors();
   }
 
   void updateShell(int meas_id, int meas_to_do) const;
@@ -154,6 +157,8 @@ public:
     assert(s >= 0 && s < 2);
     return *streams_[s];
   }
+
+  static void sumConcurrency(const Concurrency&) {}
 
 protected:
   // typedefs

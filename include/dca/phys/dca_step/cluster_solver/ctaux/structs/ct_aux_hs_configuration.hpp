@@ -105,6 +105,10 @@ public:
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
 
+  auto get_matrix_configuration() const {
+    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+  }
+
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
 
   template <class Pars>

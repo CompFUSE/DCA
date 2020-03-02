@@ -68,6 +68,15 @@ public:
     assert(measurements >= 0);
     measurements_ = measurements;
   }
+
+  // Maximum distance (in MC time) considered when computing the correlation between configurations.
+  int get_time_correlation_window() const {
+    return time_correlation_window_;
+  }
+  void set_time_correlation_window(int window) {
+    time_correlation_window_ = window;
+  }
+
   int get_walkers() const {
     return walkers_;
   }
@@ -109,6 +118,7 @@ private:
   int warm_up_sweeps_;
   double sweeps_per_measurement_;
   int measurements_;
+  int time_correlation_window_ = 0;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -126,6 +136,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
   buffer_size += concurrency.get_buffer_size(measurements_);
+  buffer_size += concurrency.get_buffer_size(time_correlation_window_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
@@ -144,6 +155,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.pack(buffer, buffer_size, position, measurements_);
+  concurrency.pack(buffer, buffer_size, position, time_correlation_window_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -160,6 +172,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.unpack(buffer, buffer_size, position, measurements_);
+  concurrency.unpack(buffer, buffer_size, position, time_correlation_window_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -221,6 +234,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     try {
       reader_or_writer.execute("measurements", measurements_);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    try {
+      reader_or_writer.execute("time-correlation-window", time_correlation_window_);
     }
     catch (const std::exception& r_e) {
     }

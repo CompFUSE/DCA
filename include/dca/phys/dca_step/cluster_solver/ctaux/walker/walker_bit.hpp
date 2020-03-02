@@ -44,7 +44,7 @@ class WalkerBIT {
   typedef typename CtauxTypedefs<Parameters, Data>::concurrency_type concurrency_type;
 
 public:
-  WalkerBIT(const Parameters& parameters_ref, Data& MOMS_ref, int id);
+  WalkerBIT(Parameters& parameters_ref, Data& MOMS_ref, int id);
   ~WalkerBIT();
 
   void initialize();
@@ -71,7 +71,7 @@ public:
                         dca::linalg::Matrix<Real, device_t>& G_dn);
 
 private:
-  const Parameters& parameters;
+  Parameters& parameters;
   Data& MOMS;
   const concurrency_type& concurrency;
 
@@ -96,7 +96,7 @@ private:
 };
 
 template <class Parameters, class Data, typename Real>
-WalkerBIT<Parameters, Data, Real>::WalkerBIT(const Parameters& parameters_ref, Data& MOMS_ref, int id)
+WalkerBIT<Parameters, Data, Real>::WalkerBIT(Parameters& parameters_ref, Data& MOMS_ref, int id)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),

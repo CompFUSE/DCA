@@ -1,0 +1,33 @@
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// Kernels interface for the class TimeCorrelator.
+
+#pragma once
+
+#include <cuda.h>
+
+#include "dca/linalg/matrix.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+
+namespace dca {
+namespace phys {
+namespace solver {
+namespace details {
+// dca::phys::solver::details::
+
+template <typename Real>
+void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
+               const ctint::G0Interpolation<linalg::GPU, Real>& g0_, const Real* t_l, const int* b_l,
+               const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream);
+
+}  // namespace details
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
