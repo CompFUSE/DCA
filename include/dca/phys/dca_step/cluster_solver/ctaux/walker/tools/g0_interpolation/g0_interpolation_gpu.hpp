@@ -245,7 +245,7 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
     tau[l] = configuration[l].get_tau();
   }
 
-  auto stream = linalg::util::getStream(thread_id, stream_id);
+  auto& stream = linalg::util::getStream(thread_id, stream_id);
   g0_labels_gpu_.setAsync(g0_labels_cpu_, stream);
   config_copied_.record(stream);
 }
