@@ -217,7 +217,7 @@ private:
   rng_type& rng;
   configuration_type configuration;
 
-  G0_INTERPOLATION<device_t, Parameters, Real> G0_tools_obj;
+  G0Interpolation<device_t, Parameters, Real> G0_tools_obj;
   N_TOOLS<device_t, Parameters, Real> N_tools_obj;
   G_TOOLS<device_t, Parameters, Real> G_tools_obj;
 

@@ -26,3 +26,17 @@ TEST(PackOperationsTest, Product) {
   const int result = dca::util::product(3, 2, 4);
   EXPECT_EQ(3 * 2 * 4, result);
 }
+
+TEST(PackOperationsTest, SizeSum) {
+  using dca::util::size_sum;
+  EXPECT_EQ(sizeof(char), size_sum<char>);
+
+  constexpr unsigned sum = size_sum<int, double, unsigned>;
+  EXPECT_EQ(sizeof(int) + sizeof(double) + sizeof(unsigned), sum);
+
+  using List = dca::util::Typelist<int, double, unsigned>;
+  EXPECT_EQ(sum, size_sum<List>);
+
+  using EmptyList = dca::util::Typelist<>;
+  EXPECT_EQ(0, size_sum<EmptyList>);
+}
