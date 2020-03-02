@@ -148,7 +148,9 @@ template <class WalkerConfig, typename RealInp>
 void TimeCorrelator<Parameters, Real>::compute_G_r_t(
     const std::array<dca::linalg::Matrix<RealInp, GPU>, 2>& M,
     const std::array<WalkerConfig, 2>& configs, int sign) {
-  assert(g0_);
+  if(!g0_){
+      throw(std::runtime_error("G0 is not set."));
+  }
 
   // Upload state
   constexpr int n_electron_spins = 1;  // Compute only on up-up sector.
@@ -160,7 +162,7 @@ void TimeCorrelator<Parameters, Real>::compute_G_r_t(
     G_[s].resizeNoCopy(fixed_config_.size());
 
     if (M[s].nrRows() == 0) {
-      G_[s].setToZero(stream_);
+      G_host_[s].setToZero(stream_);
       continue;
     }
 
