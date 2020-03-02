@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class reads, stores, and writes the Monte Carlo solver parameters.
 // It is templated on the MC solver name and only implemented when specialized for CT-AUX and
@@ -63,8 +64,8 @@ public:
   int get_max_submatrix_size() const {
     return max_submatrix_size_;
   }
-  void set_max_submatrix_size(int size) {
-    max_submatrix_size_ = size;
+  void set_max_submatrix_size(int submatrix_size) {
+    max_submatrix_size_ = submatrix_size;
   }
   bool neglect_bennett_updates() const {
     return neglect_bennett_updates_;
@@ -266,23 +267,32 @@ public:
     return initial_configuration_size_;
   }
 
+  void setInitialConfigurationSize(const int size) {
+    initial_configuration_size_ = size;
+  }
+
   std::array<double, 3> getAlphas() const {
     return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
   }
 
-  double getDoubleUpdateProb() const {
-    return double_update_prob_;
+  bool adjustAlphaDd() const {
+    return adjust_alpha_dd_;
   }
 
-  void setDoubleUpdateProb(const double p) {
-    double_update_prob_ = p;
+  double getDoubleUpdateProbability() const {
+    return double_update_probability_;
   }
 
-  bool doubleCountedInteraction() const {
-    return double_counted_interaction_;
+  void setDoubleUpdateProbability(const double p) {
+    double_update_probability_ = p;
   }
-  bool computeError() const {
-    return compute_error_;
+
+  int getMaxSubmatrixSize() const {
+    return max_submatrix_size_;
+  }
+
+  void setMaxSubmatrixSize(const int size) {
+    max_submatrix_size_ = size;
   }
 
 private:
@@ -290,9 +300,9 @@ private:
   double alpha_dd_pos_ = 0.501;
   double alpha_dd_neg_ = 0;
   double alpha_ndd_ = 1e-4;
-  double double_update_prob_ = 0;
-  bool double_counted_interaction_ = true;
-  bool compute_error_ = false;
+  bool adjust_alpha_dd_ = false;
+  double double_update_probability_ = 0;
+  int max_submatrix_size_ = 1;
 };
 
 template <typename Concurrency>
@@ -302,9 +312,9 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_dd_pos_);
   buffer_size += concurrency.get_buffer_size(alpha_dd_neg_);
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
-  buffer_size += concurrency.get_buffer_size(double_update_prob_);
-  buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
-  buffer_size += concurrency.get_buffer_size(compute_error_);
+  buffer_size += concurrency.get_buffer_size(adjust_alpha_dd_);
+  buffer_size += concurrency.get_buffer_size(double_update_probability_);
+  buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
 
   return buffer_size;
 }
@@ -316,9 +326,9 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_dd_pos_);
   concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
-  concurrency.pack(buffer, buffer_size, position, double_update_prob_);
-  concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
-  concurrency.pack(buffer, buffer_size, position, compute_error_);
+  concurrency.pack(buffer, buffer_size, position, adjust_alpha_dd_);
+  concurrency.pack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
 template <typename Concurrency>
@@ -328,15 +338,15 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_pos_);
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
-  concurrency.unpack(buffer, buffer_size, position, double_update_prob_);
-  concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
-  concurrency.unpack(buffer, buffer_size, position, compute_error_);
+  concurrency.unpack(buffer, buffer_size, position, adjust_alpha_dd_);
+  concurrency.unpack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
-// TODO: None of the open_group methods seem to throw.
 template <typename ReaderOrWriter>
 void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
+    // TODO: None of the open_group methods seem to throw.
     reader_or_writer.open_group("CT-INT");
 
     auto tryToRead = [&](const std::string& name, auto& obj) {
@@ -351,18 +361,15 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("alpha-dd-pos", alpha_dd_pos_);
     tryToRead("alpha-dd-neg", alpha_dd_neg_);
     tryToRead("alpha-ndd", alpha_ndd_);
-    tryToRead("double-update-probability", double_update_prob_);
-    tryToRead("double-counted-interaction", double_counted_interaction_);
-    tryToRead("compute-error-bar", compute_error_);
+    tryToRead("adjust-alpha-dd", adjust_alpha_dd_);
+    tryToRead("double-update-probability", double_update_probability_);
+    tryToRead("max-submatrix-size", max_submatrix_size_);
     reader_or_writer.close_group();
   }
   catch (const std::exception& /*r_e*/) {
     std::cout << "\nNo CT-INT solver parameters defined!\n" << std::endl;
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
-
-  if (double_update_prob_ < 0 or double_update_prob_ > 1.)
-    throw(std::out_of_range("double-update-probability must be in [0,1]."));
 }
 
 }  // namespace params

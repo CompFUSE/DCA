@@ -119,6 +119,10 @@ public:
   void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
   void unpack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position);
 
+  const concurrency_type& get_concurrency() const {
+    return concurrency_;
+  }
+  // TODO: remove non-const
   concurrency_type& get_concurrency() {
     return concurrency_;
   }

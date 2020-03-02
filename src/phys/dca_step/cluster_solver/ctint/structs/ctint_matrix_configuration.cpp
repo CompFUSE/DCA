@@ -21,14 +21,14 @@ MatrixConfiguration::MatrixConfiguration(const InteractionVertices* H_int, const
     : H_int_(H_int), n_bands_(bands), sectors_{Sector(), Sector()} {}
 
 MatrixConfiguration& MatrixConfiguration::operator=(const MatrixConfiguration& rhs) {
-  assert(n_bands_ == rhs.n_bands_);
+  n_bands_ = rhs.n_bands_;
   H_int_ = rhs.H_int_;
   sectors_ = rhs.sectors_;
   return *this;
 }
 
 MatrixConfiguration& MatrixConfiguration::operator=(MatrixConfiguration&& rhs) {
-  assert(n_bands_ == rhs.n_bands_);
+  n_bands_ = rhs.n_bands_;
   H_int_ = rhs.H_int_;
   sectors_ = std::move(rhs.sectors_);
   return *this;
