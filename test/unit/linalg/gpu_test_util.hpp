@@ -25,7 +25,7 @@ cudaMemoryType PointerType(const ScalarType* ptr) {
   if (ret == cudaErrorInvalidValue)
     return cudaMemoryTypeHost;
   checkRC(ret);
-  return attributes.memoryType;
+  return attributes.type;
 }
 
 template <typename ScalarType>
