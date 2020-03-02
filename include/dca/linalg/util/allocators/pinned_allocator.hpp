@@ -50,13 +50,18 @@ public:
 
   void deallocate(T*& ptr, std::size_t /*n*/ = 0) noexcept {
     cudaError_t ret = cudaFreeHost(ptr);
+
     if (ret != cudaSuccess) {
-      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
-      std::terminate();
+      if (ret == cudaErrorCudartUnloading) {
+        // std::cerr << "Warning: deallocating CUDA HOST memory after device shutdown" << std::endl;
+      }
+      else {
+        printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
+        std::terminate();
+      }
     }
     ptr = nullptr;
   }
-
 };
 
 // These are part of the requirements for a C++ Allocator however these are insufficient
@@ -64,12 +69,16 @@ public:
 // They are part of what's needed to do a std::move on a PinnedAllocator backed object
 // and avoid deallocation and reallocation.
 template <class T, class U>
-bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return true; }
+bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) {
+  return true;
+}
 template <class T, class U>
-bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return false; }
+bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) {
+  return false;
+}
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_ALLOCATORS_PINNED_ALLOCATOR_HPP
