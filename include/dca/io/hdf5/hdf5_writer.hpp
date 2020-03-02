@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // HDF5 writer.
 
@@ -37,8 +38,7 @@ public:
 
 public:
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  HDF5Writer(bool verbose = true)
-      : my_file(NULL), file_id(-1), my_group(0), my_paths(0), verbose_(verbose) {}
+  HDF5Writer(bool verbose = true) : file_id(-1), my_paths(0), verbose_(verbose) {}
 
   ~HDF5Writer();
 
@@ -109,6 +109,11 @@ public:
   void execute(const std::string& name,
                const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
+  template <typename scalar_type>
+  void execute(const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+    execute(A.get_name(), A);
+  }
+
   template <class T>
   void execute(const std::string& name, const std::unique_ptr<T>& obj);
 
@@ -119,14 +124,16 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
+  bool pathExists(const std::string& path) const;
+
 private:
   bool fexists(const char* filename);
 
-  H5::H5File* my_file;
+  std::unique_ptr<H5::H5File> file_;
 
   hid_t file_id;
 
-  std::vector<H5::Group*> my_group;
+  std::unordered_map<std::string, std::unique_ptr<H5::Group>> groups_;
   std::vector<std::string> my_paths;
 
   bool verbose_;
@@ -142,7 +149,7 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, scalar_type value) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[1];
@@ -168,7 +175,7 @@ void HDF5Writer::execute(const std::string& name, scalar_type value) {
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[1];
@@ -197,7 +204,7 @@ void HDF5Writer::execute(const std::string& name,
                          const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
     std::string path = get_path();
 
     hsize_t dims[1];
@@ -225,7 +232,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::complex<scalar_type>>& value) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[2];
@@ -253,7 +260,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value) {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
 
     bool all_the_same_size = true;
 
@@ -380,7 +387,7 @@ void HDF5Writer::execute(const std::string& name, const func::function<scalar_ty
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -438,7 +445,7 @@ void HDF5Writer::execute(const std::string& name,
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -489,7 +496,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -523,7 +530,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -558,7 +565,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -566,27 +573,27 @@ void HDF5Writer::execute(const std::string& name,
     execute("name", A.get_name());
 
     execute("current-size", A.size());
+    execute("global-size", A.capacity());
   }
 
-  hsize_t dims[2]{static_cast<hsize_t>(A.size().first), static_cast<hsize_t>(A.size().second)};
+  hsize_t dims[2];
+
+  dims[0] = A.capacity().first;
+  dims[1] = A.capacity().second;
 
   H5::DataSet* dataset = NULL;
   H5::DataSpace* dataspace = NULL;
 
-  std::vector<scalar_type> a_compressed(dims[0] * dims[1]);
-  unsigned index = 0;
-  for (int j = 0; j < A.nrCols(); ++j)
-    for (int i = 0; i < A.nrRows(); ++i)
-      a_compressed[index++] = A(i, j);
+  {
+    dataspace = new H5::DataSpace(2, dims);
 
-  dataspace = new H5::DataSpace(2, dims);
+    std::string full_name = get_path() + "/data";
+    dataset = new H5::DataSet(
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-  std::string full_name = get_path() + "/data";
-  dataset = new H5::DataSet(
-      file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-  H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-           H5P_DEFAULT, a_compressed.data());
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &A(0, 0));
+  }
 
   delete dataset;
   delete dataspace;
@@ -597,7 +604,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 

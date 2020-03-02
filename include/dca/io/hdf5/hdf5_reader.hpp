@@ -15,7 +15,6 @@
 #include <complex>
 #include <string>
 #include <vector>
-#include <type_traits>
 
 #include "H5Cpp.h"
 
@@ -272,25 +271,22 @@ bool HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca:
   open_group(name);
   bool success = true;
 
-  try {std::vector<int> size(2);
-    execute("current-size", size);
-    A.resizeNoCopy(std::make_pair(size[0], size[1]));
-
-    std::vector<scalar_type> a_compressed(size[0] * size[1]);
-
+  try {
     std::string full_name = get_path() + "/data";
 
     H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
 
     H5::DataSpace dataspace = dataset.getSpace();
 
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            a_compressed.data());
+    // These 2 lines fix the bug of reading into a matrix which has been resized to a smaller size
+    // hsize_t global_size[2] = {A.nrCols(), A.nrRows()}; // HDF5 use row
+    // major data distribution
+    // hsize_t global_size[2] = {A.capacity().second, A.capacity().first}; // HDF5 use
+    // row major data distribution
+    // dataspace.setExtentSimple(2, &global_size[0], NULL);
 
-    unsigned index = 0;
-    for (int j = 0; j < A.nrCols(); ++j)
-      for (int i = 0; i < A.nrRows(); ++i)
-        A(i, j) = a_compressed[index++];
+    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
+            &A(0, 0));
   }
   catch (const H5::FileIException& err) {
     std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
