@@ -1,14 +1,3 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
-// See LICENSE.txt for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//
-// This file compares the CPU and GBU implementations of the DMatrixBuilder class.
-
-
 #include <dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
@@ -16,41 +5,56 @@
 
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/details/shrink_G0.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-using G0Setup = dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
+template <typename Real>
+using DMatrixBuilderGpuTest =
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
 using namespace dca::phys::solver;
-using HostMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
-using DeviceMatrix = dca::linalg::Matrix<double, dca::linalg::GPU>;
 
-TEST_F(G0Setup, RemoveAndInstertVertex) {
+using dca::linalg::Matrix;
+using dca::linalg::CPU;
+using dca::linalg::GPU;
+
+using FloatingPointTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(DMatrixBuilderGpuTest, FloatingPointTypes);
+
+TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
+  using Rng = typename TestFixture::RngType;
+  using BDmn = typename TestFixture::BDmn;
+  using RDmn = typename TestFixture::RDmn;
+  using Real = TypeParam;
+
   // Setup rng values
   std::vector<double> rng_values(100);
   for (double& x : rng_values)
     x = double(std::rand()) / RAND_MAX;
-  G0Setup::RngType rng(rng_values);
+  Rng rng(rng_values);
 
   using namespace dca::testing;
   dca::func::dmn_variadic<BDmn, BDmn, RDmn> label_dmn;
 
+  const auto& parameters = TestFixture::parameters_;
+  const auto& data = *TestFixture::data_;
+
   // Setup interpolation and matrix builder class.
-  ctint::G0Interpolation<dca::linalg::GPU> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
+  ctint::G0Interpolation<dca::linalg::GPU, Real> g0(
+      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
   const int nb = BDmn::dmn_size();
 
-  ctint::DMatrixBuilder<dca::linalg::GPU> builder(g0, nb, RDmn());
-  builder.setAlphas(parameters_.getAlphas(), false);
+  ctint::DMatrixBuilder<dca::linalg::GPU, Real> builder(g0, nb, RDmn());
+  builder.setAlphas(parameters.getAlphas(), false);
 
-  ctint::DMatrixBuilder<dca::linalg::CPU> builder_cpu(g0, nb, RDmn());
-  builder_cpu.setAlphas(parameters_.getAlphas(), false);
+  ctint::DMatrixBuilder<dca::linalg::CPU, Real> builder_cpu(g0, nb, RDmn());
+  builder_cpu.setAlphas(parameters.getAlphas(), false);
 
   ctint::InteractionVertices interaction_vertices;
-    interaction_vertices.initializeFromHamiltonian(data_->H_interactions);
+  interaction_vertices.initializeFromHamiltonian(data.H_interactions);
 
-  HostMatrix G0;
-  DeviceMatrix G0_dev;
+  Matrix<Real, CPU> G0;
+  Matrix<Real, GPU> G0_dev;
   dca::linalg::util::CudaStream stream;
 
   const std::vector<int> sizes{1, 3, 8};
@@ -61,7 +65,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     right_sector = !right_sector;
 
     // Setup the configuration.
-    ctint::SolverConfiguration configuration(parameters_.get_beta(), BDmn::dmn_size(),
+    ctint::SolverConfiguration configuration(parameters.get_beta(), BDmn::dmn_size(),
                                              interaction_vertices);
     ctint::DeviceConfigurationManager device_config;
     for (int i = 0; i < size; i++)
@@ -83,8 +87,9 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
       builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream);
       cudaStreamSynchronize(stream);
 
-      HostMatrix G0_dev_copy(G0_dev);
-      EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, 1e-10));
+      Matrix<Real, CPU> G0_dev_copy(G0_dev);
+      constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
+      EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, tolerance));
     }
   }
 }

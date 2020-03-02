@@ -17,18 +17,33 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
+io::Buffer& operator<<(io::Buffer& buff, const Vertex& v) {
+  return buff << v.aux_spin << v.interaction_id << v.tau;
+}
+
+io::Buffer& operator>>(io::Buffer& buff, Vertex& v) {
+  return buff >> v.aux_spin >> v.interaction_id >> v.tau;
+}
+
 io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config) {
-  buff << config.vertices_;
+  buff << config.vertices_.size();
+
+  for (const auto& v : config.vertices_)
+    buff << v;
+
   return buff;
 }
 
 io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config) {
-  std::vector<Vertex> vertices;
-  buff >> vertices;
+  std::size_t n;
+  buff >> n;
 
-  for (auto& v : vertices) {
+  for (int i = 0; i < n; ++i) {
+    Vertex v;
+    buff >> v;
     v.tag = config.current_tag_++;
     config.push_back(v);
+    config.commitInsertion(config.size() - 1);
   }
 
   return buff;
