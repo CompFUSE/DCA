@@ -17,6 +17,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 
@@ -56,9 +57,6 @@ public:
   static void initializeNonDensityInteraction(
       func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
       const parameters_type& parameters);
-
-  static int transformationSignofK(int b1, int b2, int s);
-  static int transformationSignofR(int b1, int b2, int s);
 };
 
 template <typename PointGroupType>
@@ -72,7 +70,6 @@ void FeAsLattice<PointGroupType>::initialize_H_0(
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
-  const auto& k_vecs = KDmn::get_elements();
   const auto t1 = parameters.get_t1();
   const auto t2 = parameters.get_t2();
   const auto t3 = parameters.get_t3();
@@ -98,70 +95,61 @@ void FeAsLattice<PointGroupType>::initialize_H_0(
       H_0(1, s, 0, s, k_ind) = val_01;
     }
   }
+}
 
-  template <typename PointGroupType>
-  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  void FeAsLattice<PointGroupType>::initialize_H_interaction(
-      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>> &
-          H_interaction,
-      const parameters_type& parameters) {
-    if (BandDmn::dmn_size() != BANDS)
-      throw std::logic_error("Bilayer lattice has two bands.");
-    if (SpinDmn::dmn_size() != 2)
-      throw std::logic_error("Spin domain size must be 2.");
+template <typename PointGroupType>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+void FeAsLattice<PointGroupType>::initialize_H_interaction(
+    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandDmn::dmn_size() != BANDS)
+    throw std::logic_error("Bilayer lattice has two bands.");
+  if (SpinDmn::dmn_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
 
-    const int origin = RDmn::parameter_type::origin_index();
+  const int origin = RDmn::parameter_type::origin_index();
 
-    const double U = parameters.get_U();  // Same band interaction.
-    const double V = parameters.get_V();  // Different band interaction.
-    const double J = parameters.get_J();  // Spin-spin interaction.
-    H_interaction = 0.;
-    for (int b1 = 0; b1 < BANDS; ++b1)
-      for (int b2 = 0; b2 < BANDS; ++b2)
-        for (int s1 = 0; s1 < 2; ++s1)
-          for (int s2 = 0; s2 < 2; s2++) {
-            // Coulomb repulsion and contribution from S*S interaction.
-            if (b1 == b2 and s1 != s2)
-              H_interaction(b1, s1, b2, s2, origin) = U;
-            else if (b1 != b2 and s1 == s2)
-              H_interaction(b1, s1, b2, s2, origin) = V + J;
-            else if (b1 != b2 and s1 != s2)
-              H_interaction(b1, s1, b2, s2, origin) = V - J;
-          }
-  }
+  const double U = parameters.get_U();  // Same band interaction.
+  const double V = parameters.get_V();  // Different band interaction.
+  const double J = parameters.get_J();  // Spin-spin interaction.
+  H_interaction = 0.;
+  for (int b1 = 0; b1 < BANDS; ++b1)
+    for (int b2 = 0; b2 < BANDS; ++b2)
+      for (int s1 = 0; s1 < 2; ++s1)
+        for (int s2 = 0; s2 < 2; s2++) {
+          // Coulomb repulsion and contribution from -J S_z*S_z interaction.
+          if (b1 == b2 and s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = U;
+          else if (b1 != b2 and s1 == s2)
+            H_interaction(b1, s1, b2, s2, origin) = V - J;
+          else if (b1 != b2 and s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = V + J;
+        }
+}
 
-  template <typename PointGroupType>
-  template <typename Nu, typename RDmn, typename parameters_type>
-  void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
-      func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>> & non_density_interaction,
-      const parameters_type& parameters) {
-    const double J = parameters.get_J();
-    const Nu nu;  // band-spin domain.
-    constexpr int up(0), down(1);
+template <typename PointGroupType>
+template <typename Nu, typename RDmn, typename parameters_type>
+void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
+    func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
+    const parameters_type& parameters) {
+  const double J = parameters.get_J();
+  const Nu nu;  // band-spin domain.
+  constexpr int up(0), down(1);
 
-    non_density_interaction = 0.;
-    for (int b1 = 0; b1 < BANDS; b1++)
-      for (int b2 = 0; b2 < BANDS; b2++) {
-        if (b1 == b2)
-          continue;
-        // spin-flip interaction equivalent to  S^+S^- and S^-S^+ interactions.
-        non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = -J;
-      }
-  }
+  non_density_interaction = 0.;
+  for (int b1 = 0; b1 < BANDS; b1++)
+    for (int b2 = 0; b2 < BANDS; b2++) {
+      if (b1 == b2)
+        continue;
+      // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
+      // Note: a factor of -1 comes from rearranging the fermion operators.
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+    }
+}
 
-  template <typename PointGroupType>
-  int FeAsLattice<PointGroupType>::transformationSignofR(int b1, int b2, int s) {
-    return 1;
-  }
-
-  template <typename PointGroupType>
-  int FeAsLattice<PointGroupType>::transformationSignofK(int b1, int b2, int s) {
-    return 1;
-  }
-
-}  // namespace models
 }  // namespace models
 }  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FE_AS_LATTICE_HPP

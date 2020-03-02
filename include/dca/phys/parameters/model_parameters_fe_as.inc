@@ -32,16 +32,16 @@ public:
   // t3: next-nearest-neighbour, same orbital.
   // t4: next-nearest-neighbour, opposite orbital.
   double get_t1() const {
-    return std::array<double, 4>{t1_, t2_, t3_, t4_};
+    return t1_;
   }
   double get_t2() const {
-    return std::array<double, 4>{t1_, t2_, t3_, t4_};
+    return t2_;
   }
   double get_t3() const {
-    return std::array<double, 4>{t1_, t2_, t3_, t4_};
+    return t3_;
   }
   double get_t4() const {
-    return std::array<double, 4>{t1_, t2_, t3_, t4_};
+    return t4_;
   }
 
   // On-site, same orbital repulsion.
