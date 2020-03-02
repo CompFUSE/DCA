@@ -41,6 +41,7 @@ public:
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
   void setAsync(const MultiVector<other_device, Ts...>& rhs, cudaStream_t stream) {
+    size_ = rhs.size_;
     data_.setAsync(rhs.data_, stream);
   }
 #endif  // DCA_HAVE_CUDA
