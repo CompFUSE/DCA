@@ -26,15 +26,15 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-struct PointGroup {
+struct FeAsPointGroup {
   using point_group_type_list =
       dca::util::Typelist<domains::identity_group_operation<2>, domains::Cn_2D<2, 4>>;
 };
 
 template <typename /*PointGroupType*/>
-class FeAsLattice : public bilayer_lattice<PointGroup> {
+class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
-  using BaseClass = bilayer_lattice<PointGroup>;
+  using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
