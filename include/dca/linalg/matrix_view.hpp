@@ -28,6 +28,9 @@ namespace linalg {
 template <typename ScalarType, DeviceType device_name = linalg::CPU>
 class MatrixView {
 public:
+  using ValueType = ScalarType;
+  constexpr static DeviceType device = device_name;
+
   using Pair = std::pair<int, int>;
   MatrixView(ScalarType* data, Pair size);
   MatrixView(ScalarType* data, Pair size, int ld);
