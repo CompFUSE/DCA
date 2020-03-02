@@ -17,6 +17,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 
@@ -25,10 +26,15 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <typename PointGroupType>
-class FeAsLattice : public bilayer_lattice<PointGroupType> {
+struct PointGroup {
+  using point_group_type_list =
+      dca::util::Typelist<domains::identity_group_operation<2>, domains::Cn_2D<2, 4>>;
+};
+
+template <typename /*PointGroupType*/>
+class FeAsLattice : public bilayer_lattice<PointGroup> {
 public:
-  using BaseClass = bilayer_lattice<PointGroupType>;
+  using BaseClass = bilayer_lattice<PointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
@@ -64,26 +70,30 @@ void FeAsLattice<PointGroupType>::initialize_H_0(
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
-  const auto& k_vecs = KDmn::get_elements();
-  const auto t = parameters.get_t();
+  const auto t1 = parameters.get_t1();
+  const auto t2 = parameters.get_t2();
+  const auto t3 = parameters.get_t3();
+  const auto t4 = parameters.get_t4();
 
   H_0 = ScalarType(0);
-  using std::cos;
-  using std::sin;
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
-    const double kx(k_vecs[k_ind][0]), ky(k_vecs[k_ind][1]);
-    // Same band interaction.
-    const double eps_0 = -2 * t[0] * cos(kx) - 2 * t[1] * cos(ky) - 4 * t[2] * cos(kx) * cos(ky);
-    const double eps_1 = -2 * t[1] * cos(kx) - 2 * t[0] * cos(ky) - 4 * t[2] * cos(kx) * cos(ky);
+    const auto& k = KDmn::get_elements()[k_ind];
+
+    const double cx = std::cos(k[0]);
+    const double cy = std::cos(k[1]);
+
+    const double val_00 = -2 * t1 * cx - 2 * t2 * cy - 4 * t3 * cx * cy;
+    const double val_11 = -2 * t2 * cx - 2 * t1 * cy - 4 * t3 * cx * cy;
+    const double val_01 = -4 * t4 * std::sin(k[0]) * std::sin(k[1]);
+
     for (int s = 0; s < 2; ++s) {
-      H_0(0, s, 0, s, k_ind) = eps_0;
-      H_0(1, s, 1, s, k_ind) = eps_1;
+      H_0(0, s, 0, s, k_ind) = val_00;
+      H_0(1, s, 1, s, k_ind) = val_11;
+
+      H_0(0, s, 1, s, k_ind) = val_01;
+      H_0(1, s, 0, s, k_ind) = val_01;
     }
-    // Off band interaction
-    const double eps_01 = -4 * sin(kx) * sin(ky);
-    for (int s = 0; s < 2; ++s)
-      H_0(0, s, 1, s, k_ind) =  H_0(1, s, 0, s, k_ind) = eps_01;
   }
 }
 
@@ -108,13 +118,13 @@ void FeAsLattice<PointGroupType>::initialize_H_interaction(
     for (int b2 = 0; b2 < BANDS; ++b2)
       for (int s1 = 0; s1 < 2; ++s1)
         for (int s2 = 0; s2 < 2; s2++) {
-          // Coulomb repulsion and contribution from S*S interaction.
+          // Coulomb repulsion and contribution from -J S_z*S_z interaction.
           if (b1 == b2 and s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = U;
           else if (b1 != b2 and s1 == s2)
-            H_interaction(b1, s1, b2, s2, origin) = V + J;
-          else if (b1 != b2 and s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = V - J;
+          else if (b1 != b2 and s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = V + J;
         }
 }
 
@@ -132,13 +142,14 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
     for (int b2 = 0; b2 < BANDS; b2++) {
       if (b1 == b2)
         continue;
-      // spin-flip interaction equivalent to  S^+S^- and S^-S^+ interactions.
-      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = -J;
+      // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
+      // Note: a factor of -1 comes from rearranging the fermion operators.
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
     }
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FE_AS_LATTICE_HPP

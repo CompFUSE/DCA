@@ -22,7 +22,6 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "dca/util/type_list.hpp"
 
