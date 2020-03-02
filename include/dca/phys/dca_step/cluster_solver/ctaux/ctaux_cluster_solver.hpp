@@ -42,6 +42,12 @@
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
 
+// TODO: remove once interpolation is unified.
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -152,6 +158,9 @@ private:
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
   bool averaged_;
+    // TODO: unify interpolation among solvers.
+    static inline std::unique_ptr<ctint::G0Interpolation<linalg::GPU, MCScalar>> g0_correlator_;
+
   bool compute_jack_knife_;
 };
 
@@ -180,6 +189,17 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
       M_r_w_squared_("M_r_w_squared"),
 
       averaged_(false) {
+  // TODO: unify g0 initialization.
+  if constexpr (device == linalg::GPU) {
+    static std::once_flag flag;
+    std::call_once(flag, [&]() {
+      if (parameters_.get_time_correlation_window()) {
+        g0_correlator_ = std::make_unique<ctint::G0Interpolation<linalg::GPU, MCScalar>>();
+        TimeCorrelator<Parameters, typename Walker::Scalar>::setG0(*g0_correlator_);
+      }
+    });
+  }
+
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -209,6 +229,10 @@ void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteratio
   compute_jack_knife_ =
       (dca_iteration == parameters_.get_dca_iterations() - 1) &&
       (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE);
+
+  if (g0_correlator_) {
+    g0_correlator_->initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
+  }
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
