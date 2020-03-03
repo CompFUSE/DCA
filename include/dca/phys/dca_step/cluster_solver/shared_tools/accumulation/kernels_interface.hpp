@@ -9,11 +9,13 @@
 //
 // Kernels interface for the class TimeCorrelator.
 
-#pragma once
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_KERNELS_INTERFACE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_KERNELS_INTERFACE_HPP
 
 #include <cuda.h>
 
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
 
 namespace dca {
@@ -31,3 +33,5 @@ void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_KERNELS_INTERFACE_HPP

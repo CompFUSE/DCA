@@ -278,12 +278,12 @@ void CtintWalkerBase<Parameters, Real>::updateSweepAverages() {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::markThermalized() {
-  if (partial_order_avg_.mean() == 0)
-    throw(std::runtime_error("The average expansion order is 0."));
+  //  if (partial_order_avg_.mean() == 0)
+  //    throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
 
-  nb_steps_per_sweep_ =
-      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean());
+  nb_steps_per_sweep_ =std::max(1.,
+      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();

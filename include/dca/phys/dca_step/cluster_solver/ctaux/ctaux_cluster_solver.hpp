@@ -158,8 +158,8 @@ private:
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
   bool averaged_;
-    // TODO: unify interpolation among solvers.
-    static inline std::unique_ptr<ctint::G0Interpolation<linalg::GPU, MCScalar>> g0_correlator_;
+  // TODO: unify interpolation among solvers.
+  static inline std::unique_ptr<ctint::G0Interpolation<device_t, MCScalar>> g0_correlator_;
 
   bool compute_jack_knife_;
 };
@@ -190,15 +190,13 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
 
       averaged_(false) {
   // TODO: unify g0 initialization.
-  if constexpr (device == linalg::GPU) {
-    static std::once_flag flag;
-    std::call_once(flag, [&]() {
-      if (parameters_.get_time_correlation_window()) {
-        g0_correlator_ = std::make_unique<ctint::G0Interpolation<linalg::GPU, MCScalar>>();
-        TimeCorrelator<Parameters, typename Walker::Scalar>::setG0(*g0_correlator_);
-      }
-    });
-  }
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    if (parameters_.get_time_correlation_window()) {
+      g0_correlator_ = std::make_unique<ctint::G0Interpolation<device_t, MCScalar>>();
+      TimeCorrelator<Parameters, typename Walker::Scalar, device_t>::setG0(*g0_correlator_);
+    }
+  });
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;

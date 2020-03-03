@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/linalg/util/handle_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
@@ -35,6 +36,8 @@ using Sample = ConfigGenerator::Sample;
 using TimeCorrelatorTest =
     dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT, input_file>;
 
+using dca::linalg::CPU;
+
 TEST_F(TimeCorrelatorTest, Accumulate) {
   dca::linalg::util::resizeHandleContainer(1);
   const int n_samples = 10;
@@ -48,21 +51,17 @@ TEST_F(TimeCorrelatorTest, Accumulate) {
                                           TimeCorrelatorTest::RDmn::dmn_size(),
                                           parameters_.get_beta(), std::array<int, 2>{n, n});
   }
-
-  std::array<dca::linalg::Matrix<double, dca::linalg::GPU>, 2> M_dev;
-
   const int n_correlations = 10;
   parameters_.set_time_correlation_window(n_correlations);
 
-  using Correlator = dca::phys::solver::TimeCorrelator<Parameters, double>;
+  using Correlator = dca::phys::solver::TimeCorrelator<Parameters, double, CPU>;
   Correlator correlator_(parameters_, 0);
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::GPU, double> g0(
+  dca::phys::solver::ctint::G0Interpolation<CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   Correlator::setG0(g0);
 
   for (int i = 0; i < n_samples; ++i) {
-    M_dev[0].setAsync(M[i][0], 0, 0);
-    correlator_.compute_G_r_t(M_dev, config[i], 1);
+    correlator_.compute_G_r_t(M[i], config[i], 1);
   }
 
   for (auto& c : correlator_.getCorrelators()) {

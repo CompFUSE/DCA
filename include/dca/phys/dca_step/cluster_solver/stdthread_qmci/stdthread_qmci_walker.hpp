@@ -51,16 +51,16 @@ private:
 
   std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
 
-  TimeCorrelator<Parameters, Real> time_correlator_;
+  TimeCorrelator<Parameters, Real, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
 
-  static inline std::unique_ptr<TimeCorrelator<Parameters, Real>> common_time_correlator_;
+  static inline std::unique_ptr<TimeCorrelator<Parameters, Real, device>> common_time_correlator_;
   static inline math::statistics::Autocorrelation<int> common_order_correlator_;
 };
 
 template <class QmciWalker>
-StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters, Data& data_ref,
-                                                     Rng& rng, const int id)
+StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters,
+                                                     Data& data_ref, Rng& rng, const int id)
     : QmciWalker(parameters, data_ref, rng, id),
       autocorrelation_window_(parameters.get_time_correlation_window()),
       thread_id_(id),
@@ -69,10 +69,8 @@ StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& param
   static std::once_flag flag;
   std::call_once(flag, [&]() {
     if (autocorrelation_window_) {
-      if constexpr (device == linalg::GPU) {
-        common_time_correlator_ =
-            std::make_unique<TimeCorrelator<Parameters, Real>>(parameters, thread_id_);
-      }
+      common_time_correlator_ =
+          std::make_unique<TimeCorrelator<Parameters, Real, device>>(parameters, id);
       common_order_correlator_.resize(autocorrelation_window_);
     }
   });
@@ -83,11 +81,9 @@ void StdThreadQmciWalker<QmciWalker>::doSweep() {
   QmciWalker::doSweep();
 
   if (autocorrelation_window_ && QmciWalker::is_thermalized()) {
-    if constexpr (QmciWalker::device == linalg::GPU) {
-      QmciWalker::computeM(m_correlator_);
-      time_correlator_.compute_G_r_t(m_correlator_, QmciWalker::get_matrix_configuration(),
-                                     QmciWalker::get_sign());
-    }
+    QmciWalker::computeM(m_correlator_);
+    time_correlator_.compute_G_r_t(m_correlator_, QmciWalker::get_matrix_configuration(),
+                                   QmciWalker::get_sign());
     order_correlator_.addSample(QmciWalker::get_configuration().size());
   }
 }
@@ -98,40 +94,33 @@ StdThreadQmciWalker<QmciWalker>::~StdThreadQmciWalker() {
     static std::mutex mutex;
     std::unique_lock<std::mutex> lock(mutex);
 
-    if (common_time_correlator_) {
-      time_correlator_.sumTo(*common_time_correlator_);
-    }
+    time_correlator_.sumTo(*common_time_correlator_);
     order_correlator_.sumTo(common_order_correlator_);
   }
 }
 
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::sumConcurrency(const Concurrency& concurrency) {
-  if (common_time_correlator_) {
-    common_time_correlator_->sumConcurrency(concurrency);
-  }
+  common_time_correlator_->sumConcurrency(concurrency);
   common_order_correlator_.sumConcurrency(concurrency);
 }
 
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::write(io::HDF5Writer& writer) {
-  if (common_time_correlator_) {
-    linalg::Matrix<double, linalg::CPU> g_corr(bands, "G_t0_autocorr");
-    linalg::Matrix<double, linalg::CPU> g_stdev(bands, "G_t0_stdev");
+  linalg::Matrix<double, linalg::CPU> g_corr(bands, "G_t0_autocorr");
+  linalg::Matrix<double, linalg::CPU> g_stdev(bands, "G_t0_stdev");
 
-    int lindex = 0;
-    for (int b1 = 0; b1 < bands; ++b1)
-      for (int b2 = b1; b2 < bands; ++b2, ++lindex) {
-        auto& correlator = common_time_correlator_->getCorrelators()[lindex];
-        g_corr(b1, b2) = g_corr(b2, b1) = correlator.computeAutocorrelationTime();
-        g_stdev(b1, b2) = g_stdev(b2, b1) = correlator.getStdev();
-      }
+  int lindex = 0;
+  for (int b1 = 0; b1 < bands; ++b1)
+    for (int b2 = b1; b2 < bands; ++b2, ++lindex) {
+      auto& correlator = common_time_correlator_->getCorrelators()[lindex];
+      g_corr(b1, b2) = g_corr(b2, b1) = correlator.computeAutocorrelationTime();
+      g_stdev(b1, b2) = g_stdev(b2, b1) = correlator.getStdev();
+    }
 
-    writer.execute(g_corr);
-    writer.execute(g_stdev);
-
-    common_time_correlator_->reset();
-  }
+  writer.execute(g_corr);
+  writer.execute(g_stdev);
+  common_time_correlator_->reset();
 
   writer.execute("order_autocorrelation", common_order_correlator_.computeAutocorrelationTime());
   writer.execute("order_stdev", common_order_correlator_.getStdev());
