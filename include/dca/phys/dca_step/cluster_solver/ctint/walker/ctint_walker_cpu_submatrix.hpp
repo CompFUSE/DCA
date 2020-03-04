@@ -101,7 +101,7 @@ private:
 
   void recomputeGammaInv();
 
-  bool recentlyAdded(int move_idx, int s) {
+  bool recentlyAdded(int move_idx, int s) const {
     assert(move_idx < sector_indices_[s].size());
     return sector_indices_[s][move_idx] >= n_init_[s];
   }
