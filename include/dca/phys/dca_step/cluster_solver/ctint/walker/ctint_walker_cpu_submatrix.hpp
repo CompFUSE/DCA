@@ -534,7 +534,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
         }
     }
   }
-}  // namespace ctint
+}
 
 template <class Parameters, typename Real>
 Move CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateMoveType() {

@@ -27,30 +27,30 @@ namespace ctint {
 
 namespace {
 template <linalg::DeviceType device, class Parameters, bool use_submatrix, typename Real>
-struct CtintWalkerChoicheSelector;
+struct CtintWalkerChoiceSelector;
 
 template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Real> {
+struct CtintWalkerChoiceSelector<linalg::CPU, Parameters, true, Real> {
   using type = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
 };
 template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
+struct CtintWalkerChoiceSelector<linalg::CPU, Parameters, false, Real> {
   using type = CtintWalker<linalg::CPU, Parameters, Real>;
 };
 
 template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real> {
+struct CtintWalkerChoiceSelector<linalg::GPU, Parameters, true, Real> {
   using type = CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>;
 };
 template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real> {
+struct CtintWalkerChoiceSelector<linalg::GPU, Parameters, false, Real> {
   // There is only a submatrix implementation of the GPU walker.
 };
 }  // namespace
 
 template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Real>
 using CtintWalkerChoice =
-    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix, Real>::type;
+    typename CtintWalkerChoiceSelector<device_t, Parameters, use_submatrix, Real>::type;
 
 }  // namespace ctint
 }  // namespace solver

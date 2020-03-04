@@ -9,7 +9,7 @@
 //         Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file implements kernels_gpu.hpp
+// This file implements the kernels used by matrixop.hpp. See the latter for documentation.
 
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #include <cassert>
