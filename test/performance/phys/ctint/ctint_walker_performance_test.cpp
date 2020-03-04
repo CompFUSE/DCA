@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     // Do one integration step.
     RngType rng(0, 1, 0);
     Walker<dca::linalg::CPU> walker(parameters, data, rng);
-    walker.initialize();
+    walker.initialize(false);
 
     // Timed section.
     dca::profiling::WallTime start_t;
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     RngType::resetCounter();
     RngType rng(0, 1, 0);
     Walker<dca::linalg::GPU> walker_gpu(parameters, data, rng, 0);
-    walker_gpu.initialize();
+    walker_gpu.initialize(false);
 
     // Timed section.
     cudaProfilerStart();

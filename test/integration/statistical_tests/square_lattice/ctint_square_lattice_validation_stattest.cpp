@@ -39,7 +39,7 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
   parameters.update_model();
   parameters.update_domains();
 
-  parameters.set_measurements(parameters.get_measurements() * number_of_samples / 50);
+  parameters.set_measurements(parameters.get_measurements().back() * number_of_samples / 50);
 
   DcaData<CT_INT> data(parameters);
   data.initialize();

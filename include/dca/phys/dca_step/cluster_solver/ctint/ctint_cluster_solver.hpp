@@ -185,7 +185,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   walker_ = std::make_unique<Walker>(parameters_, data_, rng_, 0);
-  walker_->initialize();
+  walker_->initialize(dca_iteration_);
 
   dca::profiling::WallTime start_time;
   auto getTime = [&]() {
@@ -205,7 +205,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   total_time_ = getTime();
 
   if (concurrency_.id() == concurrency_.first()) {
-    std::cout << "\n\tMeasuring has ended. Done " << parameters_.get_measurements()
+    std::cout << "\n\tMeasuring has ended. Done " << parameters_.get_measurements()[dca_iteration_]
               << " measurements.\n";
     walker_->printSummary();
   }
@@ -336,7 +336,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
+  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements()[dca_iteration_], 1,
+                                                 0, concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
     {
@@ -470,6 +471,9 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
   collect(M);
   collect(sign);
 
+  std::size_t n_meas = accumulator_.get_number_of_measurements();
+  concurrency_.sum(n_meas);
+
   M /= std::complex<double>(sign, 0.);
 
   if (perform_tp_accumulation_) {
@@ -481,7 +485,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
     }
   }
 
-  return sign / parameters_.get_measurements();
+  return sign / double(n_meas);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>

@@ -108,6 +108,7 @@ private:
   io::HDF5Writer* writer_ = nullptr;
 
   bool last_iteration_ = false;
+  int measurements_ = 0;
 };
 
 template <class QmciSolver>
@@ -151,6 +152,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
   Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
   last_iteration_ = dca_iteration == parameters_.get_dca_iterations() - 1;
+
+  measurements_ = parameters_.get_measurements()[dca_iteration];
 
   BaseClass::initialize(dca_iteration);
 
@@ -316,7 +319,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
     config_dump_[walker_id].setg(0);  // Ready to read again if it is not overwritten.
   }
 
-  walker.initialize();
+  walker.initialize(dca_iteration_);
 
   if (id == 0 && concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up starts\n" << std::endl;
@@ -340,7 +343,7 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
     const int walker_id, std::function<void(int, int, bool)>&& f) {
   const bool fix_thread_meas = parameters_.fix_meas_per_walker();
-  const int total_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+  const int total_meas = parallel::util::getWorkload(measurements_, concurrency_);
 
   const int n_local_meas =
       fix_thread_meas ? parallel::util::getWorkload(total_meas, parameters_.get_walkers(), walker_id)
@@ -515,8 +518,8 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::printIntegrationMetadata() const {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements()
-              << "\nQMC-time\t" << total_time_ << "\n";
+              << "\n\nTotal number of measurements: " << measurements_ << "\nQMC-time\t"
+              << total_time_ << "\n";
     if (QmciSolver::device == linalg::GPU) {
       std::cout << "\nWalker fingerprints [MB]: \n";
       for (const auto& x : walker_fingerprints_)

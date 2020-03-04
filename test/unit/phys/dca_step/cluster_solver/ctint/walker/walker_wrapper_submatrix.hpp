@@ -35,7 +35,7 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
         streams_(3) {
-    BaseClass::initialize();
+    BaseClass::initialize(0);
   }
 
   void doStep(const int n_steps_to_delay) {

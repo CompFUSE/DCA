@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
   dca::parallel::ThreadPool pool(n_walkers);
   for (int i = 0; i < n_walkers; ++i) {
     fs.push_back(pool.enqueue([&do_sweeps, &walkers, i, n_warmup]() {
-      walkers[i].initialize();
+      walkers[i].initialize(0);
       do_sweeps(walkers[i], n_warmup, i == 0);
       walkers[i].markThermalized();
     }));

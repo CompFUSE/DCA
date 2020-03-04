@@ -52,7 +52,7 @@ public:
 
   void computeM(std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum);
 
-  void initialize();
+  void initialize(bool last_iter);
 
   void doSweep() override;
 
@@ -155,8 +155,8 @@ CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::CtintWalkerSubmatrix(const 
 }
 
 template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::initialize() {
-  BaseClass::initialize();
+void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::initialize(bool last_iter) {
+  BaseClass::initialize(last_iter);
 
   for (int s = 0; s < 2; ++s) {
     M_dev_[s].setAsync(M_[s], get_stream(s));

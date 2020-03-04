@@ -39,7 +39,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   parameters.update_model();
   parameters.update_domains();
 
-  parameters.set_measurements(parameters.get_measurements() * number_of_samples);
+  parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
   DcaData<CT_AUX> data(parameters);
   data.initialize();

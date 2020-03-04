@@ -71,7 +71,7 @@ TEST(CtintHundValidationTest, GreensFunction) {
   parameters.update_model();
   parameters.update_domains();
 
-  parameters.set_measurements(parameters.get_measurements() * number_of_samples);
+  parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
   DcaData data(parameters);
   data.initialize();

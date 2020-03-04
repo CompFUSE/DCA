@@ -49,7 +49,7 @@ public:
 
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
-  void initialize();
+  void initialize(bool last_iter);
 
   virtual ~CtintWalkerSubmatrix() = default;
 
@@ -223,8 +223,8 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::CtintWalkerSubmatrix(
 }
 
 template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::initialize() {
-  BaseClass::initialize();
+void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::initialize(bool last_iter) {
+    BaseClass::initialize(last_iter);
   transformM();
 }
 

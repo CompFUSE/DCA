@@ -61,7 +61,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements());
+    EXPECT_EQ(reference_n_meas, parameters.get_measurements().back());
     reader.close_file();
 
     dca::math::StatisticalTesting test(G_k_w_measured, G_k_w_expected, G_k_w_covariance, 1);

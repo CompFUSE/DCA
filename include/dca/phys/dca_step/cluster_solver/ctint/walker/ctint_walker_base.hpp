@@ -102,7 +102,7 @@ public:
     return Real(n_accepted_) / Real(n_steps_);
   }
 
-  void initialize();
+  void initialize(int final_iter);
 
   const auto& get_configuration() const {
     return configuration_;
@@ -205,6 +205,8 @@ protected:  // Members.
 
   float flop_ = 0.;
 
+  double sweeps_per_meas_ = 1.;
+
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<Real, linalg::CPU> work_;
@@ -231,8 +233,11 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, typename Real>
-void CtintWalkerBase<Parameters, Real>::initialize() {
+void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
+
+  sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
+
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
       configuration_.insertRandom(rng_);
@@ -283,7 +288,7 @@ void CtintWalkerBase<Parameters, Real>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ =std::max(1.,
-      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean()));
+      std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();

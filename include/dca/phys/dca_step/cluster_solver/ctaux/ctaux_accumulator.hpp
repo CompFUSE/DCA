@@ -205,6 +205,7 @@ protected:
 
   accumulator::TpAccumulator<Parameters, device_t> two_particle_accumulator_;
 
+  unsigned dca_iteration_;
   bool perform_tp_accumulation_ = false;
 };
 
@@ -240,6 +241,7 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iter
   //  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__,
   //  thread_id);
 
+  dca_iteration_ = dca_iteration;
   MC_accumulator_data::initialize(dca_iteration);
 
   if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4())
@@ -255,9 +257,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iter
 
   if (dca_iteration == parameters_.get_dca_iterations() - 1 &&
       parameters_.additional_time_measurements()) {
-    equal_time_accumulator_ptr_ =
-        std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data>>(parameters_, data_,
-                                                                                thread_id);
+    equal_time_accumulator_ptr_ = std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data>>(
+        parameters_, data_, thread_id);
     equal_time_accumulator_ptr_->resetAccumulation();
   }
 }
@@ -275,7 +276,7 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    Real factor = 1. / std::sqrt(parameters_.get_measurements() - 1);
+    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(dca_iteration_) - 1);
 
     M_r_w_stddev *= factor;
   }

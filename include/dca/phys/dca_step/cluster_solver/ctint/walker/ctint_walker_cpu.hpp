@@ -49,8 +49,6 @@ public:
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
-  void initialize();
-
   void doSweep();
 
 protected:
@@ -118,10 +116,6 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
                                                         const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id), det_ratio_{1, 1} {}
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::initialize() {
-  BaseClass::initialize();
-}
 
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {

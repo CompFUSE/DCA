@@ -31,8 +31,8 @@ public:
   MciParameters()
       : seed_(default_seed),
         warm_up_sweeps_(20),
-        sweeps_per_measurement_(1.),
-        measurements_(100),
+        sweeps_per_measurement_{1.},
+        measurements_{100},
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
@@ -58,15 +58,17 @@ public:
   int get_warm_up_sweeps() const {
     return warm_up_sweeps_;
   }
-  double get_sweeps_per_measurement() const {
+
+  const std::vector<double>& get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements() const {
+
+  const std::vector<int>& get_measurements() const {
     return measurements_;
   }
   void set_measurements(const int measurements) {
     assert(measurements >= 0);
-    measurements_ = measurements;
+    std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
 
   // Maximum distance (in MC time) considered when computing the correlation between configurations.
@@ -108,6 +110,10 @@ public:
     return stamping_period_;
   }
 
+protected:
+  // Resize vector arguments to have the same size as the number of iterations.
+  void inline solveDcaIterationConflict(int iterations);
+
 private:
   void generateRandomSeed() {
     std::random_device rd;
@@ -119,8 +125,9 @@ private:
 
   int seed_;
   int warm_up_sweeps_;
-  double sweeps_per_measurement_;
-  int measurements_;
+  std::vector<double> sweeps_per_measurement_;
+  std::vector<int> measurements_;
+  int measurements_final_iter_ = -1;
   int time_correlation_window_ = 0;
   int walkers_;
   int accumulators_;
@@ -140,6 +147,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
   buffer_size += concurrency.get_buffer_size(measurements_);
+  buffer_size += concurrency.get_buffer_size(measurements_final_iter_);
   buffer_size += concurrency.get_buffer_size(time_correlation_window_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
@@ -160,6 +168,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.pack(buffer, buffer_size, position, measurements_);
+  concurrency.pack(buffer, buffer_size, position, measurements_final_iter_);
   concurrency.pack(buffer, buffer_size, position, time_correlation_window_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
@@ -178,6 +187,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.unpack(buffer, buffer_size, position, measurements_);
+  concurrency.unpack(buffer, buffer_size, position, measurements_final_iter_);
   concurrency.unpack(buffer, buffer_size, position, time_correlation_window_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
@@ -191,11 +201,21 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
-  auto try_to_read_write = [&](const std::string& name, auto& field) {
+  auto try_to_read_write = [&](const std::string& name, auto& obj) {
     try {
-      reader_or_writer.execute(name, field);
+      reader_or_writer.execute(name, obj);
     }
     catch (std::exception&) {
+    }
+  };
+
+  auto try_to_read_write_vector = [&](const std::string& name, auto& vec) {
+    try {  // read as a vector.
+      reader_or_writer.execute(name, vec);
+    }
+    catch (std::exception&) {  // read as a scalar.
+      vec.resize(1);
+      try_to_read_write(name, vec[0]);
     }
   };
 
@@ -220,15 +240,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         // Read the seed as an integer.
         try_to_read_write("seed", seed_);
       }
-    }
+    }  // is_reader()
 
-    else {  // Write the seed.
+    else {
+      // Write the seed directly.
       try_to_read_write("seed", seed_);
     }
-
-    try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
-    try_to_read_write("sweeps-per-measurement", sweeps_per_measurement_);
-    try_to_read_write("measurements", measurements_);
 
     try {
       reader_or_writer.execute("time-correlation-window", time_correlation_window_);
@@ -241,12 +258,17 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_write("error-computation-type", error_type);
     error_computation_type_ = stringToErrorComputationType(error_type);
 
-    try_to_read_write("store-configuration", store_configuration_);
+    try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
+    try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
+    try_to_read_write_vector("measurements", measurements_);
+
     try_to_read_write("stamping-period", stamping_period_);
+    try_to_read_write("store-configuration", store_configuration_);
 
     // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
+
       try_to_read_write("walkers", walkers_);
       try_to_read_write("accumulators", accumulators_);
       try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
@@ -258,17 +280,20 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
     // 'false'.
-    // try {
-    //   reader_or_writer.execute("adjust-self-energy-for-double-counting",
-    //                            adjust_self_energy_for_double_counting_);
-    // }
-    // catch (const std::exception& r_e) {
-    // }
+    // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
   }
+}
+
+void MciParameters::solveDcaIterationConflict(int iterations) {
+  // Solve conflicts between number of iterations and mci parameters.
+  auto solve_confilct = [&](auto& param) { param.resize(iterations, param.back()); };
+
+  solve_confilct(measurements_);
+  solve_confilct(sweeps_per_measurement_);
 }
 
 }  // namespace params
