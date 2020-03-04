@@ -107,7 +107,7 @@ private:
 
   std::array<linalg::Matrix<Real, CPU>, 2> G_host_;
 
-  static inline Config<device> fixed_config_;
+  static inline std::unique_ptr<Config<device>> fixed_config_;
   std::array<Config<device>, 2> m_r_dev_config_;
   std::array<Config<device>, 2> m_l_dev_config_;
   std::array<Config<CPU>, 2> m_l_host_config_;
@@ -139,6 +139,8 @@ TimeCorrelator<Parameters, Real, device>::TimeCorrelator(const Parameters& param
 
 template <class Parameters, typename Real, DeviceType device>
 void TimeCorrelator<Parameters, Real, device>::initializeFixedConfiguration() {
+  fixed_config_ = std::make_unique<Config<device>>(n_bands_);
+
   Config<CPU> host_config(n_bands_);
   Real* tau = host_config.template get<0>();
   int* b = host_config.template get<1>();
@@ -150,7 +152,7 @@ void TimeCorrelator<Parameters, Real, device>::initializeFixedConfiguration() {
     b[i] = i;
   }
 
-  fixed_config_.setAsync(host_config, stream_);
+  fixed_config_->setAsync(host_config, stream_);
   stream_.sync();
 }
 
@@ -159,8 +161,8 @@ template <class WalkerConfig, typename RealInp>
 void TimeCorrelator<Parameters, Real, device>::compute_G_r_t(
     const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
     const std::array<WalkerConfig, 2>& configs, int sign) {
-  if(!g0_){
-      throw(std::runtime_error("G0 is not set."));
+  if (!g0_) {
+    throw(std::runtime_error("G0 is not set."));
   }
 
   // Upload state
@@ -170,21 +172,21 @@ void TimeCorrelator<Parameters, Real, device>::compute_G_r_t(
     uploadConfig(configs, s);
 
   for (int s = 0; s < n_electron_spins; ++s) {
-    G_[s].resizeNoCopy(fixed_config_.size());
+    G_[s].resizeNoCopy(fixed_config_->size());
 
     if (M[s].nrRows() == 0) {
       G_host_[s].setToZero(stream_);
       continue;
     }
 
-    G0_M_.resizeNoCopy(std::make_pair(fixed_config_.size(), m_l_dev_config_[s].size()));
+    G0_M_.resizeNoCopy(std::make_pair(fixed_config_->size(), m_l_dev_config_[s].size()));
 
-    computeG0(G0_l_, fixed_config_, m_l_dev_config_[s]);
+    computeG0(G0_l_, *fixed_config_, m_l_dev_config_[s]);
     flops_ += 9. * G0_l_.nrRows() * G0_l_.nrRows();
     linalg::matrixop::gemm(G0_l_, M[s], G0_M_, thread_id_, 0);
     flops_ += 2. * G0_l_.nrRows() * G0_l_.nrCols() * G0_M_.nrCols();
 
-    computeG0(G0_r_, m_r_dev_config_[s], fixed_config_);
+    computeG0(G0_r_, m_r_dev_config_[s], *fixed_config_);
     flops_ += 9. * G0_r_.nrRows() * G0_r_.nrRows();
     linalg::matrixop::gemm(G0_M_, G0_r_, G_[s], thread_id_, 0);
     flops_ += 2. * G0_M_.nrRows() * G0_M_.nrCols() * G_[s].nrCols();
