@@ -292,7 +292,9 @@ Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, 
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
   data_ = Allocator::allocate(nrElements(capacity_));
-  util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
+  if (nrElements(capacity_)) {  // Avoid cuda calls when initializing static matrices.
+    util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
+  }
 }
 
 template <typename ScalarType, DeviceType device_name>
