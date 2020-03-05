@@ -132,7 +132,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
 
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
-      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref, &output_file_) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
     output_file_.open_file(file_name_);

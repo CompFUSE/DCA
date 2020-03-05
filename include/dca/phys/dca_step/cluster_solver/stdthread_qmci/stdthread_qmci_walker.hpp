@@ -37,7 +37,8 @@ class StdThreadQmciWalker : public QmciWalker {
   constexpr static int bands = Parameters::bands;
 
 public:
-  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id);
+  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
+                      io::HDF5Writer* writer);
   ~StdThreadQmciWalker();
 
   void doSweep();
@@ -47,6 +48,7 @@ public:
 
 private:
   const unsigned autocorrelation_window_;
+  const unsigned stamping_period_;
   int thread_id_;
 
   std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
@@ -54,18 +56,23 @@ private:
   TimeCorrelator<Parameters, Real, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
 
+  io::HDF5Writer* const writer_ = nullptr;
+  std::size_t meas_id_ = 0;
+
   static inline std::unique_ptr<TimeCorrelator<Parameters, Real, device>> common_time_correlator_;
   static inline math::statistics::Autocorrelation<int> common_order_correlator_;
 };
 
 template <class QmciWalker>
-StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters,
-                                                     Data& data_ref, Rng& rng, const int id)
+StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters, Data& data_ref,
+                                                     Rng& rng, const int id, io::HDF5Writer* writer)
     : QmciWalker(parameters, data_ref, rng, id),
       autocorrelation_window_(parameters.get_time_correlation_window()),
+      stamping_period_(parameters.stamping_period()),
       thread_id_(id),
       time_correlator_(parameters, thread_id_),
-      order_correlator_(autocorrelation_window_) {
+      order_correlator_(autocorrelation_window_),
+      writer_(writer) {
   static std::once_flag flag;
   std::call_once(flag, [&]() {
     if (autocorrelation_window_) {
@@ -85,6 +92,22 @@ void StdThreadQmciWalker<QmciWalker>::doSweep() {
     time_correlator_.compute_G_r_t(m_correlator_, QmciWalker::get_matrix_configuration(),
                                    QmciWalker::get_sign());
     order_correlator_.addSample(QmciWalker::get_configuration().size());
+  }
+
+  ++meas_id_;
+  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
+  if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+    const std::string stamp_name =
+        "w_" + std::to_string(thread_id_) + "_step_" + std::to_string(meas_id_);
+
+    writer_->lock();
+
+    writer_->open_group("Configurations");
+    auto& config = QmciWalker::get_configuration();
+    config.write(*writer_, stamp_name);
+    writer_->close_group();
+
+    writer_->unlock();
   }
 }
 
@@ -136,7 +159,8 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>>
   using Rng = typename Parameters::random_number_generator;
 
 public:
-  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id)
+  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
+                      io::HDF5Writer* /*writer*/)
       : QmciWalker(parameters_ref, data_ref, rng, id) {}
 
   static void write(io::HDF5Writer& writer) {}

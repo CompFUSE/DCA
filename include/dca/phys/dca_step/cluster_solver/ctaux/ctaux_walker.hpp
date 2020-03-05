@@ -187,6 +187,8 @@ private:
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Real exp_delta_V);
 
+
+
 private:
   using WalkerBIT<Parameters, Data, Real>::check_G0_matrices;
   using WalkerBIT<Parameters, Data, Real>::check_N_matrices;
@@ -305,9 +307,6 @@ private:
   std::array<linalg::util::CudaEvent, 2> m_computed_events_;
 
   bool config_initialized_;
-
-  std::size_t meas_id_ = 0;
-  io::HDF5Writer config_file_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -364,10 +363,6 @@ CtauxWalker<device_t, Parameters, Data, Real>::CtauxWalker(Parameters& parameter
       num_delayed_spins_(),
 
       config_initialized_(false) {
-  if (parameters.stamping_period()) {
-    config_file_.open_file(parameters.get_configuration_stamps());
-  }
-
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n"
               << "\t\t"
@@ -517,13 +512,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::doSweep() {
 
   if (!thermalized)
     ++warm_up_sweeps_done_;
-
-  ++meas_id_;
-  if (parameters.stamping_period()) {
-    if ((meas_id_ % parameters.stamping_period()) == 0) {
-      configuration.write(config_file_, std::to_string(meas_id_));
-    }
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>

@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
@@ -105,6 +106,10 @@ public:
 
   auto possiblePartners() const {
     return H_int_->possiblePartners();
+  }
+
+  void write(io::HDF5Writer&, const std::string&) const {
+    throw(std::logic_error("Write method not implemented."));
   }
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);

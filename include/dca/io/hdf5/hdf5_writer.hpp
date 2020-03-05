@@ -15,6 +15,7 @@
 
 #include <complex>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -76,8 +77,11 @@ public:
 
   void execute(const std::string& name, const std::vector<std::string>& value);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value);
+  template <typename Scalar, std::size_t n>
+  void execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
+
+  template <typename Scalar>
+  void execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
 
   template <typename domain_type>
   void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
@@ -126,6 +130,18 @@ public:
 
   bool pathExists(const std::string& path) const;
 
+  operator bool() const {
+    return static_cast<bool>(file_);
+  }
+
+  void lock() {
+    mutex_.lock();
+  }
+
+  void unlock() {
+    mutex_.unlock();
+  }
+
 private:
   bool fexists(const char* filename);
 
@@ -137,6 +153,8 @@ private:
   std::vector<std::string> my_paths;
 
   bool verbose_;
+
+  std::mutex mutex_;
 };
 
 template <typename arbitrary_struct_t>
@@ -348,6 +366,38 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
 
     close_group();
   }
+}
+
+template <typename Scalar, std::size_t n>
+void HDF5Writer::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
+  if (value.size() == 0)
+    return;
+
+  std::array<hsize_t, 2> dims{value.size(), n};
+
+  H5::DataSet* dataset = nullptr;
+  H5::DataSpace* dataspace = nullptr;
+
+  std::string full_name = get_path() + "/" + name;
+
+  dataspace = new H5::DataSpace(2, dims.data());
+
+  dataset = new H5::DataSet(
+      file_->createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+
+  Scalar* tmp = new Scalar[dims[0] * dims[1]];
+
+  // hdf5 has row-major ordering!
+  //  for (hsize_t i = 0; i < dims[0]; i++)
+  //    for (hsize_t j = 0; j < dims[1]; j++)
+  //      tmp[i * dims[1] + j] = value[i][j];
+
+  H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
+           value[0].data());
+
+  delete[] tmp;
+  delete dataset;
+  delete dataspace;
 }
 
 template <typename domain_type>
