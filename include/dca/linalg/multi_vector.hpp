@@ -16,9 +16,6 @@
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/util/type_list.hpp"
 #include "dca/util/pack_operations.hpp"
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
-#endif
 
 namespace dca {
 namespace linalg {
@@ -37,13 +34,17 @@ public:
   // Resize the container so that each sub-array has size n, invalidating references and values.
   void resizeNoCopy(std::size_t n);
 
-#ifdef DCA_HAVE_CUDA
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, cudaStream_t stream) {
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, const util::CudaStream& stream) {
     data_.setAsync(rhs.data_, stream);
+    size_ = rhs.size_;
   }
-#endif  // DCA_HAVE_CUDA
+  template <DeviceType other_device>
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, int thread_id, int stream_id) {
+    data_.setAsync(rhs.data_, thread_id, stream_id);
+    size_ = rhs.size_;
+  }
 
   // Returns a pointer to the beginning of the id-th array
   // Preconditions: 0 <= id < length(Ts...).

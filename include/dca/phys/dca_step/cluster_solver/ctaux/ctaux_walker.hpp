@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "dca/linalg/linalg.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
@@ -49,6 +50,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, typena
 class CtauxWalker : public WalkerBIT<Parameters, Data, Real>,
                     public CtauxWalkerData<device_t, Parameters, Real> {
 public:
+  using parameters_type = Parameters;
   using vertex_singleton_type = vertex_singleton;
   using configuration_type = CT_AUX_HS_configuration<Parameters>;
   using rng_type = typename Parameters::random_number_generator;
@@ -56,7 +58,9 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using concurrency_type = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
 
-  const static dca::linalg::DeviceType walker_device_type = device_t;
+  using Scalar = double;
+
+  constexpr static dca::linalg::DeviceType device = device_t;
 
 public:
   CtauxWalker(const Parameters& parameters_ref, Data& MOMS_ref, rng_type& rng_ref, int id);
@@ -81,11 +85,16 @@ public:
   // Out: Ms.
   // Returns: pointer to the event marking the end of the computation.
   template <typename AccumType>
-  const linalg::util::CudaEvent* compute_M(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
+  const linalg::util::CudaEvent* computeM(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
 
   auto& get_configuration();
 
+  auto get_matrix_configuration() const {
+    return configuration.get_matrix_configuration();
+  }
+
   int get_sign();
+
   int get_thread_id();
 
   double get_Gflop();
@@ -94,6 +103,7 @@ public:
   void to_JSON(stream_type& /*ss*/) {}
 
   void readConfig(dca::io::Buffer& buff);
+
   dca::io::Buffer dumpConfig() const;
 
   // Writes the current progress, the number of interacting spins and the total configuration size
@@ -114,6 +124,9 @@ public:
       return 0;
   }
 
+  static void write(io::HDF5Writer&) {}
+  static void sumConcurrency(const concurrency_type&) {}
+
 private:
   void addNonInteractingSpinsToMatrices();
 
@@ -123,20 +136,24 @@ private:
   // Returns the total number of proposed single spin updates including "static" steps.
   // Version that aborts when a Bennett spin is proposed for removal.
   int generateDelayedSpinsAbortAtBennett(int single_spin_updates_todo);
+
   // Version that neglects Bennett updates.
   int generateDelayedSpinsNeglectBennett(int single_spin_updates_todo);
 
   void finalizeDelayedSpins();
 
   void read_Gamma_matrices(e_spin_states e_spin);
+
   void compute_Gamma_matrices();
 
   void add_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size);
 
   void add_delayed_spins_to_the_configuration();
+
   void remove_non_accepted_and_bennett_spins_from_Gamma(int& Gamma_up_size, int& Gamma_dn_size);
 
   void apply_bennett_on_Gamma_matrices(int& Gamma_up_size, int& Gamma_dn_size);
+
   void neutralize_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size);
 
   template <dca::linalg::DeviceType dev_t = device_t>
@@ -158,8 +175,10 @@ private:
   void clean_up_the_configuration();
 
   HS_vertex_move_type get_new_HS_move();
+
   // INTERNAL: Unused.
   int get_new_vertex_index(HS_vertex_move_type HS_current_move);
+
   // INTERNAL: Unused.
   HS_spin_states_type get_new_spin_value(HS_vertex_move_type HS_current_move);
 
@@ -1508,7 +1527,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::updateShell(const int done, 
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 template <typename AccumType>
-const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data, Real>::compute_M(
+const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data, Real>::computeM(
     std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
   // Stream 1 waits on stream 0.
   sync_streams_event_.record(linalg::util::getStream(thread_id, 0));

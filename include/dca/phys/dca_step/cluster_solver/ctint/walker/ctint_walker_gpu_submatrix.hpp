@@ -45,6 +45,8 @@ public:
   using typename BaseClass::Rng;
   using typename BaseClass::CudaStream;
 
+  constexpr static linalg::DeviceType device = linalg::GPU;
+
   CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                        int id = 0);
 

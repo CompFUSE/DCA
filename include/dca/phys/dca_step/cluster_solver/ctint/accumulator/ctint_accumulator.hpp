@@ -162,7 +162,7 @@ void CtintAccumulator<Parameters, device, Real>::updateFrom(Walker& walker) {
   }
 
   configuration_ = walker.getConfiguration();
-  sign_ = walker.getSign();
+  sign_ = walker.get_sign();
   flop_ += walker.stealFLOPs();
 
   ready_ = true;
