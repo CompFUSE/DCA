@@ -30,6 +30,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
@@ -155,7 +156,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Para
 
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
   Walker::setDMatrixBuilder(g0_);
-
+  TimeCorrelator<Parameters, Real, device_t>::setG0(g0_);
   Walker::setInteractionVertices(data_);
 
   if (concurrency_.id() == concurrency_.first())
