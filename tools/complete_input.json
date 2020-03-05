@@ -1,7 +1,6 @@
 {
     "output": {
         "directory": "./",
-        "output-format": "HDF5",
         "filename-dca": "dca.hdf5",
         "filename-analysis": "analysis.hdf5",
         "filename-ed": "ed.hdf5",
@@ -106,6 +105,7 @@
         "measurements": 100,
         "error-computation-type" : "NONE",
         "store-configuration" : false,
+        "time-correlation-window" : 100,
 
         "threaded-solver": {
             "walkers": 1,
