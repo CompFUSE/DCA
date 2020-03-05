@@ -20,7 +20,6 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
-#include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
@@ -91,6 +90,8 @@ protected:
 
   void update_DCA_loop_data_functions(int DCA_iteration);
 
+  void writeWalkerData(int i);
+
   ParametersType& parameters;
   DcaDataType& MOMS;
   concurrency_type& concurrency;
@@ -105,6 +106,9 @@ private:
   lattice_map_sp_type lattice_mapping_obj;
 
   update_chemical_potential_type update_chemical_potential_obj;
+
+  std::string file_name_;
+  io::HDF5Writer output_file_;
 
 protected:
   MCIntegratorType monte_carlo_integrator_;
@@ -129,8 +133,12 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
       monte_carlo_integrator_(parameters_ref, MOMS_ref) {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency.id() == concurrency.first()) {
+    file_name_ = parameters.get_directory() + parameters.get_filename_dca();
+    output_file_.open_file(file_name_);
+
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
+  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
@@ -141,37 +149,14 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::read() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
-  const std::string& output_format = parameters.get_output_format();
-  const std::string& file_name = parameters.get_directory() + parameters.get_filename_dca();
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\n\n\t\t start writing " << file_name_ << "\t" << dca::util::print_time() << "\n\n";
 
-  std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
-
-  if (output_format == "JSON") {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
-
-    parameters.write(writer);
-    MOMS.write(writer);
-    monte_carlo_integrator_.write(writer);
-    DCA_info_struct.write(writer);
-
-    writer.close_file();
+    parameters.write(output_file_);
+    MOMS.write(output_file_);
+    monte_carlo_integrator_.write(output_file_);
+    DCA_info_struct.write(output_file_);
   }
-
-  else if (output_format == "HDF5") {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    parameters.write(writer);
-    MOMS.write(writer);
-    monte_carlo_integrator_.write(writer);
-    DCA_info_struct.write(writer);
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
@@ -194,6 +179,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
     perform_cluster_exclusion_step();
 
     double L2_Sigma_difference = solve_cluster_problem(i);  // returned from cluster_solver::finalize
+
+    writeWalkerData(i);
 
     adjust_impurity_self_energy();  // double-counting-correction
 
@@ -355,6 +342,25 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
       DCA_info_struct.A_k(l1, k_ind, i) =
           std::abs(MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2)) *
           parameters.get_beta() / M_PI;
+}
+
+template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::writeWalkerData(int loop_id) {
+  using Walker = typename MCIntegratorType::Walker;
+  if (!parameters.get_time_correlation_window())
+    return;
+
+  Walker::sumConcurrency(concurrency);
+
+  if (concurrency.id() == concurrency.first()) {
+    output_file_.open_group("Autocorrelation");
+    output_file_.open_group(std::to_string(loop_id));
+
+    Walker::write(output_file_);
+
+    output_file_.close_group();
+    output_file_.close_group();
+  }
 }
 
 }  // namespace phys
