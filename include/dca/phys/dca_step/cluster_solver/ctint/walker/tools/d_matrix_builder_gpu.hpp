@@ -28,36 +28,38 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <>
-class DMatrixBuilder<linalg::GPU> final : public DMatrixBuilder<linalg::CPU> {
+template <typename Real>
+class DMatrixBuilder<linalg::GPU, Real> final : public DMatrixBuilder<linalg::CPU, Real> {
 private:
-  using Matrix = linalg::Matrix<double, linalg::GPU>;
-  using MatrixPair = std::array<linalg::Matrix<double, linalg::GPU>, 2>;
-  using BaseClass = DMatrixBuilder<linalg::CPU>;
+  using Matrix = linalg::Matrix<Real, linalg::GPU>;
+  using MatrixPair = std::array<Matrix, 2>;
+  using BaseClass = DMatrixBuilder<linalg::CPU, Real>;
 
 public:
   template <class RDmn>
-  DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0, int nb, const RDmn& /*rdmn*/);
+  DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0, int nb, const RDmn& /*rdmn*/);
 
-  DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
+  DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
                  const linalg::Matrix<int, linalg::CPU>& site_add, int nb, int r0);
 
-
-  const G0Interpolation<linalg::GPU>& getG0() const {
+  const auto& getG0() const {
     return g0_ref_;
   }
 
+  // See DMatrixBuilder<linalg::CPU, Real>::computeG0.
+  // Out: G0. Device matrix
   void computeG0(Matrix& G0, const details::DeviceConfiguration& configuration, int n_init,
                  bool right_section, cudaStream_t stream) const override;
 
 private:
-  const G0Interpolation<linalg::GPU>& g0_ref_;
+  const G0Interpolation<linalg::GPU, Real>& g0_ref_;
 };
 
+template <typename Real>
 template <class RDmn>
-DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0, int nb,
-                                            const RDmn& /*rdmn*/)
+DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
+                                                  int nb, const RDmn& /*rdmn*/)
     : DMatrixBuilder(g0, RDmn::parameter_type::get_add_matrix(),
                      RDmn::parameter_type::get_subtract_matrix(), nb,
                      RDmn::parameter_type::origin_index()) {}

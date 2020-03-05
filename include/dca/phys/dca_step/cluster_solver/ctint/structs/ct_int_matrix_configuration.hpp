@@ -107,7 +107,7 @@ protected:
   }
 
   const InteractionVertices* H_int_ = nullptr;
-  const int n_bands_ = -1;
+  int n_bands_ = -1;
   std::array<Sector, 2> sectors_;
 };
 

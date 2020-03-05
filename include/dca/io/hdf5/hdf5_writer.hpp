@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // HDF5 writer.
 
@@ -37,8 +38,7 @@ public:
 
 public:
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  HDF5Writer(bool verbose = true)
-      : my_file(NULL), file_id(-1), my_group(0), my_paths(0), verbose_(verbose) {}
+  HDF5Writer(bool verbose = true) : file_id(-1), my_paths(0), verbose_(verbose) {}
 
   ~HDF5Writer();
 
@@ -60,56 +60,59 @@ public:
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
-  template <typename Scalar>
-  void execute(const std::string& name, Scalar value);
+  template <typename scalar_type>
+  void execute(const std::string& name, scalar_type value);
 
-  template <typename Scalar>
-  void execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
+  template <typename scalar_type>
+  void execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value);
 
-  template <typename Scalar>
-  void execute(const std::string& name, const std::vector<Scalar>& value);
+  template <typename scalar_type>
+  void execute(const std::string& name, const std::vector<scalar_type>& value);
 
-  template <typename Scalar>
-  void execute(const std::string& name, const std::vector<std::complex<Scalar>>& value);
+  template <typename scalar_type>
+  void execute(const std::string& name, const std::vector<std::complex<scalar_type>>& value);
 
   void execute(const std::string& name, const std::string& value);
 
   void execute(const std::string& name, const std::vector<std::string>& value);
 
-  template <typename Scalar, std::size_t n>
-  void execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
-
-  template <typename Scalar>
-  void execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
+  template <typename scalar_type>
+  void execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value);
 
   template <typename domain_type>
   void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const func::function<Scalar, domain_type>& f);
+  template <typename scalar_type, typename domain_type>
+  void execute(const func::function<scalar_type, domain_type>& f);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const func::function<std::complex<Scalar>, domain_type>& f);
+  template <typename scalar_type, typename domain_type>
+  void execute(const func::function<std::complex<scalar_type>, domain_type>& f);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
+  template <typename scalar_type, typename domain_type>
+  void execute(const std::string& name, const func::function<scalar_type, domain_type>& f);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const std::string& name, const func::function<std::complex<Scalar>, domain_type>& f);
-
-  template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
-
-  template <typename Scalar>
+  template <typename scalar_type, typename domain_type>
   void execute(const std::string& name,
-               const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
+               const func::function<std::complex<scalar_type>, domain_type>& f);
 
-  template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
+  template <typename scalar_type>
+  void execute(const std::string& name, const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
-  template <typename Scalar>
+  template <typename scalar_type>
   void execute(const std::string& name,
-               const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
+               const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
+
+  template <typename scalar_type>
+  void execute(const std::string& name, const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+
+  template <typename scalar_type>
+  void execute(const std::string& name,
+               const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
+
+  template <typename scalar_type>
+  void execute(const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+    execute(A.get_name(), A);
+  }
 
   template <class T>
   void execute(const std::string& name, const std::unique_ptr<T>& obj);
@@ -121,14 +124,16 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
+  bool pathExists(const std::string& path) const;
+
 private:
   bool fexists(const char* filename);
 
-  H5::H5File* my_file;
+  std::unique_ptr<H5::H5File> file_;
 
   hid_t file_id;
 
-  std::vector<H5::Group*> my_group;
+  std::unordered_map<std::string, std::unique_ptr<H5::Group>> groups_;
   std::vector<std::string> my_paths;
 
   bool verbose_;
@@ -142,9 +147,9 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
   wr_obj.close_file();
 }
 
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, Scalar value) {
-  H5::H5File& file = (*my_file);
+template <typename scalar_type>
+void HDF5Writer::execute(const std::string& name, scalar_type value) {
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[1];
@@ -158,19 +163,19 @@ void HDF5Writer::execute(const std::string& name, Scalar value) {
 
     std::string full_name = path + "/" + name;
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &value);
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &value);
   }
 
   delete dataset;
   delete dataspace;
 }
 
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
-  H5::H5File& file = (*my_file);
+template <typename scalar_type>
+void HDF5Writer::execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value) {
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[1];
@@ -184,22 +189,22 @@ void HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar
 
     std::string full_name = path + "/" + name;
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &(value.first));
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &(value.first));
   }
 
   delete dataset;
   delete dataspace;
 }
 
-template <typename Scalar>
+template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
-                         const std::vector<Scalar>& value)  //, H5File& file, std::string path)
+                         const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
     std::string path = get_path();
 
     hsize_t dims[1];
@@ -213,10 +218,10 @@ void HDF5Writer::execute(const std::string& name,
 
       std::string full_name = path + "/" + name;
       dataset = new H5::DataSet(
-          file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+          file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-      H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-               &value[0]);
+      H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+               H5P_DEFAULT, &value[0]);
     }
 
     delete dataset;
@@ -224,9 +229,10 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::complex<Scalar>>& value) {
-  H5::H5File& file = (*my_file);
+template <typename scalar_type>
+void HDF5Writer::execute(const std::string& name,
+                         const std::vector<std::complex<scalar_type>>& value) {
+  H5::H5File& file = (*file_);
   std::string path = get_path();
 
   hsize_t dims[2];
@@ -241,20 +247,20 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::complex
 
     std::string full_name = path + "/" + name;
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &value[0]);
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &value[0]);
   }
 
   delete dataset;
   delete dataspace;
 }
 
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
+template <typename scalar_type>
+void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value) {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
 
     bool all_the_same_size = true;
 
@@ -287,10 +293,10 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
         dataspace = new H5::DataSpace(2, dims);
 
         std::string full_name = get_path() + "/data";
-        dataset = new H5::DataSet(
-            file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        dataset = new H5::DataSet(file.createDataSet(
+            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-        Scalar* tmp = new Scalar[dims[0] * dims[1]];
+        scalar_type* tmp = new scalar_type[dims[0] * dims[1]];
 
         /*
           for(int i=0; i<dims[0]; i++)
@@ -303,7 +309,7 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
           for (hsize_t j = 0; j < dims[1]; j++)
             tmp[i * dims[1] + j] = value[i][j];
 
-        H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL,
+        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
                  H5P_DEFAULT, tmp);
 
         delete[] tmp;
@@ -328,10 +334,10 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
         std::stringstream ss;
         ss << get_path() << "/" << l;
 
-        dataset = new H5::DataSet(
-            file.createDataSet(ss.str().c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        dataset = new H5::DataSet(file.createDataSet(
+            ss.str().c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-        H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL,
+        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
                  H5P_DEFAULT, &value[l]);
       }
       close_group();
@@ -344,40 +350,6 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
   }
 }
 
-template <typename Scalar, std::size_t n>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
-  if (value.size() == 0)
-    return;
-
-  H5::H5File& file = (*my_file);
-
-  std::array<hsize_t, 2> dims{value.size(), n};
-
-  H5::DataSet* dataset = nullptr;
-  H5::DataSpace* dataspace = nullptr;
-
-  std::string full_name = get_path() + "/" + name;
-
-  dataspace = new H5::DataSpace(2, dims.data());
-
-  dataset = new H5::DataSet(
-      file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
-
-  Scalar* tmp = new Scalar[dims[0] * dims[1]];
-
-  // hdf5 has row-major ordering!
-  //  for (hsize_t i = 0; i < dims[0]; i++)
-  //    for (hsize_t j = 0; j < dims[1]; j++)
-  //      tmp[i * dims[1] + j] = value[i][j];
-
-  H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-           value[0].data());
-
-  delete[] tmp;
-  delete dataset;
-  delete dataspace;
-}
-
 template <typename domain_type>
 void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
   open_group(name);
@@ -388,8 +360,8 @@ void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>
   close_group();
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
+template <typename scalar_type, typename domain_type>
+void HDF5Writer::execute(const func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -399,8 +371,8 @@ void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
   execute(f.get_name(), f);
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const func::function<std::complex<Scalar>, domain_type>& f) {
+template <typename scalar_type, typename domain_type>
+void HDF5Writer::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -410,12 +382,12 @@ void HDF5Writer::execute(const func::function<std::complex<Scalar>, domain_type>
   execute(f.get_name(), f);
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
+template <typename scalar_type, typename domain_type>
+void HDF5Writer::execute(const std::string& name, const func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -452,10 +424,10 @@ void HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
         dataspace = new H5::DataSpace(N_dmns, &dims[0]);
 
         std::string full_name = new_path + "/data";
-        dataset = new H5::DataSet(
-            file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        dataset = new H5::DataSet(file.createDataSet(
+            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-        H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL,
+        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
                  H5P_DEFAULT, &f(0));
       }
 
@@ -467,13 +439,13 @@ void HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   close_group();
 }
 
-template <typename Scalar, typename domain_type>
+template <typename scalar_type, typename domain_type>
 void HDF5Writer::execute(const std::string& name,
-                         const func::function<std::complex<Scalar>, domain_type>& f) {
+                         const func::function<std::complex<scalar_type>, domain_type>& f) {
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*my_file);
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -506,10 +478,10 @@ void HDF5Writer::execute(const std::string& name,
         dataspace = new H5::DataSpace(N_dmns + 1, &dims[0]);
 
         std::string full_name = get_path() + "/data";
-        dataset = new H5::DataSet(
-            file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        dataset = new H5::DataSet(file.createDataSet(
+            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-        H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL,
+        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
                  H5P_DEFAULT, &f(0));
       }
 
@@ -521,10 +493,10 @@ void HDF5Writer::execute(const std::string& name,
   close_group();
 }
 
-template <typename Scalar>
+template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*my_file);
+                         const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -543,10 +515,10 @@ void HDF5Writer::execute(const std::string& name,
 
     std::string full_name = get_path() + "/data";
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &V[0]);
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &V[0]);
   }
 
   delete dataset;
@@ -555,10 +527,10 @@ void HDF5Writer::execute(const std::string& name,
   close_group();
 }
 
-template <typename Scalar>
+template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*my_file);
+                         const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -578,10 +550,10 @@ void HDF5Writer::execute(const std::string& name,
 
     std::string full_name = get_path() + "/data";
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &V[0]);
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &V[0]);
   }
 
   delete dataset;
@@ -590,10 +562,10 @@ void HDF5Writer::execute(const std::string& name,
   close_group();
 }
 
-template <typename Scalar>
+template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*my_file);
+                         const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -617,10 +589,10 @@ void HDF5Writer::execute(const std::string& name,
 
     std::string full_name = get_path() + "/data";
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &A(0, 0));
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &A(0, 0));
   }
 
   delete dataset;
@@ -629,10 +601,10 @@ void HDF5Writer::execute(const std::string& name,
   close_group();
 }
 
-template <typename Scalar>
+template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*my_file);
+                         const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
+  H5::H5File& file = (*file_);
 
   open_group(name);
 
@@ -664,10 +636,10 @@ void HDF5Writer::execute(const std::string& name,
 
     std::string full_name = get_path() + "/data";
     dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
+        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
 
-    H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-             &A(0, 0));
+    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
+             H5P_DEFAULT, &A(0, 0));
   }
 
   delete dataset;

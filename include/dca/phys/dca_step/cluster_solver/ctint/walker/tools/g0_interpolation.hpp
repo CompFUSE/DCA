@@ -32,12 +32,12 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 // void template
-template <linalg::DeviceType device_t>
+template <linalg::DeviceType device_t, typename Real>
 class G0Interpolation {};
 
 // ParametersDomain is a collection of discrete labels not involving the time.
-template <>
-class G0Interpolation<linalg::CPU> {
+template <typename Real>
+class G0Interpolation<linalg::CPU, Real> {
 private:
   using Pdmn = G0ParametersDomain;
   using Pdmn0 = func::dmn_0<G0ParametersDomain>;
@@ -60,7 +60,7 @@ public:
   // In: G0_r_t: function of dmn_variadic<D1, D2, ..., Tdmn>
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
-  double operator()(double tau, int lindex) const;
+  Real operator()(Real tau, int lindex) const;
 
   // Number of value if g0 stored per parameter value.
   int getTimeSlices() const {
@@ -70,7 +70,7 @@ public:
     return getTimeSlices() * COEFF_SIZE;
   }
 
-  friend class G0Interpolation<linalg::GPU>;
+  friend class G0Interpolation<linalg::GPU, Real>;
 
   static constexpr int COEFF_SIZE = 4;
 
@@ -82,21 +82,23 @@ private:
   using PTime0 = func::dmn_0<PositiveTimeDomain>;
   using InterpolationDmn = func::dmn_variadic<CoeffDmn, PTime0, Pdmn0>;
 
-  func::function<double, InterpolationDmn> G0_coeff_;
-  double beta_ = 0;
+  func::function<Real, InterpolationDmn> G0_coeff_;
+  Real beta_ = 0;
   // value at tau = 0
-  std::vector<double> g0_minus_;
+  std::vector<Real> g0_minus_;
   // Spacing between time bins.
   double n_div_beta_;
 };
 
+template <typename Real>
 template <class InputDmn>
-G0Interpolation<linalg::CPU>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
+G0Interpolation<linalg::CPU, Real>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
   initialize(G0_pars_t);
 }
 
+template <typename Real>
 template <class InputDmn>
-void G0Interpolation<linalg::CPU>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
+void G0Interpolation<linalg::CPU, Real>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
   PositiveTimeDomain::initialize();
   Pdmn::initialize(InputDmn::dmn_size() / Tdmn::dmn_size());
   initialize(FunctionProxy<double, PTdmn>(G0_pars_t));

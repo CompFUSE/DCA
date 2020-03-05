@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements hdf5_writer.hpp.
 
@@ -19,9 +20,7 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  while (my_group.size())
-    close_group();
-  if (my_file != NULL)
+  if (file_)
     close_file();
 }
 
@@ -31,45 +30,42 @@ bool HDF5Writer::fexists(const char* filename) {
 }
 
 H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
-  if (my_file != NULL or my_group.size() != 0)
+  if (file_)
     throw std::logic_error(__FUNCTION__);
 
   if (overwrite) {
-    file_id = H5Fcreate(file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
   else {
     if (fexists(file_name.c_str()))
-      file_id = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+      file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDWR);
     else
-      file_id = H5Fcreate(file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+      file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
   }
 
-  if(file_id < 0)
+  file_id = file_->getId();
+
+  if (file_id < 0)
     throw std::runtime_error("Cannot open file : " + file_name);
 
-  my_file = new H5::H5File(file_name.c_str(), H5F_ACC_RDWR);
-
-  return (*my_file);
+  return (*file_);
 }
 
 void HDF5Writer::close_file() {
-  delete my_file;
-  my_file = NULL;
-
-  H5Fclose(file_id);
+  groups_.clear();
+  file_.release();
 }
 
 void HDF5Writer::open_group(std::string name) {
   my_paths.push_back(name);
-  my_group.push_back(NULL);
+  const std::string path = get_path();
 
-  my_group.back() = new H5::Group(my_file->createGroup(get_path().c_str()));
+  if (!pathExists(path)) {
+    groups_[path] = std::make_unique<H5::Group>(file_->createGroup(path.c_str()));
+  }
 }
 
 void HDF5Writer::close_group() {
-  delete my_group.back();
-
-  my_group.pop_back();
   my_paths.pop_back();
 }
 
@@ -77,13 +73,11 @@ std::string HDF5Writer::get_path() {
   std::string path = "/";
 
   for (size_t i = 0; i < my_paths.size(); i++) {
-    path = path + my_paths[i];
+    path += my_paths[i];
 
     if (i < my_paths.size() - 1)
-      path = path + "/";
+      path += "/";
   }
-
-  // cout << path << endl;
 
   return path;
 }
@@ -92,7 +86,7 @@ void HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
     std::string path = get_path();
 
     hsize_t dims[1];
@@ -121,7 +115,7 @@ void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+    H5::H5File& file = (*file_);
 
     open_group(name);
 
@@ -157,5 +151,9 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-}  // io
-}  // dca
+bool HDF5Writer::pathExists(const std::string& path) const {
+  return groups_.count(path);
+}
+
+}  // namespace io
+}  // namespace dca

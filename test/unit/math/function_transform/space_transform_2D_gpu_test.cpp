@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -95,7 +95,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
 
   // Transform on the GPU.
   dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+                                dca::config::McOptions::TpAllocator<Complex>>
       M_dev(M_in);
   magma_queue_t queue;
   magma_queue_create(&queue);

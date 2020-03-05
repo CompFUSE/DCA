@@ -47,6 +47,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
                                         n);
 
   Data::TpGreensFunction G4_check("G4");
+  using Real = typename dca::phys::solver::accumulator::TpAccumulator<Parameters>::Real;
 
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
@@ -72,6 +73,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
     dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
         data_->G0_k_w_cluster_excluded, parameters_);
 
+
     const int sign = 1;
     accumulator.accumulate(M, config, sign);
     accumulator.finalize();
@@ -85,7 +87,8 @@ TEST_F(TpAccumulatorTest, Accumulate) {
       G4_check.set_name(func_names[type]);
       reader.execute(G4_check);
       const auto diff = dca::func::util::difference(G4[0], G4_check);
-      EXPECT_GT(1e-8, diff.l_inf);
+      constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
+      EXPECT_GT(tolerance, diff.l_inf);
     }
   }
 

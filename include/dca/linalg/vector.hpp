@@ -206,7 +206,9 @@ Vector<ScalarType, device_name, Allocator>::Vector(const std::string& name, size
     : name_(name), size_(size), capacity_(capacity), data_(nullptr) {
   assert(capacity_ >= size_);
   data_ = Allocator::allocate(capacity_);
-  util::Memory<device_name>::setToZero(data_, capacity_);
+  if(size) { // Avoid cuda calls when initializing static vectors.
+      util::Memory<device_name>::setToZero(data_, capacity_);
+  }
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>

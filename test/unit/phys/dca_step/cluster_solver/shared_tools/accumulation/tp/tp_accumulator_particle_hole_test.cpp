@@ -81,15 +81,17 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_up_check;
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_down_check;
 
-  for (int l = 0; l < G4_ph_long_up_up_check.size(); ++l) {
-    G4_ph_long_up_up_check(l) = 0.5 * (G4_ph_charge(l) + G4_ph_magnetic(l));
+  using Real = typename TpAccumulatorType::Real;
 
-    G4_ph_long_up_down_check(l) = 0.5 * (G4_ph_charge(l) - G4_ph_magnetic(l));
+  for (int l = 0; l < G4_ph_long_up_up_check.size(); ++l) {
+    G4_ph_long_up_up_check(l) = Real(0.5) * (G4_ph_charge(l) + G4_ph_magnetic(l));
+
+    G4_ph_long_up_down_check(l) = Real(0.5) * (G4_ph_charge(l) - G4_ph_magnetic(l));
   }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);
-  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<Real>::epsilon());
 
   const auto diff_up_down = dca::func::util::difference(G4_ph_long_up_down, G4_ph_long_up_down_check);
-  EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<Real>::epsilon());
 }

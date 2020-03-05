@@ -27,6 +27,7 @@
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
@@ -38,6 +39,7 @@ namespace solver {
 
 template <class QmciSolver>
 class StdThreadQmciClusterSolver : public QmciSolver {
+public:
   using BaseClass = QmciSolver;
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
 
@@ -48,10 +50,9 @@ class StdThreadQmciClusterSolver : public QmciSolver {
   using typename BaseClass::Rng;
 
   using typename BaseClass::Accumulator;
-  using typename BaseClass::Walker;
+  using Walker = stdthreadqmci::StdThreadQmciWalker<typename BaseClass::Walker>;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
-public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
 
   void initialize(int dca_iteration);
@@ -301,7 +302,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
   // Read previous configuration.
   if (config_dump_[walker_id].size()) {
     walker.readConfig(config_dump_[walker_id]);
-    config_dump_[walker_id].setg(0); // Ready to read again if it is not overwritten.
+    config_dump_[walker_id].setg(0);  // Ready to read again if it is not overwritten.
   }
 
   walker.initialize();
@@ -316,7 +317,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
       walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
-  walker.is_thermalized() = true;
+  walker.markThermalized();
 
   if (id == 0) {
     if (concurrency_.id() == concurrency_.first())

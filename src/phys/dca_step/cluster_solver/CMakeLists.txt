@@ -19,6 +19,8 @@ if (DCA_HAVE_CUDA)
             ctaux/walker/tools/n_matrix_tools/n_matrix_tools_kernels.cu
 
             # Shared Tools
+            shared_tools/accumulation/time_correlator_kernels.cu
+            # Tp tools.
             shared_tools/accumulation/tp/ndft/ndft_kernels.cu
             shared_tools/accumulation/tp/tp_accumulator_kernels.cu
             shared_tools/accumulation/tp/g4_helper.cu
@@ -28,4 +30,5 @@ if (DCA_HAVE_CUDA)
 
     cuda_add_library(mc_kernels ${MC_KERNEL_FILES})
     target_compile_definitions(mc_kernels PUBLIC  "-DDCA_HAVE_CUDA")
+    target_link_libraries(mc_kernels ctint)
 endif()

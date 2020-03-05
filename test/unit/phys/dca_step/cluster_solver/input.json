@@ -63,5 +63,12 @@
     "sweeps-per-measurement" : 1,
     "measurements" : 500,
     "seed" : 0
+  },
+
+  "CT-INT" :
+  {
+    "initial-configuration-size" :5,
+    "alpha-dd-pos" : 0.51,
+    "double-update-probability" : 0
   }
 }

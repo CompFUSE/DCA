@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Cluster Monte Carlo integrator based on a continuous-time auxilary field (CT-AUX) expansion.
 //
@@ -22,6 +23,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
@@ -40,6 +42,12 @@
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
 
+// TODO: remove once interpolation is unified.
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -47,7 +55,7 @@ namespace solver {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 class CtauxClusterSolver {
-protected:
+public:
   using DataType = Data;
   using ParametersType = Parameters;
 
@@ -56,8 +64,9 @@ protected:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
-  using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data>;
+  using MCScalar = typename dca::config::McOptions::MCScalar;
+  using Walker = ctaux::CtauxWalker<device_t, Parameters, Data, MCScalar>;
+  using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data, MCScalar>;
 
   static constexpr linalg::DeviceType device = device_t;
 
@@ -149,6 +158,9 @@ private:
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
   bool averaged_;
+  // TODO: unify interpolation among solvers.
+  static inline std::unique_ptr<ctint::G0Interpolation<device_t, MCScalar>> g0_correlator_;
+
   bool compute_jack_knife_;
 };
 
@@ -177,6 +189,15 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
       M_r_w_squared_("M_r_w_squared"),
 
       averaged_(false) {
+  // TODO: unify g0 initialization.
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    if (parameters_.get_time_correlation_window()) {
+      g0_correlator_ = std::make_unique<ctint::G0Interpolation<device_t, MCScalar>>();
+      TimeCorrelator<Parameters, typename Walker::Scalar, device_t>::setG0(*g0_correlator_);
+    }
+  });
+
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -206,6 +227,10 @@ void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteratio
   compute_jack_knife_ =
       (dca_iteration == parameters_.get_dca_iterations() - 1) &&
       (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE);
+
+  if (g0_correlator_) {
+    g0_correlator_->initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
+  }
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
@@ -329,7 +354,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::warmUp(Walker& walker) {
     walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
-  walker.is_thermalized() = true;
+  walker.markThermalized();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;

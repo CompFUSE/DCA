@@ -38,6 +38,7 @@ public:
   using ThisType = Matrix<ScalarType, device_name>;
   using ValueType = ScalarType;
   using Allocator = util::DefaultAllocator<ScalarType, device_name>;
+  constexpr static DeviceType device = device_name;
 
   Matrix(const std::string& name = default_name_);
 
@@ -291,7 +292,9 @@ Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, 
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
   data_ = Allocator::allocate(nrElements(capacity_));
-  util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
+  if (nrElements(capacity_)) {  // Avoid cuda calls when initializing static matrices.
+    util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
+  }
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -517,7 +520,7 @@ std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
     return 0;
 }
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_MATRIX_HPP

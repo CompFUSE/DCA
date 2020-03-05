@@ -16,6 +16,8 @@
 #ifndef DCA_UTIL_PACK_OPERATIONS_HPP
 #define DCA_UTIL_PACK_OPERATIONS_HPP
 
+#include "dca/util/type_list.hpp"
+
 namespace dca {
 namespace util {
 // dca::util::
@@ -41,7 +43,25 @@ constexpr T product(T first, Args... args) {
   return first * product<Args...>(args...);
 }
 
-}  // util
-}  // dca
+// sum(T1 a1, T2 a2, ...) returns the sum of all its arguments. Equivalent to a1 + a2 + ...
+template <typename T = void>
+constexpr unsigned sum() {
+  return 0;
+}
+template <typename T, class... Args>
+constexpr T sum(T first, Args... args) {
+  return first + sum<Args...>(args...);
+}
+
+// size_sum.
+// size_sum<T_1, ..., T_n> = \sum_{i=1}^n sizeof(T_i)
+template <typename... Ts>
+constexpr unsigned size_sum = sum(sizeof(Ts)...);
+
+template <typename... Ts>
+constexpr unsigned size_sum<mp_list<Ts...>> = sum(sizeof(Ts)...);
+
+}  // namespace util
+}  // namespace dca
 
 #endif  // DCA_UTIL_PACK_OPERATIONS_HPP
