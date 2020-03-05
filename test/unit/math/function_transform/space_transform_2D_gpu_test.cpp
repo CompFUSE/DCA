@@ -94,15 +94,15 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                dca::config::McOptions::TpAllocator<Complex>>
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>
       M_dev(M_in);
-  magma_queue_t queue;
-  magma_queue_create(&queue);
+
+  dca::linalg::util::MagmaQueue queue;
+
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, double> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
-  cudaStreamSynchronize(transform_obj.get_stream());
-  magma_queue_destroy(queue);
+
+  queue.sync();
 
   Matrix<Complex, dca::linalg::CPU> M_out(M_dev);
   for (int w2 = 0; w2 < 2 * nw; ++w2)

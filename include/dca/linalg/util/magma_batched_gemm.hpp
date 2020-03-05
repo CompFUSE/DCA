@@ -19,6 +19,7 @@
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/magma_queue.hpp"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {
@@ -30,7 +31,7 @@ template <typename ScalarType>
 class MagmaBatchedGemm {
 public:
   // Creates a plan for a batched gemm.
-  MagmaBatchedGemm(magma_queue_t queue);
+  MagmaBatchedGemm(const linalg::util::MagmaQueue& queue);
   // Creates a plan for a batched gemm and allocates the memory for the arguments of `size`
   // multiplications.
   MagmaBatchedGemm(int size, magma_queue_t queue);
@@ -52,20 +53,20 @@ public:
   void synchronizeCopy();
 
 private:
-  magma_queue_t queue_;
-  const cudaStream_t stream_;
+  const linalg::util::MagmaQueue& queue_;
+  const linalg::util::CudaStream& stream_;
   CudaEvent copied_;
 
-  linalg::util::HostVector<const ScalarType *> a_ptr_, b_ptr_;
+  linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
   linalg::util::HostVector<ScalarType*> c_ptr_;
 
-  linalg::Vector<const ScalarType *, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
+  linalg::Vector<const ScalarType*, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
   linalg::Vector<ScalarType*, linalg::GPU> c_ptr_dev_;
 };
 
 template <typename ScalarType>
-MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(magma_queue_t queue)
-    : queue_(queue), stream_(magma_queue_get_cuda_stream(queue_)) {}
+MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(const linalg::util::MagmaQueue& queue)
+    : queue_(queue), stream_(queue_) {}
 
 template <typename ScalarType>
 MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(const int size, magma_queue_t queue)
@@ -99,6 +100,7 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
                                            const int n, const int k, const ScalarType alpha,
                                            const ScalarType beta, const int lda, const int ldb,
                                            const int ldc) {
+  // TODO: store in a buffer if the performance gain is necessary.
   a_ptr_dev_.setAsync(a_ptr_, stream_);
   b_ptr_dev_.setAsync(b_ptr_, stream_);
   c_ptr_dev_.setAsync(c_ptr_, stream_);
@@ -111,9 +113,9 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP

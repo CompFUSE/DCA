@@ -18,39 +18,35 @@
 #include <cusparse_v2.h>
 #include <magma_v2.h>
 
+#include "dca/linalg/util/cuda_stream.hpp"
+
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-class MagmaQueue {
+class MagmaQueue : public linalg::util::CudaStream {
 public:
   MagmaQueue() {
-    magma_queue_create(&queue_);
-  }
-
-  MagmaQueue(cudaStream_t stream) {
     cublasCreate(&cublas_handle_);
     cusparseCreate(&cusparse_handle_);
     int device;
     cudaGetDevice(&device);
-    magma_queue_create_from_cuda(device, stream, cublas_handle_, cusparse_handle_, &queue_);
+    magma_queue_create_from_cuda(device, *this, cublas_handle_, cusparse_handle_, &queue_);
   }
+
+  MagmaQueue(const MagmaQueue& rhs) = delete;
+
+  MagmaQueue(MagmaQueue&& rhs) = default;
 
   ~MagmaQueue() {
     magma_queue_destroy(queue_);
-    if (cublas_handle_)
-      cublasDestroy(cublas_handle_);
-    if (cusparse_handle_)
-      cusparseDestroy(cusparse_handle_);
+    cublasDestroy(cublas_handle_);
+    cusparseDestroy(cusparse_handle_);
   }
 
-  operator magma_queue_t() {
+  operator magma_queue_t() const {
     return queue_;
-  }
-
-  cudaStream_t getStream() const {
-    return magma_queue_get_cuda_stream(queue_);
   }
 
 private:

@@ -50,12 +50,11 @@ public:
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                           config::McOptions::TpAllocator<Complex>>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
-
-  CachedNdft(magma_queue_t queue);
+  CachedNdft(const linalg::util::MagmaQueue& queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
@@ -99,8 +98,9 @@ private:
   using BaseClass::w_;
 
   linalg::Vector<Real, linalg::GPU> w_dev_;
-  magma_queue_t magma_queue_;
-  cudaStream_t stream_;
+  const linalg::util::MagmaQueue& magma_queue_;
+  const linalg::util::CudaStream& stream_;
+
   linalg::util::CudaEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
@@ -115,10 +115,10 @@ private:
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedNdft(
-    const magma_queue_t queue)
+    const linalg::util::MagmaQueue& queue)
     : BaseClass(),
       magma_queue_(queue),
-      stream_(magma_queue_get_cuda_stream(magma_queue_)),
+      stream_(queue),
       magma_plan1_(n_orbitals_, magma_queue_),
       magma_plan2_(n_orbitals_, magma_queue_) {
   workspace_ = std::make_shared<RMatrix>();

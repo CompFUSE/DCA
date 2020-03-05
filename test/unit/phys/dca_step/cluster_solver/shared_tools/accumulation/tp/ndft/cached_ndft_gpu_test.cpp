@@ -65,8 +65,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
                            const typename CachedNdftGpuTest<Real>::Matrix& M,
                            typename CachedNdftGpuTest<Real>::F_w_w& f_w) {
   dca::linalg::util::initializeMagma();
-  magma_queue_t queue;
-  magma_queue_create(&queue);
+  dca::linalg::util::MagmaQueue queue;
 
   using BDmn = typename CachedNdftGpuTest<Real>::BDmn;
   using RDmn = typename CachedNdftGpuTest<Real>::RDmn;
@@ -106,8 +105,6 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;
               f_w(b1, b2, r1, r2, invert_w(w1 + n_w), invert_w(w2)) = std::conj(val);
             }
-
-  magma_queue_destroy(queue);
 
   dca::profiling::Duration duration(end_time, start_time);
   return duration.sec + 1.e-6 * duration.usec;

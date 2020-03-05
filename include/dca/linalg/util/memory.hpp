@@ -19,6 +19,7 @@
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/util/ignore.hpp"
 
 #ifdef DCA_HAVE_CUDA
@@ -48,6 +49,10 @@ struct Memory<CPU> {
       std::complex<ScalarType>* ptr, size_t size) {
     std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
+  template <typename ScalarType>
+  static void setToZeroAsync(ScalarType* ptr, size_t size, const CudaStream& /*s*/) {
+    setToZero(ptr, size);
+  }
 };
 
 #ifdef DCA_HAVE_CUDA
@@ -70,11 +75,16 @@ struct Memory<GPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == false, void> setToZero(
       ScalarType /*ptr*/, size_t /*size*/) {}
+
+  template <typename ScalarType>
+  static void setToZeroAsync(ScalarType* ptr, size_t size, const CudaStream& stream) {
+    cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
+  }
 };
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_MEMORY_HPP
