@@ -48,9 +48,10 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
 }
 
-std::array<dim3, 2> getBlockSize3D(const uint i, const uint j, const uint k) {
+std::array<dim3, 2> getBlockSize3D(const uint i, const uint j, const uint k,
+                                   const uint block_size = 32) {
   const uint n_threads_k = std::min(uint(8), k);
-  const uint max_block_size_ij = n_threads_k > 1 ? 8 : 32;
+  const uint max_block_size_ij = n_threads_k > 1 ? 8 : block_size;
   const uint n_threads_i = std::min(max_block_size_ij, i);
   const uint n_threads_j = std::min(max_block_size_ij, j);
 
@@ -493,7 +494,7 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
   const int nw = 2 * nw_pos;
   const int size_12 = nw * nk * nb * nb;
   const int size_3 = nw_exchange * nk_exchange;
-  const auto blocks = getBlockSize3D(size_12, size_12, size_3);
+  const auto blocks = getBlockSize3D(size_12, size_12, size_3, 16);
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
