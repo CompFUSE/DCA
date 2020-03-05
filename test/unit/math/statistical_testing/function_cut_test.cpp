@@ -13,11 +13,11 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 
 struct MockParameters {
-  constexpr int static bands = 3;
-  using lattice_type = dca::phys::models::square_lattice<dca::phys::domains::no_symmetry<2>>;
+  constexpr int static bands = 2;
+  using lattice_type = dca::phys::models::bilayer_lattice<dca::phys::domains::no_symmetry<2>>;
 };
 
 TEST(FunctionCutTest, FrequencyCut) {

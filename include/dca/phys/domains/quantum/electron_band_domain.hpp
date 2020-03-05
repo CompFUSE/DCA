@@ -80,10 +80,10 @@ void electron_band_domain::initialize(const Parameters& /*parameters*/) {
   auto flavours = Lattice::get_flavors();
   auto a_vecs = Lattice::get_a_vectors();
 
-  for (size_t i = 0; i < elements_.size(); ++i) {
-    elements_[i].number = i;
-    elements_[i].flavor = flavours[i];
-    elements_[i].a_vec = a_vecs[i];
+  for (size_t i = 0; i < a_vecs.size(); ++i) {
+    elements_.at(i).number = i;
+    elements_.at(i).flavor = flavours.at(i);
+    elements_.at(i).a_vec = a_vecs.at(i);
   }
 }
 
