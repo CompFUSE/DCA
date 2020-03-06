@@ -43,10 +43,10 @@ public:
 
   ~HDF5Writer();
 
-  bool is_reader() {
+  constexpr bool is_reader() {
     return false;
   }
-  bool is_writer() {
+  constexpr bool is_writer() {
     return true;
   }
 
@@ -57,6 +57,11 @@ public:
   void close_group();
 
   std::string get_path();
+
+  // Closes all open datasets. Overwriting them will no longer be possible.
+  void flush() {
+    datasets_.clear();
+  }
 
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
@@ -128,7 +133,10 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
-  bool pathExists(const std::string& path) const;
+  bool groupExists(const std::string& path) const;
+
+  // Returns -1 if datasets does not exist.
+  std::array<hsize_t, 2> datasetId(const std::string& path);
 
   operator bool() const {
     return static_cast<bool>(file_);
@@ -145,11 +153,16 @@ public:
 private:
   bool fexists(const char* filename);
 
+  void write(const std::string& name, const std::vector<hsize_t>& size, H5::PredType type,
+             const void* data);
+
   std::unique_ptr<H5::H5File> file_;
 
   hid_t file_id;
 
   std::unordered_map<std::string, std::unique_ptr<H5::Group>> groups_;
+  std::unordered_map<std::string, std::pair<std::unique_ptr<H5::DataSet>, std::unique_ptr<H5::DataSpace>>>
+      datasets_;
   std::vector<std::string> my_paths;
 
   bool verbose_;
@@ -167,54 +180,18 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, scalar_type value) {
-  H5::H5File& file = (*file_);
-  std::string path = get_path();
+  const std::string full_name = get_path() + "/" + name;
+  std::vector<hsize_t> dims{1};
 
-  hsize_t dims[1];
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dims[0] = 1;
-    dataspace = new H5::DataSpace(1, dims);
-
-    std::string full_name = path + "/" + name;
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &value);
-  }
-
-  delete dataset;
-  delete dataspace;
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), &value);
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value) {
-  H5::H5File& file = (*file_);
-  std::string path = get_path();
+  std::string full_name = get_path() + "/" + name;
+  std::vector<hsize_t> dims{2};
 
-  hsize_t dims[1];
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dims[0] = 2;
-    dataspace = new H5::DataSpace(1, dims);
-
-    std::string full_name = path + "/" + name;
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &(value.first));
-  }
-
-  delete dataset;
-  delete dataspace;
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), &value.first);
 }
 
 template <typename scalar_type>
@@ -222,149 +199,57 @@ void HDF5Writer::execute(const std::string& name,
                          const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*file_);
-    std::string path = get_path();
-
-    hsize_t dims[1];
-
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
-
-    {
-      dims[0] = value.size();
-      dataspace = new H5::DataSpace(1, dims);
-
-      std::string full_name = path + "/" + name;
-      dataset = new H5::DataSet(
-          file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-      H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-               H5P_DEFAULT, &value[0]);
-    }
-
-    delete dataset;
-    delete dataspace;
+    std::string full_name = get_path() + "/" + name;
+    std::vector<hsize_t> dims{value.size()};
+    write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
   }
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::complex<scalar_type>>& value) {
-  H5::H5File& file = (*file_);
-  std::string path = get_path();
-
-  hsize_t dims[2];
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dims[0] = 2;
-    dims[1] = value.size();
-    dataspace = new H5::DataSpace(2, dims);
-
-    std::string full_name = path + "/" + name;
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &value[0]);
+  if (value.size() > 0) {
+    std::string full_name = get_path() + "/" + name;
+    std::vector<hsize_t> dims{2, value.size()};
+    write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
   }
-
-  delete dataset;
-  delete dataspace;
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value) {
   if (value.size() > 0) {
-    H5::H5File& file = (*file_);
+    std::string full_name = get_path() + "/" + name;
 
     bool all_the_same_size = true;
-
-    std::vector<size_t> dim(2, 0);
-    {
-      dim[0] = value.size();
-      dim[1] = value[0].size();
-
-      for (size_t l = 0; l < dim[0]; l++)
-        if (dim[1] != value[l].size())
-          all_the_same_size = false;
-    }
-
-    open_group(name);
-
-    execute("equal-size", all_the_same_size);
-
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
-
-    if (all_the_same_size) {
-      execute("size", dim);
-
-      hsize_t dims[2];
-
-      {
-        dims[0] = value.size();
-        dims[1] = value[0].size();
-
-        dataspace = new H5::DataSpace(2, dims);
-
-        std::string full_name = get_path() + "/data";
-        dataset = new H5::DataSet(file.createDataSet(
-            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-        scalar_type* tmp = new scalar_type[dims[0] * dims[1]];
-
-        /*
-          for(int i=0; i<dims[0]; i++)
-          for(int j=0; j<dims[1]; j++)
-          tmp[i+j*dims[0]] = value[i][j];
-        */
-
-        // hdf5 has row-major ordering!
-        for (hsize_t i = 0; i < dims[0]; i++)
-          for (hsize_t j = 0; j < dims[1]; j++)
-            tmp[i * dims[1] + j] = value[i][j];
-
-        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-                 H5P_DEFAULT, tmp);
-
-        delete[] tmp;
+    const std::size_t cols = value[0].size();
+    for (auto& v : value) {
+      if (v.size() != cols) {
+        all_the_same_size = false;
+        break;
       }
     }
+
+    if (all_the_same_size) {
+      std::vector<hsize_t> dims{value.size(), cols};
+      std::vector<scalar_type> linearized(dims[0] * dims[1]);
+
+      std::size_t linindex = 0;
+      for (std::size_t i = 0; i < value.size(); ++i)
+        for (std::size_t j = 0; j < cols; ++j, ++linindex)
+          linearized[linindex] = value[i][j];
+
+      write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
+    }
     else {
-      execute("size_i", dim[0]);
-
-      dim.resize(0);
-      for (size_t l = 0; l < value.size(); l++)
-        dim.push_back(value[l].size());
-
-      execute("size_j", dim);
-
-      hsize_t dims[1];
-
-      open_group("data");
-      for (size_t l = 0; l < value.size(); l++) {
-        dims[0] = value[l].size();
-        dataspace = new H5::DataSpace(1, dims);
-
-        std::stringstream ss;
-        ss << get_path() << "/" << l;
-
-        dataset = new H5::DataSet(file.createDataSet(
-            ss.str().c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-                 H5P_DEFAULT, &value[l]);
+      open_group(full_name);
+      std::vector<hsize_t> dims(1);
+      for (std::size_t i = 0; i < value.size(); ++i) {
+        const std::string new_name = full_name + "/row_" + std::to_string(i);
+        dims[0] = value[i].size();
+        write(new_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value[i].data());
       }
       close_group();
     }
-
-    delete dataset;
-    delete dataspace;
-
-    close_group();
   }
 }
 
@@ -437,54 +322,27 @@ void HDF5Writer::execute(const std::string& name, const func::function<scalar_ty
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*file_);
-
   open_group(name);
 
   std::string new_path = get_path();
 
-  {
-    execute("name", f.get_name());
+  execute("name", f.get_name());
 
-    {
-      std::vector<int> vec(0);
+  std::vector<hsize_t> dims(0);
 
-      for (int l = 0; l < f.signature(); l++)
-        vec.push_back(f[l]);
+  int n_dims = f.signature();
+  for (int l = 0; l < n_dims; l++)
+    dims.push_back(f[l]);
 
-      execute("domain-sizes", vec);
-    }
+  execute("domain-sizes", dims);
 
-    {
-      int N_dmns = f.signature();
+  // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
+  for (int l = 0; l < n_dims; l++)
+    dims[n_dims - 1 - l] = f[l];
 
-      std::vector<hsize_t> dims(N_dmns);  // hsize_t dims[N_dmns];
+  std::string full_name = new_path + "/data";
 
-      //      for(int l=0; l<N_dmns; l++)
-      //        dims[l] = f[l];
-
-      // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
-      for (int l = 0; l < N_dmns; l++)
-        dims[N_dmns - 1 - l] = f[l];
-
-      H5::DataSet* dataset = NULL;
-      H5::DataSpace* dataspace = NULL;
-
-      {
-        dataspace = new H5::DataSpace(N_dmns, &dims[0]);
-
-        std::string full_name = new_path + "/data";
-        dataset = new H5::DataSet(file.createDataSet(
-            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-                 H5P_DEFAULT, &f(0));
-      }
-
-      delete dataset;
-      delete dataspace;
-    }
-  }
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), f.values());
 
   close_group();
 }
@@ -495,50 +353,29 @@ void HDF5Writer::execute(const std::string& name,
   if (f.size() == 0)
     return;
 
-  H5::H5File& file = (*file_);
-
   open_group(name);
 
-  {
-    execute("name", f.get_name());
+  std::string new_path = get_path();
 
-    {
-      std::vector<int> vec(0);
+  execute("name", f.get_name());
 
-      for (int l = 0; l < f.signature(); l++)
-        vec.push_back(f[l]);
+  std::vector<hsize_t> dims(0);
 
-      execute("domain-sizes", vec);
-    }
+  int n_dims = f.signature();
+  for (int l = 0; l < n_dims; l++)
+    dims.push_back(f[l]);
 
-    {
-      int N_dmns = f.signature();
+  execute("domain-sizes", dims);
 
-      std::vector<hsize_t> dims(N_dmns + 1);
+  dims.resize(n_dims + 1);
+  // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
+  for (int l = 0; l < n_dims; l++)
+    dims[n_dims - l] = f[l];
 
-      // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
-      dims[N_dmns] = 2;
-      for (int l = 0; l < N_dmns; l++)
-        dims[N_dmns - 1 - l] = f[l];
+  dims[0] = 2;
 
-      H5::DataSet* dataset = NULL;
-      H5::DataSpace* dataspace = NULL;
-
-      {
-        dataspace = new H5::DataSpace(N_dmns + 1, &dims[0]);
-
-        std::string full_name = get_path() + "/data";
-        dataset = new H5::DataSet(file.createDataSet(
-            full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-        H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-                 H5P_DEFAULT, &f(0));
-      }
-
-      delete dataset;
-      delete dataspace;
-    }
-  }
+  std::string full_name = get_path() + "/data";
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), f.values());
 
   close_group();
 }
@@ -546,156 +383,48 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*file_);
-
-  open_group(name);
-
-  execute("name", V.get_name());
-  execute("size", V.get_size());
-
-  hsize_t dims[1];
-
-  dims[0] = V.size();
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dataspace = new H5::DataSpace(1, dims);
-
-    std::string full_name = get_path() + "/data";
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &V[0]);
-  }
-
-  delete dataset;
-  delete dataspace;
-
-  close_group();
+  std::string full_name = get_path() + "/" + name;
+  write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<scalar_type>::get_PredType(), V.ptr());
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
-  H5::H5File& file = (*file_);
-
-  open_group(name);
-
-  execute("name", V.get_name());
-  execute("size", V.size());
-
-  hsize_t dims[2];
-
-  dims[0] = 2;
-  dims[1] = V.size();
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dataspace = new H5::DataSpace(2, dims);
-
-    std::string full_name = get_path() + "/data";
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &V[0]);
-  }
-
-  delete dataset;
-  delete dataspace;
-
-  close_group();
+  std::string full_name = get_path() + "/" + name;
+  write(full_name, std::vector<hsize_t>{2, V.size()}, HDF5_TYPE<scalar_type>::get_PredType(),
+        V.ptr());
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*file_);
+  std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
+  std::vector<scalar_type> linearized(dims[0] * dims[1]);
 
-  open_group(name);
+  int linindex = 0;
+  // Note: Matrices are row major, while HDF5 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[linindex++] = A(i, j);
 
-  {
-    execute("name", A.get_name());
-
-    execute("current-size", A.size());
-    execute("global-size", A.capacity());
-  }
-
-  hsize_t dims[2];
-
-  dims[0] = A.capacity().first;
-  dims[1] = A.capacity().second;
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dataspace = new H5::DataSpace(2, dims);
-
-    std::string full_name = get_path() + "/data";
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &A(0, 0));
-  }
-
-  delete dataset;
-  delete dataspace;
-
-  close_group();
+  std::string full_name = get_path() + "/" + name;
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
 }
 
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
-  H5::H5File& file = (*file_);
+  std::vector<hsize_t> dims{hsize_t(2), hsize_t(A.nrRows()), hsize_t(A.nrCols())};
+  std::vector<std::complex<scalar_type>> linearized(A.nrRows() * A.nrCols());
 
-  open_group(name);
+  int linindex = 0;
+  // Note: Matrices are row major, while HDF5 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[linindex++] = A(i, j);
 
-  {
-    execute("name", A.get_name());
-
-    std::vector<int> vec(2, 0);
-
-    vec[0] = A.size().first;
-    vec[1] = A.size().second;
-    execute("current-size", vec);
-
-    vec[0] = A.capacity().first;
-    vec[1] = A.capacity().second;
-    execute("global-size", vec);
-  }
-
-  hsize_t dims[3];
-
-  dims[0] = 2;
-  dims[1] = A.capacity().first;
-  dims[2] = A.capacity().second;
-
-  H5::DataSet* dataset = NULL;
-  H5::DataSpace* dataspace = NULL;
-
-  {
-    dataspace = new H5::DataSpace(3, dims);
-
-    std::string full_name = get_path() + "/data";
-    dataset = new H5::DataSet(
-        file.createDataSet(full_name.c_str(), HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
-
-    H5Dwrite(dataset->getId(), HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,
-             H5P_DEFAULT, &A(0, 0));
-  }
-
-  delete dataset;
-  delete dataspace;
-
-  close_group();
+  std::string full_name = get_path() + "/" + name;
+  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
 }
 
 template <class T>

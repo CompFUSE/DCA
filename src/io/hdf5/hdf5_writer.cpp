@@ -52,7 +52,9 @@ H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
 }
 
 void HDF5Writer::close_file() {
+  datasets_.clear();
   groups_.clear();
+  file_->close();
   file_.release();
 }
 
@@ -60,7 +62,7 @@ void HDF5Writer::open_group(std::string name) {
   my_paths.push_back(name);
   const std::string path = get_path();
 
-  if (!pathExists(path)) {
+  if (!groupExists(path)) {
     groups_[path] = std::make_unique<H5::Group>(file_->createGroup(path.c_str()));
   }
 }
@@ -151,8 +153,20 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-bool HDF5Writer::pathExists(const std::string& path) const {
+bool HDF5Writer::groupExists(const std::string& path) const {
   return groups_.count(path);
+}
+
+void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims, H5::PredType type,
+                       const void* data) {
+  if (datasets_.count(name) == 0) {
+    datasets_[name].second = std::make_unique<H5::DataSpace>(dims.size(), dims.data());
+    datasets_[name].first = std::make_unique<H5::DataSet>(
+        file_->createDataSet(name.c_str(), type, *datasets_[name].second));
+  }
+  // TODO: check pre-existing size
+
+  datasets_[name].first->write(data, type, *datasets_[name].second, H5P_DEFAULT);
 }
 
 }  // namespace io
