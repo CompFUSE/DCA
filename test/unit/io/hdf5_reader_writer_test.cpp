@@ -95,9 +95,75 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   reader.close_file();
 }
 
+template <typename Scalar>
+class HDF5ReaderWriterTest : public ::testing::Test {};
+using TestTypes = ::testing::Types<std::complex<double>, float>;
+TYPED_TEST_CASE(HDF5ReaderWriterTest, TestTypes);
+
+TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
+  using Dmn1 = dca::func::dmn_0<dca::func::dmn<5>>;
+  using Dmn2 = dca::func::dmn_0<dca::func::dmn<4>>;
+  using Dmn3 = dca::func::dmn_0<dca::func::dmn<2>>;
+  using Dmn = dca::func::dmn_variadic<Dmn1, Dmn2, Dmn3>;
+  using Scalar = TypeParam;
+
+  dca::func::function<Scalar, Dmn> f1("myfunc");
+  int val = 0;
+  for (auto& x : f1)
+    x = ++val;
+
+  dca::io::HDF5Writer writer;
+  writer.open_file("test.hdf5", true);
+
+  writer.execute(f1);
+
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  reader.open_file("test.hdf5");
+
+  dca::func::function<Scalar, Dmn> f2("myfunc");
+
+  EXPECT_TRUE(reader.execute(f2));
+
+  for (int i = 0; i < f1.size(); ++i)
+    EXPECT_EQ(f1(i), f2(i));
+
+  reader.close_file();
+}
+
+TYPED_TEST(HDF5ReaderWriterTest, MatrixReadWrite) {
+  using Scalar = TypeParam;
+  const std::pair<int, int> m_size(7, 3);
+
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> m1(m_size, "mymat");
+  int val = 0;
+  for (int j = 0; j < m1.nrCols(); ++j)
+    for (int i = 0; i < m1.nrRows(); ++i)
+      m1(i, j) = ++val;
+
+  dca::io::HDF5Writer writer;
+  writer.open_file("test_mat.hdf5", true);
+  writer.execute(m1);
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  reader.open_file("test_mat.hdf5");
+
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> m2;
+  EXPECT_TRUE(reader.execute("mymat", m2));
+  reader.close_file();
+
+  EXPECT_EQ(m1.get_name(), m2.get_name());
+  EXPECT_EQ(m1, m2);
+}
+
 TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
   dca::io::HDF5Writer writer;
-  EXPECT_THROW(writer.open_file("not_existing_directory/file.txt"), std::runtime_error);
+  H5::Exception::dontPrint();
+  EXPECT_THROW(writer.open_file("not_existing_directory/file.txt"), H5::Exception);
 
   dca::io::HDF5Reader reader;
   EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
@@ -126,4 +192,64 @@ TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
     EXPECT_EQ(0, val);
   for (int val : present)
     EXPECT_EQ(1, val);
+}
+
+TEST(HDF5ReaderWriterTest, GroupOpenclose) {
+  dca::io::HDF5Writer writer;
+  writer.open_file("group_open_close.hdf5");
+
+  writer.open_group("foo");
+  writer.execute("a", 0);
+  writer.close_group();
+  writer.open_group("foo");
+  writer.execute("b", 1);
+  writer.close_group();
+  writer.open_group("bar");
+  writer.execute("b2", 1.5);
+  writer.close_group();
+  writer.open_group("foo");
+  writer.execute("c", 2);
+
+  writer.close_file();
+
+  dca::io::HDF5Reader reader;
+  reader.open_file("group_open_close.hdf5");
+
+  int i_val;
+  double d_val;
+
+  reader.open_group("foo");
+  reader.execute("a", i_val);
+  EXPECT_EQ(0, i_val);
+  reader.execute("b", i_val);
+  EXPECT_EQ(1, i_val);
+  reader.execute("c", i_val);
+  EXPECT_EQ(2, i_val);
+  reader.close_group();
+  reader.open_group("bar");
+  reader.execute("b2", d_val);
+  EXPECT_EQ(1.5, d_val);
+}
+
+TEST(HDF5ReaderWriterTest, Overwrite) {
+  dca::io::HDF5Writer writer;
+  writer.open_file("test.hdf5", true);
+
+  writer.open_group("foo");
+  writer.execute("a", 1);
+  writer.execute("a", 2);
+
+  writer.flush();
+  H5::Exception::dontPrint();
+  EXPECT_THROW(writer.execute("a", 3), H5::Exception);
+
+  writer.close_file();
+
+  dca::io::HDF5Reader reader;
+  reader.open_file("test.hdf5");
+
+  int i_val;
+  reader.open_group("foo");
+  reader.execute("a", i_val);
+  EXPECT_EQ(2, i_val);
 }

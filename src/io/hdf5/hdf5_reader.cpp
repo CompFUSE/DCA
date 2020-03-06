@@ -39,6 +39,7 @@ void HDF5Reader::open_file(std::string file_name) {
 }
 
 void HDF5Reader::close_file() {
+  my_file->close();
   delete my_file;
   my_file = NULL;
 }
