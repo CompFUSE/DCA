@@ -211,14 +211,16 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, dou
       partners_lists_.push_back(&existing_[partner_id]);
 
     const auto tag = details::getRandomElement(partners_lists_, rng());
-    candidates[1] = findTag(tag);
-    assert(candidates[1] < int(size()) && candidates[1] >= 0);
-    assert(vertices_[candidates[1]].annihilatable);
+    if (tag != -1) {
+      candidates[1] = findTag(tag);
+      assert(candidates[1] < int(size()) && candidates[1] >= 0);
+      assert(vertices_[candidates[1]].annihilatable);
+    }
   }
 
   assert(candidates[0] < int(size()));
   return candidates;
-}
+}  // namespace ctint
 
 template <class Rng>
 bool SolverConfiguration::doDoubleUpdate(Rng& rng) const {
