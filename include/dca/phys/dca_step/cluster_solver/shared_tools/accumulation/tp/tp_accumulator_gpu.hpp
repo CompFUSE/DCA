@@ -33,6 +33,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 
+#define MOD(x,n) ((x) % (n))
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -188,6 +190,9 @@ private:
 
   std::array<RMatrix, 2> G_;
 
+  std::array<RMatrix, 2> sendbuff_G_;
+  std::array<RMatrix, 2> recvbuff_G_;
+
   bool finalized_ = false;
   bool initialized_ = false;
 
@@ -307,6 +312,76 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
   sign_ = sign;
   flop += computeM(M, configs);
   computeG();
+
+    // sync all processors at the beginning
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    int my_concurrency_id, mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
+
+    MPI_Request recv_request_1;
+    MPI_Request send_request_1;
+    MPI_Request recv_request_2;
+    MPI_Request send_request_2;
+    MPI_Status status_1;
+    MPI_Status status_2;
+
+    int left_neighbor = MOD((my_concurrency_id-1 + mpi_size), mpi_size);
+    int right_neighbor = MOD((my_concurrency_id+1 + mpi_size), mpi_size);
+
+    // number of G2s
+    // TODO: confirm niter
+    int niter = mpi_size;
+
+    for (int s = 0; s < 2; ++s)
+    {
+        // allocate recvbuff_G_ buff G_
+        recvbuff_G_[s]= G_[s];
+
+        // copy locally generated G2 to send buff
+        sendbuff_G_[s] = G_[s];
+    }
+    // sync all processors
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    int send_tag = 1 + my_concurrency_id;
+    send_tag = 1 + MOD(send_tag-1, MPI_TAG_UB); // just to be safe, MPI_TAG_UB is largest tag value
+    for(int icount=0; icount < (mpi_size-1); icount++)
+    {
+        // encode the originator rank in the message tag as tag = 1 + originator_irank
+        int originator_irank = MOD(((my_concurrency_id-1)-icount + 2*mpi_size), mpi_size);
+        int recv_tag = 1 + originator_irank;
+        recv_tag = 1 + MOD(recv_tag-1, MPI_TAG_UB); // just to be safe, then 1 <= tag <= MPI_TAG_UB
+
+        MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
+                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1);
+        MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
+                  MPI_DOUBLE, left_neighbor, recv_tag+mpi_size, MPI_COMM_WORLD, &recv_request_2);
+
+        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
+                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1);
+        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
+                  MPI_DOUBLE, right_neighbor, send_tag+mpi_size, MPI_COMM_WORLD, &send_request_2);
+
+        MPI_Wait(&recv_request_1, &status_1); // wait for recvbuf_G2 to be available again
+        MPI_Wait(&recv_request_2, &status_2); // wait for recvbuf_G2 to be available again
+
+        G_[0] = recvbuff_G_[0];
+        G_[1] = recvbuff_G_[1];
+
+//        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+//            flop += updateG4(channel);
+
+        MPI_Wait(&send_request_1, &status_1); // wait for sendbuf_G2 to be available again
+        MPI_Wait(&send_request_2, &status_2); // wait for sendbuf_G2 to be available again
+
+        // get ready for send
+        sendbuff_G_[0] = G_[0];
+        sendbuff_G_[1] = G_[1];
+        send_tag = recv_tag;
+    }
+        MPI_Barrier(MPI_COMM_WORLD);
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel)
     flop += updateG4(channel);
