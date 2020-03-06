@@ -1,0 +1,38 @@
+// Copyright (C) 2019 ETH Zurich
+// Copyright (C) 2019 UT-Battelle, LLC
+// All rights reserved.
+// See LICENSE.txt for terms of usage./
+//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// This singleton class organizes the handling of signals.
+
+#ifndef DCA_UTIL_SIGNAL_HANDLER_HPP
+#define DCA_UTIL_SIGNAL_HANDLER_HPP
+
+#include <vector>
+
+#include "dca/io/hdf5/hdf5_writer.hpp"
+
+namespace dca {
+namespace util {
+// dca::util::
+
+class SignalHandler{
+public:
+    static void init(bool verbose = false);
+
+    static void registerFile(io::HDF5Writer& writer);
+
+private:
+    static void sigintHandler(int signum);
+
+    static inline bool verbose_;
+    static inline std::vector<io::HDF5Writer*> file_ptrs_;
+};
+
+}  // namespace util
+}  // namespace dca
+
+#endif  // DCA_UTIL_SIGNAL_HANDLER_HPP

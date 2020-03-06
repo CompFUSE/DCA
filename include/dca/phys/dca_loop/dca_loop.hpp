@@ -33,6 +33,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/util/signal_handler.hpp"
 
 namespace dca {
 namespace phys {
@@ -91,6 +92,7 @@ protected:
   void update_DCA_loop_data_functions(int DCA_iteration);
 
   void writeWalkerData(int i);
+  void logSelfEnergy(int i);
 
   ParametersType& parameters;
   DcaDataType& MOMS;
@@ -136,6 +138,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
     output_file_.open_file(file_name_);
+    dca::util::SignalHandler::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
@@ -156,6 +159,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
     MOMS.write(output_file_);
     monte_carlo_integrator_.write(output_file_);
     DCA_info_struct.write(output_file_);
+
+    output_file_.close_file();
   }
 }
 
@@ -185,6 +190,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
     adjust_impurity_self_energy();  // double-counting-correction
 
     perform_lattice_mapping();
+
+    logSelfEnergy(i);  // Write a check point.
 
     update_DCA_loop_data_functions(i);
 
@@ -359,6 +366,25 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::writeWalkerData(int
     Walker::write(output_file_);
 
     output_file_.close_group();
+    output_file_.close_group();
+  }
+}
+
+template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::logSelfEnergy(int i) {
+  if (output_file_) {
+    output_file_.open_group("functions");
+    output_file_.execute(MOMS.Sigma);
+    output_file_.close_group();
+
+    output_file_.open_group("parameters");
+    output_file_.open_group("physics");
+    output_file_.execute("chemical-potential", parameters.get_chemical_potential());
+    output_file_.close_group();
+    output_file_.close_group();
+
+    output_file_.open_group("DCA-loop-functions");
+    output_file_.execute("completed-iteration", i);
     output_file_.close_group();
   }
 }

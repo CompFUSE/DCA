@@ -139,6 +139,7 @@ set(DCA_LIBS
   cluster_domains
   quantum_domains
   time_and_frequency_domains
+  signals
   symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}

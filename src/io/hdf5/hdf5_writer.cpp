@@ -87,68 +87,27 @@ std::string HDF5Writer::get_path() {
 void HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {
-  if (value.size() > 0) {
-    H5::H5File& file = (*file_);
-    std::string path = get_path();
+  std::string full_name = get_path() + '/' + name;
 
-    hsize_t dims[1];
-
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
-
-    {
-      dims[0] = value.size();
-      dataspace = new H5::DataSpace(1, dims);
-
-      std::string full_name = path + "/" + name;
-      dataset = new H5::DataSet(
-          file.createDataSet(full_name.c_str(), HDF5_TYPE<char>::get_PredType(), *dataspace));
-
-      H5Dwrite(dataset->getId(), HDF5_TYPE<char>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-               &value[0]);
-    }
-
-    delete dataset;
-    delete dataspace;
-  }
+  write(full_name, std::vector<hsize_t>{value.size()}, HDF5_TYPE<char>::get_PredType(), value.data());
 }
 
 void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
-    H5::H5File& file = (*file_);
-
     open_group(name);
-
-    execute("size", value.size());  //, file, new_path);
+    execute("size", value.size());
 
     open_group("data");
 
-    hsize_t dims[1];
+    const auto path = get_path();
 
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
-
-    for (size_t l = 0; l < value.size(); l++) {
-      dims[0] = value[l].size();
-      dataspace = new H5::DataSpace(1, dims);
-
-      std::stringstream ss;
-      ss << get_path() << "/" << l;
-
-      dataset = new H5::DataSet(
-          file.createDataSet(ss.str().c_str(), HDF5_TYPE<char>::get_PredType(), *dataspace));
-
-      H5Dwrite(dataset->getId(), HDF5_TYPE<char>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-               &(value[l][0]));
+    for (int i = 0; i < value.size(); ++i) {
+      execute(get_path() + "/" + std::to_string(i), value[i]);
     }
 
     close_group();
-
-    delete dataset;
-    delete dataspace;
-
     close_group();
   }
 }
