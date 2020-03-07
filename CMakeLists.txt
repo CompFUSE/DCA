@@ -142,6 +142,7 @@ set(DCA_LIBS
   signals
   symmetrization
   coarsegraining
+  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
