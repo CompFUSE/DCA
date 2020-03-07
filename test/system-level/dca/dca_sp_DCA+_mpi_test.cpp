@@ -30,9 +30,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -41,6 +38,8 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
+
+constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -98,29 +97,40 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   dca_loop.execute();
   dca_loop.finalize();
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
-              << std::endl;
+  if (!update_baseline) {
+    if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
+                << std::endl;
 
-    // Read self-energy from check_data file.
-    DcaDataType::SpGreensFunction Sigma_check("Self_Energy");
-    dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
-    reader.open_group("functions");
-    reader.execute(Sigma_check);
-    reader.close_file();
+      // Read self-energy from check_data file.
+      DcaDataType::SpGreensFunction Sigma_check("Self_Energy");
+      dca::io::HDF5Reader reader;
+      reader.open_file(DCA_SOURCE_DIR
+                       "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
+      reader.open_group("functions");
+      reader.execute(Sigma_check);
+      reader.close_file();
 
-    // Compare the computed self-energy with the expected result.
-    auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
+      // Compare the computed self-energy with the expected result.
+      auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
 
-    EXPECT_NEAR(0, diff.l2, 1.e-12);
+      EXPECT_NEAR(0, diff.l2, 1.e-12);
+
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data."
+                << std::endl;
+      dca_loop.write();
+      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    }
   }
-
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data." << std::endl;
-    dca_loop.write();
-
-    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+  else {
+    if (concurrency.id() == concurrency.first()) {
+      dca::io::HDF5Writer writer;
+      writer.open_file(DCA_SOURCE_DIR
+                       "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
+      writer.open_group("functions");
+      writer.execute(dca_data.Sigma);
+      writer.close_file();
+    }
   }
 }
 
