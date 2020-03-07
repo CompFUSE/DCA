@@ -239,9 +239,8 @@ TEST(HDF5ReaderWriterTest, Overwrite) {
   writer.execute("a", 1);
   writer.execute("a", 2);
 
-  writer.flush();
-  H5::Exception::dontPrint();
-  EXPECT_THROW(writer.execute("a", 3), H5::Exception);
+  // Try to write with different size.
+  EXPECT_DEBUG_DEATH(writer.execute("a", std::pair<int, int>(1, 1)), "");
 
   writer.close_file();
 
