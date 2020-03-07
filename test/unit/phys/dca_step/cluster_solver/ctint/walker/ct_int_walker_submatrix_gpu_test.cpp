@@ -104,10 +104,12 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       rng.setNewValues(rng_vals);
       walker_gpu.doStep(steps);
 
+      constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 100;
+
       auto M_cpu = walker_cpu.getM();
       auto M_gpu = walker_gpu.getM();
       for (int s = 0; s < 2; ++s)
-        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], 1e-7));
+        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();
