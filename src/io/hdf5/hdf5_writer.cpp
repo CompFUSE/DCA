@@ -164,7 +164,14 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
     datasets_[name].first = std::make_unique<H5::DataSet>(
         file_->createDataSet(name.c_str(), type, *datasets_[name].second));
   }
-  // TODO: check pre-existing size
+
+#ifndef NDEBUG
+  else {  // Check for a size match.
+    std::vector<hsize_t> size_check(dims.size());
+    datasets_[name].second->getSimpleExtentDims(size_check.data(), nullptr);
+    assert(dims == size_check);
+  }
+#endif
 
   datasets_[name].first->write(data, type, *datasets_[name].second, H5P_DEFAULT);
 }
