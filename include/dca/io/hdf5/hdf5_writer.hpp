@@ -39,7 +39,9 @@ public:
 
 public:
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  HDF5Writer(bool verbose = true) : file_id(-1), my_paths(0), verbose_(verbose) {}
+  HDF5Writer(bool verbose = true) : verbose_(verbose) {
+    H5::Exception::dontPrint();
+  }
 
   ~HDF5Writer();
 
@@ -50,18 +52,13 @@ public:
     return true;
   }
 
-  H5::H5File& open_file(std::string file_name_ref, bool overwrite = true);
+  void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
 
   void open_group(std::string new_path);
   void close_group();
 
   std::string get_path();
-
-  // Closes all open datasets. Overwriting them will no longer be possible.
-  void flush() {
-    datasets_.clear();
-  }
 
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
@@ -133,11 +130,6 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
-  bool groupExists(const std::string& path) const;
-
-  // Returns -1 if datasets does not exist.
-  std::array<hsize_t, 2> datasetId(const std::string& path);
-
   operator bool() const {
     return static_cast<bool>(file_);
   }
@@ -153,17 +145,16 @@ public:
 private:
   bool fexists(const char* filename);
 
+  bool exists(const std::string& name);
+
   void write(const std::string& name, const std::vector<hsize_t>& size, H5::PredType type,
              const void* data);
 
   std::unique_ptr<H5::H5File> file_;
 
-  hid_t file_id;
+  hid_t file_id_;
 
-  std::unordered_map<std::string, std::unique_ptr<H5::Group>> groups_;
-  std::unordered_map<std::string, std::pair<std::unique_ptr<H5::DataSet>, std::unique_ptr<H5::DataSpace>>>
-      datasets_;
-  std::vector<std::string> my_paths;
+  std::vector<std::string> my_paths_;
 
   bool verbose_;
 

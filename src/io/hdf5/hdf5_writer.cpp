@@ -29,7 +29,7 @@ bool HDF5Writer::fexists(const char* filename) {
   return bool(ifile);
 }
 
-H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
+void HDF5Writer::open_file(std::string file_name, bool overwrite) {
   if (file_)
     throw std::logic_error(__FUNCTION__);
 
@@ -43,41 +43,34 @@ H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
   }
 
-  file_id = file_->getId();
-
-  if (file_id < 0)
-    throw std::runtime_error("Cannot open file : " + file_name);
-
-  return (*file_);
+  file_id_ = file_->getId();
 }
 
 void HDF5Writer::close_file() {
-  datasets_.clear();
-  groups_.clear();
   file_->close();
   file_.release();
 }
 
 void HDF5Writer::open_group(std::string name) {
-  my_paths.push_back(name);
+  my_paths_.push_back(name);
   const std::string path = get_path();
 
-  if (!groupExists(path)) {
-    groups_[path] = std::make_unique<H5::Group>(file_->createGroup(path.c_str()));
+  if (!exists(path)) {
+    file_->createGroup(path.c_str());
   }
 }
 
 void HDF5Writer::close_group() {
-  my_paths.pop_back();
+  my_paths_.pop_back();
 }
 
 std::string HDF5Writer::get_path() {
   std::string path = "/";
 
-  for (size_t i = 0; i < my_paths.size(); i++) {
-    path += my_paths[i];
+  for (size_t i = 0; i < my_paths_.size(); i++) {
+    path += my_paths_[i];
 
-    if (i < my_paths.size() - 1)
+    if (i < my_paths_.size() - 1)
       path += "/";
   }
 
@@ -153,27 +146,31 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-bool HDF5Writer::groupExists(const std::string& path) const {
-  return groups_.count(path);
-}
-
 void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims, H5::PredType type,
                        const void* data) {
-  if (datasets_.count(name) == 0) {
-    datasets_[name].second = std::make_unique<H5::DataSpace>(dims.size(), dims.data());
-    datasets_[name].first = std::make_unique<H5::DataSet>(
-        file_->createDataSet(name.c_str(), type, *datasets_[name].second));
-  }
+  if (exists(name)) {
+    H5::DataSet dataset = file_->openDataSet(name.c_str());
+    H5::DataSpace dataspace = dataset.getSpace();
 
-#ifndef NDEBUG
-  else {  // Check for a size match.
+#ifndef NDEBUG  // Check for a size match.
     std::vector<hsize_t> size_check(dims.size());
-    datasets_[name].second->getSimpleExtentDims(size_check.data(), nullptr);
+    dataspace.getSimpleExtentDims(size_check.data(), nullptr);
     assert(dims == size_check);
-  }
 #endif
 
-  datasets_[name].first->write(data, type, *datasets_[name].second, H5P_DEFAULT);
+    dataset.write(data, type, dataspace, H5P_DEFAULT);
+  }
+  else {
+    H5::DataSpace dataspace(dims.size(), dims.data());
+    H5::DataSet dataset(file_->createDataSet(name.c_str(), type, dataspace));
+
+    dataset.write(data, type, dataspace, H5P_DEFAULT);
+  }
+}
+
+bool HDF5Writer::exists(const std::string& name) {
+  auto code = H5Gget_objinfo(file_id_, name.c_str(), 0, NULL);
+  return code == 0;
 }
 
 }  // namespace io
