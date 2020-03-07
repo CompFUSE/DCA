@@ -240,7 +240,7 @@ TEST(HDF5ReaderWriterTest, Overwrite) {
   writer.execute("a", 2);
 
   // Try to write with different size.
-  EXPECT_DEBUG_DEATH(writer.execute("a", std::pair<int, int>(1, 1)), "");
+  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::out_of_range);
 
   writer.close_file();
 

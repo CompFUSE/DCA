@@ -159,6 +159,8 @@ private:
   bool verbose_;
 
   std::mutex mutex_;
+
+  std::vector<hsize_t> size_check_;
 };
 
 template <typename arbitrary_struct_t>
