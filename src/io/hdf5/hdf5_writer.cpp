@@ -152,11 +152,12 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
     H5::DataSet dataset = file_->openDataSet(name.c_str());
     H5::DataSpace dataspace = dataset.getSpace();
 
-#ifndef NDEBUG  // Check for a size match.
-    std::vector<hsize_t> size_check(dims.size());
-    dataspace.getSimpleExtentDims(size_check.data(), nullptr);
-    assert(dims == size_check);
-#endif
+    size_check_.resize(dims.size());
+    dataspace.getSimpleExtentDims(size_check_.data(), nullptr);
+
+    if (size_check_ != dims) {
+      throw(std::out_of_range("Object size different than HDF5 dataset."));
+    }
 
     dataset.write(data, type, dataspace, H5P_DEFAULT);
   }
