@@ -33,6 +33,8 @@ namespace dca {
 namespace io {
 // dca::io
 
+bool fileExists(const std::string& filename);
+
 class HDF5Writer {
 public:
   typedef H5::H5File file_type;
@@ -143,8 +145,6 @@ public:
   }
 
 private:
-  bool fexists(const char* filename);
-
   bool exists(const std::string& name);
 
   void write(const std::string& name, const std::vector<hsize_t>& size, H5::PredType type,

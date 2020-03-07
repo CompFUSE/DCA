@@ -38,6 +38,7 @@ namespace solver {
 
 template <class QmciSolver>
 class StdThreadQmciClusterSolver : public QmciSolver {
+public:
   using BaseClass = QmciSolver;
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
 
@@ -51,7 +52,6 @@ class StdThreadQmciClusterSolver : public QmciSolver {
   using typename BaseClass::Walker;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
-public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
 
   void initialize(int dca_iteration);
@@ -301,7 +301,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
   // Read previous configuration.
   if (config_dump_[walker_id].size()) {
     walker.readConfig(config_dump_[walker_id]);
-    config_dump_[walker_id].setg(0); // Ready to read again if it is not overwritten.
+    config_dump_[walker_id].setg(0);  // Ready to read again if it is not overwritten.
   }
 
   walker.initialize();

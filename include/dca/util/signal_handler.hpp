@@ -26,7 +26,7 @@ public:
     static void registerFile(io::HDF5Writer& writer);
 
 private:
-    static void sigintHandler(int signum);
+    static void handle(int signum);
 
     static inline bool verbose_;
     static inline std::vector<io::HDF5Writer*> file_ptrs_;
