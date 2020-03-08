@@ -7,7 +7,7 @@
 //
 // Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides access to the kernel building the G0 matrix on the GPU.
+// Kernel interface for GPU interpolation.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP

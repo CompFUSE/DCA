@@ -229,10 +229,6 @@ struct mp_sublist {
   using type = typename mp_prepend<next, T1>::type;
 };
 template <typename T1, typename... Ts>
-struct mp_sublist<1, T1, Ts...> {
-  using type = mp_list<T1>;
-};
-template <typename T1, typename... Ts>
 struct mp_sublist<0, T1, Ts...> {
   using type = mp_list<>;
 };
