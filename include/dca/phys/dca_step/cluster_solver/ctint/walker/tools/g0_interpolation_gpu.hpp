@@ -109,6 +109,11 @@ G0Interpolation<linalg::GPU, Real>::G0Interpolation(const func::function<double,
   initialize(G0_pars_t);
 }
 
+template <typename Real>
+Real G0Interpolation<linalg::GPU, Real>::operator()(Real tau, int lindex) const {
+  return details::interpolateSlow(tau, lindex, static_cast<DeviceInterpolationData<Real>>(*this));
+}
+
 }  // namespace ctint
 }  // namespace solver
 }  // namespace phys

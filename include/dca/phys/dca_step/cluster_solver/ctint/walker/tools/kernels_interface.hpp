@@ -31,6 +31,9 @@ void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
                    DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
 
+template <typename Real>
+Real interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Real>& g0);
+
 }  // namespace details
 }  // namespace ctint
 }  // namespace solver

@@ -60,7 +60,7 @@ protected:
   unsigned stride_;
   Real beta_, n_div_beta_;
   Real *values_, *g0_minus_;
-};  // namespace ctint
+};
 
 }  // namespace ctint
 }  // namespace solver
