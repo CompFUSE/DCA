@@ -366,30 +366,13 @@ template <class Parameters>
 void DcaData<Parameters>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  const std::string& output_format = parameters_.get_output_format();
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
 
-  if (output_format == static_cast<const std::string>("JSON")) {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
+  parameters_.write(writer);
+  this->write(writer);
 
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else if (output_format == static_cast<const std::string>("HDF5")) {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
+  writer.close_file();
 }
 
 template <class Parameters>
