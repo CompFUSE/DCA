@@ -73,14 +73,15 @@ private:
   bool finalized_ = false;
   std::vector<T> samples_;
   std::vector<MeanType> correlations_;
+  std::vector<unsigned> counts_;
   unsigned samples_head_ = 0;
   phys::solver::util::Accumulator<T> mean_accum_;
-
-  unsigned n_chains_ = 0;
 };
 
 template <class T>
-Autocorrelation<T>::Autocorrelation(unsigned t_max) : samples_(t_max), correlations_(t_max) {}
+Autocorrelation<T>::Autocorrelation(unsigned t_max) {
+  resize(t_max);
+}
 
 template <class T>
 void Autocorrelation<T>::resize(std::size_t n) {
@@ -89,6 +90,7 @@ void Autocorrelation<T>::resize(std::size_t n) {
   }
   samples_.resize(n);
   correlations_.resize(n, 0);
+  counts_.resize(n, 0);
 }
 
 template <class T>
@@ -96,10 +98,6 @@ void Autocorrelation<T>::addSample(const T& sample) {
   if (finalized_) {
     throw(std::logic_error("Object already finalized."));
   }
-  if (n_chains_ == 0) {
-    n_chains_ = 1;
-  }
-
   // Store sample
   samples_[samples_head_] = sample;
   mean_accum_.addSample(sample);
@@ -117,6 +115,7 @@ void Autocorrelation<T>::addSample(const T& sample) {
       idx += samples_.size();
 
     correlations_[distance] += samples_[idx] * conjugate(sample);
+    counts_[distance]++;
   }
 }
 
@@ -133,10 +132,9 @@ void Autocorrelation<T>::finalize() {
   const auto c0 = correlations_[0];
 
   for (unsigned i = 1; i < correlations_.size(); ++i) {
-    const int count = mean_accum_.count() - n_chains_ * i;
-    if (count <= 0)
+    if (counts_[i] <= 0)
       break;
-    correlations_[i] = (correlations_[i] / static_cast<T>(count) - mean2) / c0;
+    correlations_[i] = (correlations_[i] / static_cast<T>(counts_[i]) - mean2) / c0;
   }
 }
 
@@ -150,11 +148,10 @@ auto Autocorrelation<T>::computeAutocorrelationTime() -> MeanType {
   MeanType tau = 1.;
 
   for (unsigned t = 1; t < correlations_.size(); ++t) {
-    const int count = mean_accum_.count() - t * n_chains_;
-    if (count <= 0)
+    if (counts_[t] <= 0)
       break;
 
-    tau += static_cast<MeanType>(2. * (1. - double(t) / count)) * correlations_[t];
+    tau += static_cast<MeanType>(2. * (1. - double(t) / counts_[t])) * correlations_[t];
 
     if (t > factor * std::abs(tau)) {
       converged = true;
@@ -180,14 +177,12 @@ void Autocorrelation<T>::sumTo(Autocorrelation<T>& rhs) {
   if (correlations_.size() != rhs.correlations_.size()) {
     throw(std::logic_error("Autocorrelation size mismatch."));
   }
-  if (samples() < correlations_.size()) {
-    std::cerr << "Warning: low number of samples." << std::endl;
-  }
 
-  rhs.n_chains_ += n_chains_;
   rhs.mean_accum_ += mean_accum_;
-  for (int i = 0; i < correlations_.size(); ++i)
+  for (int i = 0; i < correlations_.size(); ++i) {
     rhs.correlations_[i] += correlations_[i];
+    rhs.counts_[i] += counts_[i];
+  }
 
   reset();
 }
@@ -195,13 +190,9 @@ void Autocorrelation<T>::sumTo(Autocorrelation<T>& rhs) {
 template <class T>
 template <class Concurrency>
 void Autocorrelation<T>::sumConcurrency(const Concurrency& concurrency) {
-  if (samples() < correlations_.size()) {
-    std::cerr << "Warning: low number of samples." << std::endl;
-  }
-
-  concurrency.sum(n_chains_);
   mean_accum_.sumConcurrency(concurrency);
   concurrency.sum(correlations_);
+  concurrency.sum(counts_);
 
   if (concurrency.id() != concurrency.first())
     reset();
@@ -209,12 +200,12 @@ void Autocorrelation<T>::sumConcurrency(const Concurrency& concurrency) {
 
 template <class T>
 void Autocorrelation<T>::reset() {
-  n_chains_ = 0;
   mean_accum_.reset();
   finalized_ = 0;
   samples_head_ = 0;
   std::fill(correlations_.begin(), correlations_.end(), 0);
   std::fill(samples_.begin(), samples_.end(), 0);
+  std::fill(counts_.begin(), counts_.end(), 0);
 }
 
 }  // namespace statistics
