@@ -16,9 +16,6 @@
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/util/type_list.hpp"
 #include "dca/util/pack_operations.hpp"
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
-#endif
 
 namespace dca {
 namespace linalg {
@@ -37,14 +34,12 @@ public:
   // Resize the container so that each sub-array has size n, invalidating references and values.
   void resizeNoCopy(std::size_t n);
 
-#ifdef DCA_HAVE_CUDA
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, cudaStream_t stream) {
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, const linalg::util::CudaStream& stream) {
     size_ = rhs.size_;
     data_.setAsync(rhs.data_, stream);
   }
-#endif  // DCA_HAVE_CUDA
 
   // Returns a pointer to the beginning of the id-th array
   // Preconditions: 0 <= id < length(Ts...).
@@ -97,7 +92,7 @@ auto MultiVector<device, Ts...>::get() const -> const Type<id>* {
 template <DeviceType device, typename... Ts>
 template <unsigned id>
 std::size_t MultiVector<device, Ts...>::offset() const {
-  static_assert(id < dca::util::Length<Types>::value, "Invalid sub-array id.");
+  static_assert(id < sizeof...(Ts), "Invalid sub-array id.");
 
   constexpr unsigned size_t_sum = dca::util::size_sum<dca::util::Sublist<id, Ts...>>;
   return size_ * size_t_sum;
@@ -105,4 +100,5 @@ std::size_t MultiVector<device, Ts...>::offset() const {
 
 }  // namespace linalg
 }  // namespace dca
+
 #endif  // DCA_LINALG_MULTI_VECTOR_HPP
