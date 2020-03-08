@@ -14,6 +14,11 @@ Defined in <tt>output_parameters.hpp</tt>.
 `"directory":` string ("./")  
 Directory to write the output to.
 
+`"autoresume":` bool (false)
+If true, looks for a file named `<filename-dca>.tmp` generated from an aborted run, and starts 
+the DCA loop from the last completed iteration. If the read is successful the parameter 
+`initial-self-energy` is ignored.
+
 `"directory-config-read":` string ("")  
 If not empty, the Monte Carlo configuration will be initialized with the configurations stored in this directory.
 
@@ -52,6 +57,7 @@ Write out the &chi;<sub>0</sub> function of the BSE lattice solver.
     {
         "output": {
             "directory": "./T=0.5",
+            "autoresume" : true,
             "filename-dca": "dca.hdf5",
             "filename-analysis": "analysis.hdf5",
             "filename-ed": "ed.hdf5",

@@ -82,7 +82,6 @@ bool HDF5Reader::execute(std::string name,
 
 bool HDF5Reader::execute(std::string name, std::vector<std::string>& value) {
   open_group(name);
-  open_group("data");
   bool success = true;
 
   try {
@@ -91,18 +90,13 @@ bool HDF5Reader::execute(std::string name, std::vector<std::string>& value) {
 
     value.resize(size);
 
+    open_group("data");
+
     for (size_t l = 0; l < value.size(); l++) {
-      std::stringstream ss;
-      ss << get_path() << "/" << l;
+      open_group(std::to_string(l));
+      execute(std::to_string(l), value[l]);
 
-      H5::DataSet dataset = my_file->openDataSet(ss.str().c_str());
-
-      value[l].resize(dataset.getInMemDataSize(), 'a');
-
-      H5::DataSpace dataspace = dataset.getSpace();
-
-      H5Dread(dataset.getId(), HDF5_TYPE<char>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-              &value[l][0]);
+      close_group();
     }
   }
   catch (const H5::FileIException& err) {

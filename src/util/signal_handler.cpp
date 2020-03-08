@@ -20,12 +20,17 @@ namespace util {
 void SignalHandler::init(bool verbose) {
   verbose_ = verbose;
 
-  signal(SIGINT, sigintHandler);
+  signal(SIGABRT, handle);
+  signal(SIGINT, handle);
+  signal(SIGFPE, handle);
+  signal(SIGILL, handle);
+  signal(SIGSEGV, handle);
+  signal(SIGTERM, handle);
 }
 
-void SignalHandler::sigintHandler(int signum) {
+void SignalHandler::handle(int signum) {
   if (verbose_)
-    std::cerr << "Interrupt signal (" << signum << ") received.\n";
+    std::cerr << "Received signal (" << signum << ") received." << std::endl;
 
   for (auto file : file_ptrs_)
     file->close_file();

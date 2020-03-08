@@ -114,7 +114,7 @@ public:
   void initialize();
   void initialize_H_0_and_H_i();
   void initialize_G0();
-  void initialize_Sigma();
+  void initializeSigma(const std::string& filename);
 
   void compute_single_particle_properties();
   void compute_Sigma_bands();
@@ -314,24 +314,10 @@ void DcaData<Parameters>::read(std::string filename) {
     std::cout << "\n\n\t starts reading \n\n";
 
   if (concurrency_.id() == concurrency_.first()) {
-    const std::string& output_format = parameters_.get_output_format();
-
-    if (output_format == static_cast<const std::string>("JSON")) {
-      dca::io::JSONReader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else if (output_format == static_cast<const std::string>("HDF5")) {
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else
-      throw std::logic_error(__FUNCTION__);
+    dca::io::HDF5Reader reader;
+    reader.open_file(filename);
+    this->read(reader);
+    reader.close_file();
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -553,12 +539,10 @@ void DcaData<Parameters>::initialize_G0() {
 }
 
 template <class Parameters>
-void DcaData<Parameters>::initialize_Sigma() {
-  if (parameters_.get_initial_self_energy() == "zero")
-    return;
-
-  auto initialize = [&](auto&& reader) {
-    reader.open_file(parameters_.get_initial_self_energy());
+void DcaData<Parameters>::initializeSigma(const std::string& filename) {
+  if (concurrency_.id() == concurrency_.first()) {
+    io::HDF5Reader reader;
+    reader.open_file(filename);
 
     if (parameters_.adjust_chemical_potential()) {
       reader.open_group("parameters");
@@ -571,16 +555,6 @@ void DcaData<Parameters>::initialize_Sigma() {
     reader.open_group("functions");
     reader.execute(Sigma);
     reader.close_group();
-  };
-
-  if (concurrency_.id() == 0) {
-    const std::string& format = parameters_.get_output_format();
-    if (format == "HDF5")
-      initialize(io::HDF5Reader());
-    else if (format == "JSON")
-      initialize(io::JSONReader());
-    else
-      throw std::logic_error(__FUNCTION__);
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());

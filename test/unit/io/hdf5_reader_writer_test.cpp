@@ -95,6 +95,24 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   reader.close_file();
 }
 
+TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
+  std::vector<std::string> s1{"foo", "bar", "baz"};
+
+  // Create test file.
+  dca::io::HDF5Writer writer;
+  writer.open_file("test.hdf5");
+  writer.execute("strings", s1);
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  reader.open_file("test.hdf5");
+
+  std::vector<std::string> s2;
+  reader.execute("strings", s2);
+  EXPECT_EQ(s1, s2);
+}
+
 template <typename Scalar>
 class HDF5ReaderWriterTest : public ::testing::Test {};
 using TestTypes = ::testing::Types<std::complex<double>, float>;
@@ -240,7 +258,7 @@ TEST(HDF5ReaderWriterTest, Overwrite) {
   writer.execute("a", 2);
 
   // Try to write with different size.
-  EXPECT_DEBUG_DEATH(writer.execute("a", std::pair<int, int>(1, 1)), "");
+  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::out_of_range);
 
   writer.close_file();
 

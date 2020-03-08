@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 
@@ -66,7 +67,6 @@ public:
 
   DcaLoop(ParametersType& parameters_ref, DcaDataType& MOMS_ref, concurrency_type& concurrency_ref);
 
-  void read();
   void write();
 
   void initialize();
@@ -111,6 +111,9 @@ private:
 
   std::string file_name_;
   io::HDF5Writer output_file_;
+  io::HDF5Writer output_file_tmp_;
+
+  unsigned dca_iteration_ = 0;
 
 protected:
   MCIntegratorType monte_carlo_integrator_;
@@ -134,20 +137,16 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
 
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
-      monte_carlo_integrator_(parameters_ref, MOMS_ref, &output_file_) {
+      output_file_tmp_(false),
+
+      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
-    output_file_.open_file(file_name_);
+    dca::util::SignalHandler::registerFile(output_file_tmp_);
     dca::util::SignalHandler::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
-}
-
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::read() {
-  if (parameters.get_initial_self_energy() != "zero")
-    MOMS.read(parameters.get_initial_self_energy());
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
@@ -161,20 +160,43 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
     DCA_info_struct.write(output_file_);
 
     output_file_.close_file();
+    output_file_tmp_.close_file();
+
+    std::error_code code;
+    std::filesystem::remove(file_name_ + ".tmp", code);
   }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::initialize() {
-  if (parameters.get_initial_self_energy() != "zero") {
-    MOMS.initialize_Sigma();
+  int last_completed = -1;
+
+  if (parameters.autoresume()) {  // Try to read state of previous run.
+    last_completed = DCA_info_struct.tryToRead(file_name_ + ".tmp", concurrency);
+  }
+  if (last_completed >= 0) {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1 << "  *******\n"
+                << std::endl;
+
+    dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
+    MOMS.initializeSigma(file_name_ + ".tmp");
     perform_lattice_mapping();
+  }
+  else if (parameters.get_initial_self_energy() != "zero") {
+    MOMS.initializeSigma(parameters.get_initial_self_energy());
+    perform_lattice_mapping();
+  }
+
+  if (concurrency.id() == concurrency.first()) {
+    output_file_.open_file(file_name_, true);
+    output_file_tmp_.open_file(file_name_ + ".tmp", false);
   }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
-  for (int i = 0; i < parameters.get_dca_iterations(); i++) {
+  for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 
     perform_cluster_mapping();
@@ -183,17 +205,17 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
 
     perform_cluster_exclusion_step();
 
-    double L2_Sigma_difference = solve_cluster_problem(i);  // returned from cluster_solver::finalize
+    double L2_Sigma_difference =
+        solve_cluster_problem(dca_iteration_);  // returned from cluster_solver::finalize
 
-    writeWalkerData(i);
+    writeWalkerData(dca_iteration_);
 
     adjust_impurity_self_energy();  // double-counting-correction
 
     perform_lattice_mapping();
 
-    logSelfEnergy(i);  // Write a check point.
-
-    update_DCA_loop_data_functions(i);
+    update_DCA_loop_data_functions(dca_iteration_);
+    logSelfEnergy(dca_iteration_);  // Write a check point.
 
     if (L2_Sigma_difference <
         parameters.get_dca_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
@@ -372,20 +394,20 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::writeWalkerData(int
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::logSelfEnergy(int i) {
-  if (output_file_) {
-    output_file_.open_group("functions");
-    output_file_.execute(MOMS.Sigma);
-    output_file_.close_group();
+  DCA_info_struct.last_completed_iteration = i;
 
-    output_file_.open_group("parameters");
-    output_file_.open_group("physics");
-    output_file_.execute("chemical-potential", parameters.get_chemical_potential());
-    output_file_.close_group();
-    output_file_.close_group();
+  if (output_file_tmp_) {
+    output_file_tmp_.open_group("functions");
+    output_file_tmp_.execute(MOMS.Sigma);
+    output_file_tmp_.close_group();
 
-    output_file_.open_group("DCA-loop-functions");
-    output_file_.execute("completed-iteration", i);
-    output_file_.close_group();
+    output_file_tmp_.open_group("parameters");
+    output_file_tmp_.open_group("physics");
+    output_file_tmp_.execute("chemical-potential", parameters.get_chemical_potential());
+    output_file_tmp_.close_group();
+    output_file_tmp_.close_group();
+
+    DCA_info_struct.write(output_file_tmp_);
   }
 }
 
