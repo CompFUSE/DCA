@@ -64,5 +64,5 @@ TEST(AutocorrelationTest, ComplexCompiles) {
   corr.addSample(std::complex<float>(1, -1));
 
   // Note: this computation will fail to converge.
-  auto tau = corr.computeAutocorrelationTime();
+  corr.computeAutocorrelationTime();
 }
