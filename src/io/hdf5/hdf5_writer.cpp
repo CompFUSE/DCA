@@ -93,14 +93,14 @@ void HDF5Writer::execute(const std::string& name,
 {
   if (value.size() > 0) {
     open_group(name);
-    execute("size", value.size());
+    execute("size", static_cast<int>(value.size()));
 
     open_group("data");
 
-    const auto path = get_path();
-
     for (int i = 0; i < value.size(); ++i) {
-      execute(get_path() + "/" + std::to_string(i), value[i]);
+      open_group(std::to_string(i));
+      execute(std::to_string(i), value[i]);
+      close_group();
     }
 
     close_group();
