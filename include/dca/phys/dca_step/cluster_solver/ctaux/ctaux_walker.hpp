@@ -187,6 +187,8 @@ private:
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Real exp_delta_V);
 
+
+
 private:
   using WalkerBIT<Parameters, Data, Real>::check_G0_matrices;
   using WalkerBIT<Parameters, Data, Real>::check_N_matrices;

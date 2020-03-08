@@ -14,6 +14,11 @@ Defined in <tt>output_parameters.hpp</tt>.
 `"directory":` string ("./")  
 Directory to write the output to.
 
+`"autoresume":` bool (false)
+If true, looks for a file named `<filename-dca>.tmp` generated from an aborted run, and starts 
+the DCA loop from the last completed iteration. If the read is successful the parameter 
+`initial-self-energy` is ignored.
+
 `"directory-config-read":` string ("")  
 If not empty, the Monte Carlo configuration will be initialized with the configurations stored in this directory.
 
@@ -52,6 +57,7 @@ Write out the &chi;<sub>0</sub> function of the BSE lattice solver.
     {
         "output": {
             "directory": "./T=0.5",
+            "autoresume" : true,
             "filename-dca": "dca.hdf5",
             "filename-analysis": "analysis.hdf5",
             "filename-ed": "ed.hdf5",
@@ -415,6 +421,9 @@ Determines the type of error computation that will be performed during the last 
  Maximum distance (in MC time) considered when computing the correlation between configurations.
  If 0, no auto-correlation is computed.
  
+`"stamping-period"` integer (0)  
+If larger than 0, the master MPI rank logs the walker configuration every `stamping-period` sweeps. 
+ 
 `"store-configuration":` : boolean (false)
 If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
 This parameter is deprecated as it exacerbate the sign problem.
@@ -441,6 +450,7 @@ The number of sweeps performed by each walker is fixed a priori, avoiding possib
             "measurements": 1000000,
             "error-computation-type": "JACK_KNIFE",
             "time-correlation-window" : 100,
+            "stamping-period" : 0,
 
             "threaded-solver": {
                 "walkers": 3,

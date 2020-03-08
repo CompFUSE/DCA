@@ -25,5 +25,7 @@ add_dependencies(modules modules_helper)
 # Timer
 add_library(timer STATIC timer.cpp)
 
-# System
-add_library(system STATIC get_stdout_from_command.cpp)
+# Signal handler
+add_library(signals STATIC signal_handler.cpp)
+target_include_directories(signals PUBLIC ${DCA_EXTERNAL_INCLUDE_DIRS})
+target_link_libraries(signals PUBLIC dca_hdf5)

@@ -104,6 +104,9 @@ public:
   bool store_configuration() const {
     return store_configuration_;
   }
+  int stamping_period() const {
+    return stamping_period_;
+  }
 
 private:
   void generateRandomSeed() {
@@ -126,6 +129,7 @@ private:
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
+  int stamping_period_ = 0;
 };
 
 template <typename Concurrency>
@@ -144,6 +148,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
   buffer_size += concurrency.get_buffer_size(store_configuration_);
+  buffer_size += concurrency.get_buffer_size(stamping_period_);
 
   return buffer_size;
 }
@@ -163,6 +168,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
+  concurrency.pack(buffer, buffer_size, position, stamping_period_);
 }
 
 template <typename Concurrency>
@@ -180,10 +186,19 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
+  concurrency.unpack(buffer, buffer_size, position, stamping_period_);
 }
 
 template <typename ReaderOrWriter>
 void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
+  auto try_to_read_write = [&](const std::string& name, auto& field) {
+    try {
+      reader_or_writer.execute(name, field);
+    }
+    catch (std::exception&) {
+    }
+  };
+
   try {
     reader_or_writer.open_group("Monte-Carlo-integration");
 
@@ -202,41 +217,18 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         }
       }
       catch (const std::exception& r_e) {
-        try {
-          // Read the seed as an integer.
-          reader_or_writer.execute("seed", seed_);
-        }
-
-        catch (const std::exception& r_e2) {
-        }
+        // Read the seed as an integer.
+        try_to_read_write("seed", seed_);
       }
     }
 
-    else {
-      // Write the seed.
-      try {
-        reader_or_writer.execute("seed", seed_);
-      }
-      catch (const std::exception& r_e) {
-      }
+    else {  // Write the seed.
+      try_to_read_write("seed", seed_);
     }
 
-    try {
-      reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("sweeps-per-measurement", sweeps_per_measurement_);
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
-      reader_or_writer.execute("measurements", measurements_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
+    try_to_read_write("sweeps-per-measurement", sweeps_per_measurement_);
+    try_to_read_write("measurements", measurements_);
 
     try {
       reader_or_writer.execute("time-correlation-window", time_correlation_window_);
@@ -246,43 +238,19 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     // Read error computation type.
     std::string error_type = toString(error_computation_type_);
-    try {
-      reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = stringToErrorComputationType(error_type);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_write("error-computation-type", error_type);
+    error_computation_type_ = stringToErrorComputationType(error_type);
 
-    try {
-      reader_or_writer.execute("store-configuration", store_configuration_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_write("store-configuration", store_configuration_);
+    try_to_read_write("stamping-period", stamping_period_);
 
     // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
-      try {
-        reader_or_writer.execute("walkers", walkers_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("accumulators", accumulators_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("shared-walk-and-accumulation-thread",
-                                 shared_walk_and_accumulation_thread_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
-      }
-      catch (const std::exception& r_e) {
-      }
+      try_to_read_write("walkers", walkers_);
+      try_to_read_write("accumulators", accumulators_);
+      try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
+      try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {

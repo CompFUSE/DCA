@@ -119,6 +119,30 @@ public:
 };
 
 template <>
+class HDF5_TYPE<std::int8_t> {
+public:
+  static hid_t get() {
+    return H5T_NATIVE_INT8;
+  }
+
+  static H5::PredType get_PredType() {
+    return H5::PredType::NATIVE_INT8;
+  }
+};
+
+template <>
+class HDF5_TYPE<std::uint16_t> {
+public:
+  static hid_t get() {
+    return H5T_NATIVE_UINT16;
+  }
+
+  static H5::PredType get_PredType() {
+    return H5::PredType::NATIVE_UINT16;
+  }
+};
+
+template <>
 class HDF5_TYPE<float> {
 public:
   static hid_t get() {
@@ -178,7 +202,7 @@ public:
   }
 };
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_HDF5_HDF5_TYPES_HPP

@@ -39,6 +39,8 @@ unsigned getRandomElement(const std::vector<const std::vector<std::size_t>*>& v_
       return (*v_ptr)[idx];
     idx -= v_ptr->size();
   }
+
+  return -1;
 }
 
 }  // namespace details

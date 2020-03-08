@@ -62,12 +62,7 @@ struct MPITypeMap<int> {
 };
 
 template <>
-class MPITypeMap<unsigned int> {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
+struct MPITypeMap<unsigned int> {
   static MPI_Datatype value() {
     return MPI_UNSIGNED;
   }
