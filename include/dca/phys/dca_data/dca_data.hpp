@@ -314,24 +314,10 @@ void DcaData<Parameters>::read(std::string filename) {
     std::cout << "\n\n\t starts reading \n\n";
 
   if (concurrency_.id() == concurrency_.first()) {
-    const std::string& output_format = parameters_.get_output_format();
-
-    if (output_format == static_cast<const std::string>("JSON")) {
-      dca::io::JSONReader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else if (output_format == static_cast<const std::string>("HDF5")) {
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else
-      throw std::logic_error(__FUNCTION__);
+    dca::io::HDF5Reader reader;
+    reader.open_file(filename);
+    this->read(reader);
+    reader.close_file();
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
