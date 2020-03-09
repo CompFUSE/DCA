@@ -177,9 +177,6 @@ void Autocorrelation<T>::sumTo(Autocorrelation<T>& rhs) {
   if (correlations_.size() != rhs.correlations_.size()) {
     throw(std::logic_error("Autocorrelation size mismatch."));
   }
-  if (samples() < correlations_.size()) {
-    std::cerr << "Warning: low number of samples." << std::endl;
-  }
 
   rhs.mean_accum_ += mean_accum_;
   for (int i = 0; i < correlations_.size(); ++i) {
@@ -193,10 +190,6 @@ void Autocorrelation<T>::sumTo(Autocorrelation<T>& rhs) {
 template <class T>
 template <class Concurrency>
 void Autocorrelation<T>::sumConcurrency(const Concurrency& concurrency) {
-  if (samples() < correlations_.size()) {
-    std::cerr << "Warning: low number of samples." << std::endl;
-  }
-
   mean_accum_.sumConcurrency(concurrency);
   concurrency.sum(correlations_);
   concurrency.sum(counts_);
