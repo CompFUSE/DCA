@@ -118,7 +118,7 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
     dataspace.getSimpleExtentDims(size_check_.data(), nullptr);
 
     if (size_check_ != dims) {
-      throw(std::out_of_range("Object size different than HDF5 dataset."));
+      throw(std::length_error("Object size different than HDF5 dataset."));
     }
 
     dataset.write(data, type, dataspace, H5P_DEFAULT);

@@ -120,6 +120,29 @@ TEST(HDF5ReaderWriterTest, VectorOfVectorsReadWrite) {
   }
 }
 
+TEST(HDF5ReaderWriterTest, VectorOfArraysReadWrite) {
+  const std::string object_name = "obj";
+  const std::string file_name = "test.hdf5";
+
+  std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}};
+
+  // Create test file.
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
+  writer.execute(object_name, data);
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  std::vector<std::array<int, 3>> data_read;
+  reader.open_file(file_name);
+  EXPECT_TRUE(reader.execute(object_name, data_read));
+
+  EXPECT_EQ(data, data_read);
+
+  reader.close_file();
+}
+
 TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
   std::vector<std::string> s1{"foo", "bar", "baz"};
 
@@ -283,7 +306,7 @@ TEST(HDF5ReaderWriterTest, Overwrite) {
   writer.execute("a", 2);
 
   // Try to write with different size.
-  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::out_of_range);
+  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::length_error);
 
   writer.close_file();
 
