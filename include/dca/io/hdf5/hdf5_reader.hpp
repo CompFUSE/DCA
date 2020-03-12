@@ -63,20 +63,23 @@ public:
   // `execute` returns true if the object is read correctly.
 
   template <typename scalartype>
-  bool execute(std::string name, scalartype& value);
+  bool execute(const std::string& name, scalartype& value);
 
   template <typename Scalar>
-  bool execute(std::string name, std::vector<Scalar>& value);
+  bool execute(const std::string& name, std::vector<Scalar>& value);
 
   template <typename Scalar>
-  bool execute(std::string name, std::vector<std::complex<Scalar>>& value);
+  bool execute(const std::string& name, std::vector<std::complex<Scalar>>& value);
 
   template <typename Scalar>
-  bool execute(std::string name, std::vector<std::vector<Scalar>>& value);
+  bool execute(const std::string& name, std::vector<std::vector<Scalar>>& value);
 
-  bool execute(std::string name, std::string& value);
+  template <typename Scalar, std::size_t n>
+  bool execute(const std::string& name, std::vector<std::array<Scalar, n>>& value);
 
-  bool execute(std::string name, std::vector<std::string>& value);
+  bool execute(const std::string& name, std::string& value);
+
+  bool execute(const std::string& name, std::vector<std::string>& value);
 
   // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
@@ -88,24 +91,26 @@ public:
   bool execute(func::function<scalartype, domain_type>& f);
 
   template <typename scalartype, typename domain_type>
-  bool execute(std::string name, func::function<scalartype, domain_type>& f);
+  bool execute(const std::string& name, func::function<scalartype, domain_type>& f);
 
   template <typename Scalar>
-  bool execute(std::string name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  bool execute(std::string name, dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
+  bool execute(const std::string& name,
+               dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  bool execute(std::string name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  bool execute(std::string name, dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
+  bool execute(const std::string& name,
+               dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
 
   template <typename Scalar>
   bool execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
-  bool execute(std::string name, io::Buffer& buff) {
+  bool execute(const std::string& name, io::Buffer& buff) {
     return execute(name, static_cast<io::Buffer::Container&>(buff));
   }
 
@@ -130,7 +135,7 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, Scalar& value) {
+bool HDF5Reader::execute(const std::string& name, Scalar& value) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
@@ -142,7 +147,7 @@ bool HDF5Reader::execute(std::string name, Scalar& value) {
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, std::vector<Scalar>& value) {
+bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
@@ -158,7 +163,7 @@ bool HDF5Reader::execute(std::string name, std::vector<Scalar>& value) {
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, std::vector<std::complex<Scalar>>& value) {
+bool HDF5Reader::execute(const std::string& name, std::vector<std::complex<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
@@ -174,7 +179,7 @@ bool HDF5Reader::execute(std::string name, std::vector<std::complex<Scalar>>& va
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, std::vector<std::vector<Scalar>>& value) {
+bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {
     return false;
@@ -215,13 +220,32 @@ bool HDF5Reader::execute(std::string name, std::vector<std::vector<Scalar>>& val
   return true;
 }
 
+template <typename Scalar, std::size_t n>
+bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
+  }
+
+  auto dims = readSize(full_name);
+  assert(dims.size() == 2);
+  if (dims.at(1) != n) {
+    throw(std::length_error("Wrong array size"));
+  }
+
+  value.resize(dims[0]);
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+
+  return true;
+}
+
 template <typename scalartype, typename domain_type>
 bool HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
   return execute(f.get_name(), f);
 }
 
 template <typename scalartype, typename domain_type>
-bool HDF5Reader::execute(std::string name, func::function<scalartype, domain_type>& f) {
+bool HDF5Reader::execute(const std::string& name, func::function<scalartype, domain_type>& f) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
@@ -238,7 +262,7 @@ bool HDF5Reader::execute(std::string name, func::function<scalartype, domain_typ
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
+bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {
     return false;
@@ -254,7 +278,7 @@ bool HDF5Reader::execute(std::string name, dca::linalg::Vector<Scalar, dca::lina
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name,
+bool HDF5Reader::execute(const std::string& name,
                          dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {
@@ -271,7 +295,7 @@ bool HDF5Reader::execute(std::string name,
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {
     return false;
@@ -296,7 +320,7 @@ bool HDF5Reader::execute(std::string name, dca::linalg::Matrix<Scalar, dca::lina
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(std::string name,
+bool HDF5Reader::execute(const std::string& name,
                          dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {

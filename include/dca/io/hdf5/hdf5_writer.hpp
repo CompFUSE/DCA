@@ -257,7 +257,7 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::array<S
   if (value.size() == 0)
     return;
 
-  std::array<hsize_t, 2> dims{value.size(), n};
+  std::vector<hsize_t> dims{value.size(), n};
   std::string full_name = get_path() + "/" + name;
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
