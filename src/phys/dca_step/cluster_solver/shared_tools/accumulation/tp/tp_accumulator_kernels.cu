@@ -179,7 +179,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
                                const CudaComplex<Real>* __restrict__ G_up, const int ldgu,
                                const CudaComplex<Real>* __restrict__ G_down, const int ldgd,
                                const int nb, const int nk, const int nw, const int nw_exchange,
-                               const int nk_exchange, const int sign, const bool atomic) {
+                               const int nk_exchange, const int sign, const bool atomic, int my_rank, int mpi_size) {
   // TODO: reduce code duplication.
   // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
 
@@ -215,6 +215,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   CudaComplex<Real> contribution;
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
+
+    if ((w1-my_rank) % mpi_size != 0)
+        return;
+//    printf("my_rank = %d, w1 = %d \n", my_rank, w1);
 
   // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
   // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with
@@ -489,7 +493,7 @@ template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
                const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
                const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
-               bool atomic, cudaStream_t stream) {
+               bool atomic, cudaStream_t stream, int my_rank, int mpi_size) {
   const int nw = 2 * nw_pos;
   const int size_12 = nw * nk * nb * nb;
   const int size_3 = nw_exchange * nk_exchange;
@@ -497,7 +501,7 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
-      nw_exchange, nk_exchange, sign, atomic);
+      nw_exchange, nk_exchange, sign, atomic, my_rank, mpi_size);
 
   // Check for errors.
   auto err = cudaPeekAtLastError();
@@ -551,62 +555,62 @@ template void computeGMultiband<double>(std::complex<double>* G, int ldg,
 template float updateG4<float, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<float, PARTICLE_HOLE_MAGNETIC>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<float, PARTICLE_HOLE_CHARGE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<float, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_HOLE_MAGNETIC>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_HOLE_CHARGE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 template float updateG4<double, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream, int my_rank, int mpi_size);
 
 }  // namespace details
 }  // namespace accumulator

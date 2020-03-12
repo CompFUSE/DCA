@@ -330,10 +330,10 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     int left_neighbor = MOD((my_concurrency_id-1 + mpi_size), mpi_size);
     int right_neighbor = MOD((my_concurrency_id+1 + mpi_size), mpi_size);
 
-    // number of G2s
-    // TODO: confirm niter
-    int niter = mpi_size;
-
+//    // number of G2s
+////    // TODO: confirm niter
+////    int niter = mpi_size;
+////
     for (int s = 0; s < 2; ++s)
     {
         // allocate recvbuff_G_ buff G_
@@ -342,6 +342,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
         // copy locally generated G2 to send buff
         sendbuff_G_[s] = G_[s];
     }
+
+    for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+        flop += updateG4(channel);
     // sync all processors
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -353,38 +356,39 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
         int originator_irank = MOD(((my_concurrency_id-1)-icount + 2*mpi_size), mpi_size);
         int recv_tag = 1 + originator_irank;
         recv_tag = 1 + MOD(recv_tag-1, MPI_TAG_UB); // just to be safe, then 1 <= tag <= MPI_TAG_UB
-
-        MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1);
-        MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag+mpi_size, MPI_COMM_WORLD, &recv_request_2);
-
-        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1);
-        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag+mpi_size, MPI_COMM_WORLD, &send_request_2);
-
-        MPI_Wait(&recv_request_1, &status_1); // wait for recvbuf_G2 to be available again
-        MPI_Wait(&recv_request_2, &status_2); // wait for recvbuf_G2 to be available again
-
+//
+//        MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
+//                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1);
+//        MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
+//                  MPI_DOUBLE, left_neighbor, recv_tag+mpi_size, MPI_COMM_WORLD, &recv_request_2);
+//
+//        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
+//                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1);
+//        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
+//                  MPI_DOUBLE, right_neighbor, send_tag+mpi_size, MPI_COMM_WORLD, &send_request_2);
+//
+//        MPI_Wait(&recv_request_1, &status_1); // wait for recvbuf_G2 to be available again
+//        MPI_Wait(&recv_request_2, &status_2); // wait for recvbuf_G2 to be available again
+//
         G_[0] = recvbuff_G_[0];
+//
+//        assert(G_[0].size().first == recvbuff_G_[0].size().first);
+//        assert(G_[0].size().second == recvbuff_G_[0].size().second);
+//        assert(G_[0] == recvbuff_G_[0]);
         G_[1] = recvbuff_G_[1];
 
-//        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-//            flop += updateG4(channel);
+        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+            flop += updateG4(channel);
 
-        MPI_Wait(&send_request_1, &status_1); // wait for sendbuf_G2 to be available again
-        MPI_Wait(&send_request_2, &status_2); // wait for sendbuf_G2 to be available again
+//        MPI_Wait(&send_request_1, &status_1); // wait for sendbuf_G2 to be available again
+//        MPI_Wait(&send_request_2, &status_2); // wait for sendbuf_G2 to be available again
 
         // get ready for send
         sendbuff_G_[0] = G_[0];
         sendbuff_G_[1] = G_[1];
         send_tag = recv_tag;
     }
-        MPI_Barrier(MPI_COMM_WORLD);
-
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-    flop += updateG4(channel);
+    MPI_Barrier(MPI_COMM_WORLD);
 
   return flop;
 }
@@ -477,42 +481,46 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
 
   const FourPointType channel = channels_[channel_index];
 
+  int my_rank, mpi_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
