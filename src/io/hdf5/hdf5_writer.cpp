@@ -131,7 +131,7 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
   }
 }
 
-bool HDF5Writer::exists(const std::string& name) {
+bool HDF5Writer::exists(const std::string& name) const {
   auto code = H5Gget_objinfo(file_id_, name.c_str(), 0, NULL);
   return code == 0;
 }
