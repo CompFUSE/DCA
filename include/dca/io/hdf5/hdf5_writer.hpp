@@ -145,7 +145,7 @@ public:
   }
 
 private:
-  bool exists(const std::string& name);
+  bool exists(const std::string& name) const;
 
   void write(const std::string& name, const std::vector<hsize_t>& size, H5::PredType type,
              const void* data);
@@ -203,7 +203,7 @@ void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::complex<scalar_type>>& value) {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
-    std::vector<hsize_t> dims{2, value.size()};
+    std::vector<hsize_t> dims{value.size(), 2};
     write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
   }
 }
@@ -226,21 +226,27 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
       std::vector<hsize_t> dims{value.size(), cols};
       std::vector<scalar_type> linearized(dims[0] * dims[1]);
 
-      std::size_t linindex = 0;
-      for (std::size_t i = 0; i < value.size(); ++i)
-        for (std::size_t j = 0; j < cols; ++j, ++linindex)
-          linearized[linindex] = value[i][j];
+      for (std::size_t i = 0, linindex = 0; i < value.size(); ++i)
+        for (std::size_t j = 0; j < cols; ++j)
+          linearized[linindex++] = value[i][j];
 
-      write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
+      write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
     }
     else {
       open_group(full_name);
+
+      execute("size", value.size());
+
+      open_group("data");
+
       std::vector<hsize_t> dims(1);
       for (std::size_t i = 0; i < value.size(); ++i) {
-        const std::string new_name = full_name + "/row_" + std::to_string(i);
+        const std::string new_name = full_name + "/data/row_" + std::to_string(i);
         dims[0] = value[i].size();
         write(new_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value[i].data());
       }
+
+      close_group();
       close_group();
     }
   }
@@ -252,30 +258,9 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::array<S
     return;
 
   std::array<hsize_t, 2> dims{value.size(), n};
-
-  H5::DataSet* dataset = nullptr;
-  H5::DataSpace* dataspace = nullptr;
-
   std::string full_name = get_path() + "/" + name;
 
-  dataspace = new H5::DataSpace(2, dims.data());
-
-  dataset = new H5::DataSet(
-      file_->createDataSet(full_name.c_str(), HDF5_TYPE<Scalar>::get_PredType(), *dataspace));
-
-  Scalar* tmp = new Scalar[dims[0] * dims[1]];
-
-  // hdf5 has row-major ordering!
-  //  for (hsize_t i = 0; i < dims[0]; i++)
-  //    for (hsize_t j = 0; j < dims[1]; j++)
-  //      tmp[i * dims[1] + j] = value[i][j];
-
-  H5Dwrite(dataset->getId(), HDF5_TYPE<Scalar>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-           value[0].data());
-
-  delete[] tmp;
-  delete dataset;
-  delete dataspace;
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
 }
 
 template <typename domain_type>
@@ -384,7 +369,7 @@ template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
-  write(full_name, std::vector<hsize_t>{2, V.size()}, HDF5_TYPE<scalar_type>::get_PredType(),
+  write(full_name, std::vector<hsize_t>{V.size(), 2}, HDF5_TYPE<scalar_type>::get_PredType(),
         V.ptr());
 }
 
@@ -407,7 +392,7 @@ void HDF5Writer::execute(const std::string& name,
 template <typename scalar_type>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
-  std::vector<hsize_t> dims{hsize_t(2), hsize_t(A.nrRows()), hsize_t(A.nrCols())};
+  std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols()), hsize_t(2)};
   std::vector<std::complex<scalar_type>> linearized(A.nrRows() * A.nrCols());
 
   int linindex = 0;
