@@ -216,9 +216,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
 
-    if ((w1-my_rank) % mpi_size != 0)
+    if (  (w1-my_rank) % mpi_size != 0)
         return;
-//    printf("my_rank = %d, w1 = %d \n", my_rank, w1);
 
   // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
   // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with
