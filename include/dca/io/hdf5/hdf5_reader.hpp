@@ -256,6 +256,16 @@ bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, dom
 
   std::cout << "\n\tstart reading function : " << name;
 
+  // Check sizes.
+  std::vector<hsize_t> dims;
+  execute(name + "/" + "domain-sizes", dims);
+  if (dims.size() != f.signature())
+    throw(std::length_error("The number of domains is different"));
+  for (int i = 0; i < f.signature(); ++i) {
+    if (dims[i] != f[i])
+      throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
+  }
+
   read(full_name + "/data", HDF5_TYPE<Scalartype>::get_PredType(), f.values());
 
   return true;
