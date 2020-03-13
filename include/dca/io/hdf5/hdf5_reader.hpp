@@ -62,8 +62,8 @@ public:
 
   // `execute` returns true if the object is read correctly.
 
-  template <typename scalartype>
-  bool execute(const std::string& name, scalartype& value);
+  template <typename Scalartype>
+  bool execute(const std::string& name, Scalartype& value);
 
   template <typename Scalar>
   bool execute(const std::string& name, std::vector<Scalar>& value);
@@ -87,11 +87,11 @@ public:
     return false;
   }
 
-  template <typename scalartype, typename domain_type>
-  bool execute(func::function<scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type>
+  bool execute(func::function<Scalartype, domain_type>& f);
 
-  template <typename scalartype, typename domain_type>
-  bool execute(const std::string& name, func::function<scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f);
 
   template <typename Scalar>
   bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -239,13 +239,13 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar,
   return true;
 }
 
-template <typename scalartype, typename domain_type>
-bool HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
+template <typename Scalartype, typename domain_type>
+bool HDF5Reader::execute(func::function<Scalartype, domain_type>& f) {
   return execute(f.get_name(), f);
 }
 
-template <typename scalartype, typename domain_type>
-bool HDF5Reader::execute(const std::string& name, func::function<scalartype, domain_type>& f) {
+template <typename Scalartype, typename domain_type>
+bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
@@ -256,7 +256,17 @@ bool HDF5Reader::execute(const std::string& name, func::function<scalartype, dom
 
   std::cout << "\n\tstart reading function : " << name;
 
-  read(full_name + "/data", HDF5_TYPE<scalartype>::get_PredType(), f.values());
+  // Check sizes.
+  std::vector<hsize_t> dims;
+  execute(name + "/" + "domain-sizes", dims);
+  if (dims.size() != f.signature())
+    throw(std::length_error("The number of domains is different"));
+  for (int i = 0; i < f.signature(); ++i) {
+    if (dims[i] != f[i])
+      throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
+  }
+
+  read(full_name + "/data", HDF5_TYPE<Scalartype>::get_PredType(), f.values());
 
   return true;
 }
