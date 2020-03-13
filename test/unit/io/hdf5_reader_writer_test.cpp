@@ -164,7 +164,7 @@ TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
 
 template <typename Scalar>
 class HDF5ReaderWriterTest : public ::testing::Test {};
-using TestTypes = ::testing::Types<std::complex<double>, float>;
+using TestTypes = ::testing::Types<float, std::complex<double>>;
 TYPED_TEST_CASE(HDF5ReaderWriterTest, TestTypes);
 
 TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
@@ -180,7 +180,7 @@ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
     x = ++val;
 
   dca::io::HDF5Writer writer;
-  writer.open_file("test.hdf5", true);
+  writer.open_file("test_func.hdf5", true);
 
   writer.execute(f1);
 
@@ -188,7 +188,7 @@ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
 
   // Read test file.
   dca::io::HDF5Reader reader;
-  reader.open_file("test.hdf5");
+  reader.open_file("test_func.hdf5");
 
   dca::func::function<Scalar, Dmn> f2("myfunc");
 

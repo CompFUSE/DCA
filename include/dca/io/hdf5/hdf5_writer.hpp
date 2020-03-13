@@ -63,17 +63,17 @@ public:
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, scalar_type value);
+  template <typename Scalar>
+  void execute(const std::string& name, Scalar value);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value);
+  template <typename Scalar>
+  void execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const std::vector<scalar_type>& value);
+  template <typename Scalar>
+  void execute(const std::string& name, const std::vector<Scalar>& value);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const std::vector<std::complex<scalar_type>>& value);
+  template <typename Scalar>
+  void execute(const std::string& name, const std::vector<std::complex<Scalar>>& value);
 
   void execute(const std::string& name, const std::string& value);
 
@@ -88,35 +88,34 @@ public:
   template <typename domain_type>
   void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const func::function<scalar_type, domain_type>& f);
+  template <typename Scalar, typename domain_type>
+  void execute(const func::function<Scalar, domain_type>& f);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const func::function<std::complex<scalar_type>, domain_type>& f);
+  template <typename Scalar, typename domain_type>
+  void execute(const func::function<std::complex<Scalar>, domain_type>& f);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const std::string& name, const func::function<scalar_type, domain_type>& f);
+  template <typename Scalar, typename domain_type>
+  void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
 
-  template <typename scalar_type, typename domain_type>
+  template <typename Scalar, typename domain_type>
+  void execute(const std::string& name, const func::function<std::complex<Scalar>, domain_type>& f);
+
+  template <typename Scalar>
+  void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
+
+  template <typename Scalar>
   void execute(const std::string& name,
-               const func::function<std::complex<scalar_type>, domain_type>& f);
+               const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  void execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
+  template <typename Scalar>
   void execute(const std::string& name,
-               const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
+               const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  void execute(const std::string& name, const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
-
-  template <typename scalar_type>
-  void execute(const std::string& name,
-               const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
-
-  template <typename scalar_type>
-  void execute(const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+  template <typename Scalar>
+  void execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
     execute(A.get_name(), A);
   }
 
@@ -171,45 +170,44 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
   wr_obj.close_file();
 }
 
-template <typename scalar_type>
-void HDF5Writer::execute(const std::string& name, scalar_type value) {
+template <typename Scalar>
+void HDF5Writer::execute(const std::string& name, Scalar value) {
   const std::string full_name = get_path() + "/" + name;
   std::vector<hsize_t> dims{1};
 
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), &value);
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value);
 }
 
-template <typename scalar_type>
-void HDF5Writer::execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value) {
+template <typename Scalar>
+void HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
   std::string full_name = get_path() + "/" + name;
   std::vector<hsize_t> dims{2};
 
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), &value.first);
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value.first);
 }
 
-template <typename scalar_type>
+template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
+                         const std::vector<Scalar>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
     std::vector<hsize_t> dims{value.size()};
-    write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
+    write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
   }
 }
 
-template <typename scalar_type>
-void HDF5Writer::execute(const std::string& name,
-                         const std::vector<std::complex<scalar_type>>& value) {
+template <typename Scalar>
+void HDF5Writer::execute(const std::string& name, const std::vector<std::complex<Scalar>>& value) {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
     std::vector<hsize_t> dims{value.size(), 2};
-    write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value.data());
+    write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
   }
 }
 
-template <typename scalar_type>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value) {
+template <typename Scalar>
+void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
 
@@ -224,13 +222,13 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
 
     if (all_the_same_size) {
       std::vector<hsize_t> dims{value.size(), cols};
-      std::vector<scalar_type> linearized(dims[0] * dims[1]);
+      std::vector<Scalar> linearized(dims[0] * dims[1]);
 
       for (std::size_t i = 0, linindex = 0; i < value.size(); ++i)
         for (std::size_t j = 0; j < cols; ++j)
           linearized[linindex++] = value[i][j];
 
-      write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
+      write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
     }
     else {
       open_group(full_name);
@@ -243,7 +241,7 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
       for (std::size_t i = 0; i < value.size(); ++i) {
         const std::string new_name = full_name + "/data/row_" + std::to_string(i);
         dims[0] = value[i].size();
-        write(new_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), value[i].data());
+        write(new_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value[i].data());
       }
 
       close_group();
@@ -273,8 +271,8 @@ void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>
   close_group();
 }
 
-template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(const func::function<scalar_type, domain_type>& f) {
+template <typename Scalar, typename domain_type>
+void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -284,8 +282,8 @@ void HDF5Writer::execute(const func::function<scalar_type, domain_type>& f) {
   execute(f.get_name(), f);
 }
 
-template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
+template <typename Scalar, typename domain_type>
+void HDF5Writer::execute(const func::function<std::complex<Scalar>, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -295,8 +293,8 @@ void HDF5Writer::execute(const func::function<std::complex<scalar_type>, domain_
   execute(f.get_name(), f);
 }
 
-template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(const std::string& name, const func::function<scalar_type, domain_type>& f) {
+template <typename Scalar, typename domain_type>
+void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -306,28 +304,26 @@ void HDF5Writer::execute(const std::string& name, const func::function<scalar_ty
 
   execute("name", f.get_name());
 
-  std::vector<hsize_t> dims(0);
+  std::vector<hsize_t> dims;
 
-  int n_dims = f.signature();
-  for (int l = 0; l < n_dims; l++)
+  for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
 
   execute("domain-sizes", dims);
 
   // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
-  for (int l = 0; l < n_dims; l++)
-    dims[n_dims - 1 - l] = f[l];
+  std::reverse(dims.begin(), dims.end());
 
   std::string full_name = new_path + "/data";
 
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), f.values());
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
 
   close_group();
 }
 
-template <typename scalar_type, typename domain_type>
+template <typename Scalar, typename domain_type>
 void HDF5Writer::execute(const std::string& name,
-                         const func::function<std::complex<scalar_type>, domain_type>& f) {
+                         const func::function<std::complex<Scalar>, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -337,47 +333,42 @@ void HDF5Writer::execute(const std::string& name,
 
   execute("name", f.get_name());
 
-  std::vector<hsize_t> dims(0);
+  std::vector<hsize_t> dims;
 
-  int n_dims = f.signature();
-  for (int l = 0; l < n_dims; l++)
+  for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
 
   execute("domain-sizes", dims);
 
-  dims.resize(n_dims + 1);
   // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
-  for (int l = 0; l < n_dims; l++)
-    dims[n_dims - l] = f[l];
+  std::reverse(dims.begin(), dims.end());
 
-  dims[0] = 2;
-
+  dims.push_back(2);
   std::string full_name = get_path() + "/data";
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), f.values());
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
 
   close_group();
 }
 
-template <typename scalar_type>
+template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
+                         const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
-  write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<scalar_type>::get_PredType(), V.ptr());
+  write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
 }
 
-template <typename scalar_type>
+template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
+                         const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
-  write(full_name, std::vector<hsize_t>{V.size(), 2}, HDF5_TYPE<scalar_type>::get_PredType(),
-        V.ptr());
+  write(full_name, std::vector<hsize_t>{V.size(), 2}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
 }
 
-template <typename scalar_type>
+template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+                         const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
-  std::vector<scalar_type> linearized(dims[0] * dims[1]);
+  std::vector<Scalar> linearized(dims[0] * dims[1]);
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
@@ -386,14 +377,14 @@ void HDF5Writer::execute(const std::string& name,
       linearized[linindex++] = A(i, j);
 
   std::string full_name = get_path() + "/" + name;
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 }
 
-template <typename scalar_type>
+template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
+                         const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols()), hsize_t(2)};
-  std::vector<std::complex<scalar_type>> linearized(A.nrRows() * A.nrCols());
+  std::vector<std::complex<Scalar>> linearized(A.nrRows() * A.nrCols());
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
@@ -402,7 +393,7 @@ void HDF5Writer::execute(const std::string& name,
       linearized[linindex++] = A(i, j);
 
   std::string full_name = get_path() + "/" + name;
-  write(full_name, dims, HDF5_TYPE<scalar_type>::get_PredType(), linearized.data());
+  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 }
 
 template <class T>
