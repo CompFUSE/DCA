@@ -145,19 +145,20 @@ TEST(HDF5ReaderWriterTest, VectorOfArraysReadWrite) {
 
 TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
   std::vector<std::string> s1{"foo", "bar", "baz"};
+  const std::string filename = "test_vec_of_strings.hdf5";
 
   // Create test file.
   dca::io::HDF5Writer writer;
-  writer.open_file("test.hdf5");
+  writer.open_file(filename);
   writer.execute("strings", s1);
   writer.close_file();
 
   // Read test file.
   dca::io::HDF5Reader reader;
-  reader.open_file("test.hdf5");
+  reader.open_file(filename);
 
   std::vector<std::string> s2;
-  reader.execute("strings", s2);
+  EXPECT_TRUE(reader.execute("strings", s2));
   EXPECT_EQ(s1, s2);
 }
 

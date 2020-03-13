@@ -88,11 +88,7 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::string>& valu
   open_group("data");
 
   for (size_t l = 0; l < value.size(); l++) {
-    open_group(std::to_string(l));
-
     execute(std::to_string(l), value[l]);
-
-    close_group();
   }
 
   close_group();

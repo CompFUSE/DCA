@@ -98,9 +98,7 @@ void HDF5Writer::execute(const std::string& name,
     open_group("data");
 
     for (int i = 0; i < value.size(); ++i) {
-      open_group(std::to_string(i));
       execute(std::to_string(i), value[i]);
-      close_group();
     }
 
     close_group();
