@@ -34,7 +34,7 @@ public:
   typedef H5::H5File file_type;
 
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  HDF5Reader(bool verbose = true) : my_file(NULL), my_paths(0), verbose_(verbose) {}
+  HDF5Reader(bool verbose = true) : verbose_(verbose) {}
 
   ~HDF5Reader();
 
@@ -49,10 +49,10 @@ public:
   void close_file();
 
   void open_group(std::string name) {
-    my_paths.push_back(name);
+    paths_.push_back(name);
   }
   void close_group() {
-    my_paths.pop_back();
+    paths_.pop_back();
   }
 
   std::string get_path();
@@ -62,18 +62,24 @@ public:
 
   // `execute` returns true if the object is read correctly.
 
-  template <typename scalartype>
-  bool execute(std::string name, scalartype& value);
+  template <typename Scalartype>
+  bool execute(const std::string& name, Scalartype& value);
 
-  template <typename scalar_type>
-  bool execute(std::string name, std::vector<scalar_type>& value);
+  template <typename Scalar>
+  bool execute(const std::string& name, std::vector<Scalar>& value);
 
-  template <typename scalar_type>
-  bool execute(std::string name, std::vector<std::complex<scalar_type>>& value);
+  template <typename Scalar>
+  bool execute(const std::string& name, std::vector<std::complex<Scalar>>& value);
 
-  bool execute(std::string name, std::string& value);
+  template <typename Scalar>
+  bool execute(const std::string& name, std::vector<std::vector<Scalar>>& value);
 
-  bool execute(std::string name, std::vector<std::string>& value);
+  template <typename Scalar, std::size_t n>
+  bool execute(const std::string& name, std::vector<std::array<Scalar, n>>& value);
+
+  bool execute(const std::string& name, std::string& value);
+
+  bool execute(const std::string& name, std::vector<std::string>& value);
 
   // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
@@ -81,36 +87,41 @@ public:
     return false;
   }
 
-  template <typename scalartype, typename domain_type>
-  bool execute(func::function<scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type>
+  bool execute(func::function<Scalartype, domain_type>& f);
 
-  template <typename scalartype, typename domain_type>
-  bool execute(std::string name, func::function<scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f);
 
-  template <typename scalar_type>
-  bool execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  bool execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  bool execute(const std::string& name,
+               dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  bool execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  bool execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  bool execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  bool execute(const std::string& name,
+               dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
 
-  template <typename scalar_type>
-  bool execute(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+  template <typename Scalar>
+  bool execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
-  bool execute(std::string name, io::Buffer& buff) {
+  bool execute(const std::string& name, io::Buffer& buff) {
     return execute(name, static_cast<io::Buffer::Container&>(buff));
   }
 
 private:
-  bool fexists(const char* filename);
+  bool exists(const std::string& name) const;
 
-  H5::H5File* my_file;
-  std::vector<std::string> my_paths;
+  void read(const std::string& name, H5::PredType type, void* data) const;
+  std::vector<hsize_t> readSize(const std::string& name) const;
+
+  std::unique_ptr<H5::H5File> file_;
+  std::vector<std::string> paths_;
 
   bool verbose_;
 };
@@ -123,229 +134,228 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
   reader_obj.close_file();
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name, scalar_type& value) {
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, Scalar& value) {
   std::string full_name = get_path() + "/" + name;
 
-  try {
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &value);
-
-    return true;
-  }
-  catch (...) {
-    std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
+  if (!exists(full_name)) {
     return false;
   }
+
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), &value);
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name, std::vector<scalar_type>& value) {
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
   std::string full_name = get_path() + "/" + name;
 
-  try {
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    value.resize(dataset.getInMemDataSize() / sizeof(scalar_type));
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &value[0]);
-    return true;
-  }
-  catch (...) {
-    std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
+  if (!exists(full_name)) {
     return false;
   }
+
+  auto dims = readSize(full_name);
+  assert(dims.size() == 1);
+  value.resize(dims.at(0));
+
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name, std::vector<std::complex<scalar_type>>& value) {
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, std::vector<std::complex<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
 
-  try {
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    value.resize(dataset.getInMemDataSize() / sizeof(std::complex<scalar_type>));
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &value[0]);
-    return true;
-  }
-  catch (...) {
-    std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
+  if (!exists(full_name)) {
     return false;
   }
+
+  auto dims = readSize(full_name);
+  assert(dims.size() == 2);
+  value.resize(dims.at(0));
+
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+  return true;
 }
 
-template <typename scalartype, typename domain_type>
-bool HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
+  }
+
+  const bool equal_size = !exists(full_name + "/data");
+
+  if (equal_size) {
+    auto dims = readSize(full_name);
+    assert(dims.size() == 2);
+    std::vector<Scalar> linearized(dims[0] * dims[1]);
+
+    read(full_name, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+    value.resize(dims[0]);
+    const Scalar* read_location = linearized.data();
+    for (auto& v : value) {
+      v.resize(dims[1]);
+      std::copy_n(read_location, dims[1], v.data());
+      read_location += dims[1];
+    }
+  }
+  else {
+    open_group(name);
+
+    int size = -1;
+    execute("size", size);
+    value.resize(size);
+
+    open_group("data");
+    for (int i = 0; i < value.size(); ++i) {
+      execute("row_" + std::to_string(i), value[i]);
+    }
+    close_group();
+
+    close_group();
+  }
+
+  return true;
+}
+
+template <typename Scalar, std::size_t n>
+bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
+  }
+
+  auto dims = readSize(full_name);
+  assert(dims.size() == 2);
+  if (dims.at(1) != n) {
+    throw(std::length_error("Wrong array size"));
+  }
+
+  value.resize(dims[0]);
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+
+  return true;
+}
+
+template <typename Scalartype, typename domain_type>
+bool HDF5Reader::execute(func::function<Scalartype, domain_type>& f) {
   return execute(f.get_name(), f);
 }
 
-template <typename scalartype, typename domain_type>
-bool HDF5Reader::execute(std::string name, func::function<scalartype, domain_type>& f) {
+template <typename Scalartype, typename domain_type>
+bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f) {
+  std::string full_name = get_path() + "/" + name;
+
+  if (!exists(full_name)) {
+    std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
+                     "\n\n";
+    return false;
+  }
+
   std::cout << "\n\tstart reading function : " << name;
-  open_group(name);
-  bool success = true;
 
-  try {
-    std::string full_name = get_path() + "/data";
-
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalartype>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &f(0));
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
-    success = false;
+  // Check sizes.
+  std::vector<hsize_t> dims;
+  execute(name + "/" + "domain-sizes", dims);
+  if (dims.size() != f.signature())
+    throw(std::length_error("The number of domains is different"));
+  for (int i = 0; i < f.signature(); ++i) {
+    if (dims[i] != f[i])
+      throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
   }
 
-  close_group();
-  return success;
+  read(full_name + "/data", HDF5_TYPE<Scalartype>::get_PredType(), f.values());
+
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
-  bool success = true;
-
-  try {
-    std::string full_name = get_path() + "/" + name;
-
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    V.resize(dataset.getInMemDataSize() / sizeof(scalar_type));
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &V[0]);
-
-    V.set_name(name);
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
-    success = false;
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
   }
 
-  return success;
+  auto dims = readSize(full_name);
+  assert(dims.size() == 1);
+  V.resize(dims.at(0));
+
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name,
-                         dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
-  bool success = true;
-
-  try {
-    std::string full_name = get_path() + "/" + name;
-
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    V.resize(dataset.getInMemDataSize() / sizeof(std::complex<scalar_type>));
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &V[0]);
-
-    V.set_name(name);
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
-    success = false;
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name,
+                         dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
   }
 
-  return success;
+  auto dims = readSize(full_name);
+  assert(dims.size() == 2);
+  V.resize(dims.at(0));
+
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
-  bool success = true;
-
-  try {
-    std::string full_name = get_path() + "/" + name;
-
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    std::array<hsize_t, 2> dims;
-    dataspace.getSimpleExtentDims(dims.data(), nullptr);
-
-    std::vector<scalar_type> linearized(dims[0] * dims[1]);
-    dataset.read(linearized.data(), HDF5_TYPE<scalar_type>::get_PredType(), dataspace);
-
-    // HDF5 is column major, while Matrix is not major.
-    A.resizeNoCopy(std::make_pair(dims[0], dims[1]));
-    unsigned linindex = 0;
-    for (int i = 0; i < A.nrRows(); ++i) {
-      for (int j = 0; j < A.nrCols(); ++j)
-        A(i, j) = linearized[linindex++];
-    }
-
-    A.set_name(name);
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
-    success = false;
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
   }
 
-  return success;
+  auto dims = readSize(full_name);
+  assert(dims.size() == 2);
+
+  std::vector<Scalar> linearized(dims[0] * dims[1]);
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  // HDF5 is column major, while Matrix is row major.
+  A.resizeNoCopy(std::make_pair(dims[0], dims[1]));
+  for (int i = 0, linindex = 0; i < A.nrRows(); ++i) {
+    for (int j = 0; j < A.nrCols(); ++j)
+      A(i, j) = linearized[linindex++];
+  }
+
+  A.set_name(name);
+
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(std::string name,
-                         dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
-  bool success = true;
-
-  try {
-    std::string full_name = get_path() + "/" + name;
-
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    std::array<hsize_t, 3> dims;
-    dataspace.getSimpleExtentDims(dims.data(), nullptr);
-
-    A.resizeNoCopy(std::make_pair(dims[1], dims[2]));
-    std::vector<std::complex<scalar_type>> linearized(A.nrRows() * A.nrCols());
-
-    dataset.read(linearized.data(), HDF5_TYPE<scalar_type>::get_PredType(), dataspace);
-
-    // HDF5 is column major, while Matrix is not major.
-    unsigned linindex = 0;
-    for (int i = 0; i < A.nrRows(); ++i)
-      for (int j = 0; j < A.nrCols(); ++j) {
-        A(i, j) = linearized[linindex++];
-      }
-
-    A.set_name(name);
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
-    success = false;
+template <typename Scalar>
+bool HDF5Reader::execute(const std::string& name,
+                         dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
   }
 
-  return success;
+  auto dims = readSize(full_name);
+  assert(dims.size() == 3);
+
+  std::vector<std::complex<Scalar>> linearized(dims[0] * dims[1]);
+  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  // HDF5 is column major, while Matrix is row major.
+  A.resizeNoCopy(std::make_pair(dims[0], dims[1]));
+  for (int i = 0, linindex = 0; i < A.nrRows(); ++i) {
+    for (int j = 0; j < A.nrCols(); ++j)
+      A(i, j) = linearized[linindex++];
+  }
+
+  A.set_name(name);
+  return true;
 }
 
-template <typename scalar_type>
-bool HDF5Reader::execute(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+template <typename Scalar>
+bool HDF5Reader::execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   return execute(A.get_name(), A);
 }
 

@@ -95,27 +95,76 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   reader.close_file();
 }
 
-TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
-  std::vector<std::string> s1{"foo", "bar", "baz"};
+TEST(HDF5ReaderWriterTest, VectorOfVectorsReadWrite) {
+  const std::string object_name = "a_vector";
+  const std::string file_name = "test_vector_vector.hdf5";
+  const std::vector<std::vector<double>> data_unequal_size{{0, 0, 2}, {1}, {1, 0}, {0, 0}};
+  const std::vector<std::vector<double>> data_equal_size{{0, 0}, {0, 1}, {1, 0}, {0, 0}};
+
+  for (const auto& input : {data_unequal_size, data_equal_size}) {
+    // Create test file.
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+    writer.execute(object_name, input);
+    writer.close_file();
+
+    // Read test file.
+    dca::io::HDF5Reader reader;
+    std::vector<std::vector<double>> data_read;
+    reader.open_file(file_name);
+    EXPECT_TRUE(reader.execute(object_name, data_read));
+
+    EXPECT_EQ(input, data_read);
+
+    reader.close_file();
+  }
+}
+
+TEST(HDF5ReaderWriterTest, VectorOfArraysReadWrite) {
+  const std::string object_name = "obj";
+  const std::string file_name = "test.hdf5";
+
+  std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}};
 
   // Create test file.
   dca::io::HDF5Writer writer;
-  writer.open_file("test.hdf5");
+  writer.open_file(file_name);
+  writer.execute(object_name, data);
+  writer.close_file();
+
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  std::vector<std::array<int, 3>> data_read;
+  reader.open_file(file_name);
+  EXPECT_TRUE(reader.execute(object_name, data_read));
+
+  EXPECT_EQ(data, data_read);
+
+  reader.close_file();
+}
+
+TEST(HDF5ReaderWriterTest, VectorOfStringsReadWrite) {
+  std::vector<std::string> s1{"foo", "bar", "baz"};
+  const std::string filename = "test_vec_of_strings.hdf5";
+
+  // Create test file.
+  dca::io::HDF5Writer writer;
+  writer.open_file(filename);
   writer.execute("strings", s1);
   writer.close_file();
 
   // Read test file.
   dca::io::HDF5Reader reader;
-  reader.open_file("test.hdf5");
+  reader.open_file(filename);
 
   std::vector<std::string> s2;
-  reader.execute("strings", s2);
+  EXPECT_TRUE(reader.execute("strings", s2));
   EXPECT_EQ(s1, s2);
 }
 
 template <typename Scalar>
 class HDF5ReaderWriterTest : public ::testing::Test {};
-using TestTypes = ::testing::Types<std::complex<double>, float>;
+using TestTypes = ::testing::Types<float, std::complex<double>>;
 TYPED_TEST_CASE(HDF5ReaderWriterTest, TestTypes);
 
 TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
@@ -131,7 +180,7 @@ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
     x = ++val;
 
   dca::io::HDF5Writer writer;
-  writer.open_file("test.hdf5", true);
+  writer.open_file("test_func.hdf5", true);
 
   writer.execute(f1);
 
@@ -139,7 +188,7 @@ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
 
   // Read test file.
   dca::io::HDF5Reader reader;
-  reader.open_file("test.hdf5");
+  reader.open_file("test_func.hdf5");
 
   dca::func::function<Scalar, Dmn> f2("myfunc");
 
@@ -258,7 +307,7 @@ TEST(HDF5ReaderWriterTest, Overwrite) {
   writer.execute("a", 2);
 
   // Try to write with different size.
-  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::out_of_range);
+  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::length_error);
 
   writer.close_file();
 

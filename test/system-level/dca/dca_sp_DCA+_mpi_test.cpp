@@ -114,7 +114,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       // Compare the computed self-energy with the expected result.
       auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
 
-      EXPECT_NEAR(0, diff.l2, 1.e-12);
+      EXPECT_NEAR(0, diff.l2, 1.e-9);
 
       std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data."
                 << std::endl;

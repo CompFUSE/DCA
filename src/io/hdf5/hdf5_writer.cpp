@@ -98,9 +98,7 @@ void HDF5Writer::execute(const std::string& name,
     open_group("data");
 
     for (int i = 0; i < value.size(); ++i) {
-      open_group(std::to_string(i));
       execute(std::to_string(i), value[i]);
-      close_group();
     }
 
     close_group();
@@ -118,7 +116,7 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
     dataspace.getSimpleExtentDims(size_check_.data(), nullptr);
 
     if (size_check_ != dims) {
-      throw(std::out_of_range("Object size different than HDF5 dataset."));
+      throw(std::length_error("Object size different than HDF5 dataset."));
     }
 
     dataset.write(data, type, dataspace, H5P_DEFAULT);
@@ -131,7 +129,7 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
   }
 }
 
-bool HDF5Writer::exists(const std::string& name) {
+bool HDF5Writer::exists(const std::string& name) const {
   auto code = H5Gget_objinfo(file_id_, name.c_str(), 0, NULL);
   return code == 0;
 }
