@@ -78,12 +78,12 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
 
   if (!update_baseline) {
     // Read and confront with previous run
-    Data::TpGreensFunction G4_check("G4");
+    Data::TpGreensFunction G4_check(data.get_G4()[0].get_name());
     Data::SpGreensFunction G_check(data.G_k_w.get_name());
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     reader.open_group("functions");
-    reader.execute(G4_check);
+    reader.execute("G4", G4_check);
     reader.execute(G_check);
     reader.close_group(), reader.close_file();
 
@@ -97,7 +97,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
     dca::io::HDF5Writer writer;
     writer.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     writer.open_group("functions");
-    writer.execute(data.get_G4()[0]);
+    writer.execute("G4", data.get_G4()[0]);
     writer.execute(data.G_k_w);
     writer.close_group(), writer.close_file();
   }

@@ -26,6 +26,7 @@ void SignalHandler::init(bool verbose) {
   signal(SIGILL, handle);
   signal(SIGSEGV, handle);
   signal(SIGTERM, handle);
+  signal(SIGUSR2, handle); // Summit out of time signal.
 }
 
 void SignalHandler::handle(int signum) {

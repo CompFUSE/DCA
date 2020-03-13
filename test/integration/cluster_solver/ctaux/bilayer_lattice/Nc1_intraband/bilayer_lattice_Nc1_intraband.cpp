@@ -121,7 +121,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
       dca::io::HDF5Reader reader;
       reader.open_file(filename);
       reader.open_group("functions");
-      reader.execute(Sigma_QMC_check);
+      ASSERT_TRUE(reader.execute(Sigma_QMC_check));
       reader.close_file();
 
       auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
