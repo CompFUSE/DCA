@@ -94,8 +94,8 @@ public:
   inline double getStrength(int vertex_index) const;
   inline short getSign(int vertex_index) const;
 
-  double getDoubleUpdateProb() const{
-      return double_insertion_prob_;
+  double getDoubleUpdateProb() const {
+    return double_insertion_prob_;
   }
 
   ushort lastInsertionSize() const {
@@ -151,17 +151,15 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   Vertex v(aux_spin, ushort(indices.first), current_tag_++, tau);
   push_back(v);
 
-  if (double_insertion_prob_) {
-    // TODO: generalize to multiband n_bands > 2
-    if (indices.second != -1 && double_insertion_prob_) {
-      const double tau2 = rng() * max_tau_;
-      const bool aux_spin2 = rng() > 0.5;
-      Vertex v2(aux_spin2, ushort(indices.second), current_tag_++, tau2);
-      push_back(v2);
-      last_insertion_size_ = 2;
-    }
-    else
-      last_insertion_size_ = 1;
+  if (indices.second != -1) {
+    const double tau2 = rng() * max_tau_;
+    const bool aux_spin2 = rng() > 0.5;
+    Vertex v2(aux_spin2, ushort(indices.second), current_tag_++, tau2);
+    push_back(v2);
+    last_insertion_size_ = 2;
+  }
+  else {
+    last_insertion_size_ = 1;
   }
   assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
