@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
-//#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 //#include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
 
 namespace dca {
@@ -33,13 +33,13 @@ struct has_non_density_interaction<HundLattice<BaseLattice>> {
   constexpr static bool value = true;
 };
 
-// template <class BaseLattice>
-// struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
-//  constexpr static bool value = true;
-//};
-//
-// template <class PointGroup>
-// struct has_non_density_interaction<TwobandCu<PointGroup>> {
+template <class BaseLattice>
+struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
+  constexpr static bool value = true;
+};
+
+//template <class PointGroup>
+//struct has_non_density_interaction<TwobandCu<PointGroup>> {
 //  constexpr static bool value = true;
 //};
 
@@ -57,7 +57,7 @@ std::enable_if_t<has_non_density_interaction<Lattice>::value, void> initializeNo
 }
 
 template <class Lattice, class HType, class Parameters>
-typename std::enable_if_t<not has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
+typename std::enable_if_t<!has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
 
 }  // namespace models
