@@ -3,11 +3,11 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-//
+// Implementation of the device methods used by the CT-INT submatrix walker.
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/kernels_interface.hpp"
 

@@ -222,7 +222,7 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
 
   assert(candidates[0] < int(size()));
   return candidates;
-}
+}  // namespace ctint
 
 template <class Rng>
 bool SolverConfiguration::doDoubleUpdate(Rng& rng) const {

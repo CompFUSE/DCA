@@ -6,7 +6,7 @@
 //  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author:
-// 
+//
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_MOVE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_MOVE_HPP
@@ -18,9 +18,9 @@ namespace ctint {
 
 enum Move { INSERTION, REMOVAL, TRIVIAL };
 
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_MOVE_HPP

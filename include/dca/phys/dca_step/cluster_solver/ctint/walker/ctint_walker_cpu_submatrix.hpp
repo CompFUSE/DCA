@@ -24,6 +24,7 @@
 #include <ctime>
 
 #include "dca/linalg/linalg.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
@@ -129,7 +130,7 @@ protected:
 
   struct DelayedMoveType {
     Move move_type;
-    std::array<Real, 3> removal_rng;
+    std::array<double, 3> removal_rng{1., 1., 1.};
     Real acceptance_rng;
     std::array<int, 2> indices{-1, -1};
   };
@@ -541,7 +542,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::mainSubmatrixProc
         }
     }
   }
-}  // namespace ctint
+}
 
 template <class Parameters, typename Real, bool fix_rng_order>
 Move CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::generateMoveType() {

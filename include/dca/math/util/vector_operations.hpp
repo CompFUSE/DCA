@@ -19,6 +19,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <functional>
 #include <type_traits>
 #include <vector>
 
