@@ -44,12 +44,19 @@ public:
   using typename BaseClass::Rng;
   using typename BaseClass::CudaStream;
 
+  template <linalg::DeviceType dev>
+  using MatrixView = linalg::MatrixView<Real, dev>;
+  template <linalg::DeviceType dev>
+  using Matrix = linalg::Matrix<Real, dev>;
+  template <linalg::DeviceType device_t>
+  using MatrixPair = std::array<linalg::Matrix<Real, device_t>, 2>;
+
   constexpr static linalg::DeviceType device = linalg::GPU;
 
   CtintWalkerSubmatrixGpu(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
                           int id = 0);
 
-  void computeM(std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum);
+  void computeM(MatrixPair<linalg::GPU>& m_accum);
 
   void initialize();
 
@@ -60,17 +67,11 @@ public:
   using BaseClass::order;
   using RootClass::get_stream;
 
-  std::size_t deviceFingerprint() const {
-    std::size_t res = 0;
-    for (int s = 0; s < 2; ++s) {
-      res += M_dev_[s].deviceFingerprint();
-      res += Gamma_inv_dev_[s].deviceFingerprint();
-      res += D_dev_[s].deviceFingerprint();
-      res += G_dev_[s].deviceFingerprint();
-      res += G0_dev_[s].deviceFingerprint();
-    }
-    return res;
-  }
+  std::size_t deviceFingerprint() const;
+
+protected:
+  // For testing purposes:
+  void doStep(int n_moves_to_delay);
 
 private:
   void doStep() override;
@@ -82,66 +83,48 @@ private:
   void uploadConfiguration();
 
 protected:
-  // For testing purposes:
-  void doStep(int n_moves_to_delay);
-
-protected:
   using BaseClass::configuration_;
   using BaseClass::M_;
 
 private:
-  template <linalg::DeviceType dev = linalg::GPU>
-  using MatrixView = linalg::MatrixView<Real, dev>;
-  using Matrix = linalg::Matrix<Real, linalg::CPU>;
+  using BaseClass::concurrency_;
+  using BaseClass::thread_id_;
+  using BaseClass::removal_list_;
+  using BaseClass::source_list_;
+  using BaseClass::conf_removal_list_;
+  using RootClass::d_builder_ptr_;
+  using BaseClass::parameters_;
+  using BaseClass::rng_;
+  using BaseClass::Gamma_inv_;
+  using BaseClass::f_;
+  // Initial and current sector sizes.
+  using BaseClass::n_init_;
+  // Maximal sector size after submatrix update.
+  using BaseClass::n_max_;
+  using BaseClass::gamma_;
+  using BaseClass::G_;
+  using BaseClass::move_indices_;
+  using BaseClass::flop_;
 
   DeviceConfigurationManager device_config_;
 
-  using BaseClass::removal_list_;
-  using BaseClass::source_list_;
   std::array<linalg::Vector<int, linalg::GPU>, 2> removal_list_dev_;
   std::array<linalg::Vector<int, linalg::GPU>, 2> source_list_dev_;
-  using BaseClass::conf_removal_list_;
 
-  using RootClass::d_builder_ptr_;
-
-  using BaseClass::parameters_;
-  using BaseClass::rng_;
-
-private:
-  template <linalg::DeviceType device_t>
-  using MatrixPair = std::array<linalg::Matrix<Real, device_t>, 2>;
-
-  using BaseClass::G_;
   MatrixPair<linalg::GPU> M_dev_;
   MatrixPair<linalg::GPU> Gamma_inv_dev_;
   MatrixPair<linalg::GPU> D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
   MatrixPair<linalg::GPU> G0_dev_;
 
-  using BaseClass::Gamma_inv_;
-  using BaseClass::f_;
-
   std::array<linalg::Vector<Real, linalg::GPU>, 2> f_dev_;
   std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values_;
 
-  using BaseClass::gamma_;
-  using BaseClass::move_indices_;
   std::array<linalg::Vector<int, linalg::GPU>, 2> move_indices_dev_;
   std::array<linalg::util::HostVector<std::pair<int, Real>>, 2> gamma_index_;
   std::array<linalg::Vector<std::pair<int, Real>, linalg::GPU>, 2> gamma_index_dev_;
 
   std::array<linalg::util::CudaEvent, 2> config_copied_;
-
-  using BaseClass::concurrency_;
-  using BaseClass::thread_id_;
-
-  // Initial and current sector sizes.
-  using BaseClass::n_init_;
-
-  // Maximal sector size after submatrix update.
-  using BaseClass::n_max_;
-
-  using BaseClass::flop_;
 };
 
 template <class Parameters, typename Real, bool fix_rng_order>
@@ -259,8 +242,8 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::computeGInit() {
 
     G_dev_[s].resizeNoCopy(n_max_[s]);
 
-    MatrixView<> G(G_dev_[s]);
-    const MatrixView<> M(M_dev_[s]);
+    MatrixView<linalg::GPU> G(G_dev_[s]);
+    const MatrixView<linalg::GPU> M(M_dev_[s]);
     details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], get_stream(s));
 
     if (delta > 0) {
@@ -355,6 +338,19 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::computeM(
   // TODO: understand why this is necessary.
   config_copied_[0].block();
   config_copied_[1].block();
+}
+
+template <class Parameters, typename Real, bool fix_rng_order>
+std::size_t CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::deviceFingerprint() const {
+  std::size_t res = 0;
+  for (int s = 0; s < 2; ++s) {
+    res += M_dev_[s].deviceFingerprint();
+    res += Gamma_inv_dev_[s].deviceFingerprint();
+    res += D_dev_[s].deviceFingerprint();
+    res += G_dev_[s].deviceFingerprint();
+    res += G0_dev_[s].deviceFingerprint();
+  }
+  return res;
 }
 
 }  // namespace ctint
