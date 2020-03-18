@@ -48,8 +48,6 @@ namespace ctint {
 template <linalg::DeviceType device_type, class Parameters, typename Real>
 class CtintWalker;
 
-template <linalg::DeviceType device_type, class Parameters, typename Real>
-class CtintWalkerSubmatrix;
 
 template <class Parameters, typename Real = double>
 class CtintWalkerBase {

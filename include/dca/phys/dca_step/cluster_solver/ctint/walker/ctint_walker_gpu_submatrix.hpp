@@ -32,12 +32,11 @@ namespace phys {
 namespace solver {
 namespace ctint {
 
-template <class Parameters, typename Real>
-class CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>
-    : public CtintWalkerSubmatrix<linalg::CPU, Parameters, Real> {
+template <class Parameters, typename Real, bool fix_rng_order>
+class CtintWalkerSubmatrixGpu : public CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order> {
 public:
-  using this_type = CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>;
-  using BaseClass = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
+  using this_type = CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>;
+  using BaseClass = CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>;
   using RootClass = CtintWalkerBase<Parameters, Real>;
 
   using typename BaseClass::Data;
@@ -45,8 +44,10 @@ public:
   using typename BaseClass::Rng;
   using typename BaseClass::CudaStream;
 
-  CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
-                       int id = 0);
+  constexpr static linalg::DeviceType device = linalg::GPU;
+
+  CtintWalkerSubmatrixGpu(const Parameters& pars_ref, const Data& /*data_ref*/, Rng& rng_ref,
+                          int id = 0);
 
   void computeM(std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum);
 
@@ -143,17 +144,16 @@ private:
   using BaseClass::flop_;
 };
 
-template <class Parameters, typename Real>
-CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::CtintWalkerSubmatrix(const Parameters& pars_ref,
-                                                                          const Data& data,
-                                                                          Rng& rng_ref, int id)
+template <class Parameters, typename Real, bool fix_rng_order>
+CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixGpu(
+    const Parameters& pars_ref, const Data& data, Rng& rng_ref, int id)
     : BaseClass(pars_ref, data, rng_ref, id) {
   if (concurrency_.id() == concurrency_.first() && thread_id_ == 0)
     std::cout << "\nCT-INT submatrix walker extended to GPU." << std::endl;
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::initialize() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::initialize() {
   BaseClass::initialize();
 
   for (int s = 0; s < 2; ++s) {
@@ -162,31 +162,31 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::initialize() {
   uploadConfiguration();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::synchronize() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::synchronize() {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   cudaStreamSynchronize(get_stream(0));
   cudaStreamSynchronize(get_stream(1));
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::doSweep() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   BaseClass::doSteps();
   uploadConfiguration();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::doStep(const int n_moves_to_delay) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::doStep(const int n_moves_to_delay) {
   BaseClass::nbr_of_moves_to_delay_ = n_moves_to_delay;
   doStep();
   uploadConfiguration();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::doStep() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::doStep() {
   BaseClass::generateDelayedMoves(BaseClass::nbr_of_moves_to_delay_);
   uploadConfiguration();
 
@@ -197,8 +197,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::doStep() {
   updateM();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::uploadConfiguration() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::uploadConfiguration() {
   for (int s = 0; s < 2; ++s)
     config_copied_[s].block();
 
@@ -220,8 +220,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::uploadConfiguration() 
     config_copied_[s].record(get_stream(s));
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::computeMInit() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::computeMInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s)
@@ -249,8 +249,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::computeMInit() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::computeGInit() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::computeGInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -277,8 +277,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::computeGInit() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::updateM() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::updateM() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s)
@@ -340,8 +340,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::updateM() {
   assert(configuration_.getSector(1).size() == M_dev_[1].nrRows());
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>::computeM(
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::computeM(
     std::array<dca::linalg::Matrix<Real, linalg::GPU>, 2>& m_accum) {
   for (int s = 0; s < 2; ++s)
     m_accum[s].resizeNoCopy(M_dev_[s].size());

@@ -67,10 +67,10 @@ TEST_F(G0Setup, NoSubmatrix) {
   rng.setNewValues(std::vector<double>{getVertexRng(8), 0.19, 1, 0});
   walker_single.tryVertexInsert();
 
-  // interaction, accept
-  rng.setNewValues(std::vector<double>{0, 0});
+  // interaction, trash, trash, accept
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
   walker_single.tryVertexRemoval();
-  rng.setNewValues(std::vector<double>{0, 0});
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
   walker_single.tryVertexRemoval();
 
   auto M1 = walker_single.getM();
@@ -94,8 +94,8 @@ TEST_F(G0Setup, NoSubmatrix) {
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.24, 1, 0.19, 1, 0});
   walker_double.tryVertexInsert();
   //
-  // first_id, partner_id, accept
-  rng.setNewValues(std::vector<double>{0, 0., 0});
+  // first_id, double removal, partner_id, accept
+  rng.setNewValues(std::vector<double>{0, 0., 0, 0, 0});
   walker_double.tryVertexRemoval();
 
   auto M2 = walker_double.getM();
@@ -142,6 +142,9 @@ TEST_F(G0Setup, Submatrix) {
   walker.tryVertexInsert();
   rng.setNewValues(std::vector<double>{getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0});
   walker.tryVertexInsert();
+  // first idx, double rem, second partner, accept
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
+  walker.tryVertexRemoval();
 
   auto M1 = walker.getM();
   const double prob1 = walker.getAcceptanceProbability();
@@ -154,11 +157,14 @@ TEST_F(G0Setup, Submatrix) {
 
   WalkerSubmatrix walker_subm(parameters_, rng);
 
-  // (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
-  std::vector<double> random_vals{0, getVertexRng(6), 0,   0.41, 0, 0.53, 1, 0,
-                                  0, getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0};
+  std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
+                                  0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0,
+                                  0, getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0,
+                                  // remove, first_id, double_removal, second_id, accept
+                                  1, 0, 0, 0, 0};
+
   rng.setNewValues(random_vals);
-  walker_subm.doStep(2);
+  walker_subm.doStep(3);
 
   auto M2 = walker_subm.getM();
   const double prob2 = walker_subm.getAcceptanceProbability();

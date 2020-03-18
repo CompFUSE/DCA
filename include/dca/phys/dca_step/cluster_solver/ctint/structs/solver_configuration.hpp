@@ -51,9 +51,10 @@ public:
 
   // Returns the indices of the removal candidates. -1 stands for a missing candidate.
   template <class RngType>
-  std::array<int, 2> randomRemovalCandidate(RngType& rng, double removal_rand);
-  template <class RngType>
   std::array<int, 2> randomRemovalCandidate(RngType& rng);
+
+  // Similar to the above method, but sample vertices irrespective of their order.
+  std::array<int, 2> randomRemovalCandidateSlow(const std::array<double, 3>& rng_vals);
 
   // Out: indices. Appends the result of the search to indices.
   template <class Alloc>
@@ -92,6 +93,10 @@ public:
 
   inline double getStrength(int vertex_index) const;
   inline short getSign(int vertex_index) const;
+
+  double getDoubleUpdateProb() const{
+      return double_insertion_prob_;
+  }
 
   ushort lastInsertionSize() const {
     return last_insertion_size_;
@@ -163,13 +168,6 @@ void SolverConfiguration::insertRandom(Rng& rng) {
 
 template <class RngType>
 std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
-  return randomRemovalCandidate(rng, rng());
-}
-
-// TODO: possibly use only the above signature.
-template <class RngType>
-std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
-  // TODO: generalize to n > 2.
   std::array<int, 2> candidates{-1, -1};
   if (n_annihilatable_ == 0)
     return candidates;
@@ -185,13 +183,12 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, dou
   constexpr unsigned threshold = 10;
 
   if (n_annihilatable_ >= threshold) {
-    candidates[0] = removal_rand * size();
-    while (!vertices_[candidates[0]].annihilatable) {
+    do {
       candidates[0] = rng() * size();
-    }
+    } while (!vertices_[candidates[0]].annihilatable);
   }
   else {
-    unsigned annihilatable_idx = removal_rand * n_annihilatable_;
+    unsigned annihilatable_idx = rng() * n_annihilatable_;
     unsigned annihilatable_found = 0;
     for (int i = 0; i < vertices_.size(); ++i) {
       if (vertices_[i].annihilatable) {
