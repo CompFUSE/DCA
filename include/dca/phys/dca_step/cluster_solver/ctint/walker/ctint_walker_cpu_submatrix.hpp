@@ -129,11 +129,9 @@ protected:
 
   struct DelayedMoveType {
     Move move_type;
-
     Real removal_rng;
     Real acceptance_rng;
-    // TODO: store on the stack for n <= 2.
-    std::vector<int> indices;
+    std::array<int, 2> indices{-1, -1};
   };
 
 protected:
@@ -305,8 +303,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
       case INSERTION:
         configuration_.insertRandom(rng_);
         for (int i = 0; i < configuration_.lastInsertionSize(); ++i)
-          delayed_move.indices.push_back(configuration_.size() -
-                                         configuration_.lastInsertionSize() + i);
+          delayed_move.indices[i] = configuration_.size() - configuration_.lastInsertionSize() + i;
         break;
 
       default:
@@ -355,23 +352,22 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
     current_move_ = &delayed_moves_[delay_ind];
     const auto move_type = current_move_->move_type;
 
+    det_ratio_ = 1.;
+
+    const auto& move_indices_array =
+        move_type == INSERTION
+            ? current_move_->indices
+            : configuration_.randomRemovalCandidate(rng_, delayed_moves_[delay_ind].removal_rng);
+
     index_.clear();
-    det_ratio_ = 1;
+    for (auto x : move_indices_array) {
+      if (x >= 0)
+        index_.push_back(x);
+    }
 
     bool at_least_one_recently_added = false;
     bool all_recently_added = false;
-
-    if (move_type == INSERTION)
-      index_ = delayed_moves_[delay_ind].indices;
-    else {  // move_type == REMOVAL
-      index_.clear();
-      const auto candidates =
-          configuration_.randomRemovalCandidate(rng_, delayed_moves_[delay_ind].removal_rng);
-      for (const int candidate : candidates) {
-        if (candidate != -1)
-          index_.push_back(candidate);
-      }
-
+    if (move_type == REMOVAL) {
       // Check if the vertex to remove was inserted during the current submatrix update.
       const auto recently_added = [=](int id) { return id >= config_size_init_; };
       all_recently_added = math::util::all(index_, recently_added);
