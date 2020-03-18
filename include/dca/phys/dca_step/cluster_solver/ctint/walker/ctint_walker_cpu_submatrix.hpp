@@ -37,21 +37,21 @@ namespace phys {
 namespace solver {
 namespace ctint {
 
-template <class Parameters, typename Real>
-class CtintWalkerSubmatrix<linalg::CPU, Parameters, Real> : public CtintWalkerBase<Parameters, Real> {
+template <class Parameters, typename Real, bool fix_rng_order>
+class CtintWalkerSubmatrixCpu : public CtintWalkerBase<Parameters, Real> {
 public:
-  using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
+  using this_type = CtintWalkerSubmatrixCpu;
   using BaseClass = CtintWalkerBase<Parameters, Real>;
   using typename BaseClass::Rng;
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::CudaStream;
 
-  CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
+  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
   void initialize(bool last_iter);
 
-  virtual ~CtintWalkerSubmatrix() = default;
+  virtual ~CtintWalkerSubmatrixCpu() = default;
 
   virtual void doSweep();
 
@@ -129,7 +129,7 @@ protected:
 
   struct DelayedMoveType {
     Move move_type;
-    Real removal_rng;
+    std::array<Real, 3> removal_rng;
     Real acceptance_rng;
     std::array<int, 2> indices{-1, -1};
   };
@@ -198,8 +198,8 @@ protected:
   using BaseClass::flop_;
 };
 
-template <class Parameters, typename Real>
-CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::CtintWalkerSubmatrix(
+template <class Parameters, typename Real, bool fix_rng_order>
+CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixCpu(
     const Parameters& parameters_ref, const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id) {
   for (int b = 0; b < n_bands_; ++b) {
@@ -221,20 +221,21 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::CtintWalkerSubmatrix(
     std::cout << "\nCT-INT submatrix walker created." << std::endl;
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::initialize(bool last_iter) {
+template <class Parameters, typename Real, bool fix_rng_order>
+
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::initialize(bool last_iter) {
   BaseClass::initialize(last_iter);
   transformM();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSweep() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   doSteps();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSteps() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::doSteps() {
   // Here nbr_of_steps is the number of single steps/moves during the current sweep,
   // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
 
@@ -257,15 +258,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSteps() {
   BaseClass::updateSweepAverages();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doStep() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::doStep() {
   generateDelayedMoves(nbr_of_moves_to_delay_);
   doSubmatrixUpdate();
 }
 
 // Do one step with arbitrary number of moves. For testing.
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doStep(const int nbr_of_movesto_delay) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::doStep(const int nbr_of_movesto_delay) {
   std::cout << "\nStarted doStep() function for testing." << std::endl;
 
   generateDelayedMoves(nbr_of_movesto_delay);
@@ -275,14 +276,12 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doStep(const int nbr_o
   doSubmatrixUpdate();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::generateDelayedMoves(
     const int nbr_of_movesto_delay) {
   assert(nbr_of_movesto_delay > 0);
 
   delayed_moves_.clear();
-
-  int nbr_of_moves = 0;
 
   for (int s = 0; s < 2; ++s) {
     n_init_[s] = configuration_.getSector(s).size();
@@ -290,14 +289,19 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
   n_ = config_size_init_ = configuration_.size();
 
   // Generate delayed moves.
-  while (nbr_of_moves < nbr_of_movesto_delay) {
+  for (int i = 0; i < nbr_of_movesto_delay; ++i) {
     DelayedMoveType delayed_move;
 
     delayed_move.move_type = generateMoveType();
 
     switch (delayed_move.move_type) {
       case REMOVAL:
-        delayed_move.removal_rng = rng_();
+        if constexpr (fix_rng_order) {
+          if (configuration_.getDoubleUpdateProb())
+            delayed_move.removal_rng = {rng_(), rng_(), rng_()};
+          else
+            delayed_move.removal_rng[0] = rng_();
+        }
         break;
 
       case INSERTION:
@@ -312,8 +316,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
 
     delayed_move.acceptance_rng = rng_();
     delayed_moves_.push_back(delayed_move);
-
-    ++nbr_of_moves;
   }
 
   for (int s = 0; s < 2; ++s) {
@@ -325,16 +327,16 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateDelayedMoves(
   std::iota(conf_removal_list_.begin(), conf_removal_list_.end(), config_size_init_);
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::doSubmatrixUpdate() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::doSubmatrixUpdate() {
   computeMInit();
   computeGInit();
   mainSubmatrixProcess();
   updateM();
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::mainSubmatrixProcess() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -353,16 +355,23 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
     const auto move_type = current_move_->move_type;
 
     det_ratio_ = 1.;
+    std::array<int, 2> indices_array;
 
-    const auto& move_indices_array =
-        move_type == INSERTION
-            ? current_move_->indices
-            : configuration_.randomRemovalCandidate(rng_, delayed_moves_[delay_ind].removal_rng);
+    if (move_type == INSERTION) {
+      indices_array = current_move_->indices;
+    }
+    else {  // move_type == REMOVAL
+      if constexpr (fix_rng_order)
+        indices_array =
+            configuration_.randomRemovalCandidateSlow(delayed_moves_[delay_ind].removal_rng);
+      else
+        indices_array = configuration_.randomRemovalCandidate(rng_);
+    }
 
     index_.clear();
-    for (auto x : move_indices_array) {
-      if (x >= 0)
-        index_.push_back(x);
+    for (auto idx : indices_array) {
+      if (idx >= 0)
+        index_.push_back(idx);
     }
 
     bool at_least_one_recently_added = false;
@@ -534,8 +543,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
   }
 }  // namespace ctint
 
-template <class Parameters, typename Real>
-Move CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateMoveType() {
+template <class Parameters, typename Real, bool fix_rng_order>
+Move CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::generateMoveType() {
   if (rng_() <= 0.5)
     return INSERTION;
   else
@@ -544,8 +553,8 @@ Move CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::generateMoveType() {
 
 // Extend M by adding non-interacting vertices.
 // M is not computed again and should be up-to-date.
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeMInit() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeMInit() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -587,8 +596,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeMInit() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeGInit() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeGInit() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -620,8 +629,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeGInit() {
   }
 }
 
-template <class Parameters, typename Real>
-auto CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeAcceptanceProbability() -> Real {
+template <class Parameters, typename Real, bool fix_rng_order>
+auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptanceProbability()
+    -> Real {
   Real acceptance_probability = det_ratio_;
 
   Real gamma_factor = 1;
@@ -681,8 +691,8 @@ auto CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeAcceptanceProba
   return acceptance_probability;
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateGammaInv(int s) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::updateGammaInv(int s) {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   const int delta = s_[s].nrRows();
   if (delta == 0)
@@ -715,8 +725,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateGammaInv(int s) 
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateM() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::updateM() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
@@ -761,8 +771,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::updateM() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::findSectorIndices(const int s) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::findSectorIndices(const int s) {
   sector_indices_[s].clear();
   for (auto index : index_) {
     configuration_.findIndices(sector_indices_[s], index, s);
@@ -775,8 +785,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::findSectorIndices(cons
 
 // Remove row and column of Gamma_inv with Woodbury's formula.
 // Gamma <- Gamma - U.V => GammaInv <- GammaInv + GammaInv.U.(Id-V.GammaInv.U)^(-1).V.GammaInv.
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::removeRowAndColOfGammaInv() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::removeRowAndColOfGammaInv() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   for (int s = 0; s < 2; ++s) {
     const int delta = Gamma_indices_[s].size();
@@ -834,8 +844,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::removeRowAndColOfGamma
 }
 
 // This method is unused and left to potentially use as a testing reference.
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::recomputeGammaInv() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::recomputeGammaInv() {
   for (int s = 0; s < 2; ++s) {
     if (Gamma_inv_[s].nrRows() > 0)
       linalg::matrixop::inverse(Gamma_inv_[s]);
@@ -866,8 +876,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::recomputeGammaInv() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::transformM() {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::transformM() {
   for (int s = 0; s < 2; ++s) {
     for (int j = 0; j < M_[s].size().second; ++j) {
       for (int i = 0; i < M_[s].size().first; ++i) {
@@ -880,8 +890,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::transformM() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeM(
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeM(
     typename BaseClass::MatrixPair& m_accum) {
   for (int s = 0; s < 2; ++s) {
     m_accum[s].resizeNoCopy(M_[s].size());
@@ -897,8 +907,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeM(
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeInsertionMatrices(
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeInsertionMatrices(
     const std::vector<int>& insertion_indices, const int s) {
   const int delta = insertion_indices.size();
 
@@ -933,8 +943,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeInsertionMatric
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeRemovalMatrix(const int s) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeRemovalMatrix(const int s) {
   const int delta = Gamma_indices_[s].size();
   s_[s].resizeNoCopy(delta);
   for (int j = 0; j < delta; ++j)
@@ -942,8 +952,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeRemovalMatrix(c
       s_[s](i, j) = Gamma_inv_[s](Gamma_indices_[s][i], Gamma_indices_[s][j]);
 }
 
-template <class Parameters, typename Real>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeMixedInsertionAndRemoval(int s) {
+template <class Parameters, typename Real, bool fix_rng_order>
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeMixedInsertionAndRemoval(int s) {
   Gamma_inv_cpy_[s] = Gamma_inv_[s];
 
   if (sector_indices_[s].size() == 0) {

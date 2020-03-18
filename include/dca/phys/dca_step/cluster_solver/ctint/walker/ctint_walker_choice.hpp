@@ -31,21 +31,25 @@ struct CtintWalkerChoicheSelector;
 
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, Real, false>;
 };
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
   using type = CtintWalker<linalg::CPU, Parameters, Real>;
 };
 
+#ifdef DCA_HAVE_CUDA
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrix<linalg::GPU, Parameters, Real>;
+  using type = CtintWalkerSubmatrixGpu<Parameters, Real, false>;
 };
+
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real> {
   // There is only a submatrix implementation of the GPU walker.
 };
+#endif  // DCA_HAVE_CUDA
+
 }  // namespace
 
 template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Real>

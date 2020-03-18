@@ -30,6 +30,14 @@ dca_add_gtest(ctint_fe_as_test
     LIBS     ${TEST_LIBS}
     )
 
+dca_add_gtest(ctint_double_update_comparison_test
+        EXTENSIVE
+        GTEST_MAIN
+        INCLUDE_DIRS ${TEST_INCLUDES}
+        LIBS     ${TEST_LIBS}
+   )
+
+
 dca_add_gtest(ctint_square_lattice_tp_test
     EXTENSIVE
     GTEST_MAIN

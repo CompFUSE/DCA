@@ -144,7 +144,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::doStep() {
     if (configuration_.size())
       n_accepted_ += tryVertexRemoval();
     else {
-      rng_(), rng_();  // Burn random numbers for testing consistency.
+      rng_(), rng_(), rng_();  // Burn random numbers for testing consistency.
     }
   }
 
