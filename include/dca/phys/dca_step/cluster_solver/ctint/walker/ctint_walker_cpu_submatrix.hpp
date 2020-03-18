@@ -165,7 +165,8 @@ protected:
   std::array<int, 2> Gamma_size_;
   std::array<std::vector<int>, 2> Gamma_indices_;
   std::array<std::vector<int>, 2> sector_indices_;
-  Move move_type;
+
+  const DelayedMoveType* current_move_;
 
   std::array<unsigned, 2> nbr_of_indices_;
 
@@ -351,7 +352,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
   std::vector<int> aux_spin_type, new_aux_spin_type, move_band;
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
-    move_type = delayed_moves_[delay_ind].move_type;
+    current_move_ = &delayed_moves_[delay_ind];
+    const auto move_type = current_move_->move_type;
+
     index_.clear();
     det_ratio_ = 1;
 
@@ -626,6 +629,7 @@ auto CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeAcceptanceProba
   Real acceptance_probability = det_ratio_;
 
   Real gamma_factor = 1;
+  const auto move_type = current_move_->move_type;
   for (int s = 0; s < 2; ++s) {
     if (!sector_indices_[s].size())
       continue;
@@ -660,7 +664,7 @@ auto CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::computeAcceptanceProba
     else if (delta_vertices == 2) {
       const Real combinatorial_factor =
           (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<Real>(possible_partners_);
-      acceptance_probability *= configuration_.getStrength(n_ + 1) * K / combinatorial_factor;
+      acceptance_probability *= configuration_.getStrength(index_[1]) * K / combinatorial_factor;
     }
     else
       throw(std::logic_error("Not implemented"));
