@@ -108,7 +108,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       reader.open_file(DCA_SOURCE_DIR
                        "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
       reader.open_group("functions");
-      reader.execute(Sigma_check);
+      ASSERT_TRUE(reader.execute(Sigma_check));
       reader.close_file();
 
       // Compare the computed self-energy with the expected result.

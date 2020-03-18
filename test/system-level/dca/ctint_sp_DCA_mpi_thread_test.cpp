@@ -33,7 +33,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -80,7 +80,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     const std::string baseline_name =
         DCA_SOURCE_DIR "/test/system-level/dca/baseline_ctint_sp_DCA_mpi_thread_test.hdf5";
 
-    if (not update_baseline) {
+    if (!update_baseline) {
       std::cout << "\nProcessor " << concurrency.id() << " is checking data " << std::endl;
 
       // Read self-energy from check_data file.
