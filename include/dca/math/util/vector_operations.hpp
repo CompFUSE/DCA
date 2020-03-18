@@ -269,7 +269,7 @@ auto operator+(const std::vector<T>& x, const std::vector<T>& y) {
 }
 template <typename T>
 auto operator-(const std::vector<T>& x, const std::vector<T>& y) {
-  return subtract(y, x); // Note: subtract(x, y) is defined as y - x;
+  return subtract(y, x);  // Note: subtract(x, y) is defined as y - x;
 }
 
 template <class T, class Alloc, class Pred>
@@ -288,6 +288,28 @@ void erase_with_reorder_if(std::vector<T, Alloc>& vec, Pred&& pred) {
       ++it;
     }
   }
+}
+
+// Returns true if pred evaluates to true for any element of v. Returns false if v is empty.
+template <class Vec>
+bool any(const Vec& v, const std::function<bool(typename Vec::value_type)>& pred) {
+  for (const auto& x : v) {
+    if (pred(x)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Returns true if pred evaluates to true for all element of v. Returns true if v is empty.
+template <class Vec>
+bool all(const Vec& v, const std::function<bool(typename Vec::value_type)>& pred) {
+  for (const auto& x : v) {
+    if (!pred(x)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace util

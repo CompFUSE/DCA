@@ -224,7 +224,7 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::CtintWalkerSubmatrix(
 
 template <class Parameters, typename Real>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::initialize(bool last_iter) {
-    BaseClass::initialize(last_iter);
+  BaseClass::initialize(last_iter);
   transformM();
 }
 
@@ -357,6 +357,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
 
     bool at_least_one_recently_added = false;
     bool all_recently_added = false;
+
     if (move_type == INSERTION)
       index_ = delayed_moves_[delay_ind].indices;
     else {  // move_type == REMOVAL
@@ -369,11 +370,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters, Real>::mainSubmatrixProcess()
       }
 
       // Check if the vertex to remove was inserted during the current submatrix update.
-      all_recently_added = true;
-      for (auto index : index_) {
-        at_least_one_recently_added |= index >= config_size_init_;
-        all_recently_added &= index >= config_size_init_;
-      }
+      const auto recently_added = [=](int id) { return id >= config_size_init_; };
+      all_recently_added = math::util::all(index_, recently_added);
+      at_least_one_recently_added = math::util::any(index_, recently_added);
     }
 
     for (int s = 0; s < 2; ++s) {
