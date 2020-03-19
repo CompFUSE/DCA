@@ -44,7 +44,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-  Walker::setInteractionVertices(*data_);
+  Walker::setInteractionVertices(*data_, parameters_);
 
   parameters_.setDoubleUpdateProbability(0);
   Walker walker_single(parameters_, rng);
@@ -132,7 +132,7 @@ TEST_F(G0Setup, Submatrix) {
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-  Walker::setInteractionVertices(*data_);
+  Walker::setInteractionVertices(*data_, parameters_);
   parameters_.setDoubleUpdateProbability(1);
 
   Walker walker(parameters_, rng);
@@ -153,7 +153,7 @@ TEST_F(G0Setup, Submatrix) {
 
   WalkerSubmatrix::setDMatrixBuilder(g0);
   WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
-  WalkerSubmatrix::setInteractionVertices(*data_);
+  WalkerSubmatrix::setInteractionVertices(*data_, parameters_);
 
   WalkerSubmatrix walker_subm(parameters_, rng);
 

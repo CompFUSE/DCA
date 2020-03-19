@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0);
   Walker<device>::setDMatrixAlpha(parameters.getAlphas(), false);
-  Walker<device>::setInteractionVertices(data);
+  Walker<device>::setInteractionVertices(data, parameters);
 
   auto printTime = [](const std::string& str, const auto& start, const auto& end) {
     dca::profiling::Duration time(end, start);

@@ -121,7 +121,6 @@ protected:
   using BaseClass::M_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
-  using BaseClass::possible_partners_;
 
   using BaseClass::thermalized_;
 
@@ -668,8 +667,9 @@ auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptance
       acceptance_probability *= K / (n_ + 1);
     }
     else if (delta_vertices == 2) {
+      const Real possible_partners = configuration_.possiblePartners(index_[0]);
       const Real combinatorial_factor =
-          (n_ + 2) * (configuration_.nPartners(n_) + 1) / static_cast<Real>(possible_partners_);
+          (n_ + 2) * (configuration_.nPartners(index_[0]) + 1) / possible_partners;
       acceptance_probability *= configuration_.getStrength(index_[1]) * K / combinatorial_factor;
     }
     else
@@ -680,8 +680,8 @@ auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptance
       acceptance_probability *= n_ / K;
     }
     else if (delta_vertices == 2) {
-      const int combinatorial_factor =
-          n_ * configuration_.nPartners(index_[0]) / static_cast<Real>(possible_partners_);
+      const Real possible_partners = configuration_.possiblePartners(index_[0]);
+      const Real combinatorial_factor = n_ * configuration_.nPartners(index_[0]) / possible_partners;
       acceptance_probability *= combinatorial_factor / (configuration_.getStrength(index_[1]) * K);
     }
     else

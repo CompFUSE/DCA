@@ -66,8 +66,8 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
   SbmWalkerGpu::setDMatrixAlpha(parameters.getAlphas(), false);
 
-  SbmWalkerCpu::setInteractionVertices(data);
-  SbmWalkerGpu::setInteractionVertices(data);
+  SubmatrixWalker<CPU>::setInteractionVertices(*data_, parameters_);
+  SubmatrixWalker<GPU>::setInteractionVertices(*data_, parameters_);
 
   // ************************************
   // Test vertex insertion / removal ****

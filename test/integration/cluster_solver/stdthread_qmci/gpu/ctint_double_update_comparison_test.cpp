@@ -48,7 +48,8 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
                                     RngType, dca::phys::solver::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
-  using Walker =
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, dca::linalg::CPU, double>;
+  using WalkerSub =
       testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, double>;
 
   Concurrency concurrency(0, nullptr);
@@ -69,6 +70,9 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), parameters.adjustAlphaDd());
   Walker::setInteractionVertices(data);
+  WalkerSub::setDMatrixBuilder(g0);
+  WalkerSub::setDMatrixAlpha(parameters.getAlphas(), parameters.adjustAlphaDd());
+  WalkerSub::setInteractionVertices(data);
 
   RealRng rng(0, 1);
   std::vector<double> rng_vals(10000);
@@ -76,16 +80,13 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     x = rng();
   RngType rng1(rng_vals), rng2(rng_vals);
 
-  parameters.setMaxSubmatrixSize(1);
   Walker walker1(parameters, rng1);
 
   parameters.setMaxSubmatrixSize(16);
-  Walker walker2(parameters, rng2);
+  WalkerSub walker2(parameters, rng2);
 
   for (int i = 0; i < 64; ++i) {
-    parameters.setMaxSubmatrixSize(1);
     walker1.doSweep();
-    parameters.setMaxSubmatrixSize(16);
     walker2.doSweep();
 
     EXPECT_NEAR(walker1.getAcceptanceProbability(), walker2.getAcceptanceProbability(), 5e-7);

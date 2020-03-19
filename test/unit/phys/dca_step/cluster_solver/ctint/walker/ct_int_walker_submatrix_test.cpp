@@ -57,7 +57,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   typename TestFixture::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), false);
-  Walker::setInteractionVertices(data);
+  Walker::setInteractionVertices(data, parameters);
 
   // ************************************
   // Test vertex insertion / removal ****

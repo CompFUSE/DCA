@@ -86,7 +86,6 @@ protected:
   using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
-  using BaseClass::possible_partners_;
   using BaseClass::sign_;
   using BaseClass::thread_id_;
 
@@ -222,10 +221,11 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
   const Real combinatorial_factor =
       delta_vertices == 1 ? old_size + 1 : (old_size + 2) * (configuration_.nPartners(old_size) + 1);
 
-  const Real strength_factor =
-      delta_vertices == 1 ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
-                          : total_interaction_ * beta_ * beta_ *
-                                std::abs(configuration_.getStrength(old_size)) * possible_partners_;
+  const Real strength_factor = delta_vertices == 1
+                                   ? -beta_ * total_interaction_ * configuration_.getSign(old_size)
+                                   : total_interaction_ * beta_ * beta_ *
+                                         std::abs(configuration_.getStrength(old_size)) *
+                                         configuration_.possiblePartners(old_size);
 
   const Real det_ratio = det_ratio_[0] * det_ratio_[1];
 
@@ -265,9 +265,10 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
   const Real combinatorial_factor =
       n_removed == 1 ? n : n * configuration_.nPartners(removal_list_[0]);
   const Real strength_factor =
-      n_removed == 1 ? -beta_ * total_interaction_ * configuration_.getSign(removal_list_[0])
-                     : total_interaction_ * beta_ * beta_ * possible_partners_ *
-                           std::abs(configuration_.getStrength(removal_list_[0]));
+      n_removed == 1
+          ? -beta_ * total_interaction_ * configuration_.getSign(removal_list_[0])
+          : total_interaction_ * beta_ * beta_ * configuration_.possiblePartners(removal_list_[0]) *
+                std::abs(configuration_.getStrength(removal_list_[0]));
 
   const Real det_ratio = det_ratio_[0] * det_ratio_[1];
 
