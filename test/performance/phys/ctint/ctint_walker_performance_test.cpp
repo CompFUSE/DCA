@@ -16,7 +16,6 @@
 #include <cuda_profiler_api.h>
 #endif
 
-#include "dca/config/mc_options.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
@@ -38,7 +37,7 @@
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
 
-using Real = dca::config::McOptions::MCScalar;
+using Real = float;
 
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
