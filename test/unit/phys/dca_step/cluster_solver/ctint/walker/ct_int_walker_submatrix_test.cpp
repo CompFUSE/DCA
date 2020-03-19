@@ -23,28 +23,41 @@
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
-using G0Setup =
+template <typename Real>
+using CtintWalkerSubmatrixTest =
     typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT, input_name>;
+
 using namespace dca::phys::solver;
-using SubmatrixWalker = testing::phys::solver::ctint::WalkerWrapperSubmatrix<G0Setup::Parameters>;
-using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters>;
-using Matrix = Walker::Matrix;
-using MatrixPair = std::array<Matrix, 2>;
+
+using FloatingPointTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(CtintWalkerSubmatrixTest, FloatingPointTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
 // acceptance probability to
 // the CTINT walker with no submatrix update.
-TEST_F(G0Setup, doSteps) {
+TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
+  using Real = TypeParam;
+  using Parameters = typename TestFixture::Parameters;
+
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, Real>;
+  using Matrix = typename Walker::Matrix;
+  using MatrixPair = std::array<Matrix, 2>;
+  using SubmatrixWalker =
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
-  G0Setup::RngType rng(setup_rngs);
+  typename TestFixture::RngType rng(setup_rngs);
 
-  ctint::G0Interpolation<dca::linalg::CPU, double> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
-  G0Setup::LabelDomain label_dmn;
+  auto& data = *TestFixture::data_;
+  auto& parameters = TestFixture::parameters_;
+
+  ctint::G0Interpolation<dca::linalg::CPU, Real> g0(
+      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  typename TestFixture::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-    Walker::setInteractionVertices(*data_);
+  Walker::setDMatrixAlpha(parameters.getAlphas(), false);
+  Walker::setInteractionVertices(data, parameters);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -82,7 +95,7 @@ TEST_F(G0Setup, doSteps) {
 
   for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
-    SubmatrixWalker walker(parameters_, rng);
+    SubmatrixWalker walker(parameters, rng);
 
     MatrixPair old_M(walker.getM());
     rng.setNewValues(rng_vals);
@@ -94,18 +107,21 @@ TEST_F(G0Setup, doSteps) {
     walker.setMFromConfig();
     MatrixPair direct_M(walker.getM());
 
+    constexpr auto tolerance = 1000 * std::numeric_limits<Real>::epsilon();
+
     for (int s = 0; s < 2; ++s)
-      EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], 1e-7));
+      EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
-    Walker walker_nosub(parameters_, rng);
+    Walker walker_nosub(parameters, rng);
 
     rng.setNewValues(rng_nosub_vals);
     for (int i = 0; i < steps; ++i)
       walker_nosub.doStep();
 
-    EXPECT_NEAR(walker.getAcceptanceProbability(), walker_nosub.getAcceptanceProbability(), 1e-5);
+    EXPECT_NEAR(walker.getAcceptanceProbability(), walker_nosub.getAcceptanceProbability(),
+                tolerance);
 
     auto config_nosubm = walker_nosub.getWalkerConfiguration();
     ASSERT_EQ(config.size(), config_nosubm.size());

@@ -68,7 +68,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), parameters.adjustAlphaDd());
-  Walker::setInteractionVertices(data);
+  Walker::setInteractionVertices(data, parameters);
 
   RealRng rng(0, 1);
   std::vector<double> rng_vals(10000);
@@ -82,7 +82,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   parameters.setMaxSubmatrixSize(16);
   Walker walker2(parameters, rng2);
 
-  for (int i = 0; i < 64; ++i) {
+  for (int i = 0; i < 128; ++i) {
     parameters.setMaxSubmatrixSize(1);
     walker1.doSweep();
     parameters.setMaxSubmatrixSize(16);

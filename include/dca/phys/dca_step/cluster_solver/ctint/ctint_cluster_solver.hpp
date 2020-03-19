@@ -157,7 +157,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Para
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
   Walker::setDMatrixBuilder(g0_);
   TimeCorrelator<Parameters, Real, device_t>::setG0(g0_);
-  Walker::setInteractionVertices(data_);
+  Walker::setInteractionVertices(data_, parameters_);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";

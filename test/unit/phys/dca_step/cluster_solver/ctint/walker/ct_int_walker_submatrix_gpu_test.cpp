@@ -27,36 +27,47 @@ using dca::linalg::GPU;
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
-using G0Setup =
+template <typename Real>
+using CtintWalkerSubmatrixGpuTest =
     typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT, input_name>;
+
 using namespace dca::phys::solver;
-template <dca::linalg::DeviceType device>
-using SubmatrixWalker =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<G0Setup::Parameters, device>;
-using Matrix = dca::linalg::Matrix<double, CPU>;
-using MatrixPair = std::array<Matrix, 2>;
+
+using FloatingPointTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(CtintWalkerSubmatrixGpuTest, FloatingPointTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
 // acceptance probability to
 // the CTINT walker with no submatrix update.
-TEST_F(G0Setup, doSteps) {
+TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
+  using Real = TypeParam;
+  using Parameters = typename TestFixture::Parameters;
+
+  using SbmWalkerCpu =
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+  using SbmWalkerGpu =
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::GPU, Real>;
+
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
-  G0Setup::RngType rng(setup_rngs);
+  typename TestFixture::RngType rng(setup_rngs);
 
-  const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t);
-  ctint::G0Interpolation<CPU, double> g0_cpu(g0_func);
-  ctint::G0Interpolation<GPU, double> g0_gpu(g0_func);
-  G0Setup::LabelDomain label_dmn;
+  auto& data = *TestFixture::data_;
+  auto& parameters = TestFixture::parameters_;
+
+  const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t);
+  ctint::G0Interpolation<CPU, Real> g0_cpu(g0_func);
+  ctint::G0Interpolation<GPU, Real> g0_gpu(g0_func);
+  typename TestFixture::LabelDomain label_dmn;
 
   // TODO: improve API.
-  SubmatrixWalker<CPU>::setDMatrixBuilder(g0_cpu);
-  SubmatrixWalker<CPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
-  SubmatrixWalker<GPU>::setDMatrixBuilder(g0_gpu);
-  SubmatrixWalker<GPU>::setDMatrixAlpha(parameters_.getAlphas(), false);
+  SbmWalkerCpu::setDMatrixBuilder(g0_cpu);
+  SbmWalkerCpu::setDMatrixAlpha(parameters.getAlphas(), false);
+  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
+  SbmWalkerGpu::setDMatrixAlpha(parameters.getAlphas(), false);
 
-    SubmatrixWalker<CPU>::setInteractionVertices(*data_);
-    SubmatrixWalker<GPU>::setInteractionVertices(*data_);
+  SbmWalkerCpu::setInteractionVertices(data, parameters);
+  SbmWalkerGpu::setInteractionVertices(data, parameters);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -80,23 +91,25 @@ TEST_F(G0Setup, doSteps) {
   };
 
   for (const int initial_size : std::array<int, 2>{0, 5}) {
-    parameters_.setInitialConfigurationSize(initial_size);
+    parameters.setInitialConfigurationSize(initial_size);
 
     for (int steps = 1; steps <= 8; ++steps) {
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<CPU> walker_cpu(parameters_, rng);
+      SbmWalkerCpu walker_cpu(parameters, rng);
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<GPU> walker_gpu(parameters_, rng);
+      SbmWalkerGpu walker_gpu(parameters, rng);
 
       rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);
       rng.setNewValues(rng_vals);
       walker_gpu.doStep(steps);
 
+      constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 100;
+
       auto M_cpu = walker_cpu.getM();
       auto M_gpu = walker_gpu.getM();
       for (int s = 0; s < 2; ++s)
-        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], 1e-7));
+        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();

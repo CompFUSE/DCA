@@ -64,7 +64,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, Real>;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), 0);
-  Walker::setInteractionVertices(data);
+  Walker::setInteractionVertices(data, parameters);
 
   Walker walker(parameters, rng);
 

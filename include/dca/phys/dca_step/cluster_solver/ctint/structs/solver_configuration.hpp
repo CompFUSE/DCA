@@ -109,8 +109,9 @@ public:
   // Return index corresponding to tag.
   int findTag(std::uint64_t tag) const;
 
-  auto possiblePartners() const {
-    return H_int_->possiblePartners();
+  auto possiblePartners(unsigned idx) const {
+    assert(idx < vertices_.size());
+    return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
   void write(io::HDF5Writer&, const std::string&) const {

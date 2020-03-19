@@ -32,7 +32,7 @@ using MatrixPair = std::array<Matrix, 2>;
 
 auto getVertexRng = [](int id) {
   const double n_vertices = 12.;
-  return (n_vertices - id - 0.1) / n_vertices;
+  return (n_vertices - id - 0.5) / n_vertices;
 };
 
 // Compare single versus double update without a submatrix update.
@@ -44,7 +44,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-  Walker::setInteractionVertices(*data_);
+  Walker::setInteractionVertices(*data_, parameters_);
 
   parameters_.setDoubleUpdateProbability(0);
   Walker walker_single(parameters_, rng);
@@ -67,10 +67,10 @@ TEST_F(G0Setup, NoSubmatrix) {
   rng.setNewValues(std::vector<double>{getVertexRng(8), 0.19, 1, 0});
   walker_single.tryVertexInsert();
 
-  // interaction, trash, trash, accept
-  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
+  // interaction, accept
+  rng.setNewValues(std::vector<double>{0, 0});
   walker_single.tryVertexRemoval();
-  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
+  rng.setNewValues(std::vector<double>{0, 0});
   walker_single.tryVertexRemoval();
 
   auto M1 = walker_single.getM();
@@ -132,7 +132,7 @@ TEST_F(G0Setup, Submatrix) {
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-  Walker::setInteractionVertices(*data_);
+  Walker::setInteractionVertices(*data_, parameters_);
   parameters_.setDoubleUpdateProbability(1);
 
   Walker walker(parameters_, rng);
@@ -153,13 +153,13 @@ TEST_F(G0Setup, Submatrix) {
 
   WalkerSubmatrix::setDMatrixBuilder(g0);
   WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
-  WalkerSubmatrix::setInteractionVertices(*data_);
+  WalkerSubmatrix::setInteractionVertices(*data_, parameters_);
 
   WalkerSubmatrix walker_subm(parameters_, rng);
 
   std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
-                                  0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0,
-                                  0, getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0,
+                                  0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0, 0, getVertexRng(7),
+                                  0.9, 0.34, 0, 0.36, 0, 0,
                                   // remove, first_id, double_removal, second_id, accept
                                   1, 0, 0, 0, 0};
 
