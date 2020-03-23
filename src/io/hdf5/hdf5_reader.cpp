@@ -59,16 +59,22 @@ std::string HDF5Reader::get_path() {
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path() + "/" + name;
-
   if (!exists(full_name)) {
     return false;
   }
 
-  auto dims = readSize(full_name);
-  assert(dims.size() == 1);
-  value.resize(dims.at(0));
+  H5::DataSet dataset = file_->openDataSet(full_name.c_str());
+  const auto type = dataset.getDataType();
 
-  read(full_name, HDF5_TYPE<char>::get_PredType(), value.data());
+  const auto size = type.getSize();
+  value.resize(size);
+
+  dataset.read(value.data(), type);
+
+  // Null string case.
+  if (value == std::string{0})
+    value = "";
+
   return true;
 }
 

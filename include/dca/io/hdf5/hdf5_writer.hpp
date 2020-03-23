@@ -146,7 +146,7 @@ private:
 
   bool exists(const std::string& name) const;
 
-  void write(const std::string& name, const std::vector<hsize_t>& size, H5::PredType type,
+  void write(const std::string& name, const std::vector<hsize_t>& size, H5::DataType type,
              const void* data);
 
   std::unique_ptr<H5::H5File> file_;

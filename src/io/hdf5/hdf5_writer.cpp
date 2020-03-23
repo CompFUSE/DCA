@@ -83,9 +83,16 @@ std::string HDF5Writer::get_path() {
 void HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {
+  // HDF5 does not allow a datatype of size 0.
+  if (value.size() == 0)
+    return execute(name, std::string{0});
+
   std::string full_name = get_path() + '/' + name;
 
-  write(full_name, std::vector<hsize_t>{value.size()}, HDF5_TYPE<char>::get_PredType(), value.data());
+  // String type.
+  H5::StrType datatype(H5::PredType::C_S1, value.size());
+
+  write(full_name, std::vector<hsize_t>{1}, datatype, value.data());
 }
 
 void HDF5Writer::execute(const std::string& name,
@@ -106,7 +113,7 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims, H5::PredType type,
+void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims, H5::DataType type,
                        const void* data) {
   if (exists(name)) {
     H5::DataSet dataset = file_->openDataSet(name.c_str());
