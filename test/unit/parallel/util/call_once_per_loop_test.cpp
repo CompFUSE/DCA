@@ -30,7 +30,7 @@ int task(unsigned int loop_id, std::vector<int>& data) {
 }
 
 TEST(CallOncePerLoopTest, All) {
-  const int n_loops(10);
+  const int n_loops(1000);
   std::vector<int> result(n_loops, 0);
 
   {
