@@ -5,7 +5,8 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: John Biddiscombe (john.biddiscombe@cscs.ch) 
+//         Weile Wei (wwei9@lsu.edu)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for parallelizing with HPX.
@@ -25,7 +26,7 @@
 #include <hpx/debugging/demangle_helper.hpp>
 #include <hpx/include/parallel_executors.hpp>
 #include <hpx/util/yield_while.hpp>
-//
+
 #include <vector>
 #include <thread>
 #include <algorithm>

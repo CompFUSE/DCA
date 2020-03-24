@@ -9,7 +9,7 @@
 //
 // This file tests thread_pool.hpp.
 
-#include "dca/config/threading.hpp"
+#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
 #include <numeric>
 
@@ -22,8 +22,8 @@ TEST(ThreadPoolTest, Enqueue) {
   std::vector<int> output(n_items, 0);
   std::iota(input.begin(), input.end(), 0);
 
-  auto workload = [](const std::size_t id, const std::vector<int>& inp, std::vector<int>& out) {
-    hpx::this_thread::sleep_for(std::chrono::milliseconds(5));
+  auto workload = [](const int id, const std::vector<int>& inp, std::vector<int>& out) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
     out[id] = inp[id] * inp[id];
   };
 
@@ -33,48 +33,48 @@ TEST(ThreadPoolTest, Enqueue) {
     EXPECT_EQ(n_threads, pool.size());
 
     auto task = std::bind(workload, std::placeholders::_1, std::ref(input), std::ref(output));
-    std::vector<dca::parallel::thread_traits::future_type<void>> futures;
-    for (std::size_t id = 0; id < n_items; ++id)
-      futures.emplace_back(hpx::async(task, id));
+    std::vector<std::future<void>> futures;
+    for (int id = 0; id < n_items; ++id)
+      futures.emplace_back(pool.enqueue(task, id));
 
     // Check the synchronization with futures.
-    for (std::size_t id = 0; id < n_immediate_checks; ++id) {
-      futures[id].get();
+    for (int id = 0; id < n_immediate_checks; ++id) {
+      futures[id].wait();
       EXPECT_EQ(input[id] * input[id], output[id]);
     }
   }
 
   // Check that the other tasks finished before the pool is destroyed.
-  for (std::size_t id = n_immediate_checks; id < n_items; ++id)
+  for (int id = n_immediate_checks; id < n_items; ++id)
     EXPECT_EQ(input[id] * input[id], output[id]);
 }
 
 TEST(ThreadPoolTest, Enlarge) {
   dca::parallel::ThreadPool& pool = dca::parallel::ThreadPool::get_instance();
-  EXPECT_EQ(std::size_t(0), pool.size());
+  EXPECT_EQ(0, pool.size());
 
   pool.enlarge(3);
-  EXPECT_EQ(std::size_t(3), pool.size());
+  EXPECT_EQ(3, pool.size());
 
   pool.enlarge(1);
-  EXPECT_EQ(std::size_t(3), pool.size());
+  EXPECT_EQ(3, pool.size());
 
   // Dispatch some work to test if queue enlarging breaks running tasks.
   auto workload = [](int id) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return id;
   };
-  std::vector<dca::parallel::thread_traits::future_type<int>> futures;
+  std::vector<std::future<int>> futures;
 
-  for (std::size_t i = 0; i < 5; ++i)
-    futures.emplace_back(hpx::async(workload, i));
+  for (int i = 0; i < 5; ++i)
+    futures.emplace_back(pool.enqueue(workload, i));
 
   pool.enlarge(5);
-  EXPECT_EQ(std::size_t(5), pool.size());
+  EXPECT_EQ(5, pool.size());
 
   for (int i = 5; i < 12; ++i)
-    futures.emplace_back(hpx::async(workload, i));
+    futures.emplace_back(pool.enqueue(workload, i));
 
-  for (std::size_t i = 0; i < 12; ++i)
+  for (int i = 0; i < 12; ++i)
     EXPECT_EQ(i, futures[i].get());
 }
