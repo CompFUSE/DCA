@@ -146,8 +146,11 @@ private:
 
   bool exists(const std::string& name) const;
 
-  void write(const std::string& name, const std::vector<hsize_t>& size, H5::DataType type,
-             const void* data);
+  H5::DataSet write(const std::string& name, const std::vector<hsize_t>& size, H5::DataType type,
+                    const void* data);
+  void addAttribute(const H5::DataSet& set, const std::string& name,
+                    const std::vector<hsize_t>& size, H5::DataType type, const void* data);
+  void addAttribute(const H5::DataSet& set, const std::string& name, const std::string& value);
 
   std::unique_ptr<H5::H5File> file_;
 
@@ -298,27 +301,22 @@ void HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   if (f.size() == 0)
     return;
 
-  open_group(name);
-
-  std::string new_path = get_path();
-
-  execute("name", f.get_name());
+  const std::string full_name = get_path() + "/" + name;
 
   std::vector<hsize_t> dims;
-
   for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
-
-  execute("domain-sizes", dims);
 
   // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
-  std::string full_name = new_path + "/data";
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
 
-  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
+  addAttribute(dataset, "name", f.get_name());
 
-  close_group();
+  std::reverse(dims.begin(), dims.end());
+  auto type = HDF5_TYPE<hsize_t>::get_PredType();
+  addAttribute(dataset, "domain-sizes", std::vector<hsize_t>{dims.size()}, type, dims.data());
 }
 
 template <typename Scalar, typename domain_type>
@@ -327,41 +325,46 @@ void HDF5Writer::execute(const std::string& name,
   if (f.size() == 0)
     return;
 
-  open_group(name);
-
-  std::string new_path = get_path();
-
-  execute("name", f.get_name());
+  const std::string full_name = get_path() + "/" + name;
 
   std::vector<hsize_t> dims;
-
   for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
-
-  execute("domain-sizes", dims);
 
   // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
+  // Add real-imaginary dimension
   dims.push_back(2);
-  std::string full_name = get_path() + "/data";
-  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
 
-  close_group();
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
+
+  addAttribute(dataset, "name", f.get_name());
+
+  dims.pop_back();
+  std::reverse(dims.begin(), dims.end());
+  auto type = HDF5_TYPE<hsize_t>::get_PredType();
+  addAttribute(dataset, "domain-sizes", std::vector<hsize_t>{dims.size()}, type, dims.data());
 }
 
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
-  write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+  auto dataset =
+      write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+
+  addAttribute(dataset, "name", V.get_name());
 }
 
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
-  write(full_name, std::vector<hsize_t>{V.size(), 2}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+  auto dataset = write(full_name, std::vector<hsize_t>{V.size(), 2},
+                       HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
+
+  addAttribute(dataset, "name", V.get_name());
 }
 
 template <typename Scalar>
@@ -377,7 +380,9 @@ void HDF5Writer::execute(const std::string& name,
       linearized[linindex++] = A(i, j);
 
   std::string full_name = get_path() + "/" + name;
-  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  addAttribute(dataset, "name", A.get_name());
 }
 
 template <typename Scalar>
@@ -393,7 +398,9 @@ void HDF5Writer::execute(const std::string& name,
       linearized[linindex++] = A(i, j);
 
   std::string full_name = get_path() + "/" + name;
-  write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  addAttribute(dataset, "name", A.get_name());
 }
 
 template <class T>

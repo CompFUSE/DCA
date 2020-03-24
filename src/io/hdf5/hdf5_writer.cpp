@@ -113,8 +113,8 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims, H5::DataType type,
-                       const void* data) {
+H5::DataSet HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims,
+                              H5::DataType type, const void* data) {
   if (exists(name)) {
     H5::DataSet dataset = file_->openDataSet(name.c_str());
     H5::DataSpace dataspace = dataset.getSpace();
@@ -127,13 +127,32 @@ void HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims
     }
 
     dataset.write(data, type, dataspace, H5P_DEFAULT);
+    return dataset;
   }
   else {
     H5::DataSpace dataspace(dims.size(), dims.data());
     H5::DataSet dataset(file_->createDataSet(name.c_str(), type, dataspace));
 
     dataset.write(data, type, dataspace, H5P_DEFAULT);
+    return dataset;
   }
+}
+
+void HDF5Writer::addAttribute(const H5::DataSet& set, const std::string& name,
+                              const std::vector<hsize_t>& size, H5::DataType type, const void* data) {
+  if (set.attrExists(name)) {
+    return;
+  }
+
+  H5::DataSpace space(size.size(), size.data());
+  auto attribute = set.createAttribute(name, type, space);
+  attribute.write(type, data);
+}
+
+void HDF5Writer::addAttribute(const H5::DataSet& set, const std::string& name,
+                              const std::string& value) {
+  H5::StrType str_type(H5::PredType::C_S1, value.size());
+  addAttribute(set, name, std::vector<hsize_t>{1}, str_type, value.c_str());
 }
 
 bool HDF5Writer::exists(const std::string& name) const {

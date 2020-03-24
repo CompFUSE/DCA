@@ -256,9 +256,17 @@ bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, dom
 
   std::cout << "\n\tstart reading function : " << name;
 
-  // Check sizes.
+  H5::DataSet dataset = file_->openDataSet(full_name.c_str());
+
+  // Read sizes.
   std::vector<hsize_t> dims;
-  execute(name + "/" + "domain-sizes", dims);
+  auto domain_attribute = dataset.openAttribute("domain-sizes");
+  hsize_t n_dims;
+  domain_attribute.getSpace().getSimpleExtentDims(&n_dims);
+  dims.resize(n_dims);
+  domain_attribute.read(HDF5_TYPE<hsize_t>::get_PredType(), dims.data());
+
+  // Check sizes.
   if (dims.size() != f.signature())
     throw(std::length_error("The number of domains is different"));
   for (int i = 0; i < f.signature(); ++i) {
@@ -266,7 +274,7 @@ bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, dom
       throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
   }
 
-  read(full_name + "/data", HDF5_TYPE<Scalartype>::get_PredType(), f.values());
+  read(full_name, HDF5_TYPE<Scalartype>::get_PredType(), f.values());
 
   return true;
 }
