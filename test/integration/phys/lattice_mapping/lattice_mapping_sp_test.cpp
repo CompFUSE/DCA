@@ -21,9 +21,9 @@
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
-//
+
 #include "gtest/gtest.h"
-//
+
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
