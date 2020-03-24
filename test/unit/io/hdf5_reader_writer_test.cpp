@@ -98,26 +98,22 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
 TEST(HDF5ReaderWriterTest, VectorOfVectorsReadWrite) {
   const std::string object_name = "a_vector";
   const std::string file_name = "test_vector_vector.hdf5";
-  const std::vector<std::vector<double>> data_unequal_size{{0, 0, 2}, {1}, {1, 0}, {0, 0}};
-  const std::vector<std::vector<double>> data_equal_size{{0, 0}, {0, 1}, {1, 0}, {0, 0}};
+  const std::vector<std::vector<double>> data_unequal_size{{0, 0, 2}, {1}, {1, 0}, {}, {0, 0}};
 
-  for (const auto& input : {data_unequal_size, data_equal_size}) {
-    // Create test file.
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-    writer.execute(object_name, input);
-    writer.close_file();
+  // Create test file.
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
+  writer.execute(object_name, data_unequal_size);
+  writer.close_file();
 
-    // Read test file.
-    dca::io::HDF5Reader reader;
-    std::vector<std::vector<double>> data_read;
-    reader.open_file(file_name);
-    EXPECT_TRUE(reader.execute(object_name, data_read));
+  // Read test file.
+  dca::io::HDF5Reader reader;
+  std::vector<std::vector<double>> data_read;
+  reader.open_file(file_name);
+  EXPECT_TRUE(reader.execute(object_name, data_read));
 
-    EXPECT_EQ(input, data_read);
-
-    reader.close_file();
-  }
+  EXPECT_EQ(data_unequal_size, data_read);
+  reader.close_file();
 }
 
 TEST(HDF5ReaderWriterTest, VectorOfArraysReadWrite) {

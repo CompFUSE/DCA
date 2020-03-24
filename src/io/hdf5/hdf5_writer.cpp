@@ -98,19 +98,19 @@ void HDF5Writer::execute(const std::string& name,
 void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
-  if (value.size() > 0) {
-    open_group(name);
-    execute("size", static_cast<int>(value.size()));
+  if (value.size() == 0)
+    return;
 
-    open_group("data");
+  const std::string full_name = get_path() + "/" + name;
 
-    for (int i = 0; i < value.size(); ++i) {
-      execute(std::to_string(i), value[i]);
-    }
+  auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
 
-    close_group();
-    close_group();
+  std::vector<const char*> data;
+  for (const auto& s : value) {
+    data.push_back(s.data());
   }
+
+  write(full_name, std::vector<hsize_t>{data.size()}, s_type, data.data());
 }
 
 H5::DataSet HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims,

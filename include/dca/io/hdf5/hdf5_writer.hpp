@@ -211,46 +211,17 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::complex
 
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
-  if (value.size() > 0) {
-    std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path() + "/" + name;
 
-    bool all_the_same_size = true;
-    const std::size_t cols = value[0].size();
-    for (auto& v : value) {
-      if (v.size() != cols) {
-        all_the_same_size = false;
-        break;
-      }
-    }
-
-    if (all_the_same_size) {
-      std::vector<hsize_t> dims{value.size(), cols};
-      std::vector<Scalar> linearized(dims[0] * dims[1]);
-
-      for (std::size_t i = 0, linindex = 0; i < value.size(); ++i)
-        for (std::size_t j = 0; j < cols; ++j)
-          linearized[linindex++] = value[i][j];
-
-      write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
-    }
-    else {
-      open_group(full_name);
-
-      execute("size", value.size());
-
-      open_group("data");
-
-      std::vector<hsize_t> dims(1);
-      for (std::size_t i = 0; i < value.size(); ++i) {
-        const std::string new_name = full_name + "/data/row_" + std::to_string(i);
-        dims[0] = value[i].size();
-        write(new_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value[i].data());
-      }
-
-      close_group();
-      close_group();
-    }
+  std::vector<hvl_t> data(value.size());
+  for (int i = 0; i < value.size(); ++i) {
+    data[i].p = const_cast<void*>(static_cast<const void*>((value[i].data())));
+    data[i].len = value[i].size();
   }
+
+  const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
+
+  write(full_name, std::vector<hsize_t>{data.size()}, type, data.data());
 }
 
 template <typename Scalar, std::size_t n>

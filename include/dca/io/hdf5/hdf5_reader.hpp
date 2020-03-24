@@ -117,7 +117,7 @@ public:
 private:
   bool exists(const std::string& name) const;
 
-  void read(const std::string& name, H5::PredType type, void* data) const;
+  void read(const std::string& name, H5::DataType type, void* data) const;
   std::vector<hsize_t> readSize(const std::string& name) const;
 
   std::unique_ptr<H5::H5File> file_;
@@ -185,37 +185,21 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
     return false;
   }
 
-  const bool equal_size = !exists(full_name + "/data");
+  auto size = readSize(full_name)[0];
+  const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
 
-  if (equal_size) {
-    auto dims = readSize(full_name);
-    assert(dims.size() == 2);
-    std::vector<Scalar> linearized(dims[0] * dims[1]);
+  std::vector<hvl_t> data(size);
 
-    read(full_name, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
-    value.resize(dims[0]);
-    const Scalar* read_location = linearized.data();
-    for (auto& v : value) {
-      v.resize(dims[1]);
-      std::copy_n(read_location, dims[1], v.data());
-      read_location += dims[1];
-    }
+  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  dataset.read(data.data(), type);
+
+  value.resize(size);
+  for (int i = 0; i < size; ++i) {
+    value[i].resize(data[i].len);
+    std::copy_n(static_cast<Scalar*>(data[i].p), data[i].len, value[i].data());
   }
-  else {
-    open_group(name);
 
-    int size = -1;
-    execute("size", size);
-    value.resize(size);
-
-    open_group("data");
-    for (int i = 0; i < value.size(); ++i) {
-      execute("row_" + std::to_string(i), value[i]);
-    }
-    close_group();
-
-    close_group();
-  }
+  dataset.vlenReclaim(data.data(), type, dataset.getSpace());
 
   return true;
 }
