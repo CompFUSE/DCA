@@ -16,9 +16,9 @@
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
-//
+
 #include "gtest/gtest.h"
-//
+
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"

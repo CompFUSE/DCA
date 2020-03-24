@@ -37,32 +37,6 @@ struct OncePerLoopFlag {
 template <class F, class... Args>
 void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args)
 {
-//  // if this Id has been done, exit immediately
-//  if (loop_id <= flag.loop_done) {
-//    return;
-//  }
-//
-//  // if this Id is too far ahead, then wait
-//  dca::parallel::thread_traits::yield_while([&flag, loop_id](){
-//      return (loop_id > (flag.loop_done+1));
-//  });
-//
-//  // whilst we were yielding, someone else took the Id slot
-//  if (loop_id <= flag.loop_done) {
-//      return;
-//  }
-//
-//  // take the lock
-//  dca::parallel::thread_traits::unique_lock lock(flag.mutex);
-//  // whilst we were waiting, someone else took the Id slot
-//  if (loop_id <= flag.loop_done) {
-//      return;
-//  }
-//
-//  // Run the task.
-//  f(std::forward<Args>(args)...);
-//  flag.loop_done = loop_id;
-
     const int currently_done = flag.loop_done;
 
     if (loop_id < 0)
