@@ -51,8 +51,8 @@
   {
     "warm-up-sweeps"         : 1000,
     "sweeps-per-measurement" : 1,
-    "measurements" : 50000,
+    "measurements" : 100000,
 
-    "seed" : 0
+    "seed" : 42
   }
 }

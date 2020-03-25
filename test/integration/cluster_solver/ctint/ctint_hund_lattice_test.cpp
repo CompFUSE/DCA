@@ -38,7 +38,7 @@ constexpr bool update_baseline = false;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
-TEST(squareLattice_Nc4_nn, Self_Energy) {
+TEST(CtintHundLatticeTest, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using Lattice = dca::phys::models::HundLattice<dca::phys::domains::D4>;
   using Model = dca::phys::models::TightBindingModel<Lattice>;
@@ -71,7 +71,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
 
   EXPECT_NEAR(2., qmc_solver.computeDensity(), 1e-2);
 
-  if (not update_baseline) {
+  if (!update_baseline) {
     // Read and confront with previous run.
     if (dca_test_env->concurrency.id() == 0) {
       Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
