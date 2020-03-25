@@ -168,7 +168,7 @@ class HDF5ReaderWriterTest : public ::testing::Test {};
 using TestTypes = ::testing::Types<float, std::complex<double>>;
 TYPED_TEST_CASE(HDF5ReaderWriterTest, TestTypes);
 
-TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
+ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
   using Dmn1 = dca::func::dmn_0<dca::func::dmn<5>>;
   using Dmn2 = dca::func::dmn_0<dca::func::dmn<4>>;
   using Dmn3 = dca::func::dmn_0<dca::func::dmn<2>>;
@@ -201,7 +201,7 @@ TYPED_TEST(HDF5ReaderWriterTest, FunctionReadWrite) {
   reader.close_file();
 }
 
-TYPED_TEST(HDF5ReaderWriterTest, MatrixReadWrite) {
+ TYPED_TEST(HDF5ReaderWriterTest, MatrixReadWrite) {
   using Scalar = TypeParam;
   const std::pair<int, int> m_size(7, 3);
 
@@ -228,7 +228,7 @@ TYPED_TEST(HDF5ReaderWriterTest, MatrixReadWrite) {
   EXPECT_EQ(m1, m2);
 }
 
-TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
+ TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
   dca::io::HDF5Writer writer;
   H5::Exception::dontPrint();
   EXPECT_THROW(writer.open_file("not_existing_directory/file.txt"), H5::Exception);
@@ -237,7 +237,7 @@ TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
   EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
 }
 
-TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
+ TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
   using Dmn = dca::func::dmn_0<dca::func::dmn<5, int>>;
 
   dca::func::function<int, Dmn> present("present");
@@ -262,7 +262,7 @@ TEST(HDF5ReaderWriterTest, FunctionNotPresent) {
     EXPECT_EQ(1, val);
 }
 
-TEST(HDF5ReaderWriterTest, GroupOpenclose) {
+ TEST(HDF5ReaderWriterTest, GroupOpenclose) {
   dca::io::HDF5Writer writer;
   writer.open_file("group_open_close.hdf5");
 
@@ -299,7 +299,7 @@ TEST(HDF5ReaderWriterTest, GroupOpenclose) {
   EXPECT_EQ(1.5, d_val);
 }
 
-TEST(HDF5ReaderWriterTest, Overwrite) {
+ TEST(HDF5ReaderWriterTest, Overwrite) {
   dca::io::HDF5Writer writer;
   writer.open_file("test.hdf5", true);
 
