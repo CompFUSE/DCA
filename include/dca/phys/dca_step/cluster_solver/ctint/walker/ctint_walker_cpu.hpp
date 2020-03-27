@@ -232,7 +232,7 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
 
 template <class Parameters, typename Real>
 Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
-  const auto candidates = configuration_.randomRemovalCandidate(rng_);
+  const auto candidates = configuration_.randomRemovalCandidateSlow({rng_(), rng_(), rng_()});
   removal_list_.clear();
   for (int candidate : candidates) {
     if (candidate != -1)

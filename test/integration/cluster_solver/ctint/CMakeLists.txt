@@ -37,7 +37,6 @@ dca_add_gtest(ctint_double_update_comparison_test
         LIBS     ${TEST_LIBS}
    )
 
-
 dca_add_gtest(ctint_square_lattice_tp_test
     EXTENSIVE
     GTEST_MAIN
