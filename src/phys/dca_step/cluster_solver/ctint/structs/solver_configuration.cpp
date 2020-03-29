@@ -42,7 +42,7 @@ std::array<int, 2> SolverConfiguration::sizeIncrease() const {
 }
 
 void SolverConfiguration::addSectorSizes(int idx, std::array<int, 2>& sizes) const {
-  auto spin = [=](ushort nu) { return nu >= n_bands_; };
+  auto spin = [=](unsigned short nu) { return nu >= n_bands_; };
   const auto& nu = coordinates(idx).nu;
   ++sizes[spin(nu[0])];
   ++sizes[spin(nu[2])];

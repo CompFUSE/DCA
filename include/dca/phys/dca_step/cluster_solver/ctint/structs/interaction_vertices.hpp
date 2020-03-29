@@ -28,11 +28,11 @@ namespace ctint {
 // Represent a matrix element W(i,j,k,l) of the interaction hamiltonian.
 // Each index represent a cluster position and a spin-band index.
 struct InteractionElement {
-  std::array<ushort, 4> r;
-  std::array<ushort, 4> nu;
+  std::array<unsigned short, 4> r;
+  std::array<unsigned short, 4> nu;
   double w;
   // TODO: write proper constructor.
-  std::vector<ushort> partners_id = std::vector<ushort>();
+  std::vector<unsigned short> partners_id = std::vector<unsigned short>();
   // Returns true if r and nu members are equal.
   bool operator==(const InteractionElement& other) const;
 };
@@ -126,14 +126,14 @@ void InteractionVertices::initializeFromHamiltonian(
     const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn>>& H_int) {
   // Note: Use this version of the code if double counting in the interaction hamiltonian is removed.
   //
-  //  for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
-  //    for (ushort nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
-  //      for (ushort delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
+  //  for (unsigned short nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
+  //    for (unsigned short nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
+  //      for (unsigned short delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
   //        const double value = H_int(nu1, nu2, delta_r);
   //        if (std::abs(value) < 1e-8)
   //          continue;
-  //        for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
-  //          const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1); // delta_r = r1 - r2
+  //        for (unsigned short r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
+  //          const unsigned short r2 = Rdmn::parameter_type::subtract(delta_r, r1); // delta_r = r1 - r2
   //          insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value, short(-1)});
   //        }
   //      }
@@ -144,9 +144,9 @@ void InteractionVertices::initializeFromHamiltonian(
   // physical Hamiltonian.
   func::function<bool, func::dmn_variadic<Nu, Nu, Rdmn>> already_inserted;
   const int r0 = Rdmn::parameter_type::origin_index();
-  for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
-    for (ushort nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
-      for (ushort delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
+  for (unsigned short nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
+    for (unsigned short nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
+      for (unsigned short delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
         const double value = H_int(nu1, nu2, delta_r);
         if (std::abs(value) < 1e-8)
           continue;
@@ -160,8 +160,9 @@ void InteractionVertices::initializeFromHamiltonian(
 
         // Insert
         already_inserted(nu1, nu2, delta_r) = true;
-        for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
-          const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1);  // delta_r = r1 - r2
+        for (unsigned short r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
+          const unsigned short r2 =
+              Rdmn::parameter_type::subtract(delta_r, r1);  // delta_r = r1 - r2
           insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu1, nu2, nu2}, value});
         }
       }
@@ -171,16 +172,17 @@ void InteractionVertices::initializeFromHamiltonian(
 template <class Nu, class Rdmn>
 void InteractionVertices::initializeFromNonDensityHamiltonian(
     const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, Rdmn>>& H_int) {
-  auto spin = [](ushort nu) { return nu >= Nu::dmn_size() / 2; };
-  auto check_spins = [&](ushort nu1, ushort nu2, ushort nu3, ushort nu4) -> bool {
+  auto spin = [](unsigned short nu) { return nu >= Nu::dmn_size() / 2; };
+  auto check_spins = [&](unsigned short nu1, unsigned short nu2, unsigned short nu3,
+                         unsigned short nu4) -> bool {
     return spin(nu1) == spin(nu2) && spin(nu3) == spin(nu4);
   };
 
-  for (ushort nu1 = 0; nu1 < Nu::dmn_size(); nu1++)
-    for (ushort nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
-      for (ushort nu3 = 0; nu3 < Nu::dmn_size(); nu3++)
-        for (ushort nu4 = 0; nu4 < Nu::dmn_size(); nu4++)
-          for (ushort delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
+  for (unsigned short nu1 = 0; nu1 < Nu::dmn_size(); nu1++)
+    for (unsigned short nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
+      for (unsigned short nu3 = 0; nu3 < Nu::dmn_size(); nu3++)
+        for (unsigned short nu4 = 0; nu4 < Nu::dmn_size(); nu4++)
+          for (unsigned short delta_r = 0; delta_r < Rdmn::dmn_size(); delta_r++) {
             const double value = H_int(nu1, nu2, nu3, nu4, delta_r);
             if (std::abs(value) < 1e-8)
               continue;
@@ -188,8 +190,8 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
               throw(std::logic_error(
                   "Format input hamiltonian s.t. pair of creation and annihilation "
                   "operators have same spin."));
-            for (ushort r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
-              const ushort r2 = Rdmn::parameter_type::subtract(delta_r, r1);
+            for (unsigned short r1 = 0; r1 < Rdmn::dmn_size(); r1++) {
+              const unsigned short r2 = Rdmn::parameter_type::subtract(delta_r, r1);
               insertElement(InteractionElement{{r1, r1, r2, r2}, {nu1, nu2, nu3, nu4}, value});
             }
           }

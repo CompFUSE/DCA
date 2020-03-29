@@ -24,9 +24,9 @@ TEST(InteractionVerticesTest, InsertElement) {
   H.insertElement(Element{{0, 0, 0, 0}, {0, 0, 2, 2}, 1.});  // density-density
   H.insertElement(Element{{0, 0, 0, 0}, {1, 0, 3, 2}, 1.});  // pair-hop 2
 
-  EXPECT_EQ(std::vector<ushort>{2}, H[0].partners_id);
-  EXPECT_EQ(std::vector<ushort>{}, H[1].partners_id);
-  EXPECT_EQ(std::vector<ushort>{0}, H[2].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{2}, H[0].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{}, H[1].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{0}, H[2].partners_id);
 }
 
 TEST(InteractionVerticesTest, SamplingProb) {
