@@ -32,6 +32,8 @@ public:
         self_energy_mixing_factor_(1.),
         interacting_orbitals_{0},
 
+        do_post_interpolation_(false),
+
         do_finite_size_qmc_(false),
 
         k_mesh_recursion_(0),
@@ -75,6 +77,9 @@ public:
   const std::vector<int>& get_interacting_orbitals() const {
     return interacting_orbitals_;
   }
+  bool do_post_interpolation() const {
+    return do_post_interpolation_;
+  }
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
@@ -116,6 +121,8 @@ private:
   double self_energy_mixing_factor_;
   std::vector<int> interacting_orbitals_;
 
+  bool do_post_interpolation_;
+
   bool do_finite_size_qmc_;
 
   // coarse-graining
@@ -142,6 +149,7 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(dca_accuracy_);
   buffer_size += concurrency.get_buffer_size(self_energy_mixing_factor_);
   buffer_size += concurrency.get_buffer_size(interacting_orbitals_);
+  buffer_size += concurrency.get_buffer_size(do_post_interpolation_);
   buffer_size += concurrency.get_buffer_size(do_finite_size_qmc_);
   buffer_size += concurrency.get_buffer_size(k_mesh_recursion_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_periods_);
@@ -165,6 +173,7 @@ void DcaParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, dca_accuracy_);
   concurrency.pack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.pack(buffer, buffer_size, position, interacting_orbitals_);
+  concurrency.pack(buffer, buffer_size, position, do_post_interpolation_);
   concurrency.pack(buffer, buffer_size, position, do_finite_size_qmc_);
   concurrency.pack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_periods_);
@@ -186,6 +195,7 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, dca_accuracy_);
   concurrency.unpack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.unpack(buffer, buffer_size, position, interacting_orbitals_);
+  concurrency.unpack(buffer, buffer_size, position, do_post_interpolation_);
   concurrency.unpack(buffer, buffer_size, position, do_finite_size_qmc_);
   concurrency.unpack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_periods_);
@@ -217,6 +227,8 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read("accuracy", dca_accuracy_);
     try_to_read("self-energy-mixing-factor", self_energy_mixing_factor_);
     try_to_read("interacting-orbitals", interacting_orbitals_);
+
+    try_to_read("do-post-interpolation", do_post_interpolation_);
 
     try_to_read("do-finite-size-QMC", do_finite_size_qmc_);
 
@@ -260,8 +272,8 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP

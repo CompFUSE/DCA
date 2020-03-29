@@ -6,6 +6,8 @@
         "self-energy-mixing-factor": 0.5,
         "interacting-orbitals": [0, 1, 2],
 
+        "do-post-interpolation": true,
+
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
