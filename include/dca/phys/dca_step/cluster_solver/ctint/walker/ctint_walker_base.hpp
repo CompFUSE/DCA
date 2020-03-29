@@ -187,8 +187,8 @@ protected:  // Members.
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
   util::Accumulator<int> sign_avg_;
-  ulong n_steps_ = 0;
-  ulong n_accepted_ = 0;
+  unsigned long n_steps_ = 0;
+  unsigned long n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
 
   bool thermalized_ = false;
