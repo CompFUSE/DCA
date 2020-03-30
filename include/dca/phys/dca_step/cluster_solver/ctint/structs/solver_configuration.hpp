@@ -128,7 +128,7 @@ private:
 
   // TODO: use a structure with fast (log N?) removal/insertion and random access.
   // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
-  std::vector<const std::vector<unsigned long long>*> partners_lists_;
+  std::vector<const std::vector<std::uint64_t>*> partners_lists_;
   unsigned short last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
