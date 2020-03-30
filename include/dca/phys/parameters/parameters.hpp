@@ -293,7 +293,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
     KSpHostDmn::parameter_type::print(std::cout);
 
   // Host grid for two-particle functions (tp-lattice)
-  if (do_dca_plus()) {
+  if (do_dca_plus() || do_post_interpolation()) {
     domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
                                                              DomainsParameters::get_tp_host());
   }

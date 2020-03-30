@@ -309,8 +309,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
 
   clustermapping::coarsegraining_tp<ParametersType, k_HOST_VERTEX> coarsegraining_tp(parameters);
 
-  // DCA+: Compute \chi_0 from continuous lattice self-energy.
-  if (parameters.do_dca_plus()) {
+  // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
+  if (parameters.do_dca_plus() || parameters.do_post_interpolation()) {
     latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
 
     MOMS.Sigma_lattice_interpolated = 0.;
@@ -335,7 +335,12 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
       lattice_map_sp.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
                              MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
     }
-    coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_lattice);
+
+    if (parameters.do_dca_plus())
+      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_lattice);
+
+    else  // do_post_interpolation
+      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice_interpolated, chi_0_lattice);
   }
 
   // (Standard) DCA: Compute \chi_0 from cluster self-energy.
@@ -367,8 +372,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLatt
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  // DCA+: Compute Gamma_lattice from an interpolation of Gamma_cluster followed by a deconvolution.
-  if (parameters.do_dca_plus()) {
+  // DCA+/DCA with post-interpolation: Compute Gamma_lattice with continuous momentum dependence.
+  if (parameters.do_dca_plus() || parameters.do_post_interpolation()) {
     latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp(
         parameters);
     lattice_map_tp.execute(Gamma_cluster, Gamma_lattice);
