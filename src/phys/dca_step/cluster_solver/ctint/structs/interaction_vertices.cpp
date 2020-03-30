@@ -22,7 +22,7 @@ void InteractionVertices::insertElement(InteractionElement v) {
   const auto& nu = v.nu;
   const auto& r = v.r;
   if (nu[0] != nu[1] or nu[2] != nu[3] or r[0] != r[1] or r[2] != r[3]) {  // non density-denity
-    const std::array<ushort, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
+    const std::array<unsigned short, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
 
     for (auto& elem : elements_)
       if (elem.nu == nu_opposite or (interband_propagator_ && (elem.nu == v.nu && elem.r != v.r))) {
