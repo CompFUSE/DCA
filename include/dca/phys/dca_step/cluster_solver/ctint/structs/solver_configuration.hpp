@@ -99,7 +99,7 @@ public:
     return double_insertion_prob_;
   }
 
-  ushort lastInsertionSize() const {
+  unsigned short lastInsertionSize() const {
     return last_insertion_size_;
   }
 
@@ -140,7 +140,7 @@ private:
   // TODO: use a structure with fast (log N?) removal/insertion and random access.
   // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
   std::vector<const std::vector<std::size_t>*> partners_lists_;
-  ushort last_insertion_size_ = 1;
+  unsigned short last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
 
@@ -154,13 +154,13 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   const double tau = rng() * max_tau_;
   const bool aux_spin = rng() > 0.5;
 
-  Vertex v(aux_spin, ushort(indices.first), current_tag_++, tau);
+  Vertex v(aux_spin, indices.first, current_tag_++, tau);
   push_back(v);
 
   if (indices.second != -1) {
     const double tau2 = rng() * max_tau_;
     const bool aux_spin2 = rng() > 0.5;
-    Vertex v2(aux_spin2, ushort(indices.second), current_tag_++, tau2);
+    Vertex v2(aux_spin2, indices.second, current_tag_++, tau2);
     push_back(v2);
     last_insertion_size_ = 2;
   }

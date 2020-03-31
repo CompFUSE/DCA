@@ -30,9 +30,9 @@ TEST(InteractionVerticesTest, InsertElement) {
   for (auto el : {el1, el2, el3})
     H.insertElement(el);
 
-  EXPECT_EQ(std::vector<ushort>{2}, H[0].partners_id);
-  EXPECT_EQ(std::vector<ushort>{}, H[1].partners_id);
-  EXPECT_EQ(std::vector<ushort>{0}, H[2].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{2}, H[0].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{}, H[1].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{0}, H[2].partners_id);
 
   // No double insertion.
   H.reset();

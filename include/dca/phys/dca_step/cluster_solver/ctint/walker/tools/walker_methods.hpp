@@ -220,7 +220,8 @@ inline double separateIndexDeterminant(const Matrix& M, const Vector& indices) {
 
 template <typename Scalar>
 inline void removeIndices(linalg::Matrix<Scalar, linalg::CPU>& Q,
-                          linalg::Matrix<Scalar, linalg::CPU>& R, const std::vector<ushort>& indices) {
+                          linalg::Matrix<Scalar, linalg::CPU>& R,
+                          const std::vector<unsigned short>& indices) {
   if (indices.size() == 0)
     return;
 

@@ -186,8 +186,8 @@ TEST(CtintWalkerTest, RemoveIndices) {
 
   set_matrices_from_config(Q, R, mock_configuration);
 
-  std::vector<ushort> remove{2, 6, 1, 1, 3};
-  for (ushort index : remove) {
+  std::vector<unsigned short> remove{2, 6, 1, 1, 3};
+  for (unsigned short index : remove) {
     std::swap(mock_configuration[index], mock_configuration.back());
     mock_configuration.pop_back();
   }
