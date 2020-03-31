@@ -41,6 +41,8 @@ struct InteractionElement {
 // Store the interaction terms and allow drawing a random vertex with strength |w|.
 class InteractionVertices {
 public:
+  void initialize(double double_insertion_prob, bool all_sites_partnership);
+
   // Initialize vertices with a density-density Hamiltonian.
   // Precondition: Domain has the shape of dmn_variadic<Nu, Nu, Rdmn>
   template <class Nu, class Rdmn>
@@ -78,18 +80,20 @@ public:
   }
 
   // Returns the number of possible partners for each non density-density interaction.
-  int possiblePartners() const {
-    const int partners = elements_.back().partners_id.size();
-    // TODO: generalize if number of possible pairings is not constant or at the back.
-    return partners;
+  int possiblePartners(unsigned idx) const {
+    assert(idx < elements_.size());
+    return elements_[idx].partners_id.size();
   }
 
   std::vector<InteractionElement> elements_;
 
 private:
+  enum PartnershipType { NONE, SAME_SITE, ALL_SITES };
+
   std::vector<double> cumulative_weigths_;
   double total_weigth_ = 0;
   bool interband_propagator_ = false;
+  PartnershipType partnership_type_ = NONE;
 };
 
 template <class Rng>
@@ -208,7 +212,7 @@ void InteractionVertices::checkForInterbandPropagators(
   for (int r = 0; r < RDmn::dmn_size(); ++r)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int b2 = 0; b2 < nb; ++b2) {
-        if (r != r0 && b1 != b2 && std::abs(G_r_t(b1, 0, b2, 0, r, t0)) > 1e-8) {
+        if (r != r0 && b1 != b2 && std::abs(G_r_t(b1, 0, b2, 0, r, t0)) > 1e-5) {
           interband_propagator_ = true;
           return;
         }

@@ -12,6 +12,7 @@ add_library(ctint
     structs/solver_configuration.cpp
     walker/tools/g0_interpolation.cpp
     walker/tools/d_matrix_builder.cpp
+    structs/utils.cpp
     ${CTINT_CUDA_CPP_FILES}
     )
 
