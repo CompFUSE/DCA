@@ -134,6 +134,7 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
     func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
     const parameters_type& parameters) {
   const double J = parameters.get_J();
+  const double Jp = parameters.get_Jp();
   const Nu nu;  // band-spin domain.
   constexpr int up(0), down(1);
 
@@ -144,7 +145,8 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
         continue;
       // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
       // Note: a factor of -1 comes from rearranging the fermion operators.
-      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+        non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+        non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
     }
 }
 
