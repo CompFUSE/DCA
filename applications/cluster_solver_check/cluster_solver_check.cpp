@@ -93,26 +93,26 @@ int main(int argc, char** argv) {
     std::string data_file_qmc = parameters.get_directory() + parameters.get_filename_qmc();
 
     // ED solver
-    /* EdSolver ed_solver(parameters, dca_data_imag, dca_data_real);
+    EdSolver ed_solver(parameters, dca_data_imag, dca_data_real);
     ed_solver.initialize(0);
     ed_solver.execute();
     ed_solver.finalize(dca_loop_data);
-    */
-    /*const auto Sigma_ed(dca_data_imag.Sigma);
+
+    const auto Sigma_ed(dca_data_imag.Sigma);
     const int tested_frequencies = 5;
     const auto G_ed(dca::math::util::cutFrequency(dca_data_imag.G_k_w, tested_frequencies));
 
     if (concurrency.id() == concurrency.first()) {
       ed_solver.write(data_file_ed);
     }
-    */
+
     // QMC solver
     // The QMC solver uses the free Greens function G0 computed by the ED solver.
     // It is passed via the dca_data_imag object.
     ClusterSolver qmc_solver(parameters, dca_data_imag);
     qmc_solver.initialize(1);  // 1 = dummy iteration number
     qmc_solver.integrate();
-    /*
+
     // If enabled, perform statistical test.
     double p_val = -1.;
     if (perform_statistical_test) {
@@ -140,13 +140,13 @@ int main(int argc, char** argv) {
         }
       }
     }
-    */
+
     qmc_solver.finalize(dca_loop_data);
 
     if (concurrency.id() == concurrency.first()) {
       dca_data_imag.write(data_file_qmc);
     }
-    /*
+
     // Print errors.
     if (concurrency.id() == concurrency.first()) {
       const auto& Sigma_qmc(dca_data_imag.Sigma);
@@ -161,7 +161,6 @@ int main(int argc, char** argv) {
       else if (perform_statistical_test)
         std::cout << "\n***\nStatistical test aborted.\n***" << std::endl;
     }
-    */
 
     Profiler::stop(concurrency, parameters.get_filename_profiling());
     if (concurrency.id() == concurrency.first()) {
