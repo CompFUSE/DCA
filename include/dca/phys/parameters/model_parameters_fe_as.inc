@@ -57,11 +57,17 @@ public:
     return J_;
   }
 
+  // Pair hoping interaction.
+  double get_Jp() const {
+    return Jp_;
+  }
+
 private:
   double t1_ = 0, t2_ = 0, t3_ = 0, t4_ = 0;
   double U_ = 0.;
   double V_ = 0.;
   double J_ = 0.;
+  double Jp_ = 0.;
 };
 
 template <typename PointGroup>
@@ -77,6 +83,7 @@ int ModelParameters<models::TightBindingModel<models::FeAsLattice<PointGroup>>>:
   buffer_size += concurrency.get_buffer_size(U_);
   buffer_size += concurrency.get_buffer_size(V_);
   buffer_size += concurrency.get_buffer_size(J_);
+  buffer_size += concurrency.get_buffer_size(Jp_);
 
   return buffer_size;
 }
@@ -92,6 +99,7 @@ void ModelParameters<models::TightBindingModel<models::FeAsLattice<PointGroup>>>
   concurrency.pack(buffer, buffer_size, position, U_);
   concurrency.pack(buffer, buffer_size, position, V_);
   concurrency.pack(buffer, buffer_size, position, J_);
+  concurrency.pack(buffer, buffer_size, position, Jp_);
 }
 
 template <typename PointGroup>
@@ -105,6 +113,7 @@ void ModelParameters<models::TightBindingModel<models::FeAsLattice<PointGroup>>>
   concurrency.unpack(buffer, buffer_size, position, U_);
   concurrency.unpack(buffer, buffer_size, position, V_);
   concurrency.unpack(buffer, buffer_size, position, J_);
+  concurrency.unpack(buffer, buffer_size, position, Jp_);
 }
 
 template <typename PointGroup>
@@ -128,6 +137,7 @@ void ModelParameters<models::TightBindingModel<models::FeAsLattice<PointGroup>>>
     tryToRead("U", U_);
     tryToRead("V", V_);
     tryToRead("J", J_);
+    tryToRead("Jp", Jp_);
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
@@ -143,6 +153,7 @@ void ModelParameters<models::TightBindingModel<models::FeAsLattice<PointGroup>>>
               << "\t\t U  : " << U_ << "\n"
               << "\t\t V  : " << V_ << "\n"
               << "\t\t J : " << J_ << "\n"
+              << "\t\t Jp : " << Jp_ << "\n"
               << "\n"
               << std::endl;
 }
