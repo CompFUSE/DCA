@@ -118,8 +118,7 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
                                                         const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
-      n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
-
+n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
   int nb_of_steps;
@@ -176,6 +175,10 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
     applyInsertion(S_, Q_, R_);
+
+    BaseClass::mc_weigth_ *= det_ratio_[0] * det_ratio_[1];
+    for (int i = 0; i < delta_vertices; ++i)
+      BaseClass::mc_weigth_ *= -configuration_.getStrength(configuration_.size() - 1 - i);
   }
   return accept;
 }
@@ -188,6 +191,11 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
   if (accept) {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
+
+    BaseClass::mc_weigth_ *= det_ratio_[0] * det_ratio_[1];
+    for (auto idx : removal_list_)
+      BaseClass::mc_weigth_ /= -configuration_.getStrength(idx);
+
     applyRemoval();
   }
   return accept;

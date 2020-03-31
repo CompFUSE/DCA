@@ -95,6 +95,10 @@ public:
     return sign_;
   }
 
+  double get_MC_weight() const {
+    return mc_weigth_;
+  }
+
   double acceptanceRatio() const {
     return Real(n_accepted_) / Real(n_steps_);
   }
@@ -203,6 +207,8 @@ protected:  // Members.
 
   double sweeps_per_meas_ = 1.;
 
+  double mc_weigth_ = 0;
+
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<Real, linalg::CPU> work_;
@@ -261,8 +267,14 @@ void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
 
     const Real det = linalg::matrixop::inverseAndDeterminant(M);
 
+    mc_weigth_ = 1.;
+    for (int i = 0; i < configuration_.size(); ++i)
+      mc_weigth_ *= -configuration_.getStrength(i);
+
+    mc_weigth_ /= det;
+
     // Set the initial sign
-    if (det < 0)
+    if (mc_weigth_ < 0)
       sign_ *= -1;
   }
 }
@@ -282,8 +294,7 @@ void CtintWalkerBase<Parameters, Real>::markThermalized() {
   //    throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
 
-  nb_steps_per_sweep_ =std::max(1.,
-      std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();

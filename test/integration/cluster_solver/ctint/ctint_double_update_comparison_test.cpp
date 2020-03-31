@@ -96,5 +96,6 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     walker2.doSweep();
 
     EXPECT_NEAR(walker1.getAcceptanceProbability(), walker2.getAcceptanceProbability(), 5e-7);
+    EXPECT_NEAR(walker1.get_MC_weight(), walker2.get_MC_weight(), 5e-7);
   }
 }

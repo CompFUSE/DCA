@@ -79,7 +79,7 @@ private:
 
   void doSubmatrixUpdate();
 
-  auto computeAcceptanceProbability() -> Real;
+  auto computeAcceptanceProbability();
 
   void updateGammaInv(int s);
 
@@ -212,7 +212,7 @@ CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixCp
       gamma_values_[std::make_pair(i, 0)][b] = d_builder_ptr_->computeGamma(i, 0, b);
       gamma_values_[std::make_pair(-i, 0)][b] = d_builder_ptr_->computeGamma(-i, 0, b);
 
-      prob_const_[i][b] = prob_const_[-i][b] = -beta_ / (f_[i][b] - 1) / (f_[-i][b] - 1);
+      prob_const_[i][b] = prob_const_[-i][b] = -1. / (f_[i][b] - 1) / (f_[-i][b] - 1);
     }
     f_[0][b] = 1;
   }
@@ -443,7 +443,8 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::mainSubmatrixProc
       continue;
 
     // Compute acceptance probability.
-    acceptance_prob_ = computeAcceptanceProbability();
+    auto [acceptance_prob, mc_weigth_ratio] = computeAcceptanceProbability();
+    acceptance_prob_ = acceptance_prob;
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
     const bool accepted =
@@ -456,6 +457,9 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::mainSubmatrixProc
     // Update
     if (accepted) {
       ++BaseClass::n_accepted_;
+
+      BaseClass::mc_weigth_ *= mc_weigth_ratio;
+
       if (acceptance_prob_ < 0)
         sign_ *= -1;
 
@@ -630,8 +634,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeGInit() {
 }
 
 template <class Parameters, typename Real, bool fix_rng_order>
-auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptanceProbability()
-    -> Real {
+auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptanceProbability() {
   Real acceptance_probability = det_ratio_;
 
   Real gamma_factor = 1;
@@ -653,13 +656,18 @@ auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptance
   const int interaction_sign = configuration_.getSign(index_[0]);
   const int non_empty_sector = sector_indices_[0].size() ? 0 : 1;
 
+  Real mc_weight_ratio = acceptance_probability;
   Real K = total_interaction_;
+
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
     const auto field_type = configuration_.getSector(non_empty_sector)
                                 .getAuxFieldType(sector_indices_[non_empty_sector][v_id]);
     const auto b =
         configuration_.getSector(non_empty_sector).getLeftB(sector_indices_[non_empty_sector][v_id]);
-    K *= prob_const_[field_type][b] * interaction_sign;
+    K *= beta_ * prob_const_[field_type][b] * interaction_sign;
+
+    const double w = configuration_.getStrength(index_[v_id]);
+    mc_weight_ratio *= prob_const_[field_type][b] * ((move_type == INSERTION) ? w : 1. / w);
   }
 
   // Account for combinatorial factor and update acceptance probability.
@@ -689,7 +697,7 @@ auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptance
       throw(std::logic_error("Not implemented"));
   }
 
-  return acceptance_probability;
+  return std::make_tuple(acceptance_probability, mc_weight_ratio);
 }
 
 template <class Parameters, typename Real, bool fix_rng_order>
