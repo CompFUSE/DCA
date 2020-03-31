@@ -35,7 +35,7 @@ void InteractionVertices::insertElement(InteractionElement v) {
   const auto& r = v.r;
   if (partnership_type_ != NONE && (nu[0] != nu[1] or nu[2] != nu[3] or r[0] != r[1] or
                                     r[2] != r[3])) {  // non density-denity interaction
-    const std::array<ushort, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
+    const std::array<unsigned short, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
     const std::array<ushort, 4> r_opposite{r[1], r[0], r[3], r[2]};
 
     for (auto& elem : elements_)

@@ -37,7 +37,7 @@ MatrixConfiguration& MatrixConfiguration::operator=(MatrixConfiguration&& rhs) {
 void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
                                     std::array<std::vector<ConfigRef>, 2>& config_refs) {
   auto spin = [=](const int nu) { return nu >= n_bands_; };
-  auto band = [=](const int nu) -> ushort { return nu - n_bands_ * spin(nu); };
+  auto band = [=](const int nu) -> unsigned short { return nu - n_bands_ * spin(nu); };
 
   std::array<unsigned, 2> indices;
   const auto& nu = (*H_int_)[v.interaction_id].nu;
@@ -56,7 +56,7 @@ void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
       return 2 * sign;  // negative dd interaction.
   };
 
-  for (ushort leg = 0; leg < 2; ++leg) {
+  for (unsigned short leg = 0; leg < 2; ++leg) {
     assert(spin(nu[0 + 2 * leg]) == spin(nu[1 + 2 * leg]));
     const short s = spin(nu[0 + 2 * leg]);
     Sector& sector = sectors_[s];
