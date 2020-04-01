@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <future>
-#include <thread>
 
 #include "gtest/gtest.h"
 
@@ -22,6 +21,14 @@ TEST(AffinityTest, All) {
     for (auto x : v)
       std::cout << x << " ";
     std::cout << std::endl;
+  };
+  auto equal = [](const auto& a, const auto& b) {
+    if (a.size() != b.size())
+      return false;
+    for (int i = 0; i < a.size(); ++i)
+      if (a[i] != b[i])
+        return false;
+    return true;
   };
 
   std::future<void> f = std::async(std::launch::async, [&]() {
@@ -32,12 +39,12 @@ TEST(AffinityTest, All) {
     dca::parallel::set_affinity(new_set);
 
     auto b = dca::parallel::get_affinity();
-    EXPECT_EQ(new_set, b);
+#if defined(__linux__)
+    EXPECT_TRUE(equal(new_set, b));
+#else
+    EXPECT_TRUE(equal(std::vector<int>{}, b));
+#endif
   });
 
   f.get();
-}
-
-TEST(AffinityTest, Count) {
-  EXPECT_EQ(std::thread::hardware_concurrency(), dca::parallel::get_core_count());
 }
