@@ -32,6 +32,9 @@ inline void copyRows(int row_size, int n_rows, const int* i_x, const std::comple
   auto cu_y = util::castCudaComplex(y);
   copyRows(row_size, n_rows, i_x, cu_x, ldx, i_y, cu_y, ldy, thread_id, stream_id);
 }
+template <typename Type>
+void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, Type* y, int ldy,
+              int thread_id, int stream_id);
 
 template <typename Type>
 void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, const int* j_y,
@@ -43,6 +46,9 @@ inline void copyCols(int col_size, int n_cols, const int* j_x, const std::comple
   auto cu_y = util::castCudaComplex(y);
   copyCols(col_size, n_cols, j_x, cu_x, ldx, j_y, cu_y, ldy, thread_id, stream_id);
 }
+template <typename Type>
+void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, Type* y, int ldy,
+              int thread_id, int stream_id);
 
 template <typename Type>
 void moveLeft(int m, int n, Type* a, int lda);
@@ -90,8 +96,9 @@ inline void swapCols(int col_size, int n_cols, const int* j_1, const int* j_2,
   auto cu_a = util::castCudaComplex(a);
   swapCols(col_size, n_cols, j_1, j_2, cu_a, lda, thread_id, stream_id);
 }
-}  // blas
-}  // linalg
-}  // dca
+
+}  // namespace blas
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_BLAS_KERNELS_GPU_HPP

@@ -26,13 +26,13 @@ namespace details {
 struct DeviceConfiguration {
   const SectorEntry* data;
 
-  __DEVICE__ inline ushort getLeftB(const int matrix_index) const;
+  __DEVICE__ inline unsigned short getLeftB(const int matrix_index) const;
 
-  __DEVICE__ inline ushort getRightB(const int matrix_index) const;
+  __DEVICE__ inline unsigned short getRightB(const int matrix_index) const;
 
-  __DEVICE__ inline ushort getLeftR(const int matrix_index) const;
+  __DEVICE__ inline unsigned short getLeftR(const int matrix_index) const;
 
-  __DEVICE__ inline ushort getRightR(const int matrix_index) const;
+  __DEVICE__ inline unsigned short getRightR(const int matrix_index) const;
 
   __DEVICE__ inline double getTau(const int matrix_index) const;
 
@@ -40,22 +40,22 @@ struct DeviceConfiguration {
 };
 
 __DEVICE__
-ushort DeviceConfiguration::getLeftB(const int matrix_index) const {
+unsigned short DeviceConfiguration::getLeftB(const int matrix_index) const {
   return data[matrix_index].b_left_;
 }
 
 __DEVICE__
-ushort DeviceConfiguration::getRightB(const int matrix_index) const {
+unsigned short DeviceConfiguration::getRightB(const int matrix_index) const {
   return data[matrix_index].b_right_;
 }
 
 __DEVICE__
-ushort DeviceConfiguration::getLeftR(const int matrix_index) const {
+unsigned short DeviceConfiguration::getLeftR(const int matrix_index) const {
   return data[matrix_index].r_left_;
 }
 
 __DEVICE__
-ushort DeviceConfiguration::getRightR(const int matrix_index) const {
+unsigned short DeviceConfiguration::getRightR(const int matrix_index) const {
   return data[matrix_index].r_right_;
 }
 
@@ -69,11 +69,11 @@ short DeviceConfiguration::getAuxFieldType(int matrix_index) const {
   return data[matrix_index].aux_field_type_;
 }
 
-}  // details
-}  // ctint
-}  // solver
-}  // phys
-}  // dca
+}  // namespace details
+}  // namespace ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_HPP

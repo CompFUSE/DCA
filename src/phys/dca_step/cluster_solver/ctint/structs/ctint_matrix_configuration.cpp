@@ -21,14 +21,14 @@ MatrixConfiguration::MatrixConfiguration(const InteractionVertices* H_int, const
     : H_int_(H_int), n_bands_(bands), sectors_{Sector(), Sector()} {}
 
 MatrixConfiguration& MatrixConfiguration::operator=(const MatrixConfiguration& rhs) {
-  assert(n_bands_ == rhs.n_bands_);
+  n_bands_ = rhs.n_bands_;
   H_int_ = rhs.H_int_;
   sectors_ = rhs.sectors_;
   return *this;
 }
 
 MatrixConfiguration& MatrixConfiguration::operator=(MatrixConfiguration&& rhs) {
-  assert(n_bands_ == rhs.n_bands_);
+  n_bands_ = rhs.n_bands_;
   H_int_ = rhs.H_int_;
   sectors_ = std::move(rhs.sectors_);
   return *this;
@@ -37,12 +37,18 @@ MatrixConfiguration& MatrixConfiguration::operator=(MatrixConfiguration&& rhs) {
 void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
                                     std::array<std::vector<ConfigRef>, 2>& config_refs) {
   auto spin = [=](const int nu) { return nu >= n_bands_; };
-  auto band = [=](const int nu) -> ushort { return nu - n_bands_ * spin(nu); };
+  auto band = [=](const int nu) -> unsigned short { return nu - n_bands_ * spin(nu); };
+
+  std::array<unsigned, 2> indices;
+  const auto& nu = (*H_int_)[v.interaction_id].nu;
+  const auto& r = (*H_int_)[v.interaction_id].r;
+
+  const bool is_ndd = band(nu[0]) != band(nu[1]) || band(nu[2]) != band(nu[3]);
 
   auto field_type = [&](const Vertex& v, const int leg) -> short {
     const short sign = v.aux_spin ? 1 : -1;
     const InteractionElement& elem = (*H_int_)[v.interaction_id];
-    if (elem.partners_id.size())
+    if (is_ndd)
       return leg == 1 ? -3 * sign : 3 * sign;  // non density-density.
     else if (elem.w > 0)
       return leg == 1 ? -1 * sign : 1 * sign;  // positive dd interaction.
@@ -50,11 +56,7 @@ void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
       return 2 * sign;  // negative dd interaction.
   };
 
-  std::array<unsigned, 2> indices;
-  const auto& nu = (*H_int_)[v.interaction_id].nu;
-  const auto& r = (*H_int_)[v.interaction_id].r;
-
-  for (ushort leg = 0; leg < 2; ++leg) {
+  for (unsigned short leg = 0; leg < 2; ++leg) {
     assert(spin(nu[0 + 2 * leg]) == spin(nu[1 + 2 * leg]));
     const short s = spin(nu[0 + 2 * leg]);
     Sector& sector = sectors_[s];

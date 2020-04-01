@@ -29,14 +29,14 @@ namespace ctint {
 // Expansion term.
 struct Vertex {
   Vertex() = default;
-  Vertex(bool _aux_spin, ushort _interaction_id, std::uint64_t _tag, double _tau)
+  Vertex(bool _aux_spin, unsigned short _interaction_id, std::uint64_t _tag, double _tau)
       : aux_spin(_aux_spin), interaction_id(_interaction_id), tag(_tag), tau(_tau) {
     spins.fill(-1);
     matrix_config_indices.fill(-1);
   }
 
   bool aux_spin;
-  ushort interaction_id;
+  unsigned short interaction_id;
   std::uint64_t tag;
   double tau;
 
@@ -97,7 +97,7 @@ protected:
   // Out: config_refs. References from matrix configuration to solver configuration to be updated.
   void addVertex(Vertex& v, unsigned config_id, std::array<std::vector<ConfigRef>, 2>& config_refs);
 
-  //  inline void pop(ushort idx_up, ushort idx_down);
+  //  inline void pop(unsigned short idx_up, unsigned short idx_down);
 
   const auto& getEntries(const int s) const {
     return sectors_[s].entries_;
@@ -107,7 +107,7 @@ protected:
   }
 
   const InteractionVertices* H_int_ = nullptr;
-  const int n_bands_ = -1;
+  int n_bands_ = -1;
   std::array<Sector, 2> sectors_;
 };
 

@@ -20,6 +20,7 @@
 #include <string>
 
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp"
 // #include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
@@ -45,6 +46,9 @@ class ModelParameters {};
 
 // Specialization for square lattice bilayer Hubbard model
 #include "model_parameters_bilayer_hubbard.inc"
+
+// Specialization for FeAs superconducting model.
+#include "model_parameters_fe_as.inc"
 
 // Specialization for 2D bilayer model with a spin flip term
 #include "model_parameters_hund.inc"
