@@ -232,9 +232,9 @@ public:  // Optional members getters.
               "non_density_interaction"));
     return *non_density_interactions_;
   }
-  const auto& get_nondensity_interactions() const {
+  const auto& get_non_density_interactions() const {
     assert(non_density_interactions_);
-    return non_density_interactions_;
+    return *non_density_interactions_;
   }
 
   bool has_non_density_interactions() const {
