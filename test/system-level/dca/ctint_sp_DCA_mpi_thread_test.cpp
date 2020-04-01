@@ -33,7 +33,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_baseline = true;
+constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
