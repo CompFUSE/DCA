@@ -23,22 +23,22 @@ namespace domains {
 template <int n, int m>
 class Cn_2D : public group_action<2> {
 public:
-  typedef group_action<2> base_type;
-  typedef Cn_2D<n, m> this_type;
+  using base_type = group_action<2>;
+  using this_type = Cn_2D<n, m>;
 
   Cn_2D(){};
 
-  static double* matrix() {
-    static double* matrix = init();
-    return matrix;
+  static const double* matrix() {
+    static const auto matrix = init();
+    return matrix.data();
   }
 
 private:
-  static double* init() {
-    static std::array<double, 4> matrix;
+  static std::array<double, 4> init() {
+    std::array<double, 4> matrix;
 
-    constexpr double c = std::cos(2 * M_PI * double(n) / double(m));
-    constexpr double s = std::sin(2 * M_PI * double(n) / double(m));
+    double c = std::cos(2 * M_PI * double(n) / double(m));
+    double s = std::sin(2 * M_PI * double(n) / double(m));
 
     // in column major order !
     matrix[0] = c;
@@ -46,7 +46,7 @@ private:
     matrix[2] = -s;
     matrix[3] = c;
 
-    return matrix.data();
+    return matrix;
   }
 };
 
