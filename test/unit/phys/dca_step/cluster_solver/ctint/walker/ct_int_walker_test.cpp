@@ -71,8 +71,8 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   // *******************************
   // Test vertex removal ***********
   // *******************************
-  // Set rng value to select: last vertex,  accept
-  rng.setNewValues(std::vector<double>{0.95, 0.01});
+  // Set rng value to select: last vertex, unused, unused, accept
+  rng.setNewValues(std::vector<double>{0.95, -1, -1, 0.01});
   MatrixPair<Real> old_M(walker.getM());
   bool result = walker.tryVertexRemoval();
   MatrixPair<Real> new_M(walker.getM());
