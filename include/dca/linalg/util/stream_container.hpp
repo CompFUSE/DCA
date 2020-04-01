@@ -28,7 +28,7 @@ class StreamContainer {
 public:
   StreamContainer(int max_threads = 0) : streams_(max_threads * streams_per_thread_) {}
 
-  std::size_t get_max_threads() const {
+  int get_max_threads() const {
     return streams_.size() / streams_per_thread_;
   }
 
