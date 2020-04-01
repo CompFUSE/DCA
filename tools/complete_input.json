@@ -143,7 +143,7 @@
     },
 
     "four-point": {
-        "channel": [],
+        "channels": [],
         "momentum-transfer": [0., 0.],
         "frequency-transfer": 0,
         "compute-all-transfers" : false
