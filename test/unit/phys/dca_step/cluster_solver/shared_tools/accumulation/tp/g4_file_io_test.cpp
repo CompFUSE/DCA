@@ -1,0 +1,105 @@
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
+//
+// This file implements a no-change test for the two point accumulation of a mock configuration.
+
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+
+#include <array>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "gtest/gtest.h"
+
+#include "dca/function/util/difference.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/phys/four_point_type.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+
+constexpr bool update_baseline = true;
+
+#define INPUT_DIR \
+  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
+
+constexpr char input_file[] = INPUT_DIR "input_large_G4.json";
+
+using ConfigGenerator = dca::testing::AccumulationTest<double>;
+using Configuration = ConfigGenerator::Configuration;
+using Sample = ConfigGenerator::Sample;
+
+using G4FileIoTest =
+    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
+
+TEST_F(G4FileIoTest, ReadWrite) {
+  const std::array<int, 2> n{18, 22};
+  Sample M;
+  Configuration config;
+  ConfigGenerator::prepareConfiguration(config, M, G4FileIoTest::BDmn::dmn_size(),
+                                        G4FileIoTest::RDmn::dmn_size(), parameters_.get_beta(),
+                                        n);
+
+  Data::TpGreensFunction G4_check("G4");
+
+  dca::io::HDF5Writer writer;
+  dca::io::HDF5Reader reader;
+
+  const std::string baseline = "baseline_" "tp_accumulator_test_baseline.hdf5";
+  const std::string outline = "output_" "tp_accumulator_test_baseline.hdf5";
+
+  
+  if (update_baseline)
+    writer.open_file(baseline);
+  else
+    {
+      reader.open_file(baseline);
+      writer.open_file(outline);
+    }
+    
+
+  std::map<dca::phys::FourPointType, std::string> func_names;
+  func_names[dca::phys::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
+  func_names[dca::phys::PARTICLE_HOLE_MAGNETIC] = "G4_ph_magnetic";
+  func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
+  func_names[dca::phys::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
+
+  for (const dca::phys::FourPointType type :
+       {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
+        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
+    parameters_.set_four_point_channel(type);
+
+    dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
+        data_->G0_k_w_cluster_excluded, parameters_);
+
+    const int sign = 1;
+    accumulator.accumulate(M, config, sign);
+    accumulator.finalize();
+
+    
+    const auto& G4 = accumulator.get_sign_times_G4();
+
+    if (update_baseline) {
+      writer.execute(func_names[type], G4[0]);
+    }
+    else {
+      G4_check.set_name(func_names[type]);
+      reader.execute(G4_check);
+      const auto diff = dca::func::util::difference(G4[0], G4_check);
+      EXPECT_GT(1e-8, diff.l_inf);
+      writer.execute(func_names[type], G4[0]);
+    }
+  }
+
+  if (update_baseline)
+    writer.close_file();
+  else
+    reader.close_file();
+}
