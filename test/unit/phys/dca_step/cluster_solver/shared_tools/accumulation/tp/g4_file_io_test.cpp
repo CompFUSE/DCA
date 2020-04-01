@@ -8,7 +8,7 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Peter Doak (doakpw@ornl.gov)
 //
-// This file implements a no-change test for the two point accumulation of a mock configuration.
+// This file implements a write read of a largish G4 matrix
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
@@ -25,8 +25,6 @@
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-constexpr bool update_baseline = true;
-
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
@@ -39,67 +37,39 @@ using Sample = ConfigGenerator::Sample;
 using G4FileIoTest =
     dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
 
+// Since we are not going to put a 1.6G file in the repo this has different logic from tp_accumulator_test.cpp
+
 TEST_F(G4FileIoTest, ReadWrite) {
   const std::array<int, 2> n{18, 22};
-  Sample M;
-  Configuration config;
-  ConfigGenerator::prepareConfiguration(config, M, G4FileIoTest::BDmn::dmn_size(),
-                                        G4FileIoTest::RDmn::dmn_size(), parameters_.get_beta(),
-                                        n);
+  
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);  
 
-  Data::TpGreensFunction G4_check("G4");
-
+  auto fillG4 = [&rng](auto& G4) {
+                    for (size_t i = 0; i < G4.size(); ++i)
+                      G4(i) = rng();
+                };
+                      
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
 
-  const std::string baseline = "baseline_" "tp_accumulator_test_baseline.hdf5";
-  const std::string outline = "output_" "tp_accumulator_test_baseline.hdf5";
-
-  
-  if (update_baseline)
-    writer.open_file(baseline);
-  else
-    {
-      reader.open_file(baseline);
-      writer.open_file(outline);
-    }
-    
-
   std::map<dca::phys::FourPointType, std::string> func_names;
-  func_names[dca::phys::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
-  func_names[dca::phys::PARTICLE_HOLE_MAGNETIC] = "G4_ph_magnetic";
   func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
-  func_names[dca::phys::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
-  for (const dca::phys::FourPointType type :
-       {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
-        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    parameters_.set_four_point_channel(type);
+  const dca::phys::FourPointType g4_channel = dca::phys::PARTICLE_HOLE_CHARGE;
 
-    dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
-        data_->G0_k_w_cluster_excluded, parameters_);
+  Data::TpGreensFunction g4_work("G4");
+  fillG4(g4_work);
 
-    const int sign = 1;
-    accumulator.accumulate(M, config, sign);
-    accumulator.finalize();
+  const std::string self_consistent_large_G4 =
+      "g4_accumulator_test_large_G4.hdf5";
 
-    
-    const auto& G4 = accumulator.get_sign_times_G4();
-
-    if (update_baseline) {
-      writer.execute(func_names[type], G4[0]);
-    }
-    else {
-      G4_check.set_name(func_names[type]);
-      reader.execute(G4_check);
-      const auto diff = dca::func::util::difference(G4[0], G4_check);
-      EXPECT_GT(1e-8, diff.l_inf);
-      writer.execute(func_names[type], G4[0]);
-    }
-  }
-
-  if (update_baseline)
-    writer.close_file();
-  else
-    reader.close_file();
+  writer.open_file(self_consistent_large_G4);
+  writer.execute(func_names[g4_channel], g4_work);
+  writer.close_file();
+  
+  Data::TpGreensFunction g4_read("G4");
+  reader.open_file(self_consistent_large_G4);
+  reader.execute(g4_read);
+  const auto diff = dca::func::util::difference(g4_read, g4_work);
+  EXPECT_GT(1e-8, diff.l_inf);
 }
