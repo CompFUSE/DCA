@@ -69,9 +69,6 @@ public:
   bool execute(const std::string& name, std::vector<Scalar>& value);
 
   template <typename Scalar>
-  bool execute(const std::string& name, std::vector<std::complex<Scalar>>& value);
-
-  template <typename Scalar>
   bool execute(const std::string& name, std::vector<std::vector<Scalar>>& value);
 
   template <typename Scalar, std::size_t n>
@@ -97,15 +94,7 @@ public:
   bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  bool execute(const std::string& name,
-               dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
-
-  template <typename Scalar>
   bool execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
-
-  template <typename Scalar>
-  bool execute(const std::string& name,
-               dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
 
   template <typename Scalar>
   bool execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
@@ -156,22 +145,6 @@ bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
 
   auto dims = readSize(full_name);
   assert(dims.size() == 1);
-  value.resize(dims.at(0));
-
-  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
-  return true;
-}
-
-template <typename Scalar>
-bool HDF5Reader::execute(const std::string& name, std::vector<std::complex<Scalar>>& value) {
-  std::string full_name = get_path() + "/" + name;
-
-  if (!exists(full_name)) {
-    return false;
-  }
-
-  auto dims = readSize(full_name);
-  assert(dims.size() == 2);
   value.resize(dims.at(0));
 
   read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
@@ -285,23 +258,6 @@ bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dc
 }
 
 template <typename Scalar>
-bool HDF5Reader::execute(const std::string& name,
-                         dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
-  std::string full_name = get_path() + "/" + name;
-  if (!exists(full_name)) {
-    return false;
-  }
-
-  auto dims = readSize(full_name);
-  assert(dims.size() == 2);
-  V.resize(dims.at(0));
-
-  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
-
-  return true;
-}
-
-template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {
@@ -323,31 +279,6 @@ bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dc
 
   A.set_name(name);
 
-  return true;
-}
-
-template <typename Scalar>
-bool HDF5Reader::execute(const std::string& name,
-                         dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
-  std::string full_name = get_path() + "/" + name;
-  if (!exists(full_name)) {
-    return false;
-  }
-
-  auto dims = readSize(full_name);
-  assert(dims.size() == 3);
-
-  std::vector<std::complex<Scalar>> linearized(dims[0] * dims[1]);
-  read(full_name, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
-
-  // HDF5 is column major, while Matrix is row major.
-  A.resizeNoCopy(std::make_pair(dims[0], dims[1]));
-  for (int i = 0, linindex = 0; i < A.nrRows(); ++i) {
-    for (int j = 0; j < A.nrCols(); ++j)
-      A(i, j) = linearized[linindex++];
-  }
-
-  A.set_name(name);
   return true;
 }
 

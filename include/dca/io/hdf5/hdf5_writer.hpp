@@ -74,9 +74,6 @@ public:
   template <typename Scalar>
   void execute(const std::string& name, const std::vector<Scalar>& value);
 
-  template <typename Scalar>
-  void execute(const std::string& name, const std::vector<std::complex<Scalar>>& value);
-
   void execute(const std::string& name, const std::string& value);
 
   void execute(const std::string& name, const std::vector<std::string>& value);
@@ -94,27 +91,13 @@ public:
   void execute(const func::function<Scalar, domain_type>& f);
 
   template <typename Scalar, typename domain_type>
-  void execute(const func::function<std::complex<Scalar>, domain_type>& f);
-
-  template <typename Scalar, typename domain_type>
   void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
-
-  template <typename Scalar, typename domain_type>
-  void execute(const std::string& name, const func::function<std::complex<Scalar>, domain_type>& f);
 
   template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  void execute(const std::string& name,
-               const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& A);
-
-  template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
-
-  template <typename Scalar>
-  void execute(const std::string& name,
-               const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A);
 
   template <typename Scalar>
   void execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
@@ -205,15 +188,6 @@ void HDF5Writer::execute(const std::string& name,
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::complex<Scalar>>& value) {
-  if (value.size() > 0) {
-    std::string full_name = get_path() + "/" + name;
-    std::vector<hsize_t> dims{value.size(), 2};
-    write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
-  }
-}
-
-template <typename Scalar>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
 
@@ -261,17 +235,6 @@ void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
 }
 
 template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const func::function<std::complex<Scalar>, domain_type>& f) {
-  if (f.size() == 0)
-    return;
-
-  if (verbose_)
-    std::cout << "\t starts writing function : " << f.get_name() << "\n";
-
-  execute(f.get_name(), f);
-}
-
-template <typename Scalar, typename domain_type>
 void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
@@ -294,34 +257,6 @@ void HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   addAttribute(dataset, "domain-sizes", std::vector<hsize_t>{dims.size()}, type, dims.data());
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const std::string& name,
-                         const func::function<std::complex<Scalar>, domain_type>& f) {
-  if (f.size() == 0)
-    return;
-
-  const std::string full_name = get_path() + "/" + name;
-
-  std::vector<hsize_t> dims;
-  for (int l = 0; l < f.signature(); ++l)
-    dims.push_back(f[l]);
-
-  // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
-  std::reverse(dims.begin(), dims.end());
-
-  // Add real-imaginary dimension
-  dims.push_back(2);
-
-  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), f.values());
-
-  addAttribute(dataset, "name", f.get_name());
-
-  dims.pop_back();
-  std::reverse(dims.begin(), dims.end());
-  auto type = HDF5_TYPE<hsize_t>::get_PredType();
-  addAttribute(dataset, "domain-sizes", std::vector<hsize_t>{dims.size()}, type, dims.data());
-}
-
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
@@ -334,37 +269,9 @@ void HDF5Writer::execute(const std::string& name,
 
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Vector<std::complex<Scalar>, dca::linalg::CPU>& V) {
-  std::string full_name = get_path() + "/" + name;
-  auto dataset = write(full_name, std::vector<hsize_t>{V.size(), 2},
-                       HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
-
-  addAttribute(dataset, "name", V.get_name());
-}
-
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
-
-  int linindex = 0;
-  // Note: Matrices are row major, while HDF5 is column major
-  for (int i = 0; i < A.nrRows(); ++i)
-    for (int j = 0; j < A.nrCols(); ++j)
-      linearized[linindex++] = A(i, j);
-
-  std::string full_name = get_path() + "/" + name;
-  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
-
-  addAttribute(dataset, "name", A.get_name());
-}
-
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::Matrix<std::complex<Scalar>, dca::linalg::CPU>& A) {
-  std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols()), hsize_t(2)};
-  std::vector<std::complex<Scalar>> linearized(A.nrRows() * A.nrCols());
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
