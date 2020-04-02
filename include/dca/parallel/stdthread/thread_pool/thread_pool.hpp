@@ -38,6 +38,11 @@ struct thread_traits {
     using condition_variable_type   = std::condition_variable;
     using scoped_lock               = std::lock_guard<mutex_type>;
     using unique_lock               = std::unique_lock<mutex_type>;
+    //
+    static void sleep_for(std::chrono::microseconds const& rel_time) {
+        std::this_thread::sleep_for(rel_time);
+    }
+    //
     static void yield() {
         std::this_thread::yield();
     }
