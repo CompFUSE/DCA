@@ -1,6 +1,6 @@
 # test/unit/phys/dca_step/cluster_solver/shared_tools/tp
 
-dca_add_gtest(g4_file_io_test
+dca_add_gtest(hdf5_g4_file_io_test
   FAST
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
