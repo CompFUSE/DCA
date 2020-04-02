@@ -69,6 +69,7 @@ TEST_F(G4FileIoTest, ReadWrite) {
   
   Data::TpGreensFunction g4_read("G4");
   reader.open_file(self_consistent_large_G4);
+  g4_read.set_name(func_names[g4_channel]);
   reader.execute(g4_read);
   const auto diff = dca::func::util::difference(g4_read, g4_work);
   EXPECT_GT(1e-8, diff.l_inf);
