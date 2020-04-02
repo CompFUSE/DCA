@@ -5,16 +5,18 @@
 # Prevent CMake from searching for BLAS and LAPACK libraries.
 # Paths to IBM's ESSL (preferred) and NETLIB-LAPACK will be set manually.
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "If set to TRUE, prevents CMake from searching for LAPACK.")
-# To give ESSL precedence it needs to be specified before NETLIB.
-if(DEFINED DCA_WITH_HPX)
-set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
 
+if(NOT DCA_WITH_HPX)
+# To give ESSL precedence it needs to be specified before NETLIB.
+set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
 # Set the include directory for the ESSL library.
 set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL include directory.")
 mark_as_advanced(DCA_ESSL_INCLUDES)
 else()
+#HPX threading support should not interact with essl
 set(LAPACK_LIBRARIES $ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
 endif()
+
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING
