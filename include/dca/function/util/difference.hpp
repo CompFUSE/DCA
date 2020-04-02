@@ -49,11 +49,6 @@ Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scal
     l2 += f_abs * f_abs;
     linf = std::max(linf, f_abs);
 
-#ifndef NDEBUG
-    auto peek_f1 = f1(i);
-    auto peek_f2 = f2(i);
-#endif
-    
     const auto diff = static_cast<DiffType>(f1(i)) - static_cast<DiffType>(f2(i));
     const double err = std::abs(diff);
     l1_error += err;
