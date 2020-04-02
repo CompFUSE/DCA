@@ -8,6 +8,7 @@ if (DCA_HAVE_CUDA)
     # All the interdependent .cu files need to be compiled together due to limits of the nvcc linker.
     set(MC_KERNEL_FILES
             # CT-INT
+            ctint/walker/walker_kernels.cu
             ctint/walker/tools/d_matrix_kernels.cu
             ctint/device_helper/ctint_helper.cu
             ctint/walker/tools/g0_interpolation_gpu.cu

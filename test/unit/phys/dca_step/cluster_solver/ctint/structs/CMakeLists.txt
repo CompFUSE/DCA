@@ -5,7 +5,7 @@ dca_add_gtest(ct_int_interaction_vertices_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS ${DCA_LIBS}
+    LIBS ${DCA_LIBS} ${DCA_THREADING_LIBS}
     )
 
 dca_add_gtest(solver_configuration_test
@@ -21,7 +21,3 @@ dca_add_gtest(read_write_ctint_config_test
   INCLUDE_DIRS ${TEST_INCLUDES}
   LIBS random;time_and_frequency_domains;function;ctint
   )
-
-if (DCA_HAVE_CUDA)
-  target_link_libraries(read_write_ctint_config_test  PRIVATE cuda_utils)
-endif()

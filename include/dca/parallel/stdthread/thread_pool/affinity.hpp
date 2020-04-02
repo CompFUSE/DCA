@@ -19,11 +19,15 @@ namespace parallel {
 // dca::parallel::
 
 // Returns a list of cores id for which the calling thread has affinity.
+// If the macro __linux__ is not defined, returns an empty vector.
 std::vector<int> get_affinity();
 
+// Sets the affinity list of the current thread.
+// If the macro __linux__ is not defined, performs a no-op.
 void set_affinity(const std::vector<int>& cores);
 
-// Number of cores used by this process.
+// Returns the number of visible hardware cores.
+// If the macro __linux__ is not defined, returns std::hardware_concurrency().
 int get_core_count();
 
 }  // namespace parallel

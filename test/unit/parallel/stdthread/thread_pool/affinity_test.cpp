@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <future>
-#include <thread>
 
 #include "gtest/gtest.h"
 
@@ -40,12 +39,12 @@ TEST(AffinityTest, All) {
     dca::parallel::set_affinity(new_set);
 
     auto b = dca::parallel::get_affinity();
+#if defined(__linux__)
     EXPECT_TRUE(equal(new_set, b));
+#else
+    EXPECT_TRUE(equal(std::vector<int>{}, b));
+#endif
   });
 
   f.get();
-}
-
- TEST(AffinityTest, Count) {
-  EXPECT_EQ(std::thread::hardware_concurrency(), dca::parallel::get_core_count());
 }

@@ -51,9 +51,10 @@ public:
 
   // Returns the indices of the removal candidates. -1 stands for a missing candidate.
   template <class RngType>
-  std::array<int, 2> randomRemovalCandidate(RngType& rng, double removal_rand);
-  template <class RngType>
   std::array<int, 2> randomRemovalCandidate(RngType& rng);
+
+  // Similar to the above method, but sample vertices irrespective of their order.
+  std::array<int, 2> randomRemovalCandidateSlow(const std::array<double, 3>& rng_vals);
 
   // Out: indices. Appends the result of the search to indices.
   template <class Alloc>
@@ -93,7 +94,11 @@ public:
   inline double getStrength(int vertex_index) const;
   inline short getSign(int vertex_index) const;
 
-  ushort lastInsertionSize() const {
+  double getDoubleUpdateProb() const {
+    return double_insertion_prob_;
+  }
+
+  unsigned short lastInsertionSize() const {
     return last_insertion_size_;
   }
 
@@ -103,8 +108,9 @@ public:
   // Return index corresponding to tag.
   int findTag(std::uint64_t tag) const;
 
-  auto possiblePartners() const {
-    return H_int_->possiblePartners();
+  auto possiblePartners(unsigned idx) const {
+    assert(idx < vertices_.size());
+    return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
@@ -129,7 +135,7 @@ private:
   // TODO: use a structure with fast (log N?) removal/insertion and random access.
   // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
   std::vector<const std::vector<std::size_t>*> partners_lists_;
-  ushort last_insertion_size_ = 1;
+  unsigned short last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
 
@@ -143,33 +149,24 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   const double tau = rng() * max_tau_;
   const bool aux_spin = rng() > 0.5;
 
-  Vertex v(aux_spin, ushort(indices.first), current_tag_++, tau);
+  Vertex v(aux_spin, indices.first, current_tag_++, tau);
   push_back(v);
 
-  if (double_insertion_prob_) {
-    // TODO: generalize to multiband n_bands > 2
-    if (indices.second != -1 && double_insertion_prob_) {
-      const double tau2 = rng() * max_tau_;
-      const bool aux_spin2 = rng() > 0.5;
-      Vertex v2(aux_spin2, ushort(indices.second), current_tag_++, tau2);
-      push_back(v2);
-      last_insertion_size_ = 2;
-    }
-    else
-      last_insertion_size_ = 1;
+  if (indices.second != -1) {
+    const double tau2 = rng() * max_tau_;
+    const bool aux_spin2 = rng() > 0.5;
+    Vertex v2(aux_spin2, indices.second, current_tag_++, tau2);
+    push_back(v2);
+    last_insertion_size_ = 2;
+  }
+  else {
+    last_insertion_size_ = 1;
   }
   assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
 
 template <class RngType>
 std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
-  return randomRemovalCandidate(rng, rng());
-}
-
-// TODO: possibly use only the above signature.
-template <class RngType>
-std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, double removal_rand) {
-  // TODO: generalize to n > 2.
   std::array<int, 2> candidates{-1, -1};
   if (n_annihilatable_ == 0)
     return candidates;
@@ -185,13 +182,12 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, dou
   constexpr unsigned threshold = 10;
 
   if (n_annihilatable_ >= threshold) {
-    candidates[0] = removal_rand * size();
-    while (!vertices_[candidates[0]].annihilatable) {
+    do {
       candidates[0] = rng() * size();
-    }
+    } while (!vertices_[candidates[0]].annihilatable);
   }
   else {
-    unsigned annihilatable_idx = removal_rand * n_annihilatable_;
+    unsigned annihilatable_idx = rng() * n_annihilatable_;
     unsigned annihilatable_found = 0;
     for (int i = 0; i < vertices_.size(); ++i) {
       if (vertices_[i].annihilatable) {
@@ -211,14 +207,16 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng, dou
       partners_lists_.push_back(&existing_[partner_id]);
 
     const auto tag = details::getRandomElement(partners_lists_, rng());
-    candidates[1] = findTag(tag);
-    assert(candidates[1] < int(size()) && candidates[1] >= 0);
-    assert(vertices_[candidates[1]].annihilatable);
+    if (tag != -1) {
+      candidates[1] = findTag(tag);
+      assert(candidates[1] < int(size()) && candidates[1] >= 0);
+      assert(vertices_[candidates[1]].annihilatable);
+    }
   }
 
   assert(candidates[0] < int(size()));
   return candidates;
-}
+}  // namespace ctint
 
 template <class Rng>
 bool SolverConfiguration::doDoubleUpdate(Rng& rng) const {
