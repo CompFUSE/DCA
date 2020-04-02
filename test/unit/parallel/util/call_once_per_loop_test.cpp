@@ -20,11 +20,7 @@ int task(unsigned int loop_id, std::vector<int>& data) {
 
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
     ++data[loop_id];
-#ifdef DCA_HAVE_HPX
-    hpx::this_thread::sleep_for(std::chrono::microseconds(100));
-#else
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
-#endif
+    dca::parallel::thread_traits::sleep_for(std::chrono::microseconds(100));
   });
   return 0;
 }
@@ -35,24 +31,21 @@ TEST(CallOncePerLoopTest, All) {
 
   {
     const int n_threads = 8;
-#ifdef DCA_HAVE_HPX
-#else
     dca::parallel::ThreadPool pool(n_threads);
-#endif
+
+    auto task_t = std::bind(task, std::placeholders::_1, std::ref(result));
+
     for (unsigned int loop_id = 0; loop_id < n_loops; ++loop_id) {
+
     std::vector<dca::parallel::thread_traits::future_type<int>> futures;
-      for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
-#ifdef DCA_HAVE_HPX
-        futures.push_back(hpx::async(task, loop_id, std::ref(result)));
-#else
-	pool.enqueue(task, loop_id, std::ref(result));
-#endif
-      }
-#ifdef DCA_HAVE_HPX
-        hpx::wait_all(futures);
-#endif
+
+    for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
+        futures.emplace_back(pool.enqueue(task_t, loop_id));
     }
 
+    for (auto& future : futures)
+        future.get();
+    }
   }
 
   for (int elem : result)
