@@ -100,11 +100,11 @@ public:
 
   // Conclude all the pending work and destroy the threads spawned by this class.
   ~ThreadPool() {
-//      exec.wait_all();
       pool_size = 0;
   }
 
-  void set_task_count_threshold(std::int64_t count)
+//  void set_task_count_threshold(std::int64_t count)
+  void set_task_count_threshold()
   {
 //    exec.set_threshold(count, count+1);
   }
