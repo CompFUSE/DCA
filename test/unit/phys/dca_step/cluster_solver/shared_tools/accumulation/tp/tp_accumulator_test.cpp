@@ -57,7 +57,6 @@ TEST_F(TpAccumulatorTest, Accumulate) {
     writer.open_file(baseline);
   else
     reader.open_file(baseline);
-    
 
   std::map<dca::phys::FourPointType, std::string> func_names;
   func_names[dca::phys::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
