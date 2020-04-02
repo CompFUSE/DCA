@@ -168,18 +168,6 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
 
   dca::profiling::WallTime start_time;
 
-#ifdef DCA_HAVE_HPX
-  for (int i = 0; i < thread_task_handler_.size(); ++i) {
-    if (thread_task_handler_.getTask(i) == "walker")
-      futures.emplace_back(hpx::async(&ThisType::startWalker, this, i));
-    else if (thread_task_handler_.getTask(i) == "accumulator")
-      futures.emplace_back(hpx::async(&ThisType::startAccumulator, this, i));
-    else if (thread_task_handler_.getTask(i) == "walker and accumulator")
-      futures.emplace_back(hpx::async(&ThisType::startWalkerAndAccumulator, this, i));
-    else
-      throw std::logic_error("Thread task is undefined.");
-  }
-#else
   auto& pool = dca::parallel::ThreadPool::get_instance();
   for (int i = 0; i < thread_task_handler_.size(); ++i) {
     if (thread_task_handler_.getTask(i) == "walker")
@@ -191,7 +179,6 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
     else
       throw std::logic_error("Thread task is undefined.");
   }
-#endif
   auto print_metadata = [&]() {
                           
                           //assert(walk_finished_ == parameters_.get_walkers());
@@ -205,12 +192,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   };
 
   try {
-#ifdef DCA_HAVE_HPX
-    hpx::wait_all(futures);
-#else
     for (auto& future : futures)
       future.get();
-#endif
   }
   catch (std::exception& err) {
     print_metadata();
