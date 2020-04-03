@@ -66,10 +66,10 @@ namespace DCA
 
     typedef dmn_3<b,b,crystal_harmonics_expansion_dmn_t>           chi_vector_dmn_t;
 
-    typedef dmn_4<b,b,k_DCA                             , WVertexDmn> cluster_eigenvector_dmn_t;
-    typedef dmn_4<b,b,k_HOST_VERTEX                     , WVertexDmn> lattice_eigenvector_dmn_t;
-    typedef dmn_4<b,b,crystal_harmonics_expansion_dmn_t , WVertexDmn> crystal_eigenvector_dmn_t;
-    typedef dmn_4<b,b,  cubic_harmonics_dmn_type        , WVertexDmn>   cubic_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_DCA                             , w_VERTEX> cluster_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_HOST_VERTEX                     , w_VERTEX> lattice_eigenvector_dmn_t;
+    typedef dmn_4<b,b,crystal_harmonics_expansion_dmn_t , w_VERTEX> crystal_eigenvector_dmn_t;
+    typedef dmn_4<b,b,  cubic_harmonics_dmn_type        , w_VERTEX>   cubic_eigenvector_dmn_t;
 
     typedef dmn_2<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t> DCA_matrix_dmn_t;
     typedef dmn_2<lattice_eigenvector_dmn_t, lattice_eigenvector_dmn_t> HOST_matrix_dmn_t;
@@ -143,7 +143,7 @@ namespace DCA
 
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_lattice;
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_sym;
-    FUNC_LIB::function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, WVertexDmn> > chi_0_function;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;
 
     FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type                                   > leading_eigenvalues;
     FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cubic_eigenvector_dmn_t  > > leading_symmetry_decomposition;
@@ -266,7 +266,7 @@ namespace DCA
           for(int k_ind=0; k_ind<k_HOST_VERTEX::dmn_size(); k_ind++)
             psi_k(k_ind, l) = std::exp(I*VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, k_HOST_VERTEX::get_elements()[k_ind]))/std::sqrt(double(k_HOST_VERTEX::dmn_size()));
 
-          for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++)
+          for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
             for(int k_ind=0; k_ind<k_HOST_VERTEX::dmn_size(); k_ind++)
               for(int m_ind=0; m_ind<b::dmn_size(); m_ind++)
                 for(int n_ind=0; n_ind<b::dmn_size(); n_ind++)
@@ -414,7 +414,7 @@ namespace DCA
 
       //       scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
 
-      //       for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++)
+      //       for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
       //         for(int K_ind=0; K_ind<k_HOST_VERTEX::dmn_size(); K_ind++)
 
       //           for(int m2=0; m2<b::dmn_size(); m2++)
@@ -497,7 +497,7 @@ namespace DCA
 
      //       scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
 
-     //       for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++)
+     //       for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
      //         for(int K_ind=0; K_ind<k_HOST_VERTEX::dmn_size(); K_ind++)
 
      //           for(int m2=0; m2<b::dmn_size(); m2++)
@@ -515,7 +515,7 @@ namespace DCA
   {
     scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
 
-    for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++)
+    for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
       for(int K_ind=0; K_ind<k_HOST_VERTEX::dmn_size(); K_ind++)
 
         for(int m2=0; m2<b::dmn_size(); m2++)
@@ -550,7 +550,7 @@ namespace DCA
   //       if(concurrency.id()==0)
   //         std::cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
-  //       FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,tmp_cluster_dmn_t,WVertexDmn>, dmn_4<b,b,tmp_cluster_dmn_t,WVertexDmn> > > Gamma_lattice_interp("Gamma_lattice_interp");
+  //       FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX>, dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX> > > Gamma_lattice_interp("Gamma_lattice_interp");
 
   //       for(int i=0; i<Gamma_lattice_interp.size(); i++)
   //         Gamma_lattice_interp(i) = Gamma_lattice(i);
@@ -586,27 +586,27 @@ namespace DCA
       if(concurrency.id()==concurrency.last())
         std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute Gamma_chi_0_lattice " << print_time() << " ...";
 
-      for(int w2=0; w2<WVertexDmn::dmn_size(); w2++)
+      for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
         for(int K2=0; K2<k_HOST_VERTEX::dmn_size(); K2++)
           for(int m2=0; m2<b::dmn_size(); m2++)
             for(int n2=0; n2<b::dmn_size(); n2++)
 
-              for(int w1=0; w1<WVertexDmn::dmn_size(); w1++)
+              for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
                 for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
                   for(int m1=0; m1<b::dmn_size(); m1++)
                     for(int n1=0; n1<b::dmn_size(); n1++)
                     {
-                      Gamma_sym(n1,m1,K1,w1,n2,m2,K2,w2) = 0.5* (Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w2) + Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,WVertexDmn::dmn_size()-1-w2));
+                      Gamma_sym(n1,m1,K1,w1,n2,m2,K2,w2) = 0.5* (Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w2) + Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w_VERTEX::dmn_size()-1-w2));
                     }
     }
     // if(concurrency.id()==concurrency.last())
     // {
     //     for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
-    //       for(int w1=0; w1<WVertexDmn::dmn_size(); w1++)
+    //       for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
     //       {
     //           std::cout << "\n";
     //           for(int K2=0; K2<k_HOST_VERTEX::dmn_size(); K2++)
-    //               for(int w2=0; w2<WVertexDmn::dmn_size(); w2++)
+    //               for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
     //               {
     //                   std::cout << real(Gamma_sym(0,0,K1,w1,0,0,K2,w2)) << " ";
     //               }
@@ -1054,12 +1054,12 @@ namespace DCA
 
       chi_q = 0.;
 
-      for(int w2=0; w2<WVertexDmn::dmn_size(); w2++)
+      for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
         for(int K2=0; K2<M; K2++)
           for(int m2=0; m2<b::dmn_size(); m2++)
             for(int n2=0; n2<b::dmn_size(); n2++)
 
-              for(int w1=0; w1<WVertexDmn::dmn_size(); w1++)
+              for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
                 for(int K1=0; K1<M; K1++)
                   for(int m1=0; m1<b::dmn_size(); m1++)
                     for(int n1=0; n1<b::dmn_size(); n1++)
@@ -1130,8 +1130,8 @@ namespace DCA
                   std::complex<scalartype> norm   = 0;
 
                   for(int j=0; j<N; j++){
-                    result += conj(psi_k(j, l))*leading_eigenvectors(i, 0,0,j,WVertexDmn::dmn_size()/2);
-                    norm   += conj(leading_eigenvectors(i, 0,0,j,WVertexDmn::dmn_size()/2))*leading_eigenvectors(i, 0,0,j,WVertexDmn::dmn_size()/2);
+                    result += conj(psi_k(j, l))*leading_eigenvectors(i, 0,0,j,w_VERTEX::dmn_size()/2);
+                    norm   += conj(leading_eigenvectors(i, 0,0,j,w_VERTEX::dmn_size()/2))*leading_eigenvectors(i, 0,0,j,w_VERTEX::dmn_size()/2);
                   }
 
                   std::cout << "\t[ " << real(result/std::sqrt(real(norm)+1.e-16)) << ", " << imag(result/std::sqrt(real(norm)+1.e-16)) << "]";
@@ -1173,8 +1173,8 @@ namespace DCA
           double kx = k_HOST_VERTEX::get_elements()[k_ind][0];
           double ky = k_HOST_VERTEX::get_elements()[k_ind][1];
           std::cout << i << "\t" << "k = [" << kx << ",  " << ky << "]\t " << "Phi_k = [" <<
-          real(leading_eigenvectors(i,0,0,k_ind,WVertexDmn::dmn_size()/2)) << ",  " <<
-          imag(leading_eigenvectors(i,0,0,k_ind,WVertexDmn::dmn_size()/2)) << "]\n";
+          real(leading_eigenvectors(i,0,0,k_ind,w_VERTEX::dmn_size()/2)) << ",  " <<
+          imag(leading_eigenvectors(i,0,0,k_ind,w_VERTEX::dmn_size()/2)) << "]\n";
           }
           std::cout << "----------------------------------------------------------------------" << "\n";
           }
@@ -1208,9 +1208,9 @@ namespace DCA
           std::cout << "  w         k=[" << k_HOST_VERTEX::get_elements()[ind0pi][0] << ", " << k_HOST_VERTEX::get_elements()[ind0pi][1] << "]         k=[" << k_HOST_VERTEX::get_elements()[indpi0][0] << ", " << k_HOST_VERTEX::get_elements()[indpi0][1] << "] \n\n";
           for(int i=0; i<N_LAMBDAS; i++)
             {
-              for(int w=0; w<WVertexDmn::dmn_size(); w++)
+              for(int w=0; w<w_VERTEX::dmn_size(); w++)
                 {
-                  std::cout << i << "   " << WVertexDmn::get_elements()[w] << "   " << leading_eigenvectors_real(i,0,0,ind0pi,w) << "   " << leading_eigenvectors_real(i,0,0,indpi0,w) << "\n";
+                  std::cout << i << "   " << w_VERTEX::get_elements()[w] << "   " << leading_eigenvectors_real(i,0,0,ind0pi,w) << "   " << leading_eigenvectors_real(i,0,0,indpi0,w) << "\n";
                 }
               std::cout << "----------------------------------------------------------------------" << "\n";
             }
@@ -1229,9 +1229,9 @@ namespace DCA
           double ky = k_HOST_VERTEX::get_elements()[k_ind][1];
 
           if ((abs(kx-0.)<0.01)&&(abs(ky-3.14)<0.01)){
-          eig_0pi = leading_eigenvectors(WVertexDmn::dmn_size()/2, k_ind, 0,0,i);}
+          eig_0pi = leading_eigenvectors(w_VERTEX::dmn_size()/2, k_ind, 0,0,i);}
           if ((abs(kx-3.14)<0.01)&&(abs(ky-0.)<0.01)){
-          eig_pi0 = leading_eigenvectors(WVertexDmn::dmn_size()/2, k_ind, 0,0,i);}
+          eig_pi0 = leading_eigenvectors(w_VERTEX::dmn_size()/2, k_ind, 0,0,i);}
           }
           std::cout << i << "\t" << eig_0pi-eig_pi0 << "\n";
           }
@@ -1263,12 +1263,12 @@ namespace DCA
 
             scalartype result=0;
 
-            for(int w1=0; w1<WVertexDmn::dmn_size()/2; w1++)
+            for(int w1=0; w1<w_VERTEX::dmn_size()/2; w1++)
               for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
                 for(int m1=0; m1<b::dmn_size(); m1++)
                   for(int n1=0; n1<b::dmn_size(); n1++)
                     result += std::abs(alpha*leading_eigenvectors(i, n1,m1,K1,w1)
-                                  - conj(alpha*leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()-1-w1)));
+                                  - conj(alpha*leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()-1-w1)));
 
             if(result < norm){
               norm = result;
@@ -1292,7 +1292,7 @@ namespace DCA
     for(int n_lam=0; n_lam<N_LAMBDAS; n_lam++)
       {
 
-        for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++){
+        for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++){
           for(int m_ind=0; m_ind<b::dmn_size(); m_ind++){
             for(int n_ind=0; n_ind<b::dmn_size(); n_ind++){
 

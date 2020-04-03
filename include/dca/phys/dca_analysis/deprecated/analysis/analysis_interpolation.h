@@ -28,16 +28,16 @@ namespace dca {
     typedef typename parameter_type::profiler_type    profiler_t;
     typedef typename parameter_type::concurrency_type concurrency_t;
 
-    typedef dmn_4<b,b,k_DCA        , WVertexDmn> cluster_eigenvector_dmn_t;
-    typedef dmn_4<b,b,k_HOST_VERTEX, WVertexDmn> lattice_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_DCA        , w_VERTEX> cluster_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_HOST_VERTEX, w_VERTEX> lattice_eigenvector_dmn_t;
 
-    typedef dmn_2<dmn_4<b,b,k_DCA        , WVertexDmn>, dmn_4<b,b,k_DCA        , WVertexDmn> >   DCA_DCA_matrix_dmn_t;
-    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, WVertexDmn>, dmn_4<b,b,k_DCA        , WVertexDmn> >  HOST_DCA_matrix_dmn_t;
-    typedef dmn_2<dmn_4<b,b,k_DCA        , WVertexDmn>, dmn_4<b,b,k_HOST_VERTEX, WVertexDmn> >  DCA_HOST_matrix_dmn_t;
-    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, WVertexDmn>, dmn_4<b,b,k_HOST_VERTEX, WVertexDmn> > HOST_HOST_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_DCA        , w_VERTEX>, dmn_4<b,b,k_DCA        , w_VERTEX> >   DCA_DCA_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, w_VERTEX>, dmn_4<b,b,k_DCA        , w_VERTEX> >  HOST_DCA_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_DCA        , w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX, w_VERTEX> >  DCA_HOST_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX, w_VERTEX> > HOST_HOST_matrix_dmn_t;
 
-    typedef dmn_2<dmn_4<b,b,k_DCA        , WVertexDmn>, dmn_4<b,b,k_DCA        , WVertexDmn> > DCA_matrix_dmn_t;
-    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, WVertexDmn>, dmn_4<b,b,k_HOST_VERTEX, WVertexDmn> > HOST_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_DCA        , w_VERTEX>, dmn_4<b,b,k_DCA        , w_VERTEX> > DCA_matrix_dmn_t;
+    typedef dmn_2<dmn_4<b,b,k_HOST_VERTEX, w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX, w_VERTEX> > HOST_matrix_dmn_t;
 
   public:
  
@@ -643,8 +643,8 @@ namespace dca {
     {
       profiler_t prof("compute_chi_0 compute_bubble", __FILE__, __LINE__);
       
-      //compute_bubble<parameter_type, k_HOST_VERTEX, WVertexDmn, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj(parameters);
-      compute_bubble<parameter_type, k_HOST_VERTEX, WVertexDmn, QUADRATURE_INTEGRATION> make_G4_0_CG_obj(parameters);
+      //compute_bubble<parameter_type, k_HOST_VERTEX, w_VERTEX, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj(parameters);
+      compute_bubble<parameter_type, k_HOST_VERTEX, w_VERTEX, QUADRATURE_INTEGRATION> make_G4_0_CG_obj(parameters);
       
       make_G4_0_CG_obj.execute(MOMS.H_LDA, MOMS.Sigma_lattice, chi_0);
     }
@@ -860,7 +860,7 @@ namespace dca {
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-    int MATRIX_DIM = square(b::dmn_size())*k_HOST_VERTEX::dmn_size()*WVertexDmn::dmn_size();      
+    int MATRIX_DIM = square(b::dmn_size())*k_HOST_VERTEX::dmn_size()*w_VERTEX::dmn_size();      
     {
 
       for(int i=0; i<N_LAMBDAS; i++)
@@ -876,12 +876,12 @@ namespace dca {
 	       
 	       scalartype result=0;
 	       
-	       for(int w1=0; w1<WVertexDmn::dmn_size()/2; w1++)
+	       for(int w1=0; w1<w_VERTEX::dmn_size()/2; w1++)
 		 for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
 		   for(int m1=0; m1<b::dmn_size(); m1++)
 		     for(int n1=0; n1<b::dmn_size(); n1++)
 		       result += abs(alpha*leading_eigenvectors(i, n1,m1,K1,w1)
-				     - conj(alpha*leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()-1-w1)));
+				     - conj(alpha*leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()-1-w1)));
 	  
 	       if(result < norm){
 		 norm = result;
@@ -902,7 +902,7 @@ namespace dca {
 
 	for(int k_ind=0; k_ind<k_HOST_VERTEX::dmn_size(); k_ind++){
 	  
-	  std::complex<scalartype> phi = leading_eigenvectors(i, 0,0,k_ind, WVertexDmn::dmn_size()/2);
+	  std::complex<scalartype> phi = leading_eigenvectors(i, 0,0,k_ind, w_VERTEX::dmn_size()/2);
 	  std::complex<scalartype> psi = harmonics(k_ind, H_ind);
 	  
 	  coef     += psi*phi;
@@ -1061,12 +1061,12 @@ namespace dca {
 
       for(int H_ind=0; H_ind<N_HARMONICS; H_ind++){
 	
-	for(int w2=0; w2<WVertexDmn::dmn_size(); w2++){
+	for(int w2=0; w2<w_VERTEX::dmn_size(); w2++){
 	  for(int K2=0; K2<k_DCA::dmn_size(); K2++){
 	    for(int m2=0; m2<b::dmn_size(); m2++){
 	      for(int n2=0; n2<b::dmn_size(); n2++){
 		
-		for(int w1=0; w1<WVertexDmn::dmn_size(); w1++){
+		for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
 		  for(int K1=0; K1<k_DCA::dmn_size(); K1++){
 		    for(int m1=0; m1<b::dmn_size(); m1++){
 		      for(int n1=0; n1<b::dmn_size(); n1++){
@@ -1214,12 +1214,12 @@ namespace dca {
 
       for(int H_ind=0; H_ind<N_HARMONICS; H_ind++)
 	
-	for(int w2=0; w2<WVertexDmn::dmn_size(); w2++)
+	for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
 	  for(int K2=0; K2<k_HOST_VERTEX::dmn_size(); K2++)
 	    for(int m2=0; m2<b::dmn_size(); m2++)
 	      for(int n2=0; n2<b::dmn_size(); n2++)
 		
-		for(int w1=0; w1<WVertexDmn::dmn_size(); w1++)
+		for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
 		  for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
 		    for(int m1=0; m1<b::dmn_size(); m1++)
 		      for(int n1=0; n1<b::dmn_size(); n1++)

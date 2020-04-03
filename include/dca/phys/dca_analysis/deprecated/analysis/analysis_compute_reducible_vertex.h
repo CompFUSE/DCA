@@ -34,11 +34,11 @@ namespace dca {
 
     void apply_symmetries();
 
-    void read_this_G4(int q_ind, FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn> >& G4_q);
+    void read_this_G4(int q_ind, FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q);
 
     void set_into_full_G4(int q_ind, 
-			  FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn> >&         G4_q,
-			  FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> >& G4_full);
+			  FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&         G4_q,
+			  FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
 
 
     void load_G4_b_k_w__b_k_w();
@@ -50,7 +50,7 @@ namespace dca {
 
     void compute_reducible_vertex();
 
-    void test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> >& G4_full);
+    void test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
 
   private:    
 
@@ -63,23 +63,23 @@ namespace dca {
 
   public:
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> G4;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> G4_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> full_chi_0;
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> inverted_full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> inverted_full_chi_0;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> reducible_vertex;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_vertex;
 
     //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA, b_b_k_DCA, k_DCA> >                      full_reducible_vertex;
-    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> >    full_reducible_vertex;
+    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >    full_reducible_vertex;
     
 //     make_G4_matrix                <parameter_type, MOMS_type> make_G4_obj;
     make_G4_0_matrix              <parameter_type, MOMS_type> make_G4_0_obj;
 
-    b_b_k_DCA_WVertexDmn b_b_k_DCA_WVertexDmn_domain;
-//     b_b_k_DCA_WVertexDmn          b_b_k_DCA_WVertexDmn_domain;
+    b_b_k_DCA_w_VERTEX b_b_k_DCA_w_VERTEX_domain;
+//     b_b_k_DCA_w_VERTEX          b_b_k_DCA_w_VERTEX_domain;
 
 //     std::vector<int>  corresponding_extended_index;
 //     std::vector<bool> is_compact_frequency;
@@ -108,8 +108,8 @@ namespace dca {
 //     make_G4_obj  (parameters_in, MOMS_in),
     make_G4_0_obj(parameters_in, MOMS_in)
 
-//     corresponding_extended_index(WVertexDmn::dmn_size(),-1),
-//     is_compact_frequency(WVertexDmn::dmn_size(),false)
+//     corresponding_extended_index(w_VERTEX::dmn_size(),-1),
+//     is_compact_frequency(w_VERTEX::dmn_size(),false)
   {
     data_filename                     = parameters.get_output_file_name();
     parameters.get_output_file_name() = parameters.get_output_susceptibilities_file_name();
@@ -124,14 +124,14 @@ namespace dca {
 //   template<class parameter_type, class MOMS_type>
 //   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::initialize()
 //   {
-// //     for(int i=0; i<WVertexDmn::dmn_size(); i++)
-// //       for(int j=0; j<WVertexDmn::dmn_size(); j++)
-// // 	if(std::fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn::parameter_type::get_elements()[j])<1.e-6)
+// //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
+// //       for(int j=0; j<w_VERTEX::dmn_size(); j++)
+// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
-// //     for(int j=0; j<WVertexDmn::dmn_size(); j++)
-// //       for(int i=0; i<WVertexDmn::dmn_size(); i++)
-// //       	if(std::fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn::parameter_type::get_elements()[j])<1.e-6)
+// //     for(int j=0; j<w_VERTEX::dmn_size(); j++)
+// //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
+// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -154,7 +154,7 @@ namespace dca {
 		  for(int k2=0; k2<k_DCA::dmn_size(); k2++)
 
 		    for(int k3=0; k3<k_DCA::dmn_size(); k3++)
-		      reducible_vertex_small(b1,b2,k1,  b3,b4,k2, k3) = full_reducible_vertex(b1,b2,k1,WVertexDmn::dmn_size()/2,  b3,b4,k2,WVertexDmn::dmn_size()/2, k3); 
+		      reducible_vertex_small(b1,b2,k1,  b3,b4,k2, k3) = full_reducible_vertex(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k2,w_VERTEX::dmn_size()/2, k3); 
 
 	reducible_vertex_small.to_JSON(ss);
       }
@@ -169,7 +169,7 @@ namespace dca {
 	      for(int b3=0; b3<b::dmn_size(); b3++){
 		for(int b4=0; b4<b::dmn_size(); b4++){
 		  for(int k2=0; k2<k_DCA::dmn_size(); k2++){
-		    reducible_vertex_small(b1,b2,k1,  b3,b4,k2) = reducible_vertex(b1,b2,k1,WVertexDmn::dmn_size()/2,  b3,b4,k2,WVertexDmn::dmn_size()/2); 
+		    reducible_vertex_small(b1,b2,k1,  b3,b4,k2) = reducible_vertex(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k2,w_VERTEX::dmn_size()/2); 
 		  }
 		}
 	      }
@@ -242,9 +242,9 @@ namespace dca {
 
     apply_symmetries();
 
-    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn>         > G4_k_k_w_w("G4_k_k_w_w");
-    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> > G4_full   ("G4_k_w_k_w");
-    //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
+    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4_k_k_w_w("G4_k_k_w_w");
+    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_full   ("G4_k_w_k_w");
+    //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
 
     for(int q_ind=0; q_ind<k_DCA::dmn_size(); q_ind++)
       {
@@ -270,7 +270,7 @@ namespace dca {
 
     double renorm = 1./(parameters.get_beta()*k_DCA::dmn_size());
 
-    int N = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();    
+    int N = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();    
     for(int q_ind=0; q_ind<k_DCA::dmn_size(); q_ind++)
       {
 	parameters.get_q_channel() = q_ind;
@@ -314,7 +314,7 @@ namespace dca {
 
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::read_this_G4(int q_ind, 
-											    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn> >& G4_q)
+											    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q)
   {
     std::string filename = data_filename;
 
@@ -353,8 +353,8 @@ namespace dca {
     
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::set_into_full_G4(int q_ind, 
-												FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn> >&                          G4_q,
-												FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn,b_b_k_DCA_WVertexDmn, k_DCA> >& G4_full)
+												FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&                          G4_q,
+												FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX,b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
   {
     int* coor_1 = new int[G4_full.signature()];
     int* coor_2 = new int[G4_q   .signature()];
@@ -387,7 +387,7 @@ namespace dca {
     cout << scientific;
     cout.precision(6);
 
-    int N = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();    
+    int N = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();    
 
     {
       invert_plan<std::complex<double> > invert_pln(N);
@@ -403,7 +403,7 @@ namespace dca {
     for(int l=0; l<G4.size(); l++)
       G4(l) -= full_chi_0(l);
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
 
     {
       gemm_plan<std::complex<double> > gemm_pln(N);
@@ -428,7 +428,7 @@ namespace dca {
   }
 
   template<class parameter_type, class MOMS_type>
-  void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_WVertexDmn, b_b_k_DCA_WVertexDmn, k_DCA> >& G4_full)
+  void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
   {
     cout << scientific;
     cout.precision(6);
@@ -450,7 +450,7 @@ namespace dca {
 		      int k1_plus_k2      = k_DCA::parameter_type::add(k1,k2);
 		      int q_min_k1_min_k2 = k_DCA::parameter_type::subtract(k1_plus_k2, k3);
 		    
-		      cout << real(G4_full(b1,b2,k1,WVertexDmn::dmn_size()/2,  b3,b4,k2,WVertexDmn::dmn_size()/2, q_min_k1_min_k2)) << "\t"; 
+		      cout << real(G4_full(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k2,w_VERTEX::dmn_size()/2, q_min_k1_min_k2)) << "\t"; 
 		    }
 		cout << "\n";
 	      }
@@ -468,7 +468,7 @@ namespace dca {
 		{
 		  int k2=k1;
 
-		  cout << real(G4_full(b1,b2,k1,WVertexDmn::dmn_size()/2,  b3,b4,k2,WVertexDmn::dmn_size()/2, k3)) << "\t"; 
+		  cout << real(G4_full(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k2,w_VERTEX::dmn_size()/2, k3)) << "\t"; 
 		}
 	      cout << "\n";
 	    }

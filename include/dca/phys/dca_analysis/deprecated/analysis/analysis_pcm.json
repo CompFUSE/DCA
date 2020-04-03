@@ -56,28 +56,28 @@ namespace dca {
   public:
 
 
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> Gamma_b_k_w__b_k_w;
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_b_k_w__b_k_w;
     
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> full_chi_0_b_k_w__b_k_w;
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0_b_k_w__b_k_w;
 
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> Gamma_times_full_chi_0;
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_times_full_chi_0;
 
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> chi;
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi;
 
     FUNC_LIN::function<std::complex<double>, b_b__b_b> chi_q;
     FUNC_LIN::function<std::complex<double>, b_b__b_b> chi_q_0;
 
-    compute_bubble<parameter_type, k_DCA, WVertexDmn, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj;
+    compute_bubble<parameter_type, k_DCA, w_VERTEX, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj;
 
-    b_b_k_DCA_WVertexDmn b_b_k_DCA_WVertexDmn_domain;
-//     b_b_k_DCA_WVertexDmn          b_b_k_DCA_WVertexDmn_domain;
+    b_b_k_DCA_w_VERTEX b_b_k_DCA_w_VERTEX_domain;
+//     b_b_k_DCA_w_VERTEX          b_b_k_DCA_w_VERTEX_domain;
 
 //     std::vector<int>  corresponding_extended_index;
 //     std::vector<bool> is_compact_frequency;
 
     FUNC_LIN::function<std::complex<double>, dmn_0<dmn<10, int> > >                              leading_eigenvalues;
     FUNC_LIN::function<std::complex<double>, dmn_2<dmn_0<dmn<10, int> >, dmn_0<dmn<3, int> > > > leading_symmetries;
-    FUNC_LIN::function<std::complex<double>, dmn_2<b_b_k_DCA_WVertexDmn, dmn_0<dmn<10, int> > >  > leading_eigenvectors;
+    FUNC_LIN::function<std::complex<double>, dmn_2<b_b_k_DCA_w_VERTEX, dmn_0<dmn<10, int> > >  > leading_eigenvectors;
 
     eigensystem_plan<std::complex<double>, GENERAL> eigensystem_pln;
   };
@@ -98,14 +98,14 @@ namespace dca {
 
     make_G4_0_CG_obj(parameters_in),
 
-//     corresponding_extended_index(WVertexDmn::dmn_size(),-1),
-//     is_compact_frequency(WVertexDmn_EXTENDED::dmn_size(),false),
+//     corresponding_extended_index(w_VERTEX::dmn_size(),-1),
+//     is_compact_frequency(w_VERTEX_EXTENDED::dmn_size(),false),
 
     leading_eigenvalues("leading_eigenvalues"),
     leading_symmetries("leading_symmetries"),
     leading_eigenvectors("leading_eigenvectors"),
 
-    eigensystem_pln(square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size())
+    eigensystem_pln(square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size())
   {
     parameters.get_output_file_name() = parameters.get_output_susceptibilities_file_name();//string("data_susceptibilities.json");
 
@@ -119,14 +119,14 @@ namespace dca {
 //   template<class parameter_type, class MOMS_type>
 //   void analysis<parameter_type, MOMS_type, PCM>::initialize()
 //   {
-//     for(int i=0; i<WVertexDmn::dmn_size(); i++)
-//       for(int j=0; j<WVertexDmn_EXTENDED::dmn_size(); j++)
-// 	if(fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+//     for(int i=0; i<w_VERTEX::dmn_size(); i++)
+//       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
+// 	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // 	  corresponding_extended_index[i] = j;
 
-//     for(int j=0; j<WVertexDmn_EXTENDED::dmn_size(); j++)
-//       for(int i=0; i<WVertexDmn::dmn_size(); i++)
-//       	if(fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+//     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
+//       for(int i=0; i<w_VERTEX::dmn_size(); i++)
+//       	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -160,7 +160,7 @@ namespace dca {
 
 //     make_G4_0_CG_obj.execute(full_chi_0_b_k_w__b_k_w);
     {
-      compute_bubble<parameter_type, k_DCA, WVertexDmn, TRAPEZIUM_INTEGRATION> compute_bubble(parameters);
+      compute_bubble<parameter_type, k_DCA, w_VERTEX, TRAPEZIUM_INTEGRATION> compute_bubble(parameters);
       compute_bubble.execute(MOMS.H_LDA, MOMS.Sigma, full_chi_0_b_k_w__b_k_w);
 
       double renorm = 1./(parameters.get_beta()*k_DCA::dmn_size());
@@ -221,7 +221,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, PCM>::compute_Gamma_b_k_w__b_k_w()
   {
-    assert(WVertexDmn::dmn_size() == WVertexDmn::dmn_size());
+    assert(w_VERTEX::dmn_size() == w_VERTEX::dmn_size());
 
     int* coor_1 = new int[Gamma_b_k_w__b_k_w.signature()];
     int* coor_2 = new int[MOMS.G4_k_k_w_w   .signature()];
@@ -254,10 +254,10 @@ namespace dca {
     cout << scientific;
     cout.precision(6);
 
-    int matrix_dim = b_b_k_DCA_WVertexDmn_domain.get_size();
+    int matrix_dim = b_b_k_DCA_w_VERTEX_domain.get_size();
 
     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
-      gemm_plan<std::complex<double> > gemm_pln(b_b_k_DCA_WVertexDmn_domain.get_size());
+      gemm_plan<std::complex<double> > gemm_pln(b_b_k_DCA_w_VERTEX_domain.get_size());
       
       gemm_pln.A = &Gamma_b_k_w__b_k_w(0);
       gemm_pln.B = &full_chi_0_b_k_w__b_k_w(0);
@@ -321,9 +321,9 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, PCM>::find_harmonic_expansion(int i, int leading_lambda_index)
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
       
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn > eigenvector;
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX > eigenvector;
     for(int l=0; l<MATRIX_DIM; l++)
       eigenvector(l) = eigensystem_pln.VR[l + leading_lambda_index*MATRIX_DIM];
     
@@ -336,9 +336,9 @@ namespace dca {
 	  
 	std::complex<double> psi = 1.;
 
-	coef     += psi* eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
+	coef     += psi* eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
       }
 
       leading_symmetries(i, 0) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -353,9 +353,9 @@ namespace dca {
 
 	std::complex<double> psi = (cos(k_DCA::get_elements()[k_ind][0]) + cos(k_DCA::get_elements()[k_ind][1]));
 
-	coef += psi * eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
+	coef += psi * eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
       }
 
       leading_symmetries(i, 1) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -370,9 +370,9 @@ namespace dca {
 	  
 	std::complex<double> psi = (cos(k_DCA::get_elements()[k_ind][0]) - cos(k_DCA::get_elements()[k_ind][1]));
 
-	coef += psi * eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
+	coef += psi * eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
       }
 
       leading_symmetries(i, 2) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -384,12 +384,12 @@ namespace dca {
   {
     cout << __FUNCTION__ << endl;
 
-    for(int w2=0; w2<WVertexDmn::dmn_size(); w2++) 
+    for(int w2=0; w2<w_VERTEX::dmn_size(); w2++) 
       for(int k2=0; k2<k_DCA::dmn_size(); k2++) 
 	for(int l3=0; l3<b::dmn_size(); l3++)
 	  for(int l4=0; l4<b::dmn_size(); l4++)
 
-	    for(int w1=0; w1<WVertexDmn::dmn_size(); w1++) 
+	    for(int w1=0; w1<w_VERTEX::dmn_size(); w1++) 
 	      for(int k1=0; k1<k_DCA::dmn_size(); k1++)
 		for(int l1=0; l1<b::dmn_size(); l1++)
 		  for(int l2=0; l2<b::dmn_size(); l2++)
@@ -405,9 +405,9 @@ namespace dca {
     // \chi(Q,T) = \frac{1}{(\beta*N_c)^2} \sum_{K1,K2} \chi[Q,K1,K2]
     //           ===> \chi[Q,K1,K2] = [1-\Gamma * \chi^0]^{-1} * \chi^0[Q,K1,K2]
 
-    int N = b_b_k_DCA_WVertexDmn_domain.get_size();
+    int N = b_b_k_DCA_w_VERTEX_domain.get_size();
 
-    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> denominator("temporary");
+    FUNC_LIN::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
 
     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
       gemm_plan<std::complex<double> > gemm_pln(N);
@@ -458,12 +458,12 @@ namespace dca {
 	gemm_pln.execute_plan();
       }  
       
-      for(int w2=0; w2<WVertexDmn::dmn_size(); w2++) 
+      for(int w2=0; w2<w_VERTEX::dmn_size(); w2++) 
 	for(int k2=0; k2<k_DCA::dmn_size(); k2++) 
 	  for(int l3=0; l3<b::dmn_size(); l3++)
 	    for(int l4=0; l4<b::dmn_size(); l4++)
 	      
-	      for(int w1=0; w1<WVertexDmn::dmn_size(); w1++) 
+	      for(int w1=0; w1<w_VERTEX::dmn_size(); w1++) 
 		for(int k1=0; k1<k_DCA::dmn_size(); k1++)
 		  for(int l1=0; l1<b::dmn_size(); l1++)
 		    for(int l2=0; l2<b::dmn_size(); l2++)
@@ -475,7 +475,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, PCM>::calculate_eigenvectors()
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
       
     for(int i=0; i<10; i++)
       {
@@ -496,7 +496,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type> 
   void analysis<parameter_type, MOMS_type, PCM>::find_phase_factor()
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
 
     for(int i=0; i<10; i++)
       {
@@ -511,12 +511,12 @@ namespace dca {
 	    
 	    double result=0;
 	    
-	    for(int w1=0; w1<WVertexDmn::dmn_size()/2; w1++)
+	    for(int w1=0; w1<w_VERTEX::dmn_size()/2; w1++)
 	      for(int K1=0; K1<k_DCA::dmn_size(); K1++)
 		for(int m1=0; m1<b::dmn_size(); m1++)
 		  for(int n1=0; n1<b::dmn_size(); n1++)
 		    result += abs(alpha*leading_eigenvectors(n1,m1,K1,w1,i)
-				  - conj(alpha*leading_eigenvectors(n1,m1,K1,WVertexDmn::dmn_size()-1-w1,i)));
+				  - conj(alpha*leading_eigenvectors(n1,m1,K1,w_VERTEX::dmn_size()-1-w1,i)));
 	  
 	    if(result < norm){
 	      norm = result;
@@ -524,7 +524,7 @@ namespace dca {
 	    }
 	  }
 	
-	if(imag(alpha_min*leading_eigenvectors(0,0,0,WVertexDmn::dmn_size()/2, i))>1.e-6)
+	if(imag(alpha_min*leading_eigenvectors(0,0,0,w_VERTEX::dmn_size()/2, i))>1.e-6)
 	  alpha_min *= -1.;
 	
 	for(int l=0; l<MATRIX_DIM; l++)
