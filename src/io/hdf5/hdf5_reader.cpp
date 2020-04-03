@@ -59,16 +59,22 @@ std::string HDF5Reader::get_path() {
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path() + "/" + name;
-
   if (!exists(full_name)) {
     return false;
   }
 
-  auto dims = readSize(full_name);
-  assert(dims.size() == 1);
-  value.resize(dims.at(0));
+  H5::DataSet dataset = file_->openDataSet(full_name.c_str());
+  const auto type = dataset.getDataType();
 
-  read(full_name, HDF5_TYPE<char>::get_PredType(), value.data());
+  const auto size = type.getSize();
+  value.resize(size);
+
+  dataset.read(value.data(), type);
+
+  // Null string case.
+  if (value == std::string{0})
+    value = "";
+
   return true;
 }
 
@@ -78,26 +84,25 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::string>& valu
     return false;
   }
 
-  open_group(name);
+  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  auto size = readSize(full_name)[0];
+  auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
 
-  int size = -1;
-  execute("size", size);
+  std::vector<char*> data(size);
+  dataset.read(data.data(), s_type);
 
   value.resize(size);
-
-  open_group("data");
-
-  for (size_t l = 0; l < value.size(); l++) {
-    execute(std::to_string(l), value[l]);
+  for (int i = 0; i < size; ++i) {
+    value[i] = data[i];
   }
 
-  close_group();
-  close_group();
+  // clean memory
+  dataset.vlenReclaim(data.data(), s_type, dataset.getSpace());
 
   return true;
 }
 
-void HDF5Reader::read(const std::string& name, H5::PredType type, void* data) const {
+void HDF5Reader::read(const std::string& name, H5::DataType type, void* data) const {
   H5::DataSet dataset = file_->openDataSet(name.c_str());
   dataset.read(data, type);
 }

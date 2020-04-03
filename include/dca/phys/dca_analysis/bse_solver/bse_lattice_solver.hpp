@@ -59,7 +59,7 @@ public:
   const static int num_harmonics = 3;
   using CubicHarmonicsDmn = func::dmn_0<func::dmn<num_harmonics, int>>;
 
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using b_b = func::dmn_variadic<b, b>;
 
@@ -81,10 +81,10 @@ public:
 
   using chi_vector_dmn_t = func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t>;
 
-  using LatticeEigenvectorDmn = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
+  using LatticeEigenvectorDmn = func::dmn_variadic<b, b, k_HOST_VERTEX, WVertexDmn>;
   using crystal_eigenvector_dmn_t =
-      func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, w_VERTEX>;
-  using CubicHarmonicsEigenvectorDmn = func::dmn_variadic<b, b, CubicHarmonicsDmn, w_VERTEX>;
+      func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, WVertexDmn>;
+  using CubicHarmonicsEigenvectorDmn = func::dmn_variadic<b, b, CubicHarmonicsDmn, WVertexDmn>;
 
   using HOST_matrix_dmn_t = func::dmn_variadic<LatticeEigenvectorDmn, LatticeEigenvectorDmn>;
 
@@ -143,7 +143,7 @@ private:
   DcaDataType& MOMS;
 
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> Gamma_lattice;
-  func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>> chi_0_lattice;
+  func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, WVertexDmn>> chi_0_lattice;
   // Matrix in \vec{k} and \omega_n with the diagonal = chi_0_lattice.
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> chi_0_lattice_matrix;
 
@@ -250,7 +250,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
             std::exp(I * math::util::innerProduct(r_vec, k_HOST_VERTEX::get_elements()[k_ind])) /
             std::sqrt(double(k_HOST_VERTEX::dmn_size()));
 
-      for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
+      for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
         for (int k_ind = 0; k_ind < k_HOST_VERTEX::dmn_size(); k_ind++)
           for (int m_ind = 0; m_ind < b::dmn_size(); m_ind++)
             for (int n_ind = 0; n_ind < b::dmn_size(); n_ind++)
@@ -346,7 +346,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
   // Renormalize and set diagonal \chi_0 matrix.
   const ScalarType renorm = 1. / (parameters.get_beta() * k_HOST_VERTEX::dmn_size());
 
-  for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
+  for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
     for (int K_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); K_ind++)
       for (int m2 = 0; m2 < b::dmn_size(); m2++)
         for (int n2 = 0; n2 < b::dmn_size(); n2++)
@@ -739,12 +739,12 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
 
     chi_q = 0.;
 
-    for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++)
+    for (int w2 = 0; w2 < WVertexDmn::dmn_size(); w2++)
       for (int K2 = 0; K2 < M; K2++)
         for (int m2 = 0; m2 < b::dmn_size(); m2++)
           for (int n2 = 0; n2 < b::dmn_size(); n2++)
 
-            for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++)
+            for (int w1 = 0; w1 < WVertexDmn::dmn_size(); w1++)
               for (int K1 = 0; K1 < M; K1++)
                 for (int m1 = 0; m1 < b::dmn_size(); m1++)
                   for (int n1 = 0; n1 < b::dmn_size(); n1++)
@@ -809,9 +809,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
         std::complex<ScalarType> norm = 0;
 
         for (int j = 0; j < k_HOST_VERTEX::dmn_size(); j++) {
-          scal_prod += conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
-          norm += conj(leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2)) *
-                  leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
+          scal_prod += conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2);
+          norm += conj(leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2)) *
+                  leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2);
         }
         assert(std::abs(norm.imag()) < 1.e-3);
         const std::complex<ScalarType> result = scal_prod / std::sqrt(norm.real() + 1.e-16);
@@ -838,9 +838,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
 
       for (int i = 0; i < num_evals; ++i) {
         std::cout << "\t["
-                  << leading_symmetry_decomposition(i, 0, 0, harmonic, w_VERTEX::dmn_size() / 2).real()
+                  << leading_symmetry_decomposition(i, 0, 0, harmonic, WVertexDmn::dmn_size() / 2).real()
                   << ", "
-                  << leading_symmetry_decomposition(i, 0, 0, harmonic, w_VERTEX::dmn_size() / 2).imag()
+                  << leading_symmetry_decomposition(i, 0, 0, harmonic, WVertexDmn::dmn_size() / 2).imag()
                   << "]";
       }
       std::cout << "\n";
@@ -868,13 +868,13 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrizeLeadin
                                            std::sin((2. * M_PI * l) / num_phases));
       ScalarType diff = 0;
 
-      for (int w = 0; w < w_VERTEX::dmn_size() / 2; w++)
+      for (int w = 0; w < WVertexDmn::dmn_size() / 2; w++)
         for (int k = 0; k < k_HOST_VERTEX::dmn_size(); k++)
           for (int b2 = 0; b2 < b::dmn_size(); b2++)
             for (int b1 = 0; b1 < b::dmn_size(); b1++)
               diff += std::abs(
                   phase * leading_eigenvectors(i, b1, b2, k, w) -
-                  conj(phase * leading_eigenvectors(i, b1, b2, k, w_VERTEX::dmn_size() - 1 - w)));
+                  conj(phase * leading_eigenvectors(i, b1, b2, k, WVertexDmn::dmn_size() - 1 - w)));
 
       if (diff < diff_min) {
         diff_min = diff;
@@ -898,7 +898,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::characterizeLead
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
   for (int ev = 0; ev < num_evals; ev++) {
-    for (int w = 0; w < w_VERTEX::dmn_size(); w++) {
+    for (int w = 0; w < WVertexDmn::dmn_size(); w++) {
       for (int b2 = 0; b2 < b::dmn_size(); b2++) {
         for (int b1 = 0; b1 < b::dmn_size(); b1++) {
           for (int harmonic = 0; harmonic < num_harmonics; harmonic++) {

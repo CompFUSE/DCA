@@ -13,11 +13,18 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+
+struct MockParameters {
+  constexpr int static bands = 2;
+  using lattice_type = dca::phys::models::bilayer_lattice<dca::phys::domains::no_symmetry<2>>;
+};
+
 TEST(FunctionCutTest, FrequencyCut) {
   // Initialize the physics domains.
   const int n_b = 2, n_k = 4, n_frq = 8;
   // Initialize band domain.
-  dca::math::util::details::Bdmn::parameter_type::get_size() = n_b;
+  dca::phys::domains::electron_band_domain::initialize(MockParameters());
   // Initialize mock momentum space domain.
   using Kdmn = dca::func::dmn_0<dca::func::dmn<n_k, double>>;
   // Initialize frequency domain
@@ -62,7 +69,7 @@ TEST(FunctionCutTest, BandDiagonal) {
   using MockWDmn = dmn_0<dmn<8, double>>;
   using MockKDmn = dmn_0<dmn<4, double>>;
   using Bdmn = dca::math::util::details::Bdmn;
-  Bdmn::parameter_type::get_size() = 3;
+  dca::phys::domains::electron_band_domain::initialize(MockParameters());
 
   dca::func::function<int, dmn_variadic<Bdmn, Bdmn, MockKDmn, MockWDmn>> f_initial;
   for (int i = 0; i < f_initial.size(); ++i)

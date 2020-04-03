@@ -519,6 +519,8 @@ If true, the value of G0(0+) is added to `alpha-dd-pos`.
 Strength of the alpha field for non-density-density interactions.  
 `"double-update-probability"` double(0.)  
 Probability to propose a double vertex insertion/removal.  
+`"all-sites-partnership"` bool(false)  
+Determines if a double update can be proposed with vertices on different sites.    
 `"max-submatrix-size"` integer(1)  
 Maximum number of vertices inserted/removed in a single submatrix update.  
 
@@ -531,7 +533,8 @@ Maximum number of vertices inserted/removed in a single submatrix update.
             "alpha-dd-neg": 0,
             "alpha-ndd" : 0.01,
             "adjust-alpha-dd" : true,
-            "double-update-probability" : 0,
+            "double-update-probability" : 0.5,
+            "all-sites-partnership" : false,
             "max-submatrix-size": 128,
         }
     }

@@ -44,63 +44,70 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 2;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_k_DCA_basis();
+  constexpr static int transformationSignOfR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignOfK(int, int, int) {
+    return 1;
+  }
 
-  static double* initialize_r_LDA_basis();
-  static double* initialize_k_LDA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeKDCABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static double* initializeRLDABasis();
+  static double* initializeKLDABasis();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
+
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initialize_r_DCA_basis() {
+double* twoband_chain<point_group_type>::initializeRDCABasis() {
   static std::array<double, 4> r_DCA{2., 0., 0., 1.};
   return r_DCA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initialize_k_DCA_basis() {
+double* twoband_chain<point_group_type>::initializeKDCABasis() {
   static std::array<double, 4> k_DCA{M_PI, 0., 0, 2 * M_PI};
   return k_DCA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initialize_r_LDA_basis() {
+double* twoband_chain<point_group_type>::initializeRLDABasis() {
   static std::array<double, 4> r_LDA{2., 0., 0., 1.};
 
   return r_LDA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initialize_k_LDA_basis() {
+double* twoband_chain<point_group_type>::initializeKLDABasis() {
   static std::array<double, 4> k_LDA{M_PI, 0., 0, 2 * M_PI};
   return k_LDA.data();
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> twoband_chain<point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> twoband_chain<point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs{std::vector<double>{0, 0},
                                                  std::vector<double>{1, 0}};
 
@@ -108,7 +115,7 @@ std::vector<std::vector<double>> twoband_chain<point_group_type>::get_a_vectors(
 }
 
 template <typename point_group_type>
-std::vector<int> twoband_chain<point_group_type>::get_flavors() {
+std::vector<int> twoband_chain<point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
 
   flavors[0] = 0;
@@ -119,14 +126,14 @@ std::vector<int> twoband_chain<point_group_type>::get_flavors() {
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> twoband_chain<
-    point_group_type>::get_orbital_permutations() {
+    point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void twoband_chain<point_group_type>::initialize_H_interaction(
+void twoband_chain<point_group_type>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -155,13 +162,13 @@ void twoband_chain<point_group_type>::initialize_H_interaction(
 
 template <typename point_group_type>
 template <class domain>
-void twoband_chain<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
+void twoband_chain<point_group_type>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 }
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void twoband_chain<point_group_type>::initialize_H_0(
+void twoband_chain<point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {

@@ -16,16 +16,30 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
+void InteractionVertices::initialize(double double_insertion_prob, bool all_sites_partnership) {
+  if (double_insertion_prob <= 0) {
+    partnership_type_ = NONE;
+  }
+  else if (all_sites_partnership == false) {
+    partnership_type_ = SAME_SITE;
+  }
+  else {
+    partnership_type_ = ALL_SITES;
+  }
+}
+
 void InteractionVertices::insertElement(InteractionElement v) {
   const short id = size();
   // Find the partner and exchange id.
   const auto& nu = v.nu;
   const auto& r = v.r;
-  if (nu[0] != nu[1] or nu[2] != nu[3] or r[0] != r[1] or r[2] != r[3]) {  // non density-denity
-    const std::array<ushort, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
+  if (partnership_type_ != NONE && (nu[0] != nu[1] or nu[2] != nu[3] or r[0] != r[1] or
+                                    r[2] != r[3])) {  // non density-denity interaction
+    const std::array<unsigned short, 4> nu_opposite{nu[1], nu[0], nu[3], nu[2]};
+    const std::array<ushort, 4> r_opposite{r[1], r[0], r[3], r[2]};
 
     for (auto& elem : elements_)
-      if (elem.nu == nu_opposite or (interband_propagator_ && (elem.nu == v.nu && elem.r != v.r))) {
+      if (elem.nu == nu_opposite && (partnership_type_ == ALL_SITES || elem.r == r_opposite)) {
         elem.partners_id.push_back(id);
         v.partners_id.push_back(&elem - elements_.data());
       }

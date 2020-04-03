@@ -50,8 +50,7 @@ void initialize() {
     pars.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
     pars.update_model();
     pars.update_domains();
-    BDmn::get_elements()[0].a_vec = a_vecs[0];
-    BDmn::get_elements()[1].a_vec = a_vecs[1];
+    BDmn::parameter_type::setAVectors(a_vecs);
     initialized = true;
   }
 }

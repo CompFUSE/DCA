@@ -67,9 +67,9 @@ public:
   using HostInterpolation::COEFF_SIZE;
 
 private:
-  using HostInterpolation::CoeffDmn;
-  using HostInterpolation::PTime0;
-  using HostInterpolation::InterpolationDmn;
+  using typename HostInterpolation::CoeffDmn;
+  using typename HostInterpolation::PTime0;
+  using typename HostInterpolation::InterpolationDmn;
 
   linalg::Vector<Real, linalg::GPU> G0_coeff_;
   linalg::Vector<Real, linalg::GPU> g0_minus_dev_;
