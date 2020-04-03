@@ -272,7 +272,7 @@ void CtauxAccumulator<device_t, Parameters, Data>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    double factor = 1. / std::sqrt(parameters_.get_measurements() - 1);
+    double factor = 1. / std::sqrt(parameters_.get_measurements().at(DCA_iteration) - 1);
 
     M_r_w_stddev *= factor;
   }

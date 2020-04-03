@@ -28,8 +28,8 @@ TEST(MciParametersTest, DefaultValues) {
 
   EXPECT_EQ(985456376, pars.get_seed());
   EXPECT_EQ(20, pars.get_warm_up_sweeps());
-  EXPECT_EQ(1., pars.get_sweeps_per_measurement());
-  EXPECT_EQ(100, pars.get_measurements());
+  EXPECT_EQ(std::vector<double>{1.}, pars.get_sweeps_per_measurement());
+  EXPECT_EQ(std::vector<int>{100}, pars.get_measurements());
   EXPECT_EQ(dca::phys::ErrorComputationType::NONE, pars.get_error_computation_type());
   EXPECT_EQ(1, pars.get_walkers());
   EXPECT_EQ(1, pars.get_accumulators());
@@ -48,8 +48,10 @@ TEST(MciParametersTest, ReadAll) {
 
   EXPECT_EQ(42, pars.get_seed());
   EXPECT_EQ(40, pars.get_warm_up_sweeps());
-  EXPECT_EQ(4., pars.get_sweeps_per_measurement());
-  EXPECT_EQ(200, pars.get_measurements());
+  const auto expected_sweeps = std::vector<double>{1.5, 1.5, 4};
+  EXPECT_EQ(expected_sweeps, pars.get_sweeps_per_measurement());
+  const auto expected_meas = std::vector<int>{100, 150, 200};
+  EXPECT_EQ(expected_meas, pars.get_measurements());
   EXPECT_EQ(dca::phys::ErrorComputationType::JACK_KNIFE, pars.get_error_computation_type());
   EXPECT_EQ(3, pars.get_walkers());
   EXPECT_EQ(5, pars.get_accumulators());
@@ -81,51 +83,18 @@ TEST(MciParametersTest, ReadNegativeIntegerSeed) {
   EXPECT_EQ(-1, pars.get_seed());
 }
 
-// Revise these tests when the JSON reader has been refactored.
-// TEST(MciParametersTest, ReadTooLargeSeed) {
-//   // Generate an input file that contains a number that is larger than the maximum value of int.
-//   const int max = std::numeric_limits<int>::max();
-//   std::ofstream input;
-//   input.open("input_too_large_seed.json");
-//   input << "{\n"
-//         << "    \"Monte-Carlo-integration\": {\n"
-//         << "        \"seed\": " << max << "0\n"  // Writes max * 10.
-//         << "    }\n"
-//         << "}\n";
-//   input.close();
+TEST(MciParametersTest, ReadScalarForVector) {
+  dca::io::JSONReader reader;
+  dca::phys::params::MciParameters pars;
 
-//   dca::io::JSONReader reader;
-//   dca::phys::params::MciParameters pars;
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/mci_parameters/input_scalar_for_vec.json");
+  pars.readWrite(reader);
+  reader.close_file();
 
-//   reader.open_file("input_too_large_seed.json");
-//   pars.readWrite(reader);
-//   reader.close_file();
-
-//   EXPECT_EQ(max, pars.get_seed());
-// }
-
-// TEST(MciParametersTest, ReadTooSmallSeed) {
-//   // Generate an input file that contains a number that is smaller than the minimum value of int.
-//   int min = std::numeric_limits<int>::min();
-//   long long llmin = min - 10;
-//   std::ofstream input;
-//   input.open("input_too_small_seed.json");
-//   input << "{\n"
-//         << "    \"Monte-Carlo-integration\": {\n"
-//         << "        \"seed\": " << llmin << "\n"
-//         << "    }\n"
-//         << "}\n";
-//   input.close();
-
-//   dca::io::JSONReader reader;
-//   dca::phys::params::MciParameters pars;
-
-//   reader.open_file("input_too_small_seed.json");
-//   pars.readWrite(reader);
-//   reader.close_file();
-
-//   EXPECT_EQ(min, pars.get_seed());
-// }
+  EXPECT_EQ(std::vector<double>{4.}, pars.get_sweeps_per_measurement());
+  EXPECT_EQ(std::vector<int>{200}, pars.get_measurements());
+}
 
 TEST(MciParametersTest, RandomSeed) {
   // The input file contains the seeding option "random" instead of a number.

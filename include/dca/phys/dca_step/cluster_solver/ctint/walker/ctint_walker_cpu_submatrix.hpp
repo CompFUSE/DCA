@@ -50,7 +50,7 @@ public:
 
   CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
-  void initialize();
+  void initialize(int iter);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
@@ -222,8 +222,8 @@ CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixCp
 }
 
 template <class Parameters, typename Real, bool fix_rng_order>
-void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::initialize() {
-  BaseClass::initialize();
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::initialize(int iter) {
+  BaseClass::initialize(iter);
   transformM();
 }
 

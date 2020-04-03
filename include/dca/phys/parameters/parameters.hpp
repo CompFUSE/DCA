@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
@@ -103,7 +103,7 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using TP_measurement_scalar_type = config::AccumulationOptions::TPAccumulationScalar;
+  using TP_measurement_scalar_type = config::McOptions::TPAccumulationScalar;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
@@ -391,6 +391,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   ModelParameters<Model>::readWrite(reader_or_writer);
   OutputParameters::readWrite(reader_or_writer);
   PhysicsParameters::readWrite(reader_or_writer);
+
+  solveDcaIterationConflict(get_dca_iterations());
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

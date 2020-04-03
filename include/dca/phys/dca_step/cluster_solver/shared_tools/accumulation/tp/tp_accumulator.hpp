@@ -22,6 +22,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
@@ -94,8 +95,8 @@ public:
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
-  template <class Configuration>
-  double accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+  template <class Configuration, typename RealIn>
+  double accumulate(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
                     const std::array<Configuration, 2>& configs, int sign);
 
   // Empty method for compatibility with GPU version.
@@ -119,6 +120,10 @@ public:
     return 0;
   }
 
+  linalg::util::CudaStream* get_stream() const {
+    return nullptr;
+  }
+
 protected:
   void initializeG0();
 
@@ -132,8 +137,8 @@ protected:
 
   Complex getGSingleband(int s, int k1, int k2, int w1, int w2) const;
 
-  template <class Configuration>
-  float computeM(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+  template <class Configuration, typename RealIn>
+  float computeM(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_id);
@@ -226,9 +231,9 @@ void TpAccumulator<Parameters, linalg::CPU>::initializeG0() {
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 double TpAccumulator<Parameters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
@@ -246,9 +251,9 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::CPU>::computeM(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
 

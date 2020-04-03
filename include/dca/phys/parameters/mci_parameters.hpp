@@ -31,8 +31,8 @@ public:
   MciParameters()
       : seed_(default_seed),
         warm_up_sweeps_(20),
-        sweeps_per_measurement_(1.),
-        measurements_(100),
+        sweeps_per_measurement_{1.},
+        measurements_{100},
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
@@ -58,16 +58,19 @@ public:
   int get_warm_up_sweeps() const {
     return warm_up_sweeps_;
   }
-  double get_sweeps_per_measurement() const {
+
+  const std::vector<double>& get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements() const {
+
+  const std::vector<int>& get_measurements() const {
     return measurements_;
   }
   void set_measurements(const int measurements) {
     assert(measurements >= 0);
-    measurements_ = measurements;
+    std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
+
   int get_walkers() const {
     return walkers_;
   }
@@ -96,6 +99,10 @@ public:
     return store_configuration_;
   }
 
+protected:
+  // Resize vector arguments to have the same size as the number of iterations.
+  void inline solveDcaIterationConflict(int iterations);
+
 private:
   void generateRandomSeed() {
     std::random_device rd;
@@ -107,8 +114,8 @@ private:
 
   int seed_;
   int warm_up_sweeps_;
-  double sweeps_per_measurement_;
-  int measurements_;
+  std::vector<double> sweeps_per_measurement_;
+  std::vector<int> measurements_;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -171,6 +178,24 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
+  auto try_to_read_write = [&](const std::string& name, auto& obj) {
+    try {
+      reader_or_writer.execute(name, obj);
+    }
+    catch (std::exception&) {
+    }
+  };
+
+  auto try_to_read_write_vector = [&](const std::string& name, auto& vec) {
+    try {  // read as a vector.
+      reader_or_writer.execute(name, vec);
+    }
+    catch (std::exception&) {  // read as a scalar.
+      vec.resize(1);
+      try_to_read_write(name, vec[0]);
+    }
+  };
+
   try {
     reader_or_writer.open_group("Monte-Carlo-integration");
 
@@ -189,81 +214,36 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         }
       }
       catch (const std::exception& r_e) {
-        try {
-          // Read the seed as an integer.
-          reader_or_writer.execute("seed", seed_);
-        }
-
-        catch (const std::exception& r_e2) {
-        }
+        // Read the seed as an integer.
+        try_to_read_write("seed", seed_);
       }
-    }
+    }  // is_reader()
 
     else {
-      // Write the seed.
-      try {
-        reader_or_writer.execute("seed", seed_);
-      }
-      catch (const std::exception& r_e) {
-      }
+      // Write the seed directly.
+      try_to_read_write("seed", seed_);
     }
 
-    try {
-      reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("sweeps-per-measurement", sweeps_per_measurement_);
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
-      reader_or_writer.execute("measurements", measurements_);
-    }
-    catch (const std::exception& r_e) {
-    }
 
     // Read error computation type.
     std::string error_type = toString(error_computation_type_);
-    try {
-      reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = stringToErrorComputationType(error_type);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_write("error-computation-type", error_type);
+    error_computation_type_ = stringToErrorComputationType(error_type);
 
-    try {
-      reader_or_writer.execute("store-configuration", store_configuration_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
+    try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
+    try_to_read_write_vector("measurements", measurements_);
+
+    try_to_read_write("store-configuration", store_configuration_);
 
     // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
-      try {
-        reader_or_writer.execute("walkers", walkers_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("accumulators", accumulators_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("shared-walk-and-accumulation-thread",
-                                 shared_walk_and_accumulation_thread_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
-      }
-      catch (const std::exception& r_e) {
-      }
+
+      try_to_read_write("walkers", walkers_);
+      try_to_read_write("accumulators", accumulators_);
+      try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
+      try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
@@ -271,17 +251,20 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
     // 'false'.
-    // try {
-    //   reader_or_writer.execute("adjust-self-energy-for-double-counting",
-    //                            adjust_self_energy_for_double_counting_);
-    // }
-    // catch (const std::exception& r_e) {
-    // }
+    // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
   }
+}
+
+void MciParameters::solveDcaIterationConflict(int iterations) {
+  // Solve conflicts between number of iterations and mci parameters.
+  auto solve_confilct = [&](auto& param) { param.resize(iterations, param.back()); };
+
+  solve_confilct(measurements_);
+  solve_confilct(sweeps_per_measurement_);
 }
 
 }  // namespace params

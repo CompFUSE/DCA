@@ -61,6 +61,9 @@ public:
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
 
+  using Scalar = Real;
+  constexpr static linalg::DeviceType device = linalg::CPU;
+
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
 
@@ -69,10 +72,6 @@ protected:  // The class is not instantiable.
 public:
   const auto& getConfiguration() const {
     return configuration_;
-  }
-
-  int getSign() const {
-    return sign_;
   }
 
   void computeM(MatrixPair& m_accum) const;
@@ -92,7 +91,7 @@ public:
   double avgOrder() const {
     return order_avg_.count() ? order_avg_.mean() : order();
   }
-  int sign() const {
+  int get_sign() const {
     return sign_;
   }
 
@@ -100,10 +99,14 @@ public:
     return Real(n_accepted_) / Real(n_steps_);
   }
 
-  void initialize();
+  void initialize(int iter);
 
   const auto& get_configuration() const {
     return configuration_;
+  }
+
+  const auto& get_matrix_configuration() const {
+    return configuration_.get_sectors();
   }
 
   void updateShell(int meas_id, int meas_to_do) const;
@@ -152,6 +155,8 @@ public:
     return *streams_[s];
   }
 
+  static void sumConcurrency(const Concurrency&) {}
+
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
@@ -196,6 +201,8 @@ protected:  // Members.
 
   float flop_ = 0.;
 
+  double sweeps_per_meas_ = 1.;
+
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<Real, linalg::CPU> work_;
@@ -221,8 +228,11 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, typename Real>
-void CtintWalkerBase<Parameters, Real>::initialize() {
+void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
+
+  sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
+
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
       configuration_.insertRandom(rng_);
@@ -268,12 +278,11 @@ void CtintWalkerBase<Parameters, Real>::updateSweepAverages() {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::markThermalized() {
-  if (partial_order_avg_.mean() == 0)
-    throw(std::runtime_error("The average expansion order is 0."));
+  //  if (partial_order_avg_.mean() == 0)
+  //    throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
 
-  nb_steps_per_sweep_ =
-      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean());
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();

@@ -59,9 +59,10 @@ public:
 public:
   CtauxWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id);
 
-  void initialize();
+  void initialize(int iteration);
 
-  bool& is_thermalized();
+  bool is_thermalized() const;
+  void markThermalized();
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
   // Otherwise, does multiple sweeps according to the input parameter "sweeps-per-measurement".
@@ -284,6 +285,8 @@ private:
   std::array<linalg::util::CudaEvent, 2> m_computed_events_;
 
   bool config_initialized_;
+
+  double sweeps_per_measurement_ = 1.;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -397,13 +400,19 @@ double CtauxWalker<device_t, parameters_type, MOMS_type>::get_Gflop() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-bool& CtauxWalker<device_t, parameters_type, MOMS_type>::is_thermalized() {
+bool CtauxWalker<device_t, parameters_type, MOMS_type>::is_thermalized() const {
   return thermalized;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
-  WalkerBIT<parameters_type, MOMS_type>::initialize();
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxWalker<device_t, Parameters, Data>::markThermalized() {
+  thermalized = true;
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxWalker<device_t, Parameters, Data>::initialize(int iteration) {
+  WalkerBIT<Parameters, Data>::initialize();
+  sweeps_per_measurement_ = parameters.get_sweeps_per_measurement().at(iteration);
 
   number_of_creations = 0;
   number_of_annihilations = 0;
@@ -419,7 +428,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
     configuration.initialize();
   // configuration.print();
 
-  is_thermalized() = false;
+  thermalized = false;
 
   // TODO: Reset accumulators of warm-up expansion order and number of delayed spins, and set
   //       warm_up_sweeps_done_ to zero?
@@ -462,7 +471,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::doSweep() {
   profiler_type profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
-  const double sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1.};
+  const double sweeps_per_measurement{thermalized ? sweeps_per_measurement_ : 1.};
 
   // Do at least one single spin update per sweep.
   const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&

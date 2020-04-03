@@ -22,7 +22,6 @@
 #include <array>
 #include <memory>
 
-#include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
@@ -42,13 +41,13 @@ private:
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
+      linalg::ReshapableMatrix<Complex, linalg::GPU>;
 
 public:
   // Constructor
   // In: nw_pos: number of extended positive frequencies.
   // In: queue: the magma queue on which execute will run.
-  SpaceTransform2DGpu(int nw_pos, magma_queue_t queue);
+  SpaceTransform2DGpu(int nw_pos, const linalg::util::MagmaQueue& queue);
 
   // Performs the 2D fourier transform from real to momentum space in place and rearranges the
   // order of M's labels from (r, b, w) to (b, r, w).
@@ -86,8 +85,8 @@ private:
   const int nw_;
   const int nc_;
 
-  magma_queue_t queue_;
-  cudaStream_t stream_;
+  const linalg::util::MagmaQueue& queue_;
+  const linalg::util::CudaStream& stream_;
 
   std::shared_ptr<RMatrix> workspace_;
 
@@ -96,12 +95,13 @@ private:
 };
 
 template <class RDmn, class KDmn, typename Real>
-SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, magma_queue_t queue)
+SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos,
+                                                           const linalg::util::MagmaQueue& queue)
     : n_bands_(BDmn::dmn_size()),
       nw_(2 * nw_pos),
       nc_(RDmn::dmn_size()),
       queue_(queue),
-      stream_(magma_queue_get_cuda_stream(queue_)),
+      stream_(queue),
       plan1_(queue_),
       plan2_(queue_) {
   workspace_ = std::make_shared<RMatrix>();
