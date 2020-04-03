@@ -27,23 +27,13 @@ SolverConfiguration::SolverConfiguration(const double beta, const int n_bands,
       max_tau_(beta),
       n_bands_(n_bands) {}
 
-std::array<int, 2> SolverConfiguration::randomRemovalCandidateSlow(const std::array<double, 3>& rvals) {
+std::array<int, 2> SolverConfiguration::randomRemovalCandidate(const std::array<double, 3>& rvals) {
   std::array<int, 2> candidates{-1, -1};
-  if (n_annihilatable_ == 0)
+  if (anhilatable_indices_.size() == 0)
     return candidates;
 
-  std::vector<std::pair<std::size_t, unsigned>> tags;
-
-  for (unsigned idx = 0; idx < vertices_.size(); ++idx) {
-    if (vertices_[idx].annihilatable) {
-      tags.emplace_back(vertices_[idx].tag, idx);
-    }
-  }
-  assert(tags.size() == n_annihilatable_);
-  std::sort(tags.begin(), tags.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-  const unsigned annihilatable_idx = rvals[0] * n_annihilatable_;
-  candidates[0] = tags[annihilatable_idx].second;
+  const std::size_t index = rvals[0] * anhilatable_indices_.size();
+  candidates[0] = anhilatable_indices_[index];
 
   if (rvals[1] < double_insertion_prob_ &&
       (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
@@ -101,7 +91,9 @@ int SolverConfiguration::nPartners(int vertex_index) const {
 void SolverConfiguration::commitInsertion(int idx) {
   assert(vertices_[idx].annihilatable == false);
   vertices_[idx].annihilatable = true;
-  ++n_annihilatable_;
+
+  anhilatable_indices_.insert(vertices_[idx].tag, idx);
+
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
@@ -111,8 +103,9 @@ void SolverConfiguration::commitInsertion(int idx) {
 
 void SolverConfiguration::markForRemoval(int idx) {
   assert(vertices_[idx].annihilatable == true);
+  anhilatable_indices_.erase(vertices_[idx].tag);
+
   vertices_[idx].annihilatable = false;
-  --n_annihilatable_;
 
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
@@ -197,6 +190,9 @@ void SolverConfiguration::moveAndShrink(std::array<HostVector<int>, 2>& sector_f
     for (int leg = 0; leg < 2; ++leg) {
       matrix_config_indices_[v.spins[leg]].at(v.matrix_config_indices[leg]).config_id = dead_index;
     }
+    // Update tag index
+    if (v.annihilatable)
+      anhilatable_indices_.find(v.tag) = dead_index;
 
     --living_index;
   }
@@ -235,12 +231,27 @@ bool SolverConfiguration::checkConsistency() const {
     }
   }
 
-  // Count annihilatable.
-  unsigned n_annihilatable = 0;
-  for (const auto& v : vertices_)
-    n_annihilatable += v.annihilatable;
-  if (n_annihilatable != n_annihilatable_) {
-    std::cerr << "Non consistant annihilatable count." << std::endl;
+  // Check annihilatable.
+  bool annhilatable_consitency = true;
+  unsigned idx = 0;
+  for (const auto& v : vertices_) {
+    if (v.annihilatable) {
+      if (idx != anhilatable_indices_.find(v.tag))
+        annhilatable_consitency = false;
+    }
+    else {  // !v.annihilatable
+      try {
+        anhilatable_indices_.find(v.tag);  // must throw.
+        annhilatable_consitency = false;
+      }
+      catch (...) {
+      }
+    }
+    ++idx;
+  }
+
+  if (!annhilatable_consitency) {
+    std::cerr << "Non consistant annihilatable tags." << std::endl;
     return false;
   }
 
@@ -261,10 +272,7 @@ bool SolverConfiguration::checkConsistency() const {
 }
 
 int SolverConfiguration::findTag(std::uint64_t tag) const {
-  for (int i = 0; i < vertices_.size(); ++i)
-    if (vertices_[i].tag == tag)
-      return i;
-  return -1;
+  return anhilatable_indices_.find(tag);
 }
 
 }  // namespace ctint
