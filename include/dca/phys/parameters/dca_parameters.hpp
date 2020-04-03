@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <numeric>  // std::iota
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -25,12 +26,12 @@ namespace params {
 
 class DcaParameters {
 public:
-  DcaParameters()
+  DcaParameters(const int n_bands)
       : initial_self_energy_("zero"),
         dca_iterations_(1),
         dca_accuracy_(0.),
         self_energy_mixing_factor_(1.),
-        interacting_orbitals_{0},
+        interacting_orbitals_(n_bands),
 
         do_finite_size_qmc_(false),
 
@@ -44,7 +45,9 @@ public:
         deconvolution_iterations_(16),
         deconvolution_tolerance_(1.e-3),
         hts_approximation_(false),
-        hts_threads_(1) {}
+        hts_threads_(1) {
+    std::iota(interacting_orbitals_.begin(), interacting_orbitals_.end(), 0);
+  }
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -72,9 +75,13 @@ public:
   double get_self_energy_mixing_factor() const {
     return self_energy_mixing_factor_;
   }
+
+  // List of interacting orbitals considered by the cluster solver. Defaults to the entie set of
+  // the model's bands.
   const std::vector<int>& get_interacting_orbitals() const {
     return interacting_orbitals_;
   }
+
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
@@ -260,8 +267,8 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP

@@ -65,7 +65,7 @@ public:
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
 public:
   sp_Greens_function_data();
@@ -86,9 +86,9 @@ public:
       func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t);
 
   void sum_to(
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>&
           G2_nonlocal_nu_nu_r_r_w_w,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>&
           G2_nonlocal_nu_nu_k_k_w_w);
 
 public:
@@ -137,9 +137,9 @@ public:
       G_w_re__nu_nu_r;
   func::function<scalar_type, func::dmn_variadic<t, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn>>> G_tau__nu_nu_r;
 
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>
       G2_nonlocal_nu_nu_r_r_w_w;
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>
       G2_nonlocal_nu_nu_k_k_w_w;
 };
 
@@ -229,9 +229,9 @@ void sp_Greens_function_data<ed_options>::sum_to(
 
 template <typename ed_options>
 void sp_Greens_function_data<ed_options>::sum_to(
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>&
         G_nu_nu_r_r_w_w,
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>&
         G_nu_nu_k_k_w_w) {
   G_nu_nu_r_r_w_w += G2_nonlocal_nu_nu_r_r_w_w;
   G_nu_nu_k_k_w_w += G2_nonlocal_nu_nu_k_k_w_w;
