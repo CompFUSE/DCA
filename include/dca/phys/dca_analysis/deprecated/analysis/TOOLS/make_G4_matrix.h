@@ -18,8 +18,8 @@ namespace dca {
   public:
     
     template<typename scalartype_1, typename scalartype_2>
-    static void execute(FUNC_LIB::function<scalartype_1, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&                  G4,
-			FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_DCA,w_VERTEX>, dmn_4<b,b,k_DCA,w_VERTEX> > >& G4_matrix)
+    static void execute(FUNC_LIB::function<scalartype_1, dmn_8<b,b,b,b,k_DCA,k_DCA,WVertexDmn,WVertexDmn> >&                  G4,
+			FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_DCA,WVertexDmn>, dmn_4<b,b,k_DCA,WVertexDmn> > >& G4_matrix)
     {
       int* coor_1 = new int[G4       .signature()];
       int* coor_2 = new int[G4_matrix.signature()];

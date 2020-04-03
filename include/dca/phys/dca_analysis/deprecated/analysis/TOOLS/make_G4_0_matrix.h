@@ -25,7 +25,7 @@ namespace dca {
     template<typename scalartype_1, typename scalartype_2, typename k_dmn_t>
     static void execute(parameter_type&                                                                                     parameters,  
 			FUNC_LIB::function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                            G,
-			FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>, dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0);
+			FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,WVertexDmn>, dmn_4<b,b,k_dmn_t,WVertexDmn> > >& P0);
     
 
   private:    
@@ -33,7 +33,7 @@ namespace dca {
     parameter_type&  parameters;
     MOMS_type&       MOMS;
 
-    k_DCA_w_VERTEX k_DCA_w_VERTEX_domain;
+    k_DCA_WVertexDmn k_DCA_WVertexDmn_domain;
   };
 
   template<class parameter_type, class MOMS_type>
@@ -54,16 +54,16 @@ namespace dca {
     analysis_ref.G4_0_b_k_w__b_k_w = 0;
 
     int W        = parameters.get_number_of_positive_frequencies();
-    int W_vertex = w_VERTEX::dmn_size()/2;
+    int W_vertex = WVertexDmn::dmn_size()/2;
 
     int q    = parameters.get_q_channel();
     int w_nu = parameters.get_w_channel();
 
     int* coor = new int[2];
 
-    for(int i=0; i<k_DCA_w_VERTEX_domain.get_size(); i++) 
+    for(int i=0; i<k_DCA_WVertexDmn_domain.get_size(); i++) 
       {
-	k_DCA_w_VERTEX_domain.linind_2_subind(i, coor);
+	k_DCA_WVertexDmn_domain.linind_2_subind(i, coor);
 
 	int k        = coor[0];
 	int w_vertex = coor[1];
@@ -133,14 +133,14 @@ namespace dca {
   template<typename scalartype_1, typename scalartype_2, typename k_dmn_t>
   void make_G4_0_matrix<parameter_type, MOMS_type>::execute(parameter_type&                                                                                    parameters,  
 							    FUNC_LIB::function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                           G,
-							    FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>,dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0)
+							    FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,WVertexDmn>,dmn_4<b,b,k_dmn_t,WVertexDmn> > >& P0)
   {
     P0 = 0.;
 
-    dmn_2<k_dmn_t, w_VERTEX> k_w_dmn;
+    dmn_2<k_dmn_t, WVertexDmn> k_w_dmn;
 
     int W        = parameters.get_sp_fermionic_frequencies();;//parameters.get_number_of_positive_frequencies();
-    int W_vertex = w_VERTEX::dmn_size()/2;
+    int W_vertex = WVertexDmn::dmn_size()/2;
     int q        = parameters.get_q_channel();
 
     int w_nu = parameters.get_w_channel();

@@ -122,7 +122,7 @@ public:
   void print_Sigma_QMC_versus_Sigma_cg();
 
 private:
-  /*const*/ Parameters& parameters_;
+  Parameters& parameters_;
   const Concurrency& concurrency_;
 
 public:

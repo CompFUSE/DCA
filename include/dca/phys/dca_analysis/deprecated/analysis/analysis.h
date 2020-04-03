@@ -33,7 +33,7 @@ namespace dca {
     typedef typename parameter_type::profiler_type    profiler_t;
     typedef typename parameter_type::Concurrency_Type concurrency_t;
 
-    typedef dmn_4<b,b,k_DCA,w_VERTEX>                   eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_DCA,WVertexDmn>                   eigenvector_dmn_t;
     typedef dmn_2<eigenvector_dmn_t, eigenvector_dmn_t> matrix_dmn_t;
 
   public:
@@ -85,21 +85,21 @@ namespace dca {
 
   public:
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_b_k_w__b_k_w;
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> G4_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> G4_0_b_k_w__b_k_w;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_b_k_w__b_k_w;
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> chi_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> chi_0_b_k_w__b_k_w;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> Gamma_b_k_w__b_k_w;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_Gamma;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> reducible_Gamma;
     
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> full_chi_0_b_k_w__b_k_w;
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_times_full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> Gamma_times_full_chi_0;
 
-//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi;
+//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> chi;
 
     FUNC_LIB::function<std::complex<double>, dmn_0<dmn<1, int> > > chi_q;
 
@@ -108,17 +108,17 @@ namespace dca {
     //make_G4_matrix                <parameter_type, MOMS_type> make_G4_obj;
     make_G4_0_matrix              <parameter_type, MOMS_type> make_G4_0_obj;
 
-    //compute_bubble<parameter_type, k_DCA, w_VERTEX, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj;
-    compute_bubble<parameter_type, k_DCA, w_VERTEX, QUADRATURE_INTEGRATION> make_G4_0_CG_obj;
+    //compute_bubble<parameter_type, k_DCA, WVertexDmn, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj;
+    compute_bubble<parameter_type, k_DCA, WVertexDmn, QUADRATURE_INTEGRATION> make_G4_0_CG_obj;
 
-    b_b_k_DCA_w_VERTEX b_b_k_DCA_w_VERTEX_domain;
+    b_b_k_DCA_WVertexDmn b_b_k_DCA_WVertexDmn_domain;
 
-    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> >      chi_0_function;
-    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> > full_chi_0_function;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,WVertexDmn> >      chi_0_function;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,WVertexDmn> > full_chi_0_function;
 
 //     FUNC_LIB::function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                              leading_eigenvalues;
 //     FUNC_LIB::function<std::complex<double>, dmn_2<dmn_0<dmn<N_LAMBDA, int> >, dmn_0<dmn<3, int> > > > leading_symmetries;
-//     FUNC_LIB::function<std::complex<double>, dmn_2<b_b_k_DCA_w_VERTEX, dmn_0<dmn<N_LAMBDA, int> > >  > leading_eigenvectors;
+//     FUNC_LIB::function<std::complex<double>, dmn_2<b_b_k_DCA_WVertexDmn, dmn_0<dmn<N_LAMBDA, int> > >  > leading_eigenvectors;
 
     FUNC_LIB::function<std::complex<double>,       lambda_dmn_type>                        leading_eigenvalues;
     FUNC_LIB::function<std::complex<double>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >  leading_symmetries;
@@ -170,7 +170,7 @@ namespace dca {
     leading_V("leading_V"),
     leading_P0("leading_P0"),
 
-    eigensystem_pln(square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size())
+    eigensystem_pln(square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size())
   {
     parameters.get_output_file_name() = parameters.get_output_susceptibilities_file_name();
   }
@@ -182,14 +182,14 @@ namespace dca {
 //   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
 //   void analysis<parameter_type, MOMS_type, Monte_Carlo_solver_t>::initialize()
 //   {
-// //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// //     for(int i=0; i<WVertexDmn::dmn_size(); i++)
+// //       for(int j=0; j<WVertexDmn_EXTENDED::dmn_size(); j++)
+// // 	if(std::fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
-// //     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// //     for(int j=0; j<WVertexDmn_EXTENDED::dmn_size(); j++)
+// //       for(int i=0; i<WVertexDmn::dmn_size(); i++)
+// //       	if(std::fabs(WVertexDmn::parameter_type::get_elements()[i]-WVertexDmn_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -226,7 +226,7 @@ namespace dca {
     make_G4_0_obj.execute(*this);
 
     {
-      for(int w1=0; w1<w_VERTEX::dmn_size(); w1++) 
+      for(int w1=0; w1<WVertexDmn::dmn_size(); w1++) 
 	for(int k1=0; k1<k_DCA::dmn_size(); k1++)
 	  for(int l2=0; l2<b::dmn_size(); l2++)
 	    for(int l1=0; l1<b::dmn_size(); l1++)
@@ -250,7 +250,7 @@ namespace dca {
       else
 	make_G4_0_CG_obj.execute(MOMS.H_LDA, MOMS.Sigma, full_chi_0_b_k_w__b_k_w);
 
-      for(int w1=0; w1<w_VERTEX::dmn_size(); w1++) 
+      for(int w1=0; w1<WVertexDmn::dmn_size(); w1++) 
 	for(int k1=0; k1<k_DCA::dmn_size(); k1++)
 	  for(int l2=0; l2<b::dmn_size(); l2++)
 	    for(int l1=0; l1<b::dmn_size(); l1++)
@@ -299,7 +299,7 @@ namespace dca {
     if(concurrency.id() == concurrency.last())
       cout << "\n\n\n\t compute_Gamma_b_k_w__b_k_w \n\n\n" << endl;
 
-    int N = b_b_k_DCA_w_VERTEX_domain.get_size();
+    int N = b_b_k_DCA_WVertexDmn_domain.get_size();
 
 //     diagrammatic_symmetries_obj.execute(G4_b_k_w__b_k_w);
 //     diagrammatic_symmetries_obj.execute(G4_0_b_k_w__b_k_w);
@@ -348,10 +348,10 @@ namespace dca {
     cout << scientific;
     cout.precision(6);
 
-    int matrix_dim = b_b_k_DCA_w_VERTEX_domain.get_size();
+    int matrix_dim = b_b_k_DCA_WVertexDmn_domain.get_size();
 
     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
-      gemm_plan<std::complex<double> > gemm_pln(b_b_k_DCA_w_VERTEX_domain.get_size());
+      gemm_plan<std::complex<double> > gemm_pln(b_b_k_DCA_WVertexDmn_domain.get_size());
       
       gemm_pln.A = &Gamma_b_k_w__b_k_w(0);
       gemm_pln.B = &full_chi_0_b_k_w__b_k_w(0);
@@ -413,9 +413,9 @@ namespace dca {
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
   void analysis<parameter_type, MOMS_type, Monte_Carlo_solver_t>::find_harmonic_expansion(int i, int leading_lambda_index)
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
       
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX > eigenvector;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn > eigenvector;
     for(int l=0; l<MATRIX_DIM; l++)
       eigenvector(l) = eigensystem_pln.VR[l + leading_lambda_index*MATRIX_DIM];
     
@@ -428,9 +428,9 @@ namespace dca {
 	  
 	std::complex<double> psi = 1.;
 
-	coef     += psi* eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
+	coef     += psi* eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
       }
 
       leading_symmetries(i, 0) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -450,9 +450,9 @@ namespace dca {
 
 	std::complex<double> psi = (cos(alpha_x*k_DCA::get_elements()[k_ind][0]) + cos(alpha_y*k_DCA::get_elements()[k_ind][1]));
 
-	coef += psi * eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
+	coef += psi * eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
       }
 
       leading_symmetries(i, 1) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -472,9 +472,9 @@ namespace dca {
 	  
 	std::complex<double> psi = (cos(alpha_x*k_DCA::get_elements()[k_ind][0]) - cos(alpha_y*k_DCA::get_elements()[k_ind][1]));
 
-	coef += psi * eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2);
+	coef += psi * eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2);
 	norm_psi += psi*psi;
-	norm_phi += (eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, w_VERTEX::dmn_size()/2)));
+	norm_phi += (eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)*std::conj(eigenvector(0,0,k_ind, WVertexDmn::dmn_size()/2)));
       }
 
       leading_symmetries(i, 2) = coef/sqrt(norm_phi)/sqrt(norm_psi);
@@ -484,7 +484,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
   void analysis<parameter_type, MOMS_type, Monte_Carlo_solver_t>::calculate_eigenvectors()
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
       
     for(int i=0; i<N_LAMBDA; i++)
       {
@@ -505,7 +505,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
   void analysis<parameter_type, MOMS_type, Monte_Carlo_solver_t>::find_phase_factor()
   {
-    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
+    int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*WVertexDmn::dmn_size();
 
     for(int i=0; i<N_LAMBDA; i++)
       {
@@ -520,12 +520,12 @@ namespace dca {
 	    
 	    double result=0;
 	    
-	    for(int w1=0; w1<w_VERTEX::dmn_size()/2; w1++)
+	    for(int w1=0; w1<WVertexDmn::dmn_size()/2; w1++)
 	      for(int K1=0; K1<k_DCA::dmn_size(); K1++)
 		for(int m1=0; m1<b::dmn_size(); m1++)
 		  for(int n1=0; n1<b::dmn_size(); n1++)
 		    result += abs(alpha*leading_eigenvectors(i, n1,m1,K1,w1)
-				  - conj(alpha*leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()-1-w1)));
+				  - conj(alpha*leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()-1-w1)));
 	  
 	    if(result < norm){
 	      norm = result;
@@ -533,7 +533,7 @@ namespace dca {
 	    }
 	  }
 	
-// 	if(imag(alpha_min*leading_eigenvectors(i, 0,0,0,w_VERTEX::dmn_size()/2))>1.e-6)
+// 	if(imag(alpha_min*leading_eigenvectors(i, 0,0,0,WVertexDmn::dmn_size()/2))>1.e-6)
 // 	  alpha_min *= -1.;
 
 	for(int l=0; l<MATRIX_DIM; l++)
@@ -545,9 +545,9 @@ namespace dca {
 // 	for(int K1=0; K1<k_DCA::dmn_size(); K1++)
 // 	  for(int m1=0; m1<b::dmn_size(); m1++)
 // 	    for(int n1=0; n1<b::dmn_size(); n1++)
-// 	      if(abs(leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()/2))>max){
-// 		max   = abs(leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()/2));
-// 		alpha =     leading_eigenvectors(i, n1,m1,K1,w_VERTEX::dmn_size()/2);
+// 	      if(abs(leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()/2))>max){
+// 		max   = abs(leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()/2));
+// 		alpha =     leading_eigenvectors(i, n1,m1,K1,WVertexDmn::dmn_size()/2);
 // 	      }
 	
 // 	for(int l=0; l<MATRIX_DIM; l++)
@@ -564,10 +564,10 @@ namespace dca {
     // \chi(Q,T) = \frac{1}{(\beta*N_c)^2} \sum_{K1,K2} \chi[Q,K1,K2]
     //           ===> \chi[Q,K1,K2] = [1-\chi^0 * \Gamma]^{-1} * \chi^0[Q,K1,K2]
 
-    int N = b_b_k_DCA_w_VERTEX_domain.get_size();
+    int N = b_b_k_DCA_WVertexDmn_domain.get_size();
 
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi("chi");
-    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> chi("chi");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_WVertexDmn__b_b_k_DCA_WVertexDmn> denominator("temporary");
 
     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
       gemm_plan<std::complex<double> > gemm_pln(N);

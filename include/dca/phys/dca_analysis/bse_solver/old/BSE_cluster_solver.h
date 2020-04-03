@@ -19,7 +19,7 @@ namespace DCA
     typedef typename parameters_type::profiler_type    profiler_t;
     typedef typename parameters_type::concurrency_type concurrency_t;
 
-    typedef dmn_4<b,b,k_DCA,w_VERTEX>                                   cluster_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_DCA,WVertexDmn>                                   cluster_eigenvector_dmn_t;
     typedef dmn_2<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t> DCA_matrix_dmn_t;
 
   public:
@@ -33,7 +33,7 @@ namespace DCA
     void compute_Gamma_cluster();
 
     FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t             >& get_Gamma_matrix()    { return Gamma_matrix; }
-    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> >& get_G_II_0_function() { return G_II_0_function; }
+    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, WVertexDmn> >& get_G_II_0_function() { return G_II_0_function; }
 
   private:
 
@@ -61,7 +61,7 @@ namespace DCA
     diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
 
     FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t >             Gamma_matrix;
-    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> > G_II_0_function;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, WVertexDmn> > G_II_0_function;
   };
 
   template<class parameters_type, class MOMS_type>
@@ -192,10 +192,10 @@ namespace DCA
 
     G_II_0 = 0.;
 
-    dmn_2<k_DCA, w_VERTEX> k_w_dmn;
+    dmn_2<k_DCA, WVertexDmn> k_w_dmn;
 
     int W        = parameters.get_sp_fermionic_frequencies();
-    int W_vertex = w_VERTEX::dmn_size()/2;
+    int W_vertex = WVertexDmn::dmn_size()/2;
     int q        = parameters.get_q_channel();
 
     int w_nu = parameters.get_w_channel();
@@ -271,7 +271,7 @@ namespace DCA
     if(concurrency.id()==concurrency.last())
       std::cout << "\t" << __FUNCTION__ << "\n\n";
 
-    for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
+    for(int w_ind=0; w_ind<WVertexDmn::dmn_size(); w_ind++)
       for(int K_ind=0; K_ind<k_DCA::dmn_size(); K_ind++)
 
         for(int m2=0; m2<b::dmn_size(); m2++)
