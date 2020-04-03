@@ -24,40 +24,32 @@ namespace models {
 // dca::phys::models::
 
 template <class Lattice>
-struct has_non_density_interaction {
-  constexpr static bool value = false;
-};
+static constexpr bool has_non_density_interaction = false;
 
 template <class BaseLattice>
-struct has_non_density_interaction<HundLattice<BaseLattice>> {
-  constexpr static bool value = true;
-};
+static constexpr bool has_non_density_interaction<HundLattice<BaseLattice>> = true;
 
 template <class BaseLattice>
-struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
-  constexpr static bool value = true;
-};
+static constexpr bool has_non_density_interaction<FeAsLattice<BaseLattice>> = true;
 
 template <class PointGroup>
-struct has_non_density_interaction<TwoBandCu<PointGroup>> {
-  constexpr static bool value = true;
-};
+static constexpr bool has_non_density_interaction<TwoBandCu<PointGroup>> = true;
 
 template <class Lattice, class HType, class Parameters>
-std::enable_if_t<has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
+std::enable_if_t<has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
     HType& interaction, const Parameters& pars) {
   Lattice::initializeNonDensityInteraction(interaction, pars);
 }
 
 template <class Lattice, class HType, class Parameters>
-std::enable_if_t<has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
+std::enable_if_t<has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
     std::unique_ptr<HType>& interaction, const Parameters& pars) {
-  interaction.reset(new HType);
+  interaction = std::make_unique<HType>();
   Lattice::initializeNonDensityInteraction(*interaction, pars);
 }
 
 template <class Lattice, class HType, class Parameters>
-typename std::enable_if_t<not has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(
+std::enable_if_t<!has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
 
 }  // namespace models

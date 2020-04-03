@@ -517,7 +517,7 @@ void DcaData<Parameters>::initializeH0_and_H_i() {
       }
   }
 
-  if (models::has_non_density_interaction<Lattice>::value) {
+  if constexpr (models::has_non_density_interaction<Lattice>) {
     models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
   }
 
