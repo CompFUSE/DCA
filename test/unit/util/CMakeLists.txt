@@ -9,3 +9,5 @@ dca_add_gtest(plot_test
 dca_add_gtest(print_time_test GTEST_MAIN)
 dca_add_gtest(timer_test GTEST_MAIN LIBS timer)
 dca_add_gtest(pack_operations_test GTEST_MAIN)
+dca_add_gtest(random_access_map_test GTEST_MAIN)
+dca_add_gtest(type_list_test GTEST_MAIN)
