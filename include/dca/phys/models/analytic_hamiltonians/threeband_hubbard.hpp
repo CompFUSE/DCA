@@ -32,12 +32,12 @@ namespace models {
 // dca::phys::models::
 
 // TODO: the symmetry of this system must be checked.
-template <typename symmetry_group>
-class threeband_hubbard {
+template <typename SymmetryGroup>
+class ThreebandHubbard {
 public:
   using LDA_point_group = domains::no_symmetry<2>;
-  using DCA_point_group = symmetry_group;
-  // typedef point_group_type DCA_point_group;
+  using DCA_point_group = SymmetryGroup;
+  // typedef PointGroupType DCA_point_group;
 
   const static ClusterShapeType DCA_cluster_shape = BETT_CLUSTER;
   const static ClusterShapeType LDA_cluster_shape = PARALLELEPIPED;
@@ -45,55 +45,55 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 3;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_k_DCA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeKDCABasis();
 
-  static double* initialize_r_LDA_basis();
-  static double* initialize_k_LDA_basis();
+  static double* initializeRLDABasis();
+  static double* initializeKLDABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Rotations of pi/2 are an anti-symmetry on the band off-diagonal.
-  static int transformationSignofR(int b1, int b2, int s);
-  static int transformationSignofK(int b1, int b2, int s);
+  static int transformationSignOfR(int b1, int b2, int s);
+  static int transformationSignOfK(int b1, int b2, int s);
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
-template <typename point_group_type>
-int threeband_hubbard<point_group_type>::transformationSignofR(int b1, int b2, int s) {
-  if (!std::is_same<point_group_type, domains::D4>::value)
+template <typename PointGroupType>
+int ThreebandHubbard<PointGroupType>::transformationSignOfR(int b1, int b2, int s) {
+  if (!std::is_same<PointGroupType, domains::D4>::value)
     return 1;
 
   if (b1 == b2)
     return 1;
-  else if (b1 != 0 && b2 != 0){
+  else if (b1 != 0 && b2 != 0) {
     if (s == 0 || s == 6)
       return 1;
     else
       return 0;
   }
-  else if ((b1 != b2 && b1 == 0)||(b1 != b2 && b2 == 0)) {
-    if (s == 0)     
+  else if ((b1 != b2 && b1 == 0) || (b1 != b2 && b2 == 0)) {
+    if (s == 0)
       return 1;
     else if (s == 6)
       return -1;
@@ -101,97 +101,66 @@ int threeband_hubbard<point_group_type>::transformationSignofR(int b1, int b2, i
       return 0;
   }
 
+  return s == 0;  // Only identity by default.
 }
 
-template <typename point_group_type>
-int threeband_hubbard<point_group_type>::transformationSignofK(int b1, int b2, int s) {
-  if (!std::is_same<point_group_type, domains::D4>::value)
+template <typename PointGroupType>
+int ThreebandHubbard<PointGroupType>::transformationSignOfK(int b1, int b2, int s) {
+  if (!std::is_same<PointGroupType, domains::D4>::value)
     return 1;
 
   if ((b1 == b2) || (b1 != 0 && b2 != 0))
     return 1;
-  else // if ((b1 != b2 && b1 == 0)||(b1 != b2 && b2 == 0))
+  else  // if ((b1 != b2 && b1 == 0)||(b1 != b2 && b2 == 0))
     return (s == 0 || s == 2 || s == 5 || s == 7) ? 1 : -1;
-    //if (s == 0 || s == 2 || s == 5 || s == 7)
-    //  return 1;
-    // else // if (s == 1 || s == 3 || s == 4 || s == 6)
-    //  return -1;
-  
-
+  // if (s == 0 || s == 2 || s == 5 || s == 7)
+  //  return 1;
+  // else // if (s == 1 || s == 3 || s == 4 || s == 6)
+  //  return -1;
 }
 
-
-template <typename point_group_type>
-double* threeband_hubbard<point_group_type>::initialize_r_DCA_basis() {
-  static double* r_DCA = new double[4];
-  r_DCA[0] = 1.0;
-  r_DCA[1] = 0.0;
-  r_DCA[2] = 0.0;
-  r_DCA[3] = 1.0;
-
-  return r_DCA;
+template <typename PointGroupType>
+double* ThreebandHubbard<PointGroupType>::initializeRDCABasis() {
+  static std::array<double, 4> basis{1, 0, 0, 1};
+  return basis.data();
 }
-template <typename point_group_type>
-double* threeband_hubbard<point_group_type>::initialize_k_DCA_basis() {
-  static double* k_DCA = new double[4];
-
-  k_DCA[0] = 2 * M_PI;
-  k_DCA[1] = 0.;
-  k_DCA[2] = 0.;
-  k_DCA[3] = 2 * M_PI;
-
-  return k_DCA;
+template <typename PointGroupType>
+double* ThreebandHubbard<PointGroupType>::initializeKDCABasis() {
+  static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
+  return basis.data();
 }
 
-template <typename point_group_type>
-double* threeband_hubbard<point_group_type>::initialize_r_LDA_basis() {
-  static double* r_LDA = new double[4];
-
-  r_LDA[0] = 1.;
-  r_LDA[1] = 0.;
-  r_LDA[2] = 0.;
-  r_LDA[3] = 1.;
-
-  return r_LDA;
+template <typename PointGroupType>
+double* ThreebandHubbard<PointGroupType>::initializeRLDABasis() {
+  static std::array<double, 4> basis{1, 0, 0, 1};
+  return basis.data();
 }
 
-template <typename point_group_type>
-double* threeband_hubbard<point_group_type>::initialize_k_LDA_basis() {
-  static double* k_LDA = new double[4];
-
-  k_LDA[0] = 2. * M_PI;
-  k_LDA[1] = 0.;
-  k_LDA[2] = 0.;
-  k_LDA[3] = 2. * M_PI;
-
-  return k_LDA;
+template <typename PointGroupType>
+double* ThreebandHubbard<PointGroupType>::initializeKLDABasis() {
+  static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
+  return basis.data();
 }
 
-template <typename point_group_type>
-std::vector<int> threeband_hubbard<point_group_type>::get_flavors() {
-  static std::vector<int> flavors{0, 1, 1};
-
-  return flavors;
+template <typename PointGroupType>
+std::vector<int> ThreebandHubbard<PointGroupType>::flavors() {
+  return {0, 1, 1};
 }
 
-template <typename point_group_type>
-std::vector<std::vector<double>> threeband_hubbard<point_group_type>::get_a_vectors() {
-  static std::vector<std::vector<double>> a_vecs{
-      std::vector<double>{0, 0}, std::vector<double>{0.5, 0}, std::vector<double>{0, 0.5}};
-
-  return a_vecs;
+template <typename PointGroupType>
+std::vector<std::vector<double>> ThreebandHubbard<PointGroupType>::aVectors() {
+  return {{0, 0}, {0.5, 0}, {0, 0.5}};
 }
 
-template <typename point_group_type>
-std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> threeband_hubbard<
-    point_group_type>::get_orbital_permutations() {
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
-  return permutations;
+template <typename PointGroupType>
+std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> ThreebandHubbard<
+    PointGroupType>::orbitalPermutations() {
+  return {};
 }
 
-template <typename point_group_type>
+template <typename PointGroupType>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void threeband_hubbard<point_group_type>::initialize_H_interaction(
+void ThreebandHubbard<PointGroupType>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -222,10 +191,9 @@ void threeband_hubbard<point_group_type>::initialize_H_interaction(
   }
 }
 
-template <typename point_group_type>
+template <typename PointGroupType>
 template <class domain>
-void threeband_hubbard<point_group_type>::initialize_H_symmetry(
-    func::function<int, domain>& H_symmetries) {
+void ThreebandHubbard<PointGroupType>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   //  H_symmetry(i, s1, j, s2)
@@ -236,9 +204,9 @@ void threeband_hubbard<point_group_type>::initialize_H_symmetry(
   //  H_symmetries(1, 1, 1, 1) = 1; // at i, G of spin 0 or 1 has the same values.
 }
 
-template <typename point_group_type>
+template <typename PointGroupType>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void threeband_hubbard<point_group_type>::initialize_H_0(
+void ThreebandHubbard<PointGroupType>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {

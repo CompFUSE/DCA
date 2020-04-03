@@ -63,7 +63,7 @@ public:
       domain_initialized = true;
     }
 
-    Parameters::model_type::initialize_H_0(parameters_, H0_);
+    Parameters::model_type::initializeH0(parameters_, H0_);
     Parameters::model_type::initialize_H_symmetries(H_symmetry_);
   }
 

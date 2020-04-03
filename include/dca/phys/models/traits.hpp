@@ -39,7 +39,7 @@ struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
 };
 
 template <class PointGroup>
-struct has_non_density_interaction<TwobandCu<PointGroup>> {
+struct has_non_density_interaction<TwoBandCu<PointGroup>> {
   constexpr static bool value = true;
 };
 

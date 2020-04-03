@@ -77,8 +77,8 @@ void electron_band_domain::initialize(const Parameters& /*parameters*/) {
   elements_.resize(Parameters::bands);
 
   using Lattice = typename Parameters::lattice_type;
-  auto flavours = Lattice::get_flavors();
-  auto a_vecs = Lattice::get_a_vectors();
+  auto flavours = Lattice::flavors();
+  auto a_vecs = Lattice::aVectors();
 
   for (size_t i = 0; i < a_vecs.size(); ++i) {
     elements_.at(i).number = i;

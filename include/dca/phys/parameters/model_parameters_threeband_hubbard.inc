@@ -11,7 +11,7 @@
 // Template specialization of model parameters for three-band Hubbard model.
 
 template <typename PointGroup>
-class ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGroup>>> {
+class ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGroup>>> {
 public:
   ModelParameters() {}
 
@@ -78,7 +78,7 @@ private:
 
 template <typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGroup>>>::getBufferSize(
     const Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -94,7 +94,7 @@ int ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGro
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGroup>>>::pack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_pd_);
   concurrency.pack(buffer, buffer_size, position, t_pp_);
@@ -106,7 +106,7 @@ void ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGr
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGroup>>>::unpack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_pd_);
   concurrency.unpack(buffer, buffer_size, position, t_pp_);
@@ -118,7 +118,7 @@ void ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGr
 
 template <typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<models::TightBindingModel<models::threeband_hubbard<PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("threebands-Hubbard-model");

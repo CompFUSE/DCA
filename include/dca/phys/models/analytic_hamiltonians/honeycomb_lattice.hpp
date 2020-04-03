@@ -12,7 +12,7 @@
 // \f}
 //
 // TODO: - Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
-//       - Use correct index of origin in initialize_H_interaction (see e.g. square_lattice.hpp.)
+//       - Use correct index of origin in initializeHInteraction (see e.g. square_lattice.hpp.)
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
@@ -43,23 +43,23 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 2;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_k_DCA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeKDCABasis();
 
-  static double* initialize_r_LDA_basis();
-  static double* initialize_k_LDA_basis();
+  static double* initializeRLDABasis();
+  static double* initializeKLDABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
-  std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   template <class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
@@ -67,7 +67,7 @@ public:
 };
 
 template <typename DCA_point_group_type>
-double* HoneycombLattice<DCA_point_group_type>::initialize_r_DCA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.5;
@@ -79,7 +79,7 @@ double* HoneycombLattice<DCA_point_group_type>::initialize_r_DCA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* HoneycombLattice<DCA_point_group_type>::initialize_k_DCA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initializeKDCABasis() {
   static double* k_DCA = new double[4];
 
   k_DCA[0] = 2.09439466667;
@@ -91,7 +91,7 @@ double* HoneycombLattice<DCA_point_group_type>::initialize_k_DCA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* HoneycombLattice<DCA_point_group_type>::initialize_r_LDA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1. / 2.;
@@ -103,7 +103,7 @@ double* HoneycombLattice<DCA_point_group_type>::initialize_r_LDA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* HoneycombLattice<DCA_point_group_type>::initialize_k_LDA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initializeKLDABasis() {
   static double* k_LDA = new double[4];
 
   k_LDA[0] = 4 * M_PI;
@@ -115,7 +115,7 @@ double* HoneycombLattice<DCA_point_group_type>::initialize_k_LDA_basis() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<int> HoneycombLattice<DCA_point_group_type>::get_flavors() {
+std::vector<int> HoneycombLattice<DCA_point_group_type>::flavors() {
   std::vector<int> flavors(BANDS);
 
   flavors[0] = 0;
@@ -125,7 +125,7 @@ std::vector<int> HoneycombLattice<DCA_point_group_type>::get_flavors() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<std::vector<double>> HoneycombLattice<DCA_point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> HoneycombLattice<DCA_point_group_type>::aVectors() {
   std::vector<std::vector<double>> a_vecs(0);
 
   {
@@ -151,7 +151,7 @@ std::vector<std::vector<double>> HoneycombLattice<DCA_point_group_type>::get_a_v
 
 template <typename DCA_point_group_type>
 template <class domain, class parameters_type>
-void HoneycombLattice<DCA_point_group_type>::initialize_H_interaction(
+void HoneycombLattice<DCA_point_group_type>::initializeHInteraction(
     func::function<double, domain>& H_interaction, parameters_type& parameters) {
   std::vector<std::vector<double>>& U_ij = parameters.get_U_ij();
 
@@ -161,7 +161,7 @@ void HoneycombLattice<DCA_point_group_type>::initialize_H_interaction(
 
 template <typename DCA_point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> HoneycombLattice<
-    DCA_point_group_type>::get_orbital_permutations() {
+    DCA_point_group_type>::orbitalPermutations() {
   std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
 
   {  // permutation 0
@@ -177,7 +177,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> HoneycombLattic
 
 template <typename DCA_point_group_type>
 template <class domain>
-void HoneycombLattice<DCA_point_group_type>::initialize_H_symmetry(
+void HoneycombLattice<DCA_point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   // e_up <==> e_dn symmetry
   //   for(int i=0; i<BANDS; i++){

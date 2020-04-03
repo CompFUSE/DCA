@@ -414,7 +414,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
 
   symmetrize::execute<Lattice>(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
-  std::vector<int> flavors = parameters_type::model_type::get_flavors();
+  std::vector<int> flavors = parameters_type::model_type::flavors();
   assert(flavors.size() == b::dmn_size());
 
   func::function<std::complex<double>, b> f_val;

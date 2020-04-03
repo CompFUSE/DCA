@@ -112,7 +112,7 @@ public:
   void write(Writer& reader);
 
   void initialize();
-  void initialize_H_0_and_H_i();
+  void initializeH0_and_H_i();
   void initialize_G0();
   void initialize_Sigma();
 
@@ -492,18 +492,18 @@ void DcaData<Parameters>::write(Writer& writer) {
 
 template <class Parameters>
 void DcaData<Parameters>::initialize() {
-  initialize_H_0_and_H_i();
+  initializeH0_and_H_i();
   initialize_G0();
 }
 
 template <class Parameters>
-void DcaData<Parameters>::initialize_H_0_and_H_i() {
+void DcaData<Parameters>::initializeH0_and_H_i() {
   util::Timer("H_0 and H_int initialization", concurrency_.id() == concurrency_.first());
 
-  Parameters::model_type::initialize_H_0(parameters_, H_DCA);
-  Parameters::model_type::initialize_H_0(parameters_, H_HOST);
+  Parameters::model_type::initializeH0(parameters_, H_DCA);
+  Parameters::model_type::initializeH0(parameters_, H_HOST);
 
-  Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
+  Parameters::model_type::initializeHInteraction(H_interactions, parameters_);
 
   // Check symmetry of H_interactions.
   const int r0 = RClusterDmn::parameter_type::origin_index();

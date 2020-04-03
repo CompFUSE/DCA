@@ -95,7 +95,7 @@ elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
 
 elseif (DCA_LATTICE STREQUAL "threeband")
-  set(DCA_LATTICE_TYPE dca::phys::models::threeband_hubbard<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::ThreebandHubbard<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp")
 
@@ -108,7 +108,7 @@ elseif (DCA_LATTICE STREQUAL "FeAs")
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "twoband_Cu")
-  set(DCA_LATTICE_TYPE dca::phys::models::TwobandCu<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 

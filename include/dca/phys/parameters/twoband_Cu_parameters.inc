@@ -10,7 +10,7 @@
 // Template specialization of model parameters for the model described in "twoband_Cu.hpp".
 
 template <typename PointGroup>
-class ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>> {
+class ModelParameters<models::TightBindingModel<models::TwoBandCu<PointGroup>>> {
 public:
   ModelParameters() = default;
 
@@ -91,7 +91,7 @@ private:
 
 template <typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::TwoBandCu<PointGroup>>>::getBufferSize(
     const Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -114,7 +114,7 @@ int ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::g
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::TwoBandCu<PointGroup>>>::pack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t00_);
   concurrency.pack(buffer, buffer_size, position, tp00_);
@@ -133,7 +133,7 @@ void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::TwoBandCu<PointGroup>>>::unpack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t00_);
   concurrency.unpack(buffer, buffer_size, position, tp00_);
@@ -152,10 +152,10 @@ void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::
 
 template <typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<models::TightBindingModel<models::TwobandCu<PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::TwoBandCu<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
-    reader_or_writer.open_group("twobandCu-model");
+    reader_or_writer.open_group("TwoBandCu-model");
 
     auto try_to_read = [&](const std::string& name, auto& val) {
       try {

@@ -587,7 +587,7 @@ void symmetrize_single_particle_function::executeCluster(
           int b0_new = r_symmetry_matrix(r_ind, b0, s_ind).second;
           int b1_new = r_symmetry_matrix(0, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSignofR(b0, b1, s_ind);
+          const double sign = Lattice::transformationSignOfR(b0, b1, s_ind);
           norm += std::abs(sign);
 
           f_new(b0, b1, r_ind) += sign * f(b0_new, b1_new, R_new_ind);
@@ -681,7 +681,7 @@ void symmetrize_single_particle_function::executeCluster(
           int b0_new = k_symmetry_matrix(k_new, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSignofK(b0, b1, s_ind);
+          const double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
           norm += std::abs(sign);
 
           f_new(b0, b1, k_ind) += sign * f(b0_new, b1_new, k_new);
