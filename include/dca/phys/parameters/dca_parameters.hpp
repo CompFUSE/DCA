@@ -84,7 +84,7 @@ public:
     return interacting_orbitals_;
   }
 
-  bool do_post_interpolation() const {
+  bool doPostInterpolation() const {
     return do_post_interpolation_;
   }
 

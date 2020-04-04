@@ -452,7 +452,7 @@ void DcaData<Parameters>::write(Writer& writer) {
   if (parameters_.dump_lattice_self_energy()) {
     if (parameters_.do_dca_plus())
       writer.execute(Sigma_lattice);
-    else if (parameters_.do_post_interpolation())
+    else if (parameters_.doPostInterpolation())
       writer.execute(Sigma_lattice_interpolated);
   }
 

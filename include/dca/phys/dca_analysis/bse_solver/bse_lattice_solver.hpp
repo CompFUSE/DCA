@@ -143,7 +143,8 @@ private:
   DcaDataType& MOMS;
 
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> Gamma_lattice;
-  func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, WVertexDmn>> chi_0_lattice;
+  func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, WVertexDmn>>
+      chi_0_lattice;
   // Matrix in \vec{k} and \omega_n with the diagonal = chi_0_lattice.
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> chi_0_lattice_matrix;
 
@@ -310,7 +311,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
   clustermapping::coarsegraining_tp<ParametersType, k_HOST_VERTEX> coarsegraining_tp(parameters);
 
   // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
-  if (parameters.do_dca_plus() || parameters.do_post_interpolation()) {
+  if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
     latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
 
     MOMS.Sigma_lattice_interpolated = 0.;
@@ -373,7 +374,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLatt
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
   // DCA+/DCA with post-interpolation: Compute Gamma_lattice with continuous momentum dependence.
-  if (parameters.do_dca_plus() || parameters.do_post_interpolation()) {
+  if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
     latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp(
         parameters);
     lattice_map_tp.execute(Gamma_cluster, Gamma_lattice);
@@ -814,7 +815,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
         std::complex<ScalarType> norm = 0;
 
         for (int j = 0; j < k_HOST_VERTEX::dmn_size(); j++) {
-          scal_prod += conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2);
+          scal_prod +=
+              conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2);
           norm += conj(leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2)) *
                   leading_eigenvectors(i, 0, 0, j, WVertexDmn::dmn_size() / 2);
         }
