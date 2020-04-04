@@ -128,7 +128,7 @@ private:
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST, w>>& S_k_w,
       func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& phi);
 
-  void find_w1_and_w2(std::vector<double>& elements, int& w_ind, int& w1, int& w2);
+  void find_w1_and_w2(const std::vector<double>& elements, int& w_ind, int& w1, int& w2);
 
   void compute_bubble(
       func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, q_dmn>>& bubble);
@@ -612,7 +612,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
 }
 
 template <typename parameters_type, typename K_dmn>
-void coarsegraining_tp<parameters_type, K_dmn>::find_w1_and_w2(std::vector<double>& elements,
+void coarsegraining_tp<parameters_type, K_dmn>::find_w1_and_w2(const std::vector<double>& elements,
                                                                int& w_ind, int& w1, int& w2) {
   int W_ind = parameters.get_four_point_frequency_transfer();
 

@@ -36,33 +36,33 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 1;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_r_LDA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeRLDABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
 template <typename DCA_point_group_type>
-double* triangular_lattice<DCA_point_group_type>::initialize_r_DCA_basis() {
+double* triangular_lattice<DCA_point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = std::cos(M_PI / 3.);
@@ -74,7 +74,7 @@ double* triangular_lattice<DCA_point_group_type>::initialize_r_DCA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* triangular_lattice<DCA_point_group_type>::initialize_r_LDA_basis() {
+double* triangular_lattice<DCA_point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = std::cos(M_PI / 3.);
@@ -86,7 +86,7 @@ double* triangular_lattice<DCA_point_group_type>::initialize_r_LDA_basis() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<int> triangular_lattice<DCA_point_group_type>::get_flavors() {
+std::vector<int> triangular_lattice<DCA_point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
 
   for (int i = 0; i < BANDS; i++)
@@ -96,14 +96,14 @@ std::vector<int> triangular_lattice<DCA_point_group_type>::get_flavors() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<std::vector<double>> triangular_lattice<DCA_point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> triangular_lattice<DCA_point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void triangular_lattice<point_group_type>::initialize_H_interaction(
+void triangular_lattice<point_group_type>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -131,7 +131,7 @@ void triangular_lattice<point_group_type>::initialize_H_interaction(
 
 template <typename DCA_point_group_type>
 template <class domain>
-void triangular_lattice<DCA_point_group_type>::initialize_H_symmetry(
+void triangular_lattice<DCA_point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries(0, 0) = 0;
   H_symmetries(0, 1) = -1;
@@ -141,7 +141,7 @@ void triangular_lattice<DCA_point_group_type>::initialize_H_symmetry(
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void triangular_lattice<point_group_type>::initialize_H_0(
+void triangular_lattice<point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {

@@ -18,6 +18,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -104,8 +105,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
-  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC(
-      dca_data_imag.Sigma);
+  const auto& Sigma_QMC = dca_data_imag.Sigma;
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
@@ -120,27 +120,14 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
     reader.execute(Sigma_QMC_check);
     reader.close_file();
 
-    for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-      for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-        for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
-          for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
-          }
-        }
-      }
-    }
-  }
+    const auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
+    EXPECT_LT(diff.l2, 1e-10);
 
-  // Write results
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+    // Write results
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
     writer.open_group("functions");
-    Sigma_QMC.set_name("Self_Energy");
     writer.execute(Sigma_QMC);
     writer.close_group();
     writer.close_file();
@@ -153,7 +140,8 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv,
+                                                         DCA_SOURCE_DIR
                                                          "/test/integration/cluster_solver/ctaux/"
                                                          "square_lattice/Nc4_nn/"
                                                          "input.square_lattice_Nc4_nn.json");

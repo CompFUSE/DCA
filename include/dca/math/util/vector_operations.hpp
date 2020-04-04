@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbaludzz@itp.phys.ethz.ch)
 //
 // This file provides utility functions to do various vector operations.
 
@@ -17,6 +18,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <functional>
 #include <type_traits>
 #include <vector>
 
@@ -267,9 +269,30 @@ auto operator+(const std::vector<T>& x, const std::vector<T>& y) {
 }
 template <typename T>
 auto operator-(const std::vector<T>& x, const std::vector<T>& y) {
-  return subtract(y, x); // Note: subtract(x, y) is defined as y - x;
+  return subtract(y, x);  // Note: subtract(x, y) is defined as y - x;
 }
 
+// Returns true if pred evaluates to true for any element of v. Returns false if v is empty.
+template <class Vec>
+bool any(const Vec& v, const std::function<bool(typename Vec::value_type)>& pred) {
+  for (const auto& x : v) {
+    if (pred(x)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Returns true if pred evaluates to true for all element of v. Returns true if v is empty.
+template <class Vec>
+bool all(const Vec& v, const std::function<bool(typename Vec::value_type)>& pred) {
+  for (const auto& x : v) {
+    if (!pred(x)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 }  // namespace util
 }  // namespace math

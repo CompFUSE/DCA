@@ -39,20 +39,22 @@ void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
   auto spin = [=](const int nu) { return nu >= n_bands_; };
   auto band = [=](const int nu) -> unsigned short { return nu - n_bands_ * spin(nu); };
 
+  std::array<unsigned, 2> indices;
+  const auto& nu = (*H_int_)[v.interaction_id].nu;
+  const auto& r = (*H_int_)[v.interaction_id].r;
+
+  const bool is_ndd = band(nu[0]) != band(nu[1]) || band(nu[2]) != band(nu[3]);
+
   auto field_type = [&](const Vertex& v, const int leg) -> short {
     const short sign = v.aux_spin ? 1 : -1;
     const InteractionElement& elem = (*H_int_)[v.interaction_id];
-    if (elem.partners_id.size())
+    if (is_ndd)
       return leg == 1 ? -3 * sign : 3 * sign;  // non density-density.
     else if (elem.w > 0)
       return leg == 1 ? -1 * sign : 1 * sign;  // positive dd interaction.
     else
       return 2 * sign;  // negative dd interaction.
   };
-
-  std::array<unsigned, 2> indices;
-  const auto& nu = (*H_int_)[v.interaction_id].nu;
-  const auto& r = (*H_int_)[v.interaction_id].r;
 
   for (unsigned short leg = 0; leg < 2; ++leg) {
     assert(spin(nu[0 + 2 * leg]) == spin(nu[1 + 2 * leg]));

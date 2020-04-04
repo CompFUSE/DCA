@@ -112,7 +112,7 @@ public:
   void write(Writer& reader);
 
   void initialize();
-  void initialize_H_0_and_H_i();
+  void initializeH0_and_H_i();
   void initialize_G0();
   void initialize_Sigma();
 
@@ -123,7 +123,7 @@ public:
 
 private:
   Parameters& parameters_;
-  Concurrency& concurrency_;
+  const Concurrency& concurrency_;
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
@@ -232,6 +232,11 @@ public:  // Optional members getters.
               "non_density_interaction"));
     return *non_density_interactions_;
   }
+  const auto& get_non_density_interactions() const {
+    assert(non_density_interactions_);
+    return *non_density_interactions_;
+  }
+
   bool has_non_density_interactions() const {
     return (bool)non_density_interactions_;
   }
@@ -247,7 +252,7 @@ private:  // Optional members.
 };
 
 template <class Parameters>
-DcaData<Parameters>::DcaData(Parameters& parameters_ref)
+DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -490,18 +495,18 @@ void DcaData<Parameters>::write(Writer& writer) {
 
 template <class Parameters>
 void DcaData<Parameters>::initialize() {
-  initialize_H_0_and_H_i();
+  initializeH0_and_H_i();
   initialize_G0();
 }
 
 template <class Parameters>
-void DcaData<Parameters>::initialize_H_0_and_H_i() {
+void DcaData<Parameters>::initializeH0_and_H_i() {
   util::Timer("H_0 and H_int initialization", concurrency_.id() == concurrency_.first());
 
-  Parameters::model_type::initialize_H_0(parameters_, H_DCA);
-  Parameters::model_type::initialize_H_0(parameters_, H_HOST);
+  Parameters::model_type::initializeH0(parameters_, H_DCA);
+  Parameters::model_type::initializeH0(parameters_, H_HOST);
 
-  Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
+  Parameters::model_type::initializeHInteraction(H_interactions, parameters_);
 
   // Check symmetry of H_interactions.
   const int r0 = RClusterDmn::parameter_type::origin_index();
@@ -515,7 +520,7 @@ void DcaData<Parameters>::initialize_H_0_and_H_i() {
       }
   }
 
-  if (models::has_non_density_interaction<Lattice>::value) {
+  if constexpr (models::has_non_density_interaction<Lattice>) {
     models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
   }
 
@@ -533,19 +538,19 @@ void DcaData<Parameters>::initialize_G0() {
   // Compute G0_k_w.
   compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
                  parameters_.get_coarsegraining_threads(), G0_k_w);
-  symmetrize::execute(G0_k_w, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_k_w, H_symmetry, true);
 
   // Compute G0_k_t.
   compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
-  symmetrize::execute(G0_k_t, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_k_t, H_symmetry, true);
 
   // Compute G0_r_w.
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
-  symmetrize::execute(G0_r_w, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_r_w, H_symmetry, true);
 
   // Compute G0_r_t.
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t);
-  symmetrize::execute(G0_r_t, H_symmetry, true);
+  symmetrize::execute<Lattice>(G0_r_t, H_symmetry, true);
 
   // Initialize the cluster excluded Green's functions with the corresponding free Green's
   // functions.

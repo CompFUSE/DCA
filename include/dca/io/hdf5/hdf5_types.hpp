@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // HDF5 types.
 
@@ -143,30 +144,6 @@ public:
 };
 
 template <>
-class HDF5_TYPE<std::complex<float>> {
-public:
-  static hid_t get() {
-    return H5T_NATIVE_FLOAT;
-  }
-
-  static H5::PredType get_PredType() {
-    return H5::PredType::NATIVE_FLOAT;
-  }
-};
-
-template <>
-class HDF5_TYPE<std::complex<double>> {
-public:
-  static hid_t get() {
-    return H5T_NATIVE_DOUBLE;
-  }
-
-  static H5::PredType get_PredType() {
-    return H5::PredType::NATIVE_DOUBLE;
-  }
-};
-
-template <>
 class HDF5_TYPE<unsigned char> {
 public:
   static hid_t get() {
@@ -178,7 +155,22 @@ public:
   }
 };
 
-}  // io
-}  // dca
+template <class T>
+class HDF5_TYPE<std::complex<T>> {
+public:
+  static H5::CompType get_PredType() {
+    auto build_type = []() {
+      H5::CompType complex_data_type(2 * sizeof(T));
+      complex_data_type.insertMember("r", 0, HDF5_TYPE<T>::get_PredType());
+      complex_data_type.insertMember("i", sizeof(T), HDF5_TYPE<T>::get_PredType());
+      return complex_data_type;
+    };
+    static H5::CompType type = build_type();
+    return type;
+  }
+};
+
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_HDF5_HDF5_TYPES_HPP

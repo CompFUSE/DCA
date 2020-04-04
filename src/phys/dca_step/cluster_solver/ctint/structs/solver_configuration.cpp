@@ -27,6 +27,42 @@ SolverConfiguration::SolverConfiguration(const double beta, const int n_bands,
       max_tau_(beta),
       n_bands_(n_bands) {}
 
+std::array<int, 2> SolverConfiguration::randomRemovalCandidateSlow(const std::array<double, 3>& rvals) {
+  std::array<int, 2> candidates{-1, -1};
+  if (n_annihilatable_ == 0)
+    return candidates;
+
+  std::vector<std::pair<std::size_t, unsigned>> tags;
+
+  for (unsigned idx = 0; idx < vertices_.size(); ++idx) {
+    if (vertices_[idx].annihilatable) {
+      tags.emplace_back(vertices_[idx].tag, idx);
+    }
+  }
+  assert(tags.size() == n_annihilatable_);
+  std::sort(tags.begin(), tags.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+  const unsigned annihilatable_idx = rvals[0] * n_annihilatable_;
+  candidates[0] = tags[annihilatable_idx].second;
+
+  if (rvals[1] < double_insertion_prob_ &&
+      (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
+    partners_lists_.clear();
+    for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id)
+      partners_lists_.push_back(&existing_[partner_id]);
+
+    const auto tag = details::getRandomElement(partners_lists_, rvals[2]);
+    if (tag != -1) {
+      candidates[1] = findTag(tag);
+      assert(candidates[1] < int(size()) && candidates[1] >= 0);
+      assert(vertices_[candidates[1]].annihilatable);
+    }
+  }
+
+  assert(candidates[0] < int(size()));
+  return candidates;
+}
+
 void SolverConfiguration::push_back(Vertex& v) {
   BaseClass::addVertex(v, size(), matrix_config_indices_);
   vertices_.push_back(v);
