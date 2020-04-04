@@ -35,6 +35,19 @@
 
 #define MOD(x,n) ((x) % (n))
 
+#include <cassert>
+
+#define MPI_CHECK(stmt)                                          \
+do {                                                             \
+   int mpi_errno = (stmt);                                       \
+   if (MPI_SUCCESS != mpi_errno) {                               \
+       fprintf(stderr, "[%s:%d] MPI call failed with %d \n",     \
+        __FILE__, __LINE__,mpi_errno);                           \
+       exit(EXIT_FAILURE);                                       \
+   }                                                             \
+   assert(MPI_SUCCESS == mpi_errno);                             \
+} while (0)
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -320,12 +333,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
 
-    MPI_Request recv_request_1;
-    MPI_Request send_request_1;
-    MPI_Request recv_request_2;
-    MPI_Request send_request_2;
-    MPI_Status status_1;
-    MPI_Status status_2;
+    MPI_Request recv_request_1, recv_request_2;
+    MPI_Request send_request_1, send_request_2;
+    MPI_Status status_1, status_2, status_3, status_4;
 
     int left_neighbor = MOD((my_concurrency_id-1 + mpi_size), mpi_size);
     int right_neighbor = MOD((my_concurrency_id+1 + mpi_size), mpi_size);
@@ -345,8 +355,7 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     }
 
     // sync all processors
-    MPI_Barrier(MPI_COMM_WORLD);
-
+    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
     int send_tag = 1 + my_concurrency_id;
     send_tag = 1 + MOD(send_tag-1, MPI_TAG_UB); // just to be safe, MPI_TAG_UB is largest tag value
     for(int icount=0; icount < (mpi_size-1); icount++)
@@ -356,18 +365,18 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
         int recv_tag = 1 + originator_irank;
         recv_tag = 1 + MOD(recv_tag-1, MPI_TAG_UB); // just to be safe, then 1 <= tag <= MPI_TAG_UB
 
-        MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1);
-        MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag+mpi_size, MPI_COMM_WORLD, &recv_request_2);
+        MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
+                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1));
+        MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
+                  MPI_DOUBLE, left_neighbor, recv_tag + mpi_size, MPI_COMM_WORLD, &recv_request_2));
 
-        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1);
-        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag+mpi_size, MPI_COMM_WORLD, &send_request_2);
+        MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
+                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1));
+        MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
+                  MPI_DOUBLE, right_neighbor, send_tag + mpi_size, MPI_COMM_WORLD, &send_request_2));
 
-        MPI_Wait(&recv_request_1, &status_1); // wait for recvbuf_G2 to be available again
-        MPI_Wait(&recv_request_2, &status_2); // wait for recvbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&recv_request_1, &status_1)); // wait for recvbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&recv_request_2, &status_2)); // wait for recvbuf_G2 to be available again
 
         G_[0] = recvbuff_G_[0];
         G_[1] = recvbuff_G_[1];
@@ -377,15 +386,15 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
             flop += updateG4(channel);
         }
 
-        MPI_Wait(&send_request_1, &status_1); // wait for sendbuf_G2 to be available again
-        MPI_Wait(&send_request_2, &status_2); // wait for sendbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&send_request_1, &status_3)); // wait for sendbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&send_request_2, &status_4)); // wait for sendbuf_G2 to be available again
 
         // get ready for send
         sendbuff_G_[0] = G_[0];
         sendbuff_G_[1] = G_[1];
         send_tag = recv_tag;
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 
   return flop;
 }
