@@ -66,7 +66,7 @@ public:
     return autocorrelations_;
   }
 
-  void sumTo(TimeCorrelator& rhs);
+  auto& operator+=(const TimeCorrelator& rhs);
   void sumConcurrency(const Concurrency& concurrency);
 
   void reset();
@@ -240,10 +240,13 @@ float TimeCorrelator<Parameters, Real, device>::get_FLOPs() const {
 }
 
 template <class Parameters, typename Real, DeviceType device>
-void TimeCorrelator<Parameters, Real, device>::sumTo(TimeCorrelator& rhs) {
+auto& TimeCorrelator<Parameters, Real, device>::operator+=(
+    const TimeCorrelator<Parameters, Real, device>& rhs) {
   for (int i = 0; i < autocorrelations_.size(); ++i) {
-    autocorrelations_[i].sumTo(rhs.autocorrelations_[i]);
+    autocorrelations_[i] += rhs.autocorrelations_[i];
   }
+
+  return *this;
 }
 
 template <class Parameters, typename Real, DeviceType device>

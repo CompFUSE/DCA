@@ -52,7 +52,7 @@ public:
   // Returns 1 + 2 \sum_{t >= 1} corr(t)
   auto computeAutocorrelationTime() -> MeanType;
 
-  void sumTo(Autocorrelation& rhs);
+  Autocorrelation& operator+=(const Autocorrelation& rhs);
 
   template <class Concurrency>
   void sumConcurrency(const Concurrency& concurrency);
@@ -65,6 +65,10 @@ public:
 
   auto getStdev() {
     return std::sqrt(get()[0]);
+  }
+
+  auto getMean() {
+    return mean_accum_.mean();
   }
 
 private:
@@ -173,18 +177,18 @@ const auto& Autocorrelation<T>::get() {
 }
 
 template <class T>
-void Autocorrelation<T>::sumTo(Autocorrelation<T>& rhs) {
+Autocorrelation<T>& Autocorrelation<T>::operator+=(const Autocorrelation<T>& rhs) {
   if (correlations_.size() != rhs.correlations_.size()) {
     throw(std::logic_error("Autocorrelation size mismatch."));
   }
 
-  rhs.mean_accum_ += mean_accum_;
+  mean_accum_ += rhs.mean_accum_;
   for (int i = 0; i < correlations_.size(); ++i) {
-    rhs.correlations_[i] += correlations_[i];
-    rhs.counts_[i] += counts_[i];
+    correlations_[i] += rhs.correlations_[i];
+    counts_[i] += rhs.counts_[i];
   }
 
-  reset();
+  return *this;
 }
 
 template <class T>
@@ -193,9 +197,6 @@ void Autocorrelation<T>::sumConcurrency(const Concurrency& concurrency) {
   mean_accum_.sumConcurrency(concurrency);
   concurrency.sum(correlations_);
   concurrency.sum(counts_);
-
-  if (concurrency.id() != concurrency.first())
-    reset();
 }
 
 template <class T>

@@ -87,7 +87,12 @@ public:
   template <typename AccumType>
   const linalg::util::CudaEvent* computeM(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
 
-  auto& get_configuration();
+  auto& get_configuration() {
+    return configuration;
+  }
+  const auto& get_configuration() const {
+    return configuration;
+  }
 
   auto get_matrix_configuration() const {
     return configuration.get_matrix_configuration();
@@ -125,7 +130,11 @@ public:
   }
 
   static void write(io::HDF5Writer&) {}
-  static void sumConcurrency(const concurrency_type&) {}
+
+  Real get_MC_weight() const {
+    // TODO: implement.
+    return 1.;
+  }
 
 private:
   void addNonInteractingSpinsToMatrices();
@@ -186,8 +195,6 @@ private:
 
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Real exp_delta_V);
-
-
 
 private:
   using WalkerBIT<Parameters, Data, Real>::check_G0_matrices;
@@ -396,11 +403,6 @@ void CtauxWalker<device_t, Parameters, Data, Real>::printSummary() const {
             << std::endl;
 
   std::cout << std::scientific;
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-auto& CtauxWalker<device_t, Parameters, Data, Real>::get_configuration() {
-  return configuration;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
