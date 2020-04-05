@@ -139,7 +139,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
 
       output_file_(false),
 
-      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref, &output_file_) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
     dca::util::SignalHandler::registerFile(output_file_);

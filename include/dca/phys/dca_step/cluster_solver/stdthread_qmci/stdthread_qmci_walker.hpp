@@ -64,10 +64,12 @@ StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameter
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::doSweep() {
   QmciWalker::doSweep();
-  ++meas_id_;
 
-  QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
-  logConfiguration();
+  if (QmciWalker::is_thermalized()) {
+    QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
+    logConfiguration();
+    ++meas_id_;
+  }
 }
 
 template <class QmciWalker>
