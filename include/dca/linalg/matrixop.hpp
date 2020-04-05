@@ -1243,8 +1243,8 @@ double determinantIP(MatrixType<Scalar, device>& M) {
 
 // Copy and computes the determinant of the matrix.
 // Returns: determinant.
-template <typename Scalar>
-double determinant(const Matrix<Scalar, CPU>& M) {
+template <typename Scalar, DeviceType device>
+double determinant(const Matrix<Scalar, device>& M) {
   Matrix<Scalar, CPU> M_copy(M);
   return determinantIP(M_copy);
 }
