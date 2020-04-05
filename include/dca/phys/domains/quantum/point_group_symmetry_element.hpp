@@ -34,12 +34,12 @@ public:
     return P;
   }
 
-  void linear_transform(double* t0, double* t1);
+  void linear_transform(const double *t0, double* t1) const;
 
-  void transform(double* t0, double* t1);
+  void transform(const double* t0, double* t1) const;
 
   template <class stream_type>
-  void to_JSON(stream_type& ss);
+  void to_JSON(stream_type& ss) const;
 
   int DIMENSION;
 
@@ -53,7 +53,7 @@ public:
 };
 
 template <class stream_type>
-void point_group_symmetry_element::to_JSON(stream_type& ss) {
+void point_group_symmetry_element::to_JSON(stream_type& ss) const {
   ss << "\"O\" : [\n";
 
   for (int i = 0; i < DIMENSION; ++i) {

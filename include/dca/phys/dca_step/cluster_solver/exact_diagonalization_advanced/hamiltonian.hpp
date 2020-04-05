@@ -183,10 +183,10 @@ protected:
 
   void shift_the_energies();
 
-  void add_V_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
-  void add_T_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
-  void add_U_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
-  void add_Jh_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
+  void add_V_to_Hamiltonian(int N, matrix_type& H, const Hilbert_space_type& subspace);
+  void add_T_to_Hamiltonian(int N, matrix_type& H, const Hilbert_space_type& subspace);
+  void add_U_to_Hamiltonian(int N, matrix_type& H, const Hilbert_space_type& subspace);
+  void add_Jh_to_Hamiltonian(int N, matrix_type& H, const Hilbert_space_type& subspace);
 
   bool check_block_structure(int N, matrix_type& H, Hilbert_space_type& subspace);
 
@@ -345,7 +345,7 @@ void Hamiltonian<parameters_type, ed_options>::construct_Hamiltonians(bool inter
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   Hamiltonians.reset();
 
@@ -354,7 +354,7 @@ void Hamiltonian<parameters_type, ed_options>::construct_Hamiltonians(bool inter
     Hamiltonians(i).resizeNoCopy(N);
 
     matrix_type& H = Hamiltonians(i);
-    Hilbert_space_type& subspace = Hilbert_spaces[i];
+    const Hilbert_space_type& subspace = Hilbert_spaces[i];
 
     for (int l1 = 0; l1 < N; ++l1)
       for (int l0 = 0; l0 < N; ++l0)
@@ -372,20 +372,20 @@ void Hamiltonian<parameters_type, ed_options>::construct_Hamiltonians(bool inter
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                    Hilbert_space_type& subspace) {
-  Hilbert_space_phi_representation_type& rep = subspace.get_rep();
+                                                                   const Hilbert_space_type& subspace) {
+  const Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < V_i.size(); ++l) {
     for (int j = 0; j < rep.size(); ++j) {
-      int sign = 1;  //  no meaning, but annihilate_at needs it as argument
+      int sign = 1;  // no meaning, but annihilate_at and create_at need as an argument.
       phi_type phi = rep.get_phi(j);
 
       if (fermionic_operators_type::annihilate_at(V_i[l].index, phi, sign)) {
-        std::vector<int>& column_index = rep.get_indices(j);
-        std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
 
-        std::vector<int>& row_index = column_index;
-        std::vector<complex_type>& row_alpha = column_alpha;
+        const std::vector<int>& row_index = column_index;
+        const std::vector<complex_type>& row_alpha = column_alpha;
 
         for (int c = 0; c < column_index.size(); ++c) {
           for (int r = 0; r < row_index.size(); ++r) {
@@ -399,8 +399,8 @@ void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, m
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                    Hilbert_space_type& subspace) {
-  Hilbert_space_phi_representation_type& rep = subspace.get_rep();
+                                                                   const Hilbert_space_type& subspace) {
+  const Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < t_ij.size(); ++l) {
     for (int j = 0; j < rep.size(); ++j) {
@@ -409,14 +409,14 @@ void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, m
 
       if (fermionic_operators_type::annihilate_at(t_ij[l].rhs, phi, sign) &&
           fermionic_operators_type::create_at(t_ij[l].lhs, phi, sign)) {
-        std::vector<int>& column_index = rep.get_indices(j);
-        std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
 
         int i = rep.find(phi);
 
         if (i < rep.size()) {
-          std::vector<int>& row_index = rep.get_indices(i);
-          std::vector<complex_type>& row_alpha = rep.get_alphas(i);
+          const std::vector<int>& row_index = rep.get_indices(i);
+          const std::vector<complex_type>& row_alpha = rep.get_alphas(i);
 
           for (int c = 0; c < column_index.size(); ++c) {
             for (int r = 0; r < row_index.size(); ++r) {
@@ -432,12 +432,12 @@ void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, m
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_Jh_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                     Hilbert_space_type& subspace) {
-  Hilbert_space_phi_representation_type& rep = subspace.get_rep();
+                                                                     const Hilbert_space_type& subspace) {
+  const Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (auto& j_elem : Jh_ij) {
     for (int j = 0; j < rep.size(); ++j) {
-      int sign = 1;  // no meaning, but annihilate_at and create_an need argument
+      int sign = 1;  // no meaning, but annihilate_at and create_at need as an argument.
       phi_type phi = rep.get_phi(j);
 
       if (fermionic_operators_type::create_at(j_elem.lhs1, phi, sign) &&
@@ -465,8 +465,8 @@ void Hamiltonian<parameters_type, ed_options>::add_Jh_to_Hamiltonian(int /*N*/, 
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matrix_type& H,
-                                                                    Hilbert_space_type& subspace) {
-  Hilbert_space_phi_representation_type& rep = subspace.get_rep();
+                                                                   const Hilbert_space_type& subspace) {
+  const Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < U_ij.size(); ++l) {
     // n_i*n_j term
@@ -478,13 +478,13 @@ void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matri
           fermionic_operators_type::create_at(U_ij[l].rhs, phi, sign) &&
           fermionic_operators_type::annihilate_at(U_ij[l].lhs, phi, sign) &&
           fermionic_operators_type::create_at(U_ij[l].lhs, phi, sign)) {
-        std::vector<int>& column_index = rep.get_indices(j);
-        std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
 
         int i = rep.find(phi);
         if (i < rep.size()) {
-          std::vector<int>& row_index = rep.get_indices(i);
-          std::vector<complex_type>& row_alpha = rep.get_alphas(i);
+          const std::vector<int>& row_index = rep.get_indices(i);
+          const std::vector<complex_type>& row_alpha = rep.get_alphas(i);
 
           for (int c = 0; c < column_index.size(); ++c) {
             for (int r = 0; r < row_index.size(); ++r) {
@@ -503,13 +503,13 @@ void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matri
 
       if (fermionic_operators_type::annihilate_at(U_ij[l].rhs, phi, sign) &&
           fermionic_operators_type::create_at(U_ij[l].rhs, phi, sign)) {
-        std::vector<int>& column_index = rep.get_indices(j);
-        std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
 
         int i = rep.find(phi);
         if (i < rep.size()) {
-          std::vector<int>& row_index = rep.get_indices(i);
-          std::vector<complex_type>& row_alpha = rep.get_alphas(i);
+          const std::vector<int>& row_index = rep.get_indices(i);
+          const std::vector<complex_type>& row_alpha = rep.get_alphas(i);
 
           for (int c = 0; c < column_index.size(); ++c) {
             for (int r = 0; r < row_index.size(); ++r) {
@@ -528,13 +528,13 @@ void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matri
 
       if (fermionic_operators_type::annihilate_at(U_ij[l].lhs, phi, sign) &&
           fermionic_operators_type::create_at(U_ij[l].lhs, phi, sign)) {
-        std::vector<int>& column_index = rep.get_indices(j);
-        std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
 
         int i = rep.find(phi);
         if (i < rep.size()) {
-          std::vector<int>& row_index = rep.get_indices(i);
-          std::vector<complex_type>& row_alpha = rep.get_alphas(i);
+          const std::vector<int>& row_index = rep.get_indices(i);
+          const std::vector<complex_type>& row_alpha = rep.get_alphas(i);
 
           for (int c = 0; c < column_index.size(); ++c) {
             for (int r = 0; r < row_index.size(); ++r) {
@@ -588,12 +588,12 @@ void Hamiltonian<parameters_type, ed_options>::diagonalize_Hamiltonians_st() {
   eigen_energies.reset();
   eigen_states.reset();
 
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   for (int i = 0; i < fermionic_Fock_dmn_type::dmn_size(); ++i) {
     int N = Hilbert_spaces[i].size();
 
-    std::vector<int> Hilbert_space_evals = Hilbert_spaces[i].get_eigenvalues();
+    const std::vector<int> Hilbert_space_evals = Hilbert_spaces[i].get_eigenvalues();
 
     eigen_energies(i).resize(N);
     eigen_states(i).resizeNoCopy(N);
@@ -632,7 +632,7 @@ void Hamiltonian<parameters_type, ed_options>::print_spectrum() {
   double E_MIN = 0.;
   double E_MAX = 0.;
 
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   for (int i = 0; i < fermionic_Fock_dmn_type::dmn_size(); ++i)
     for (int n = 0; n < Hilbert_spaces[i].size(); n++)
@@ -680,7 +680,7 @@ void Hamiltonian<parameters_type, ed_options>::set_spectrum(func::function<doubl
   for (int i = 0; i < fermionic_Fock_dmn_type::dmn_size(); ++i)
     for (int n = 0; n < Hilbert_spaces[i].size(); ++n)
       for (int w_ind = 0; w_ind < w_REAL::dmn_size() - 1; ++w_ind)
-        if (w_elem[w_ind] <= eigen_energies(i)[n] and eigen_energies(i)[n] < w_elem[w_ind + 1])
+        if (w_elem[w_ind] <= eigen_energies(i)[n] && eigen_energies(i)[n] < w_elem[w_ind + 1])
           A_w(w_ind) += 1.;
 
   double total = 0;
@@ -692,7 +692,7 @@ void Hamiltonian<parameters_type, ed_options>::set_spectrum(func::function<doubl
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::shift_the_energies() {
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   double E_0 = 0.;
   for (int i = 0; i < fermionic_Fock_dmn_type::dmn_size(); ++i)

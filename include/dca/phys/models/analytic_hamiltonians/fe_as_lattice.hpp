@@ -26,28 +26,28 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-struct PointGroup {
+struct FeAsPointGroup {
   using point_group_type_list =
       dca::util::Typelist<domains::identity_group_operation<2>, domains::Cn_2D<2, 4>>;
 };
 
 template <typename /*PointGroupType*/>
-class FeAsLattice : public bilayer_lattice<PointGroup> {
+class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
-  using BaseClass = bilayer_lattice<PointGroup>;
+  using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
   // Initialize the non interacting Hamiltonian.
   template <typename Parameters, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const Parameters& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   // Initializes the interaction Hamiltonian  density-density local term.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
@@ -61,7 +61,7 @@ public:
 
 template <typename PointGroupType>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void FeAsLattice<PointGroupType>::initialize_H_0(
+void FeAsLattice<PointGroupType>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -99,7 +99,7 @@ void FeAsLattice<PointGroupType>::initialize_H_0(
 
 template <typename PointGroupType>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void FeAsLattice<PointGroupType>::initialize_H_interaction(
+void FeAsLattice<PointGroupType>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {

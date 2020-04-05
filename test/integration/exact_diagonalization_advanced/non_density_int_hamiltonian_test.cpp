@@ -49,9 +49,9 @@ TEST(HamiltonianTest, BuildHamiltonian) {
   function<double, dmn_variadic<Nu, Nu, Nu, Nu, RDmn>> H_nd("H_nd");
 
   // Initialize Hamiltonians
-  Model::initialize_H_interaction(H_int, pars);
+  Model::initializeHInteraction(H_int, pars);
   Model::initializeNonDensityInteraction(H_nd, pars);
-  Model::initialize_H_0(pars, H0_k);
+  Model::initializeH0(pars, H0_k);
   dca::math::transform::FunctionTransform<KDmn, RDmn>::execute(H0_k, H0_r);
 
   dca::phys::solver::ed::Fock_space<Parameters, Options> fock_obj(true, true);

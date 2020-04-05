@@ -17,7 +17,7 @@ public:
   using concurrency_t = typename parameters_type::concurrency_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX_BOSONIC = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
+  using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
@@ -209,9 +209,9 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
 
   Sigma_4A = 0.;
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
-      int nu_c = (nu_ind - w_VERTEX_BOSONIC::dmn_size() / 2);
+      int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
       for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -245,7 +245,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4C(
 
   Sigma_4C = 0.;
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int nu_minus_w = subtract_freq_fb(w_ind, nu_ind);
@@ -287,7 +287,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4D(
     for (int p_ind = 0; p_ind < k_dmn_t::dmn_size(); ++p_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int w_minus_nu = subtract_freq_ff(nu_ind, w_ind);
-        if (w_minus_nu < 0 || w_minus_nu >= w_VERTEX_BOSONIC::dmn_size())
+        if (w_minus_nu < 0 || w_minus_nu >= WVertexBosonicDmn::dmn_size())
           continue;
 
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -324,7 +324,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4E(
     for (int p_ind = 0; p_ind < k_dmn_t::dmn_size(); ++p_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int nu_minus_w = subtract_freq_ff(w_ind, nu_ind);
-        if (nu_minus_w < 0 || nu_minus_w >= w_VERTEX_BOSONIC::dmn_size())
+        if (nu_minus_w < 0 || nu_minus_w >= WVertexBosonicDmn::dmn_size())
           continue;
 
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -361,7 +361,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4F(
     for (int p_ind = 0; p_ind < k_dmn_t::dmn_size(); ++p_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int w_plus_nu = add_freq_ff(w_ind, nu_ind);
-        if (w_plus_nu < 0 || w_plus_nu >= w_VERTEX_BOSONIC::dmn_size())
+        if (w_plus_nu < 0 || w_plus_nu >= WVertexBosonicDmn::dmn_size())
           continue;
 
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -393,7 +393,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
 
   Sigma_4G = 0.;
 
-  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -407,10 +407,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
       int nu_ind1 = coordinates[0];
       int q_ind1 = coordinates[1];
 
-      // for(int nu_ind1=0; nu_ind1<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind1){
+      // for(int nu_ind1=0; nu_ind1<WVertexBosonicDmn::dmn_size(); ++nu_ind1){
       // for(int q_ind1=0; q_ind1<k_dmn_t::dmn_size(); ++q_ind1){
 
-      for (int nu_ind2 = 0; nu_ind2 < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind2) {
+      for (int nu_ind2 = 0; nu_ind2 < WVertexBosonicDmn::dmn_size(); ++nu_ind2) {
         for (int q_ind2 = 0; q_ind2 < k_dmn_t::dmn_size(); ++q_ind2) {
           for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
             int w_minus_nu1 = subtract_freq_bf(nu_ind1, w_ind);
@@ -459,7 +459,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 
   Sigma_4H = 0.;
 
-  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -473,10 +473,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
       int nu_ind1 = coordinates[0];
       int q_ind1 = coordinates[1];
 
-      // for(int nu_ind1=0; nu_ind1<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind1){
+      // for(int nu_ind1=0; nu_ind1<WVertexBosonicDmn::dmn_size(); ++nu_ind1){
       // for(int q_ind1=0; q_ind1<k_dmn_t::dmn_size(); ++q_ind1){
 
-      for (int nu_ind2 = 0; nu_ind2 < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind2) {
+      for (int nu_ind2 = 0; nu_ind2 < WVertexBosonicDmn::dmn_size(); ++nu_ind2) {
         for (int q_ind2 = 0; q_ind2 < k_dmn_t::dmn_size(); ++q_ind2) {
           for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
             int w_minus_nu1 = subtract_freq_bf(nu_ind1, w_ind);
@@ -527,7 +527,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 
   Sigma_4J = 0.;
 
-  for(int nu_ind=0; nu_ind<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind){
+  for(int nu_ind=0; nu_ind<WVertexBosonicDmn::dmn_size(); ++nu_ind){
   for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
 
   for(int w1_ind=0; w1_ind<w::dmn_size(); ++w1_ind){
@@ -539,7 +539,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
   int nu_minus_w2 = subtract_freq_fb(w2_ind, nu_ind);
   if(nu_minus_w2 < 0 || nu_minus_w2 >= w::dmn_size()) continue;
   int nu_minus_w1_minus_w2 = subtract_freq_ff(w2_ind, nu_minus_w1);
-  if(nu_minus_w1_minus_w2 < 0 || nu_minus_w1_minus_w2 >= w_VERTEX_BOSONIC::dmn_size()) continue;
+  if(nu_minus_w1_minus_w2 < 0 || nu_minus_w1_minus_w2 >= WVertexBosonicDmn::dmn_size()) continue;
   for(int p2_ind=0; p2_ind<k_dmn_t::dmn_size(); ++p2_ind){
 
   for(int w_ind=0; w_ind<w::dmn_size(); ++w_ind){
@@ -587,10 +587,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
 
   Sigma_4J = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
-  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -604,7 +604,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
       int nu_ind = coordinates[0];
       int q_ind = coordinates[1];
 
-      // for(int nu_ind=0; nu_ind<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind){
+      // for(int nu_ind=0; nu_ind<WVertexBosonicDmn::dmn_size(); ++nu_ind){
       // for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
 
       for (int w1_ind = 0; w1_ind < w::dmn_size(); ++w1_ind) {
@@ -617,7 +617,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
             if (nu_minus_w2 < 0 || nu_minus_w2 >= w::dmn_size())
               continue;
             int nu_minus_w1_minus_w2 = subtract_freq_ff(w2_ind, nu_minus_w1);
-            if (nu_minus_w1_minus_w2 < 0 || nu_minus_w1_minus_w2 >= w_VERTEX_BOSONIC::dmn_size())
+            if (nu_minus_w1_minus_w2 < 0 || nu_minus_w1_minus_w2 >= WVertexBosonicDmn::dmn_size())
               continue;
             for (int p2_ind = 0; p2_ind < k_dmn_t::dmn_size(); ++p2_ind) {
               int q_minus_p1 = k_dmn_t::parameters_type::subtract(p1_ind, q_ind);
@@ -637,7 +637,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
     delete[] coordinates;
   } while (!sum_manager.sum_and_check(F));
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int nu_minus_w = subtract_freq_fb(w_ind, nu_ind);
@@ -674,10 +674,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
 
   Sigma_4K = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
-  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -691,7 +691,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
       int nu_ind = coordinates[0];
       int q_ind = coordinates[1];
 
-      //     for(int nu_ind=0; nu_ind<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind){
+      //     for(int nu_ind=0; nu_ind<WVertexBosonicDmn::dmn_size(); ++nu_ind){
       //       for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
 
       for (int w1_ind = 0; w1_ind < w::dmn_size(); ++w1_ind) {
@@ -704,7 +704,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
             if (nu_plus_w2 < 0 || nu_plus_w2 >= w::dmn_size())
               continue;
             int nu_plus_w1_plus_w2 = add_freq_ff(nu_plus_w1, w2_ind);
-            if (nu_plus_w1_plus_w2 < 0 || nu_plus_w1_plus_w2 >= w_VERTEX_BOSONIC::dmn_size())
+            if (nu_plus_w1_plus_w2 < 0 || nu_plus_w1_plus_w2 >= WVertexBosonicDmn::dmn_size())
               continue;
             for (int p2_ind = 0; p2_ind < k_dmn_t::dmn_size(); ++p2_ind) {
               int q_plus_p1 = k_dmn_t::parameters_type::add(q_ind, p1_ind);
@@ -724,7 +724,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
     delete[] coordinates;
   } while (!sum_manager.sum_and_check(F));
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int w_minus_nu = subtract_freq_bf(nu_ind, w_ind);
@@ -761,10 +761,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
 
   Sigma_4L = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
-  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -778,7 +778,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
       int nu_ind = coordinates[0];
       int q_ind = coordinates[1];
 
-      // for(int nu_ind=0; nu_ind<w_VERTEX_BOSONIC::dmn_size(); ++nu_ind){
+      // for(int nu_ind=0; nu_ind<WVertexBosonicDmn::dmn_size(); ++nu_ind){
       // for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
 
       for (int w1_ind = 0; w1_ind < w::dmn_size(); ++w1_ind) {
@@ -791,7 +791,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
             if (nu_plus_w2 < 0 || nu_plus_w2 >= w::dmn_size())
               continue;
             int w1_minus_w2 = subtract_freq_ff(w2_ind, w1_ind);
-            if (w1_minus_w2 < 0 || w1_minus_w2 >= w_VERTEX_BOSONIC::dmn_size())
+            if (w1_minus_w2 < 0 || w1_minus_w2 >= WVertexBosonicDmn::dmn_size())
               continue;
             for (int p2_ind = 0; p2_ind < k_dmn_t::dmn_size(); ++p2_ind) {
               int q_plus_p1 = k_dmn_t::parameters_type::add(q_ind, p1_ind);
@@ -811,7 +811,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
     delete[] coordinates;
   } while (!sum_manager.sum_and_check(F));
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int w_minus_nu = subtract_freq_bf(nu_ind, w_ind);
@@ -842,7 +842,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
 template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<4, parameters_type, k_dmn_t>::subtract_freq_fb(int w1, int w2) {
   int w_f = 2 * (w1 - w::dmn_size() / 2) + 1;             // transform fermionic
-  int w_b = 2 * (w2 - w_VERTEX_BOSONIC::dmn_size() / 2);  // transform bosonic
+  int w_b = 2 * (w2 - WVertexBosonicDmn::dmn_size() / 2);  // transform bosonic
   int res = ((w_b - w_f) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;
 }
@@ -850,7 +850,7 @@ int sigma_perturbation<4, parameters_type, k_dmn_t>::subtract_freq_fb(int w1, in
 template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<4, parameters_type, k_dmn_t>::subtract_freq_bf(int w1, int w2) {
   int w_f = 2 * (w2 - w::dmn_size() / 2) + 1;             // transform fermionic
-  int w_b = 2 * (w1 - w_VERTEX_BOSONIC::dmn_size() / 2);  // transform bosonic
+  int w_b = 2 * (w1 - WVertexBosonicDmn::dmn_size() / 2);  // transform bosonic
   int res = ((w_f - w_b) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;
 }
@@ -859,7 +859,7 @@ template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<4, parameters_type, k_dmn_t>::subtract_freq_ff(int w1, int w2) {
   int w_f1 = 2 * (w1 - w::dmn_size() / 2) + 1;                   // transform fermionic
   int w_f2 = 2 * (w2 - w::dmn_size() / 2) + 1;                   // transform fermionic
-  int res = ((w_f2 - w_f1) + w_VERTEX_BOSONIC::dmn_size()) / 2;  // result is bosonic
+  int res = ((w_f2 - w_f1) + WVertexBosonicDmn::dmn_size()) / 2;  // result is bosonic
   return res;
 }
 
@@ -867,13 +867,13 @@ template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<4, parameters_type, k_dmn_t>::add_freq_ff(int w1, int w2) {
   int w_f1 = 2 * (w1 - w::dmn_size() / 2) + 1;                   // transform fermionic
   int w_f2 = 2 * (w2 - w::dmn_size() / 2) + 1;                   // transform fermionic
-  int res = ((w_f1 + w_f2) + w_VERTEX_BOSONIC::dmn_size()) / 2;  // result is bosonic
+  int res = ((w_f1 + w_f2) + WVertexBosonicDmn::dmn_size()) / 2;  // result is bosonic
   return res;
 }
 
 template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<4, parameters_type, k_dmn_t>::add_freq_bf(int w1, int w2) {
-  int w_b = 2 * (w1 - w_VERTEX_BOSONIC::dmn_size() / 2);  // transform bosonic
+  int w_b = 2 * (w1 - WVertexBosonicDmn::dmn_size() / 2);  // transform bosonic
   int w_f = 2 * (w2 - w::dmn_size() / 2) + 1;             // transform fermionic
   int res = ((w_b + w_f) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;

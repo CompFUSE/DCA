@@ -64,7 +64,7 @@ public:
 
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;

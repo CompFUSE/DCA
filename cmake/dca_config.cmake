@@ -72,9 +72,10 @@ else()
 endif()
 
 # Lattice type
-set(DCA_LATTICE "bilayer" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | FeAs.")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu FeAs)
+set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
+    hund | twoband_Cu | threeband | FeAs.")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
+             FeAs)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -92,6 +93,14 @@ elseif (DCA_LATTICE STREQUAL "triangular")
     "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
+
+elseif (DCA_LATTICE STREQUAL "threeband")
+  set(DCA_LATTICE_TYPE dca::phys::models::ThreebandHubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp")
+
+elseif (DCA_LATTICE STREQUAL "twoband_chain")
+  set(DCA_LATTICE_TYPE dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<1>>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "FeAs")
@@ -99,13 +108,13 @@ elseif (DCA_LATTICE STREQUAL "FeAs")
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "twoband_Cu")
-  set(DCA_LATTICE_TYPE dca::phys::models::TwobandCu<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | FeAs.")
+          hund | twoband_Cu | threeband | FeAs.")
 endif()
 
 # Model type

@@ -40,24 +40,24 @@ public:
   template <typename Hilbert_space_type>
   void initialize(Hilbert_space_type& HS);
 
-  int size() {
+  int size() const {
     return rep.size();
   }
 
-  phi_type& get_phi(int i) {
+  const phi_type& get_phi(int i) const {
     assert(i >= 0 && i < size());
     return rep[i].phi;
   }
-  std::vector<int>& get_indices(int i) {
+  const std::vector<int>& get_indices(int i) const {
     assert(i >= 0 && i < size());
     return rep[i].index;
   }
-  std::vector<complex_type>& get_alphas(int i) {
+  const std::vector<complex_type>& get_alphas(int i) const {
     assert(i >= 0 && i < size());
     return rep[i].alpha;
   }
 
-  int find(const phi_type& phi_);
+  int find(const phi_type& phi_) const;
 
 private:
   void sort();
@@ -132,12 +132,11 @@ void Hilbert_space_phi_representation<parameter_type, ed_options>::sort_phis() {
 }
 
 template <typename parameter_type, typename ed_options>
-int Hilbert_space_phi_representation<parameter_type, ed_options>::find(const phi_type& phi_) {
+int Hilbert_space_phi_representation<parameter_type, ed_options>::find(const phi_type& phi_) const {
   phi_state<parameter_type, ed_options, PHI_MULTIPLET> tmp;
   tmp.phi = phi_;
 
-  typename std::vector<phi_state<parameter_type, ed_options, PHI_MULTIPLET>>::iterator it =
-      std::lower_bound(rep.begin(), rep.end(), tmp);
+  auto it = std::lower_bound(rep.begin(), rep.end(), tmp);
 
   if (it != rep.end() && !(tmp < *it))
     return it - rep.begin();
@@ -145,9 +144,9 @@ int Hilbert_space_phi_representation<parameter_type, ed_options>::find(const phi
     return rep.size();
 }
 
-}  // ed
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ed
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_HPP

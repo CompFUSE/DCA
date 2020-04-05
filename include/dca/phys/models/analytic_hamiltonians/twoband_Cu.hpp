@@ -32,7 +32,7 @@ namespace models {
 // dca::phys::models::
 
 template <typename PointGroup>
-class TwobandCu {
+class TwoBandCu {
 public:
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef PointGroup DCA_point_group;
@@ -46,23 +46,30 @@ public:
   // Rotations of pi/2 are an anti-symmetry on the band off-diagonal.
   static int transformationSign(int b1, int b2, int s);
 
-  static double* initialize_r_DCA_basis();
+  static int transformationSignOfR(int b1, int b2, int s) {
+    return transformationSign(b1, b2, s);
+  }
+  static int transformationSignOfK(int b1, int b2, int s) {
+    return transformationSign(b1, b2, s);
+  }
 
-  static double* initialize_k_DCA_basis();
+  static double* initializeRDCABasis();
 
-  static double* initialize_r_LDA_basis();
+  static double* initializeKDCABasis();
 
-  static double* initialize_k_LDA_basis();
+  static double* initializeRLDABasis();
 
-  static std::vector<int> get_flavors();
+  static double* initializeKLDABasis();
 
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<std::vector<double>> aVectors();
+
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
@@ -71,19 +78,19 @@ public:
   static void initializeNonDensityInteraction(HType& interaction, const Parameters& pars);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
 template <typename PointGroup>
-int TwobandCu<PointGroup>::transformationSign(int b1, int b2, int s) {
+int TwoBandCu<PointGroup>::transformationSign(int b1, int b2, int s) {
   if (!std::is_same<PointGroup, domains::D4>::value)
     return 1;
 
@@ -112,52 +119,47 @@ int TwobandCu<PointGroup>::transformationSign(int b1, int b2, int s) {
 }
 
 template <typename PointGroup>
-double* TwobandCu<PointGroup>::initialize_r_DCA_basis() {
+double* TwoBandCu<PointGroup>::initializeRDCABasis() {
   static std::array<double, 4> r_DCA{1, 0, 0, 1};
   return r_DCA.data();
 }
 
 template <typename PointGroup>
-double* TwobandCu<PointGroup>::initialize_k_DCA_basis() {
+double* TwoBandCu<PointGroup>::initializeKDCABasis() {
   static std::array<double, 4> k_DCA{2 * M_PI, 0, 0, 2 * M_PI};
   return k_DCA.data();
 }
 
 template <typename PointGroup>
-double* TwobandCu<PointGroup>::initialize_r_LDA_basis() {
+double* TwoBandCu<PointGroup>::initializeRLDABasis() {
   static std::array<double, 4> basis{1, 0, 0, 1};
   return basis.data();
 }
 
 template <typename PointGroup>
-double* TwobandCu<PointGroup>::initialize_k_LDA_basis() {
+double* TwoBandCu<PointGroup>::initializeKLDABasis() {
   static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
   return basis.data();
 }
 
 template <typename PointGroup>
-std::vector<int> TwobandCu<PointGroup>::get_flavors() {
-  static std::vector<int> flavors{0, 1};
-  assert(flavors.size() == BANDS);
-  return flavors;
+std::vector<int> TwoBandCu<PointGroup>::flavors() {
+  return {0, 1};
 }
 
 template <typename PointGroup>
-std::vector<std::vector<double>> TwobandCu<PointGroup>::get_a_vectors() {
-  static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
-  return a_vecs;
+std::vector<std::vector<double>> TwoBandCu<PointGroup>::aVectors() {
+  return {{0, 0}, {0, 0}};
 }
 
 template <typename PointGroup>
-std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> TwobandCu<
-    PointGroup>::get_orbital_permutations() {
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
-  return permutations;
+std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> TwoBandCu<PointGroup>::orbitalPermutations() {
+  return {};
 }
 
 template <typename PointGroup>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void TwobandCu<PointGroup>::initialize_H_interaction(
+void TwoBandCu<PointGroup>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -193,7 +195,7 @@ void TwobandCu<PointGroup>::initialize_H_interaction(
 
 template <typename PointGroup>
 template <class HType, class Parameters>
-void TwobandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
+void TwoBandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
                                                             const Parameters& pars) {
   const double J = pars.get_J();
   const double Jp = pars.get_Jp();
@@ -211,7 +213,7 @@ void TwobandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
 }
 template <typename PointGroup>
 template <class domain>
-void TwobandCu<PointGroup>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
+void TwoBandCu<PointGroup>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   H_symmetries(0, 0, 0, 0) = 0;
@@ -223,12 +225,12 @@ void TwobandCu<PointGroup>::initialize_H_symmetry(func::function<int, domain>& H
 
 template <typename PointGroup>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void TwobandCu<PointGroup>::initialize_H_0(
+void TwoBandCu<PointGroup>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
   if (BandDmn::dmn_size() != BANDS)
-    throw std::logic_error("TwobandCu lattice has two bands.");
+    throw std::logic_error("TwoBandCu lattice has two bands.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 

@@ -442,20 +442,22 @@ void symmetrize_single_particle_function::executeTimeOrFreq(
   func::function<scalartype, func::dmn_variadic<BDmn, BDmn, ClusterDomain, WDmn>> f_new;
 
   int w_0 = WDmn::dmn_size() - 1;
+  constexpr auto representation = ClusterDomain::parameter_type::REPRESENTATION;
 
   for (int w_ind = 0; w_ind < WDmn::dmn_size() / 2; ++w_ind) {
     for (int c_ind = 0; c_ind < ClusterDomain::dmn_size(); ++c_ind) {
-      const int opposite_idx = oppositeSite<ClusterDomain>(c_ind);
+      const int new_c_idx =
+          representation == domains::REAL_SPACE ? oppositeSite<ClusterDomain>(c_ind) : c_ind;
 
       for (int b0 = 0; b0 < BDmn::dmn_size(); ++b0) {
         for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
           scalartype tmp_0 = f(b0, b1, c_ind, w_ind);
-          scalartype tmp_1 = f(b1, b0, opposite_idx, w_0 - w_ind);
+          scalartype tmp_1 = f(b1, b0, new_c_idx, w_0 - w_ind);
 
           scalartype tmp = (tmp_0 + std::conj(tmp_1)) / 2.;
 
           f_new(b0, b1, c_ind, w_ind) = tmp;
-          f_new(b1, b0, opposite_idx, w_0 - w_ind) = std::conj(tmp);
+          f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);
         }
       }
     }
@@ -585,7 +587,7 @@ void symmetrize_single_particle_function::executeCluster(
           int b0_new = r_symmetry_matrix(r_ind, b0, s_ind).second;
           int b1_new = r_symmetry_matrix(0, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSign(b0, b1, s_ind);
+          const double sign = Lattice::transformationSignOfR(b0, b1, s_ind);
           norm += std::abs(sign);
 
           f_new(b0, b1, r_ind) += sign * f(b0_new, b1_new, R_new_ind);
@@ -679,7 +681,7 @@ void symmetrize_single_particle_function::executeCluster(
           int b0_new = k_symmetry_matrix(k_new, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSign(b0, b1, s_ind);
+          const double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
           norm += std::abs(sign);
 
           f_new(b0, b1, k_ind) += sign * f(b0_new, b1_new, k_new);
@@ -705,13 +707,7 @@ template <typename ClusterDmn>
 int symmetrize_single_particle_function::oppositeSite(const int idx) {
   using Cluster = typename ClusterDmn::parameter_type;
   const int origin = Cluster::origin_index();
-
-  if (Cluster::REPRESENTATION == domains::MOMENTUM_SPACE) {
-    return idx;
-  }
-  else if (Cluster::REPRESENTATION == domains::REAL_SPACE) {
-    return Cluster::subtract(idx, origin);
-  }
+  return Cluster::subtract(idx, origin);
 }
 
 }  // namespace phys

@@ -44,7 +44,7 @@ public:
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 };
 
 template <typename point_group_type>
@@ -69,7 +69,7 @@ void HundLattice<point_group_type>::initializeNonDensityInteraction(
 // TODO: check.
 template <typename point_group_type>
 template <class domain>
-void HundLattice<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
+void HundLattice<point_group_type>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   H_symmetries(0, 0, 0, 0) = 0;

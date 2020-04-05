@@ -250,8 +250,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_domains() {
   domains::DCA_iteration_domain::initialize(*this);
-  domains::electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(),
-                                            Model::get_a_vectors());
+  domains::electron_band_domain::initialize(*this);
 
   // time and frequency-domains
   domains::time_domain::initialize(*this);
