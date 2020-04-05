@@ -45,6 +45,8 @@ public:
   using profiler_type = typename ParametersType::profiler_type;
   using concurrency_type = typename ParametersType::concurrency_type;
 
+  using Lattice = typename ParametersType::lattice_type;
+
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using k_DCA =
@@ -241,7 +243,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
   MOMS.print_Sigma_QMC_versus_Sigma_cg();
 
-  symmetrize::execute(MOMS.Sigma_cluster, MOMS.H_symmetry);
+  symmetrize::execute<Lattice>(MOMS.Sigma_cluster, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
@@ -262,7 +264,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.Sigma, MOMS.G_k_w);
 
-  symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
+  symmetrize::execute<Lattice>(MOMS.G_k_w, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>

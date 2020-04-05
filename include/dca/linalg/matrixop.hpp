@@ -87,10 +87,9 @@ inline void copyCol(const Matrix<Scalar, device_name>& mat_x, int jx,
 // Preconditions: j_x.size() <= j_y.size(), mat_x.nrRows() == mat_y.nrRows()
 //                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
 //                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
-template <typename Scalar>
-inline void copyCols(const Matrix<Scalar, CPU>& mat_x, const Vector<int, CPU>& j_x,
-                     Matrix<Scalar, CPU>& mat_y, const Vector<int, CPU>& j_y, int /*thread_id*/ = 0,
-                     int /*stream_id*/ = 0) {
+template <typename Scalar, class Vec>
+inline void copyCols(const Matrix<Scalar, CPU>& mat_x, const Vec& j_x, Matrix<Scalar, CPU>& mat_y,
+                     const Vec& j_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   assert(j_x.size() <= j_y.size());
 
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
@@ -106,6 +105,19 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
 
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  j_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the j_x columns of mat_x into the  mat_y, for 0 <= i < j_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrRows() == mat_y.nrRows()
+//                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
+template <typename Scalar>
+inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j_x,
+                     Matrix<Scalar, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrRows() == mat_y.nrRows());
+
+  blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 

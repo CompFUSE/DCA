@@ -48,9 +48,6 @@ namespace ctint {
 template <linalg::DeviceType device_type, class Parameters, typename Real>
 class CtintWalker;
 
-template <linalg::DeviceType device_type, class Parameters, typename Real>
-class CtintWalkerSubmatrix;
-
 template <class Parameters, typename Real = double>
 class CtintWalkerBase {
 public:
@@ -142,7 +139,7 @@ public:
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
-  static void setInteractionVertices(Data& data);
+  static void setInteractionVertices(const Data& data, const Parameters& parameters);
 
   float stealFLOPs() {
     auto flop = flop_;
@@ -180,15 +177,14 @@ protected:  // Members.
 
   const Real beta_;
   static inline constexpr int n_bands_ = Parameters::bands;
-  const int possible_partners_;
 
   const Real total_interaction_;  // Space integrated interaction Hamiltonian.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
   util::Accumulator<int> sign_avg_;
-  ulong n_steps_ = 0;
-  ulong n_accepted_ = 0;
+  unsigned long n_steps_ = 0;
+  unsigned long n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
 
   bool thermalized_ = false;
@@ -222,7 +218,6 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
                      parameters_.getDoubleUpdateProbability()),
 
       beta_(parameters_.get_beta()),
-      possible_partners_(configuration_.possiblePartners()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, typename Real>
@@ -340,8 +335,10 @@ void CtintWalkerBase<Parameters, Real>::setDMatrixAlpha(const std::array<double,
 }
 
 template <class Parameters, typename Real>
-void CtintWalkerBase<Parameters, Real>::setInteractionVertices(Data& data) {
+void CtintWalkerBase<Parameters, Real>::setInteractionVertices(const Data& data,
+                                                               const Parameters& parameters) {
   vertices_.reset();
+  vertices_.initialize(parameters.getDoubleUpdateProbability(), parameters.getAllSitesPartnership());
   vertices_.initializeFromHamiltonian(data.H_interactions);
   if (data.has_non_density_interactions()) {
     vertices_.checkForInterbandPropagators(data.G0_r_t_cluster_excluded);

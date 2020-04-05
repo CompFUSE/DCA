@@ -66,7 +66,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
   params.set_t_ij_file_name(DCA_SOURCE_DIR
                             "/include/dca/phys/models/material_hamiltonians/NiO/t_ij_NiO.txt");
 
-  Lattice::initialize_H_0(params, H_0);
+  Lattice::initializeH0(params, H_0);
 
   // All imaginary parts should be smaller than 10^-3.
   for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1)
@@ -104,7 +104,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   using RClusterDmn= typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initializeRDCABasis(),
                                                             DCA_cluster);
 
   // Get index of origin and check it.
@@ -119,7 +119,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   params.set_U_ij_file_name(DCA_SOURCE_DIR
                             "/include/dca/phys/models/material_hamiltonians/NiO/U_ij_NiO.txt");
 
-  Lattice::initialize_H_interaction(H_interaction, params);
+  Lattice::initializeHInteraction(H_interaction, params);
 
   // Check that the interaction is only on-site.
   for (int r = 0; r < RClusterDmn::dmn_size(); ++r)

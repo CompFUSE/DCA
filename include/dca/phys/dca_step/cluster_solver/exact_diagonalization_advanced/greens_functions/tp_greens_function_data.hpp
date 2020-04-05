@@ -55,9 +55,9 @@ public:
 
   typedef tp_Greens_function_data<ed_options> this_type;
 
-  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using WVertexDmn_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
-  typedef func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED> wm_wn_dmn_type;
+  typedef func::dmn_variadic<WVertexDmn_EXTENDED, WVertexDmn_EXTENDED> wm_wn_dmn_type;
   typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, RClusterDmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
 public:
@@ -71,7 +71,7 @@ public:
   void initialize(parameter_type& parameters);
 
   void sum_to(func::function<complex_type,
-                             func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                             func::dmn_variadic<WVertexDmn_EXTENDED, WVertexDmn_EXTENDED, WVertexDmn_EXTENDED,
                                                 nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref);
 
 public:
@@ -106,8 +106,8 @@ public:
   matrix_type overlap_2;
   matrix_type overlap_3;
 
-  func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                                  w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
+  func::function<complex_type, func::dmn_variadic<WVertexDmn_EXTENDED, WVertexDmn_EXTENDED,
+                                                  WVertexDmn_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
       G_tp;
 };
 
@@ -125,7 +125,7 @@ void tp_Greens_function_data<ed_options>::initialize(parameter_type& /*parameter
 
 template <typename ed_options>
 void tp_Greens_function_data<ed_options>::sum_to(
-    func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+    func::function<complex_type, func::dmn_variadic<WVertexDmn_EXTENDED, WVertexDmn_EXTENDED, WVertexDmn_EXTENDED,
                                                     nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
   G_tp_ref += G_tp;
 }

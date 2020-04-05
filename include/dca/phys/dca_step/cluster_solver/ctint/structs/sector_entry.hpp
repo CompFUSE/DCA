@@ -45,10 +45,10 @@ struct SectorEntry {
            r_left_ == rhs.r_left_ && tau_ == rhs.tau_ && aux_field_type_ == rhs.aux_field_type_;
   }
 
-  ushort b_left_;
-  ushort r_left_;
-  ushort b_right_;
-  ushort r_right_;
+  unsigned short b_left_;
+  unsigned short r_left_;
+  unsigned short b_right_;
+  unsigned short r_right_;
   double tau_;
   short aux_field_type_;
 };

@@ -65,13 +65,13 @@ TEST(WannierInterpolationTest, TightBindingHamiltonianSquareLattice) {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA_direct;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_LDA>> H_LDA;
 
-  phys::models::square_lattice<PointGroup>::initialize_H_0(parameters, H_LDA);
+  phys::models::square_lattice<PointGroup>::initializeH0(parameters, H_LDA);
 
   // Compute H_DCA by interpolating H_LDA.
   phys::domains::wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA_interpolated);
 
   // Directly compute H_DCA.
-  phys::models::square_lattice<PointGroup>::initialize_H_0(parameters, H_DCA_direct);
+  phys::models::square_lattice<PointGroup>::initializeH0(parameters, H_DCA_direct);
 
   for (int b1 = 0; b1 < b::dmn_size(); ++b1)
     for (int s1 = 0; s1 < s::dmn_size(); ++s1)
