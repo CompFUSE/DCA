@@ -13,6 +13,8 @@
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_SYMMETRY_OPERATIONS_2D_SN_2D_HPP
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_SYMMETRY_OPERATIONS_2D_SN_2D_HPP
 
+#include <array>
+
 #include "dca/phys/domains/cluster/symmetries/symmetry_operations/group_action.hpp"
 
 namespace dca {

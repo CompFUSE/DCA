@@ -130,7 +130,7 @@ private:
   std::array<std::vector<ConfigRef>, 2> matrix_config_indices_;
 
   using BaseClass::H_int_;
-  std::vector<std::vector<std::uint64_t>> existing_;
+  std::vector<std::vector<std::size_t>> existing_;
 
   // TODO: use a structure with fast (log N?) removal/insertion and random access.
   // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
