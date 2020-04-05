@@ -16,7 +16,7 @@ add_library(ctint
     ${CTINT_CUDA_CPP_FILES}
     )
 
-target_link_libraries(ctint PUBLIC time_and_frequency_domains)
+target_link_libraries(ctint PUBLIC time_and_frequency_domains dca_hdf5)
 target_include_directories(ctint PUBLIC ${DCA_EXTERNAL_INCLUDE_DIRS})
 
 if (DCA_HAVE_CUDA)
