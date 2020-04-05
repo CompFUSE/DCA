@@ -11,7 +11,7 @@
 // 4-band lattice.
 //
 // TODO: - Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
-//       - Use correct index of origin in initialize_H_interaction (see e.g. square_lattice.hpp).
+//       - Use correct index of origin in initializeHInteraction (see e.g. square_lattice.hpp).
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FOURBAND_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FOURBAND_LATTICE_HPP
@@ -43,23 +43,23 @@ public:
   const static int BANDS = 4;
 
 public:
-  static double* initialize_r_DCA_basis();
-  static double* initialize_k_DCA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeKDCABasis();
 
-  static double* initialize_r_LDA_basis();
-  static double* initialize_k_LDA_basis();
+  static double* initializeRLDABasis();
+  static double* initializeKLDABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   template <class domain, class parameters_type>
   static void initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
@@ -72,7 +72,7 @@ public:
 };
 
 template <typename point_group_type>
-double* fourband_lattice<point_group_type>::initialize_r_DCA_basis() {
+double* fourband_lattice<point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.0;
@@ -84,7 +84,7 @@ double* fourband_lattice<point_group_type>::initialize_r_DCA_basis() {
 }
 
 template <typename point_group_type>
-double* fourband_lattice<point_group_type>::initialize_k_DCA_basis() {
+double* fourband_lattice<point_group_type>::initializeKDCABasis() {
   static double* k_DCA = new double[4];
 
   k_DCA[0] = 2 * M_PI;
@@ -96,7 +96,7 @@ double* fourband_lattice<point_group_type>::initialize_k_DCA_basis() {
 }
 
 template <typename point_group_type>
-double* fourband_lattice<point_group_type>::initialize_r_LDA_basis() {
+double* fourband_lattice<point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1.;
@@ -108,7 +108,7 @@ double* fourband_lattice<point_group_type>::initialize_r_LDA_basis() {
 }
 
 template <typename point_group_type>
-double* fourband_lattice<point_group_type>::initialize_k_LDA_basis() {
+double* fourband_lattice<point_group_type>::initializeKLDABasis() {
   static double* k_LDA = new double[4];
 
   k_LDA[0] = 2. * M_PI;
@@ -120,7 +120,7 @@ double* fourband_lattice<point_group_type>::initialize_k_LDA_basis() {
 }
 
 template <typename point_group_type>
-std::vector<int> fourband_lattice<point_group_type>::get_flavors() {
+std::vector<int> fourband_lattice<point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
 
   flavors[0] = 0;
@@ -130,7 +130,7 @@ std::vector<int> fourband_lattice<point_group_type>::get_flavors() {
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> fourband_lattice<point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> fourband_lattice<point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
 
   return a_vecs;
@@ -138,14 +138,14 @@ std::vector<std::vector<double>> fourband_lattice<point_group_type>::get_a_vecto
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> fourband_lattice<
-    point_group_type>::get_orbital_permutations() {
+    point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <class domain, class parameters_type>
-void fourband_lattice<point_group_type>::initialize_H_interaction(
+void fourband_lattice<point_group_type>::initializeHInteraction(
     func::function<double, domain>& H_interaction, parameters_type& parameters) {
   H_interaction = 0.;
 
@@ -173,7 +173,7 @@ void fourband_lattice<point_group_type>::initialize_H_interaction(
 
 template <typename point_group_type>
 template <class domain>
-void fourband_lattice<point_group_type>::initialize_H_symmetry(
+void fourband_lattice<point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 

@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements hdf5_reader.hpp.
 
@@ -19,7 +20,7 @@ namespace io {
 // dca::io::
 
 HDF5Reader::~HDF5Reader() {
-  if (my_file != NULL)
+  if (file_)
     close_file();
 }
 
@@ -35,84 +36,91 @@ void HDF5Reader::open_file(std::string file_name) {
     }
   }
 
-  my_file = new H5::H5File(file_name.c_str(), H5F_ACC_RDONLY);
+  file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDONLY);
 }
 
 void HDF5Reader::close_file() {
-  delete my_file;
-  my_file = NULL;
+  file_->close();
+  file_.release();
 }
 
 std::string HDF5Reader::get_path() {
   std::string path = "/";
 
-  for (size_t i = 0; i < my_paths.size(); i++) {
-    path = path + my_paths[i];
+  for (size_t i = 0; i < paths_.size(); i++) {
+    path = path + paths_[i];
 
-    if (i < my_paths.size() - 1)
+    if (i < paths_.size() - 1)
       path = path + "/";
   }
 
   return path;
 }
 
-bool HDF5Reader::execute(std::string name,
-                         std::string& value)  //, H5File& file, std::string path)
-{
+bool HDF5Reader::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path() + "/" + name;
-
-  try {
-    H5::DataSet dataset = my_file->openDataSet(full_name.c_str());
-
-    value.resize(dataset.getInMemDataSize(), 'a');
-
-    H5::DataSpace dataspace = dataset.getSpace();
-
-    H5Dread(dataset.getId(), HDF5_TYPE<char>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-            &value[0]);
-    return true;
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
+  if (!exists(full_name)) {
     return false;
   }
+
+  H5::DataSet dataset = file_->openDataSet(full_name.c_str());
+  const auto type = dataset.getDataType();
+
+  const auto size = type.getSize();
+  value.resize(size);
+
+  dataset.read(value.data(), type);
+
+  // Null string case.
+  if (value == std::string{0})
+    value = "";
+
+  return true;
 }
 
-bool HDF5Reader::execute(std::string name, std::vector<std::string>& value) {
-  open_group(name);
-  open_group("data");
-  bool success = true;
-
-  try {
-    int size = -1;
-    execute("size", size);
-
-    value.resize(size);
-
-    for (size_t l = 0; l < value.size(); l++) {
-      std::stringstream ss;
-      ss << get_path() << "/" << l;
-
-      H5::DataSet dataset = my_file->openDataSet(ss.str().c_str());
-
-      value[l].resize(dataset.getInMemDataSize(), 'a');
-
-      H5::DataSpace dataspace = dataset.getSpace();
-
-      H5Dread(dataset.getId(), HDF5_TYPE<char>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT,
-              &value[l][0]);
-    }
-  }
-  catch (const H5::FileIException& err) {
-    std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
-    success = false;
+bool HDF5Reader::execute(const std::string& name, std::vector<std::string>& value) {
+  std::string full_name = get_path() + "/" + name;
+  if (!exists(full_name)) {
+    return false;
   }
 
-  close_group();
-  close_group();
-  return success;
+  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  auto size = readSize(full_name)[0];
+  auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
+
+  std::vector<char*> data(size);
+  dataset.read(data.data(), s_type);
+
+  value.resize(size);
+  for (int i = 0; i < size; ++i) {
+    value[i] = data[i];
+  }
+
+  // clean memory
+  dataset.vlenReclaim(data.data(), s_type, dataset.getSpace());
+
+  return true;
+}
+
+void HDF5Reader::read(const std::string& name, H5::DataType type, void* data) const {
+  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  dataset.read(data, type);
+}
+
+bool HDF5Reader::exists(const std::string& name) const {
+  auto code = H5Gget_objinfo(file_->getId(), name.c_str(), 0, NULL);
+  return code == 0;
+}
+
+std::vector<hsize_t> HDF5Reader::readSize(const std::string& name) const {
+  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  H5::DataSpace dataspace = dataset.getSpace();
+
+  int n_dims = dataspace.getSimpleExtentNdims();
+  std::vector<hsize_t> dims(n_dims);
+  dataspace.getSimpleExtentDims(dims.data(), nullptr);
+
+  return dims;
 }
 
 }  // namespace io

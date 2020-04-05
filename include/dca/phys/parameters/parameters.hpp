@@ -119,6 +119,10 @@ public:
   void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
   void unpack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position);
 
+  const concurrency_type& get_concurrency() const {
+    return concurrency_;
+  }
+  // TODO: remove non-const
   concurrency_type& get_concurrency() {
     return concurrency_;
   }
@@ -143,7 +147,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(),
-      DcaParameters(),
+      DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
       EdSolverParameters(),
@@ -244,8 +248,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_domains() {
   domains::DCA_iteration_domain::initialize(*this);
-  domains::electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(),
-                                            Model::get_a_vectors());
+  domains::electron_band_domain::initialize(*this);
 
   // time and frequency-domains
   domains::time_domain::initialize(*this);

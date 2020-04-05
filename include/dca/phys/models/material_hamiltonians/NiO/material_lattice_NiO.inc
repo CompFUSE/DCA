@@ -22,27 +22,34 @@ public:
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_r_LDA_basis();
+  constexpr static int transformationSignOfR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignOfK(int, int, int) {
+    return 1;
+  }
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static double* initializeRDCABasis();
+  static double* initializeRLDABasis();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
+
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
@@ -59,7 +66,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_DCA_basis() {
+double* material_lattice<NiO_symmetric, point_group_type>::initializeRDCABasis() {
   static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
@@ -76,7 +83,7 @@ double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_DCA_basi
 }
 
 template <typename point_group_type>
-double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_LDA_basis() {
+double* material_lattice<NiO_symmetric, point_group_type>::initializeRLDABasis() {
   static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
@@ -93,7 +100,7 @@ double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_LDA_basi
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<NiO_symmetric, point_group_type>::get_flavors() {
+std::vector<int> material_lattice<NiO_symmetric, point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
   flavors[0] = 0;
   flavors[1] = 0;
@@ -108,21 +115,21 @@ std::vector<int> material_lattice<NiO_symmetric, point_group_type>::get_flavors(
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<NiO_symmetric, point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> material_lattice<NiO_symmetric, point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    NiO_symmetric, point_group_type>::get_orbital_permutations() {
+    NiO_symmetric, point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction(
+void material_lattice<NiO_symmetric, point_group_type>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandSpinDmn::dmn_size() != 2 * BANDS)
@@ -142,13 +149,13 @@ void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<NiO_symmetric, point_group_type>::initialize_H_symmetry(
+void material_lattice<NiO_symmetric, point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   for (int s = 0; s < 2; s++)
     for (int i = 0; i < BANDS; i++)
-      H_symmetries(i, s, i, s) = get_flavors()[i];
+      H_symmetries(i, s, i, s) = flavors()[i];
 }
 
 template <typename point_group_type>
@@ -170,7 +177,7 @@ std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_ty
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void material_lattice<NiO_symmetric, point_group_type>::initialize_H_0(
+void material_lattice<NiO_symmetric, point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -182,7 +189,7 @@ void material_lattice<NiO_symmetric, point_group_type>::initialize_H_0(
   const static std::complex<double> I(0, 1);
 
   const auto& k_vecs = KDmn::get_elements();
-  double* r_LDA = initialize_r_LDA_basis();
+  double* r_LDA = initializeRLDABasis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 
@@ -238,27 +245,34 @@ public:
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_r_LDA_basis();
+  constexpr static int transformationSignOfR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignOfK(int, int, int) {
+    return 1;
+  }
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static double* initializeRDCABasis();
+  static double* initializeRLDABasis();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
+
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction Hamiltonian in real space.
   template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
@@ -275,7 +289,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_DCA_basis() {
+double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRDCABasis() {
   static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
@@ -292,7 +306,7 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_DCA_ba
 }
 
 template <typename point_group_type>
-double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_LDA_basis() {
+double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRLDABasis() {
   static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
@@ -309,7 +323,7 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_LDA_ba
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<NiO_unsymmetric, point_group_type>::get_flavors() {
+std::vector<int> material_lattice<NiO_unsymmetric, point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
 
   for (int i = 0; i < BANDS; i++)
@@ -318,21 +332,21 @@ std::vector<int> material_lattice<NiO_unsymmetric, point_group_type>::get_flavor
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<NiO_unsymmetric, point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> material_lattice<NiO_unsymmetric, point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    NiO_unsymmetric, point_group_type>::get_orbital_permutations() {
+    NiO_unsymmetric, point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interaction(
+void material_lattice<NiO_unsymmetric, point_group_type>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandSpinDmn::dmn_size() != 2 * BANDS)
@@ -352,13 +366,13 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interacti
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_symmetry(
+void material_lattice<NiO_unsymmetric, point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   for (int s = 0; s < 2; s++)
     for (int i = 0; i < BANDS; i++)
-      H_symmetries(i, s, i, s) = get_flavors()[i];
+      H_symmetries(i, s, i, s) = flavors()[i];
 }
 
 template <typename point_group_type>
@@ -380,7 +394,7 @@ std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_0(
+void material_lattice<NiO_unsymmetric, point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -392,7 +406,7 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_0(
   const static std::complex<double> I(0, 1);
 
   const auto& k_vecs = KDmn::get_elements();
-  double* r_LDA = initialize_r_LDA_basis();
+  double* r_LDA = initializeRLDABasis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 

@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
 
   auto do_sweeps = [n_sweeps, &parameters](auto& walker) {
     for (int i = 0; i < n_sweeps; ++i) {
-      walker.do_sweep();
-      walker.update_shell(i, n_sweeps);
+      walker.doSweep();
+      walker.updateShell(i, n_sweeps);
     }
   };
 

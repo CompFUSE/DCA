@@ -109,8 +109,8 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
   {
     ProfilerType prof("compute-H_0(k)", "input", __LINE__);
-    ParametersType::model_type::initialize_H_0(parameters_, dca_data_.H_DCA);
-    ParametersType::model_type::initialize_H_0(parameters_, dca_data_.H_HOST);
+    ParametersType::model_type::initializeH0(parameters_, dca_data_.H_DCA);
+    ParametersType::model_type::initializeH0(parameters_, dca_data_.H_HOST);
   }
 
   {

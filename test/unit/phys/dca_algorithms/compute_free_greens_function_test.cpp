@@ -77,7 +77,7 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H_0;
-  Lattice::initialize_H_0(params, H_0);
+  Lattice::initializeH0(params, H_0);
 
   const double mu = 0.;  // chemical potential
 
@@ -205,7 +205,7 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H_0;
-  Lattice::initialize_H_0(params, H_0);
+  Lattice::initializeH0(params, H_0);
 
   const double mu = 0.9;  // chemical potential
 

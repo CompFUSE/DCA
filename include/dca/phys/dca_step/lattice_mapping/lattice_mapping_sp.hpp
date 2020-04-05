@@ -33,6 +33,7 @@ template <typename parameters_type, typename source_k_dmn_t, typename target_k_d
 class lattice_mapping_sp {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Lattice = typename parameters_type::lattice_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -49,7 +50,7 @@ public:
   using k_HOST = func::dmn_0<host_k_cluster_type>;
 
 public:
-  lattice_mapping_sp(parameters_type& parameters_ref);
+  lattice_mapping_sp(/*const*/ parameters_type& parameters_ref);
 
   void execute(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
@@ -70,8 +71,8 @@ private:
   void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  /*const*/ parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   interpolation_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
   deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
@@ -84,7 +85,7 @@ private:
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_mapping_sp(
-    parameters_type& parameters_ref)
+    /*const*/ parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -102,7 +103,7 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
-  symmetrize::execute(f_source);
+  symmetrize::execute<Lattice>(f_source);
 
   // plot_function(f_source);
 
@@ -110,13 +111,13 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 
   // plot_function(f_interp);
 
-  symmetrize::execute(f_interp);
+  symmetrize::execute<Lattice>(f_interp);
 
   deconvolution_obj.execute(f_source, f_interp, f_approx, f_target);
 
   // plot_function(f_target);
 
-  symmetrize::execute(f_target);
+  symmetrize::execute<Lattice>(f_target);
 }
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -183,8 +184,8 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_f
   util::Plot::heatMap(x, y, z_im, f.get_name());
 }
 
-}  // latticemapping
-}  // phys
-}  // dca
+}  // namespace latticemapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_HPP

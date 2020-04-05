@@ -37,7 +37,7 @@ public:
     return parameters::get_size();
   }
 
-  static std::vector<element_type>& get_elements() {
+  static const std::vector<element_type>& get_elements() {
     return parameters::get_elements();
   }
 
@@ -75,7 +75,7 @@ void dmn_0<parameters>::reset() {
   dmn_0::initialize();
 }
 
-}  // func
-}  // dca
+}  // namespace func
+}  // namespace dca
 
 #endif  // DCA_FUNCTION_DOMAINS_DMN_0_HPP
