@@ -252,9 +252,12 @@ void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
-  // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
   sign_ = 1;
+  Real determinants = 1.;
+
   for (int s = 0; s < 2; ++s) {
+    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
     const auto& sector = configuration_.getSector(s);
     auto& M = M_[s];
     const int n = sector.size();
@@ -266,17 +269,17 @@ void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
     const Real det = linalg::matrixop::inverseAndDeterminant(M);
-
-    mc_weigth_ = 1.;
-    for (int i = 0; i < configuration_.size(); ++i)
-      mc_weigth_ *= -configuration_.getStrength(i);
-
-    mc_weigth_ /= det;
-
-    // Set the initial sign
-    if (mc_weigth_ < 0)
-      sign_ *= -1;
+    if (M.nrRows())
+      determinants *= det;
   }
+
+  mc_weigth_ = determinants;
+  for (int i = 0; i < configuration_.size(); ++i)
+    mc_weigth_ *= -configuration_.getStrength(i);
+
+  // Set the initial sign
+  if (mc_weigth_ < 0)
+    sign_ *= -1;
 }
 
 template <class Parameters, typename Real>

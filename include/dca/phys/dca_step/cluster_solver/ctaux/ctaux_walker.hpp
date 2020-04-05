@@ -496,7 +496,11 @@ void CtauxWalker<device_t, Parameters, Data, Real>::initialize(int iteration) {
   }
 
   // Compute MC weight.
-  mc_weight_ = 1. / (linalg::matrixop::determinant(N_up) * linalg::matrixop::determinant(N_dn));
+  auto check_determinant = [&](auto& m) {
+    return m.nrRows() ? linalg::matrixop::determinant(m) : 1.;
+  };
+  mc_weight_ = 1. / (check_determinant(N_up) * determinantcheck_determinant(N_dn));
+
   mc_weight_ *= std::pow(mc_weight_constant_, configuration_.size());
 
   sign_ = mc_weight_ >= 0 ? 1 : -1;
