@@ -54,7 +54,7 @@ public:
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
 
 public:
-  ss_hybridization_solver_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref);
+  ss_hybridization_solver_routines(const parameters_t& parameters_ref, MOMS_t& MOMS_ref);
 
   void initialize();
 
@@ -99,9 +99,9 @@ private:
   void compensate_for_moments(func::function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   MOMS_type& MOMS;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   std::vector<bool> is_interacting_band_vector;
 
@@ -118,7 +118,7 @@ private:
 
 template <typename parameters_t, typename MOMS_t>
 ss_hybridization_solver_routines<parameters_t, MOMS_t>::ss_hybridization_solver_routines(
-    parameters_t& parameters_ref, MOMS_t& MOMS_ref)
+    const parameters_t& parameters_ref, MOMS_t& MOMS_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),

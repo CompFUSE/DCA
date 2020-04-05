@@ -33,7 +33,7 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
   using Data = typename QmciAccumulator::DataType;
 
 public:
-  StdThreadQmciAccumulator(/*const*/ Parameters& parameters_ref, Data& data_ref, int id);
+  StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
 
   ~StdThreadQmciAccumulator();
 
@@ -67,7 +67,7 @@ private:
 };
 
 template <class QmciAccumulator>
-StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(/*const*/ Parameters& parameters_ref,
+StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(const Parameters& parameters_ref,
                                                                     Data& data_ref, const int id)
     : QmciAccumulator(parameters_ref, data_ref, id), thread_id_(id), measuring_(false), done_(false) {}
 

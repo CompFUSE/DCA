@@ -82,7 +82,7 @@ public:
 
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
-  CtauxAccumulator(Parameters& parameters_ref, Data& data_ref, int id);
+  CtauxAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -173,9 +173,9 @@ private:
   void accumulate_two_particle_quantities();
 
 protected:
-  Parameters& parameters_;
+  const Parameters& parameters_;
   Data& data_;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   int thread_id;
 
@@ -209,7 +209,7 @@ protected:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxAccumulator<device_t, Parameters, Data>::CtauxAccumulator(Parameters& parameters_ref,
+CtauxAccumulator<device_t, Parameters, Data>::CtauxAccumulator(const Parameters& parameters_ref,
                                                                Data& data_ref, int id)
     : MC_accumulator_data(),
 
