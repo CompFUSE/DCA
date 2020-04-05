@@ -40,43 +40,43 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameters_type, typename ed_options>
+template <typename Parameters, typename EdOptions>
 class SpGreensFunction {
 public:
-  using BDmn = typename ed_options::b_dmn;
-  using SDmn = typename ed_options::s_dmn;
+  using BDmn = typename EdOptions::b_dmn;
+  using SDmn = typename EdOptions::s_dmn;
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
-  using Profiler = typename ed_options::profiler_t;
-  using Concurrency = typename ed_options::concurrency_type;
+  using Profiler = typename EdOptions::profiler_t;
+  using Concurrency = typename EdOptions::concurrency_type;
 
-  using Scalar = typename ed_options::scalar_type;
-  using Complex = typename ed_options::complex_type;
+  using Scalar = typename EdOptions::scalar_type;
+  using Complex = typename EdOptions::complex_type;
 
-  using Vector = typename ed_options::vector_type;
-  using Matrix = typename ed_options::matrix_type;
-  using IntMatrix = typename ed_options::int_matrix_type;
+  using Vector = typename EdOptions::vector_type;
+  using Matrix = typename EdOptions::matrix_type;
+  using IntMatrix = typename EdOptions::int_matrix_type;
 
-  using NuDmn = typename ed_options::nu_dmn;
-  using Bsr = typename ed_options::b_s_r;
+  using NuDmn = typename EdOptions::nu_dmn;
+  using Bsr = typename EdOptions::b_s_r;
 
-  using BsDmn = typename ed_options::bs_dmn_type;
-  using BsrDmn = typename ed_options::bsr_dmn_type;
+  using BsDmn = typename EdOptions::bs_dmn_type;
+  using BsrDmn = typename EdOptions::bsr_dmn_type;
 
-  using NuNuRDmn = typename ed_options::nu_nu_r_dmn_type;
+  using NuNuRDmn = typename EdOptions::nu_nu_r_dmn_type;
 
-  using FermionicHamiltonian = Hamiltonian<parameters_type, ed_options>;
-  using FermionicOverlap = fermionic_overlap_matrices<parameters_type, ed_options>;
+  using FermionicHamiltonian = Hamiltonian<Parameters, EdOptions>;
+  using FermionicOverlap = fermionic_overlap_matrices<Parameters, EdOptions>;
 
-  using FermionicFockSpace = Fock_space<parameters_type, ed_options>;
-  using HilbertSpace = Hilbert_space<parameters_type, ed_options>;
+  using FermionicFockSpace = Fock_space<Parameters, EdOptions>;
+  using HilbertSpace = Hilbert_space<Parameters, EdOptions>;
 
   using FermionicFockDmn = func::dmn_0<FermionicFockSpace>;
 
-  using SpGreensFunctionData = sp_Greens_function_data<ed_options>;
+  using SpGreensFunctionData = sp_Greens_function_data<EdOptions>;
 
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -84,7 +84,7 @@ public:
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
 public:
-  SpGreensFunction(parameters_type& parameters_ref, FermionicHamiltonian& Hamiltonian_ref,
+  SpGreensFunction(const Parameters& parameters_ref, FermionicHamiltonian& Hamiltonian_ref,
                    FermionicOverlap& overlap_ref);
 
   template <typename MOMS_w_imag_type, typename MOMS_WRealDmn_type>
@@ -109,22 +109,18 @@ private:
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
-      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn,
-                                                      WVertexDmn,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_r_r_w_w,
-      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn,
-                                                      WVertexDmn,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_k_k_w_w);
 
   void renormalize_real_space_Greens_functions(
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
-      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn,
-                                                      WVertexDmn,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_r_r_w_w,
-      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn,
-                                                      WVertexDmn,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_k_k_w_w);
 
   void compute_Greens_functions_ac_slow(std::vector<SpGreensFunctionData>& data_vec);  // ,
@@ -152,7 +148,7 @@ private:
   void compute_sp_Greens_function_slow(int nu_i_nu_j_delta_r, Scalar E_i, Scalar E_j,
                                        Complex factor, SpGreensFunctionData& data);
 
-  void compute_Greens_functions_slow(SpGreensFunctionData& data_vec, int id, int threads);
+  void compute_Greens_functions_slow(SpGreensFunctionData& data, int id, int n_threads);
 
   /*!
    *  old functions ...
@@ -193,8 +189,8 @@ private:
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t);
 
 private:
-  parameters_type& parameters;
-  Concurrency& concurrency;
+  const Parameters& parameters;
+  const Concurrency& concurrency;
 
   double CUT_OFF;
 
@@ -209,25 +205,21 @@ private:
 
   func::function<int, func::dmn_variadic<RClusterDmn, RClusterDmn>> rj_minus_ri;
 
-  func::function<Complex,
-                 func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>
+  func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>
       G0_nonlocal_nu_nu_r_r_w_w;
-  func::function<Complex,
-                 func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>
+  func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>
       G0_nonlocal_nu_nu_k_k_w_w;
 
-  func::function<Complex,
-                 func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>
+  func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn, WVertexDmn>>
       G_nonlocal_nu_nu_r_r_w_w;
-  func::function<Complex,
-                 func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>
+  func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>
       G_nonlocal_nu_nu_k_k_w_w;
 };
 
-template <typename parameters_type, typename ed_options>
-SpGreensFunction<parameters_type, ed_options>::SpGreensFunction(parameters_type& parameters_ref,
-                                                                FermionicHamiltonian& Hamiltonian_ref,
-                                                                FermionicOverlap& overlap_ref)
+template <typename Parameters, typename EdOptions>
+SpGreensFunction<Parameters, EdOptions>::SpGreensFunction(const Parameters& parameters_ref,
+                                                          FermionicHamiltonian& Hamiltonian_ref,
+                                                          FermionicOverlap& overlap_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -257,9 +249,9 @@ SpGreensFunction<parameters_type, ed_options>::SpGreensFunction(parameters_type&
       rj_minus_ri(ri, rj) = RClusterDmn::parameter_type::subtract(ri, rj);
 }
 
-template <typename parameters_type, typename ed_options>
+template <typename Parameters, typename EdOptions>
 template <typename w_dmn>
-void SpGreensFunction<parameters_type, ed_options>::compute_S_k_w(
+void SpGreensFunction<Parameters, EdOptions>::compute_S_k_w(
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G_k_w,
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G0_k_w,
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& S_k_w) {
@@ -312,9 +304,9 @@ void SpGreensFunction<parameters_type, ed_options>::compute_S_k_w(
   }
 }
 
-template <typename parameters_type, typename ed_options>
+template <typename Parameters, typename EdOptions>
 template <typename MOMS_w_imag_type, typename MOMS_WRealDmn_type>
-void SpGreensFunction<parameters_type, ed_options>::compute_all_sp_functions_slow(
+void SpGreensFunction<Parameters, EdOptions>::compute_all_sp_functions_slow(
     MOMS_w_imag_type& MOMS_imag, MOMS_WRealDmn_type& MOMS_real, bool interacting) {
   if (interacting) {
     compute_real_space_Greens_functions(MOMS_imag.G_r_w, MOMS_real.G_r_w, MOMS_imag.G_r_t,
@@ -344,8 +336,8 @@ void SpGreensFunction<parameters_type, ed_options>::compute_all_sp_functions_slo
   }
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_real_space_Greens_functions(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_real_space_Greens_functions(
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
     func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
@@ -393,16 +385,14 @@ void SpGreensFunction<parameters_type, ed_options>::compute_real_space_Greens_fu
               << " total time : " << double(end - start) / double(CLOCKS_PER_SEC) << std::endl;
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::renormalize_real_space_Greens_functions(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::renormalize_real_space_Greens_functions(
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
     func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
-    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn,
-                                                    WVertexDmn,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                WVertexDmn>>& G_nu_nu_r_r_w_w,
-    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn,
-                                                    WVertexDmn,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
                                                WVertexDmn>>& G_nu_nu_k_k_w_w) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
@@ -431,8 +421,8 @@ void SpGreensFunction<parameters_type, ed_options>::renormalize_real_space_Green
   G_nu_nu_k_k_w_w *= factor;
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_ac_slow(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_Greens_functions_ac_slow(
     std::vector<SpGreensFunctionData>& data_vec) {
   std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -499,8 +489,8 @@ void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_ac_
   std::cout << "\n\t nonzero/total : " << nonzero / (zero + nonzero) << "\n";
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_ca_slow(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_Greens_functions_ca_slow(
     std::vector<SpGreensFunctionData>& data_vec)  // ,
 //                                                                                                     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn     > >& G_r_w,
 //                                                                                                     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn> >& G_r_WRealDmn,
@@ -577,8 +567,8 @@ void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_ca_
  *   G(\omega) = 1/(i*\omega + (E_0-E_1))
  *   G(\tau) = 1/\beta \sum_{m=-\infty}^{\infty} G(\omega_m) e^{i*\omega_m*\tau}
  */
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_sp_Greens_function(
     int nu_i_nu_j_delta_r, Scalar E_0, Scalar E_1, Complex factor, SpGreensFunctionData& data) {
   Scalar beta = parameters.get_beta();
 
@@ -610,26 +600,27 @@ void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function(
   }
 }
 
-template <typename parameters_type, typename ed_options>
-int SpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
-                                                                       bool is_creation, int bsr_ind) {
+template <typename Parameters, typename EdOptions>
+int SpGreensFunction<Parameters, EdOptions>::has_nonzero_overlap(int HS_i, int HS_j,
+                                                                 bool is_creation, int bsr_ind) {
   if (is_creation)
     return creation_set_all(HS_i, HS_j, bsr_ind);
   else
     return annihilation_set_all(HS_i, HS_j, bsr_ind);
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(
-    int HS_i, int HS_j, bool is_creation, int bsr_ind, Matrix& matrix, Matrix& tmp) {
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::get_nonzero_overlap(int HS_i, int HS_j,
+                                                                  bool is_creation, int bsr_ind,
+                                                                  Matrix& matrix, Matrix& tmp) {
   if (is_creation)
     overlap.compute_creation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
   else
     overlap.compute_annihilation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
 }
 
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_sp_permutations(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_sp_permutations(
     int bsr_0, int bsr_1, std::vector<std::vector<c_operator>>& sp_perms) {
   sp_perms.resize(0);
 
@@ -654,8 +645,8 @@ void SpGreensFunction<parameters_type, ed_options>::compute_sp_permutations(
  *   G(\omega) =
  *   G(\tau)   =
  */
-template <typename parameters_type, typename ed_options>
-void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function_slow(
+template <typename Parameters, typename EdOptions>
+void SpGreensFunction<Parameters, EdOptions>::compute_sp_Greens_function_slow(
     int nu_i_nu_j_delta_r, Scalar E_i, Scalar E_j, Complex factor, SpGreensFunctionData& data) {
   Scalar beta = parameters.get_beta();
 
@@ -710,7 +701,7 @@ void SpGreensFunction<parameters_type, ed_options>::compute_sp_Greens_function_s
  */
 template <typename parameters_type, typename ed_options>
 void SpGreensFunction<parameters_type, ed_options>::compute_Greens_functions_slow(
-    SpGreensFunctionData& data, int id, int threads) {
+        SpGreensFunctionData& data, int id, int threads) {
   if (concurrency.id() == concurrency.first() && id == 0)
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
