@@ -75,6 +75,12 @@ public:
   int get_time_correlation_window() const {
     return time_correlation_window_;
   }
+
+  // True if the autocorrelation of G(r = 0, t = 0) is computed.
+  bool compute_G_correlation() const {
+    return compute_G_correlation_;
+  }
+
   void set_time_correlation_window(int window) {
     time_correlation_window_ = window;
   }
@@ -129,6 +135,7 @@ private:
   std::vector<int> measurements_;
   int measurements_final_iter_ = -1;
   int time_correlation_window_ = 0;
+  bool compute_G_correlation_ = true;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -149,6 +156,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(measurements_);
   buffer_size += concurrency.get_buffer_size(measurements_final_iter_);
   buffer_size += concurrency.get_buffer_size(time_correlation_window_);
+  buffer_size += concurrency.get_buffer_size(compute_G_correlation_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
@@ -170,6 +178,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, measurements_);
   concurrency.pack(buffer, buffer_size, position, measurements_final_iter_);
   concurrency.pack(buffer, buffer_size, position, time_correlation_window_);
+  concurrency.pack(buffer, buffer_size, position, compute_G_correlation_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -189,6 +198,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, measurements_);
   concurrency.unpack(buffer, buffer_size, position, measurements_final_iter_);
   concurrency.unpack(buffer, buffer_size, position, time_correlation_window_);
+  concurrency.unpack(buffer, buffer_size, position, compute_G_correlation_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -247,12 +257,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       try_to_read_write("seed", seed_);
     }
 
-    try {
-      reader_or_writer.execute("time-correlation-window", time_correlation_window_);
-    }
-    catch (const std::exception& r_e) {
-    }
-
     // Read error computation type.
     std::string error_type = toString(error_computation_type_);
     try_to_read_write("error-computation-type", error_type);
@@ -261,6 +265,9 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
     try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
     try_to_read_write_vector("measurements", measurements_);
+
+    try_to_read_write("time-correlation-window", time_correlation_window_);
+    try_to_read_write("compute-G-correlation", compute_G_correlation_);
 
     try_to_read_write("stamping-period", stamping_period_);
     try_to_read_write("store-configuration", store_configuration_);
@@ -286,6 +293,10 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
   catch (const std::exception& r_e) {
   }
+
+  // Solve conflicts
+  if(!time_correlation_window_)
+      compute_G_correlation_ = false;
 }
 
 void MciParameters::solveDcaIterationConflict(int iterations) {

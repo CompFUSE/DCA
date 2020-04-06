@@ -53,6 +53,7 @@ public:
 private:
   const unsigned autocorrelation_window_;
   const double log_beta_;
+  const bool accumulate_G_;
 
   std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
 
@@ -66,6 +67,7 @@ QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& param
                                                          const int thread_id)
     : autocorrelation_window_(parameters.get_time_correlation_window()),
       log_beta_(std::log(parameters.get_beta())),
+      accumulate_G_(parameters.compute_G_correlation()),
       time_correlator_(parameters, thread_id),
       order_correlator_(autocorrelation_window_),
       energy_correlator_(autocorrelation_window_) {}
@@ -79,25 +81,27 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
   writer.open_group("iteration " + std::to_string(dca_loop));
 
   // Write G(t = 0).
-  writer.open_group("G_t0");
+  if (accumulate_G_) {
+    writer.open_group("G_t0");
 
-  linalg::Matrix<Real, linalg::CPU> g_corr(bands, "autocorr");
-  linalg::Matrix<Real, linalg::CPU> g_stdev(bands, "stdev");
-  linalg::Matrix<Real, linalg::CPU> g_mean(bands, "mean");
+    linalg::Matrix<Real, linalg::CPU> g_corr(bands, "autocorr");
+    linalg::Matrix<Real, linalg::CPU> g_stdev(bands, "stdev");
+    linalg::Matrix<Real, linalg::CPU> g_mean(bands, "mean");
 
-  int lindex = 0;
-  for (int b1 = 0; b1 < bands; ++b1)
-    for (int b2 = b1; b2 < bands; ++b2, ++lindex) {
-      auto& correlator = time_correlator_.getCorrelators()[lindex];
-      g_corr(b1, b2) = g_corr(b2, b1) = correlator.computeAutocorrelationTime();
-      g_stdev(b1, b2) = g_stdev(b2, b1) = correlator.getStdev();
-      g_mean(b1, b2) = g_mean(b2, b1) = correlator.getMean();
-    }
+    int lindex = 0;
+    for (int b1 = 0; b1 < bands; ++b1)
+      for (int b2 = b1; b2 < bands; ++b2, ++lindex) {
+        auto& correlator = time_correlator_.getCorrelators()[lindex];
+        g_corr(b1, b2) = g_corr(b2, b1) = correlator.computeAutocorrelationTime();
+        g_stdev(b1, b2) = g_stdev(b2, b1) = correlator.getStdev();
+        g_mean(b1, b2) = g_mean(b2, b1) = correlator.getMean();
+      }
 
-  writer.execute(g_corr);
-  writer.execute(g_stdev);
-  writer.execute(g_mean);
-  writer.close_group();
+    writer.execute(g_corr);
+    writer.execute(g_stdev);
+    writer.execute(g_mean);
+    writer.close_group();
+  }
 
   // Write expansion order and energy
   auto write_correlator = [&](auto& correlator, const std::string& name) {
@@ -118,9 +122,11 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
 template <class Walker>
 void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) {
   if (autocorrelation_window_ && walker.is_thermalized()) {
-    walker.computeM(m_correlator_);
-    time_correlator_.compute_G_r_t(m_correlator_, walker.get_matrix_configuration(),
-                                   walker.get_sign());
+    if (accumulate_G_) {
+      walker.computeM(m_correlator_);
+      time_correlator_.compute_G_r_t(m_correlator_, walker.get_matrix_configuration(),
+                                     walker.get_sign());
+    }
 
     order_correlator_.addSample(walker.get_configuration().size());
 
@@ -136,7 +142,8 @@ QmciAutocorrelationData<Walker>& QmciAutocorrelationData<Walker>::operator+=(
     static std::mutex mutex;
     std::unique_lock<std::mutex> lock(mutex);
 
-    time_correlator_ += other.time_correlator_;
+    if (accumulate_G_)
+      time_correlator_ += other.time_correlator_;
     order_correlator_ += other.order_correlator_;
     energy_correlator_ += other.energy_correlator_;
   }
@@ -147,7 +154,8 @@ QmciAutocorrelationData<Walker>& QmciAutocorrelationData<Walker>::operator+=(
 template <class Walker>
 void QmciAutocorrelationData<Walker>::sumConcurrency(const Concurrency& concurrency) {
   if (autocorrelation_window_) {
-    time_correlator_.sumConcurrency(concurrency);
+    if (accumulate_G_)
+      time_correlator_.sumConcurrency(concurrency);
     order_correlator_.sumConcurrency(concurrency);
     energy_correlator_.sumConcurrency(concurrency);
   }
