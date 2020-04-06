@@ -52,7 +52,7 @@ public:
 
 private:
   const unsigned autocorrelation_window_;
-  const double beta_;
+  const double log_beta_;
 
   std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
 
@@ -65,7 +65,7 @@ template <class Walker>
 QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& parameters,
                                                          const int thread_id)
     : autocorrelation_window_(parameters.get_time_correlation_window()),
-      beta_(parameters.get_beta()),
+      log_beta_(std::log(parameters.get_beta())),
       time_correlator_(parameters, thread_id),
       order_correlator_(autocorrelation_window_),
       energy_correlator_(autocorrelation_window_) {}
@@ -124,7 +124,7 @@ void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) 
 
     order_correlator_.addSample(walker.get_configuration().size());
 
-    const Real energy = -std::log(walker.get_MC_weight() / beta_);
+    const Real energy = -(walker.get_MC_log_weight() - log_beta_);
     energy_correlator_.addSample(energy);
   }
 }

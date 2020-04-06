@@ -131,8 +131,8 @@ public:
 
   static void write(io::HDF5Writer&) {}
 
-  Real get_MC_weight() const {
-    return mc_weight_;
+  Real get_MC_log_weight() const {
+    return mc_log_weight_;
   }
 
 private:
@@ -194,6 +194,8 @@ private:
 
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Real exp_delta_V);
+
+  void recomputeMCWeight();
 
 private:
   using WalkerBIT<Parameters, Data, Real>::check_G0_matrices;
@@ -302,8 +304,8 @@ private:
   bool Bennett;
 
   int sign_;
-  Real mc_weight_ = 1.;
-  const Real mc_weight_constant_;
+  Real mc_log_weight_ = 0.;
+  const Real mc_log_weight_constant_;
 
   int warm_up_sweeps_done_;
   util::Accumulator<std::size_t> warm_up_expansion_order_;
@@ -371,7 +373,8 @@ CtauxWalker<device_t, Parameters, Data, Real>::CtauxWalker(const Parameters& par
       thermalized(false),
       Bennett(false),
       sign_(1),
-      mc_weight_constant_(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta())),
+      mc_log_weight_constant_(
+          std::log(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta()))),
 
       warm_up_sweeps_done_(0),
       warm_up_expansion_order_(),
@@ -435,6 +438,7 @@ bool CtauxWalker<device_t, Parameters, Data, Real>::is_thermalized() const {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 void CtauxWalker<device_t, Parameters, Data, Real>::markThermalized() {
   thermalized = true;
+  recomputeMCWeight();
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -495,15 +499,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::initialize(int iteration) {
 #endif  // DCA_WITH_QMC_BIT
   }
 
-  // Compute MC weight.
-  auto check_determinant = [&](auto& m) {
-    return m.nrRows() ? linalg::matrixop::determinant(m) : 1.;
-  };
-  mc_weight_ = 1. / (check_determinant(N_up) * determinantcheck_determinant(N_dn));
-
-  mc_weight_ *= std::pow(mc_weight_constant_, configuration_.size());
-
-  sign_ = mc_weight_ >= 0 ? 1 : -1;
+  recomputeMCWeight();
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -1219,11 +1215,11 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_delayed_spin(int& delaye
     delayed_spins[delayed_index].is_accepted_move = true;
 
     // Update Monte Carlo weight.
-    mc_weight_ *= determinant_ratio;
+    mc_log_weight_ += std::log(std::abs(determinant_ratio));
     if (delayed_spins[delayed_index].HS_current_move == CREATION)
-      mc_weight_ *= mc_weight_constant_;
+      mc_log_weight_ += mc_log_weight_constant_;
     else
-      mc_weight_ /= mc_weight_constant_;
+      mc_log_weight_ -= mc_log_weight_constant_;
 
     if (acceptance_ratio < 0)
       sign_ *= -1;
@@ -1598,6 +1594,25 @@ io::Buffer CtauxWalker<device_t, Parameters, Data, Real>::dumpConfig() const {
   io::Buffer buff;
   buff << configuration_;
   return buff;
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
+void CtauxWalker<device_t, Parameters, Data, Real>::recomputeMCWeight() {
+  mc_log_weight_ = 0.;
+  sign_ = 1;
+
+  auto process_matrix = [&](auto& m) {
+    if (!m.nrRows())
+      return;
+    const auto [log_det, sign] = linalg::matrixop::logDeterminant(m);
+    mc_log_weight_ -= log_det;  // MC weight is proportional to det(N^-1)
+    sign_ *= sign;
+  };
+
+  process_matrix(N_up);
+  process_matrix(N_dn);
+
+  mc_log_weight_ += mc_log_weight_constant_ * configuration_.size();
 }
 
 }  // namespace ctaux

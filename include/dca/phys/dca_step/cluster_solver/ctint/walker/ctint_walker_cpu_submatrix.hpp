@@ -458,7 +458,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::mainSubmatrixProc
     if (accepted) {
       ++BaseClass::n_accepted_;
 
-      BaseClass::mc_weigth_ *= mc_weigth_ratio;
+      BaseClass::mc_log_weight_ += std::log(std::abs(mc_weigth_ratio));
 
       if (acceptance_prob_ < 0)
         sign_ *= -1;
@@ -666,8 +666,11 @@ auto CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::computeAcceptance
         configuration_.getSector(non_empty_sector).getLeftB(sector_indices_[non_empty_sector][v_id]);
     K *= beta_ * prob_const_[field_type][b] * interaction_sign;
 
-    const double w = configuration_.getStrength(index_[v_id]);
-    mc_weight_ratio *= prob_const_[field_type][b] * ((move_type == INSERTION) ? w : 1. / w);
+    const Real weight_term = prob_const_[field_type][b] * configuration_.getStrength(index_[v_id]);
+    if (move_type == INSERTION)
+      mc_weight_ratio *= weight_term;
+    else
+      mc_weight_ratio /= weight_term;
   }
 
   // Account for combinatorial factor and update acceptance probability.
