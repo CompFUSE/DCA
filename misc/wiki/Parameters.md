@@ -481,7 +481,7 @@ Used if *CT-AUX* is selected as the cluster solver.
 The perturbation order in the CT-AUX algorithm increases linearly with the expansion parameter *K*.  
 While *K* is only subject to the restriction of being positive, values of the order of 1 have proven to be a good choice [3].
 
-`"initial-configuration-size":` integer (10)  
+`"initial-configuration-size":` integer (0)  
 The CT-AUX solver is initialized with `"initial-configuration-size"` random **interacting** vertices.
 
 `"initial-matrix-size":` integer (128)  
