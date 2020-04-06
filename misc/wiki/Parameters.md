@@ -421,12 +421,16 @@ Determines the type of error computation that will be performed during the last 
  Maximum distance (in MC time) considered when computing the correlation between configurations.
  If 0, no auto-correlation is computed.
  
+`"compute-G-correlation":` boolean (true)
+If `time-correlation-window` is larger than 0, G(r = 0, t = 0) is included in the observables
+whose autocorrelation is computed. This measurements requires some device memory. 
+ 
 `"stamping-period"` integer (0)  
 If larger than 0, the master MPI rank logs the walker configuration every `stamping-period` sweeps. 
  
 `"store-configuration":` : boolean (false)
-If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
-This parameter is deprecated as it exacerbate the sign problem.
+If true, the vertex configuration is stored between DCA iterations to initialize the walkers of 
+the following iteration.
 
 <br></br>
 **subgroup** `"threaded-solver":`  
@@ -450,7 +454,9 @@ The number of sweeps performed by each walker is fixed a priori, avoiding possib
             "measurements": 1000000,
             "error-computation-type": "JACK_KNIFE",
             "time-correlation-window" : 100,
+            "compute-G-correlation" : true,
             "stamping-period" : 0,
+            "store-configuration" : true,
 
             "threaded-solver": {
                 "walkers": 3,
