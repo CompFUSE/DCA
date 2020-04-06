@@ -26,6 +26,7 @@
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/qmci_autocorrelation_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
@@ -104,6 +105,7 @@ private:
   std::condition_variable queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
+  stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
   io::HDF5Writer* writer_ = nullptr;
 
@@ -129,6 +131,8 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
       accumulators_queue_(),
 
       config_dump_(nr_walkers_),
+      autocorrelation_data_(parameters_, 0),
+
       writer_(writer) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
@@ -226,6 +230,12 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
+  // Write and reset autocorrelation.
+  autocorrelation_data_.sumConcurrency(concurrency_);
+  if (writer_)
+    autocorrelation_data_.write(*writer_, dca_iteration_);
+  autocorrelation_data_.reset();
+
   return L2_Sigma_difference;
 }
 
@@ -301,6 +311,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     config_dump_[walker_index] = walker.dumpConfig();
 
   walker_fingerprints_[walker_index] = walker.deviceFingerprint();
+
+  autocorrelation_data_ += walker;
 
   Profiler::stop_threading(id);
 
@@ -467,6 +479,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
 
   walker_fingerprints_[id] = walker.deviceFingerprint();
   accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
+
+  autocorrelation_data_ += walker;
 
   Profiler::stop_threading(id);
 

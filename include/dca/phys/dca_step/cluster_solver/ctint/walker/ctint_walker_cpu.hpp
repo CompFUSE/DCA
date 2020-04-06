@@ -119,7 +119,6 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
       n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
-
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
   int nb_of_steps;
@@ -176,6 +175,12 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
     applyInsertion(S_, Q_, R_);
+
+    Real mc_weight_term = det_ratio_[0] * det_ratio_[1];
+    for (int i = 0; i < delta_vertices; ++i)
+      mc_weight_term *= -configuration_.getStrength(configuration_.size() - 1 - i);
+
+    BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_term));
   }
   return accept;
 }
@@ -188,6 +193,13 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
   if (accept) {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
+
+    Real mc_weight_term = det_ratio_[0] * det_ratio_[1];
+    for (auto idx : removal_list_)
+      mc_weight_term /= -configuration_.getStrength(idx);
+
+    BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_term));
+
     applyRemoval();
   }
   return accept;
@@ -239,8 +251,8 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
 template <class Parameters, typename Real>
 Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
   std::array<double, 3> removal_rngs;
-  for(unsigned i = 0; i < n_removal_rngs_; ++i)
-      removal_rngs[i] = rng_();
+  for (unsigned i = 0; i < n_removal_rngs_; ++i)
+    removal_rngs[i] = rng_();
 
   const auto candidates = configuration_.randomRemovalCandidateSlow(removal_rngs);
   removal_list_.clear();

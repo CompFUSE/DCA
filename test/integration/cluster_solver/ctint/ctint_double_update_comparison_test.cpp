@@ -91,10 +91,14 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   parameters.setMaxSubmatrixSize(16);
   WalkerSubmatrix walker2(parameters, rng2);
 
+  EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
+
   for (int i = 0; i < 128; ++i) {
     walker1.doSweep();
     walker2.doSweep();
 
     EXPECT_NEAR(walker1.getAcceptanceProbability(), walker2.getAcceptanceProbability(), 5e-7);
+    EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
+    EXPECT_EQ(walker1.get_sign(), walker2.get_sign());
   }
 }

@@ -114,9 +114,7 @@ public:
     return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
-  void write(io::HDF5Writer&, const std::string&) const {
-    throw(std::logic_error("Write method not implemented."));
-  }
+  void write(io::HDF5Writer& writer, const std::string& stamp) const;
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);

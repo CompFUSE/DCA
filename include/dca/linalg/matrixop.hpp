@@ -24,6 +24,7 @@
 // - multiply
 // - trsm
 // - determinant
+// - logDeterminant
 // - eigensolver (non-symmetric / symmetric / Hermitian)
 // - pseudoInverse
 
@@ -1216,8 +1217,8 @@ void pseudoInverse(const Matrix<Scalar, CPU>& a, Matrix<Scalar, CPU>& a_inv, dou
 // Computes (in place) the determinant of the matrix.
 // Returns: determinant.
 // Postcondition: M is its LU decomposition.
-template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
-double determinantIP(MatrixType<Scalar, device>& M) {
+template <template <typename, DeviceType> class MatrixType, typename Scalar>
+Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
   assert(M.nrCols() == M.nrRows());
   const int n = M.nrCols();
   std::vector<int> ipiv(n);
@@ -1243,10 +1244,71 @@ double determinantIP(MatrixType<Scalar, device>& M) {
 
 // Copy and computes the determinant of the matrix.
 // Returns: determinant.
-template <typename Scalar>
-double determinant(const Matrix<Scalar, CPU>& M) {
+template <typename Scalar, DeviceType device>
+double determinant(const Matrix<Scalar, device>& M) {
   Matrix<Scalar, CPU> M_copy(M);
   return determinantIP(M_copy);
+}
+
+// Returns: logarithm of the absolute value of the determinant and the sign of the determinant,
+//          or zero if the determinant is zero.
+// Postcondition: M is its LU decomposition.
+template <template <typename, DeviceType> class MatrixType, typename Scalar>
+std::pair<Scalar, int> logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<int>& ipiv) {
+  assert(M.is_square());
+  static_assert(std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>,
+                " This function is defined only for Real numbers");
+
+  const int n = M.nrCols();
+  ipiv.resize(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return {0., 0};
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  Scalar log_det = 0.;
+  int sign = 1;
+
+  for (int i = 0; i < n; i++) {
+    log_det += std::log(std::abs(M(i, i)));
+    if (M(i, i) < 0)
+      sign *= -1;
+
+    if (ipiv[i] != i + 1)
+      sign *= -1;
+  }
+
+  return {log_det, sign};
+}
+
+template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
+auto logDeterminant(const MatrixType<Scalar, device>& m) {
+  Matrix<Scalar, CPU> m_copy(m);
+  std::vector<int> ipiv;
+  return logDeterminantIP(m_copy, ipiv);
+}
+
+template <typename Scalar, template <typename, DeviceType> class MatrixType>
+std::pair<Scalar, int> inverseAndLogDeterminant(MatrixType<Scalar, CPU>& mat) {
+  std::vector<int> ipiv;
+  const auto [log_det, sign] = logDeterminantIP(mat, ipiv);
+
+  if (!sign)
+    throw(std::logic_error("Singular matrix"));
+
+  const int lwork = util::getInverseWorkSize(mat);
+  std::vector<Scalar> work(lwork);
+
+  lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
+                                work.data(), lwork);
+
+  return {-log_det, sign};
 }
 
 template <typename Scalar>

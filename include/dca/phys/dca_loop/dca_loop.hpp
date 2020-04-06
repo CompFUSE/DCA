@@ -93,7 +93,6 @@ protected:
 
   void update_DCA_loop_data_functions(int DCA_iteration);
 
-  void writeWalkerData(int i);
   void logSelfEnergy(int i);
 
   ParametersType& parameters;
@@ -140,7 +139,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
 
       output_file_(false),
 
-      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref, &output_file_) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
     dca::util::SignalHandler::registerFile(output_file_);
@@ -210,8 +209,6 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
 
     double L2_Sigma_difference =
         solve_cluster_problem(dca_iteration_);  // returned from cluster_solver::finalize
-
-    writeWalkerData(dca_iteration_);
 
     adjust_impurity_self_energy();  // double-counting-correction
 
@@ -374,25 +371,6 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
       DCA_info_struct.A_k(l1, k_ind, i) =
           std::abs(MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2)) *
           parameters.get_beta() / M_PI;
-}
-
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::writeWalkerData(int loop_id) {
-  using Walker = typename MCIntegratorType::Walker;
-  if (!parameters.get_time_correlation_window())
-    return;
-
-  Walker::sumConcurrency(concurrency);
-
-  if (concurrency.id() == concurrency.first()) {
-    output_file_.open_group("Autocorrelation");
-    output_file_.open_group(std::to_string(loop_id));
-
-    Walker::write(output_file_);
-
-    output_file_.close_group();
-    output_file_.close_group();
-  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
