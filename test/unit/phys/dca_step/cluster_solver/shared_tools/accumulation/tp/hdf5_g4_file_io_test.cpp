@@ -41,14 +41,14 @@ using G4FileIoTest =
 
 TEST_F(G4FileIoTest, ReadWrite) {
   const std::array<int, 2> n{18, 22};
-  
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);  
+
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   auto fillG4 = [&rng](auto& G4) {
-                    for (size_t i = 0; i < G4.size(); ++i)
-                      G4(i) = rng();
-                };
-                      
+    for (size_t i = 0; i < G4.size(); ++i)
+      G4(i) = rng();
+  };
+
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
 
@@ -60,13 +60,13 @@ TEST_F(G4FileIoTest, ReadWrite) {
   Data::TpGreensFunction g4_work("G4");
   fillG4(g4_work);
 
-  const std::string self_consistent_large_G4 =
-      "g4_accumulator_test_large_G4.hdf5";
+  const std::string self_consistent_large_G4 = "g4_accumulator_test_large_G4.hdf5";
 
   writer.open_file(self_consistent_large_G4);
+  std::cout << "-- writer.execute name= " << func_names[g4_channel] << std::endl;
   writer.execute(func_names[g4_channel], g4_work);
   writer.close_file();
-  
+
   Data::TpGreensFunction g4_read("G4");
   reader.open_file(self_consistent_large_G4);
   g4_read.set_name(func_names[g4_channel]);
