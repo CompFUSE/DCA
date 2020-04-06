@@ -50,8 +50,6 @@ public:
 
   CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
-  void initialize(bool last_iter);
-
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
   virtual void doSweep();
@@ -61,6 +59,8 @@ public:
   using BaseClass::order;
 
 protected:
+  virtual void setMFromConfig() override;
+
   void doSteps();
 
   void generateDelayedMoves(int nbr_of_movesto_delay);
@@ -223,8 +223,8 @@ CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixCp
 
 template <class Parameters, typename Real, bool fix_rng_order>
 
-void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::initialize(bool last_iter) {
-  BaseClass::initialize(last_iter);
+void CtintWalkerSubmatrixCpu<Parameters, Real, fix_rng_order>::setMFromConfig() {
+  BaseClass::setMFromConfig();
   transformM();
 }
 
