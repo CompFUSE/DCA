@@ -23,7 +23,7 @@
 #include <complex>
 #include <memory>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -50,8 +50,8 @@ private:
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                           config::AccumulationOptions::TpAllocator<Complex>>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 public:
@@ -62,7 +62,7 @@ public:
   // Out: M_r_r_w_w.
   template <class Configuration>
   float execute(const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M,
-                 RMatrix& M_r_r_w_w);
+                RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
