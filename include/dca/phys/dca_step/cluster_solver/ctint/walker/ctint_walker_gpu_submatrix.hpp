@@ -58,8 +58,6 @@ public:
 
   void computeM(MatrixPair<linalg::GPU>& m_accum);
 
-  void initialize(bool last_iter);
-
   void doSweep() override;
 
   void synchronize();
@@ -72,6 +70,8 @@ public:
 protected:
   // For testing purposes:
   void doStep(int n_moves_to_delay);
+
+  void setMFromConfig() override;
 
 private:
   void doStep() override;
@@ -136,13 +136,11 @@ CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::CtintWalkerSubmatrixGp
 }
 
 template <class Parameters, typename Real, bool fix_rng_order>
-void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::initialize(bool last_iter) {
-  BaseClass::initialize(last_iter);
-
+void CtintWalkerSubmatrixGpu<Parameters, Real, fix_rng_order>::setMFromConfig() {
+  BaseClass::setMFromConfig();
   for (int s = 0; s < 2; ++s) {
     M_dev_[s].setAsync(M_[s], get_stream(s));
   }
-  uploadConfiguration();
 }
 
 template <class Parameters, typename Real, bool fix_rng_order>

@@ -81,7 +81,7 @@ public:
 
   // Recompute the matrix M from the configuration in O(expansion_order^3) time.
   // Postcondition: sign_ and mc_log_weight_ are recomputed.
-  void setMFromConfig();
+  virtual void setMFromConfig();
 
   bool is_thermalized() const {
     return thermalized_;
@@ -105,7 +105,7 @@ public:
     return Real(n_accepted_) / Real(n_steps_);
   }
 
-  void initialize(int final_iter);
+  void initialize(int iter);
 
   const auto& get_configuration() const {
     return configuration_;
