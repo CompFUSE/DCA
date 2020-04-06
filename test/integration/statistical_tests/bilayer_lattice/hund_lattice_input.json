@@ -37,7 +37,8 @@
 		"initial-configuration-size": 5,
 		"alpha-dd-pos" : 0.501,
 		"alpha-ndd" : 0.0001,
-		"double-update-probability" : 1
+		"double-update-probability" : 1,
+		"all-sites-partnership" : true
 	},
 
 	"DCA": {
