@@ -26,7 +26,9 @@
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/qmci_autocorrelation_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
@@ -49,10 +51,11 @@ public:
   using typename BaseClass::Rng;
 
   using typename BaseClass::Accumulator;
-  using typename BaseClass::Walker;
+  using Walker = stdthreadqmci::StdThreadQmciWalker<typename BaseClass::Walker>;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
-  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
+  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
+                             io::HDF5Writer* file = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -102,13 +105,18 @@ private:
   std::condition_variable queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
+  stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
+  io::HDF5Writer* writer_ = nullptr;
+
+  bool last_iteration_ = false;
   unsigned measurements_ = 0;
 };
 
 template <class QmciSolver>
 StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& parameters_ref,
-                                                                   Data& data_ref)
+                                                                   Data& data_ref,
+                                                                   io::HDF5Writer* writer)
     : BaseClass(parameters_ref, data_ref),
 
       nr_walkers_(parameters_.get_walkers()),
@@ -122,7 +130,10 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
 
       accumulators_queue_(),
 
-      config_dump_(nr_walkers_) {
+      config_dump_(nr_walkers_),
+      autocorrelation_data_(parameters_, 0),
+
+      writer_(writer) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -144,9 +155,12 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
   Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
-  BaseClass::initialize(dca_iteration);
+  last_iteration_ = dca_iteration == parameters_.get_dca_iterations() - 1;
 
   measurements_ = parameters_.get_measurements()[dca_iteration];
+
+  BaseClass::initialize(dca_iteration);
+
   walk_finished_ = 0;
   measurements_done_ = 0;
 }
@@ -216,6 +230,12 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
+  // Write and reset autocorrelation.
+  autocorrelation_data_.sumConcurrency(concurrency_);
+  if (writer_)
+    autocorrelation_data_.write(*writer_, dca_iteration_);
+  autocorrelation_data_.reset();
+
   return L2_Sigma_difference;
 }
 
@@ -228,7 +248,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   }
 
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
-  Walker walker(parameters_, data_, rng_vector_[walker_index], id);
+
+  auto walker_log = last_iteration_ ? writer_ : nullptr;
+  Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log);
 
   std::unique_ptr<std::exception> exception_ptr;
 
@@ -289,6 +311,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     config_dump_[walker_index] = walker.dumpConfig();
 
   walker_fingerprints_[walker_index] = walker.deviceFingerprint();
+
+  autocorrelation_data_ += walker;
 
   Profiler::stop_threading(id);
 
@@ -407,7 +431,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   Profiler::start_threading(id);
 
   // Create and warm a walker.
-  Walker walker(parameters_, data_, rng_vector_[id], id);
+  auto walker_log = last_iteration_ ? writer_ : nullptr;
+  Walker walker(parameters_, data_, rng_vector_[id], id, walker_log);
   initializeAndWarmUp(walker, id, id);
 
   Accumulator accumulator_obj(parameters_, data_, id);
@@ -454,6 +479,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
 
   walker_fingerprints_[id] = walker.deviceFingerprint();
   accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
+
+  autocorrelation_data_ += walker;
 
   Profiler::stop_threading(id);
 

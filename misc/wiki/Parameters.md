@@ -14,15 +14,16 @@ Defined in <tt>output_parameters.hpp</tt>.
 `"directory":` string ("./")  
 Directory to write the output to.
 
-`"output-format":` string ("HDF5")  
-File format of the output files. Options are: "HDF5" | "JSON".
+`"autoresume":` bool (false)
+If true, looks for a file named `<filename-dca>.tmp` generated from an aborted run, and starts 
+the DCA loop from the last completed iteration. If the read is successful the parameter 
+`initial-self-energy` is ignored.
 
 `"directory-config-read":` string ("")  
 If not empty, the Monte Carlo configuration will be initialized with the configurations stored in this directory.
 
 `"directory-config-write":` string ("")  
 If not empty, after the last Monte Carlo iteration, the configurations are written in this directory.
-
 
 `"filename-dca":` string ("dca.hdf5")  
 Filename for the output of the application <tt>main_dca</tt>.
@@ -56,7 +57,7 @@ Write out the &chi;<sub>0</sub> function of the BSE lattice solver.
     {
         "output": {
             "directory": "./T=0.5",
-            "output-format": "HDF5",
+            "autoresume" : true,
             "filename-dca": "dca.hdf5",
             "filename-analysis": "analysis.hdf5",
             "filename-ed": "ed.hdf5",
@@ -420,8 +421,20 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
-`"store-configuration"` : boolean (false)
-If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
+`"time-correlation-window":` integer (0)  
+ Maximum distance (in MC time) considered when computing the correlation between configurations.
+ If 0, no auto-correlation is computed.
+ 
+`"compute-G-correlation":` boolean (true)
+If `time-correlation-window` is larger than 0, G(r = 0, t = 0) is included in the observables
+whose autocorrelation is computed. This measurements requires some device memory. 
+ 
+`"stamping-period"` integer (0)  
+If larger than 0, the master MPI rank logs the walker configuration every `stamping-period` sweeps. 
+ 
+`"store-configuration":` : boolean (false)
+If true, the vertex configuration is stored between DCA iterations to initialize the walkers of 
+the following iteration.
 
 <br></br>
 **subgroup** `"threaded-solver":`  
@@ -444,6 +457,10 @@ The number of sweeps performed by each walker is fixed a priori, avoiding possib
             "sweeps-per-measurement": 4.,
             "measurements": 1000000,
             "error-computation-type": "JACK_KNIFE",
+            "time-correlation-window" : 100,
+            "compute-G-correlation" : true,
+            "stamping-period" : 0,
+            "store-configuration" : true,
 
             "threaded-solver": {
                 "walkers": 3,

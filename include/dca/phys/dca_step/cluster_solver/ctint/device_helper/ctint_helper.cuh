@@ -17,6 +17,7 @@
 #include <cuda.h>
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
+#include "dca/phys/domains/cluster/cluster_definitions.hpp"
 
 namespace dca {
 namespace phys {
@@ -27,6 +28,9 @@ namespace ctint {
 class CtintHelper {
 public:
   static void set(const int* sum_r, int lda, const int* sub_r, int lds, int nb, int nc, int r0);
+
+  template <class RDmn, class BDmn>
+  static void set();
 
   // Return the index of a single particle function of b1, b2, r1 - r2.
   __device__ std::size_t index(int b1, int b2, int r1, int r2) const;
@@ -41,6 +45,17 @@ extern __device__ __constant__ CtintHelper ctint_helper;
 __device__ inline std::size_t CtintHelper::index(int b1, int b2, int r1, int r2) const {
   const int delta_r = solver::details::cluster_real_helper.subtract(r2, r1);
   return b1 + b2 * subdm_step_[0] + delta_r * subdm_step_[1];
+}
+
+template <class RDmn, class BDmn>
+void CtintHelper::set() {
+  using Cluster = typename RDmn::parameter_type;
+  static_assert(Cluster::REPRESENTATION == domains::REAL_SPACE, "Domain mismatch.");
+  const auto& add_matrix = Cluster::get_add_matrix();
+  const auto& sub_matrix = Cluster::get_subtract_matrix();
+
+  set(add_matrix.ptr(), add_matrix.leadingDimension(), sub_matrix.ptr(),
+      sub_matrix.leadingDimension(), BDmn::dmn_size(), RDmn::dmn_size(), Cluster::origin_index());
 }
 
 }  // namespace ctint
