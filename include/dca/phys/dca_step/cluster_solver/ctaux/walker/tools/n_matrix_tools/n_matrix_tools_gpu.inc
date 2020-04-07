@@ -10,53 +10,52 @@
 // N-matrix tools class.
 // Template specialization for GPU.
 
-template <typename parameters_type>
-class N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
+template <class Parameters, typename Real>
+class N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
-  typedef typename parameters_type::concurrency_type concurrency_type;
-  typedef typename parameters_type::profiler_type profiler_t;
+  typedef typename Parameters::concurrency_type concurrency_type;
+  typedef typename Parameters::profiler_type profiler_t;
 
 public:
-  N_MATRIX_TOOLS(int id, parameters_type& parameters_ref);
+  N_MATRIX_TOOLS(int id, Parameters& parameters_ref);
 
   int* get_permutation();
   void set_permutation(std::vector<int>& p);
 
-  void set_d_vector(dca::linalg::Vector<double, dca::linalg::CPU>& d_inv);
+  void set_d_vector(dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv);
 
-  void scale_rows(dca::linalg::Matrix<double, dca::linalg::GPU>& N);
+  void scale_rows(dca::linalg::Matrix<Real, dca::linalg::GPU>& N);
 
-  double* get_device_ptr(dca::linalg::Vector<double, dca::linalg::CPU>& v);
+  Real* get_device_ptr(dca::linalg::Vector<Real, dca::linalg::CPU>& v);
 
-  void copy_rows(dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                 dca::linalg::Matrix<double, dca::linalg::GPU>& N_new_spins);
+  void copy_rows(dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+                 dca::linalg::Matrix<Real, dca::linalg::GPU>& N_new_spins);
 
-  void compute_G_cols(std::vector<double>& exp_V, dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-                      dca::linalg::Matrix<double, dca::linalg::GPU>& G,
-                      dca::linalg::Matrix<double, dca::linalg::GPU>& G_cols);
+  void compute_G_cols(std::vector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+                      dca::linalg::Matrix<Real, dca::linalg::GPU>& G,
+                      dca::linalg::Matrix<Real, dca::linalg::GPU>& G_cols);
 
 private:
   int thread_id;
   int stream_id;
 
-  parameters_type& parameters;
+  Parameters& parameters;
   concurrency_type& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> identity;
   dca::linalg::Vector<int, dca::linalg::GPU> permutation;
 
-  dca::linalg::Vector<double, dca::linalg::GPU> tmp;
+  dca::linalg::Vector<Real, dca::linalg::GPU> tmp;
 
-  dca::linalg::Vector<double, dca::linalg::GPU> exp_V;
+  dca::linalg::Vector<Real, dca::linalg::GPU> exp_V;
 
   dca::linalg::Vector<int, dca::linalg::GPU> d_ind;
-  dca::linalg::Vector<double, dca::linalg::GPU> d_vec;
+  dca::linalg::Vector<Real, dca::linalg::GPU> d_vec;
 };
 
-template <typename parameters_type>
-N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
-                                                                  parameters_type& parameters_ref)
+template <class Parameters, typename Real>
+N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::N_MATRIX_TOOLS(int id, Parameters& parameters_ref)
     : thread_id(id),
       stream_id(0),
 
@@ -85,42 +84,42 @@ N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
   identity = id_tmp;
 }
 
-template <typename parameters_type>
-int* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_permutation() {
+template <class Parameters, typename Real>
+int* N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::get_permutation() {
   return permutation.ptr();
 }
 
-template <typename parameters_type>
-void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_permutation(std::vector<int>& p) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::set_permutation(std::vector<int>& p) {
   permutation.setAsync(p, thread_id, stream_id);
 }
 
-template <typename parameters_type>
-void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_d_vector(
-    dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::set_d_vector(
+    dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv) {
   d_vec.setAsync(d_inv, thread_id, stream_id);
 }
 
-template <typename parameters_type>
-void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::scale_rows(
-    dca::linalg::Matrix<double, dca::linalg::GPU>& N) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::scale_rows(
+    dca::linalg::Matrix<Real, dca::linalg::GPU>& N) {
   assert(permutation.size() == d_vec.size());
 
   dca::linalg::matrixop::scaleRows(N, permutation, d_vec, thread_id, stream_id);
 }
 
-template <typename parameters_type>
-double* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_device_ptr(
-    dca::linalg::Vector<double, dca::linalg::CPU>& v) {
+template <class Parameters, typename Real>
+Real* N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::get_device_ptr(
+    dca::linalg::Vector<Real, dca::linalg::CPU>& v) {
   tmp.setAsync(v, thread_id, stream_id);
 
   return tmp.ptr();
 }
 
-template <typename parameters_type>
-void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::copy_rows(
-    dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-    dca::linalg::Matrix<double, dca::linalg::GPU>& N_new_spins) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::copy_rows(
+    dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+    dca::linalg::Matrix<Real, dca::linalg::GPU>& N_new_spins) {
   assert(N_new_spins.nrCols() == N.nrCols());
   assert(N_new_spins.nrRows() == permutation.size());
   assert(permutation.size() <= identity.size());
@@ -128,11 +127,11 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::copy_rows(
   dca::linalg::matrixop::copyRows(N, permutation, N_new_spins, identity, thread_id, stream_id);
 }
 
-template <typename parameters_type>
-void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::compute_G_cols(
-    std::vector<double>& exp_V_CPU, dca::linalg::Matrix<double, dca::linalg::GPU>& N,
-    dca::linalg::Matrix<double, dca::linalg::GPU>& G,
-    dca::linalg::Matrix<double, dca::linalg::GPU>& G_cols) {
+template <class Parameters, typename Real>
+void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::compute_G_cols(
+    std::vector<Real>& exp_V_CPU, dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
+    dca::linalg::Matrix<Real, dca::linalg::GPU>& G,
+    dca::linalg::Matrix<Real, dca::linalg::GPU>& G_cols) {
   exp_V.setAsync(exp_V_CPU, linalg::util::getStream(thread_id, stream_id));
 
   assert(N.nrRows() == G.nrRows());

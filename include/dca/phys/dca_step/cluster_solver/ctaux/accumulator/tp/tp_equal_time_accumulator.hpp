@@ -40,14 +40,14 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 class TpEqualTimeAccumulator {
 public:
   typedef double scalar_type;
   typedef vertex_singleton vertex_singleton_type;
 
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+  typedef typename Parameters::profiler_type profiler_type;
+  typedef typename Parameters::concurrency_type concurrency_type;
 
   using t = func::dmn_0<domains::time_domain>;
   using t_VERTEX = func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
@@ -56,7 +56,7 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
   using r_dmn_t = RClusterDmn;
@@ -71,28 +71,28 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
-  TpEqualTimeAccumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+  TpEqualTimeAccumulator(Parameters& parameters_ref, Data& MOMS_ref, int id);
 
   void resetAccumulation();
 
   void finalize();
 
-  void sumTo(TpEqualTimeAccumulator<parameters_type, MOMS_type>& other) const;
+  void sumTo(TpEqualTimeAccumulator<Parameters, Data, Real>& other) const;
 
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
+  auto& get_G_r_t() {
     return G_r_t;
   }
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
+  auto& get_G_r_t_stddev() {
     return G_r_t_stddev;
   }
 
-  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
+  auto& get_charge_cluster_moment() {
     return charge_cluster_moment;
   }
-  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
+  auto& get_magnetic_cluster_moment() {
     return magnetic_cluster_moment;
   }
-  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
+  auto& get_dwave_pp_correlator() {
     return dwave_pp_correlator;
   }
 
@@ -102,11 +102,11 @@ public:
                      const configuration_type& configuration_e_dn,
                      const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_dn);
 
-  void accumulate_G_r_t(double sign);
+  void accumulate_G_r_t(Real sign);
 
-  void accumulate_moments(double sign);
+  void accumulate_moments(Real sign);
 
-  void accumulate_dwave_pp_correlator(double sign);
+  void accumulate_dwave_pp_correlator(Real sign);
 
   // Accumulate all relevant quantities. This is equivalent to calling compute_G_r_t followed by all
   // the accumulation methods.
@@ -126,24 +126,24 @@ private:
   void initialize_G0_original();
   void test_G0_original();
 
-  void interpolate(func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
-                   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
+  void interpolate(func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
+                   func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
 
   int find_first_non_interacting_spin(const std::vector<vertex_singleton_type>& configuration_e_spin);
 
   template <class configuration_type>
   void compute_G0_matrix(e_spin_states e_spin, const configuration_type& configuration,
-                         dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
+                         dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
   void compute_G0_matrix_left(e_spin_states e_spin, const configuration_type& configuration,
-                              dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
+                              dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
   void compute_G0_matrix_right(e_spin_states e_spin, const configuration_type& configuration,
-                               dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
+                               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix);
 
-  double interpolate_akima(int b_i, int s_i, int b_j, int s_j, int delta_r, double tau);
+  Real interpolate_akima(int b_i, int s_i, int b_j, int s_j, int delta_r, Real tau);
 
 private:
   struct singleton_operator {
@@ -151,13 +151,13 @@ private:
     int r_ind;
     int t_ind;
 
-    double t_val;
+    Real t_val;
   };
 
 private:
-  parameters_type& parameters;
+  Parameters& parameters;
   concurrency_type& concurrency;
-  MOMS_type& MOMS;
+  Data& MOMS;
 
   int thread_id;
   double GFLOP;
@@ -165,16 +165,16 @@ private:
   b_r_t_VERTEX_dmn_t b_r_t_dmn;
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-  func::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+  func::function<Real, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
   std::vector<singleton_operator> fixed_configuration;
   std::vector<singleton_operator> ctaux_configuration;
 
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_sign_up;
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_sign_dn;
 
   func::function<int, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
@@ -184,59 +184,59 @@ private:
                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_indices_dn;
 
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_integration_factor_up;
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_integration_factor_dn;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_original_up;
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_original_dn;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_original_up;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_original_dn;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> M_matrix_up;
-  dca::linalg::Matrix<float, dca::linalg::CPU> M_matrix_dn;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> M_matrix_up;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> M_matrix_dn;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up;
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_up;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_dn;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up_left;
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn_left;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_up_left;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_dn_left;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up_right;
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn_right;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_up_right;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_matrix_dn_right;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> M_G0_matrix_up;
-  dca::linalg::Matrix<float, dca::linalg::CPU> M_G0_matrix_dn;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> M_G0_matrix_up;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> M_G0_matrix_dn;
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_up;
-  dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_dn;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_M_G0_matrix_up;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_M_G0_matrix_dn;
 
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G_r_t_dn;
-  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
-                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<Real, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                          func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G_r_t_up;
 
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
+  func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
+  func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated;
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated_squared;
+  func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated;
+  func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated_squared;
 
-  func::function<double, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
-  func::function<double, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
+  func::function<Real, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
+  func::function<Real, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
 
-  func::function<double, k_dmn_t> dwave_k_factor;
-  func::function<double, r_dmn_t> dwave_r_factor;
+  func::function<Real, k_dmn_t> dwave_k_factor;
+  func::function<Real, r_dmn_t> dwave_r_factor;
 
-  func::function<double, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<Real, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 };
 
-template <class parameters_type, class MOMS_type>
-TpEqualTimeAccumulator<parameters_type, MOMS_type>::TpEqualTimeAccumulator(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
+template <class Parameters, class Data, typename Real>
+TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(Parameters& parameters_ref,
+                                                                       Data& MOMS_ref, int id)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -268,15 +268,15 @@ TpEqualTimeAccumulator<parameters_type, MOMS_type>::TpEqualTimeAccumulator(
   initialize_G0_original();
 }
 
-template <class parameters_type, class MOMS_type>
-double TpEqualTimeAccumulator<parameters_type, MOMS_type>::get_GFLOP() {
+template <class Parameters, class Data, typename Real>
+double TpEqualTimeAccumulator<Parameters, Data, Real>::get_GFLOP() {
   double tmp = GFLOP;
   GFLOP = 0;
   return tmp;
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::resetAccumulation() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::resetAccumulation() {
   GFLOP = 0;
 
   G_r_t = 0;
@@ -291,8 +291,8 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::resetAccumulation() {
   dwave_pp_correlator = 0;
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_my_configuration() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::initialize_my_configuration() {
   fixed_configuration.resize(b::dmn_size() * r_dmn_t::dmn_size() * t_VERTEX::dmn_size());
 
   int index = 0;
@@ -314,14 +314,14 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_my_configura
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_akima_coefficients() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::initialize_akima_coefficients() {
   int size = t::dmn_size() / 2;
 
-  math::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<Real> ai_obj(size);
 
-  double* x = new double[size];
-  double* y = new double[size];
+  Real* x = new Real[size];
+  Real* y = new Real[size];
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -366,9 +366,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_akima_coeffi
   delete[] y;
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_indices() {
-  std::vector<double> multiplicities(t_VERTEX::dmn_size(), 0);
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::initialize_G0_indices() {
+  std::vector<Real> multiplicities(t_VERTEX::dmn_size(), 0);
   {
     for (int i = 0; i < t_VERTEX::dmn_size(); i++) {
       for (int j = 0; j < t_VERTEX::dmn_size(); j++) {
@@ -429,8 +429,8 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_indices()
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_original() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::initialize_G0_original() {
   int r_ind, b_i, b_j, r_i, r_j;
   scalar_type t_i, t_j, delta_tau;  //, scaled_tau, f_tau;
 
@@ -467,11 +467,11 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_original(
   //        test_G0_original();
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::test_G0_original() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::test_G0_original() {
   for (int i = 0; i < t_VERTEX::dmn_size(); i++) {
     for (int j = 0; j < t_VERTEX::dmn_size(); j++) {
-      double t_val = t_VERTEX::get_elements()[i] - t_VERTEX::get_elements()[j];
+      Real t_val = t_VERTEX::get_elements()[i] - t_VERTEX::get_elements()[j];
 
       std::cout << "\t" << t_val;
     }
@@ -508,8 +508,8 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::test_G0_original() {
   throw std::logic_error(__FUNCTION__);
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::finalize() {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::finalize() {
   // util::Plot::plotLinesPoints(G_r_t_accumulated);
 
   for (int l = 0; l < G_r_t_accumulated_squared.size(); l++)
@@ -521,16 +521,16 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::finalize() {
   // util::Plot::plotLinesPoints(G_r_t);
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate(
-    func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
-    func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev) {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::interpolate(
+    func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
+    func::function<Real, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev) {
   int size = t_VERTEX::dmn_size();
 
-  math::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<Real> ai_obj(size);
 
-  double* x = new double[size];
-  double* y = new double[size];
+  Real* x = new Real[size];
+  Real* y = new Real[size];
 
   for (int t_ind = 0; t_ind < t_VERTEX::dmn_size(); t_ind++)
     x[t_ind] = t_VERTEX::get_elements()[t_ind];
@@ -582,9 +582,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate(
   delete[] y;
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <class configuration_type, typename RealInp>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G_r_t(
+void TpEqualTimeAccumulator<Parameters, Data, Real>::compute_G_r_t(
     const configuration_type& configuration_e_up,
     const dca::linalg::Matrix<RealInp, linalg::CPU>& M_up,
     const configuration_type& configuration_e_dn,
@@ -658,9 +658,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G_r_t(
   }
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 //     template<class configuration_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_G_r_t(double sign) {
+void TpEqualTimeAccumulator<Parameters, Data, Real>::accumulate_G_r_t(Real sign) {
   for (int j = 0; j < b_r_t_VERTEX_dmn_t::dmn_size(); j++) {
     for (int i = 0; i < b_r_t_VERTEX_dmn_t::dmn_size(); i++) {
       G_r_t_accumulated(G0_indices_dn(i, j)) +=
@@ -679,17 +679,17 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_G_r_t(double
 /*!
  *   <S_z> = (n_up-1/2)*(n_dn-1/2)
  */
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_moments(double sign) {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::accumulate_moments(Real sign) {
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     for (int r_i = 0; r_i < r_dmn_t::dmn_size(); r_i++) {
       for (int t_ind = 0; t_ind < t_VERTEX::dmn_size(); t_ind++) {
         int i = b_r_t_dmn(b_ind, r_i, t_ind);
         int j = i;
 
-        double charge_val = G_r_t_up(i, j) * G_r_t_dn(i, j);  // double occupancy = <n_d*n_u>
-        double magnetic_val =
-            1. - 2. * G_r_t_up(i, j) * G_r_t_dn(i, j);  // <m^2> = 1-2*<n_d*n_u> (T. Paiva, PRB 2001)
+        Real charge_val = G_r_t_up(i, j) * G_r_t_dn(i, j);  // Real occupancy = <n_d*n_u>
+        Real magnetic_val = 1. - 2. * G_r_t_up(i, j) *
+                                     G_r_t_dn(i, j);  // <m^2> = 1-2*<n_d*n_u> (T. Paiva, PRB 2001)
 
         charge_cluster_moment(b_ind, r_i) += sign * charge_val / t_VERTEX::dmn_size();
         magnetic_cluster_moment(b_ind, r_i) += sign * magnetic_val / t_VERTEX::dmn_size();
@@ -701,10 +701,10 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_moments(doub
 /*!
  * P_d
  */
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_dwave_pp_correlator(double sign) {
-  double renorm = 1. / (t_VERTEX::dmn_size() * pow(r_dmn_t::dmn_size(), 2.));
-  double factor = sign * renorm;
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::accumulate_dwave_pp_correlator(Real sign) {
+  Real renorm = 1. / (t_VERTEX::dmn_size() * pow(r_dmn_t::dmn_size(), 2.));
+  Real factor = sign * renorm;
 
   for (int r_i = 0; r_i < r_dmn_t::dmn_size(); r_i++) {
     for (int r_j = 0; r_j < r_dmn_t::dmn_size(); r_j++) {
@@ -712,23 +712,23 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_dwave_pp_cor
         int l_minus_i = r_dmn_t::parameter_type::subtract(r_i, r_l);
         int l_minus_j = r_dmn_t::parameter_type::subtract(r_j, r_l);
 
-        double struct_factor = dwave_r_factor(l_minus_i) * dwave_r_factor(l_minus_j);
+        Real struct_factor = dwave_r_factor(l_minus_i) * dwave_r_factor(l_minus_j);
 
         if (std::abs(struct_factor) > 1.e-6) {
           for (int b_i = 0; b_i < b::dmn_size(); b_i++) {
             for (int b_j = 0; b_j < b::dmn_size(); b_j++) {
               for (int b_l = 0; b_l < b::dmn_size(); b_l++) {
-                double value = 0;
+                Real value = 0;
 
                 for (int t_ind = 0; t_ind < t_VERTEX::dmn_size(); t_ind++) {
                   int i = b_r_t_dmn(b_i, r_i, t_ind);
                   int j = b_r_t_dmn(b_j, r_j, t_ind);
                   int l = b_r_t_dmn(b_l, r_l, t_ind);
 
-                  double d_ij = i == j ? 1 : 0;
-                  double d_il = i == l ? 1 : 0;
-                  double d_lj = l == j ? 1 : 0;
-                  double d_ll = 1;  // l==l? 1 : 0;
+                  Real d_ij = i == j ? 1 : 0;
+                  Real d_il = i == l ? 1 : 0;
+                  Real d_lj = l == j ? 1 : 0;
+                  Real d_ll = 1;  // l==l? 1 : 0;
 
                   value += (d_ij - G_r_t_up(j, i)) * (d_ll - G_r_t_dn(l, l));
                   value += (d_ij - G_r_t_dn(j, i)) * (d_ll - G_r_t_up(l, l));
@@ -747,8 +747,8 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_dwave_pp_cor
   }
 }
 
-template <class parameters_type, class MOMS_type>
-int TpEqualTimeAccumulator<parameters_type, MOMS_type>::find_first_non_interacting_spin(
+template <class Parameters, class Data, typename Real>
+int TpEqualTimeAccumulator<Parameters, Data, Real>::find_first_non_interacting_spin(
     const std::vector<vertex_singleton_type>& configuration_e_spin) {
   int configuration_size = configuration_e_spin.size();
 
@@ -763,11 +763,11 @@ int TpEqualTimeAccumulator<parameters_type, MOMS_type>::find_first_non_interacti
   return vertex_index;
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <class configuration_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
+void TpEqualTimeAccumulator<Parameters, Data, Real>::compute_G0_matrix(
     e_spin_states e_spin, const configuration_type& configuration,
-    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
@@ -795,11 +795,11 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
   }
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <class configuration_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
+void TpEqualTimeAccumulator<Parameters, Data, Real>::compute_G0_matrix_left(
     e_spin_states e_spin, const configuration_type& configuration,
-    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
@@ -827,11 +827,11 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
   }
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <class configuration_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_right(
+void TpEqualTimeAccumulator<Parameters, Data, Real>::compute_G0_matrix_right(
     e_spin_states e_spin, const configuration_type& configuration,
-    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_matrix) {
   int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
@@ -860,11 +860,12 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_right
   }
 }
 
-template <class parameters_type, class MOMS_type>
-inline double TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate_akima(
-    int b_i, int s_i, int b_j, int s_j, int delta_r, double tau) {
-  const static double beta = parameters.get_beta();
-  const static double N_div_beta = parameters.get_sp_time_intervals() / beta;
+template <class Parameters, class Data, typename Real>
+inline Real TpEqualTimeAccumulator<Parameters, Data, Real>::interpolate_akima(int b_i, int s_i,
+                                                                              int b_j, int s_j,
+                                                                              int delta_r, Real tau) {
+  const static Real beta = parameters.get_beta();
+  const static Real N_div_beta = parameters.get_sp_time_intervals() / beta;
 
   int sign = 1;
   // Map tau to [0, beta).
@@ -874,32 +875,32 @@ inline double TpEqualTimeAccumulator<parameters_type, MOMS_type>::interpolate_ak
   }
   assert(0 <= tau && tau < beta);
 
-  const double scaled_tau = tau * N_div_beta;
+  const Real scaled_tau = tau * N_div_beta;
   // Find interpolation index of on the left of tau.
   const int t_ind = static_cast<int>(scaled_tau);
 
 #ifndef NDEBUG
-  const double* positive_times =
+  const auto* positive_times =
       shifted_t::get_elements().data() + shifted_t::get_elements().size() / 2;
   assert(positive_times[t_ind] <= tau && tau < positive_times[t_ind] + 1. / N_div_beta);
 #endif  // NDEBUG
 
-  const double delta_tau = scaled_tau - t_ind;
+  const Real delta_tau = scaled_tau - t_ind;
   assert(delta_tau >= 0 && delta_tau < 1);
 
   const int linind = 4 * nu_nu_r_dmn_t_t_shifted_dmn(b_i, s_i, b_j, s_j, delta_r, t_ind);
 
-  const double* a_ptr = &akima_coefficients(linind);
+  const Real* a_ptr = &akima_coefficients(linind);
 
-  const double result =
+  const Real result =
       (a_ptr[0] + delta_tau * (a_ptr[1] + delta_tau * (a_ptr[2] + delta_tau * a_ptr[3])));
 
   return sign * result;
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <class configuration_type, typename RealInp>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulateAll(
+void TpEqualTimeAccumulator<Parameters, Data, Real>::accumulateAll(
     const configuration_type& configuration_e_up,
     const dca::linalg::Matrix<RealInp, dca::linalg::CPU>& M_up,
     const configuration_type& configuration_e_dn,
@@ -913,9 +914,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulateAll(
   accumulate_dwave_pp_correlator(sign);
 }
 
-template <class parameters_type, class MOMS_type>
-void TpEqualTimeAccumulator<parameters_type, MOMS_type>::sumTo(
-    dca::phys::solver::ctaux::TpEqualTimeAccumulator<parameters_type, MOMS_type>& other) const {
+template <class Parameters, class Data, typename Real>
+void TpEqualTimeAccumulator<Parameters, Data, Real>::sumTo(
+    dca::phys::solver::ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>& other) const {
   other.G_r_t_accumulated += G_r_t_accumulated;
   other.G_r_t_accumulated_squared += G_r_t_accumulated_squared;
   other.charge_cluster_moment += charge_cluster_moment;

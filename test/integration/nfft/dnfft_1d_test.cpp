@@ -36,60 +36,81 @@ using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
 using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
 template <typename DnfftType>
-void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
-                      DnfftType& dnfft_obj,
-                      function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
-void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
-                    function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
+void computeWithDnfft(
+    const std::vector<typename DnfftType::ElementType>& t,
+    const std::vector<typename DnfftType::ElementType>& f, DnfftType& dnfft_obj,
+    function<std::complex<typename DnfftType::ElementType>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
 
-TEST(Dnfft1DTest, CubicInterpolation) {
+template <typename Real>
+void computeWithDft(const std::vector<Real>& t, const std::vector<Real>& f,
+                    function<std::complex<Real>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
+
+void initializeDomains(double beta, int time_slices) {
+  static bool initialized = false;
+
+  if (!initialized) {
+    dca::phys::domains::time_domain::initialize(beta, time_slices, 1.e-16);
+    const int positive_frequencies = time_slices - 2;
+    dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
+    initialized = true;
+  }
+}
+
+template <typename Real>
+class Dnfft1DTest : public ::testing::Test {};
+
+using TestTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(Dnfft1DTest, TestTypes);
+
+TYPED_TEST(Dnfft1DTest, CubicInterpolation) {
+  using Real = TypeParam;
+
   // Initialize time and frequency domains.
-  const double beta = 10.;
+  const Real beta = 10.;
   const int time_slices = 100;
-  const int positive_frequencies = time_slices - 2;
-
-  dca::phys::domains::time_domain::initialize(beta, time_slices, 1.e-16);
-  dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
+  initializeDomains(beta, time_slices);
 
   // Prepare random samples.
   dca::math::random::StdRandomWrapper<std::mt19937_64> rng(0, 1, 0);
   const int samples = 1e4;
 
-  std::vector<double> t(samples);
-  std::vector<double> f(samples);
+  std::vector<Real> t(samples);
+  std::vector<Real> f(samples);
 
   const double begin = TimeDmn::get_elements().front();
   const double delta = TimeDmn::get_elements().back() - TimeDmn::get_elements().front();
 
   for (int l = 0; l < samples; ++l) {
-    const double t_val = begin + rng() * delta;
+    const Real t_val = begin + rng() * delta;
     t[l] = t_val;
     f[l] = std::exp(-2. * M_PI / delta * (t_val - begin));
   }
 
   // Compute f(w) using the discrete Fourier transform (DFT).
-  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dft("f_w_dft");
+  function<std::complex<Real>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dft("f_w_dft");
   computeWithDft(t, f, f_w_dft);
 
   // Compute f(w) using the delayed-NFFT algorithm.
   constexpr int oversampling = 8;
-  dca::math::nfft::Dnfft1D<double, FreqDmn, OtherDmn, oversampling, dca::math::nfft::CUBIC> dnfft_obj;
+  dca::math::nfft::Dnfft1D<Real, FreqDmn, OtherDmn, oversampling, dca::math::nfft::CUBIC> dnfft_obj;
 
-  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dnfft("f_w_dnfft");
+  function<std::complex<Real>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dnfft("f_w_dnfft");
   computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
 
   // Check errors.
   const auto err = dca::func::util::difference(f_w_dft, f_w_dnfft);
 
-  EXPECT_LT(err.l1, 1.e-9);
-  EXPECT_LT(err.l2, 1.e-9);
-  EXPECT_LT(err.l_inf, 1.e-9);
+  const Real tolerance = std::is_same<Real, double>::value ? 1e-9 : 1e-5;
+  EXPECT_LT(err.l1, tolerance);
+  EXPECT_LT(err.l2, tolerance);
+  EXPECT_LT(err.l_inf, tolerance);
 }
 
 template <typename DnfftType>
-void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
-                      DnfftType& dnfft_obj,
-                      function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
+void computeWithDnfft(
+    const std::vector<typename DnfftType::ElementType>& t,
+    const std::vector<typename DnfftType::ElementType>& f, DnfftType& dnfft_obj,
+    function<std::complex<typename DnfftType::ElementType>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
   dnfft_obj.resetAccumulation();
 
   const double begin = TimeDmn::get_elements().front();
@@ -104,17 +125,18 @@ void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f
   dnfft_obj.finalize(f_w);
 }
 
-void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
-                    function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
-  const std::complex<double> i(0, 1);
+template <typename Real>
+void computeWithDft(const std::vector<Real>& t, const std::vector<Real>& f,
+                    function<std::complex<Real>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
+  const std::complex<Real> i(0, 1);
 
   f_w = 0.;
 
   for (int o_ind = 0; o_ind < OtherDmn::dmn_size(); ++o_ind) {
     for (int t_ind = 0; t_ind < t.size(); ++t_ind) {
       for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); ++w_ind) {
-        const double t_val = t[t_ind];
-        const double w_val = FreqDmn::get_elements()[w_ind];
+        const Real t_val = t[t_ind];
+        const Real w_val = FreqDmn::get_elements()[w_ind];
 
         f_w(w_ind, o_ind) += f[t_ind] * std::exp(i * t_val * w_val);
       }

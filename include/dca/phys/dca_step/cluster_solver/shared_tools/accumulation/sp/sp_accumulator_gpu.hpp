@@ -36,10 +36,11 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters>
-class SpAccumulator<Parameters, linalg::GPU> : public SpAccumulator<Parameters, linalg::CPU> {
+template <class Parameters, typename Real>
+class SpAccumulator<Parameters, linalg::GPU, Real>
+    : public SpAccumulator<Parameters, linalg::CPU, Real> {
 private:
-  using BaseClass = SpAccumulator<Parameters, linalg::CPU>;
+  using BaseClass = SpAccumulator<Parameters, linalg::CPU, Real>;
 
   using typename BaseClass::BDmn;
   using typename BaseClass::PDmn;
@@ -47,7 +48,6 @@ private:
   using typename BaseClass::WDmn;
 
   using typename BaseClass::Profiler;
-  using typename BaseClass::ScalarType;
 
 public:
   SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
@@ -55,17 +55,17 @@ public:
   void resetAccumulation();
 
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2>& Ms,
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   // For testing purposes.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
 
-  void sumTo(SpAccumulator<Parameters, linalg::GPU>& other);
+  void sumTo(SpAccumulator<Parameters, linalg::GPU, Real>& other);
 
   void synchronizeCopy() {
     cached_nfft_obj_[0].synchronizeCopy();
@@ -73,7 +73,7 @@ public:
   }
 
   void syncStreams(const linalg::util::CudaEvent& event) {
-    for(const auto& stream : streams_)
+    for (const auto& stream : streams_)
       event.block(stream);
   }
 
@@ -95,30 +95,30 @@ private:
   using BaseClass::parameters_;
 
   std::array<linalg::util::CudaStream, 2> streams_;
-  using NfftType = math::nfft::Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
+  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
   std::array<NfftType, 2> cached_nfft_obj_;
 };
 
-template <class Parameters>
-SpAccumulator<Parameters, linalg::GPU>::SpAccumulator(/*const*/ Parameters& parameters_ref,
+template <class Parameters, typename Real>
+SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(/*const*/ Parameters& parameters_ref,
                                                       const bool accumulate_m_sqr)
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
                        NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {}
 
-template <class Parameters>
-void SpAccumulator<Parameters, linalg::GPU>::resetAccumulation() {
+template <class Parameters, typename Real>
+void SpAccumulator<Parameters, linalg::GPU, Real>::resetAccumulation() {
   for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].resetAccumulation();
 
   finalized_ = false;
 }
 
-template <class Parameters>
+template <class Parameters, typename Real>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2>& Ms,
+void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
+    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (finalized_)
     throw(std::logic_error("The accumulator is already finalized."));
@@ -129,24 +129,24 @@ void SpAccumulator<Parameters, linalg::GPU>::accumulate(
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
 }
 
-template <class Parameters>
+template <class Parameters, typename Real>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
+void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
+    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
-  std::array<linalg::Matrix<ScalarType, linalg::GPU>, 2> M_dev;
+  std::array<linalg::Matrix<Real, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(Ms[s], streams_[s]);
 
   accumulate(M_dev, configs, sign);
 }
 
-template <class Parameters>
-void SpAccumulator<Parameters, linalg::GPU>::finalize() {
+template <class Parameters, typename Real>
+void SpAccumulator<Parameters, linalg::GPU, Real>::finalize() {
   if (finalized_)
     return;
-  func::function<std::complex<ScalarType>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
-  const ScalarType normalization = 1. / RDmn::dmn_size();
+  func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
+  const Real normalization = 1. / RDmn::dmn_size();
 
   using MFunction = typename BaseClass::MFunction;
   // TODO: reuse base class.
@@ -173,8 +173,8 @@ void SpAccumulator<Parameters, linalg::GPU>::finalize() {
   finalized_ = true;
 }
 
-template <class Parameters>
-void SpAccumulator<Parameters, linalg::GPU>::sumTo(SpAccumulator<Parameters, linalg::GPU>& other) {
+template <class Parameters, typename Real>
+void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(SpAccumulator<Parameters, linalg::GPU, Real>& other) {
   for (int s = 0; s < 2; ++s)
     other.cached_nfft_obj_[s] += cached_nfft_obj_[s];
 }
