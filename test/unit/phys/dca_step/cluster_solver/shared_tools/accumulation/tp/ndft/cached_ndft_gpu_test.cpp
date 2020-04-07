@@ -16,7 +16,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -79,8 +79,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
 
   dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M);
   using Complex = std::complex<double>;
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>
       result_device(64);
 
   dca::profiling::WallTime start_time;
