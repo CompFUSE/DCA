@@ -7,8 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Provides a map with O(log n) insertion, removal and random access (access of the value relative
-// to the i-th lowest key. Useful for a random selection in an ordered list with variable size.
+// Provides a map with O(log n) insertion, removal and random access, i.e. access of the value
+// relative to the i-th lowest key.
+// Useful for a random selection in an ordered list with variable size.
 // Implemented as an augmented red-black tree.
 // Code to fix RB color violation from https://www.geeksforgeeks.org/red-black-tree-set-1-introduction-2/
 
@@ -21,7 +22,7 @@
 #include <stack>
 #include <stdexcept>
 
-#include "dca/util/fixed_size_allocator.hpp"
+#include "dca/util/containers/fixed_size_allocator.hpp"
 
 namespace dca {
 namespace util {
@@ -106,7 +107,7 @@ private:
 
   void updateSubtreeSize(Node* node);
 
-  // moves node down and moves given node in its place
+  // Inverts the parent-child relationship of the two arguments.
   void moveDown(Node* node, Node* new_parent);
 
   // Members

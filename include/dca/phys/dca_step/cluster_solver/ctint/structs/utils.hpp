@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/util/random_access_map.hpp"
+#include "dca/util/containers/random_access_map.hpp"
 
 namespace dca {
 namespace phys {

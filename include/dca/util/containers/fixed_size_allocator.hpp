@@ -10,8 +10,8 @@
 // Non thread-safe allocator to quickly allocate and deallocate objects of fixes memory size.
 // Inspired by https://codereview.stackexchange.com/questions/82869/fixed-size-block-allocator
 
-#ifndef DCA_UTIL_FIXED_SIZE_ALLOCATOR_HPP
-#define DCA_UTIL_FIXED_SIZE_ALLOCATOR_HPP
+#ifndef DCA_UTIL_CONTAINERS_FIXED_SIZE_ALLOCATOR_HPP
+#define DCA_UTIL_CONTAINERS_FIXED_SIZE_ALLOCATOR_HPP
 
 #include <memory>
 #include <vector>
@@ -105,4 +105,4 @@ void FixedSizeAllocator<T, objects_per_pool>::allocatePool() {
 }  // namespace util
 }  // namespace dca
 
-#endif  // DCA_UTIL_FIXED_SIZE_ALLOCATOR_HPP
+#endif  // DCA_UTIL_CONTAINERS_FIXED_SIZE_ALLOCATOR_HPP

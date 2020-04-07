@@ -22,7 +22,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
 #include "dca/linalg/device_type.hpp"
-#include "dca/util/random_access_map.hpp"
+#include "dca/util/containers/random_access_map.hpp"
 
 namespace dca {
 namespace phys {

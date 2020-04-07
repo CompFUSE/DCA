@@ -7,10 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Provides a map with O(log n) insertion, removal and random access (access of the value relative
-// to the i-th lowest key. Useful for a random selection in an ordered list with variable size.
+// This file tests the RandomAccessMap class.
 
-#include "dca/util/random_access_map.hpp"
+#include "dca/util/containers/random_access_map.hpp"
 
 #include <map>
 #include <random>
