@@ -235,21 +235,22 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
   for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
 
-  addAttribute<std::string>(full_name, "name", f.get_name());
-  addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
-
   // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
   write<Scalar>(full_name, dims, f.values());
+
+  std::reverse(dims.begin(), dims.end());
+  addAttribute(full_name, "name", f.get_name());
+  addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
 }
 
 template <typename Scalar>
 void ADIOS2Writer::execute(const std::string& name,
                            const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path(name);
-  addAttribute<std::string>(full_name, "name", V.get_name());
   write<Scalar>(full_name, std::vector<size_t>{V.size()}, V.ptr());
+  addAttribute(full_name, "name", V.get_name());
 }
 
 template <typename Scalar>
@@ -294,7 +295,7 @@ void ADIOS2Writer::write(const std::string& name, const std::vector<size_t>& siz
     std::vector<size_t> start(ndim, 0);
     v = io_.DefineVariable<Scalar>(name, size, start, size);
   }
-  file_.Put(v, data);
+  file_.Put(v, data, adios2::Mode::Sync);
 }
 
 template <typename Scalar>
@@ -302,10 +303,10 @@ void ADIOS2Writer::addAttribute(const std::string& set, const std::string& name,
                                 const std::vector<size_t>& size, const Scalar* data) {
   size_t ndim = size.size();
   if (ndim == 0) {
-    io_.DefineAttribute<Scalar>(name, data, set);
+    io_.DefineAttribute(name, data, 1, set);
   }
   else if (ndim == 1) {
-    io_.DefineAttribute<Scalar>(name, data, size[0], set);
+    io_.DefineAttribute(name, data, size[0], set);
   }
   else {
     throw(std::logic_error("ADIOS does not support multi-dimensional Attributes name = " + name +

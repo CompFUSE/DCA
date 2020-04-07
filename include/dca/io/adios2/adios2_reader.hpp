@@ -175,10 +175,10 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
     return false;
   }
 
-  std::cout << "\n\tstart ADIOS reading function : " << name;
+  std::cout << "\n\tstart ADIOS reading function : " << name << std::endl;
 
   const std::string sizeAttrName = full_name + "/domain-sizes";
-  auto sizeAttr = io_.InquireAttribute<size_t>(full_name);
+  auto sizeAttr = io_.InquireAttribute<size_t>(sizeAttrName);
 
   if (sizeAttr) {
     try {
