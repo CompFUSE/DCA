@@ -1,0 +1,3 @@
+add_executable(random_access_map_perftest random_access_map_perftest.cpp)
+target_include_directories(random_access_map_perftest PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(random_access_map_perftest gtest benchmark_main benchmark)
