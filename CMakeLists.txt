@@ -174,6 +174,8 @@ separate_arguments(MPIEXEC_PREFLAGS UNIX_COMMAND ${MPIEXEC_PREFLAGS})
 
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
+set(benchmark_dir "${PROJECT_SOURCE_DIR}/libs/benchmark" CACHE PATH "Path to Google Benchmark.")
+mark_as_advanced(benchmark_dir)
 
 if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTIC OR
     DCA_WITH_TESTS_PERFORMANCE)
@@ -186,16 +188,20 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTI
     message(WARNING "Tests are built with NDEBUG defined!")
   endif()
 
-  if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    message(WARNING "Performance tests are only built in release mode.")
+  set(BENCHMARK_ENABLE_TESTING OFF)
+  add_subdirectory(${gtest_dir})
+  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+
+  if (DCA_WITH_TESTS_PERFORMANCE)
+    if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+      message(WARNING "Performance tests are only built in release mode.")
+    endif()
+    add_subdirectory(${benchmark_dir})
   endif()
 
   if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))
     message(FATAL_ERROR "TEST_RUNNER needs to be set to the command for executing MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
   endif()
-
-  add_subdirectory(${gtest_dir})
-  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
 
 ################################################################################
