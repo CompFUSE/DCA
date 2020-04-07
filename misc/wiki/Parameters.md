@@ -489,7 +489,7 @@ Do additional time measurements.
     {
         "CT-AUX": {
             "expansion-parameter-K": 1.,
-            "initial-configuration-size": 100,
+            "initial-configuration-size": 0,
             "initial-matrix-size": 128,
 
             "max-submatrix-size": 64,
@@ -499,7 +499,7 @@ Do additional time measurements.
         }
     }
 
-### CT-AUX
+### CT-INT
 
 **Group** `"CT-INT":`  
 Used if *CT-INT* is selected as the cluster solver.
