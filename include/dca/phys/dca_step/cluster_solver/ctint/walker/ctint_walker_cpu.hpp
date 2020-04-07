@@ -119,6 +119,7 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
       n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
+
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
   int nb_of_steps;
@@ -254,7 +255,7 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
   for (unsigned i = 0; i < n_removal_rngs_; ++i)
     removal_rngs[i] = rng_();
 
-  const auto candidates = configuration_.randomRemovalCandidateSlow(removal_rngs);
+  const auto candidates = configuration_.randomRemovalCandidate(removal_rngs);
   removal_list_.clear();
   for (int candidate : candidates) {
     if (candidate != -1)
