@@ -97,7 +97,8 @@ void SolverConfiguration::commitInsertion(int idx) {
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
-    list.push_back(tag);
+    // TODO: use set instead of map
+    list.insert(tag, tag);
   }
 }
 
@@ -110,7 +111,7 @@ void SolverConfiguration::markForRemoval(int idx) {
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
-    list.erase(std::find(list.begin(), list.end(), tag));
+    list.erase(tag);
   }
 }
 
@@ -203,7 +204,6 @@ void SolverConfiguration::moveAndShrink(std::array<HostVector<int>, 2>& sector_f
 bool SolverConfiguration::operator==(const SolverConfiguration& rhs) const {
   bool result = true;
   result &= vertices_ == rhs.vertices_;
-  result &= existing_ == rhs.existing_;
   result &= max_tau_ == rhs.max_tau_;
   result &= n_bands_ == rhs.n_bands_;
 
@@ -257,9 +257,16 @@ bool SolverConfiguration::checkConsistency() const {
 
   if (double_insertion_prob_) {
     for (const auto& v : vertices_) {
-      const auto& list = existing_[v.interaction_id];
-      if (std::find(list.begin(), list.end(), v.tag) == list.end())
-        return false;
+      // check tags.
+      if (v.annihilatable) {
+        const auto& list = existing_[v.interaction_id];
+        try {
+          list.find(v.tag);
+        }
+        catch (...) {
+          return false;
+        }
+      }
       // Check total size.
       int size_sum = 0;
       for (const auto& list : existing_)

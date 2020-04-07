@@ -132,16 +132,17 @@ private:
   std::array<std::vector<ConfigRef>, 2> matrix_config_indices_;
 
   using BaseClass::H_int_;
-  std::vector<std::vector<std::size_t>> existing_;
 
-  // TODO: use a structure with fast (log N?) removal/insertion and random access.
-  // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
-  std::vector<const std::vector<std::size_t>*> partners_lists_;
+  using VertexTypeList = dca::util::RandomAccessMap<std::size_t, std::size_t, 16>;
+  std::vector<VertexTypeList> existing_;
+
+  // Temporary storage for the removal candidate method.
+  std::vector<const details::VertexTypeList*> partners_lists_;
+
   unsigned short last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
 
-  //  unsigned n_annihilatable_ = 0;
   dca::util::RandomAccessMap<std::size_t, unsigned> anhilatable_indices_;
   std::uint64_t current_tag_ = 0;
 };
