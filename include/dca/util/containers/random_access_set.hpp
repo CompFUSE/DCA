@@ -40,6 +40,9 @@ public:
   // Precondition: key is in the map.
   void erase(const Key& key);
 
+  // Returns true if the key is present.
+  bool find(const Key& key) const noexcept;
+
   // Returns a reference to the value relative to the i-th key.
   // Precondition: 0 <= index < size()
   const Key& operator[](const std::size_t index) const;
@@ -79,6 +82,12 @@ void RandomAccessSet<Key, chunk_size>::insert(const Key& key) {
 template <class Key, std::size_t chunk_size>
 void RandomAccessSet<Key, chunk_size>::erase(const Key& key) {
   map_.erase(key);
+}
+
+template <class Key, std::size_t chunk_size>
+bool RandomAccessSet<Key, chunk_size>::find(const Key& key) const noexcept {
+  const auto& result = map_.findOptional(key);
+  return result.has_value();
 }
 
 template <class Key, std::size_t chunk_size>

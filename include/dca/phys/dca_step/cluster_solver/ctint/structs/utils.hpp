@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/util/containers/random_access_map.hpp"
+#include "dca/util/containers/random_access_set.hpp"
 
 namespace dca {
 namespace phys {
@@ -24,7 +24,7 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-using VertexTypeList = dca::util::RandomAccessMap<std::size_t, std::size_t, 16>;
+using VertexTypeList = dca::util::RandomAccessSet<std::size_t, 16>;
 
 std::size_t getRandomElement(const std::vector<const VertexTypeList*>& v_ptrs,
                           double rand) noexcept;

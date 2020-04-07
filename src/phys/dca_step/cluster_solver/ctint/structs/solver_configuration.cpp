@@ -33,7 +33,7 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(const std::array<
     return candidates;
 
   const std::size_t index = rvals[0] * anhilatable_indices_.size();
-  candidates[0] = anhilatable_indices_[index];
+  candidates[0] = anhilatable_indices_[index].second;
 
   if (rvals[1] < double_insertion_prob_ &&
       (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
@@ -97,8 +97,7 @@ void SolverConfiguration::commitInsertion(int idx) {
   if (double_insertion_prob_) {
     const auto tag = vertices_[idx].tag;
     auto& list = existing_[vertices_[idx].interaction_id];
-    // TODO: use set instead of map
-    list.insert(tag, tag);
+    list.insert(tag);
   }
 }
 
@@ -236,16 +235,14 @@ bool SolverConfiguration::checkConsistency() const {
   unsigned idx = 0;
   for (const auto& v : vertices_) {
     if (v.annihilatable) {
-      if (idx != anhilatable_indices_.find(v.tag))
+      const auto found = anhilatable_indices_.findOptional(v.tag);
+      if (!found || idx != found.value())
         annhilatable_consitency = false;
     }
     else {  // !v.annihilatable
-      try {
-        anhilatable_indices_.find(v.tag);  // must throw.
+      auto found = anhilatable_indices_.findOptional(v.tag);
+      if (found.has_value())
         annhilatable_consitency = false;
-      }
-      catch (...) {
-      }
     }
     ++idx;
   }
@@ -260,12 +257,8 @@ bool SolverConfiguration::checkConsistency() const {
       // check tags.
       if (v.annihilatable) {
         const auto& list = existing_[v.interaction_id];
-        try {
-          list.find(v.tag);
-        }
-        catch (...) {
+        if (!list.find(v.tag))
           return false;
-        }
       }
       // Check total size.
       int size_sum = 0;

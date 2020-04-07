@@ -133,8 +133,7 @@ private:
 
   using BaseClass::H_int_;
 
-  using VertexTypeList = dca::util::RandomAccessMap<std::size_t, std::size_t, 16>;
-  std::vector<VertexTypeList> existing_;
+  std::vector<details::VertexTypeList> existing_;
 
   // Temporary storage for the removal candidate method.
   std::vector<const details::VertexTypeList*> partners_lists_;

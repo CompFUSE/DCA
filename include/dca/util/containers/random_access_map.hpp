@@ -19,6 +19,7 @@
 #include <cassert>
 #include <initializer_list>
 #include <functional>
+#include <optional>
 #include <stack>
 #include <stdexcept>
 
@@ -50,8 +51,12 @@ public:
 
   // Returns a reference to the value associated with key.
   // Precondition: key is in the map.
-  Value& find(const Key& key);
   const Value& find(const Key& key) const;
+  Value& find(const Key& key);
+
+  // Like the above methods, but returns an empty object instead of throwing.
+  std::optional<std::reference_wrapper<const Value>> findOptional(const Key& key) const noexcept;
+  std::optional<std::reference_wrapper<Value>> findOptional(const Key& key) noexcept;
 
   // Returns a reference to the key and value at position idx (in key order).
   // Precondition: 0 <= index < size()
@@ -185,8 +190,15 @@ void RandomAccessMap<Key, Value, chunk_size>::insert(const Key& key, const Value
   bool done = false;
 
   while (!done) {
-    if (key == node->key)
+    if (key == node->key) {  // Key is already present. Undo changes and throw.
+      node = node->parent;
+      while (node) {
+        --node->subtree_size;
+        node = node->parent;
+      }
+
       throw(std::logic_error("Key already present."));
+    }
 
     ++node->subtree_size;
 
@@ -217,7 +229,12 @@ void RandomAccessMap<Key, Value, chunk_size>::erase(const Key& key) {
   // Find node to delete
   Node* to_delete = root_;
   while (true) {
-    if (!to_delete) {
+    if (!to_delete) {  // Key not present. Undo changes and throw.
+      Node* node = to_delete ? to_delete->parent : nullptr;
+      while (node) {
+        ++node->subtree_size;
+        node = node->parent;
+      }
       throw(std::logic_error("Key not found."));
     }
 
@@ -367,33 +384,53 @@ const auto RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) {
-  Node* node = root_;
-  while (node) {
-    if (node->key == key)
-      return node->val;
-    else if (key < node->key)
-      node = node->left;
-    else
-      node = node->right;
-  }
-
+const Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) const {
+  auto result = findOptional(key);
+  if (result)
+    return result.value();
   throw(std::logic_error("Key not found."));
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-const Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) const {
+Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) {
+  auto result = findOptional(key);
+  if (result)
+    return result.value();
+  throw(std::logic_error("Key not found."));
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+std::optional<std::reference_wrapper<const Value>> RandomAccessMap<Key, Value, chunk_size>::findOptional(
+    const Key& key) const noexcept {
   const Node* node = root_;
   while (node) {
     if (node->key == key)
-      return node->val;
+      return std::optional{std::cref(node->val)};
     else if (key < node->key)
       node = node->left;
     else
       node = node->right;
   }
 
-  throw(std::logic_error("Key not found."));
+  // Value not found
+  return std::nullopt;
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+std::optional<std::reference_wrapper<Value>> RandomAccessMap<Key, Value, chunk_size>::findOptional(
+    const Key& key) noexcept {
+  Node* node = root_;
+  while (node) {
+    if (node->key == key)
+      return std::optional{std::ref(node->val)};
+    else if (key < node->key)
+      node = node->left;
+    else
+      node = node->right;
+  }
+
+  // Value not found
+  return std::nullopt;
 }
 
 template <class Key, class Value, std::size_t chunk_size>
