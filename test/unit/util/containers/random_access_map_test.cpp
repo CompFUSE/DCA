@@ -29,8 +29,12 @@ TEST(RandomAccessMapTest, InsertFindErase) {
 
   EXPECT_EQ(2, map.find("foo"));
   EXPECT_EQ(1, map.find("bar"));
-  EXPECT_EQ(2, map[1]);  // foo > bar.
-  EXPECT_EQ(1, map[0]);
+  EXPECT_EQ("foo", map[1].first);  // foo > bar.
+  EXPECT_EQ(2, map[1].second);
+
+  EXPECT_EQ("bar", map[0].first);
+  EXPECT_EQ(1, map[0].second);
+
   EXPECT_THROW(map.find("baz"), std::logic_error);
   EXPECT_THROW(map[2], std::logic_error);
 
@@ -43,7 +47,7 @@ TEST(RandomAccessMapTest, InsertFindErase) {
   map.insert("baz", 3);
   EXPECT_EQ(1, map.size());
   EXPECT_EQ(3, map.find("baz"));
-  EXPECT_EQ(3, map[0]);
+  EXPECT_EQ(3, map[0].second);
 }
 
 // Perform the test with a number of randomly inserted and removed values.
@@ -90,7 +94,8 @@ TEST(RandomAccessMapTest, LinearizeAndRandomAccess) {
     EXPECT_EQ(it.second, linearized[idx].second);
 
     // Test random accessor.
-    EXPECT_EQ(it.second, my_map[idx]);
+    EXPECT_EQ(it.first, my_map[idx].first);
+    EXPECT_EQ(it.second, my_map[idx].second);
 
     ++idx;
   }

@@ -53,9 +53,9 @@ public:
   Value& find(const Key& key);
   const Value& find(const Key& key) const;
 
-  // Returns a reference to the value relative to the i-th key.
+  // Returns a reference to the key and value at position idx (in key order).
   // Precondition: 0 <= index < size()
-  const Value& operator[](const std::size_t index) const;
+  const auto operator[](const std::size_t index) const;
 
   // Number of keys stored in the map.
   std::size_t size() const {
@@ -116,7 +116,8 @@ private:
 };
 
 template <class Key, class Value, std::size_t chunk_size>
-RandomAccessMap<Key, Value, chunk_size>::RandomAccessMap(const std::initializer_list<std::pair<Key, Value>>& list) {
+RandomAccessMap<Key, Value, chunk_size>::RandomAccessMap(
+    const std::initializer_list<std::pair<Key, Value>>& list) {
   for (const auto& [key, val] : list)
     insert(key, val);
 }
@@ -165,7 +166,8 @@ RandomAccessMap<Key, Value, chunk_size>& RandomAccessMap<Key, Value, chunk_size>
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-RandomAccessMap<Key, Value, chunk_size>& RandomAccessMap<Key, Value, chunk_size>::operator=(RandomAccessMap<Key, Value, chunk_size>&& rhs) {
+RandomAccessMap<Key, Value, chunk_size>& RandomAccessMap<Key, Value, chunk_size>::operator=(
+    RandomAccessMap<Key, Value, chunk_size>&& rhs) {
   std::swap(root_, rhs.root_);
   std::swap(allocator_, rhs.allocator_);
   return *this;
@@ -337,7 +339,7 @@ void RandomAccessMap<Key, Value, chunk_size>::fixRedRed(Node* x) {
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-const Value& RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t index) const {
+const auto RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t index) const {
   if (index >= size())
     throw(std::out_of_range("Index out of range"));
 
@@ -352,7 +354,7 @@ const Value& RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size
       new_on_the_left += node->left->subtree_size;
 
     if (new_on_the_left == index) {
-      return node->val;
+      return std::make_pair(std::cref(node->key), std::cref(node->val));
     }
     else if (new_on_the_left > index) {  // go left
       node = node->left;
