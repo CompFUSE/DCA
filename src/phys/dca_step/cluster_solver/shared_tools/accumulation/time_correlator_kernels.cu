@@ -38,21 +38,21 @@ __global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
 
 template <typename Real>
 void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
-               const ctint::G0Interpolation<linalg::GPU, Real>& g0, const Real* t_l, const int* b_l,
+               const ctint::DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
                const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream) {
   auto blocks = dca::util::get2DBlockSize(g0_mat.nrRows(), g0_mat.nrCols(), 32);
-
 
   computeG0Kernel<<<blocks[0], blocks[1], 0, stream>>>(g0_mat, g0, t_l, b_l, r_l, t_r, b_r, r_r);
 }
 
 // Instantation.
 template void computeG0<double>(linalg::MatrixView<double, linalg::GPU>&,
-                                const ctint::G0Interpolation<linalg::GPU, double>&, const double*, const int*,
-                                const int*, const double*, const int*, const int*, cudaStream_t);
+                                const ctint::DeviceInterpolationData<double>, const double*,
+                                const int*, const int*, const double*, const int*, const int*,
+                                cudaStream_t);
 template void computeG0<float>(linalg::MatrixView<float, linalg::GPU>&,
-                                const ctint::G0Interpolation<linalg::GPU, float>&, const float*, const int*,
-                                const int*, const float*, const int*, const int*, cudaStream_t);
+                               const ctint::DeviceInterpolationData<float>, const float*, const int*,
+                               const int*, const float*, const int*, const int*, cudaStream_t);
 
 }  // namespace details
 }  // namespace solver
