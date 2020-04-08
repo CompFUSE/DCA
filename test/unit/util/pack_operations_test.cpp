@@ -15,10 +15,10 @@
 #include "gtest/gtest.h"
 
 TEST(PackOperationsTest, IfAll) {
-  constexpr bool b1 = dca::util::if_all<true, std::is_integral<int>::value, 1>::value;
+  constexpr bool b1 = dca::util::ifAll(true, std::is_integral_v<int>, 1);
   EXPECT_TRUE(b1);
 
-  constexpr bool b2 = dca::util::if_all<true, std::is_integral<double>::value, 1>::value;
+  constexpr bool b2 = dca::util::ifAll(true, std::is_integral_v<double>, 1);
   EXPECT_FALSE(b2);
 }
 

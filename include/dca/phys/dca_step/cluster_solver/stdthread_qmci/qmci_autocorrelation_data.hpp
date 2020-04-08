@@ -52,25 +52,23 @@ public:
 
 private:
   const unsigned autocorrelation_window_;
-  const double log_beta_;
   const bool accumulate_G_;
 
   std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
 
   TimeCorrelator<Parameters, Real, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
-  math::statistics::Autocorrelation<Real> energy_correlator_;
+  math::statistics::Autocorrelation<Real> weight_correlator_;
 };
 
 template <class Walker>
 QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& parameters,
                                                          const int thread_id)
     : autocorrelation_window_(parameters.get_time_correlation_window()),
-      log_beta_(std::log(parameters.get_beta())),
       accumulate_G_(parameters.compute_G_correlation()),
       time_correlator_(parameters, thread_id),
       order_correlator_(autocorrelation_window_),
-      energy_correlator_(autocorrelation_window_) {}
+      weight_correlator_(autocorrelation_window_) {}
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop) {
@@ -103,7 +101,7 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
     writer.close_group();
   }
 
-  // Write expansion order and energy
+  // Write expansion order and weight
   auto write_correlator = [&](auto& correlator, const std::string& name) {
     writer.open_group(name);
     writer.execute("autocorrelation", correlator.computeAutocorrelationTime());
@@ -113,7 +111,7 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
   };
 
   write_correlator(order_correlator_, "expansion order");
-  write_correlator(energy_correlator_, "energy");
+  write_correlator(weight_correlator_, "MC weight");
 
   writer.close_group();
   writer.close_group();
@@ -130,8 +128,7 @@ void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) 
 
     order_correlator_.addSample(walker.get_configuration().size());
 
-    const Real energy = -(walker.get_MC_log_weight() - log_beta_);
-    energy_correlator_.addSample(energy);
+    weight_correlator_.addSample(walker.get_MC_log_weight());
   }
 }
 
@@ -145,7 +142,7 @@ QmciAutocorrelationData<Walker>& QmciAutocorrelationData<Walker>::operator+=(
     if (accumulate_G_)
       time_correlator_ += other.time_correlator_;
     order_correlator_ += other.order_correlator_;
-    energy_correlator_ += other.energy_correlator_;
+    weight_correlator_ += other.weight_correlator_;
   }
 
   return *this;
@@ -157,7 +154,7 @@ void QmciAutocorrelationData<Walker>::sumConcurrency(const Concurrency& concurre
     if (accumulate_G_)
       time_correlator_.sumConcurrency(concurrency);
     order_correlator_.sumConcurrency(concurrency);
-    energy_correlator_.sumConcurrency(concurrency);
+    weight_correlator_.sumConcurrency(concurrency);
   }
 }
 
@@ -165,7 +162,7 @@ template <class Walker>
 void QmciAutocorrelationData<Walker>::reset() {
   time_correlator_.reset();
   order_correlator_.reset();
-  energy_correlator_.reset();
+  weight_correlator_.reset();
 }
 
 // No additional ops specialization for SS-HYB

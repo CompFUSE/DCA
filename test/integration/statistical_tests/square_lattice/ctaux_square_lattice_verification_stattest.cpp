@@ -86,7 +86,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
       writer.close_group();
       // store the number of used measurements
       writer.open_group("parameters");
-      writer.execute("measurements_per_node", parameters.get_measurements());
+      writer.execute("measurements_per_node", parameters.get_measurements().back());
       writer.execute("nodes", number_of_samples);
       writer.close_group();
       writer.close_file();

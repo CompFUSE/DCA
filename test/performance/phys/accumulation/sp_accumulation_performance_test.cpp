@@ -145,8 +145,8 @@ int main(int argc, char** argv) {
   // Allows memory to be assigned.
   gpu_accumulator.resetAccumulation();
   gpu_accumulator.accumulate(M_dev, config, sign);
-  cudaStreamSynchronize(*gpu_accumulator.get_streams()[0]);
-  cudaStreamSynchronize(*gpu_accumulator.get_streams()[1]);
+  gpu_accumulator.get_streams()[0]->sync();
+  gpu_accumulator.get_streams()[1]->sync();
   gpu_accumulator.resetAccumulation();
 
   Profiler::start();

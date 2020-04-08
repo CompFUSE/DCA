@@ -36,14 +36,9 @@ public:
 
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, const util::CudaStream& stream) {
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, const linalg::util::CudaStream& stream) {
+    size_ = rhs.size_;
     data_.setAsync(rhs.data_, stream);
-    size_ = rhs.size_;
-  }
-  template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, int thread_id, int stream_id) {
-    data_.setAsync(rhs.data_, thread_id, stream_id);
-    size_ = rhs.size_;
   }
 
   // Returns a pointer to the beginning of the id-th array
@@ -97,7 +92,7 @@ auto MultiVector<device, Ts...>::get() const -> const Type<id>* {
 template <DeviceType device, typename... Ts>
 template <unsigned id>
 std::size_t MultiVector<device, Ts...>::offset() const {
-  static_assert(id < dca::util::Length<Types>::value, "Invalid sub-array id.");
+  static_assert(id < sizeof...(Ts), "Invalid sub-array id.");
 
   constexpr unsigned size_t_sum = dca::util::size_sum<dca::util::Sublist<id, Ts...>>;
   return size_ * size_t_sum;
@@ -105,4 +100,5 @@ std::size_t MultiVector<device, Ts...>::offset() const {
 
 }  // namespace linalg
 }  // namespace dca
+
 #endif  // DCA_LINALG_MULTI_VECTOR_HPP

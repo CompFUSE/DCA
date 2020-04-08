@@ -22,35 +22,23 @@ namespace dca {
 namespace util {
 // dca::util::
 
-// if_all<b1, b2, ...>::value is true only if all template arguments are true, otherwise false.
-template <bool b1, bool... bs>
-struct if_all {
-  constexpr static bool value = b1 && if_all<bs...>::value;
-};
-template <bool b>
-struct if_all<b> {
-  constexpr static bool value = b;
-};
-
-// product(T1 a1, T2 a2, ...) returns the product of all its arguments. Equivalent to a1 * a2 * ...
-template <typename T>
-constexpr T product(T first) {
-  return first;
+// returns is true only if all template arguments are true.
+template <class... Args>
+constexpr bool ifAll(Args... args) {
+  return (args &&...);
 }
 
-template <typename T, class... Args>
-constexpr T product(T first, Args... args) {
-  return first * product<Args...>(args...);
+// product(T1 a1, T2 a2, ...) returns the product of all its arguments. Equivalent to a1 * a2 * ...
+template <class... Args>
+constexpr auto product(Args... args) {
+  return (args *...);
 }
 
 // sum(T1 a1, T2 a2, ...) returns the sum of all its arguments. Equivalent to a1 + a2 + ...
-template <typename T = void>
-constexpr unsigned sum() {
-  return 0;
-}
-template <typename T, class... Args>
-constexpr T sum(T first, Args... args) {
-  return first + sum<Args...>(args...);
+// sum() returns 0.
+template <class... Args>
+constexpr auto sum(Args... args) {
+  return (0 + ... + args);
 }
 
 // size_sum.

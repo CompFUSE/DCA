@@ -256,9 +256,9 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::sumTo(
   other.cached_nfft_1D_GS_obj += cached_nfft_1D_GS_obj;
 }
 
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_ACCUMULATOR_SP_SP_ACCUMULATOR_NFFT_HPP

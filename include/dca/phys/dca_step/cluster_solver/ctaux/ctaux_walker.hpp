@@ -300,7 +300,7 @@ private:
   bool annihilation_proposal_aborted_;
   uint64_t aborted_vertex_id_;
 
-  bool thermalized;
+  bool thermalized_;
   bool Bennett;
 
   int sign_;
@@ -370,7 +370,7 @@ CtauxWalker<device_t, Parameters, Data, Real>::CtauxWalker(const Parameters& par
       annihilation_proposal_aborted_(false),
       aborted_vertex_id_(0),
 
-      thermalized(false),
+      thermalized_(false),
       Bennett(false),
       sign_(1),
       mc_log_weight_constant_(
@@ -432,12 +432,12 @@ double CtauxWalker<device_t, Parameters, Data, Real>::get_Gflop() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 bool CtauxWalker<device_t, Parameters, Data, Real>::is_thermalized() const {
-  return thermalized;
+  return thermalized_;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 void CtauxWalker<device_t, Parameters, Data, Real>::markThermalized() {
-  thermalized = true;
+  thermalized_ = true;
   recomputeMCWeight();
 }
 
@@ -460,7 +460,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::initialize(int iteration) {
     configuration_.initialize();
   // configuration_.print();
 
-  thermalized = false;
+  thermalized_ = false;
 
   // TODO: Reset accumulators of warm-up expansion order and number of delayed spins, and set
   //       warm_up_sweeps_done_ to zero?
@@ -505,7 +505,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::initialize(int iteration) {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 void CtauxWalker<device_t, Parameters, Data, Real>::doSweep() {
   Profiler profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
-  const double sweeps_per_measurement = thermalized ? sweeps_per_measurement_ : 1.;
+  const double sweeps_per_measurement{thermalized_ ? sweeps_per_measurement_ : 1.};
 
   // Do at least one single spin update per sweep.
   const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&
@@ -527,7 +527,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::doSweep() {
 
   assert(single_spin_updates_todo == 0);
 
-  if (!thermalized)
+  if (!thermalized_)
     ++warm_up_sweeps_done_;
 }
 
@@ -549,7 +549,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::doStep(int& single_spin_upda
 
   clean_up_the_configuration();
 
-  if (!thermalized)
+  if (!thermalized_)
     warm_up_expansion_order_.addSample(configuration_.get_number_of_interacting_HS_spins());
 }
 
@@ -666,7 +666,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::generate_delayed_spins(
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
 
-  if (thermalized)
+  if (thermalized_)
     num_delayed_spins_.addSample(delayed_spins.size());
 
   finalizeDelayedSpins();

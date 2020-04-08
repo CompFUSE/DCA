@@ -68,7 +68,7 @@ TEST(MatrixViewTest, ReadWrite) {
 
 TEST(MatrixViewTest, Assignment) {
   dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
-  auto init_func = [](int i, int ) { return i >= 2 ? 1 : 0; };
+  auto init_func = [](int i, int /*j*/) { return i >= 2 ? 1 : 0; };
   testing::setMatrixElements(mat, init_func);
 
   dca::linalg::MatrixView<int, dca::linalg::CPU> upper_left(mat, 0, 0, 2, 2);

@@ -201,7 +201,7 @@ protected:
 
   accumulator::SpAccumulator<Parameters, device_t, Real> single_particle_accumulator_obj;
 
-  std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data>> equal_time_accumulator_ptr_;
+  std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
 
   accumulator::TpAccumulator<Parameters, device_t> two_particle_accumulator_;
 
@@ -257,8 +257,9 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iter
 
   if (dca_iteration == parameters_.get_dca_iterations() - 1 &&
       parameters_.additional_time_measurements()) {
-    equal_time_accumulator_ptr_ = std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data>>(
-        parameters_, data_, thread_id);
+    equal_time_accumulator_ptr_ =
+        std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>>(parameters_, data_,
+                                                                                thread_id);
     equal_time_accumulator_ptr_->resetAccumulation();
   }
 }

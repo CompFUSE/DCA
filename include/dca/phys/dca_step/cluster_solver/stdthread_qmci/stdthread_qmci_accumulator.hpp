@@ -40,8 +40,8 @@ public:
   using QmciAccumulator::finalize;
   using QmciAccumulator::initialize;
 
-  template <typename walker_type>
-  void updateFrom(walker_type& walker);
+  template <typename Walker>
+  void updateFrom(Walker& walker);
 
   void waitForQmciWalker();
 
@@ -59,7 +59,6 @@ public:
   }
 
 private:
-
   int thread_id_;
   bool measuring_;
   std::atomic<bool> done_;
@@ -76,8 +75,8 @@ template <class QmciAccumulator>
 StdThreadQmciAccumulator<QmciAccumulator>::~StdThreadQmciAccumulator() {}
 
 template <class QmciAccumulator>
-template <typename walker_type>
-void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(walker_type& walker) {
+template <typename Walker>
+void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(Walker& walker) {
   {
     // take a lock and keep it until it goes out of scope
     std::unique_lock<std::mutex> lock(mutex_accumulator_);
@@ -121,9 +120,9 @@ void StdThreadQmciAccumulator<QmciAccumulator>::notifyDone() {
   start_measuring_.notify_one();
 }
 
-}  // stdthreadqmci
-}  // solver
-}  // phys
-}  // dca
+}  // namespace stdthreadqmci
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_ACCUMULATOR_HPP

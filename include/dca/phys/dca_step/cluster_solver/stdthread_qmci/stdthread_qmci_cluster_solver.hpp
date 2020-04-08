@@ -110,7 +110,7 @@ private:
   io::HDF5Writer* writer_ = nullptr;
 
   bool last_iteration_ = false;
-  int measurements_ = 0;
+  unsigned measurements_ = 0;
 };
 
 template <class QmciSolver>

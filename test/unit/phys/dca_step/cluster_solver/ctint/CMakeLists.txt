@@ -6,8 +6,7 @@ dca_add_gtest(ct_int_solver_methods_test
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
     LIBS     ${TEST_LIBS}
-    )
+)
 
-#add_subdirectory(model)
 add_subdirectory(structs)
 add_subdirectory(walker)
