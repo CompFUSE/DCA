@@ -182,8 +182,9 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridiz
         for (int s_j = 0; s_j < s::dmn_size(); s_j++)
           for (int b_j = 0; b_j < b::dmn_size(); b_j++)
             if (is_interacting_band(b_j))
-              mu_HALF(b_i, s_i) += (1. / 2.) * (MOMS.H_interactions(b_j, s_j, b_i, s_i, 0) +
-                                                MOMS.H_interactions(b_i, s_i, b_j, s_j, 0)) *
+              mu_HALF(b_i, s_i) += (1. / 2.) *
+                                   (MOMS.H_interactions(b_j, s_j, b_i, s_i, 0) +
+                                    MOMS.H_interactions(b_i, s_i, b_j, s_j, 0)) *
                                    1. / 2.;
 
         //             if(parameters.get_double_counting_method() == "constant-correction")
@@ -212,7 +213,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridiz
   construct_F_k_w();
 
   if (SHOW_FUNCTIONS)
-    util::Plot::plotBandsLinesPoints(F_k_w);
+    dca::util::Plot::plotBandsLinesPoints(F_k_w);
 
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t construct_F_r_t \n";
@@ -220,7 +221,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridiz
   construct_F_r_t();
 
   if (SHOW_FUNCTIONS)
-    util::Plot::plotBandsLinesPoints(F_r_t);
+    dca::util::Plot::plotBandsLinesPoints(F_r_t);
 
   // assert(false);
 }
@@ -231,9 +232,9 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_k_w() {
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
   if (SHOW_FUNCTIONS) {
-    util::Plot::plotBandsLinesPoints(MOMS.G_k_w);
-    util::Plot::plotBandsLinesPoints(MOMS.Sigma);
-    util::Plot::plotBandsLinesPoints(MOMS.G0_k_w_cluster_excluded);
+    dca::util::Plot::plotBandsLinesPoints(MOMS.G_k_w);
+    dca::util::Plot::plotBandsLinesPoints(MOMS.Sigma);
+    dca::util::Plot::plotBandsLinesPoints(MOMS.G0_k_w_cluster_excluded);
   }
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
@@ -260,7 +261,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_k_w() {
   }
 
   if (SHOW_FUNCTIONS)
-    util::Plot::plotBandsLinesPoints(F_k_w);
+    dca::util::Plot::plotBandsLinesPoints(F_k_w);
 }
 
 template <typename parameters_t, typename MOMS_t>
@@ -301,7 +302,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::subtract_moments(
   }
 
   //       if(SHOW_FUNCTIONS)
-  //         util::Plot::plotBandsLinesPoints(f_source);
+  //         dca::util::Plot::plotBandsLinesPoints(f_source);
 }
 
 template <typename parameters_t, typename MOMS_t>
@@ -315,7 +316,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::add_moments(
   }
 
   //       if(SHOW_FUNCTIONS)
-  //         util::Plot::plotBandsLinesPoints(f_source);
+  //         dca::util::Plot::plotBandsLinesPoints(f_source);
 }
 
 template <typename parameters_t, typename MOMS_t>
@@ -333,9 +334,9 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compensate_for_mome
   }
 }
 
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_HYBRIDIZATION_SOLVER_ROUTINES_HPP
