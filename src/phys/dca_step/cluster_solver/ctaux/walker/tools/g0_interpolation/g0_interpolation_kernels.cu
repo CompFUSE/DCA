@@ -314,7 +314,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
 const static int BLOCK_SIZE_x = 32;
 const static int BLOCK_SIZE_y = 16;
 
-template<typename Real>
+template <typename Real>
 __global__ void akima_interpolation_fat_column(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv,
                                                int* b, int* r, Real* t, Real* G0,
                                                std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
@@ -432,51 +432,11 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int N
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
                                 Real* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs) {
-  // assert(cuda_check_for_errors("init 2 interpolation_kernel"));
+  akima_interpolation_on_GPU(Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs, G0_gs, r0_min_r1,
+                             r0_min_r1_cs, r0_min_r1_gs, alpha, alpha_cs, alpha_gs, 0, 0);
 
-  if (Nv - Nc > 0 and Nv > 0) {
-    checkErrorsCudaDebug();
-
-    int bl_x = dca::util::ceilDiv(Nv, BLOCK_SIZE_x);
-    int bl_y = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_y);
-
-    dim3 threads(BLOCK_SIZE_x);
-    dim3 blocks(bl_x, bl_y);
-
-    akima_interpolation_fat_column<<<blocks, threads>>>(Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0,
-                                                        G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs,
-                                                        r0_min_r1_gs, alpha, alpha_cs, alpha_gs);
-    checkErrorsCudaDebug();
-  }
-
-  if (Nv - Nc > 0 and Nc > 0) {
-    checkErrorsCudaDebug();
-
-    int bl_x = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_x);
-    int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
-
-    dim3 threads(BLOCK_SIZE_x);
-    dim3 blocks(bl_x, bl_y);
-
-    akima_interpolation_fat_row<<<blocks, threads>>>(Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs,
-                                                     G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,
-                                                     alpha, alpha_cs, alpha_gs);
-
-    checkErrorsCudaDebug();
-  }
+  dca::linalg::util::getStream(0, 0).sync();
 }
-template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, float beta, int Nc, int Nv, int* b,
-                                         int* r, float* t, float* G0, std::pair<int, int> G0_cs,
-                                         std::pair<int, int> G0_gs, float* r0_min_r1,
-                                         std::pair<int, int> r0_min_r1_cs,
-                                         std::pair<int, int> r0_min_r1_gs, float* alpha,
-                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs);
-template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv,
-                                         int* b, int* r, double* t, double* G0,
-                                         std::pair<int, int> G0_cs, std::pair<int, int> G0_gs,
-                                         double* r0_min_r1, std::pair<int, int> r0_min_r1_cs,
-                                         std::pair<int, int> r0_min_r1_gs, double* alpha,
-                                         std::pair<int, int> alpha_cs, std::pair<int, int> alpha_gs);
 
 template <typename Real>
 void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
@@ -523,6 +483,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int N
     checkErrorsCudaDebug();
   }
 }
+
 template void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, float beta, int Nc, int Nv, int* b,
                                          int* r, float* t, float* G0, std::pair<int, int> G0_cs,
                                          std::pair<int, int> G0_gs, float* r0_min_r1,
