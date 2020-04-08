@@ -33,6 +33,8 @@ namespace dca {
 namespace io {
 // dca::io
 
+bool fileExists(const std::string& filename);
+
 class HDF5Writer {
 public:
   typedef H5::H5File file_type;
@@ -124,9 +126,11 @@ public:
     mutex_.unlock();
   }
 
-private:
-  bool fexists(const char* filename);
+  void set_verbose(bool verbose) {
+    verbose_ = verbose;
+  }
 
+private:
   bool exists(const std::string& name) const;
 
   H5::DataSet write(const std::string& name, const std::vector<hsize_t>& size, H5::DataType type,

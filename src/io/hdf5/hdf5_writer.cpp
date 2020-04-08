@@ -19,14 +19,14 @@ namespace dca {
 namespace io {
 // dca::io::
 
+bool fileExists(const std::string& filename) {
+  std::ifstream ifile(filename);
+  return bool(ifile);
+}
+
 HDF5Writer::~HDF5Writer() {
   if (file_)
     close_file();
-}
-
-bool HDF5Writer::fexists(const char* filename) {
-  std::ifstream ifile(filename);
-  return bool(ifile);
 }
 
 void HDF5Writer::open_file(std::string file_name, bool overwrite) {
@@ -37,7 +37,7 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
     file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
   else {
-    if (fexists(file_name.c_str()))
+    if (fileExists(file_name))
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDWR);
     else
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);

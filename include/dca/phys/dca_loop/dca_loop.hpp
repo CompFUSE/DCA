@@ -143,7 +143,6 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
     dca::util::SignalHandler::registerFile(output_file_);
-
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
 }
