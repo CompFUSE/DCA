@@ -98,7 +98,7 @@ public:
   //           temporarily been marked as annihilatable by get_random_noninteracting_vertex.
   void unmarkAsAnnihilatable(const int vertex_index) {
     assert(configuration[vertex_index].is_annihilatable() == true);
-    configuration[vertex_index].set_annihilatable(false);
+    configuration[vertex_index].is_annihilatable() = false;
     --current_Nb_of_annihilatable_spins;
   }
 
@@ -257,9 +257,9 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   assert(changed_spin_indices.size() == 0);
 
   for (size_t i = 0; i < configuration.size(); i++) {
-    configuration[i].set_shuffled(false);
-    configuration[i].set_successfully_flipped(false);
-    configuration[i].set_Bennett(false);
+    configuration[i].is_shuffled() = false;
+    configuration[i].is_successfully_flipped() = false;
+    configuration[i].is_Bennett() = false;
 
     assert(configuration[i].is_annihilatable() || configuration[i].is_creatable());
     assert(configuration[i].is_annihilatable() != configuration[i].is_creatable());
@@ -403,8 +403,8 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].set_annihilatable(false);
-    configuration[configuration_index].set_Bennett(true);
+    configuration[configuration_index].is_annihilatable() = false;
+    configuration[configuration_index].is_Bennett() = true;
 
     return;
   }
@@ -417,17 +417,17 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].set_annihilatable(false);
+    configuration[configuration_index].is_annihilatable() = false;
   }
   else {
     // cout << "\t--> create spin : " << configuration_index << std::endl;
 
     current_Nb_of_annihilatable_spins += 1;
 
-    configuration[configuration_index].set_annihilatable(true);
+    configuration[configuration_index].is_annihilatable() = true;
   }
 
-  configuration[configuration_index].set_successfully_flipped(true);
+  configuration[configuration_index].is_successfully_flipped() = true;
 }
 
 template <class parameters_type>
@@ -523,14 +523,14 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex(b
   assert(!configuration[vertex_index].is_Bennett());
 
   // Make sure that this spin will not be proposed for insertion again.
-  configuration[vertex_index].set_creatable(false);
+  configuration[vertex_index].is_creatable() = false;
   --current_Nb_of_creatable_spins;
 
   if (mark_annihilatable) {
     // However, this "virtual" interacting spin is eligible for removal.
     // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks the "virtual" interacting
     //           spins as annihilatable when all delayed spins have been generated.
-    configuration[vertex_index].set_annihilatable(true);
+    configuration[vertex_index].is_annihilatable() = true;
     ++current_Nb_of_annihilatable_spins;
   }
 
