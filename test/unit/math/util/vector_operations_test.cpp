@@ -299,3 +299,18 @@ TYPED_TEST(VectorOperationsRealTest, IsSameVector) {
   EXPECT_TRUE(dca::math::util::isSameVector(v1, v3));
   EXPECT_TRUE(dca::math::util::isSameVector(v3, v1));
 }
+
+TYPED_TEST(VectorOperationsRealTest, AllAndAny) {
+  using ScalarType = TypeParam;
+
+  const std::vector<ScalarType> v1{0., 1., 5, 2, 3};
+  EXPECT_TRUE(dca::math::util::any(v1, [](int i) { return i >= 5; }));
+  EXPECT_FALSE(dca::math::util::all(v1, [](int i) { return i >= 5; }));
+
+  const std::vector<ScalarType> v2{-1., -21., -5, -2};
+  EXPECT_TRUE(dca::math::util::any(v2, [](auto x) { return x < 0; }));
+  EXPECT_TRUE(dca::math::util::all(v2, [](auto x) { return x < 0; }));
+
+  EXPECT_FALSE(dca::math::util::any(std::vector<ScalarType>{}, [](int i) { return i; }));
+  EXPECT_TRUE(dca::math::util::all(std::vector<ScalarType>{}, [](int i) { return i; }));
+}

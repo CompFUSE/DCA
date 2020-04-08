@@ -10,7 +10,7 @@
 // Material lattice specialization for SrVO3.
 //
 // TODO: - Replace get_LDA_Hamiltonians with intialize_H_0 function (see material_lattice_NiO.inc).
-//       - Use correct index of origin in initialize_H_interaction (see e.g.
+//       - Use correct index of origin in initializeHInteraction (see e.g.
 //         material_lattice_NiO.inc).
 
 template <typename point_group_type>
@@ -22,20 +22,20 @@ public:
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
-  static double* initialize_r_DCA_basis();
-  static double* initialize_r_LDA_basis();
+  static double* initializeRDCABasis();
+  static double* initializeRLDABasis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 
   template <class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
@@ -47,7 +47,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<SrVO3, point_group_type>::initialize_r_DCA_basis() {
+double* material_lattice<SrVO3, point_group_type>::initializeRDCABasis() {
   const static double a = 7.260327248;
 
   static double* r_DCA = new double[9];
@@ -66,7 +66,7 @@ double* material_lattice<SrVO3, point_group_type>::initialize_r_DCA_basis() {
 }
 
 template <typename point_group_type>
-double* material_lattice<SrVO3, point_group_type>::initialize_r_LDA_basis() {
+double* material_lattice<SrVO3, point_group_type>::initializeRLDABasis() {
   const static double a = 7.260327248;
 
   static double* r_LDA = new double[9];
@@ -85,7 +85,7 @@ double* material_lattice<SrVO3, point_group_type>::initialize_r_LDA_basis() {
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<SrVO3, point_group_type>::get_flavors() {
+std::vector<int> material_lattice<SrVO3, point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
   bool sym = true;
   if (sym) {
@@ -110,21 +110,21 @@ std::vector<int> material_lattice<SrVO3, point_group_type>::get_flavors() {
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<SrVO3, point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> material_lattice<SrVO3, point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    SrVO3, point_group_type>::get_orbital_permutations() {
+    SrVO3, point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <class domain, class parameters_type>
-void material_lattice<SrVO3, point_group_type>::initialize_H_interaction(
+void material_lattice<SrVO3, point_group_type>::initializeHInteraction(
     func::function<double, domain>& H_i, parameters_type& parameters) {
   std::vector<std::vector<double>> U;
 
@@ -156,13 +156,13 @@ void material_lattice<SrVO3, point_group_type>::initialize_H_interaction(
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<SrVO3, point_group_type>::initialize_H_symmetry(
+void material_lattice<SrVO3, point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   for (int s = 0; s < 2; s++)
     for (int i = 0; i < BANDS; i++)
-      H_symmetries(i, s, i, s) = get_flavors()[i];
+      H_symmetries(i, s, i, s) = flavors()[i];
 }
 
 template <typename point_group_type>
@@ -197,7 +197,7 @@ std::complex<double> material_lattice<SrVO3, point_group_type>::get_LDA_Hamilton
     parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
   const static std::complex<double> I(0, 1);
 
-  double* r_LDA = initialize_r_LDA_basis();
+  double* r_LDA = initializeRLDABasis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 

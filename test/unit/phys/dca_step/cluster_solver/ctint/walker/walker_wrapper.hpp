@@ -47,17 +47,17 @@ public:
   using BaseClass::setMFromConfig;
   using BaseClass::getM;
 
-  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
 
   void setM(const Matrix& m) {
     BaseClass::getM() = m;
   }
 
-  double getRatio() const {
+  Real getRatio() const {
     return BaseClass::det_ratio_[0] * BaseClass::det_ratio_[1];
   }
 
-  double getAcceptanceProbability() const {
+  Real getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
 

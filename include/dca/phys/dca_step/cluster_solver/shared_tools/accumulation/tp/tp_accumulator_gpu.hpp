@@ -21,7 +21,7 @@
 #include <mutex>
 #include <vector>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
@@ -84,8 +84,8 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   // Returns: number of flop.
-  template <class Configuration>
-  float accumulate(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+  template <class Configuration, typename RealIn>
+  float accumulate(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
                    const std::array<Configuration, 2>& configs, int sign);
 
   // CPU input. For testing purposes.
@@ -161,8 +161,8 @@ private:
 
   void computeGSingleband(int s);
 
-  template <class Configuration>
-  float computeM(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+  template <class Configuration, typename RealIn>
+  float computeM(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   float updateG4(const std::size_t channel_index);
@@ -170,7 +170,7 @@ private:
   void synchronizeStreams();
 
 private:
-  constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
+  constexpr static int n_ndft_streams_ = config::McOptions::memory_savings ? 1 : 2;
 
   using BaseClass::beta_;
   using BaseClass::channels_;
@@ -187,7 +187,7 @@ private:
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
+      linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
@@ -212,7 +212,7 @@ private:
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
   using G4DevType =
-      linalg::Vector<Complex, linalg::GPU, config::AccumulationOptions::TpAllocator<Complex>>;
+      linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
 
@@ -309,9 +309,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
@@ -412,9 +412,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
 }
 
 template <class Parameters>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU>::computeM(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
 

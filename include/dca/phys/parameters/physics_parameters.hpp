@@ -47,6 +47,10 @@ public:
   double& get_chemical_potential() {
     return chemical_potential_;
   }
+  const double& get_chemical_potential() const {
+    return chemical_potential_;
+  }
+
   bool adjust_chemical_potential() const {
     return adjust_chemical_potential_;
   }

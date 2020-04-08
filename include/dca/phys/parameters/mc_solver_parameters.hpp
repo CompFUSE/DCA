@@ -36,7 +36,7 @@ class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
-        initial_configuration_size_(10),
+        initial_configuration_size_(0),
         initial_matrix_size_(128),
         max_submatrix_size_(128),
         neglect_bennett_updates_(false),
@@ -287,6 +287,10 @@ public:
     double_update_probability_ = p;
   }
 
+  bool getAllSitesPartnership() const {
+    return all_sites_partnership_;
+  }
+
   int getMaxSubmatrixSize() const {
     return max_submatrix_size_;
   }
@@ -302,6 +306,7 @@ private:
   double alpha_ndd_ = 1e-4;
   bool adjust_alpha_dd_ = false;
   double double_update_probability_ = 0;
+  bool all_sites_partnership_ = 0;
   int max_submatrix_size_ = 1;
 };
 
@@ -314,6 +319,7 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
   buffer_size += concurrency.get_buffer_size(adjust_alpha_dd_);
   buffer_size += concurrency.get_buffer_size(double_update_probability_);
+  buffer_size += concurrency.get_buffer_size(all_sites_partnership_);
   buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
 
   return buffer_size;
@@ -328,6 +334,7 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.pack(buffer, buffer_size, position, adjust_alpha_dd_);
   concurrency.pack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.pack(buffer, buffer_size, position, all_sites_partnership_);
   concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
@@ -340,6 +347,7 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.unpack(buffer, buffer_size, position, adjust_alpha_dd_);
   concurrency.unpack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.unpack(buffer, buffer_size, position, all_sites_partnership_);
   concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
@@ -363,6 +371,7 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("alpha-ndd", alpha_ndd_);
     tryToRead("adjust-alpha-dd", adjust_alpha_dd_);
     tryToRead("double-update-probability", double_update_probability_);
+    tryToRead("all-sites-partnership", all_sites_partnership_);
     tryToRead("max-submatrix-size", max_submatrix_size_);
     reader_or_writer.close_group();
   }

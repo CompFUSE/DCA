@@ -68,7 +68,7 @@ TEST_F(ComputeGreensFunctionTest, SquareLatticeNoninteracting) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H0_k;
-  Lattice::initialize_H_0(params, H0_k);
+  Lattice::initializeH0(params, H0_k);
 
   func::function<std::complex<double>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>,
                                                           func::dmn_0<MatsubaraFreqDmn>>>
@@ -111,7 +111,7 @@ TEST_F(ComputeGreensFunctionTest, BilayerLattice) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H0_k;
-  Lattice::initialize_H_0(params, H0_k);
+  Lattice::initializeH0(params, H0_k);
 
   func::function<std::complex<double>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>,
                                                           func::dmn_0<MatsubaraFreqDmn>>>

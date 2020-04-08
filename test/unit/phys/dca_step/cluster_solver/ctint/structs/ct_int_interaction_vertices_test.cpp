@@ -20,13 +20,29 @@ TEST(InteractionVerticesTest, InsertElement) {
   dca::phys::solver::ctint::InteractionVertices H;
   using Element = dca::phys::solver::ctint::InteractionElement;
 
-  H.insertElement(Element{{0, 0, 0, 0}, {0, 1, 2, 3}, 1.});  // pair-hop 1
-  H.insertElement(Element{{0, 0, 0, 0}, {0, 0, 2, 2}, 1.});  // density-density
-  H.insertElement(Element{{0, 0, 0, 0}, {1, 0, 3, 2}, 1.});  // pair-hop 2
+  auto el1 = Element{{0, 0, 0, 0}, {0, 1, 2, 3}, 1.};  // pair-hop 1
+  auto el2 = Element{{0, 0, 0, 0}, {0, 0, 2, 2}, 1.};  // density-density
+  auto el3 = Element{{0, 0, 0, 0}, {1, 0, 3, 2}, 1.};  // pair-hop 2
 
-  EXPECT_EQ(std::vector<ushort>{2}, H[0].partners_id);
-  EXPECT_EQ(std::vector<ushort>{}, H[1].partners_id);
-  EXPECT_EQ(std::vector<ushort>{0}, H[2].partners_id);
+  // Partners only on the same site
+  H.initialize(1, false);
+
+  for (auto el : {el1, el2, el3})
+    H.insertElement(el);
+
+  EXPECT_EQ(std::vector<unsigned short>{2}, H[0].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{}, H[1].partners_id);
+  EXPECT_EQ(std::vector<unsigned short>{0}, H[2].partners_id);
+
+  // No double insertion.
+  H.reset();
+  H.initialize(0, false);
+
+  for (auto el : {el1, el2, el3})
+    H.insertElement(el);
+
+  for (int i = 0; i < 3; ++i)
+    EXPECT_EQ(std::vector<ushort>{}, H[i].partners_id);
 }
 
 TEST(InteractionVerticesTest, SamplingProb) {

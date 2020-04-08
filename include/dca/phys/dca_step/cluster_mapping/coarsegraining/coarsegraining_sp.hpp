@@ -151,7 +151,7 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
   // Compute H0(k+q) for each value of k and q.
   for (int k = 0; k < H0_q_.size(); ++k) {
     QDmn::parameter_type::set_elements(k);
-    Parameters::model_type::initialize_H_0(parameters_, H0_q_[k]);
+    Parameters::model_type::initializeH0(parameters_, H0_q_[k]);
   }
 
   for (int l = 0; l < w_q_.size(); ++l)
@@ -164,9 +164,9 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 template <typename Parameters>
 bool CoarsegrainingSp<Parameters>::checkSpinSymmetry() const {
   func::function<std::complex<ScalarType>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H0;
-  Parameters::model_type::initialize_H_0(parameters_, H0);
+  Parameters::model_type::initializeH0(parameters_, H0);
   func::function<ScalarType, func::dmn_variadic<NuDmn, NuDmn, typename CDA::RClusterDmn>> H_int;
-  Parameters::model_type::initialize_H_interaction(H_int, parameters_);
+  Parameters::model_type::initializeHInteraction(H_int, parameters_);
 
   constexpr int bands = Parameters::bands;
   for (int l = 0; l < KClusterDmn::dmn_size(); ++l)

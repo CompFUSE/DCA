@@ -50,8 +50,8 @@ TEST(MatrixViewTest, Constructors) {
 }
 
 TEST(MatrixViewTest, ReadWrite) {
-  dca::linalg::Matrix<ushort, dca::linalg::CPU> mat(4);
-  dca::linalg::MatrixView<ushort, dca::linalg::CPU> view(mat);
+  dca::linalg::Matrix<unsigned short, dca::linalg::CPU> mat(4);
+  dca::linalg::MatrixView<unsigned short, dca::linalg::CPU> view(mat);
 
   view(1, 2) = 2;
   EXPECT_EQ(2, mat(1, 2));
@@ -59,7 +59,7 @@ TEST(MatrixViewTest, ReadWrite) {
   mat(2, 3) = 1;
   EXPECT_EQ(1, view(2, 3));
 
-  dca::linalg::MatrixView<ushort, dca::linalg::CPU> view_shifted(mat, 1, 2);
+  dca::linalg::MatrixView<unsigned short, dca::linalg::CPU> view_shifted(mat, 1, 2);
   EXPECT_EQ(2, view_shifted(0, 0));
 
   EXPECT_DEBUG_DEATH(view(-1, 2), "Assertion.");
@@ -81,7 +81,7 @@ TEST(MatrixViewTest, Assignment) {
 
   dca::linalg::MatrixView<int, dca::linalg::CPU> another_size(mat, 0, 0, 3, 3);
   // Invalid assignment:
-  EXPECT_THROW(upper_left = another_size       , std::invalid_argument);
+  EXPECT_THROW(upper_left = another_size, std::invalid_argument);
 }
 
 TEST(MatrixViewTest, MakeConstantView) {

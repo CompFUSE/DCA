@@ -9,24 +9,30 @@
 //
 // This file implements the methods in affinity.hpp.
 
+// GNU extensions are required for linux-specific features for querying affinity
+#if defined(__linux__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 
 #include <iostream>
 #include <cstdlib>
-
-// GNU extensions are required for linux-specific features for querying affinity
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
-#include <sched.h>
 #include <stdexcept>
+#include <thread>
+
+#include "dca/util/ignore.hpp"
+
+#if defined(__linux__)
+#include <sched.h>
+#endif
 
 namespace dca {
 namespace parallel {
 // dca::parallel::
 
 std::vector<int> get_affinity() {
+#if defined(__linux__)
   cpu_set_t cpu_set_mask;
 
   auto status = sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
@@ -51,9 +57,14 @@ std::vector<int> get_affinity() {
   }
 
   return cores;
+
+#else  // !defined(__linux__)
+  return {};
+#endif
 }
 
 void set_affinity(const std::vector<int>& cores) {
+#if defined(__linux__)
   cpu_set_t cpu_set_mask;
   CPU_ZERO(&cpu_set_mask);
 
@@ -62,12 +73,20 @@ void set_affinity(const std::vector<int>& cores) {
   }
 
   sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
+#else  // !defined(__linux__)
+  dca::util::ignoreUnused(cores);
+#endif
 }
 
 int get_core_count() {
+#if defined(__linux__)
   cpu_set_t cpu_set_mask;
   sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set_mask);
   return CPU_COUNT(&cpu_set_mask);
+
+#else  // !defined(__linux__)
+  return std::thread::hardware_concurrency();
+#endif
 }
 
 }  // namespace parallel
