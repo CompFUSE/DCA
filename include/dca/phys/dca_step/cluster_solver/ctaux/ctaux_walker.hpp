@@ -58,7 +58,9 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
 
-  const static dca::linalg::DeviceType walker_device_type = device_t;
+  using Scalar = Real;
+
+  constexpr static dca::linalg::DeviceType device = device_t;
 
 public:
   CtauxWalker(/*const*/ Parameters& parameters, Data& MOMS_ref, Rng& rng_ref, int id);
@@ -1075,8 +1077,8 @@ void CtauxWalker<device_t, Parameters, Data, Real>::add_delayed_spins_to_the_con
         configuration_.add_delayed_HS_spin(configuration_index, delayed_spins[i].new_HS_spin_value);
       }
       else {
-        configuration_[configuration_index].is_creatable() = false;
-        configuration_[configuration_index].is_annihilatable() = false;
+        configuration_[configuration_index].set_creatable(false);
+        configuration_[configuration_index].set_annihilatable(false);
       }
     }
   }

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_pair.hpp"
@@ -97,7 +98,7 @@ public:
   //           temporarily been marked as annihilatable by get_random_noninteracting_vertex.
   void unmarkAsAnnihilatable(const int vertex_index) {
     assert(configuration[vertex_index].is_annihilatable() == true);
-    configuration[vertex_index].is_annihilatable() = false;
+    configuration[vertex_index].set_annihilatable(false);
     --current_Nb_of_annihilatable_spins;
   }
 
@@ -105,7 +106,13 @@ public:
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
 
+  auto get_matrix_configuration() const {
+    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+  }
+
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  void write(io::HDF5Writer& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -250,9 +257,9 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   assert(changed_spin_indices.size() == 0);
 
   for (size_t i = 0; i < configuration.size(); i++) {
-    configuration[i].is_shuffled() = false;
-    configuration[i].is_successfully_flipped() = false;
-    configuration[i].is_Bennett() = false;
+    configuration[i].set_shuffled(false);
+    configuration[i].set_successfully_flipped(false);
+    configuration[i].set_Bennett(false);
 
     assert(configuration[i].is_annihilatable() || configuration[i].is_creatable());
     assert(configuration[i].is_annihilatable() != configuration[i].is_creatable());
@@ -396,8 +403,8 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].is_annihilatable() = false;
-    configuration[configuration_index].is_Bennett() = true;
+    configuration[configuration_index].set_annihilatable(false);
+    configuration[configuration_index].set_Bennett(true);
 
     return;
   }
@@ -410,17 +417,17 @@ void CT_AUX_HS_configuration<parameters_type>::add_delayed_HS_spin(int configura
 
     current_Nb_of_annihilatable_spins -= 1;
 
-    configuration[configuration_index].is_annihilatable() = false;
+    configuration[configuration_index].set_annihilatable(false);
   }
   else {
     // cout << "\t--> create spin : " << configuration_index << std::endl;
 
     current_Nb_of_annihilatable_spins += 1;
 
-    configuration[configuration_index].is_annihilatable() = true;
+    configuration[configuration_index].set_annihilatable(true);
   }
 
-  configuration[configuration_index].is_successfully_flipped() = true;
+  configuration[configuration_index].set_successfully_flipped(true);
 }
 
 template <class parameters_type>
@@ -516,14 +523,14 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex(b
   assert(!configuration[vertex_index].is_Bennett());
 
   // Make sure that this spin will not be proposed for insertion again.
-  configuration[vertex_index].is_creatable() = false;
+  configuration[vertex_index].set_creatable(false);
   --current_Nb_of_creatable_spins;
 
   if (mark_annihilatable) {
     // However, this "virtual" interacting spin is eligible for removal.
     // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks the "virtual" interacting
     //           spins as annihilatable when all delayed spins have been generated.
-    configuration[vertex_index].is_annihilatable() = true;
+    configuration[vertex_index].set_annihilatable(true);
     ++current_Nb_of_annihilatable_spins;
   }
 
@@ -875,9 +882,43 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
          current_Nb_of_creatable_spins == rhs.current_Nb_of_creatable_spins;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::write(io::HDF5Writer& file,
+                                                     const std::string& stamp) const {
+  file.open_group(stamp);
+
+  const auto n = configuration.size();
+  std::vector<double> times(n);
+  std::vector<std::array<std::uint8_t, 2>> bands(n);
+  std::vector<std::array<std::int8_t, 2>> e_spins(n);
+  std::vector<std::array<std::uint16_t, 2>> sites(n);
+  std::vector<std::int8_t> hs_spin(n);
+
+  auto to_array = [](auto& arr, const std::pair<int, int>& pair) {
+    arr[0] = pair.first;
+    arr[1] = pair.second;
+  };
+
+  for (int i = 0; i < configuration.size(); ++i) {
+    times[i] = configuration[i].get_tau();
+    to_array(bands[i], configuration[i].get_bands());
+    to_array(e_spins[i], configuration[i].get_e_spins());
+    to_array(sites[i], configuration[i].get_r_sites());
+    hs_spin[i] = configuration[i].get_HS_spin();
+  }
+
+  file.execute("times", times);
+  file.execute("bands", bands);
+  file.execute("e_spins", e_spins);
+  file.execute("sites", sites);
+  file.execute("hs_spin", hs_spin);
+
+  file.close_group();
+}
+
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP

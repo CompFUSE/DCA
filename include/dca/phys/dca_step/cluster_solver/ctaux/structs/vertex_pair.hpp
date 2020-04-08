@@ -46,7 +46,7 @@ public:
   typedef vertex_pair<parameters_type> this_type;
 
 public:
-  vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
+  vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
               int configuration_e_DN_index_in, int configuration_e_UP_index_in, uint64_t id);
 
   this_type& operator=(const this_type& other_vertex_pair);
@@ -63,25 +63,71 @@ public:
 
   // physics-information
   std::pair<int, int>& get_bands();
+  const std::pair<int, int>& get_bands() const {
+    return bands;
+  }
   std::pair<e_spin_states_type, e_spin_states_type>& get_e_spins();
+  const std::pair<e_spin_states_type, e_spin_states_type>& get_e_spins() const {
+    return e_spins;
+  }
   std::pair<int, int>& get_r_sites();
+  const std::pair<int, int>& get_r_sites() const {
+    return r_sites;
+  }
   std::pair<int, int>& get_spin_orbitals();
+  const std::pair<int, int>& get_spin_orbitals() const;
 
   HS_spin_states_type& get_HS_spin();
   HS_spin_states_type get_HS_spin() const;
   int& get_delta_r();
   double& get_tau();
+  const double& get_tau() const {
+    return tau;
+  }
 
   // algorithm-information
 
-  int& get_configuration_index();
+  int& get_configuration_index() {
+    return configuration_index;
+  }
+  const int& get_configuration_index() const {
+    return configuration_index;
+  }
   std::pair<int, int>& get_configuration_e_spin_indices();
 
-  bool& is_creatable();
-  bool& is_annihilatable();
-  bool& is_shuffled();
-  bool& is_Bennett();
-  bool& is_successfully_flipped();
+  void set_creatable(bool val) {
+    creatable = val;
+  }
+  void set_annihilatable(bool val) {
+    annihilatable = val;
+  }
+  void set_shuffled(bool val) {
+    shuffled = val;
+  }
+  void set_successfully_flipped(bool val) {
+    successfully_flipped = val;
+  }
+  void set_Bennett(bool val) {
+    Bennett = val;
+  }
+
+  bool is_creatable() const {
+    return creatable;
+  }
+
+  bool is_annihilatable() const {
+    return annihilatable;
+  }
+  bool is_shuffled() const {
+    return shuffled;
+  }
+
+  bool is_Bennett() const {
+    return Bennett;
+  }
+  bool is_successfully_flipped() const {
+    return successfully_flipped;
+  }
 
   bool operator==(const vertex_pair<parameters_type>& rhs) const;
 
@@ -91,7 +137,7 @@ public:
   friend io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Pars>& config);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   //     concurrency_type&   concurrency;
   rng_type& rng;
 
@@ -123,13 +169,12 @@ private:
 };
 
 template <class parameters_type>
-vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref,
+vertex_pair<parameters_type>::vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref,
                                           int configuration_index_in,
                                           int /*configuration_e_DN_index_in*/,
                                           int /*configuration_e_UP_index_in*/, uint64_t id)
     : parameters(parameters_ref),
       rng(rng_ref),
-      //     concurrency(parameters.get_concurrency()),
 
       id_(id),
 
@@ -139,7 +184,6 @@ vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_t
       bands(0, 0),
       e_spins(e_DN, e_UP),
       spin_orbitals(0, 1),
-      HS_fields(HS_FIELD_DN, HS_FIELD_UP),
       r_sites(0, 0),
 
       HS_spin(HS_ZERO),
@@ -150,7 +194,6 @@ vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_t
 
       configuration_e_spin_indices(-1, -1),
 
-      creatable(true),
       annihilatable(false),
       successfully_flipped(false),
       Bennett(false),
@@ -174,7 +217,6 @@ vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
   configuration_index = other_vertex_pair.configuration_index;
   configuration_e_spin_indices = other_vertex_pair.configuration_e_spin_indices;
 
-  creatable = other_vertex_pair.creatable;
   annihilatable = other_vertex_pair.annihilatable;
   successfully_flipped = other_vertex_pair.successfully_flipped;
   Bennett = other_vertex_pair.Bennett;
@@ -213,7 +255,6 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
   tau = parameters.get_beta() * rng();
 
-  creatable = false;
   annihilatable = true;
 
   successfully_flipped = false;
@@ -235,7 +276,6 @@ void vertex_pair<parameters_type>::set_random_noninteracting() {
 
   tau = parameters.get_beta() * rng();
 
-  creatable = true;
   annihilatable = false;
 
   successfully_flipped = false;
@@ -286,38 +326,8 @@ double& vertex_pair<parameters_type>::get_tau() {
 }
 
 template <class parameters_type>
-int& vertex_pair<parameters_type>::get_configuration_index() {
-  return configuration_index;
-}
-
-template <class parameters_type>
 std::pair<int, int>& vertex_pair<parameters_type>::get_configuration_e_spin_indices() {
   return configuration_e_spin_indices;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_creatable() {
-  return creatable;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_annihilatable() {
-  return annihilatable;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_successfully_flipped() {
-  return successfully_flipped;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_Bennett() {
-  return Bennett;
-}
-
-template <class parameters_type>
-bool& vertex_pair<parameters_type>::is_shuffled() {
-  return shuffled;
 }
 
 template <class parameters_type>
@@ -335,9 +345,9 @@ bool vertex_pair<parameters_type>::operator==(
          shuffled == rhs.shuffled;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_VERTEX_PAIR_HPP
