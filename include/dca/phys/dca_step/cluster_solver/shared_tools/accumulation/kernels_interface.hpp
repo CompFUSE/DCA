@@ -14,9 +14,9 @@
 
 #include <cuda.h>
 
-#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
 
 namespace dca {
 namespace phys {
@@ -26,7 +26,7 @@ namespace details {
 
 template <typename Real>
 void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
-               const ctint::G0Interpolation<linalg::GPU, Real>& g0_, const Real* t_l, const int* b_l,
+               ctint::DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
                const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream);
 
 }  // namespace details
