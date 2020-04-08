@@ -10,26 +10,25 @@
 // This class organizes the interpolation G0(tau) for tau in [0, beta]
 // specialization for CPU.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_GPU_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_GPU_HPP
 #ifdef DCA_HAVE_CUDA
 
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/vector.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/kernels_interface.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
 template <typename Real>
 class G0Interpolation<linalg::GPU, Real> final : public DeviceInterpolationData<Real>,
@@ -114,10 +113,9 @@ Real G0Interpolation<linalg::GPU, Real>::operator()(Real tau, int lindex) const 
   return details::interpolateSlow(tau, lindex, static_cast<DeviceInterpolationData<Real>>(*this));
 }
 
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_GPU_HPP

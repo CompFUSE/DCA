@@ -1,0 +1,5 @@
+add_library(g0_interpolation g0_interpolation.cpp interpolation_domains.cpp)
+target_link_libraries(g0_interpolation PUBLIC time_and_frequency_domains function)
+if (DCA_HAVE_CUDA)
+    target_compile_definitions(g0_interpolation PUBLIC "-DDCA_HAVE_CUDA")
+endif()

@@ -79,16 +79,16 @@ inline __device__ int G4Helper::wexMinus(const int w_idx, const int w_ex_idx) co
 
 inline __device__ int G4Helper::addKex(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return solver::details::cluster_momentum_helper.add(k_idx, k_ex);
+  return solver::cluster_momentum_helper.add(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kexMinus(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return solver::details::cluster_momentum_helper.subtract(k_idx, k_ex);
+  return solver::cluster_momentum_helper.subtract(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kMinus(const int k_idx) const {
-  return solver::details::cluster_momentum_helper.minus(k_idx);
+  return solver::cluster_momentum_helper.minus(k_idx);
 }
 
 inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {

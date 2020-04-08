@@ -12,7 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/kernels_interface.hpp"
 
 #include "dca/util/cuda_blocks.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
 
 namespace dca {
 namespace phys {
@@ -22,7 +22,7 @@ namespace details {
 
 template <typename Real>
 __global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
-                                const ctint::DeviceInterpolationData<Real> g0, const Real* t_l,
+                                const DeviceInterpolationData<Real> g0, const Real* t_l,
                                 const int* b_l, const int* r_l, const Real* t_r, const int* b_r,
                                 const int* r_r) {
   const unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -30,7 +30,7 @@ __global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
   if (i >= mat.nrRows() || j >= mat.nrCols())
     return;
 
-  const auto index = ctint::ctint_helper.index(b_l[i], b_r[j], r_l[i], r_r[j]);
+  const auto index = solver_helper.index(b_l[i], b_r[j], r_l[i], r_r[j]);
   const Real tau = t_l[i] - t_r[j];
 
   mat(i, j) = g0(tau, index);
@@ -38,7 +38,7 @@ __global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
 
 template <typename Real>
 void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
-               const ctint::DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
+               const DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
                const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream) {
   auto blocks = dca::util::get2DBlockSize(g0_mat.nrRows(), g0_mat.nrCols(), 32);
 
@@ -47,11 +47,11 @@ void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
 
 // Instantation.
 template void computeG0<double>(linalg::MatrixView<double, linalg::GPU>&,
-                                const ctint::DeviceInterpolationData<double>, const double*,
+                                const DeviceInterpolationData<double>, const double*,
                                 const int*, const int*, const double*, const int*, const int*,
                                 cudaStream_t);
 template void computeG0<float>(linalg::MatrixView<float, linalg::GPU>&,
-                               const ctint::DeviceInterpolationData<float>, const float*, const int*,
+                               const DeviceInterpolationData<float>, const float*, const int*,
                                const int*, const float*, const int*, const int*, cudaStream_t);
 
 }  // namespace details

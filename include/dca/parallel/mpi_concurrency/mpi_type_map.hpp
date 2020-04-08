@@ -62,6 +62,13 @@ struct MPITypeMap<int> {
 };
 
 template <>
+struct MPITypeMap<unsigned int> {
+  static MPI_Datatype value() {
+    return MPI_UNSIGNED;
+  }
+};
+
+template <>
 struct MPITypeMap<std::size_t> {
   static MPI_Datatype value() {
     return MPI_UNSIGNED_LONG;

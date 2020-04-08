@@ -10,8 +10,8 @@
 // This file provides a trivially copyable representation of the data needed by
 // g0_interpolation_gpu.hpp.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_DEVICE_INTERPOLATION_DATA_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_DEVICE_INTERPOLATION_DATA_HPP
 #ifdef DCA_HAVE_CUDA
 
 #include "dca/util/cuda_definitions.hpp"
@@ -19,8 +19,7 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
 template <typename Real>
 class DeviceInterpolationData {
@@ -62,10 +61,9 @@ protected:
   Real *values_, *g0_minus_;
 };
 
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_DEVICE_INTERPOLATION_DATA_HPP

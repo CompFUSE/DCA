@@ -18,8 +18,7 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace details {
-// dca::phys::solver::details::
+// dca::phys::solver::
 
 __device__ __constant__ ClusterHelper cluster_real_helper;
 __device__ __constant__ ClusterHelper cluster_momentum_helper;
@@ -53,7 +52,6 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
   });
 }
 
-}  // namespace details
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca

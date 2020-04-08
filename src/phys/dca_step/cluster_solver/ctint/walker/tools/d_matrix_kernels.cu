@@ -14,7 +14,7 @@
 #include <cuda.h>
 
 #include "dca/linalg/util/error_cuda.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
 #include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
@@ -46,7 +46,7 @@ __global__ void buildG0MatrixKernel(linalg::MatrixView<Real, linalg::GPU> G0, co
   const int b_j = config.getRightB(j);
   const Real tau_j = config.getTau(j);
 
-  const int label = ctint_helper.index(b_i, b_j, config.getLeftR(i), config.getRightR(j));
+  const int label = solver_helper.index(b_i, b_j, config.getLeftR(i), config.getRightR(j));
 
   G0(id_i, id_j) = g0_interp(tau_i - tau_j, label);
 }

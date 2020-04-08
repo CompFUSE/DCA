@@ -9,10 +9,8 @@
 //
 // Helper class used by the interpolation and DMatrixBuilder classes.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DEVICE_HELPER_CTINT_HELPER_CUH
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DEVICE_HELPER_CTINT_HELPER_CUH
-
-#include <vector>
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_SOLVER_HELPER_CUH
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_SOLVER_HELPER_CUH
 
 #include <cuda.h>
 
@@ -22,10 +20,9 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
-class CtintHelper {
+class SolverHelper {
 public:
   static void set(const int* sum_r, int lda, const int* sub_r, int lds, int nb, int nc, int r0);
 
@@ -40,15 +37,15 @@ private:
 };
 
 // Global instance.
-extern __device__ __constant__ CtintHelper ctint_helper;
+extern __device__ __constant__ SolverHelper solver_helper;
 
-__device__ inline std::size_t CtintHelper::index(int b1, int b2, int r1, int r2) const {
-  const int delta_r = solver::details::cluster_real_helper.subtract(r2, r1);
+__device__ inline std::size_t SolverHelper::index(int b1, int b2, int r1, int r2) const {
+  const int delta_r = solver::cluster_real_helper.subtract(r2, r1);
   return b1 + b2 * subdm_step_[0] + delta_r * subdm_step_[1];
 }
 
 template <class RDmn, class BDmn>
-void CtintHelper::set() {
+void SolverHelper::set() {
   using Cluster = typename RDmn::parameter_type;
   static_assert(Cluster::REPRESENTATION == domains::REAL_SPACE, "Domain mismatch.");
   const auto& add_matrix = Cluster::get_add_matrix();
@@ -58,9 +55,8 @@ void CtintHelper::set() {
       sub_matrix.leadingDimension(), BDmn::dmn_size(), RDmn::dmn_size(), Cluster::origin_index());
 }
 
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DEVICE_HELPER_CTINT_HELPER_CUH
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_SOLVER_HELPER_CUH

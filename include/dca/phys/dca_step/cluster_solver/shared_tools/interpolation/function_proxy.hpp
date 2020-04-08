@@ -17,8 +17,7 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::pyhs::solver::ctint::
+// dca::pyhs::solver::
 
 template<typename ScalarType, class Domain>
 class FunctionProxy {
@@ -41,7 +40,6 @@ private:
   Domain dmn_;
 };
 
-}  // ctint
 }  // solver
 }  // phys
 }  // dca

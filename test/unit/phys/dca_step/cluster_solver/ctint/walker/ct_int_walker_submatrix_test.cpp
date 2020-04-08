@@ -52,7 +52,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   auto& data = *TestFixture::data_;
   auto& parameters = TestFixture::parameters_;
 
-  ctint::G0Interpolation<dca::linalg::CPU, Real> g0(
+  G0Interpolation<dca::linalg::CPU, Real> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
   typename TestFixture::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);

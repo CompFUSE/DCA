@@ -15,7 +15,7 @@
 #include <mutex>
 
 #include "dca/math/statistics/autocorrelation.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -26,7 +26,7 @@
 #ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/kernels_interface.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -58,7 +58,7 @@ public:
   void compute_G_r_t(const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
                      const std::array<WalkerConfig, 2>& configs, int sign);
 
-  static void setG0(const ctint::G0Interpolation<device, Real>& g0) {
+  static void setG0(const G0Interpolation<device, Real>& g0) {
     g0_ = &g0;
   }
 
@@ -96,7 +96,7 @@ private:
   constexpr static int n_correlators_ =
       n_bands_ * (n_bands_ + 1) / 2;  // Number of independent entries in a band-band matrix.
 
-  static const inline ctint::G0Interpolation<device, Real>* g0_ = nullptr;
+  static const inline G0Interpolation<device, Real>* g0_ = nullptr;
 
   const linalg::util::CudaStream& stream_;
 
@@ -126,10 +126,6 @@ TimeCorrelator<Parameters, Real, device>::TimeCorrelator(const Parameters& param
   static std::once_flag flag;
   std::call_once(flag, [&]() {
     initializeFixedConfiguration();
-#ifdef DCA_HAVE_CUDA
-    // TODO: rename helper to ClusterHelper.
-    ctint::CtintHelper::set<RDmn, BDmn>();
-#endif
   });
 
   for (auto& correlator : autocorrelations_) {

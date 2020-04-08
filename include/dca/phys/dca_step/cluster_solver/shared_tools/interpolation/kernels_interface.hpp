@@ -9,9 +9,11 @@
 //
 // Kernel interface for GPU interpolation.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
-#ifdef DCA_HAVE_CUDA
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_KERNELS_INTERFACE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_KERNELS_INTERFACE_HPP
+#ifndef DCA_HAVE_CUDA
+#error "This file requires CUDA."
+#endif
 
 #include <cuda.h>
 
@@ -22,20 +24,15 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
 namespace details {
-// dca::phys::solver::ctint::details::
+// dca::phys::solver::details::
 
 template <typename Real>
-void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
-                   const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
+Real interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Real>& g0);
 
 }  // namespace details
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_KERNELS_INTERFACE_HPP

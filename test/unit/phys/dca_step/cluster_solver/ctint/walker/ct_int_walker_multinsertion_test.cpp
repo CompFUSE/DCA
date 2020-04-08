@@ -39,8 +39,7 @@ auto getVertexRng = [](int id) {
 TEST_F(G0Setup, NoSubmatrix) {
   G0Setup::RngType rng(std::vector<double>{});
 
-  ctint::G0Interpolation<dca::linalg::CPU, double> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
+  G0Interpolation<dca::linalg::CPU, double> g0(dca::phys::solver::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
@@ -127,8 +126,8 @@ TEST_F(G0Setup, NoSubmatrix) {
 using WalkerSubmatrix = testing::phys::solver::ctint::WalkerWrapperSubmatrix<G0Setup::Parameters>;
 TEST_F(G0Setup, Submatrix) {
   G0Setup::RngType rng(std::vector<double>{});
-  ctint::G0Interpolation<dca::linalg::CPU, double> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
+  G0Interpolation<dca::linalg::CPU, double> g0;
+  g0.initializeShrinked(data_->G0_r_t);
   G0Setup::LabelDomain label_dmn;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters_.getAlphas(), false);

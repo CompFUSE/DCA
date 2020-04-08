@@ -22,7 +22,6 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/details/shrink_G0.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
@@ -95,8 +94,8 @@ int main(int argc, char** argv) {
   constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
 #endif  // DCA_HAVE_CUDA
 
-  dca::phys::solver::ctint::G0Interpolation<device, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::G0Interpolation<device, Real> g0;
+  g0.initializeShrinked(data.G0_r_t);
 
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0);
