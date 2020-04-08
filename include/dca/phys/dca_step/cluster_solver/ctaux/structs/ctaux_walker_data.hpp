@@ -22,13 +22,13 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
 class CtauxWalkerData {
 protected:
   const static int MAX_VERTEX_SINGLETS = 2;
 
 public:
-  CtauxWalkerData(parameters_type& parameters, int id);
+  CtauxWalkerData(Parameters& parameters, int id);
 
   std::size_t deviceFingerprint() const {
     return N_up.deviceFingerprint() + N_dn.deviceFingerprint() + G0_up.deviceFingerprint() +
@@ -39,24 +39,24 @@ public:
 
   int thread_id;
 
-  dca::linalg::Matrix<double, device_t> N_up;
-  dca::linalg::Matrix<double, device_t> N_dn;
+  dca::linalg::Matrix<Real, device_t> N_up;
+  dca::linalg::Matrix<Real, device_t> N_dn;
 
-  dca::linalg::Matrix<double, device_t> G0_up;
-  dca::linalg::Matrix<double, device_t> G0_dn;
+  dca::linalg::Matrix<Real, device_t> G0_up;
+  dca::linalg::Matrix<Real, device_t> G0_dn;
 
-  dca::linalg::Matrix<double, device_t> Gamma_up;
-  dca::linalg::Matrix<double, device_t> Gamma_dn;
+  dca::linalg::Matrix<Real, device_t> Gamma_up;
+  dca::linalg::Matrix<Real, device_t> Gamma_dn;
 
-  dca::linalg::Matrix<double, device_t> stored_Gamma_up;
-  dca::linalg::Matrix<double, device_t> stored_Gamma_dn;
+  dca::linalg::Matrix<Real, device_t> stored_Gamma_up;
+  dca::linalg::Matrix<Real, device_t> stored_Gamma_dn;
 
-  dca::linalg::Matrix<double, device_t> G_up;
-  dca::linalg::Matrix<double, device_t> G_dn;
+  dca::linalg::Matrix<Real, device_t> G_up;
+  dca::linalg::Matrix<Real, device_t> G_dn;
 };
 
-template <dca::linalg::DeviceType device_t, typename parameters_type>
-CtauxWalkerData<device_t, parameters_type>::CtauxWalkerData(parameters_type& parameters, int id)
+template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
+CtauxWalkerData<device_t, Parameters, Real>::CtauxWalkerData(Parameters& parameters, int id)
     : thread_id(id),
 
       N_up("N_up", 0, parameters.get_initial_matrix_size()),

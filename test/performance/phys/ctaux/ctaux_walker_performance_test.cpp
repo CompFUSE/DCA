@@ -20,6 +20,7 @@
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -45,12 +46,14 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profile
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
-using Walker = dca::phys::solver::ctaux::CtauxWalker<device_t, Parameters, Data>;
+using Walker =
+    dca::phys::solver::ctaux::CtauxWalker<device_t, Parameters, Data, dca::config::McOptions::MCScalar>;
 
 int main(int argc, char** argv) {
   bool test_cpu(true), test_gpu(true);
   int submatrix_size = -1;
-  int n_sweeps = 100;
+  int n_warmup = 30;
+  int n_sweeps = 5;
   dca::util::ignoreUnused(test_gpu);
   for (int i = 0; i < argc; ++i) {
     const std::string arg(argv[i]);
@@ -83,10 +86,10 @@ int main(int argc, char** argv) {
     std::cout << str << ": time taken: " << time.sec + 1e-6 * time.usec << std::endl;
   };
 
-  auto do_sweeps = [n_sweeps, &parameters](auto& walker) {
-    for (int i = 0; i < n_sweeps; ++i) {
+  auto do_sweeps = [&parameters](auto& walker, int n) {
+    for (int i = 0; i < n; ++i) {
       walker.doSweep();
-      walker.updateShell(i, n_sweeps);
+      walker.updateShell(i, n);
     }
   };
 
@@ -105,9 +108,12 @@ int main(int argc, char** argv) {
     Walker<dca::linalg::CPU> walker(parameters, data, rng, 0);
     walker.initialize();
 
+    do_sweeps(walker, n_warmup);
+    std::cout << "\n Warmed up.\n" << std::endl;
+
     // Timed section.
     dca::profiling::WallTime start_t;
-    do_sweeps(walker);
+    do_sweeps(walker, n_sweeps);
     dca::profiling::WallTime integration_t;
     walker.printSummary();
 
@@ -131,10 +137,13 @@ int main(int argc, char** argv) {
     Walker<dca::linalg::GPU> walker_gpu(parameters, data, rng, 0);
     walker_gpu.initialize();
 
+    do_sweeps(walker_gpu, n_warmup);
+    std::cout << "\n Warmed up.\n" << std::endl;
+
     // Timed section.
     cudaProfilerStart();
     dca::profiling::WallTime start_t;
-    do_sweeps(walker_gpu);
+    do_sweeps(walker_gpu, n_sweeps);
     dca::profiling::WallTime integration_t;
     cudaProfilerStop();
     walker_gpu.printSummary();

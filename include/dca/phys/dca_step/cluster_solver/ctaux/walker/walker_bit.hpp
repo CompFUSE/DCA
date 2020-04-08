@@ -33,73 +33,70 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 class WalkerBIT {
   typedef vertex_singleton vertex_singleton_type;
-  typedef CT_AUX_HS_configuration<parameters_type> configuration_type;
+  typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
-  using rng_type = typename parameters_type::random_number_generator;
+  using rng_type = typename Parameters::random_number_generator;
 
-  typedef typename CtauxTypedefs<parameters_type, MOMS_type>::profiler_type profiler_type;
-  typedef typename CtauxTypedefs<parameters_type, MOMS_type>::concurrency_type concurrency_type;
+  typedef typename CtauxTypedefs<Parameters, Data>::profiler_type profiler_type;
+  typedef typename CtauxTypedefs<Parameters, Data>::concurrency_type concurrency_type;
 
 public:
-  WalkerBIT(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+  WalkerBIT(Parameters& parameters_ref, Data& MOMS_ref, int id);
   ~WalkerBIT();
 
   void initialize();
 
-  func::function<double, func::dmn_0<domains::numerical_error_domain>>& get_error_distribution();
+  func::function<Real, func::dmn_0<domains::numerical_error_domain>>& get_error_distribution();
 
   template <dca::linalg::DeviceType device_t>
   void check_G0_matrices(configuration_type& configuration,
-                         dca::linalg::Matrix<double, device_t>& G0_up,
-                         dca::linalg::Matrix<double, device_t>& G0_dn);
+                         dca::linalg::Matrix<Real, device_t>& G0_up,
+                         dca::linalg::Matrix<Real, device_t>& G0_dn);
 
   template <dca::linalg::DeviceType device_t>
-  void check_N_matrices(configuration_type& configuration,
-                        dca::linalg::Matrix<double, device_t>& G0_up,
-                        dca::linalg::Matrix<double, device_t>& G0_dn,
-                        dca::linalg::Matrix<double, device_t>& N_up,
-                        dca::linalg::Matrix<double, device_t>& N_dn);
+  void check_N_matrices(configuration_type& configuration, dca::linalg::Matrix<Real, device_t>& G0_up,
+                        dca::linalg::Matrix<Real, device_t>& G0_dn,
+                        dca::linalg::Matrix<Real, device_t>& N_up,
+                        dca::linalg::Matrix<Real, device_t>& N_dn);
 
   template <dca::linalg::DeviceType device_t>
-  void check_G_matrices(configuration_type& configuration,
-                        dca::linalg::Matrix<double, device_t>& G0_up,
-                        dca::linalg::Matrix<double, device_t>& G0_dn,
-                        dca::linalg::Matrix<double, device_t>& N_up,
-                        dca::linalg::Matrix<double, device_t>& N_dn,
-                        dca::linalg::Matrix<double, device_t>& G_up,
-                        dca::linalg::Matrix<double, device_t>& G_dn);
+  void check_G_matrices(configuration_type& configuration, dca::linalg::Matrix<Real, device_t>& G0_up,
+                        dca::linalg::Matrix<Real, device_t>& G0_dn,
+                        dca::linalg::Matrix<Real, device_t>& N_up,
+                        dca::linalg::Matrix<Real, device_t>& N_dn,
+                        dca::linalg::Matrix<Real, device_t>& G_up,
+                        dca::linalg::Matrix<Real, device_t>& G_dn);
 
 private:
-  parameters_type& parameters;
-  MOMS_type& MOMS;
+  Parameters& parameters;
+  Data& MOMS;
   concurrency_type& concurrency;
 
   int thread_id;
 
-  CV<parameters_type> CV_obj;
+  CV<Parameters> CV_obj;
 
-  G0_INTERPOLATION<dca::linalg::CPU, parameters_type> G0_CPU_tools_obj;
-  N_TOOLS<dca::linalg::CPU, parameters_type> N_CPU_tools_obj;
-  G_TOOLS<dca::linalg::CPU, parameters_type> G_CPU_tools_obj;
+  G0_INTERPOLATION<dca::linalg::CPU, Parameters, Real> G0_CPU_tools_obj;
+  N_TOOLS<dca::linalg::CPU, Parameters, Real> N_CPU_tools_obj;
+  G_TOOLS<dca::linalg::CPU, Parameters, Real> G_CPU_tools_obj;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> G0_up_CPU;
-  dca::linalg::Matrix<double, dca::linalg::CPU> G0_dn_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_up_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_dn_CPU;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> N_up_CPU;
-  dca::linalg::Matrix<double, dca::linalg::CPU> N_dn_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> N_up_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> N_dn_CPU;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> G_up_CPU;
-  dca::linalg::Matrix<double, dca::linalg::CPU> G_dn_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G_up_CPU;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> G_dn_CPU;
 
-  func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
+  func::function<Real, func::dmn_0<domains::numerical_error_domain>> error;
 };
 
-template <class parameters_type, class MOMS_type>
-WalkerBIT<parameters_type, MOMS_type>::WalkerBIT(parameters_type& parameters_ref,
-                                                 MOMS_type& MOMS_ref, int id)
+template <class Parameters, class Data, typename Real>
+WalkerBIT<Parameters, Data, Real>::WalkerBIT(Parameters& parameters_ref, Data& MOMS_ref, int id)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),
@@ -123,38 +120,38 @@ WalkerBIT<parameters_type, MOMS_type>::WalkerBIT(parameters_type& parameters_ref
 
       error("error") {}
 
-template <class parameters_type, class MOMS_type>
-WalkerBIT<parameters_type, MOMS_type>::~WalkerBIT() {
+template <class Parameters, class Data, typename Real>
+WalkerBIT<Parameters, Data, Real>::~WalkerBIT() {
   //     for(int l=0; l<numerical_error_domain::get_size(); l++)
   //       cout << numerical_error_domain::get_elements()[l] << "\t" << error(l) << endl;
 }
 
-template <class parameters_type, class MOMS_type>
-func::function<double, func::dmn_0<domains::numerical_error_domain>>& WalkerBIT<
-    parameters_type, MOMS_type>::get_error_distribution() {
+template <class Parameters, class Data, typename Real>
+func::function<Real, func::dmn_0<domains::numerical_error_domain>>& WalkerBIT<
+    Parameters, Data, Real>::get_error_distribution() {
   return error;
 }
 
-template <class parameters_type, class MOMS_type>
-void WalkerBIT<parameters_type, MOMS_type>::initialize() {
+template <class Parameters, class Data, typename Real>
+void WalkerBIT<Parameters, Data, Real>::initialize() {
   error = 0.;
 
   CV_obj.initialize(MOMS);
   G0_CPU_tools_obj.initialize(MOMS);
 
   //     for(int i=-16; i<=0; i++){
-  //       for(double j=1; j<10; j+=1.){
+  //       for(Real j=1; j<10; j+=1.){
   //        x.push_back(j*std::pow(10., i));
   //        y.push_back(0);
   //       }
   //     }
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <dca::linalg::DeviceType device_t>
-void WalkerBIT<parameters_type, MOMS_type>::check_G0_matrices(
-    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
-    dca::linalg::Matrix<double, device_t>& G0_dn) {
+void WalkerBIT<Parameters, Data, Real>::check_G0_matrices(configuration_type& configuration,
+                                                          dca::linalg::Matrix<Real, device_t>& G0_up,
+                                                          dca::linalg::Matrix<Real, device_t>& G0_dn) {
   //     cout << __FUNCTION__ << endl;
 
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
@@ -164,12 +161,13 @@ void WalkerBIT<parameters_type, MOMS_type>::check_G0_matrices(
   linalg::matrixop::difference(G0_dn_CPU, G0_dn);
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <dca::linalg::DeviceType device_t>
-void WalkerBIT<parameters_type, MOMS_type>::check_N_matrices(
-    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
-    dca::linalg::Matrix<double, device_t>& G0_dn, dca::linalg::Matrix<double, device_t>& N_up,
-    dca::linalg::Matrix<double, device_t>& N_dn) {
+void WalkerBIT<Parameters, Data, Real>::check_N_matrices(configuration_type& configuration,
+                                                         dca::linalg::Matrix<Real, device_t>& G0_up,
+                                                         dca::linalg::Matrix<Real, device_t>& G0_dn,
+                                                         dca::linalg::Matrix<Real, device_t>& N_up,
+                                                         dca::linalg::Matrix<Real, device_t>& N_dn) {
   //     cout << __FUNCTION__ << endl;
 
   linalg::matrixop::difference(G0_up_CPU, G0_up);
@@ -178,22 +176,24 @@ void WalkerBIT<parameters_type, MOMS_type>::check_N_matrices(
   N_CPU_tools_obj.build_N_matrix(configuration, N_up_CPU, G0_up_CPU, e_UP);
   N_CPU_tools_obj.build_N_matrix(configuration, N_dn_CPU, G0_dn_CPU, e_DN);
 
-  double err_up = linalg::matrixop::difference(N_up_CPU, N_up);
-  double err_dn = linalg::matrixop::difference(N_dn_CPU, N_dn);
+  Real err_up = linalg::matrixop::difference(N_up_CPU, N_up);
+  Real err_dn = linalg::matrixop::difference(N_dn_CPU, N_dn);
 
-  std::vector<double>& x = domains::numerical_error_domain::get_elements();
+  std::vector<Real>& x = domains::numerical_error_domain::get_elements();
   for (size_t l = 0; l < x.size() - 1; l++)
     if ((err_up > x[l] and err_up < x[l + 1]) or (err_dn > x[l] and err_dn < x[l + 1]))
       error(l) += 1;
 }
 
-template <class parameters_type, class MOMS_type>
+template <class Parameters, class Data, typename Real>
 template <dca::linalg::DeviceType device_t>
-void WalkerBIT<parameters_type, MOMS_type>::check_G_matrices(
-    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
-    dca::linalg::Matrix<double, device_t>& G0_dn, dca::linalg::Matrix<double, device_t>& N_up,
-    dca::linalg::Matrix<double, device_t>& N_dn, dca::linalg::Matrix<double, device_t>& G_up,
-    dca::linalg::Matrix<double, device_t>& G_dn) {
+void WalkerBIT<Parameters, Data, Real>::check_G_matrices(configuration_type& configuration,
+                                                         dca::linalg::Matrix<Real, device_t>& G0_up,
+                                                         dca::linalg::Matrix<Real, device_t>& G0_dn,
+                                                         dca::linalg::Matrix<Real, device_t>& N_up,
+                                                         dca::linalg::Matrix<Real, device_t>& N_dn,
+                                                         dca::linalg::Matrix<Real, device_t>& G_up,
+                                                         dca::linalg::Matrix<Real, device_t>& G_dn) {
   //     cout << __FUNCTION__ << endl;
 
   linalg::matrixop::difference(G0_up_CPU, G0_up);
@@ -209,9 +209,9 @@ void WalkerBIT<parameters_type, MOMS_type>::check_G_matrices(
   linalg::matrixop::difference(G_dn_CPU, G_dn);
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_WALKER_BIT_HPP

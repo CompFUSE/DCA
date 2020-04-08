@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
   const double time = duration(end_time, start_time);
 
   std::string precision("double");
-  if (std::is_same<float, dca::phys::solver::accumulator::SpAccumulator<Parameters>::ScalarType>::value)
+  if (std::is_same<float, dca::phys::solver::accumulator::SpAccumulator<Parameters>::Scalar>::value)
     precision = "single";
 
   std::cout << "\nExpansion order:\t" << n;
