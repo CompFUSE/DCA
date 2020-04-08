@@ -23,8 +23,9 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <typename Parameters>
-class G0Interpolation<dca::linalg::CPU, Parameters> : public G0InterpolationBase<Parameters> {
+template <typename Parameters, typename Real>
+class G0Interpolation<dca::linalg::CPU, Parameters, Real>
+    : public G0InterpolationBase<Parameters, Real> {
 public:
   using vertex_singleton_type = vertex_singleton;
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
@@ -38,10 +39,12 @@ public:
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
 
-public:
-  G0Interpolation(int id, Parameters& parameters);
+  using Base = G0InterpolationBase<Parameters, Real>;
 
-  using G0InterpolationBase<Parameters>::initialize;
+public:
+  G0Interpolation(int id, const Parameters& parameters);
+
+  using Base::initialize;
 
   template <class configuration_type>
   void build_G0_matrix(configuration_type& configuration,
@@ -66,42 +69,43 @@ private:
   double interpolate_akima(int nu_0, int nu_1, int delta_r, double tau);
 
 private:
-  using G0InterpolationBase<Parameters>::parameters;
-  using G0InterpolationBase<Parameters>::concurrency;
+  using Base::parameters;
+  using Base::concurrency;
 
-  using G0InterpolationBase<Parameters>::nu_nu_r_dmn_t_t_shifted_dmn;
+  using Base::nu_nu_r_dmn_t_t_shifted_dmn;
 
-  using G0InterpolationBase<Parameters>::r1_minus_r0;
+  using Base::r1_minus_r0;
 
-  using G0InterpolationBase<Parameters>::G0_r_t_shifted;
-  using G0InterpolationBase<Parameters>::grad_G0_r_t_shifted;
+  using Base::G0_r_t_shifted;
+  using Base::grad_G0_r_t_shifted;
 
-  using G0InterpolationBase<Parameters>::akima_coefficients;
+  using Base::akima_coefficients;
 
-  using G0InterpolationBase<Parameters>::N_t;
-  using G0InterpolationBase<Parameters>::linind;
-  using G0InterpolationBase<Parameters>::t_ind;
+  using Base::N_t;
+  using Base::linind;
+  using Base::t_ind;
 
-  using G0InterpolationBase<Parameters>::beta;
-  using G0InterpolationBase<Parameters>::N_div_beta;
-  using G0InterpolationBase<Parameters>::new_tau;
-  using G0InterpolationBase<Parameters>::scaled_tau;
-  using G0InterpolationBase<Parameters>::delta_tau;
-  using G0InterpolationBase<Parameters>::f_0;
-  using G0InterpolationBase<Parameters>::grad;
+  using Base::beta;
+  using Base::N_div_beta;
+  using Base::new_tau;
+  using Base::scaled_tau;
+  using Base::delta_tau;
+  using Base::f_0;
+  using Base::grad;
 
   int thread_id;
 };
 
-template <typename Parameters>
-G0Interpolation<dca::linalg::CPU, Parameters>::G0Interpolation(int id, Parameters& parameters_ref)
-    : G0InterpolationBase<Parameters>(id, parameters_ref),
+template <typename Parameters, typename Real>
+G0Interpolation<dca::linalg::CPU, Parameters, Real>::G0Interpolation(int id,
+                                                                     const Parameters& parameters_ref)
+    : Base(id, parameters_ref),
 
       thread_id(id) {}
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class configuration_type>
-void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
+void G0Interpolation<dca::linalg::CPU, Parameters, Real>::build_G0_matrix(
     configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::CPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
@@ -144,8 +148,8 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
   }
 }
 
-template <typename Parameters>
-void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
+template <typename Parameters, typename Real>
+void G0Interpolation<dca::linalg::CPU, Parameters, Real>::build_G0_matrix(
     std::vector<vertex_singleton_type>& configuration,
     dca::linalg::Matrix<double, dca::linalg::CPU>& G0) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
@@ -189,9 +193,9 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
   }
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class configuration_type>
-void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
+void G0Interpolation<dca::linalg::CPU, Parameters, Real>::update_G0_matrix(
     configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::CPU>& G0,
     e_spin_states_type e_spin) {
   // profiler_t profiler("G0-matrix (update)", "CT-AUX", __LINE__);
@@ -277,9 +281,10 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
   */
 }
 
-template <typename Parameters>
-inline double G0Interpolation<dca::linalg::CPU, Parameters>::interpolate(int nu_0, int nu_1,
-                                                                         int delta_r, double tau) {
+template <typename Parameters, typename Real>
+inline double G0Interpolation<dca::linalg::CPU, Parameters, Real>::interpolate(int nu_0, int nu_1,
+                                                                               int delta_r,
+                                                                               double tau) {
   // make sure that new_tau is positive !!
   new_tau = tau + beta;
 
@@ -300,18 +305,19 @@ inline double G0Interpolation<dca::linalg::CPU, Parameters>::interpolate(int nu_
   return -(f_0 + grad * delta_tau);
 }
 
-template <typename Parameters>
-inline double G0Interpolation<dca::linalg::CPU, Parameters>::interpolate_on_diagonal(int nu_i) {
+template <typename Parameters, typename Real>
+inline double G0Interpolation<dca::linalg::CPU, Parameters, Real>::interpolate_on_diagonal(int nu_i) {
   const static int t_0_index = shifted_t::dmn_size() / 2;
   const static int r_0_index = r_cluster_type::origin_index();
 
   return -G0_r_t_shifted(nu_i, nu_i, r_0_index, t_0_index);
 }
 
-template <typename Parameters>
-inline double G0Interpolation<dca::linalg::CPU, Parameters>::interpolate_akima(int nu_0, int nu_1,
-                                                                               int delta_r,
-                                                                               double tau) {
+template <typename Parameters, typename Real>
+inline double G0Interpolation<dca::linalg::CPU, Parameters, Real>::interpolate_akima(int nu_0,
+                                                                                     int nu_1,
+                                                                                     int delta_r,
+                                                                                     double tau) {
   // make sure that new_tau is positive !!
   new_tau = tau + beta;
 

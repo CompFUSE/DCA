@@ -22,6 +22,7 @@
 #include <array>
 #include <memory>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
@@ -41,7 +42,7 @@ private:
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU>;
+      linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
 
 public:
   // Constructor

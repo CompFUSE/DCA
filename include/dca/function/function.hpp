@@ -77,6 +77,8 @@ public:
   //               the other function's construction.
   // Postcondition: The function's name is unchanged.
   function<scalartype, domain>& operator=(const function<scalartype, domain>& other);
+  template <typename Scalar2>
+  function<scalartype, domain>& operator=(const function<Scalar2, domain>& other);
 
   // Move assignment operator
   // Replaces the function's elements with those of other using move semantics.
@@ -341,6 +343,18 @@ function<scalartype, domain>& function<scalartype, domain>::operator=(
 
     std::copy_n(other.values(), Nb_elements, fnc_values);
   }
+
+  return *this;
+}
+
+template <typename Scalar, class domain>
+template <typename Scalar2>
+function<Scalar, domain>& function<Scalar, domain>::operator=(const function<Scalar2, domain>& other) {
+  if (size() != other.size()) {
+    throw(std::logic_error("Function size does not match."));
+  }
+
+  std::copy_n(other.values(), Nb_elements, fnc_values);
 
   return *this;
 }

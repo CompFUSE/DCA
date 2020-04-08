@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Cluster Monte Carlo integrator based on a continuous-time auxilary field (CT-AUX) expansion.
 //
@@ -22,6 +23,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
@@ -47,7 +49,7 @@ namespace solver {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 class CtauxClusterSolver {
-protected:
+public:
   using DataType = Data;
   using ParametersType = Parameters;
   using Lattice = typename Parameters::lattice_type;
@@ -57,8 +59,9 @@ protected:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
-  using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data>;
+  using MCScalar = typename dca::config::McOptions::MCScalar;
+  using Walker = ctaux::CtauxWalker<device_t, Parameters, Data, MCScalar>;
+  using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data, MCScalar>;
 
   static constexpr linalg::DeviceType device = device_t;
 
