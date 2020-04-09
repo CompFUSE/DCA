@@ -11,6 +11,7 @@
 #ifndef DCA_UTIL_SIGNAL_HANDLER_HPP
 #define DCA_UTIL_SIGNAL_HANDLER_HPP
 
+#include <memory>
 #include <vector>
 
 #include "dca/io/hdf5/hdf5_writer.hpp"
@@ -23,13 +24,13 @@ class SignalHandler{
 public:
     static void init(bool verbose = false);
 
-    static void registerFile(io::HDF5Writer& writer);
+    static void registerFile(const std::shared_ptr<io::HDF5Writer>& writer);
 
 private:
     static void handle(int signum);
 
     static inline bool verbose_;
-    static inline std::vector<io::HDF5Writer*> file_ptrs_;
+    static inline std::vector<std::weak_ptr<io::HDF5Writer>> file_ptrs_;
 };
 
 }  // namespace util

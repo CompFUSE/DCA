@@ -26,21 +26,24 @@ void SignalHandler::init(bool verbose) {
   signal(SIGILL, handle);
   signal(SIGSEGV, handle);
   signal(SIGTERM, handle);
-  signal(SIGUSR2, handle); // Summit out of time signal.
+  signal(SIGUSR2, handle);  // Summit out of time signal.
 }
 
 void SignalHandler::handle(int signum) {
   if (verbose_)
     std::cerr << "Received signal (" << signum << ") received." << std::endl;
 
-  for (auto file : file_ptrs_)
-    file->close_file();
+  for (auto file_ptr : file_ptrs_) {
+    auto file = file_ptr.lock();
+    if (file)
+      file->close_file();
+  }
 
   exit(signum);
 }
 
-void SignalHandler::registerFile(io::HDF5Writer& writer) {
-  file_ptrs_.push_back(&writer);
+void SignalHandler::registerFile(const std::shared_ptr<io::HDF5Writer>& writer) {
+  file_ptrs_.emplace_back(writer);
 }
 
 }  // namespace util
