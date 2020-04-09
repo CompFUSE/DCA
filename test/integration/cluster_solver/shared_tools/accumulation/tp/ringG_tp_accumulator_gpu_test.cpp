@@ -75,9 +75,9 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
     for (int channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
         auto G4_gpu = accumulatorDevice.get_sign_times_G4()[channel];
         auto G4_cpu = accumulatorHost.get_sign_times_G4()[channel];
-        concurrency_.localSum(G4_gpu, concurrency.first());
+        concurrency_.gatherv(G4_gpu, concurrency.first());
+        concurrency_.localSum(G4_cpu, concurrency.first());
         if (concurrency.get_id() == 0 && channel == 0){
-            G4_cpu *= concurrency.number_of_processors();
             const auto diff = dca::func::util::difference(G4_cpu, G4_gpu);
             EXPECT_GT(5e-7, diff.l_inf);
             EXPECT_GT(5e-7, diff.l1);

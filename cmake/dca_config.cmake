@@ -50,6 +50,13 @@ else()
 endif()
 
 ################################################################################
+# Enable NVLINK code.
+option(DCA_WITH_NVLINK "Enable NVLINK support." OFF)
+if (DCA_WITH_NVLINK)
+  dca_add_config_define(DCA_WITH_NVLINK)
+endif()
+
+################################################################################
 # Select the point group, the lattice type, and the model type.
 # TODO: Add more point groups and lattices.
 

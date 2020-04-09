@@ -55,6 +55,9 @@ public:
   // Single band version of the above method.
   __device__ inline unsigned int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
 
+  // Returns range (start and end index) of G4 in which local rank should compute, when GPUDirect is enabled
+  __device__ inline void getComputeRange(int my_rank, int mpi_size, int total_G4_size, int& start, int& end) const;
+
 protected:
   int lda_;
   int lds_;
@@ -121,6 +124,37 @@ inline __device__ unsigned int G4Helper::g4Index(int k1, int k2, int k_ex, int w
   return sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k_ex + sbdm_steps_[7] * w1 +
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
 }
+
+#ifdef DCA_WITH_NVLINK
+inline __device__
+void G4Helper::getComputeRange(int my_rank, int mpi_size, int total_G4_size, int& start, int& end) const {
+
+    unsigned int offset = 0;
+    // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
+    // if balanced, each rank has same amount of elements to compute
+    // if not, ranks with (rank_id < nb_more_work_ranks) has to compute 1 more element than other ranks
+    bool balanced = (total_G4_size % mpi_size == 0);
+    int local_work = total_G4_size / mpi_size;
+
+    if(balanced) {
+        offset = my_rank  * local_work;
+        end  = offset + local_work;
+    }
+    else {
+        int nb_more_work_ranks = total_G4_size % mpi_size;
+
+        if (my_rank < nb_more_work_ranks) {
+            offset = my_rank * (local_work + 1);
+            end = offset + (local_work + 1);
+        }
+        else {
+            offset = nb_more_work_ranks * (local_work + 1) + (my_rank - nb_more_work_ranks) * local_work;
+            end = offset + local_work;
+        }
+    }
+    start = offset;
+}
+#endif
 
 }  // namespace details
 }  // namespace accumulator

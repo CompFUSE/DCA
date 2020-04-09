@@ -101,6 +101,9 @@ public:
   // Empty method for compatibility with GPU version.
   void finalize() {}
 
+  // Empty method for compatibility with GPU version.
+  void ringG() {}
+
   // Returns the accumulated Green's function.
   const auto& get_sign_times_G4() const;
 

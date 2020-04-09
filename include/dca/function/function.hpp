@@ -111,6 +111,10 @@ public:
   std::size_t size() const {
     return Nb_elements;
   }
+
+  void reset_size(std::size_t Nb_elements_new) {
+    Nb_elements = Nb_elements_new;
+  }
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
   int operator[](const int index) const {

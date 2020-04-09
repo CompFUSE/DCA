@@ -452,11 +452,17 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
     if (accumulate_g4) {
       for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
         auto& G4 = data_.get_G4()[channel];
+        // function operator = will reset this G4 size to other G4 size if they are not equal
         G4 = accumulator_.get_sign_times_G4()[channel];
         if (compute_jack_knife_)
           concurrency_.leaveOneOutSum(G4);
-        else
-          concurrency_.localSum(G4, concurrency_.first());
+        else {
+#ifdef DCA_WITH_NVLINK
+            concurrency_.gatherv(G4, concurrency_.first());
+#else
+            concurrency_.localSum(G4, concurrency_.first());
+#endif
+        }
       }
     }
 
