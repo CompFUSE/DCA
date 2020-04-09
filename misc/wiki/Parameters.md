@@ -222,6 +222,11 @@ Stop the DCA<sup>(+)</sup> loop if this accuracy has been reached.
 Indices of orbitals that are treated interacting.  
 Note that this parameter must be consistent with the model that is used.
 
+`"do-post-interpolation":` boolean (false)  
+Turn on post-interpolation procedure for DCA.
+Interpolates and symmetrizes the final DCA cluster self-energy and cluster irreducible vertex function.
+(Reference: https://arxiv.org/abs/2002.06866)
+
 `"do-finite-size-QMC":` boolean (false)  
 Do a finite-size QMC calculation (no mean-field).
 
@@ -510,7 +515,7 @@ Do additional time measurements.
     {
         "CT-AUX": {
             "expansion-parameter-K": 1.,
-            "initial-configuration-size": 100,
+            "initial-configuration-size": 0,
             "initial-matrix-size": 128,
 
             "max-submatrix-size": 64,
@@ -520,7 +525,7 @@ Do additional time measurements.
         }
     }
 
-### CT-AUX
+### CT-INT
 
 **Group** `"CT-INT":`  
 Used if *CT-INT* is selected as the cluster solver.

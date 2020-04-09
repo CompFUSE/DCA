@@ -32,10 +32,16 @@ public:
   template <class RDmn, class BDmn>
   static void set();
 
+  static bool initialized(){
+      return initialized_;
+  }
+
   // Return the index of a single particle function of b1, b2, r1 - r2.
   __device__ std::size_t index(int b1, int b2, int r1, int r2) const;
 
 private:
+  static bool initialized_;
+
   std::size_t subdm_step_[2];
 };
 
