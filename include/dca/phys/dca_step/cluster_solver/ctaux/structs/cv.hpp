@@ -191,8 +191,8 @@ template <typename parameters_type>
 template <typename vertex_singleton_t>
 inline double CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v,
                                                   HS_spin_states_type new_HS_spin) {
-  std::pair<int, int>& spin_orbitals = v.get_spin_orbitals();
-  int& delta_r = v.get_delta_r();
+  std::pair<int, int> spin_orbitals = v.get_spin_orbitals();
+  int delta_r = v.get_delta_r();
 
   if (H_interaction(spin_orbitals.first, spin_orbitals.second, delta_r) > 1.e-3) {
     return 1.;

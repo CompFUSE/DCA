@@ -24,12 +24,11 @@
 #include "dca/linalg/util/stream_container.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/util/integer_division.hpp"
@@ -166,7 +165,6 @@ public:
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
-  using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
   // Auxiliary methods.
   void updateSweepAverages();
@@ -350,7 +348,7 @@ void CtintWalkerBase<Parameters, Real>::printSummary() const {
 template <class Parameters, typename Real>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters, Real>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
+    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)

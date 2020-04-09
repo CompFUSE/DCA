@@ -58,7 +58,7 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
 
-  using Scalar = double;
+  using Scalar = Real;
 
   constexpr static dca::linalg::DeviceType device = device_t;
 
@@ -128,8 +128,6 @@ public:
     else
       return 0;
   }
-
-  static void write(io::HDF5Writer&) {}
 
   Real get_MC_log_weight() const {
     return mc_log_weight_;

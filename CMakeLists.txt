@@ -122,6 +122,7 @@ set(DCA_LIBS
   ctaux
   ctint
   ss_ct_hyb
+  g0_interpolation
   function_transform
   gaussian_quadrature
   nfft

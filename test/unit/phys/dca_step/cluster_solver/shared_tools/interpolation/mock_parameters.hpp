@@ -3,16 +3,15 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 // Giovanni Balduzzi(gbalduzz@ethz.phys.ch)
 //
 // This file provides the minimum parameters for initializing the time domain.
 
-#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_MOCK_PARAMETERS_HPP
-#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_MOCK_PARAMETERS_HPP
+#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_MOCK_PARAMETERS_HPP
+#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_MOCK_PARAMETERS_HPP
 
 namespace dca {
-namespace ctint {
 namespace testing {
 // dca::testing::
 
@@ -33,8 +32,7 @@ public:
   }
 };
 
-}  // testing
-}  // ctint
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
-#endif  //  TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_MOCK_PARAMETERS_HPP
+#endif  //  TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_MOCK_PARAMETERS_HPP

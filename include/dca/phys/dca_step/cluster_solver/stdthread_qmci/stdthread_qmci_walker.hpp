@@ -38,7 +38,7 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
   constexpr static int bands = Parameters::bands;
 
 public:
-  StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
+  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
                       io::HDF5Writer* writer);
   void doSweep();
 
@@ -53,7 +53,7 @@ private:
 };
 
 template <class QmciWalker>
-StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameters, Data& data_ref,
+StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters, Data& data_ref,
                                                      Rng& rng, const int id, io::HDF5Writer* writer)
     : QmciWalker(parameters, data_ref, rng, id),
       QmciAutocorrelationData<QmciWalker>(parameters, id),
@@ -100,7 +100,7 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>>
   using Rng = typename Parameters::random_number_generator;
 
 public:
-  StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
+  StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
                       io::HDF5Writer* /*writer*/)
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {

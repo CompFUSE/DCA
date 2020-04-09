@@ -30,6 +30,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -141,7 +142,7 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  ctint::G0Interpolation<device_t, Real> g0_;
+  G0Interpolation<device_t, Real> g0_;
   Rng rng_;
 };
 
@@ -173,7 +174,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
 
-  g0_.initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
+  g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
