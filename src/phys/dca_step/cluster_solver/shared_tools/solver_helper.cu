@@ -24,6 +24,8 @@ namespace solver {
 // Global helper instance.
 __device__ __constant__ SolverHelper solver_helper;
 
+bool SolverHelper::initialized_ = false;
+
 void SolverHelper::set(const int* add_r, int lda, const int* sub_r, int lds, const int nb,
                        const int nc, const int r0) {
   static std::once_flag flag;
@@ -36,6 +38,7 @@ void SolverHelper::set(const int* add_r, int lda, const int* sub_r, int lds, con
     host_helper.subdm_step_[1] = nb * nb;
 
     cudaMemcpyToSymbol(solver_helper, &host_helper, sizeof(SolverHelper));
+    initialized_ = true;
   });
 }
 
