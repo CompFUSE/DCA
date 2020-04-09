@@ -36,8 +36,17 @@ public:
   }
 
   MagmaQueue(const MagmaQueue& rhs) = delete;
+  MagmaQueue& operator=(const MagmaQueue& rhs) = delete;
 
-  MagmaQueue(MagmaQueue&& rhs) = default;
+  MagmaQueue(MagmaQueue&& rhs) : CudaStream(std::move(rhs)) {
+    swapMembers(rhs);
+  }
+
+  MagmaQueue& operator=(MagmaQueue&& rhs) {
+    CudaStream::operator=(std::move(rhs));
+    swapMembers(rhs);
+    return *this;
+  }
 
   ~MagmaQueue() {
     magma_queue_destroy(queue_);
@@ -50,6 +59,12 @@ public:
   }
 
 private:
+  void swapMembers(MagmaQueue& rhs) {
+    std::swap(cublas_handle_, rhs.cublas_handle_);
+    std::swap(cusparse_handle_, rhs.cusparse_handle_);
+    std::swap(queue_, rhs.queue_);
+  }
+
   magma_queue_t queue_ = nullptr;
   cublasHandle_t cublas_handle_ = nullptr;
   cusparseHandle_t cusparse_handle_ = nullptr;
