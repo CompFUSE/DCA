@@ -316,7 +316,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
       walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
-  walker.is_thermalized() = true;
+  walker.markThermalized();
 
   if (id == 0) {
     if (concurrency_.id() == concurrency_.first())
