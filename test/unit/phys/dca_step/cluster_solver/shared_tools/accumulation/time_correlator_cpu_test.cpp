@@ -56,7 +56,7 @@ TEST_F(TimeCorrelatorTest, Accumulate) {
 
   using Correlator = dca::phys::solver::TimeCorrelator<Parameters, double, CPU>;
   Correlator correlator_(parameters_, 0);
-  dca::phys::solver::ctint::G0Interpolation<CPU, double> g0(
+  dca::phys::solver::G0Interpolation<CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   Correlator::setG0(g0);
 

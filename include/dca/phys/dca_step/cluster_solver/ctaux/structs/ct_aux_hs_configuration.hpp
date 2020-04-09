@@ -840,40 +840,6 @@ void CT_AUX_HS_configuration<parameters_type>::write(io::HDF5Writer& file,
   file.close_group();
 }
 
-template <class parameters_type>
-void CT_AUX_HS_configuration<parameters_type>::write(io::HDF5Writer& file,
-                                                     const std::string& stamp) const {
-  file.open_group(stamp);
-
-  const auto n = configuration.size();
-  std::vector<double> times(n);
-  std::vector<std::array<std::uint8_t, 2>> bands(n);
-  std::vector<std::array<std::int8_t, 2>> e_spins(n);
-  std::vector<std::array<std::uint16_t, 2>> sites(n);
-  std::vector<std::int8_t> hs_spin(n);
-
-  auto to_array = [](auto& arr, const std::pair<int, int>& pair) {
-    arr[0] = pair.first;
-    arr[1] = pair.second;
-  };
-
-  for (int i = 0; i < configuration.size(); ++i) {
-    times[i] = configuration[i].get_tau();
-    to_array(bands[i], configuration[i].get_bands());
-    to_array(e_spins[i], configuration[i].get_e_spins());
-    to_array(sites[i], configuration[i].get_r_sites());
-    hs_spin[i] = configuration[i].get_HS_spin();
-  }
-
-  file.execute("times", times);
-  file.execute("bands", bands);
-  file.execute("e_spins", e_spins);
-  file.execute("sites", sites);
-  file.execute("hs_spin", hs_spin);
-
-  file.close_group();
-}
-
 }  // namespace ctaux
 }  // namespace solver
 }  // namespace phys

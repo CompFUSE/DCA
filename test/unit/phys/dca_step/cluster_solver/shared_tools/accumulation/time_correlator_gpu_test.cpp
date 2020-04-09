@@ -61,7 +61,7 @@ TEST_F(TimeCorrelatorTest, Accumulate) {
   CorrelatorCpu correlator_cpu(parameters_, 0);
   CorrelatorGpu correlator_gpu(parameters_, 0);
 
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::GPU, double> g0(
+  dca::phys::solver::G0Interpolation<dca::linalg::GPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
 
   CorrelatorCpu::setG0(g0);
