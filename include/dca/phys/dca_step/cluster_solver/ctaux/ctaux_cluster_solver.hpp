@@ -151,7 +151,7 @@ private:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
 
-  G0Interpolation<device, double> g0_;
+  G0Interpolation<device, typename Walker::Scalar> g0_;
 
   double accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
@@ -187,7 +187,7 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
       M_r_w_squared_("M_r_w_squared"),
 
       averaged_(false) {
-  TimeCorrelator<Parameters, double, device>::setG0(g0_);
+  TimeCorrelator<Parameters, typename Walker::Scalar, device>::setG0(g0_);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
