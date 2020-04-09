@@ -146,18 +146,18 @@ int main(int argc, char** argv) {
 
   // Allow memory to be assigned.
   gpu_accumulator.accumulate(M_dev, config, sign);
-  cudaStreamSynchronize(gpu_accumulator.get_stream());
+  cudaDeviceSynchronize();
   gpu_accumulator.resetAccumulation(1);
 
   Profiler::start();
   cudaProfilerStart();
 
   // Time a single execution.
-  start_event.record(gpu_accumulator.get_stream());
+  start_event.record(*gpu_accumulator.get_stream());
   dca::profiling::WallTime host_start_time;
   gpu_accumulator.accumulate(M_dev, config, sign);
   dca::profiling::WallTime host_end_time;
-  stop_event.record(gpu_accumulator.get_stream());
+  stop_event.record(*gpu_accumulator.get_stream());
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
