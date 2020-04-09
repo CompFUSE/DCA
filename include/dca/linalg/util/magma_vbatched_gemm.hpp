@@ -19,6 +19,7 @@
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/magma_queue.hpp"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {
@@ -30,10 +31,10 @@ template <typename ScalarType>
 class MagmaVBatchedGemm {
 public:
   // Creates a plan for a batched gemm with variable size.
-  MagmaVBatchedGemm(magma_queue_t queue);
+  MagmaVBatchedGemm(const linalg::util::MagmaQueue& queue);
   // Creates a plan and allocates the memory for the arguments of `size`
   // multiplications.
-  MagmaVBatchedGemm(int size, magma_queue_t queue);
+  MagmaVBatchedGemm(int size, const linalg::util::MagmaQueue& queue);
 
   // Allocates the memory for the arguments of `size` multiplications.
   void reserve(int size);
@@ -52,8 +53,8 @@ public:
   void synchronizeCopy();
 
 private:
-  magma_queue_t queue_;
-  const cudaStream_t stream_;
+  const linalg::util::MagmaQueue& queue_;
+  const linalg::util::CudaStream& stream_;
   CudaEvent copied_;
 
   linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
@@ -67,11 +68,11 @@ private:
 };
 
 template <typename ScalarType>
-MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(magma_queue_t queue)
-    : queue_(queue), stream_(magma_queue_get_cuda_stream(queue_)), m_max_(0), n_max_(0), k_max_(0) {}
+MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(const linalg::util::MagmaQueue& queue)
+    : queue_(queue), stream_(queue), m_max_(0), n_max_(0), k_max_(0) {}
 
 template <typename ScalarType>
-MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(const int size, magma_queue_t queue)
+MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(const int size, const linalg::util::MagmaQueue& queue)
     : MagmaVBatchedGemm(queue) {
   reserve(size);
 }
@@ -126,10 +127,10 @@ void MagmaVBatchedGemm<ScalarType>::execute(const char transa, const char transb
   copied_.record(stream_);
 
   const int n_batched = a_ptr_.size();
-  magma::magmablas_gemm_vbatched_max_nocheck(transa, transb, m_dev_.ptr(), n_dev_.ptr(), k_dev_.ptr(),
-                                 ScalarType(1), a_ptr_dev_.ptr(), lda_dev_.ptr(), b_ptr_dev_.ptr(),
-                                 ldb_dev_.ptr(), ScalarType(0), c_ptr_dev_.ptr(), ldc_dev_.ptr(),
-                                 n_batched, m_max_, n_max_, k_max_, queue_);
+  magma::magmablas_gemm_vbatched_max_nocheck(
+      transa, transb, m_dev_.ptr(), n_dev_.ptr(), k_dev_.ptr(), ScalarType(1), a_ptr_dev_.ptr(),
+      lda_dev_.ptr(), b_ptr_dev_.ptr(), ldb_dev_.ptr(), ScalarType(0), c_ptr_dev_.ptr(),
+      ldc_dev_.ptr(), n_batched, m_max_, n_max_, k_max_, queue_);
 
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
@@ -151,9 +152,9 @@ void MagmaVBatchedGemm<ScalarType>::synchronizeCopy() {
   m_max_ = n_max_ = k_max_ = 0;
 }
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_VBATCHED_GEMM_HPP
