@@ -78,10 +78,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
     return M_copy;
   }
 
-  void setMFromConfig() {
-    BaseClass::setMFromConfig();
-    BaseClass::transformM();
-  }
+  using BaseClass::setMFromConfig;
 
   const auto& getWalkerConfiguration() const {
     return BaseClass::configuration_;

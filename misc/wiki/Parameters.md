@@ -221,6 +221,11 @@ Stop the DCA<sup>(+)</sup> loop if this accuracy has been reached.
 Indices of orbitals that are treated interacting.  
 Note that this parameter must be consistent with the model that is used.
 
+`"do-post-interpolation":` boolean (false)  
+Turn on post-interpolation procedure for DCA.
+Interpolates and symmetrizes the final DCA cluster self-energy and cluster irreducible vertex function.
+(Reference: https://arxiv.org/abs/2002.06866)
+
 `"do-finite-size-QMC":` boolean (false)  
 Do a finite-size QMC calculation (no mean-field).
 
@@ -468,7 +473,7 @@ Used if *CT-AUX* is selected as the cluster solver.
 The perturbation order in the CT-AUX algorithm increases linearly with the expansion parameter *K*.  
 While *K* is only subject to the restriction of being positive, values of the order of 1 have proven to be a good choice [3].
 
-`"initial-configuration-size":` integer (10)  
+`"initial-configuration-size":` integer (0)  
 The CT-AUX solver is initialized with `"initial-configuration-size"` random **interacting** vertices.
 
 `"initial-matrix-size":` integer (128)  
@@ -493,7 +498,7 @@ Do additional time measurements.
     {
         "CT-AUX": {
             "expansion-parameter-K": 1.,
-            "initial-configuration-size": 100,
+            "initial-configuration-size": 0,
             "initial-matrix-size": 128,
 
             "max-submatrix-size": 64,
@@ -503,7 +508,7 @@ Do additional time measurements.
         }
     }
 
-### CT-AUX
+### CT-INT
 
 **Group** `"CT-INT":`  
 Used if *CT-INT* is selected as the cluster solver.

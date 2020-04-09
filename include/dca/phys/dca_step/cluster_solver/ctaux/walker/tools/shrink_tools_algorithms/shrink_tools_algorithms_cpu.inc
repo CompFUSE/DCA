@@ -10,14 +10,14 @@
 // Shrink tools algorithms class.
 // Template specialization for CPU.
 
-template <>
-class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU> {
+template <typename Real>
+class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, Real> {
 public:
   SHRINK_TOOLS_ALGORITHMS(int id) : thread_id(id), stream_id(0) {}
 
   void execute(std::vector<int>& source_index, std::vector<int>& target_index,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& G0) {
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0) {
     assert(source_index.size() == target_index.size());
 
     assert(N.nrRows() == G0.nrRows());
@@ -31,11 +31,10 @@ public:
   }
 
   void execute(std::vector<int>& source_index_up, std::vector<int>& target_index_up,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& N_up,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& G0_up,
-               std::vector<int>& source_index_dn, std::vector<int>& target_index_dn,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& N_dn,
-               dca::linalg::Matrix<double, dca::linalg::CPU>& G0_dn) {
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& N_up,
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_up, std::vector<int>& source_index_dn,
+               std::vector<int>& target_index_dn, dca::linalg::Matrix<Real, dca::linalg::CPU>& N_dn,
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_dn) {
     assert(source_index_up.size() == target_index_up.size());
     assert(source_index_dn.size() == target_index_dn.size());
 
@@ -67,3 +66,6 @@ private:
   int thread_id;
   int stream_id;
 };
+
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, float>;
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, double>;

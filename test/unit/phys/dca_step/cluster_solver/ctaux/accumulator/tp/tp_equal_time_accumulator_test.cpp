@@ -41,7 +41,7 @@ TEST_F(TpEqualTimeAccumulatorTest, AccumulateAndSum) {
                      TpEqualTimeAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(), n);
 
   using Accumulator =
-      dca::phys::solver::ctaux::TpEqualTimeAccumulator<G0Setup::Parameters, G0Setup::Data>;
+      dca::phys::solver::ctaux::TpEqualTimeAccumulator<G0Setup::Parameters, G0Setup::Data, double>;
 
   Accumulator accumulator_sum(parameters_, *data_, 0);
   Accumulator accumulator1(parameters_, *data_, 1);
