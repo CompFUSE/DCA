@@ -64,7 +64,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, Real>;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), 0);
-  Walker::setInteractionVertices(data);
+  Walker::setInteractionVertices(data, parameters);
 
   Walker walker(parameters, rng);
   walker.initialize();
@@ -187,8 +187,8 @@ TEST(CtintWalkerTest, RemoveIndices) {
 
   set_matrices_from_config(Q, R, mock_configuration);
 
-  std::vector<ushort> remove{2, 6, 1, 1, 3};
-  for (ushort index : remove) {
+  std::vector<unsigned short> remove{2, 6, 1, 1, 3};
+  for (unsigned short index : remove) {
     std::swap(mock_configuration[index], mock_configuration.back());
     mock_configuration.pop_back();
   }

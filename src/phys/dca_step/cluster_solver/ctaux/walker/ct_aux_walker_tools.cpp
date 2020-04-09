@@ -24,15 +24,18 @@ namespace ctaux {
 //
 // Definitions of template specialization for CPU
 //
-CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::CT_AUX_WALKER_TOOLS(int k_ph) : r(k_ph), c(k_ph), d(k_ph) {}
+template <typename Real>
+CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::CT_AUX_WALKER_TOOLS(int k_ph)
+    : r(k_ph), c(k_ph), d(k_ph) {}
 
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::compute_Gamma(
-    dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma,
-    dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-    dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::compute_Gamma(
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma,
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& G_precomputed,
     dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
-    dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
-    dca::linalg::Vector<double, dca::linalg::CPU>& exp_delta_V, int /*thread_id*/, int /*stream_id*/) {
+    dca::linalg::Vector<Real, dca::linalg::CPU>& exp_V,
+    dca::linalg::Vector<Real, dca::linalg::CPU>& exp_delta_V, int /*thread_id*/, int /*stream_id*/) {
   Gamma.resize(random_vertex_vector.size());
 
   assert(Gamma.nrRows() == Gamma.nrCols());
@@ -45,9 +48,9 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::compute_Gamma(
       int configuration_e_spin_index_j = random_vertex_vector[j];
 
       if (configuration_e_spin_index_j < vertex_index) {
-        double delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
+        Real delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
 
-        double N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);
+        Real N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);
 
         Gamma(i, j) = (N_ij * exp_V[j] - delta) / (exp_V[j] - 1.);
       }
@@ -57,26 +60,27 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::compute_Gamma(
       }
 
       if (i == j) {
-        double gamma_k = exp_delta_V[j];
+        Real gamma_k = exp_delta_V[j];
         Gamma(i, j) -= (gamma_k) / (gamma_k - 1.);
       }
     }
   }
 }
 
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
-    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::set_to_identity(
+    dca::linalg::Matrix<Real, dca::linalg::CPU>& M, int index) {
   int LD_i = M.leadingDimension();
   int LD_j = M.capacity().second;
 
   {
-    double* M_ptr = &M(0, index);
+    Real* M_ptr = &M(0, index);
     for (int i = 0; i < LD_i; ++i)
       M_ptr[i] = 0.;
   }
 
   {
-    double* M_ptr = &M(index, 0);
+    Real* M_ptr = &M(index, 0);
     for (int j = 0; j < LD_j; ++j)
       M_ptr[j * LD_i] = 0.;
   }
@@ -84,12 +88,13 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
   M(index, index) = 1.;
 }
 
-bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::test_max_min(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double max_ref, double min_ref) {
-  double Gamma_val = std::fabs(Gamma_LU(0, 0));
+template <typename Real>
+bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::test_max_min(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real max_ref, Real min_ref) {
+  Real Gamma_val = std::fabs(Gamma_LU(0, 0));
 
-  double max = Gamma_val;
-  double min = Gamma_val;
+  Real max = Gamma_val;
+  Real min = Gamma_val;
 
   for (int i = 1; i < n + 1; i++) {
     Gamma_val = std::fabs(Gamma_LU(i, i));
@@ -115,19 +120,20 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::test_max_min(
   }
 }
 
-double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V, double& max,
-    double& min) {
+template <typename Real>
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real exp_delta_V, Real& max,
+    Real& min) {
   // solve_Gamma_slow(n, Gamma_LU);
   solve_Gamma_fast(n, Gamma_LU);
   // solve_Gamma_BLAS(n, Gamma_LU);
 
-  double Gamma_LU_n_n = Gamma_LU(n, n);
-  double Gamma_val = std::fabs(Gamma_LU_n_n);
+  Real Gamma_LU_n_n = Gamma_LU(n, n);
+  Real Gamma_val = std::fabs(Gamma_LU_n_n);
 
   if (n > 0) {
-    double new_max = (Gamma_val > max) ? Gamma_val : max;
-    double new_min = (Gamma_val < min) ? Gamma_val : min;
+    Real new_max = (Gamma_val > max) ? Gamma_val : max;
+    Real new_min = (Gamma_val < min) ? Gamma_val : min;
 
     if ((new_max / new_min) > 1.e6)
       return 1.e-16;
@@ -143,8 +149,8 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma(
 
   assert(test_max_min(n, Gamma_LU, max, min));
 
-  double phani_gamma = exp_delta_V - 1.;
-  double determinant_ratio = -phani_gamma * Gamma_LU_n_n;
+  Real phani_gamma = exp_delta_V - 1.;
+  Real determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
   return determinant_ratio;
 }
@@ -161,13 +167,14 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma(
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_slow(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_slow(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU) {
   int LD = Gamma_LU.leadingDimension();
 
   {
-    double* y = Gamma_LU.ptr(0, n);
-    double* x = Gamma_LU.ptr(n, 0);
+    Real* y = Gamma_LU.ptr(0, n);
+    Real* x = Gamma_LU.ptr(n, 0);
 
     {
       if (false) {  // serial
@@ -216,20 +223,22 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_slow(
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_fast(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU) {
   solve_Gamma_fast(n, &Gamma_LU(0, 0), Gamma_LU.leadingDimension());
 }
 
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, int LD) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_fast(int n, Real* A, int LD) {
   {
-    double* y = &A[0 + n * LD];
+    Real* y = &A[0 + n * LD];
 
     {  // parallell
-      double y_val = 0;
+      Real y_val = 0;
 
-      double* y_ptr = NULL;
-      double* G_ptr = NULL;
+      Real* y_ptr = NULL;
+      Real* G_ptr = NULL;
 
       for (int j = 0; j < n; j++) {
         y_val = y[j];
@@ -242,7 +251,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, i
       }
     }
 
-    double* x = &r[0];
+    Real* x = &r[0];
 
     assert(r.size() >= n);
     {
@@ -251,10 +260,10 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, i
     }
 
     {  // serial
-      double x_val = 0;
+      Real x_val = 0;
 
-      double* x_ptr = NULL;
-      double* G_ptr = NULL;
+      Real* x_ptr = NULL;
+      Real* G_ptr = NULL;
 
       for (int j = 0; j < n; j++) {
         x_val = x[j];
@@ -270,7 +279,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, i
     }
 
     {
-      double xy = 0;
+      Real xy = 0;
 
       for (int i = 0; i < n; i++)
         xy += x[i] * y[i];
@@ -297,8 +306,9 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, i
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_BLAS(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU /*, double exp_delta_V*/) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_BLAS(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU /*, Real exp_delta_V*/) {
   int lda = Gamma_LU.leadingDimension();
 
   {
@@ -307,7 +317,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_BLAS(
     dca::linalg::blas::trsv("U", "T", "N", n, Gamma_LU.ptr(0, 0), lda, Gamma_LU.ptr(n, 0), lda);
 
     {
-      double xy = 0;
+      Real xy = 0;
       for (int i = 0; i < n; i++)
         xy += Gamma_LU(n, i) * Gamma_LU(i, n);
 
@@ -316,22 +326,23 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_BLAS(
   }
 }
 
-double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V, double& max,
-    double& min) {
+template <typename Real>
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_blocked(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real exp_delta_V, Real& max,
+    Real& min) {
   // std::cout << "\t(" << min << ", " << max << " ) ";
 
   solve_Gamma_blocked(n, Gamma_LU);
 
-  double Gamma_LU_n_n = Gamma_LU(n, n);
+  Real Gamma_LU_n_n = Gamma_LU(n, n);
 
-  double Gamma_val = std::fabs(Gamma_LU_n_n);
+  Real Gamma_val = std::fabs(Gamma_LU_n_n);
 
   // std::cout << " --> " << Gamma_val << " --> (";
 
   if (n > 0) {
-    double new_max = (Gamma_val > max) ? Gamma_val : max;
-    double new_min = (Gamma_val < min) ? Gamma_val : min;
+    Real new_max = (Gamma_val > max) ? Gamma_val : max;
+    Real new_min = (Gamma_val < min) ? Gamma_val : min;
 
     // The Gamma matrix is too ill-conditioned, don't accept this move.
     if ((new_max / new_min) > 1.e6) {
@@ -339,7 +350,7 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
       // matrix.
       // Since the current diagonal element should not be considered for max/min, we need to already
       // update the Gamma matrix (which will set it to 1).
-      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_LU, n);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::set_to_identity(Gamma_LU, n);
 
       return 1.e-16;
     }
@@ -356,8 +367,8 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
   // std::cout << min << ", " << max << ")\t";
   assert(test_max_min(n, Gamma_LU, max, min));
 
-  double phani_gamma = exp_delta_V - 1.;
-  double determinant_ratio = -phani_gamma * Gamma_LU_n_n;
+  Real phani_gamma = exp_delta_V - 1.;
+  Real determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
   return determinant_ratio;
 }
@@ -401,8 +412,9 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
  *
  *
  */
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
-    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+template <typename Real>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::solve_Gamma_blocked(
+    int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU) {
   assert(n > -1 and n < Gamma_LU.size().first);
 
   int Nk = BLOCK_SIZE;
@@ -410,7 +422,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
   int N = Gamma_LU.size().first;
   int LD = Gamma_LU.leadingDimension();
 
-  double* A = &Gamma_LU(0, 0);
+  Real* A = &Gamma_LU(0, 0);
 
   {
     int l = n % Nk;
@@ -420,7 +432,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
 
     assert(n == l + bl * Nk);
 
-    double* A_00 = &A[(bl + 0) * Nk + (bl + 0) * Nk * LD];
+    Real* A_00 = &A[(bl + 0) * Nk + (bl + 0) * Nk * LD];
 
     // update diagonal block
     if (Ic > 0 and l > 0) {
@@ -433,7 +445,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
     solve_Gamma_fast(l, A_00, LD);
 
     {
-      double xy = 0;
+      Real xy = 0;
       for (int i = 0; i < Ic; i++)
         xy += A[n + i * LD] * A[i + n * LD];
 
@@ -443,11 +455,11 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
     // update non-diagonal block
     if (l > 0 and ((l + 1) % Nk) == 0 and N - (bl + 1) * Nk > 0) {
       {
-        double* A_10 = &A[(bl + 1) * Nk + (bl + 0) * Nk * LD];
+        Real* A_10 = &A[(bl + 1) * Nk + (bl + 0) * Nk * LD];
 
         for (int l = 0; l < bl; ++l) {
-          double* L_il = &A[(bl + 1) * Nk + (l + 0) * Nk * LD];
-          double* U_li = &A[(l + 0) * Nk + (bl + 0) * Nk * LD];
+          Real* L_il = &A[(bl + 1) * Nk + (l + 0) * Nk * LD];
+          Real* U_li = &A[(l + 0) * Nk + (bl + 0) * Nk * LD];
 
           dca::linalg::blas::gemm("N", "N", N - (bl + 1) * Nk, Nk, Nk, -1., L_il, LD, U_li, LD, 1.,
                                   A_10, LD);
@@ -457,11 +469,11 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
       }
 
       {
-        double* A_01 = &A[(bl + 0) * Nk + (bl + 1) * Nk * LD];
+        Real* A_01 = &A[(bl + 0) * Nk + (bl + 1) * Nk * LD];
 
         for (int l = 0; l < bl; ++l) {
-          double* L_il = &A[(bl + 0) * Nk + (l + 0) * Nk * LD];
-          double* U_li = &A[(l + 0) * Nk + (bl + 1) * Nk * LD];
+          Real* L_il = &A[(bl + 0) * Nk + (l + 0) * Nk * LD];
+          Real* U_li = &A[(l + 0) * Nk + (bl + 1) * Nk * LD];
 
           dca::linalg::blas::gemm("N", "N", Nk, N - (bl + 1) * Nk, Nk, -1., L_il, LD, U_li, LD, 1.,
                                   A_01, LD);
@@ -473,14 +485,15 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
   }
 }
 
-double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
-    int k, int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V,
-    double& max, double& min) {
+template <typename Real>
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real>::apply_bennett_on_Gamma(
+    int k, int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real exp_delta_V,
+    Real& max, Real& min) {
   int ld = Gamma_LU.leadingDimension();
 
-  double* r_ptr = &r[0];
-  double* c_ptr = &c[0];
-  double* d_ptr = &d[0];
+  Real* r_ptr = &r[0];
+  Real* c_ptr = &c[0];
+  Real* d_ptr = &d[0];
 
   {  // store previous diagonal
     for (int i = 0; i < n; ++i)
@@ -535,12 +548,12 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
     dca::linalg::lapack::standardBennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
   }
 
-  double ratio = 1.;
+  Real ratio = 1.;
   for (int i = 0; i < n; ++i)
     ratio *= (Gamma_LU(i, i) / d_ptr[i]);
 
   {
-    double Gamma_val = std::fabs(Gamma_LU(0, 0));
+    Real Gamma_val = std::fabs(Gamma_LU(0, 0));
 
     max = Gamma_val;
     min = Gamma_val;
@@ -556,13 +569,17 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
       return 1.e-16;
   }
 
-  double phani_gamma = exp_delta_V - 1.;
-  double det_ratio = -ratio / phani_gamma;
+  Real phani_gamma = exp_delta_V - 1.;
+  Real det_ratio = -ratio / phani_gamma;
 
   return det_ratio;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+// Template instantiation.
+template class CT_AUX_WALKER_TOOLS<dca::linalg::CPU, double>;
+template class CT_AUX_WALKER_TOOLS<dca::linalg::CPU, float>;
+
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

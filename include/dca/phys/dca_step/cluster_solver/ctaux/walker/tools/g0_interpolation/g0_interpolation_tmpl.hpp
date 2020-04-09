@@ -22,7 +22,7 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, typename Parameters>
+template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
 class G0Interpolation;
 
 }  // namespace ctaux

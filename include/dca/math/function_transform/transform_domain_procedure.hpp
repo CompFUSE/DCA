@@ -12,6 +12,8 @@
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_PROCEDURE_HPP
 #define DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_PROCEDURE_HPP
 
+#include <type_traits>
+
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/linalg/linalg.hpp"
@@ -28,12 +30,6 @@ public:
   static void characterize_transformation(const f_input_t& f_input, const f_output_t& f_output,
                                           int& M, int& K, int& N, int& P);
 
-  template <typename scalartype_1, class domain_input, typename scalartype_2, class domain_output,
-            typename scalartype_3>
-  static void transform(const func::function<scalartype_1, domain_input>& f_input,
-                        func::function<scalartype_2, domain_output>& f_output,
-                        const linalg::Matrix<scalartype_3, linalg::CPU>& T);
-
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(const func::function<scalartype, domain_input>& f_input,
                         func::function<scalartype, domain_output>& f_output,
@@ -44,20 +40,11 @@ public:
                         func::function<std::complex<scalartype>, domain_output>& f_output,
                         const linalg::Matrix<scalartype, linalg::CPU>& T);
 
-  template <typename scalartype, class domain_input, class domain_output>
-  static void transform(const func::function<scalartype, domain_input>& f_input,
-                        func::function<scalartype, domain_output>& f_output,
-                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T);
-
-  template <class domain_input, class domain_output>
-  static void transform(const func::function<float, domain_input>& f_input,
-                        func::function<float, domain_output>& f_output,
-                        const linalg::Matrix<double, linalg::CPU>& T);
-
-  template <class domain_input, class domain_output>
-  static void transform(const func::function<std::complex<float>, domain_input>& f_input,
-                        func::function<std::complex<float>, domain_output>& f_output,
-                        const linalg::Matrix<std::complex<double>, linalg::CPU>& T);
+  template <typename Scalartype, typename Scalartype2, class DomainInput, class DomainOutput,
+            class = std::enable_if_t<std::is_scalar<Scalartype>::value>>
+  static void transform(const func::function<Scalartype, DomainInput>& f_input,
+                        func::function<Scalartype, DomainOutput>& f_output,
+                        const linalg::Matrix<std::complex<Scalartype2>, linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(const func::function<scalartype, domain_output>& f_input,
@@ -138,47 +125,18 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
 }
 
 template <int DMN_INDEX>
-template <typename scalartype, class domain_input, class domain_output>
+template <typename Scalartype, typename Scalartype2, class DomainInput, class DomainOutput, class>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
-    const func::function<scalartype, domain_input>& f_input,
-    func::function<scalartype, domain_output>& f_output,
-    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T) {
-  linalg::Matrix<scalartype, linalg::CPU> T_re("T_re", T.size());
+    const func::function<Scalartype, DomainInput>& f_input,
+    func::function<Scalartype, DomainOutput>& f_output,
+    const linalg::Matrix<std::complex<Scalartype2>, linalg::CPU>& T) {
+  linalg::Matrix<Scalartype, linalg::CPU> T_re("T_re", T.size());
 
   for (int j = 0; j < T.size().second; j++)
     for (int i = 0; i < T.size().first; i++)
       T_re(i, j) = real(T(i, j));
 
   transform(f_input, f_output, T_re);
-}
-
-template <int DMN_INDEX>
-template <class domain_input, class domain_output>
-void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(const func::function<float, domain_input>& f_input,
-                                                      func::function<float, domain_output>& f_output,
-                                                      const linalg::Matrix<double, linalg::CPU>& T) {
-  linalg::Matrix<float, linalg::CPU> T_float("T_re", T.size());
-
-  for (int j = 0; j < T.size().second; j++)
-    for (int i = 0; i < T.size().first; i++)
-      T_float(i, j) = T(i, j);
-
-  transform(f_input, f_output, T_float);
-}
-
-template <int DMN_INDEX>
-template <class domain_input, class domain_output>
-void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
-    const func::function<std::complex<float>, domain_input>& f_input,
-    func::function<std::complex<float>, domain_output>& f_output,
-    const linalg::Matrix<std::complex<double>, linalg::CPU>& T) {
-  linalg::Matrix<std::complex<float>, linalg::CPU> T_float("T_re", T.size());
-
-  for (int j = 0; j < T.size().second; j++)
-    for (int i = 0; i < T.size().first; i++)
-      T_float(i, j) = T(i, j);
-
-  transform(f_input, f_output, T_float);
 }
 
 template <int DMN_INDEX>

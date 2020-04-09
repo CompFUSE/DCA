@@ -1,0 +1,27 @@
+{
+  "physics" :
+  {
+    "beta"                      :  2
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[4, 0],
+        [0, 4]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies" : 16
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "compute-all-transfers" : true
+  }
+}

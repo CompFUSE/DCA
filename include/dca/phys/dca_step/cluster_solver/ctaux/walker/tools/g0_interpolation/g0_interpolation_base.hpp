@@ -31,7 +31,7 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 class G0InterpolationBase {
 public:
   using t = func::dmn_0<domains::time_domain>;
@@ -55,7 +55,7 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
-  G0InterpolationBase(int id, Parameters& parameters);
+  G0InterpolationBase(int id, const Parameters& parameters);
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
@@ -70,24 +70,24 @@ protected:
 protected:
   int thread_id;
 
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> r1_minus_r0;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> r1_minus_r0;
 
-  func::function<double, nu_nu_r_dmn_t_shifted_t> G0_r_t_shifted;
-  func::function<double, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
+  func::function<Real, nu_nu_r_dmn_t_shifted_t> G0_r_t_shifted;
+  func::function<Real, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
 
-  func::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+  func::function<Real, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
   int N_t, linind, t_ind;
-  double beta, N_div_beta, new_tau, scaled_tau, delta_tau, f_0, grad;
+  Real beta, N_div_beta, new_tau, scaled_tau, delta_tau, f_0, grad;
 };
 
-template <typename Parameters>
-G0InterpolationBase<Parameters>::G0InterpolationBase(int id, Parameters& parameters_ref)
+template <typename Parameters, typename Real>
+G0InterpolationBase<Parameters, Real>::G0InterpolationBase(int id, const Parameters& parameters_ref)
     : thread_id(id),
 
       parameters(parameters_ref),
@@ -108,17 +108,17 @@ G0InterpolationBase<Parameters>::G0InterpolationBase(int id, Parameters& paramet
 /*!
  *  \brief  Set the functions 'G0_r_t_shifted' and 'grad_G0_r_t_shifted'
  */
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0InterpolationBase<Parameters>::initialize(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize(MOMS_type& MOMS) {
   initialize_linear_coefficients(MOMS);
 
   initialize_akima_coefficients(MOMS);
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0InterpolationBase<Parameters>::initialize_linear_coefficients(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize_linear_coefficients(MOMS_type& MOMS) {
   for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++) {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
@@ -148,15 +148,15 @@ void G0InterpolationBase<Parameters>::initialize_linear_coefficients(MOMS_type& 
   }
 }
 
-template <typename Parameters>
+template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0InterpolationBase<Parameters>::initialize_akima_coefficients(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize_akima_coefficients(MOMS_type& MOMS) {
   int size = t::dmn_size() / 2;
 
-  math::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<Real> ai_obj(size);
 
-  std::vector<double> x(size);
-  std::vector<double> y(size);
+  std::vector<Real> x(size);
+  std::vector<Real> y(size);
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -207,9 +207,9 @@ void G0InterpolationBase<Parameters>::initialize_akima_coefficients(MOMS_type& M
     for(int t_ind=0; t_ind<shifted_t::dmn_size(); t_ind++)
     {
     int linind    = 4*nu_nu_r_dmn_t_t_shifted_dmn(0,0,0,t_ind);
-    double* a_ptr = &akima_coefficents(linind);
+    Real* a_ptr = &akima_coefficents(linind);
 
-    for(double x=0; x<1.05; x+=0.1)
+    for(Real x=0; x<1.05; x+=0.1)
     cout << t_ind+x << "\t" << (a_ptr[0] + x*(a_ptr[1] + x*(a_ptr[2] + x*a_ptr[3]))) << endl;
     }
 

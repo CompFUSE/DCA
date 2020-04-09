@@ -23,8 +23,10 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 
 namespace dca {
 namespace testing {
@@ -125,16 +127,18 @@ public:
   }
 
 public:
+  struct MockParameters {
+    constexpr static int bands = n_bands;
+    using lattice_type = dca::phys::models::square_lattice<dca::phys::domains::no_symmetry<2>>;
+  };
+
   static void SetUpTestCase() {
     if (!single_sector_accumulator_test_initialized) {
       // Initialize the frequency domains.
       dca::phys::domains::frequency_domain::initialize(beta_, n_frqs);
       PositiveFrq::initialize(n_frqs);
       // Initialize the band domain.
-      int mock_parameter = 0;
-      BDmn::parameter_type::initialize(
-          mock_parameter, n_bands, std::vector<int>(),
-          std::vector<std::vector<double>>(n_bands, std::vector<double>(n_bands, 0)));
+      BDmn::parameter_type::initialize(MockParameters());
 
       single_sector_accumulator_test_initialized = true;
     }
