@@ -366,14 +366,14 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
         recv_tag = 1 + MOD(recv_tag-1, MPI_TAG_UB); // just to be safe, then 1 <= tag <= MPI_TAG_UB
 
         MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag, MPI_COMM_WORLD, &recv_request_1));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1, MPI_COMM_WORLD, &recv_request_1));
         MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
-                  MPI_DOUBLE, left_neighbor, recv_tag + mpi_size, MPI_COMM_WORLD, &recv_request_2));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &recv_request_2));
 
         MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag, MPI_COMM_WORLD, &send_request_1));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1, MPI_COMM_WORLD, &send_request_1));
         MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                  MPI_DOUBLE, right_neighbor, send_tag + mpi_size, MPI_COMM_WORLD, &send_request_2));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &send_request_2));
 
         MPI_CHECK(MPI_Wait(&recv_request_1, &status_1)); // wait for recvbuf_G2 to be available again
         MPI_CHECK(MPI_Wait(&recv_request_2, &status_2)); // wait for recvbuf_G2 to be available again
