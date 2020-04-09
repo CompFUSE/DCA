@@ -199,22 +199,15 @@ public:
   template <DeviceType rhs_device_name>
   void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
-#ifdef DCA_HAVE_CUDA
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
-  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
+  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, const util::CudaStream& stream);
 
   // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   template <DeviceType rhs_device_name>
   void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
-  void setToZero(cudaStream_t stream);
-#else
-  // Synchronous assignment fallback for SetAsync.
-  template <DeviceType rhs_device_name>
-  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
-
-#endif  // DCA_HAVE_CUDA
+  void setToZero(const util::CudaStream& stream);
 
   // Prints the values of the matrix elements.
   void print() const;
@@ -427,12 +420,10 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
                    stream_id);
 }
 
-#ifdef DCA_HAVE_CUDA
-
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                               const cudaStream_t stream) {
+                                               const util::CudaStream& stream) {
   resizeNoCopy(rhs.size_);
   util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
 }
@@ -445,20 +436,9 @@ void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_devi
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Matrix<ScalarType, device_name>::setToZero(cudaStream_t stream) {
-  cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
+void Matrix<ScalarType, device_name>::setToZero(const util::CudaStream& stream) {
+  util::Memory<device_name>::setToZeroAsync(data_, leadingDimension() * nrCols(), stream);
 }
-
-#else
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                               int /*thread_id*/, int /*stream_id*/) {
-  set(rhs);
-}
-
-#endif  // DCA_HAVE_CUDA
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::print() const {
