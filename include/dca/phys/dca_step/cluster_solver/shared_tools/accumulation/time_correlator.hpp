@@ -61,7 +61,8 @@ public:
 
   // TODO: use a shared pointer.
   static void setG0(const G0Interpolation<device, Real>& g0) {
-    SolverHelper::set<RDmn, BDmn>();
+    if constexpr (device == linalg::GPU)
+      SolverHelper::set<RDmn, BDmn>();
     g0_ = &g0;
   }
 

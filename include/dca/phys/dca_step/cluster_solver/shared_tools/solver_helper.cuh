@@ -17,6 +17,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
+#include "dca/util/cuda_definitions.hpp"
 #endif
 
 namespace dca {
@@ -32,12 +33,12 @@ public:
   template <class RDmn, class BDmn>
   static void set();
 
-  static bool initialized(){
-      return initialized_;
+  static bool initialized() {
+    return initialized_;
   }
 
   // Return the index of a single particle function of b1, b2, r1 - r2.
-  __device__ std::size_t index(int b1, int b2, int r1, int r2) const;
+  __DEVICE__ std::size_t index(int b1, int b2, int r1, int r2) const;
 
 private:
   static bool initialized_;
@@ -46,9 +47,9 @@ private:
 };
 
 // Global instance.
-extern __device__ __constant__ SolverHelper solver_helper;
+extern __DEVICE__ __CONSTANT__ SolverHelper solver_helper;
 
-__device__ inline std::size_t SolverHelper::index(int b1, int b2, int r1, int r2) const {
+__DEVICE__ inline std::size_t SolverHelper::index(int b1, int b2, int r1, int r2) const {
   const int delta_r = solver::cluster_real_helper.subtract(r2, r1);
   return b1 + b2 * subdm_step_[0] + delta_r * subdm_step_[1];
 }
@@ -64,15 +65,15 @@ void SolverHelper::set() {
       sub_matrix.leadingDimension(), BDmn::dmn_size(), RDmn::dmn_size(), Cluster::origin_index());
 }
 
-#else  // !DCA_HAVE_CUDA
+#else   // !DCA_HAVE_CUDA
 // No-op version.
 class SolverHelper {
 public:
   template <class RDmn, class BDmn>
   static void set() {}
 
-  constexpr static bool initialized(){
-      return false;
+  constexpr static bool initialized() {
+    return false;
   }
 };
 #endif  // DCA_HAVE_CUDA

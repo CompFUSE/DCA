@@ -15,11 +15,13 @@
 #ifdef __CUDACC__
 #define __HOST__ __host__
 #define __DEVICE__ __device__
+#define __CONSTANT__ __constant__
 #define IS_CUDA_COMPILER
 
 #else // the compiler is not nvcc
 #define __HOST__
 #define __DEVICE__
+#define __CONSTANT__
 #endif
 
 
