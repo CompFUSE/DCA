@@ -15,6 +15,7 @@
 #include <mutex>
 
 #include "dca/math/statistics/autocorrelation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"

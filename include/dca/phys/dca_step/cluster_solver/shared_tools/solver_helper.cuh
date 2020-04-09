@@ -12,16 +12,19 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_SOLVER_HELPER_CUH
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_SOLVER_HELPER_CUH
 
+#ifdef DCA_HAVE_CUDA
 #include <cuda.h>
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
+#endif
 
 namespace dca {
 namespace phys {
 namespace solver {
 // dca::phys::solver::
 
+#ifdef DCA_HAVE_CUDA
 class SolverHelper {
 public:
   static void set(const int* sum_r, int lda, const int* sub_r, int lds, int nb, int nc, int r0);
@@ -54,6 +57,19 @@ void SolverHelper::set() {
   set(add_matrix.ptr(), add_matrix.leadingDimension(), sub_matrix.ptr(),
       sub_matrix.leadingDimension(), BDmn::dmn_size(), RDmn::dmn_size(), Cluster::origin_index());
 }
+
+#else  // !DCA_HAVE_CUDA
+// No-op version.
+class SolverHelper {
+public:
+  template <class RDmn, class BDmn>
+  static void set() {}
+
+  constexpr static bool initialized(){
+      return false;
+  }
+};
+#endif  // DCA_HAVE_CUDA
 
 }  // namespace solver
 }  // namespace phys
