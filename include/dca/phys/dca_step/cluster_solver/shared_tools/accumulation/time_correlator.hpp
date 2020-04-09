@@ -60,6 +60,7 @@ public:
 
   // TODO: use a shared pointer.
   static void setG0(const G0Interpolation<device, Real>& g0) {
+    SolverHelper::set<RDmn, BDmn>();
     g0_ = &g0;
   }
 
@@ -125,9 +126,7 @@ TimeCorrelator<Parameters, Real, device>::TimeCorrelator(const Parameters& param
       thread_id_(id),
       stream_(linalg::util::getStream(thread_id_, 0)) {
   static std::once_flag flag;
-  std::call_once(flag, [&]() {
-    initializeFixedConfiguration();
-  });
+  std::call_once(flag, [&]() { initializeFixedConfiguration(); });
 
   for (auto& correlator : autocorrelations_) {
     correlator.resize(parameters_.get_time_correlation_window());
