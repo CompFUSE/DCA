@@ -32,6 +32,8 @@
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -149,6 +151,8 @@ private:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
 
+  G0Interpolation<device, double> g0_;
+
   double accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
@@ -183,6 +187,8 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
       M_r_w_squared_("M_r_w_squared"),
 
       averaged_(false) {
+  TimeCorrelator<Parameters, double, device>::setG0(g0_);
+
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -203,6 +209,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::write(Writer& writer) {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
+
+  g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   Sigma_old_ = data_.Sigma;
 

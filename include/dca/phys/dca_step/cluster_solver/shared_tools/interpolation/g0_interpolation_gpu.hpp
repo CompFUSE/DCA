@@ -43,32 +43,24 @@ public:
   G0Interpolation() = default;
   G0Interpolation(const G0Interpolation& other) = delete;
 
-  // See this->initialize(G0_pars_t).
   template <class InputDmn>
-  G0Interpolation(const func::function<double, InputDmn>& G0_pars_t);
-  // In: G0_pars_t. Assumed to be a function of discrete labels and time (in this order) and to
-  //             be antiperiodic in time.
-  template <class InputDmn>
-  void initialize(const func::function<double, InputDmn>& G0_pars_t);
-  // Constructor. Reshape the G0Dmn and calls the first constructor.
-  // In: G0_r_t: function of dmn_variadic<D1, D2, ..., TDmn>
+  G0Interpolation(const func::function<double, InputDmn>& G0_func) {
+    HostInterpolation::initialize(G0_func);
+  }
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   // Call from the CPU only for testing purposes.
   Real operator()(Real tau, int lindex) const;
-
-  //  int getStride() const {
-  //    if (time_slices_ == -1)
-  //      throw(std::logic_error("The interpolation was not initialized."));
-  //    return time_slices_ * COEFF_SIZE;
-  //  }
 
   using HostInterpolation::COEFF_SIZE;
 
 private:
   using typename HostInterpolation::CoeffDmn;
   using typename HostInterpolation::PTime0;
+  using typename HostInterpolation::PTdmn;
   using typename HostInterpolation::InterpolationDmn;
+
+  void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) override;
 
   linalg::Vector<Real, linalg::GPU> G0_coeff_;
   linalg::Vector<Real, linalg::GPU> g0_minus_dev_;
@@ -76,8 +68,7 @@ private:
 };
 
 template <typename Real>
-template <class InputDmn>
-void G0Interpolation<linalg::GPU, Real>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
+void G0Interpolation<linalg::GPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
   HostInterpolation::initialize(G0_pars_t);
   assert(HostInterpolation::beta_);
 
@@ -90,9 +81,8 @@ void G0Interpolation<linalg::GPU, Real>::initialize(const func::function<double,
   g0_minus_dev_.setAsync(HostInterpolation::g0_minus_, 0, 0);
 
   linalg::Vector<Real, linalg::CPU> host_coeff(HostInterpolation::G0_coeff_.size());
-  for (std::size_t i = 0; i < host_coeff.size(); ++i) {
-    host_coeff[i] = HostInterpolation::G0_coeff_(i);
-  }
+  std::copy_n(HostInterpolation::G0_coeff_.data(), host_coeff.size(), host_coeff.data());
+
   G0_coeff_.setAsync(host_coeff, 0, 0);
 
   linalg::util::syncStream(0, 0);
@@ -100,12 +90,6 @@ void G0Interpolation<linalg::GPU, Real>::initialize(const func::function<double,
   // Copy pointer to the data structure.
   DeviceInterpolationData<Real>::values_ = G0_coeff_.ptr();
   DeviceInterpolationData<Real>::g0_minus_ = g0_minus_dev_.ptr();
-}
-
-template <typename Real>
-template <class InputDmn>
-G0Interpolation<linalg::GPU, Real>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
-  initialize(G0_pars_t);
 }
 
 template <typename Real>

@@ -58,6 +58,7 @@ public:
   void compute_G_r_t(const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
                      const std::array<WalkerConfig, 2>& configs, int sign);
 
+  // TODO: use a shared pointer.
   static void setG0(const G0Interpolation<device, Real>& g0) {
     g0_ = &g0;
   }
