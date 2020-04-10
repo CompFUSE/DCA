@@ -111,7 +111,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
   const std::string filename =
-      DCA_SOURCE_DIR "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/data.ED.hdf5";
+      DCA_SOURCE_DIR "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/check.data.QMC.hdf5";
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     if (!update_baseline) {
       dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
