@@ -21,6 +21,8 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(CtauxBilayerValidationTest, GreensFunction) {
+  //  dca::linalg::util::initializeMagma();
+
   using namespace dca::testing;
   const std::string ed_data_name = dca::testing::test_directory + "/data.ed.hdf5";
 
@@ -43,7 +45,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_AUX> qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_AUX, CPU> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
@@ -84,17 +86,17 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   }
 
   // Uncomment to write integrator output.
-  // dca::phys::DcaLoopData<ParametersType> loop_data;
-  // qmc_solver.finalize(loop_data);
-  // if (id == 0) {
-  //   std::cout << "\nProcessor " << id << " is writing data " << std::endl;
-  //   dca::io::HDF5Writer writer;
-  //   writer.open_file("ctint_square_results.hdf5");
-  //   writer.open_group("functions");
-  //   writer.execute(data.G_k_w);
-  //   writer.close_group();
-  //   writer.close_file();
-  // }
+  dca::phys::DcaLoopData<ParametersType<CT_AUX>> loop_data;
+  qmc_solver.finalize(loop_data);
+  if (id == 0) {
+    std::cout << "\nProcessor " << id << " is writing data " << std::endl;
+    dca::io::HDF5Writer writer;
+    writer.open_file("ctint_bilayer_results.hdf5");
+    writer.open_group("functions");
+    writer.execute(data.G_k_w);
+    writer.close_group();
+    writer.close_file();
+  }
 }
 
 int main(int argc, char** argv) {

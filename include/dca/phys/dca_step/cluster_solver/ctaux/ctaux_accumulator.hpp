@@ -64,7 +64,7 @@ public:
 
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -339,7 +339,7 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::updateFrom(walker_type&
 
   current_sign = walker.get_sign();
 
-  const linalg::util::CudaEvent* event = walker.compute_M(M_);
+  const linalg::util::CudaEvent* event = walker.computeM(M_);
 
   single_particle_accumulator_obj.synchronizeCopy();
   two_particle_accumulator_.synchronizeCopy();

@@ -144,17 +144,15 @@ set(DCA_LIBS
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
+  cuda_utils
 )
 
 if (DCA_HAVE_CUDA)
-  list(APPEND DCA_CUDA_LIBS
-    cuda_utils)
   list(APPEND DCA_LIBS
     blas_kernels
-    ctaux_walker_kernels
     dnfft_kernels
     lapack_kernels
-    mc_tools_kernels
+    mc_kernels
     special_transform_kernels
     ${DCA_CUDA_LIBS})
 endif()

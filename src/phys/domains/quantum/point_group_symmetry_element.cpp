@@ -59,7 +59,7 @@ point_group_symmetry_element::~point_group_symmetry_element() {
   delete[] t;
 }
 
-void point_group_symmetry_element::linear_transform(double* t0, double* t1) {
+void point_group_symmetry_element::linear_transform(const double *t0, double* t1) const {
   for (int i = 0; i < DIMENSION; ++i)
     t1[i] = 0;
 
@@ -68,7 +68,7 @@ void point_group_symmetry_element::linear_transform(double* t0, double* t1) {
       t1[i] += O[i + DIMENSION * j] * t0[j];
 }
 
-void point_group_symmetry_element::transform(double* t0, double* t1) {
+void point_group_symmetry_element::transform(const double* t0, double* t1) const {
   for (int i = 0; i < DIMENSION; ++i)
     t1[i] = 0;
 
@@ -80,6 +80,6 @@ void point_group_symmetry_element::transform(double* t0, double* t1) {
     t1[i] += t[i];
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca

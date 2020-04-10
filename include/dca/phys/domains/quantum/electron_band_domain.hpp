@@ -6,13 +6,13 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file provides the electron band domain.
 
 #ifndef DCA_PHYS_DOMAINS_QUANTUM_ELECTRON_BAND_DOMAIN_HPP
 #define DCA_PHYS_DOMAINS_QUANTUM_ELECTRON_BAND_DOMAIN_HPP
 
-#include <cassert>
 #include <string>
 #include <vector>
 
@@ -33,27 +33,36 @@ public:
 
   typedef band_element element_type;
 
-  static int& get_size() {
-    static int size = 0;
-    return size;
+  static int get_size() {
+    return elements_.size();
   }
 
   static std::string get_name() {
-    static std::string name = "electron-band-domain";
-    return name;
+    return "electron-band-domain";
   }
 
-  static std::vector<element_type>& get_elements() {
-    static std::vector<element_type> elements(get_size());
-    return elements;
+  static const auto& get_elements() {
+    return elements_;
   }
 
   template <typename Writer>
   static void write(Writer& writer);
 
-  template <typename parameters_type>
-  static void initialize(parameters_type& parameters, int Nb_bands, std::vector<int> flavors,
-                         std::vector<std::vector<double>> a_vecs);
+  template <typename Parameters>
+  static void initialize(const Parameters& parameters);
+
+  // For testing purposes only.
+  static void setAVectors(const std::vector<std::vector<double>>& vecs){
+      if(vecs.size() != get_size()){
+          throw(std::logic_error(__PRETTY_FUNCTION__));
+      }
+      for(int b = 0; b < get_size(); ++b){
+          elements_[b].a_vec = vecs[b];
+      }
+  }
+
+private:
+  static inline std::vector<element_type> elements_;
 };
 
 template <typename Writer>
@@ -63,24 +72,23 @@ void electron_band_domain::write(Writer& writer) {
   writer.close_group();
 }
 
-template <typename parameters_type>
-void electron_band_domain::initialize(parameters_type& /*parameters*/, int NB_BANDS,
-                                      std::vector<int> /*flavors*/,
-                                      std::vector<std::vector<double>> a_vecs) {
-  get_size() = NB_BANDS;
+template <typename Parameters>
+void electron_band_domain::initialize(const Parameters& /*parameters*/) {
+  elements_.resize(Parameters::bands);
 
-  // assert(NB_BANDS == int(flavors.size()));
-  assert(NB_BANDS == int(a_vecs.size()));
+  using Lattice = typename Parameters::lattice_type;
+  auto flavours = Lattice::flavors();
+  auto a_vecs = Lattice::aVectors();
 
-  for (size_t i = 0; i < get_elements().size(); ++i) {
-    get_elements()[i].number = i;
-    get_elements()[i].flavor = i;  // flavors[i];
-    get_elements()[i].a_vec = a_vecs[i];
+  for (size_t i = 0; i < a_vecs.size(); ++i) {
+    elements_.at(i).number = i;
+    elements_.at(i).flavor = flavours.at(i);
+    elements_.at(i).a_vec = a_vecs.at(i);
   }
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_QUANTUM_ELECTRON_BAND_DOMAIN_HPP

@@ -221,6 +221,11 @@ Stop the DCA<sup>(+)</sup> loop if this accuracy has been reached.
 Indices of orbitals that are treated interacting.  
 Note that this parameter must be consistent with the model that is used.
 
+`"do-post-interpolation":` boolean (false)  
+Turn on post-interpolation procedure for DCA.
+Interpolates and symmetrizes the final DCA cluster self-energy and cluster irreducible vertex function.
+(Reference: https://arxiv.org/abs/2002.06866)
+
 `"do-finite-size-QMC":` boolean (false)  
 Do a finite-size QMC calculation (no mean-field).
 
@@ -464,7 +469,7 @@ Used if *CT-AUX* is selected as the cluster solver.
 The perturbation order in the CT-AUX algorithm increases linearly with the expansion parameter *K*.  
 While *K* is only subject to the restriction of being positive, values of the order of 1 have proven to be a good choice [3].
 
-`"initial-configuration-size":` integer (10)  
+`"initial-configuration-size":` integer (0)  
 The CT-AUX solver is initialized with `"initial-configuration-size"` random **interacting** vertices.
 
 `"initial-matrix-size":` integer (128)  
@@ -489,13 +494,52 @@ Do additional time measurements.
     {
         "CT-AUX": {
             "expansion-parameter-K": 1.,
-            "initial-configuration-size": 100,
+            "initial-configuration-size": 0,
             "initial-matrix-size": 128,
 
             "max-submatrix-size": 64,
             "neglect-Bennett-updates": true,
 
             "additional-time-measurements": true
+        }
+    }
+
+### CT-INT
+
+**Group** `"CT-INT":`  
+Used if *CT-INT* is selected as the cluster solver.
+
+`"initial-configuration-size"` integer(0)  
+Size of the initial random configuration (if a previous configuration is not read).   
+`"alpha-dd-pos"` double(0.501)  
+Strength of the alpha field. A random variable in {`alpha-dd-pos`, -`alpha-dd-pos`} is added to the 
+diagonal of the D matrix to mitigate the sign problem. This parameter applies only to 
+density-density interactions with positive coupling.   
+`"alpha-dd-neg"` double(0.)  
+Strength of the alpha field for interactions with negative coupling.  
+`"adjust-alpha-dd"` double(1e-4)  
+If true, the value of G0(0+) is added to `alpha-dd-pos`.  
+`adjust_alpha-dd"` boolean(false)  
+Strength of the alpha field for non-density-density interactions.  
+`"double-update-probability"` double(0.)  
+Probability to propose a double vertex insertion/removal.  
+`"all-sites-partnership"` bool(false)  
+Determines if a double update can be proposed with vertices on different sites.    
+`"max-submatrix-size"` integer(1)  
+Maximum number of vertices inserted/removed in a single submatrix update.  
+
+#### Example
+
+    {
+        "CT-INT": {
+            "initial-configuration-size": 1000,
+            "alpha-dd-pos": 0.1,
+            "alpha-dd-neg": 0,
+            "alpha-ndd" : 0.01,
+            "adjust-alpha-dd" : true,
+            "double-update-probability" : 0.5,
+            "all-sites-partnership" : false,
+            "max-submatrix-size": 128,
         }
     }
 

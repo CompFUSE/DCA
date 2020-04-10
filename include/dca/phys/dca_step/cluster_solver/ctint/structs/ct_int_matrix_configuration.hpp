@@ -28,22 +28,44 @@ namespace ctint {
 
 // Expansion term.
 struct Vertex {
+  Vertex() = default;
+  Vertex(bool _aux_spin, unsigned short _interaction_id, std::uint64_t _tag, double _tau)
+      : aux_spin(_aux_spin), interaction_id(_interaction_id), tag(_tag), tau(_tau) {
+    spins.fill(-1);
+    matrix_config_indices.fill(-1);
+  }
+
   bool aux_spin;
-  ushort interaction_id;
+  unsigned short interaction_id;
   std::uint64_t tag;
   double tau;
+
+  // Reference to the matrix config
+  std::array<std::uint8_t, 2> spins;
+  std::array<unsigned, 2> matrix_config_indices;
+
+  // Marks if this vertex is part of the accepted configuration.
+  bool annihilatable = false;
 
   bool operator==(const Vertex& b) const {
     return aux_spin == b.aux_spin && interaction_id == b.interaction_id && tau == b.tau;
   }
 };
 
+struct ConfigRef {
+  ConfigRef() = default;
+  ConfigRef(unsigned _config_id, std::uint8_t _leg_id) : config_id(_config_id), leg_id(_leg_id) {}
+
+  unsigned config_id;  // Index of the interaction in the SolverConfiguration.
+  std::uint8_t leg_id;  // In {0, 1}. Stores if this is the first or second leg of an interaction vertex.
+};
+
 class MatrixConfiguration {
 public:
   MatrixConfiguration() = default;
   MatrixConfiguration(const MatrixConfiguration& rhs) = default;
-  inline MatrixConfiguration& operator=(const MatrixConfiguration& rhs);
-  inline MatrixConfiguration& operator=(MatrixConfiguration&& rhs);
+  MatrixConfiguration& operator=(const MatrixConfiguration& rhs);
+  MatrixConfiguration& operator=(MatrixConfiguration&& rhs);
 
   inline void swapSectorLabels(int a, int b, int s);
 
@@ -67,15 +89,15 @@ public:
     return sectors_ == rhs.sectors_;
   }
 
-  // TODO try to return on the stack or preallocated mem.
-  inline std::vector<int> findIndices(const uint64_t tag, const int s) const;
-
 protected:
-  inline MatrixConfiguration(const InteractionVertices* H_int, int bands);
+  MatrixConfiguration(const InteractionVertices* H_int, int bands);
 
-  inline std::array<int, 2> addVertex(const Vertex& v);
+  // In/Out: v. The vertex to be added, the matrix configuration spins and indices are updated.
+  // In. config_id. Position of the vertex in the solver configuration.
+  // Out: config_refs. References from matrix configuration to solver configuration to be updated.
+  void addVertex(Vertex& v, unsigned config_id, std::array<std::vector<ConfigRef>, 2>& config_refs);
 
-  inline void pop(ushort idx_up, ushort idx_down);
+  //  inline void pop(unsigned short idx_up, unsigned short idx_down);
 
   const auto& getEntries(const int s) const {
     return sectors_[s].entries_;
@@ -84,89 +106,10 @@ protected:
     return sectors_[s].entries_;
   }
 
-protected:
   const InteractionVertices* H_int_ = nullptr;
-  const int n_bands_ = -1;
+  int n_bands_ = -1;
   std::array<Sector, 2> sectors_;
 };
-
-MatrixConfiguration::MatrixConfiguration(const InteractionVertices* H_int, const int bands)
-    : H_int_(H_int), n_bands_(bands), sectors_{Sector(), Sector()} {}
-
-MatrixConfiguration& MatrixConfiguration::operator=(const MatrixConfiguration& rhs) {
-  sectors_ = rhs.sectors_;
-  return *this;
-}
-
-MatrixConfiguration& MatrixConfiguration::operator=(MatrixConfiguration&& rhs) {
-  sectors_ = std::move(rhs.sectors_);
-  return *this;
-}
-
-std::array<int, 2> MatrixConfiguration::addVertex(const Vertex& v) {
-  auto spin = [=](const int nu) { return nu >= n_bands_; };
-  auto band = [=](const int nu) -> ushort { return nu - n_bands_ * spin(nu); };
-
-  auto field_type = [&](const Vertex& v, const int leg) -> short {
-    const short sign = v.aux_spin ? 1 : -1;
-    const InteractionElement& elem = (*H_int_)[v.interaction_id];
-    if (elem.partners_id.size())
-      return leg == 1 ? -3 * sign : 3 * sign;  // non density-density.
-    else if (elem.w > 0)
-      return leg == 1 ? -1 * sign : 1 * sign;  // positive dd interaction.
-    else
-      return 2 * sign;  // negative dd interaction.
-  };
-
-  std::array<int, 2> sizes{0, 0};
-  const auto& nu = (*H_int_)[v.interaction_id].nu;
-  const auto& r = (*H_int_)[v.interaction_id].r;
-
-  for (ushort leg = 0; leg < 2; ++leg) {
-    assert(spin(nu[0 + 2 * leg]) == spin(nu[1 + 2 * leg]));
-    const short s = spin(nu[0 + 2 * leg]);
-    Sector& sector = sectors_[s];
-    ++sizes[s];
-    sector.entries_.emplace_back(details::SectorEntry{band(nu[0 + 2 * leg]), r[0 + 2 * leg],
-                                                      band(nu[1 + 2 * leg]), r[1 + 2 * leg], v.tau,
-                                                      field_type(v, leg)});
-    sector.tags_.push_back(v.tag);
-  }
-  assert(sectors_[0].entries_.size() == sectors_[0].tags_.size());
-  assert(sectors_[1].entries_.size() == sectors_[1].tags_.size());
-  return sizes;
-}
-
-void MatrixConfiguration::pop(ushort n_up, ushort n_down) {
-  assert(n_up <= sectors_[0].size() and n_down <= sectors_[1].size());
-  sectors_[0].entries_.erase(sectors_[0].entries_.end() - n_up, sectors_[0].entries_.end());
-  sectors_[0].tags_.erase(sectors_[0].tags_.end() - n_up, sectors_[0].tags_.end());
-  sectors_[1].entries_.erase(sectors_[1].entries_.end() - n_down, sectors_[1].entries_.end());
-  sectors_[1].tags_.erase(sectors_[1].tags_.end() - n_down, sectors_[1].tags_.end());
-}
-
-std::vector<int> MatrixConfiguration::findIndices(const uint64_t tag, const int s) const {
-  std::vector<int> indices;
-
-  auto start = sectors_[s].tags_.begin();
-  const auto end = sectors_[s].tags_.end();
-  while (true) {
-    start = std::find(start, end, tag);
-    if (start != end) {
-      indices.push_back(start - sectors_[s].tags_.begin());
-      ++start;
-    }
-    else
-      break;
-  }
-
-  return indices;
-}
-
-void MatrixConfiguration::swapSectorLabels(const int a, const int b, const int s) {
-  std::swap(sectors_[s].entries_[a], sectors_[s].entries_[b]);
-  std::swap(sectors_[s].tags_[a], sectors_[s].tags_[b]);
-}
 
 }  // namespace ctint
 }  // namespace solver

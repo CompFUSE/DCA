@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
     fs.push_back(pool.enqueue([&do_sweeps, &walkers, i, n_warmup]() {
       walkers[i].initialize();
       do_sweeps(walkers[i], n_warmup, i == 0);
-      walkers[i].is_thermalized() = true;
+      walkers[i].markThermalized();
     }));
   }
 

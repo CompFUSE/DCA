@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements hdf5_writer.hpp.
 
@@ -19,9 +20,7 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  while (my_group.size())
-    close_group();
-  if (my_file != NULL)
+  if (file_)
     close_file();
 }
 
@@ -30,60 +29,53 @@ bool HDF5Writer::fexists(const char* filename) {
   return bool(ifile);
 }
 
-H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
-  if (my_file != NULL or my_group.size() != 0)
+void HDF5Writer::open_file(std::string file_name, bool overwrite) {
+  if (file_)
     throw std::logic_error(__FUNCTION__);
 
   if (overwrite) {
-    file_id = H5Fcreate(file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
   else {
     if (fexists(file_name.c_str()))
-      file_id = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+      file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDWR);
     else
-      file_id = H5Fcreate(file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+      file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
   }
 
-  if(file_id < 0)
-    throw std::runtime_error("Cannot open file : " + file_name);
-
-  my_file = new H5::H5File(file_name.c_str(), H5F_ACC_RDWR);
-
-  return (*my_file);
+  file_id_ = file_->getId();
 }
 
 void HDF5Writer::close_file() {
-  delete my_file;
-  my_file = NULL;
-
-  H5Fclose(file_id);
+  if (file_) {
+    // file_->flush(H5F_SCOPE_LOCAL);
+    file_->close();
+    file_.release();
+  }
 }
 
 void HDF5Writer::open_group(std::string name) {
-  my_paths.push_back(name);
-  my_group.push_back(NULL);
+  my_paths_.push_back(name);
+  const std::string path = get_path();
 
-  my_group.back() = new H5::Group(my_file->createGroup(get_path().c_str()));
+  if (!exists(path)) {
+    file_->createGroup(path.c_str());
+  }
 }
 
 void HDF5Writer::close_group() {
-  delete my_group.back();
-
-  my_group.pop_back();
-  my_paths.pop_back();
+  my_paths_.pop_back();
 }
 
 std::string HDF5Writer::get_path() {
   std::string path = "/";
 
-  for (size_t i = 0; i < my_paths.size(); i++) {
-    path = path + my_paths[i];
+  for (size_t i = 0; i < my_paths_.size(); i++) {
+    path += my_paths_[i];
 
-    if (i < my_paths.size() - 1)
-      path = path + "/";
+    if (i < my_paths_.size() - 1)
+      path += "/";
   }
-
-  // cout << path << endl;
 
   return path;
 }
@@ -91,71 +83,82 @@ std::string HDF5Writer::get_path() {
 void HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {
-  if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
-    std::string path = get_path();
+  // HDF5 does not allow a datatype of size 0.
+  if (value.size() == 0)
+    return execute(name, std::string{0});
 
-    hsize_t dims[1];
+  std::string full_name = get_path() + '/' + name;
 
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
+  // String type.
+  H5::StrType datatype(H5::PredType::C_S1, value.size());
 
-    {
-      dims[0] = value.size();
-      dataspace = new H5::DataSpace(1, dims);
-
-      std::string full_name = path + "/" + name;
-      dataset = new H5::DataSet(
-          file.createDataSet(full_name.c_str(), HDF5_TYPE<char>::get_PredType(), *dataspace));
-
-      H5Dwrite(dataset->getId(), HDF5_TYPE<char>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-               &value[0]);
-    }
-
-    delete dataset;
-    delete dataspace;
-  }
+  write(full_name, std::vector<hsize_t>{1}, datatype, value.data());
 }
 
 void HDF5Writer::execute(const std::string& name,
                          const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
-  if (value.size() > 0) {
-    H5::H5File& file = (*my_file);
+  if (value.size() == 0)
+    return;
 
-    open_group(name);
+  const std::string full_name = get_path() + "/" + name;
 
-    execute("size", value.size());  //, file, new_path);
+  auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
 
-    open_group("data");
+  std::vector<const char*> data;
+  for (const auto& s : value) {
+    data.push_back(s.data());
+  }
 
-    hsize_t dims[1];
+  write(full_name, std::vector<hsize_t>{data.size()}, s_type, data.data());
+}
 
-    H5::DataSet* dataset = NULL;
-    H5::DataSpace* dataspace = NULL;
+H5::DataSet HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims,
+                              H5::DataType type, const void* data) {
+  if (exists(name)) {
+    H5::DataSet dataset = file_->openDataSet(name.c_str());
+    H5::DataSpace dataspace = dataset.getSpace();
 
-    for (size_t l = 0; l < value.size(); l++) {
-      dims[0] = value[l].size();
-      dataspace = new H5::DataSpace(1, dims);
+    size_check_.resize(dims.size());
+    dataspace.getSimpleExtentDims(size_check_.data(), nullptr);
 
-      std::stringstream ss;
-      ss << get_path() << "/" << l;
-
-      dataset = new H5::DataSet(
-          file.createDataSet(ss.str().c_str(), HDF5_TYPE<char>::get_PredType(), *dataspace));
-
-      H5Dwrite(dataset->getId(), HDF5_TYPE<char>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT,
-               &(value[l][0]));
+    if (size_check_ != dims) {
+      throw(std::length_error("Object size different than HDF5 dataset."));
     }
 
-    close_group();
+    dataset.write(data, type, dataspace, H5P_DEFAULT);
+    return dataset;
+  }
+  else {
+    H5::DataSpace dataspace(dims.size(), dims.data());
+    H5::DataSet dataset(file_->createDataSet(name.c_str(), type, dataspace));
 
-    delete dataset;
-    delete dataspace;
-
-    close_group();
+    dataset.write(data, type, dataspace, H5P_DEFAULT);
+    return dataset;
   }
 }
 
-}  // io
-}  // dca
+void HDF5Writer::addAttribute(const H5::DataSet& set, const std::string& name,
+                              const std::vector<hsize_t>& size, H5::DataType type, const void* data) {
+  if (set.attrExists(name)) {
+    return;
+  }
+
+  H5::DataSpace space(size.size(), size.data());
+  auto attribute = set.createAttribute(name, type, space);
+  attribute.write(type, data);
+}
+
+void HDF5Writer::addAttribute(const H5::DataSet& set, const std::string& name,
+                              const std::string& value) {
+  H5::StrType str_type(H5::PredType::C_S1, value.size());
+  addAttribute(set, name, std::vector<hsize_t>{1}, str_type, value.c_str());
+}
+
+bool HDF5Writer::exists(const std::string& name) const {
+  auto code = H5Gget_objinfo(file_id_, name.c_str(), 0, NULL);
+  return code == 0;
+}
+
+}  // namespace io
+}  // namespace dca

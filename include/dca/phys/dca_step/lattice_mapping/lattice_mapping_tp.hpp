@@ -53,12 +53,12 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using tmp_k_dmn_t = func::dmn_0<tmp_cluster_domain>;
-  using tmp_vector_dmn_t = func::dmn_variadic<b, b, tmp_k_dmn_t, w_VERTEX>;
-  using source_vector_dmn_t = func::dmn_variadic<b, b, source_k_dmn_t, w_VERTEX>;
-  using target_vector_dmn_t = func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>;
+  using tmp_vector_dmn_t = func::dmn_variadic<b, b, tmp_k_dmn_t, WVertexDmn>;
+  using source_vector_dmn_t = func::dmn_variadic<b, b, source_k_dmn_t, WVertexDmn>;
+  using target_vector_dmn_t = func::dmn_variadic<b, b, target_k_dmn_t, WVertexDmn>;
 
 public:
   lattice_mapping_tp(parameters_type& parameters_ref);
@@ -107,7 +107,7 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
     interpolation_obj.execute(f_source, f_target);
   }
 
-  {
+  if (parameters.do_dca_plus()) {
     if (concurrency.id() == concurrency.first())
       std::cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
@@ -139,8 +139,8 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_f
   util::Plot::heatMap(x, y, z_im);
 }
 
-}  // latticemapping
-}  // phys
-}  // dca
+}  // namespace latticemapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_TP_HPP

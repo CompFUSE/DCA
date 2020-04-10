@@ -92,14 +92,14 @@ struct MPITypeMap<double> {
 template <>
 struct MPITypeMap<std::complex<float>> {
   static MPI_Datatype value() {
-    return MPI_COMPLEX;
+    return MPI_CXX_FLOAT_COMPLEX;
   }
 };
 
 template <>
 struct MPITypeMap<std::complex<double>> {
   static MPI_Datatype value() {
-    return MPI_DOUBLE_COMPLEX;
+    return MPI_CXX_DOUBLE_COMPLEX;
   }
 };
 

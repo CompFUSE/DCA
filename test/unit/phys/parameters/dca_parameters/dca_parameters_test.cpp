@@ -17,16 +17,21 @@
 
 class DcaParametersTest : public ::testing::Test {
 protected:
+  DcaParametersTest() : pars_(2), reader_() {}
+
   dca::phys::params::DcaParameters pars_;
   dca::io::JSONReader reader_;
 };
 
 TEST_F(DcaParametersTest, DefaultValues) {
+  const std::vector<int> interacting_orbitals_check{0, 1};
+
   EXPECT_EQ("zero", pars_.get_initial_self_energy());
   EXPECT_EQ(1, pars_.get_dca_iterations());
   EXPECT_EQ(0., pars_.get_dca_accuracy());
   EXPECT_EQ(1., pars_.get_self_energy_mixing_factor());
-  EXPECT_EQ(std::vector<int>{0}, pars_.get_interacting_orbitals());
+  EXPECT_EQ(interacting_orbitals_check, pars_.get_interacting_orbitals());
+  EXPECT_FALSE(pars_.doPostInterpolation());
   EXPECT_FALSE(pars_.do_finite_size_qmc());
   EXPECT_EQ(0, pars_.get_k_mesh_recursion());
   EXPECT_EQ(0, pars_.get_coarsegraining_periods());
@@ -52,6 +57,7 @@ TEST_F(DcaParametersTest, ReadAll) {
   EXPECT_EQ(1.e-3, pars_.get_dca_accuracy());
   EXPECT_EQ(0.5, pars_.get_self_energy_mixing_factor());
   EXPECT_EQ(interacting_orbitals_check, pars_.get_interacting_orbitals());
+  EXPECT_TRUE(pars_.doPostInterpolation());
   EXPECT_FALSE(pars_.do_finite_size_qmc());
   EXPECT_EQ(3, pars_.get_k_mesh_recursion());
   EXPECT_EQ(2, pars_.get_coarsegraining_periods());

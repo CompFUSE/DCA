@@ -50,8 +50,8 @@ TEST(MatrixViewTest, Constructors) {
 }
 
 TEST(MatrixViewTest, ReadWrite) {
-  dca::linalg::Matrix<ushort, dca::linalg::CPU> mat(4);
-  dca::linalg::MatrixView<ushort, dca::linalg::CPU> view(mat);
+  dca::linalg::Matrix<unsigned short, dca::linalg::CPU> mat(4);
+  dca::linalg::MatrixView<unsigned short, dca::linalg::CPU> view(mat);
 
   view(1, 2) = 2;
   EXPECT_EQ(2, mat(1, 2));
@@ -59,11 +59,29 @@ TEST(MatrixViewTest, ReadWrite) {
   mat(2, 3) = 1;
   EXPECT_EQ(1, view(2, 3));
 
-  dca::linalg::MatrixView<ushort, dca::linalg::CPU> view_shifted(mat, 1, 2);
+  dca::linalg::MatrixView<unsigned short, dca::linalg::CPU> view_shifted(mat, 1, 2);
   EXPECT_EQ(2, view_shifted(0, 0));
 
   EXPECT_DEBUG_DEATH(view(-1, 2), "Assertion.");
   EXPECT_DEBUG_DEATH(view(0, 4), "Assertion.");
+}
+
+TEST(MatrixViewTest, Assignment) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
+  auto init_func = [](int i, int j) { return i >= 2 ? 1 : 0; };
+  testing::setMatrixElements(mat, init_func);
+
+  dca::linalg::MatrixView<int, dca::linalg::CPU> upper_left(mat, 0, 0, 2, 2);
+  dca::linalg::MatrixView<int, dca::linalg::CPU> lower_right(mat, 2, 2, 2, 2);
+
+  upper_left = lower_right;  // Assign ones to upper left submatrix.
+  for (int j = 0; j < 2; ++j)
+    for (int i = 0; i < 2; ++i)
+      EXPECT_EQ(1, mat(i, j));
+
+  dca::linalg::MatrixView<int, dca::linalg::CPU> another_size(mat, 0, 0, 3, 3);
+  // Invalid assignment:
+  EXPECT_THROW(upper_left = another_size, std::invalid_argument);
 }
 
 TEST(MatrixViewTest, MakeConstantView) {

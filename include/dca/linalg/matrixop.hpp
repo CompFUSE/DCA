@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file provides the matrix interface for the following matrix operations:
 // - copyCol, copyRow, copyCols, copyRows
@@ -14,6 +15,7 @@
 // - real
 // - insertCol, insertRow (for CPU matrices only)
 // - inverse
+// - inverseAndDeterminant
 // - removeCol, removeCols, removeRow, removeRows, removeRowAndCol, removeRowAndCols
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
@@ -21,6 +23,8 @@
 // - gemm
 // - multiply
 // - trsm
+// - determinant
+// - logDeterminant
 // - eigensolver (non-symmetric / symmetric / Hermitian)
 // - pseudoInverse
 
@@ -58,8 +62,7 @@ inline void copyMatrixToArray(const Matrix<Scalar, CPU>& mat, Scalar* a, int lda
 // Copies the m by n matrix stored in a to the matrix mat.
 // Preconditions: lda >= m.
 template <typename Scalar>
-inline void copyArrayToMatrix(int m, int n, const Scalar* a, int lda,
-                              Matrix<Scalar, CPU>& mat) {
+inline void copyArrayToMatrix(int m, int n, const Scalar* a, int lda, Matrix<Scalar, CPU>& mat) {
   assert(lda >= m);
   mat.resizeNoCopy(std::make_pair(m, n));
   lapack::lacpy("A", mat.nrRows(), mat.nrCols(), a, lda, mat.ptr(), mat.leadingDimension());
@@ -71,8 +74,7 @@ inline void copyArrayToMatrix(int m, int n, const Scalar* a, int lda,
 //                0 <= jx < mat_x.nrCols(), 0 <= jy < mat_y.nrCols().
 template <typename Scalar, DeviceType device_name>
 inline void copyCol(const Matrix<Scalar, device_name>& mat_x, int jx,
-                    Matrix<Scalar, device_name>& mat_y, int jy, int thread_id = 0,
-                    int stream_id = 0) {
+                    Matrix<Scalar, device_name>& mat_y, int jy, int thread_id = 0, int stream_id = 0) {
   assert(jx >= 0 && jx < mat_x.nrCols());
   assert(jy >= 0 && jy < mat_y.nrCols());
   assert(mat_x.nrRows() == mat_y.nrRows());
@@ -86,10 +88,9 @@ inline void copyCol(const Matrix<Scalar, device_name>& mat_x, int jx,
 // Preconditions: j_x.size() <= j_y.size(), mat_x.nrRows() == mat_y.nrRows()
 //                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
 //                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
-template <typename Scalar>
-inline void copyCols(const Matrix<Scalar, CPU>& mat_x, const Vector<int, CPU>& j_x,
-                     Matrix<Scalar, CPU>& mat_y, const Vector<int, CPU>& j_y,
-                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+template <typename Scalar, class Vec>
+inline void copyCols(const Matrix<Scalar, CPU>& mat_x, const Vec& j_x, Matrix<Scalar, CPU>& mat_y,
+                     const Vec& j_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   assert(j_x.size() <= j_y.size());
 
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
@@ -106,6 +107,19 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  j_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
+
+// Copies the j_x columns of mat_x into the  mat_y, for 0 <= i < j_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrRows() == mat_y.nrRows()
+//                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
+template <typename Scalar>
+inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j_x,
+                     Matrix<Scalar, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrRows() == mat_y.nrRows());
+
+  blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
 #endif  // DCA_HAVE_CUDA
 
 // Copies the ix-th row of mat_x into the iy-th row of mat_y.
@@ -114,8 +128,7 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
 //                0 <= ix < mat_x.nrRows(), 0 <= iy < mat_y.nrRows().
 template <typename Scalar, DeviceType device_name>
 inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
-                    Matrix<Scalar, device_name>& mat_y, int iy, int thread_id = 0,
-                    int stream_id = 0) {
+                    Matrix<Scalar, device_name>& mat_y, int iy, int thread_id = 0, int stream_id = 0) {
   assert(ix >= 0 && ix < mat_x.nrRows());
   assert(iy >= 0 && iy < mat_y.nrRows());
   assert(mat_x.nrCols() == mat_y.nrCols());
@@ -130,10 +143,9 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 // Preconditions: i_x.size() <= i_y.size(), mat_x.nrCols() == mat_y.nrCols()
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
-template <typename Scalar>
-inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vector<int, CPU>& i_x,
-                     Matrix<Scalar, CPU>& mat_y, const Vector<int, CPU>& i_y,
-                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+template <typename Scalar, class Vec>
+inline void copyRows(const Matrix<Scalar, CPU>& mat_x, const Vec& i_x, Matrix<Scalar, CPU>& mat_y,
+                     const Vec& i_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
@@ -151,6 +163,19 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  i_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the i_x rows of mat_x into  mat_y, for 0 <= i < i_x.size().
+// In/Out: mat_y
+// Preconditions: mat_x.nrCols() == mat_y.nrCols()
+//                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size().
+template <typename Scalar>
+inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i_x,
+                     Matrix<Scalar, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 
@@ -199,8 +224,8 @@ auto difference(const Matrix<Scalar, device_name>& a, const Matrix<Scalar, CPU>&
   return difference(cp_a, b, diff_threshold);
 }
 template <typename Scalar, DeviceType device_name_a, DeviceType device_name_b>
-auto difference(const Matrix<Scalar, device_name_a>& a,
-                const Matrix<Scalar, device_name_b>& b, double diff_threshold = 1e-3) {
+auto difference(const Matrix<Scalar, device_name_a>& a, const Matrix<Scalar, device_name_b>& b,
+                double diff_threshold = 1e-3) {
   Matrix<Scalar, CPU> cp_b(b);
   return difference(a, cp_b, diff_threshold);
 }
@@ -282,8 +307,7 @@ void inverse(MatrixType<Scalar, device_name>& mat) {
 }
 
 template <typename Scalar>
-void smallInverse(Matrix<Scalar, CPU>& m_inv, Vector<int, CPU>& ipiv,
-                  Vector<Scalar, CPU>& work) {
+void smallInverse(Matrix<Scalar, CPU>& m_inv, Vector<int, CPU>& ipiv, Vector<Scalar, CPU>& work) {
   assert(m_inv.is_square());
   switch (m_inv.nrCols()) {
     case 1:
@@ -303,8 +327,8 @@ void smallInverse(Matrix<Scalar, CPU>& m_inv, Vector<int, CPU>& ipiv,
     case 3: {
       const Matrix<Scalar, CPU> m(m_inv);
       const Scalar det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
-                             m(1, 0) * (m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) +
-                             m(2, 0) * (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1));
+                         m(1, 0) * (m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) +
+                         m(2, 0) * (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1));
       m_inv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) / det;
       m_inv(0, 1) = -(m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) / det;
       m_inv(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) / det;
@@ -326,6 +350,33 @@ void smallInverse(Matrix<Scalar, CPU>& m_inv) {
   Vector<int, CPU> ipiv;
   Vector<Scalar, CPU> work;
   smallInverse(m_inv, ipiv, work);
+}
+
+// Computes in place the inverse of mat and the determinant of the inverse.
+// In/Out: mat
+// Returns: the determinant of mat^-1
+// Precondition: mat is a non-singular real matrix.
+template <typename Scalar, template <typename, DeviceType> class MatrixType>
+Scalar inverseAndDeterminant(MatrixType<Scalar, CPU>& mat) {
+  assert(mat.is_square());
+  std::vector<int> ipiv(mat.nrRows());
+
+  lapack::UseDevice<CPU>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
+                                ipiv.data());
+
+  Scalar det = 1;
+  for (int i = 0; i < mat.nrCols(); ++i) {
+    det *= mat(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+
+  const int lwork = util::getInverseWorkSize(mat);
+  std::vector<Scalar> work(lwork);
+  lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
+                                work.data(), lwork);
+
+  return 1. / det;
 }
 
 // Remove the j-th column. The data is moved accordingly.
@@ -466,8 +517,7 @@ inline void scaleRow(Matrix<Scalar, device_name>& mat, int i, Scalar val, int th
 // Preconditions: i.size() == val.size(), 0 <= i[k] < mat.nrRow() for 0 <= k < i.size().
 template <typename Scalar>
 inline void scaleRows(Matrix<Scalar, CPU>& mat, const Vector<int, CPU>& i,
-                      const Vector<Scalar, CPU>& val, int /*thread_id*/ = 0,
-                      int /*stream_id*/ = 0) {
+                      const Vector<Scalar, CPU>& val, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   assert(i.size() == val.size());
 
   for (int j = 0; j < mat.nrCols(); ++j)
@@ -562,8 +612,8 @@ inline void swapRowAndCol(Matrix<Scalar, device_name>& mat, int i1, int i2, int 
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename Scalar>
-void gemv(char transa, Scalar alpha, const Matrix<Scalar, CPU>& a,
-          const Vector<Scalar, CPU>& x, Scalar beta, Vector<Scalar, CPU>& y) {
+void gemv(char transa, Scalar alpha, const Matrix<Scalar, CPU>& a, const Vector<Scalar, CPU>& x,
+          Scalar beta, Vector<Scalar, CPU>& y) {
   if (transa == 'N') {
     assert(a.nrRows() == y.size());
     assert(a.nrCols() == x.size());
@@ -603,8 +653,8 @@ void gemv(char transa, const Matrix<Scalar, CPU>& a, const Vector<Scalar, CPU>& 
 template <typename Scalar, DeviceType device_name, template <typename, DeviceType> class MatrixA,
           template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
 void gemm(char transa, char transb, Scalar alpha, const MatrixA<Scalar, device_name>& a,
-          const MatrixB<Scalar, device_name>& b, Scalar beta,
-          MatrixC<Scalar, device_name>& c, int thread_id = 0, int stream_id = 0) {
+          const MatrixB<Scalar, device_name>& b, Scalar beta, MatrixC<Scalar, device_name>& c,
+          int thread_id = 0, int stream_id = 0) {
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -705,8 +755,8 @@ void trsm(char uplo, char diag, const Matrix<Scalar, device_name>& a,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename Scalar>
-void gemm(char transa, char transb, Matrix<Scalar, CPU>& a,
-          Matrix<std::complex<Scalar>, CPU>& b, Matrix<std::complex<Scalar>, CPU>& c) {
+void gemm(char transa, char transb, Matrix<Scalar, CPU>& a, Matrix<std::complex<Scalar>, CPU>& b,
+          Matrix<std::complex<Scalar>, CPU>& c) {
   Matrix<Scalar, CPU> b_part(b.size());
   Matrix<Scalar, CPU> c_re(c.size());
   Matrix<Scalar, CPU> c_im(c.size());
@@ -789,8 +839,7 @@ static void gemm(char transa, char transb, Matrix<std::complex<Scalar>, CPU>& a,
 //                and kb = b[0].nrRows() if transb == 'N', kb = b[0].nrCols() otherwise.
 template <typename Scalar>
 void multiply(char transa, char transb, const std::array<Matrix<Scalar, CPU>, 2>& a,
-              const std::array<Matrix<Scalar, CPU>, 2>& b,
-              std::array<Matrix<Scalar, CPU>, 2>& c,
+              const std::array<Matrix<Scalar, CPU>, 2>& b, std::array<Matrix<Scalar, CPU>, 2>& c,
               std::array<Matrix<Scalar, CPU>, 5>& work) {
   assert(a[0].size() == a[1].size());
   assert(b[0].size() == b[1].size());
@@ -827,8 +876,7 @@ void multiply(char transa, char transb, const std::array<Matrix<Scalar, CPU>, 2>
 
 template <typename Scalar>
 void multiply(const std::array<Matrix<Scalar, CPU>, 2>& a,
-              const std::array<Matrix<Scalar, CPU>, 2>& b,
-              std::array<Matrix<Scalar, CPU>, 2>& c,
+              const std::array<Matrix<Scalar, CPU>, 2>& b, std::array<Matrix<Scalar, CPU>, 2>& c,
               std::array<Matrix<Scalar, CPU>, 5>& work) {
   multiply('N', 'N', a, b, c, work);
 }
@@ -847,8 +895,7 @@ void multiply(const std::array<Matrix<Scalar, CPU>, 2>& a,
 //                and kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename Scalar, DeviceType device_name>
 void multiply(char transa, char transb, const std::array<Matrix<Scalar, device_name>, 2>& a,
-              const Matrix<Scalar, device_name>& b,
-              std::array<Matrix<Scalar, device_name>, 2>& c) {
+              const Matrix<Scalar, device_name>& b, std::array<Matrix<Scalar, device_name>, 2>& c) {
   assert(transa == 'N' || transa == 'T' || transa == 'C');
   assert(transb == 'N' || transb == 'T');
   assert(a[0].size() == a[1].size());
@@ -861,8 +908,7 @@ void multiply(char transa, char transb, const std::array<Matrix<Scalar, device_n
 
 template <typename Scalar, DeviceType device_name>
 void multiply(const std::array<Matrix<Scalar, device_name>, 2>& a,
-              const Matrix<Scalar, device_name>& b,
-              std::array<Matrix<Scalar, device_name>, 2>& c) {
+              const Matrix<Scalar, device_name>& b, std::array<Matrix<Scalar, device_name>, 2>& c) {
   multiply('N', 'N', a, b, c);
 }
 
@@ -953,9 +999,8 @@ inline void multiplyDiagonalRight(const Matrix<Scalar, GPU>& a, const Vector<Sca
 // Postcondition: lambda_re, lambda_i, are resized, vl if jobvl == 'V', vr if jobvr == 'V' are
 // resized.
 template <typename Scalar>
-void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU>& a,
-                 Vector<Scalar, CPU>& lambda_re, Vector<Scalar, CPU>& lambda_im,
-                 Matrix<Scalar, CPU>& vl, Matrix<Scalar, CPU>& vr) {
+void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU>& a, Vector<Scalar, CPU>& lambda_re,
+                 Vector<Scalar, CPU>& lambda_im, Matrix<Scalar, CPU>& vl, Matrix<Scalar, CPU>& vr) {
   assert(a.is_square());
 
   Matrix<Scalar, CPU> a_copy(a);
@@ -992,8 +1037,7 @@ void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU>& a,
 // Postcondition: lambda, is resized, vl if jobvl == 'V', vr if jobvr == 'V' are resized.
 template <typename Scalar>
 void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<Scalar>, CPU>& a,
-                 Vector<std::complex<Scalar>, CPU>& lambda,
-                 Matrix<std::complex<Scalar>, CPU>& vl,
+                 Vector<std::complex<Scalar>, CPU>& lambda, Matrix<std::complex<Scalar>, CPU>& vl,
                  Matrix<std::complex<Scalar>, CPU>& vr) {
   assert(a.is_square());
 
@@ -1082,8 +1126,7 @@ void eigensolverHermitian(char jobv, char uplo, const Matrix<std::complex<Scalar
 }
 
 template <typename Scalar>
-void eigensolverGreensFunctionMatrix(char jobv, char uplo,
-                                     const Matrix<std::complex<Scalar>, CPU>& a,
+void eigensolverGreensFunctionMatrix(char jobv, char uplo, const Matrix<std::complex<Scalar>, CPU>& a,
                                      Vector<Scalar, CPU>& lambda,
                                      Matrix<std::complex<Scalar>, CPU>& v) {
   assert(a.is_square());
@@ -1112,8 +1155,7 @@ void eigensolverGreensFunctionMatrix(char jobv, char uplo,
 // Out: a_inv
 // Postconditions: a_inv is resized to the needed dimension.
 template <typename Scalar>
-void pseudoInverse(const Matrix<Scalar, CPU>& a, Matrix<Scalar, CPU>& a_inv,
-                   double eps = 1.e-6) {
+void pseudoInverse(const Matrix<Scalar, CPU>& a, Matrix<Scalar, CPU>& a_inv, double eps = 1.e-6) {
   int m = a.nrRows();
   int n = a.nrCols();
   a_inv.resizeNoCopy(std::make_pair(n, m));
@@ -1171,6 +1213,117 @@ void pseudoInverse(const Matrix<Scalar, CPU>& a, Matrix<Scalar, CPU>& a_inv,
     gemm('N', 'C', at_a, a, a_inv);
   }
 }
+
+// Computes (in place) the determinant of the matrix.
+// Returns: determinant.
+// Postcondition: M is its LU decomposition.
+template <template <typename, DeviceType> class MatrixType, typename Scalar>
+Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
+  assert(M.nrCols() == M.nrRows());
+  const int n = M.nrCols();
+  std::vector<int> ipiv(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return 0;
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  double det = 1.;
+  for (int i = 0; i < n; i++) {
+    det *= M(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+  return det;
+}
+
+// Copy and computes the determinant of the matrix.
+// Returns: determinant.
+template <typename Scalar, DeviceType device>
+double determinant(const Matrix<Scalar, device>& M) {
+  Matrix<Scalar, CPU> M_copy(M);
+  return determinantIP(M_copy);
+}
+
+// Returns: logarithm of the absolute value of the determinant and the sign of the determinant,
+//          or zero if the determinant is zero.
+// Postcondition: M is its LU decomposition.
+template <template <typename, DeviceType> class MatrixType, typename Scalar>
+std::pair<Scalar, int> logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<int>& ipiv) {
+  assert(M.is_square());
+  static_assert(std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>,
+                " This function is defined only for Real numbers");
+
+  const int n = M.nrCols();
+  ipiv.resize(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return {0., 0};
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  Scalar log_det = 0.;
+  int sign = 1;
+
+  for (int i = 0; i < n; i++) {
+    log_det += std::log(std::abs(M(i, i)));
+    if (M(i, i) < 0)
+      sign *= -1;
+
+    if (ipiv[i] != i + 1)
+      sign *= -1;
+  }
+
+  return {log_det, sign};
+}
+
+template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
+auto logDeterminant(const MatrixType<Scalar, device>& m) {
+  Matrix<Scalar, CPU> m_copy(m);
+  std::vector<int> ipiv;
+  return logDeterminantIP(m_copy, ipiv);
+}
+
+template <typename Scalar, template <typename, DeviceType> class MatrixType>
+std::pair<Scalar, int> inverseAndLogDeterminant(MatrixType<Scalar, CPU>& mat) {
+  std::vector<int> ipiv;
+  const auto [log_det, sign] = logDeterminantIP(mat, ipiv);
+
+  if (!sign)
+    throw(std::logic_error("Singular matrix"));
+
+  const int lwork = util::getInverseWorkSize(mat);
+  std::vector<Scalar> work(lwork);
+
+  lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
+                                work.data(), lwork);
+
+  return {-log_det, sign};
+}
+
+template <typename Scalar>
+bool areNear(const Matrix<Scalar, CPU>& A, const Matrix<Scalar, CPU>& B, const double err = 1e-16) {
+  if (A.size() != B.size())
+    return false;
+
+  for (int j = 0; j < A.size().second; j++)
+    for (int i = 0; i < A.size().first; i++)
+      if (std::abs(A(i, j) - B(i, j)) > err)
+        return false;
+
+  return true;
+}
+
 }  // namespace matrixop
 }  // namespace linalg
 }  // namespace dca

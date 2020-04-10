@@ -37,16 +37,16 @@ public:
   template <typename scalartype, typename f_dmn_0>
   static void execute(func::function<scalartype, f_dmn_0>& f, bool do_diff = false);
 
-  template <typename scalartype, typename nu_dmn_t, typename f_dmn_0>
+  template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0>
   static void execute(func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0>>& f,
                       bool do_diff = false);
 
-  template <typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
+  template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
   static void execute(
       func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1>>& f,
       bool do_diff = false);
 
-  template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
+  template <class Lattice, typename scalartype, typename f_dmn_0, typename f_dmn_1>
   static void execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
                       func::function<int, nu_nu>& H_symmetry, bool do_diff = false);
 
@@ -85,23 +85,23 @@ void symmetrize::execute(func::function<scalartype, f_dmn_0>& f, bool do_diff) {
   symmetrize_single_particle_function::execute(f, do_diff);
 }
 
-template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
+template <class Lattice, typename scalartype, typename f_dmn_0, typename f_dmn_1>
 void symmetrize::execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
                          func::function<int, nu_nu>& H_symmetry, bool do_diff) {
-  symmetrize_single_particle_function::execute(f, H_symmetry, do_diff);
+  symmetrize_single_particle_function::execute<Lattice>(f, H_symmetry, do_diff);
 }
 
-template <typename scalartype, typename nu_dmn_t, typename f_dmn_0>
+template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0>
 void symmetrize::execute(func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0>>& f,
                          bool do_diff) {
-  symmetrize_single_particle_function::execute(f, do_diff);
+  symmetrize_single_particle_function::execute<Lattice>(f, do_diff);
 }
 
-template <typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
+template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
 void symmetrize::execute(
     func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1>>& f,
     bool do_diff) {
-  symmetrize_single_particle_function::execute(f, do_diff);
+  symmetrize_single_particle_function::execute<Lattice>(f, do_diff);
 }
 
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
@@ -142,7 +142,7 @@ void symmetrize::execute(
   symmetrize_two_particle_function::execute(f, do_diff);
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_HPP

@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class reads, stores, and writes the Monte Carlo solver parameters.
 // It is templated on the MC solver name and only implemented when specialized for CT-AUX and
@@ -15,6 +16,7 @@
 #ifndef DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
 
+#include <array>
 #include <iostream>
 #include <stdexcept>
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
@@ -34,7 +36,7 @@ class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
-        initial_configuration_size_(10),
+        initial_configuration_size_(0),
         initial_matrix_size_(128),
         max_submatrix_size_(128),
         neglect_bennett_updates_(false),
@@ -247,8 +249,140 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
   }
 }
 
-}  // params
-}  // phys
-}  // dca
+// Specialization for CT-INT
+template <>
+class McSolverParameters<solver::CT_INT> {
+public:
+  template <typename Concurrency>
+  int getBufferSize(const Concurrency& concurrency) const;
+  template <typename Concurrency>
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
+  template <typename Concurrency>
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
+
+  template <typename ReaderOrWriter>
+  void readWrite(ReaderOrWriter& reader_or_writer);
+
+  int getInitialConfigurationSize() const {
+    return initial_configuration_size_;
+  }
+
+  void setInitialConfigurationSize(const int size) {
+    initial_configuration_size_ = size;
+  }
+
+  std::array<double, 3> getAlphas() const {
+    return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
+  }
+
+  bool adjustAlphaDd() const {
+    return adjust_alpha_dd_;
+  }
+
+  double getDoubleUpdateProbability() const {
+    return double_update_probability_;
+  }
+
+  void setDoubleUpdateProbability(const double p) {
+    double_update_probability_ = p;
+  }
+
+  bool getAllSitesPartnership() const {
+    return all_sites_partnership_;
+  }
+
+  int getMaxSubmatrixSize() const {
+    return max_submatrix_size_;
+  }
+
+  void setMaxSubmatrixSize(const int size) {
+    max_submatrix_size_ = size;
+  }
+
+private:
+  int initial_configuration_size_ = 0;
+  double alpha_dd_pos_ = 0.501;
+  double alpha_dd_neg_ = 0;
+  double alpha_ndd_ = 1e-4;
+  bool adjust_alpha_dd_ = false;
+  double double_update_probability_ = 0;
+  bool all_sites_partnership_ = 0;
+  int max_submatrix_size_ = 1;
+};
+
+template <typename Concurrency>
+int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurrency) const {
+  int buffer_size = 0;
+  buffer_size += concurrency.get_buffer_size(initial_configuration_size_);
+  buffer_size += concurrency.get_buffer_size(alpha_dd_pos_);
+  buffer_size += concurrency.get_buffer_size(alpha_dd_neg_);
+  buffer_size += concurrency.get_buffer_size(alpha_ndd_);
+  buffer_size += concurrency.get_buffer_size(adjust_alpha_dd_);
+  buffer_size += concurrency.get_buffer_size(double_update_probability_);
+  buffer_size += concurrency.get_buffer_size(all_sites_partnership_);
+  buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
+
+  return buffer_size;
+}
+
+template <typename Concurrency>
+void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, char* buffer,
+                                              const int buffer_size, int& position) const {
+  concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
+  concurrency.pack(buffer, buffer_size, position, alpha_dd_pos_);
+  concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
+  concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
+  concurrency.pack(buffer, buffer_size, position, adjust_alpha_dd_);
+  concurrency.pack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.pack(buffer, buffer_size, position, all_sites_partnership_);
+  concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
+}
+
+template <typename Concurrency>
+void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, char* buffer,
+                                                const int buffer_size, int& position) {
+  concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_dd_pos_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
+  concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
+  concurrency.unpack(buffer, buffer_size, position, adjust_alpha_dd_);
+  concurrency.unpack(buffer, buffer_size, position, double_update_probability_);
+  concurrency.unpack(buffer, buffer_size, position, all_sites_partnership_);
+  concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
+}
+
+template <typename ReaderOrWriter>
+void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_writer) {
+  try {
+    // TODO: None of the open_group methods seem to throw.
+    reader_or_writer.open_group("CT-INT");
+
+    auto tryToRead = [&](const std::string& name, auto& obj) {
+      try {
+        reader_or_writer.execute(name, obj);
+      }
+      catch (const std::exception& /*err*/) {
+      }
+    };
+
+    tryToRead("initial-configuration-size", initial_configuration_size_);
+    tryToRead("alpha-dd-pos", alpha_dd_pos_);
+    tryToRead("alpha-dd-neg", alpha_dd_neg_);
+    tryToRead("alpha-ndd", alpha_ndd_);
+    tryToRead("adjust-alpha-dd", adjust_alpha_dd_);
+    tryToRead("double-update-probability", double_update_probability_);
+    tryToRead("all-sites-partnership", all_sites_partnership_);
+    tryToRead("max-submatrix-size", max_submatrix_size_);
+    reader_or_writer.close_group();
+  }
+  catch (const std::exception& /*r_e*/) {
+    std::cout << "\nNo CT-INT solver parameters defined!\n" << std::endl;
+    throw std::logic_error(__PRETTY_FUNCTION__);
+  }
+}
+
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP

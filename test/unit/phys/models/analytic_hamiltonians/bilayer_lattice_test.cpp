@@ -45,7 +45,7 @@ TEST(BilayerLatticeTest, Initialize_H_0) {
   params.set_t_prime(0.5);
   params.set_t_perp(0.25);
 
-  Lattice::initialize_H_0(params, H_0);
+  Lattice::initializeH0(params, H_0);
 
   // All imaginary parts should be zero.
   for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1)
@@ -111,7 +111,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
   using RClusterDmn = typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0}, {0, 2}};
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initializeRDCABasis(),
                                                             DCA_cluster);
 
   // Get index of origin and check it.
@@ -127,7 +127,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
   params.set_V(0);
   params.set_V_prime(0);
 
-  Lattice::initialize_H_interaction(H_interaction, params);
+  Lattice::initializeHInteraction(H_interaction, params);
 
   for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
@@ -144,7 +144,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
   params.set_V(2);
   params.set_V_prime(0);
 
-  Lattice::initialize_H_interaction(H_interaction, params);
+  Lattice::initializeHInteraction(H_interaction, params);
 
   for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
@@ -161,7 +161,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
   params.set_V(0);
   params.set_V_prime(1);
 
-  Lattice::initialize_H_interaction(H_interaction, params);
+  Lattice::initializeHInteraction(H_interaction, params);
 
   for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)

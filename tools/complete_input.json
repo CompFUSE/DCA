@@ -51,6 +51,8 @@
         "self-energy-mixing-factor": 1.,
         "interacting-orbitals": [0],
 
+        "do-post-interpolation": false,
+
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
@@ -124,6 +126,17 @@
         "additional-time-measurements": false
     },
 
+    "CT-INT": {
+        "initial-configuration-size": 10,
+        "alpha-dd-pos": 0.1,
+        "alpha-dd-neg": 0,
+        "alpha-ndd" : 0.01,
+        "adjust-alpha-dd" : true,
+        "double-update-probability" : 0,
+        "all-sites-partnership" : false,
+        "max-submatrix-size": 128
+    },
+
     "SS-CT-HYB": {
         "self-energy-tail-cutoff": 0,
         "steps-per-sweep": 0.5,
@@ -131,7 +144,7 @@
     },
 
     "four-point": {
-        "channel": [],
+        "channels": [],
         "momentum-transfer": [0., 0.],
         "frequency-transfer": 0,
         "compute-all-transfers" : false

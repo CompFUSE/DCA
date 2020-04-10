@@ -1,0 +1,59 @@
+{
+  "output" :
+  {
+    "output-format"         : "HDF5",
+    "output-ED"  : "ed_results.hdf5",
+    "output-QMC" : "ctint_results.hdf5"
+  },
+
+  "physics": {
+    "beta"                      :  1,
+    "chemical-potential"        : 0
+  },
+
+  "FeAs-model" : {
+    "t1" : -1,
+    "t2" : 1.3,
+    "t3" : -0.85,
+    "t4" : -0.85,
+    "U" : 4,
+    "V" : 2,
+    "J" : 1
+  },
+
+  "CT-INT" :
+  {
+    "initial-configuration-size" : 0,
+    "adjust-alpha-dd" : true,
+    "alpha-dd-pos" : 0.1,
+    "alpha-dd-neg" : 0.51,
+    "alpha-ndd" : 0.0001,
+    "double-update-probability" : 0.5
+  },
+
+"domains": {
+  "real-space-grids": {
+    "cluster": [[2, 0],
+      [0, 2]]
+  },
+  "imaginary-time": {
+    "sp-time-intervals": 512
+  },
+  "imaginary-frequency": {
+    "sp-fermionic-frequencies": 512
+  }
+},
+
+  "DCA" : {
+    "interacting-orbitals" : [0,1]
+  },
+
+  "Monte-Carlo-integration" :
+  {
+    "warm-up-sweeps"         : 100,
+    "sweeps-per-measurement" : 1,
+    "measurements" : 100,
+
+    "seed" : 0
+  }
+}

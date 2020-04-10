@@ -44,7 +44,7 @@ public:
       const parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
+  static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 };
 
 template <typename point_group_type>
@@ -52,7 +52,6 @@ template <typename Nu, typename RDmn, typename parameters_type>
 void HundLattice<point_group_type>::initializeNonDensityInteraction(
     func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
     const parameters_type& parameters) {
-
   const double Jh = parameters.get_Jh();
   const Nu nu;  // band-spin domain.
   constexpr int up(0), down(1);
@@ -70,7 +69,7 @@ void HundLattice<point_group_type>::initializeNonDensityInteraction(
 // TODO: check.
 template <typename point_group_type>
 template <class domain>
-void HundLattice<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
+void HundLattice<point_group_type>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   H_symmetries(0, 0, 0, 0) = 0;
@@ -80,8 +79,8 @@ void HundLattice<point_group_type>::initialize_H_symmetry(func::function<int, do
   H_symmetries(1, 1, 1, 1) = 1;
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HUND_LATTICE_HPP

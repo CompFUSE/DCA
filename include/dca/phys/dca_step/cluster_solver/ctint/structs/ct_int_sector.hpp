@@ -26,7 +26,6 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-// TODO: replace by vector
 class Sector {
 public:
   Sector() : entries_(){};
@@ -35,8 +34,12 @@ public:
   friend class MatrixConfiguration;
   friend class DeviceConfigurationManager;
 
-  ushort size() const {
+  unsigned short size() const {
     return entries_.size();
+  }
+
+  void pop_back() {
+    entries_.pop_back();
   }
 
   const details::SectorEntry& operator[](const std::size_t idx) const {
@@ -44,19 +47,19 @@ public:
     return entries_[idx];
   }
 
-  inline ushort getLeftB(const int i) const {
+  inline unsigned short getLeftB(const int i) const {
     return entries_[i].b_left_;
   }
 
-  inline ushort getRightB(const int i) const {
+  inline unsigned short getRightB(const int i) const {
     return entries_[i].b_right_;
   }
 
-  inline ushort getLeftR(const int i) const {
+  inline unsigned short getLeftR(const int i) const {
     return entries_[i].r_left_;
   }
 
-  inline ushort getRightR(const int i) const {
+  inline unsigned short getRightR(const int i) const {
     return entries_[i].r_right_;
   }
 
@@ -68,17 +71,12 @@ public:
     return entries_[i].aux_field_type_;
   }
 
-  auto getTag(int i) const {
-    return tags_[i];
-  }
-
   bool operator==(const Sector& rhs) const {
     return entries_ == rhs.entries_;
   }
 
 private:
   linalg::util::HostVector<details::SectorEntry> entries_;
-  std::vector<std::uint64_t> tags_;
 };
 
 }  // namespace ctint
