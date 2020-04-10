@@ -95,6 +95,8 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 
+  EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
+
   for (int i = 0; i < 128; ++i) {
     walker1.doSweep();
     walker2.doSweep();

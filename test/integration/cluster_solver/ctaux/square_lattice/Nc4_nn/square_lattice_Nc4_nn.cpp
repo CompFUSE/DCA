@@ -81,6 +81,25 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
 
+  // Read and broadcast ED data.
+  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+    dca::io::HDF5Reader reader;
+    reader.open_file(DCA_SOURCE_DIR
+                     "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/data.ED.hdf5");
+    reader.open_group("functions");
+    // reader.execute(dca_data_imag.Sigma);
+    reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
+    reader.execute(dca_data_imag.G0_r_t_cluster_excluded);
+    reader.close_file();
+  }
+
+  // dca_test_env->concurrency.broadcast(dca_data_imag.Sigma);
+  dca_test_env->concurrency.broadcast(dca_data_imag.G0_k_w_cluster_excluded);
+  dca_test_env->concurrency.broadcast(dca_data_imag.G0_r_t_cluster_excluded);
+
+  // dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w> >
+  //   Sigma_ED(dca_data_imag.Sigma);
+
   // Do one QMC iteration
   QmcSolverType qmc_solver(parameters, dca_data_imag);
   qmc_solver.initialize(0);
@@ -92,7 +111,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
   const std::string filename =
-      DCA_SOURCE_DIR "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/check_data.QMC.hdf5";
+      DCA_SOURCE_DIR "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/check.data.QMC.hdf5";
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     if (!update_baseline) {
       dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
@@ -100,7 +119,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
       dca::io::HDF5Reader reader;
       reader.open_file(filename);
       reader.open_group("functions");
-      ASSERT_TRUE(reader.execute(Sigma_QMC_check));
+      reader.execute(Sigma_QMC_check);
       reader.close_file();
 
       auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
