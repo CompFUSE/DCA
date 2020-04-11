@@ -40,6 +40,8 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
                       io::HDF5Writer* writer);
+
+  void initialize(int iteration_);
   void doSweep();
 
 private:
@@ -50,6 +52,10 @@ private:
 
   io::HDF5Writer* const writer_ = nullptr;
   std::size_t meas_id_ = 0;
+
+  const int total_iterations_;
+
+  bool last_iteration_ = false;
 };
 
 template <class QmciWalker>
@@ -59,7 +65,16 @@ StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameter
       QmciAutocorrelationData<QmciWalker>(parameters, id),
       stamping_period_(parameters.stamping_period()),
       thread_id_(id),
-      writer_(writer) {}
+      writer_(writer),
+      total_iterations_(parameters.get_dca_iterations()) {}
+
+template <class QmciWalker>
+void StdThreadQmciWalker<QmciWalker>::initialize(int iteration) {
+  QmciWalker::initialize(iteration);
+
+  meas_id_ = 0;
+  last_iteration_ = iteration == total_iterations_ - 1;
+}
 
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::doSweep() {
@@ -67,7 +82,8 @@ void StdThreadQmciWalker<QmciWalker>::doSweep() {
 
   if (QmciWalker::is_thermalized()) {
     QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
-    logConfiguration();
+    if (last_iteration_)
+      logConfiguration();
     ++meas_id_;
   }
 }
@@ -75,7 +91,7 @@ void StdThreadQmciWalker<QmciWalker>::doSweep() {
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::logConfiguration() const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
-  if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+  if (print_to_log && last_iteration_ && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     const std::string stamp_name =
         "w_" + std::to_string(thread_id_) + "_step_" + std::to_string(meas_id_);
 
