@@ -119,6 +119,7 @@ public:
   }
 
   void lock() {
+    H5::Exception::dontPrint();
     mutex_.lock();
   }
 
