@@ -513,11 +513,6 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     int left_neighbor = mod_op((my_concurrency_id - 1 + mpi_size), mpi_size);
     int right_neighbor = mod_op((my_concurrency_id + 1 + mpi_size), mpi_size);
 
-    // init send and recv tags to G2 up and down, respectively
-    // *tag_dn - *tag_up = mpi_size to ensure tag value is distinct
-    int send_tag_up = 1, send_tag_dn = send_tag_up + mpi_size;
-    int recv_tag_up = 1, recv_tag_dn = recv_tag_up + mpi_size;
-
     // sync all processors at the beginning
     MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 
@@ -533,14 +528,14 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
         MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, recv_tag_up, MPI_COMM_WORLD, &recv_request_1));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1, MPI_COMM_WORLD, &recv_request_1));
         MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, recv_tag_dn, MPI_COMM_WORLD, &recv_request_2));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &recv_request_2));
 
         MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, send_tag_up, MPI_COMM_WORLD, &send_request_1));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1, MPI_COMM_WORLD, &send_request_1));
         MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, send_tag_dn, MPI_COMM_WORLD, &send_request_2));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &send_request_2));
 
         // wait for recvbuf_G2 to be available again
         MPI_CHECK(MPI_Wait(&recv_request_1, &status_1));
