@@ -86,6 +86,10 @@ public:
     return thermalized_;
   }
 
+  unsigned long get_steps() const {
+    return n_steps_;
+  }
+
   int order() const {
     return configuration_.size();
   }
@@ -101,7 +105,7 @@ public:
   }
 
   double acceptanceRatio() const {
-    return Real(n_accepted_) / Real(n_steps_);
+    return Real(n_accepted_) / Real(n_steps_ - thermalization_steps_);
   }
 
   void initialize(int iter);
@@ -193,6 +197,7 @@ protected:  // Members.
   util::Accumulator<uint> order_avg_;
   util::Accumulator<int> sign_avg_;
   unsigned long n_steps_ = 0;
+  unsigned long thermalization_steps_ = 0;
   unsigned long n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
 
@@ -299,11 +304,11 @@ void CtintWalkerBase<Parameters, Real>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
+  thermalization_steps_ = n_steps_;
 
   order_avg_.reset();
   sign_avg_.reset();
   n_accepted_ = 0;
-  n_steps_ = 0;
 
   // Recompute the Monte Carlo weight.
   setMFromConfig();

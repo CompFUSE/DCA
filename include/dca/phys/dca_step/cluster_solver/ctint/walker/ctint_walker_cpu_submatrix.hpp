@@ -246,7 +246,6 @@ void CtintWalkerSubmatrixCpu<Parameters, Real>::doSteps() {
   // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
   max_nbr_of_moves = parameters_.getMaxSubmatrixSize();
 
-  BaseClass::n_steps_ += nbr_of_steps_;
   while (nbr_of_steps_ > 0) {
     nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves);
     nbr_of_steps_ -= nbr_of_moves_to_delay_;
@@ -537,6 +536,8 @@ void CtintWalkerSubmatrixCpu<Parameters, Real>::mainSubmatrixProcess() {
         }
     }
   }
+
+  BaseClass::n_steps_ += delayed_moves_.size();
 }
 
 template <class Parameters, typename Real>

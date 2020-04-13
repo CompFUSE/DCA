@@ -50,6 +50,8 @@ public:
 
   void reset();
 
+  void markThermalized();
+
 private:
   const unsigned autocorrelation_window_;
   const bool accumulate_G_;
@@ -59,6 +61,12 @@ private:
   TimeCorrelator<Parameters, Real, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
   math::statistics::Autocorrelation<Real> weight_correlator_;
+
+  // Store MC weights for each chain
+  std::vector<std::vector<std::int8_t>> signs_;
+  std::vector<std::vector<double>> weights_;
+  std::vector<std::vector<unsigned long>> steps_;
+  std::vector<unsigned> thermalization_step_;
 };
 
 template <class Walker>
@@ -68,10 +76,28 @@ QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& param
       accumulate_G_(parameters.compute_G_correlation()),
       time_correlator_(parameters, thread_id),
       order_correlator_(autocorrelation_window_),
-      weight_correlator_(autocorrelation_window_) {}
+      weight_correlator_(autocorrelation_window_),
+      signs_(1),
+      weights_(1),
+      steps_(1),
+      thermalization_step_(1) {}
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop) {
+  // Write MC weights
+  writer.open_group("Configuration");
+  writer.open_group("MC-weights");
+  writer.open_group("iteration " + std::to_string(dca_loop));
+
+  writer.execute("steps", steps_);
+  writer.execute("signs", signs_);
+  writer.execute("weights", weights_);
+  writer.execute("thermalization-step", thermalization_step_);
+
+  writer.close_group();
+  writer.close_group();
+  writer.close_group();
+
   if (!autocorrelation_window_)
     return;
 
@@ -119,6 +145,10 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) {
+  signs_.back().push_back(walker.get_sign());
+  weights_.back().push_back(walker.get_MC_log_weight());
+  steps_.back().push_back(walker.get_steps());
+
   if (autocorrelation_window_ && walker.is_thermalized()) {
     if (accumulate_G_) {
       walker.computeM(m_correlator_);
@@ -133,12 +163,24 @@ void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) 
 }
 
 template <class Walker>
+void QmciAutocorrelationData<Walker>::markThermalized() {
+  thermalization_step_.back() = steps_.back().back();
+}
+
+template <class Walker>
 QmciAutocorrelationData<Walker>& QmciAutocorrelationData<Walker>::operator+=(
     const QmciAutocorrelationData<Walker>& other) {
-  if (autocorrelation_window_) {
-    static std::mutex mutex;
-    std::unique_lock<std::mutex> lock(mutex);
+  static std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
 
+  // Collect weight measurements.
+  signs_.insert(signs_.end(), other.signs_.begin(), other.signs_.end());
+  weights_.insert(weights_.end(), other.weights_.begin(), other.weights_.end());
+  steps_.insert(steps_.end(), other.steps_.begin(), other.steps_.end());
+  thermalization_step_.insert(thermalization_step_.end(), other.thermalization_step_.begin(),
+                              other.thermalization_step_.end());
+
+  if (autocorrelation_window_) {
     if (accumulate_G_)
       time_correlator_ += other.time_correlator_;
     order_correlator_ += other.order_correlator_;
@@ -156,10 +198,21 @@ void QmciAutocorrelationData<Walker>::sumConcurrency(const Concurrency& concurre
     order_correlator_.sumConcurrency(concurrency);
     weight_correlator_.sumConcurrency(concurrency);
   }
+
+  // Don't communicate MC weights. (Too much data).
 }
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::reset() {
+  auto reset_vector_of_vector = [](auto& v) {
+    v.resize(1);
+    v.back().clear();
+  };
+  reset_vector_of_vector(weights_);
+  reset_vector_of_vector(signs_);
+  reset_vector_of_vector(steps_);
+  thermalization_step_.clear();
+
   time_correlator_.reset();
   order_correlator_.reset();
   weight_correlator_.reset();

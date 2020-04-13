@@ -44,6 +44,11 @@ public:
   void initialize(int iteration_);
   void doSweep();
 
+  void markThermalized() {
+    QmciAutocorrelationData<QmciWalker>::markThermalized();
+    QmciWalker::markThermalized();
+  }
+
 private:
   void logConfiguration() const;
 
@@ -56,7 +61,7 @@ private:
   const int total_iterations_;
 
   bool last_iteration_ = false;
-};
+};  // namespace stdthreadqmci
 
 template <class QmciWalker>
 StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameters,
@@ -80,9 +85,9 @@ void StdThreadQmciWalker<QmciWalker>::initialize(int iteration) {
 template <class QmciWalker>
 void StdThreadQmciWalker<QmciWalker>::doSweep() {
   QmciWalker::doSweep();
+  QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
   if (QmciWalker::is_thermalized()) {
-    QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
     if (last_iteration_)
       logConfiguration();
     ++meas_id_;

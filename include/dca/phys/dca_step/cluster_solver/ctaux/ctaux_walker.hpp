@@ -101,6 +101,10 @@ public:
     return configuration_.get_matrix_configuration();
   }
 
+  unsigned long get_steps() const {
+    return n_steps_;
+  }
+
   int get_sign();
 
   int get_thread_id();
@@ -324,6 +328,8 @@ private:
   linalg::util::CudaEvent sync_streams_event_;
 
   double sweeps_per_measurement_ = 1.;
+
+  unsigned long n_steps_ = 0;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -658,6 +664,8 @@ void CtauxWalker<device_t, Parameters, Data, Real>::generate_delayed_spins(
       parameters_.neglect_bennett_updates()
           ? generateDelayedSpinsNeglectBennett(single_spin_updates_todo)
           : generateDelayedSpinsAbortAtBennett(single_spin_updates_todo);
+
+  n_steps_ += single_spin_updates_proposed;
 
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
