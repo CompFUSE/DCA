@@ -11,6 +11,7 @@
 
 #include "dca/io/adios2/adios2_writer.hpp"
 
+#include <iostream>
 #include <fstream>
 #include <stdexcept>
 
@@ -28,6 +29,10 @@ ADIOS2Writer::~ADIOS2Writer() {
 
 void ADIOS2Writer::open_file(const std::string& file_name_ref, bool overwrite) {
   adios2::Mode mode = (overwrite ? adios2::Mode::Write : adios2::Mode::Append);
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Open for " << (overwrite ? "Write" : "Append")
+              << " file : " << file_name_ref << "\n";
+  }
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
@@ -42,7 +47,11 @@ void ADIOS2Writer::close_file() {
 }
 
 void ADIOS2Writer::open_group(const std::string& name) {
-  my_paths_.push_back(name);
+  size_t len = name.size();
+  // remove trailing / from name
+  for (; name[len - 1] == '/'; --len)
+    ;
+  my_paths_.push_back(std::string(name, 0, len));
 }
 
 void ADIOS2Writer::close_group() {
@@ -53,10 +62,7 @@ std::string ADIOS2Writer::get_path(const std::string& name) {
   std::string path = "/";
 
   for (size_t i = 0; i < my_paths_.size(); i++) {
-    path += my_paths_[i];
-
-    if (i < my_paths_.size() - 1)
-      path += "/";
+    path += my_paths_[i] + "/";
   }
 
   if (!name.empty()) {
@@ -67,7 +73,7 @@ std::string ADIOS2Writer::get_path(const std::string& name) {
 }
 
 void ADIOS2Writer::execute(const std::string& name, const std::string& value) {
-  std::string full_name = get_path() + '/' + name;
+  std::string full_name = get_path(name);
   if (value.size() == 0) {
     write(full_name, "");
   }
@@ -77,7 +83,7 @@ void ADIOS2Writer::execute(const std::string& name, const std::string& value) {
 }
 
 void ADIOS2Writer::execute(const std::string& name, const std::vector<std::string>& value) {
-  std::string full_name = get_path() + '/' + name;
+  std::string full_name = get_path(name);
   if (value.size() == 0) {
     write(full_name, "");
   }
@@ -85,12 +91,14 @@ void ADIOS2Writer::execute(const std::string& name, const std::vector<std::strin
     write(full_name, value[0]);
   }
   else {
-    throw(std::logic_error("ADIOS does not support string vectors = " + name + "(" + __FUNCTION__ +
-                           ")"));
+    // Store vector of string as attribute since it is not supported as variable
+    io_.DefineAttribute(full_name, value.data(), value.size());
   }
 }
 
 void ADIOS2Writer::write(const std::string& name, const std::string& data) {
+  adios2::Variable<std::string> v;
+  v = io_.DefineVariable<std::string>(name);
   file_.Put(name, data);
 }
 

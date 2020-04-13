@@ -12,6 +12,7 @@
 #ifndef DCA_IO_ADIOS2_ADIOS2_WRITER_HPP
 #define DCA_IO_ADIOS2_ADIOS2_WRITER_HPP
 
+#include <cstring>  // std::memcpy
 #include <complex>
 #include <memory>
 #include <mutex>
@@ -27,6 +28,8 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
+//#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+
 namespace dca {
 namespace io {
 // dca::io
@@ -37,7 +40,7 @@ public:
 
 public:
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  ADIOS2Writer(const std::string& config = "", bool verbose = true);
+  ADIOS2Writer(const std::string& config = "", bool verbose = false);
   ~ADIOS2Writer();
 
   constexpr bool is_reader() {
@@ -189,18 +192,68 @@ void ADIOS2Writer::execute(const std::string& name,
 template <typename Scalar>
 void ADIOS2Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path(name);
+  const size_t n = value.size();
 
-  throw(std::logic_error("ADIOS does not support vector of vectors. name = " + name + " (" +
-                         __FUNCTION__ + ")"));
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write Vector of " << n << " vectors " << full_name << " sizes = (";
+  }
+
+  std::vector<size_t> sizes(n);
+  size_t nTotal = 0;
+  for (int i = 0; i < n; ++i) {
+    sizes[i] = value[i].size();
+    nTotal += sizes[i];
+    std::cout << sizes[i];
+    if (i < n - 1) {
+      std::cout << ", ";
+    }
+  }
+  if (verbose_) {
+    std::cout << ")\n";
+  }
+
+  adios2::Dims dims{nTotal};
+  adios2::Variable<Scalar> vVecs;
+  adios2::Dims start{0};
+  vVecs = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+
+  typename adios2::Variable<Scalar>::Span span = file_.Put(vVecs);
+  size_t pos = 0;
+  for (const auto& a : value) {
+    std::memcpy(span.data() + pos, a.data(), a.size() * sizeof(Scalar));
+    pos += a.size();
+  }
+
+  io_.DefineAttribute<size_t>("_vector_sizes", sizes.data(), n, full_name);
 }
 
 template <typename Scalar, std::size_t n>
 void ADIOS2Writer::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
-  if (value.size() == 0)
-    return;
+  std::string full_name = get_path(name);
 
-  throw(std::logic_error("ADIOS does not support variable length arrays. name = " + name + " (" +
-                         __FUNCTION__ + ")"));
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write Vector of Array " << full_name << " size {" << value.size()
+              << ", " << n << "}\n";
+  }
+
+  adios2::Dims dims{value.size(), n};
+  adios2::Variable<Scalar> v;
+  adios2::Dims start{0, 0};
+  v = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+
+  typename adios2::Variable<Scalar>::Span span = file_.Put(v);
+
+  /*
+    std::cout << "\t ADIOS2Writer: Vector of Array " << full_name << " size {" << value.size()
+              << ", " << n << "} -> ADIOS2 Span size = " << span.size()
+              << " ptr = " << static_cast<const void*>(span.data()) << "\n";
+  */
+
+  size_t pos = 0;
+  for (const auto& a : value) {
+    std::memcpy(span.data() + pos, a.data(), a.size() * sizeof(Scalar));
+    pos += a.size();
+  }
 }
 
 template <typename domain_type>
@@ -218,8 +271,9 @@ void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
 
-  if (verbose_)
-    std::cout << "\t starts ADIOS2 writing function : " << f.get_name() << "\n";
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name() << "\n";
+  }
 
   execute(f.get_name(), f);
 }

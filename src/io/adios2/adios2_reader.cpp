@@ -28,7 +28,7 @@ ADIOS2Reader::~ADIOS2Reader() {
 
 void ADIOS2Reader::open_file(const std::string& file_name) {
   if (verbose_) {
-    std::cout << "\n\n\topening ADIOS2 file : " << file_name << "\n";
+    std::cout << "\t ADIOS2Reader: Open for Read file : " << file_name << "\n";
   }
 
   io_name_ = file_name;
@@ -45,7 +45,11 @@ void ADIOS2Reader::close_file() {
 }
 
 void ADIOS2Reader::open_group(const std::string& name) {
-  my_paths_.push_back(name);
+  size_t len = name.size();
+  // remove trailing / from name
+  for (; name[len - 1] == '/'; --len)
+    ;
+  my_paths_.push_back(std::string(name, 0, len));
 }
 
 void ADIOS2Reader::close_group() {
@@ -56,10 +60,7 @@ std::string ADIOS2Reader::get_path(const std::string& name) {
   std::string path = "/";
 
   for (size_t i = 0; i < my_paths_.size(); i++) {
-    path += my_paths_[i];
-
-    if (i < my_paths_.size() - 1)
-      path += "/";
+    path += my_paths_[i] + "/";
   }
 
   if (!name.empty()) {
@@ -83,16 +84,27 @@ bool ADIOS2Reader::execute(const std::string& name, std::string& value) {
 
 bool ADIOS2Reader::execute(const std::string& name, std::vector<std::string>& value) {
   std::string full_name = get_path(name);
-  if (!exists(full_name)) {
-    return false;
+  bool retval = true;
+  if (exists(full_name)) {
+    value.resize(1);
+    /* ADIOS will resize string to match size of incoming data */
+    file_.Get<std::string>(full_name, value[0], adios2::Mode::Sync);
+  }
+  else {
+    auto strvecAttr = io_.InquireAttribute<std::string>(full_name);
+    if (strvecAttr) {
+      const std::vector<std::string>& strings = strvecAttr.Data();
+      value.resize(strings.size());
+      for (int i = 0; i < strings.size(); ++i) {
+        value[i] = strings[i];
+      }
+    }
+    else {
+      retval = false;
+    }
   }
 
-  value.resize(1);
-
-  /* ADIOS will resize string to match size of incoming data */
-  file_.Get<std::string>(full_name, value[0], adios2::Mode::Sync);
-
-  return true;
+  return retval;
 }
 
 bool ADIOS2Reader::exists(const std::string& name) const {

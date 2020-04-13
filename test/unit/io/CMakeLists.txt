@@ -14,3 +14,11 @@ dca_add_gtest(writer_test
 dca_add_gtest(hdf5_reader_writer_test
   GTEST_MAIN
   LIBS dca_hdf5 ${HDF5_LIBRARIES};function)
+
+if (DCA_HAVE_ADIOS2)
+  dca_add_gtest(adios2_reader_writer_test
+    GTEST_MAIN
+    LIBS dca_adios2 adios2::adios2;function)
+##    INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+##    LIBS     ${DCA_LIBS}
+endif()

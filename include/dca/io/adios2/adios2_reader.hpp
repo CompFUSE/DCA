@@ -13,6 +13,7 @@
 #define DCA_IO_ADIOS2_ADIOS2_READER_HPP
 
 #include <complex>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -34,7 +35,7 @@ public:
 
 public:
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  ADIOS2Reader(const std::string& config = "", bool verbose = true);
+  ADIOS2Reader(const std::string& config = "", bool verbose = false);
   ~ADIOS2Reader();
 
   constexpr bool is_reader() {
@@ -150,14 +151,102 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<Scalar>& value) 
 
 template <typename Scalar>
 bool ADIOS2Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
-  throw(std::logic_error("ADIOS does not support vector of vectors. name = " + name + " (" +
-                         __FUNCTION__ + ")"));
+  std::string full_name = get_path(name);
+
+  adios2::Variable<Scalar> var = io_.InquireVariable<Scalar>(full_name);
+  if (!var) {
+    return false;
+  }
+
+  auto aSizes = io_.InquireAttribute<size_t>("_vector_sizes", full_name);
+  if (!aSizes) {
+    throw(std::runtime_error("ADIOS2Reader: Variable " + full_name + " is not a vector of vectors\n"));
+  }
+
+  if (var.Shape().size() != 1) {
+    throw(std::runtime_error(
+        "ADIOS2Reader: Variable " + full_name +
+        " is not a vector of vectors because it is not stored as a 1D array but as " +
+        std::to_string(var.Shape().size()) + "\n"));
+  }
+  size_t nTotal = var.Shape()[0];
+  std::vector<size_t> nSizes = aSizes.Data();
+  size_t nVectors = nSizes.size();
+  size_t sum = std::accumulate(nSizes.begin(), nSizes.end(), 0);
+
+  if (sum != nTotal) {
+    throw(std::runtime_error("ADIOS2Reader: Variable " + full_name +
+                             " vector of vectors data corrupted since size of array is " +
+                             std::to_string(nTotal) + " but sum of components is " +
+                             std::to_string(sum) + "\n"));
+  }
+
+  value.resize(nVectors);
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: Read Vector of " << nVectors << " vectors " << full_name
+              << " sizes (";
+  }
+
+  size_t startpos = 0;
+  for (int i = 0; i < nVectors; ++i) {
+    size_t vsize = nSizes[i];
+    if (verbose_) {
+      std::cout << vsize;
+      if (i < nVectors - 1) {
+        std::cout << ", ";
+      }
+    }
+    std::vector<Scalar>& vec = value[i];
+    vec.resize(vsize);
+    var.SetSelection({{startpos}, {vsize}});
+    file_.Get(full_name, vec.data(), adios2::Mode::Sync);
+    startpos += vsize;
+  }
+  if (verbose_) {
+    std::cout << ")\n";
+  }
+  return true;
 }
 
 template <typename Scalar, std::size_t n>
 bool ADIOS2Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
-  throw(std::logic_error("ADIOS does not support variable length arrays. name = " + name + " (" +
-                         __FUNCTION__ + ")"));
+  std::string full_name = get_path(name);
+  if (!exists(full_name)) {
+    return false;
+  }
+  auto dims = getSize<Scalar>(full_name);
+  if (dims.size() == 0) {
+    return false;
+  }
+  assert(dims.size() == 2);
+  if (dims.at(1) != n) {
+    throw(std::length_error("Wrong array size " + std::to_string(n) +
+                            " when reading vector of array variable " + full_name +
+                            " which has size {" + std::to_string(dims[0]) + "," +
+                            std::to_string(dims[1]) + "}\n"));
+  }
+  value.resize(dims.at(0));
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: Vector of Array " << full_name << " size {" << dims[0] << ", "
+              << n << "} -> value {" << value.size() << ", " << n << "}\n";
+  }
+
+  const auto beginptr = &value[0][0];
+  const auto endptr = &value[dims[0] - 1][n - 1] + 1;
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: Check if input is contiguous. Target Array beginptr = " << beginptr
+              << " endptr = " << endptr << " diff = " << endptr - beginptr
+              << " expected = " << dims[0] * n << "\n";
+  }
+
+  assert(endptr - beginptr == dims[0] * n);
+
+  Scalar* ptr = value[0].data();
+  file_.Get(full_name, ptr, adios2::Mode::Sync);
+  return true;
 }
 
 template <typename Scalartype, typename domain_type>
@@ -170,12 +259,14 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   std::string full_name = get_path(name);
 
   if (!exists(full_name)) {
-    std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
-                     "\n\n";
+    std::cout << "\n\t ADIOS2Reader:the function (" + name +
+                     ") does not exist in path : " + get_path() + "\n\n";
     return false;
   }
 
-  std::cout << "\n\tstart ADIOS reading function : " << name << std::endl;
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: read function : " << name << std::endl;
+  }
 
   const std::string sizeAttrName = full_name + "/domain-sizes";
   auto sizeAttr = io_.InquireAttribute<size_t>(sizeAttrName);
