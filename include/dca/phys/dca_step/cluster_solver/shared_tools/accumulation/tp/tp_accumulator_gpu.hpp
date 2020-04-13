@@ -17,6 +17,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
+#include <cassert>
 #include <cuda.h>
 #include <mutex>
 #include <vector>
@@ -32,10 +33,6 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
-
-#define MOD(x,n) ((x) % (n))
-
-#include <cassert>
 
 #define MPI_CHECK(stmt)                                          \
 do {                                                             \
@@ -95,6 +92,9 @@ public:
 
   // Downloads the accumulation result to the host.
   void finalize();
+
+  // Applies pipepline ring algorithm to move G matrices around all ranks
+  void ringG(float& flop);
 
   // Sums on the host the accumulated Green's function to the accumulated Green's function of
   // other_acc.
@@ -326,75 +326,14 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
   flop += computeM(M, configs);
   computeG();
 
-    // sync all processors at the beginning
-    MPI_Barrier(MPI_COMM_WORLD);
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+  {
+     flop += updateG4(channel);
+  }
 
-    int my_concurrency_id, mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
-
-    MPI_Request recv_request_1, recv_request_2;
-    MPI_Request send_request_1, send_request_2;
-    MPI_Status status_1, status_2, status_3, status_4;
-
-    int left_neighbor = MOD((my_concurrency_id-1 + mpi_size), mpi_size);
-    int right_neighbor = MOD((my_concurrency_id+1 + mpi_size), mpi_size);
-
-    for (int s = 0; s < 2; ++s)
-    {
-        // allocate recvbuff_G_ buff G_
-        recvbuff_G_[s]= G_[s];
-
-        // copy locally generated G2 to send buff
-        sendbuff_G_[s] = G_[s];
-    }
-
-    for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-    {
-        flop += updateG4(channel);
-    }
-
-    // sync all processors
-    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
-    int send_tag = 1 + my_concurrency_id;
-    send_tag = 1 + MOD(send_tag-1, MPI_TAG_UB); // just to be safe, MPI_TAG_UB is largest tag value
-    for(int icount=0; icount < (mpi_size-1); icount++)
-    {
-        // encode the originator rank in the message tag as tag = 1 + originator_irank
-        int originator_irank = MOD(((my_concurrency_id-1)-icount + 2*mpi_size), mpi_size);
-        int recv_tag = 1 + originator_irank;
-        recv_tag = 1 + MOD(recv_tag-1, MPI_TAG_UB); // just to be safe, then 1 <= tag <= MPI_TAG_UB
-
-        MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1, MPI_COMM_WORLD, &recv_request_1));
-        MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &recv_request_2));
-
-        MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1, MPI_COMM_WORLD, &send_request_1));
-        MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &send_request_2));
-
-        MPI_CHECK(MPI_Wait(&recv_request_1, &status_1)); // wait for recvbuf_G2 to be available again
-        MPI_CHECK(MPI_Wait(&recv_request_2, &status_2)); // wait for recvbuf_G2 to be available again
-
-        G_[0] = recvbuff_G_[0];
-        G_[1] = recvbuff_G_[1];
-
-        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-        {
-            flop += updateG4(channel);
-        }
-
-        MPI_CHECK(MPI_Wait(&send_request_1, &status_3)); // wait for sendbuf_G2 to be available again
-        MPI_CHECK(MPI_Wait(&send_request_2, &status_4)); // wait for sendbuf_G2 to be available again
-
-        // get ready for send
-        sendbuff_G_[0] = G_[0];
-        sendbuff_G_[1] = G_[1];
-        send_tag = recv_tag;
-    }
-    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+#ifdef DCA_WITH_NVLINK
+  ringG(flop);
+#endif
 
   return flop;
 }
@@ -546,6 +485,92 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   finalized_ = true;
   initialized_ = false;
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
+
+    // get ready for send and receive
+    for (int s = 0; s < 2; ++s)
+    {
+        // set receive buffer size equals to G_ size
+        recvbuff_G_[s].resizeNoCopy(G_[s].size());
+
+        // copy locally generated G2 to send buff
+        sendbuff_G_[s] = G_[s];
+    }
+
+    int my_concurrency_id, mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
+
+    MPI_Request recv_request_1, recv_request_2;
+    MPI_Request send_request_1, send_request_2;
+    MPI_Status status_1, status_2, status_3, status_4;
+
+    // get rank index of left and right neighbor
+    auto mod_op = [](int id, int mpi_size) {return id % mpi_size; };
+    int left_neighbor = mod_op((my_concurrency_id - 1 + mpi_size), mpi_size);
+    int right_neighbor = mod_op((my_concurrency_id + 1 + mpi_size), mpi_size);
+
+    // init send and recv tags to G2 up and down, respectively
+    // *tag_dn - *tag_up = mpi_size to ensure tag value is distinct
+    int send_tag_up = 1, send_tag_dn = send_tag_up + mpi_size;
+    int recv_tag_up = 1, recv_tag_dn = recv_tag_up + mpi_size;
+
+    // sync all processors at the beginning
+    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+
+    // Pipepline ring algorithm in the following for-loop:
+    // 1) At each time step, local rank receives a new G2 from left hand neighbor,
+    // makes a copy locally and uses this G2 to update G4, and
+    // sends this G2 to right hand neighbor. In total, the algorithm performs (mpi_size - 1) steps.
+    // 2) This algorithm currently requires parameters in input file:
+    //      a) DCA threads = 1; TODO: consider multiple threads
+    //      b) walker = 1, accumulator = 1, and shared-walk-and-accumulation-thread = true;
+    //      c) and, local measurements are equal, i.e. measurements % ranks == 0.
+    //      d) also, the ringG() is enabled via compile time setting. TODO:: make it runtime
+    for(int icount=0; icount < (mpi_size-1); icount++)
+    {
+        MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, recv_tag_up, MPI_COMM_WORLD, &recv_request_1));
+        MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, recv_tag_dn, MPI_COMM_WORLD, &recv_request_2));
+
+        MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, send_tag_up, MPI_COMM_WORLD, &send_request_1));
+        MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, send_tag_dn, MPI_COMM_WORLD, &send_request_2));
+
+        // wait for recvbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&recv_request_1, &status_1));
+        MPI_CHECK(MPI_Wait(&recv_request_2, &status_2));
+
+        // copy from receive buffer into local G2
+        for (int s = 0; s < 2; ++s)
+        {
+            G_[s] = recvbuff_G_[s];
+        }
+
+        // use newly copied G2 to update G4
+        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+        {
+            flop += updateG4(channel);
+        }
+
+        // wait for sendbuf_G2 to be available again
+        MPI_CHECK(MPI_Wait(&send_request_1, &status_3));
+        MPI_CHECK(MPI_Wait(&send_request_2, &status_4));
+
+        // get ready for send again
+        for (int s = 0; s < 2; ++s)
+        {
+            sendbuff_G_[s] = G_[s];
+        }
+    }
+
+    // sync all processors at the end
+    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 }
 
 template <class Parameters>

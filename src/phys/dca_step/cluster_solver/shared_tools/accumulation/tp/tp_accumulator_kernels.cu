@@ -216,8 +216,12 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
 
+#ifdef DCA_WITH_NVLINK
+  // each rank only update G4 if the G4's decomposed index statisfies
+  // (w1 - my_rank) % mpi_size == 0
   if ((w1 - my_rank) % mpi_size != 0)
       return;
+#endif
 
   // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
   // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with

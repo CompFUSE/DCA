@@ -51,10 +51,6 @@ Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scal
 
     const auto diff = static_cast<DiffType>(f1(i)) - static_cast<DiffType>(f2(i));
     const double err = std::abs(diff);
-//    if(i < 10)
-//    {
-//        std::cout <<"index i = " << i << " diff = " << err << " cpu : " << f_abs << " gpu: " << std::abs(f2(i)) << "\n";
-//    }
     l1_error += err;
     l2_error += err * err;
     linf_error = std::max(linf_error, err);
