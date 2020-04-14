@@ -19,6 +19,9 @@ if (DCA_HAVE_ADIOS2)
   dca_add_gtest(adios2_reader_writer_test
     GTEST_MAIN
     LIBS dca_adios2 adios2::adios2;function)
-##    INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-##    LIBS     ${DCA_LIBS}
+  if (DCA_HAVE_MPI)
+    dca_add_gtest(adios2_parallelIO_test
+      GTEST_MAIN
+      LIBS dca_adios2 adios2::adios2 parallel_mpi_concurrency;function)
+  endif()
 endif()

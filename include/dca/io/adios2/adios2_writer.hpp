@@ -28,7 +28,10 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
-//#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#endif
 
 namespace dca {
 namespace io {
@@ -41,6 +44,10 @@ public:
 public:
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
   ADIOS2Writer(const std::string& config = "", bool verbose = false);
+#ifdef DCA_HAVE_MPI
+  ADIOS2Writer(const dca::parallel::MPIConcurrency* concurrency, const std::string& config = "",
+               bool verbose = false);
+#endif
   ~ADIOS2Writer();
 
   constexpr bool is_reader() {
@@ -124,9 +131,11 @@ public:
   }
 
 private:
-  // bool fexists(const char* filename);
-
-  // bool exists(const std::string& name) const;
+  adios2::ADIOS adios_;
+  const bool verbose_;
+#ifdef DCA_HAVE_MPI
+  const dca::parallel::MPIConcurrency* concurrency_;
+#endif
 
   template <typename Scalar>
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data);
@@ -138,9 +147,6 @@ private:
                     const std::vector<size_t>& size, const Scalar* data);
 
   void addAttribute(const std::string& set, const std::string& name, const std::string& value);
-
-  adios2::ADIOS adios_;
-  const bool verbose_;
 
   adios2::IO io_;
   std::string io_name_;
