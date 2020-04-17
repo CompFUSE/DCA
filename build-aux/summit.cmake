@@ -47,5 +47,8 @@ set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
 set(FFTW_INCLUDE_DIRS $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARIES $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
+# Enable the threaded support.
+option(DCA_WITH_THREADED_SOLVER "Enable threaded support." ON)
+
 # HPX paths.
 set(HPX_DIR $ENV{OLCF_HPX_ROOT}/lib64/cmake/HPX CACHE PATH "Path to HPX library.")
