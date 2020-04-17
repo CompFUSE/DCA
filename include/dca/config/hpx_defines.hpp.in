@@ -18,22 +18,8 @@
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
 
-#define DCA_HAVE_HPX_LOGGING 1
-
 #if defined(DCA_HAVE_HPX)
 # include <hpx/config/defines.hpp>
-# if defined(DCA_HAVE_HPX_LOGGING) && !defined(NDEBUG)
-//#  include <hpx/logging.hpp>
-#  include <hpx/synchronization/mutex.hpp>
-#  include <mutex> // lock_guard
-typedef std::mutex    log_mutex_type;
-extern log_mutex_type log_mutex;
-#  define DCA_LOG(msg) { std::lock_guard<log_mutex_type> lock(log_mutex); std::cout << "DEBUG " << msg << std::endl; }
-# else
-#  define DCA_LOG(msg)
-# endif
-#else
-# define DCA_LOG(msg)
 #endif
 
 #endif  // DCA_CONFIG_CONFIG_DEFINES_HPP
