@@ -32,7 +32,12 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
+#ifdef DCA_HAVE_HPX
+// B0 is macro defined in /usr/include/bits/termios.h on Summit, which is used by Boost
+// (then HPX) and also a variable used in this file and following files. Udef B0 to avoid
+// compliation error when HPX is used.
 #undef B0
+#endif
 
 namespace dca {
 namespace phys {
