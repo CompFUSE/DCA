@@ -51,4 +51,4 @@ set(FFTW_LIBRARIES $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW
 option(DCA_WITH_THREADED_SOLVER "Enable threaded support." ON)
 
 # HPX paths.
-set(HPX_DIR $ENV{OLCF_HPX_ROOT}/lib64/cmake/HPX CACHE PATH "Path to HPX library.")
+#set(HPX_DIR $ENV{OLCF_HPX_ROOT}/lib64/cmake/HPX CACHE PATH "Path to HPX library.")
