@@ -4,6 +4,6 @@
 
 dca_add_gtest(wannier_interpolation_test
   GTEST_MAIN
-  INCLUDE_DIRS ${FFTW_INCLUDE_DIRS} ${NFFT_INCLUDE_DIR}
+  INCLUDE_DIRS ${FFTW_INCLUDE_DIR} ${NFFT_INCLUDE_DIR}
   LIBS json cluster_domains quantum_domains time_and_frequency_domains function ${NFFT_LIBRARY}
-  ${FFTW_LIBRARIES})
+  ${FFTW_LIBRARY})
