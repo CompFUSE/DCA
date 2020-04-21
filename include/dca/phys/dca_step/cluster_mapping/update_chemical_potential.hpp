@@ -32,12 +32,6 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
-#ifdef DCA_HAVE_HPX
-// B0 is macro defined in /usr/include/bits/termios.h on Summit, which is used by Boost
-// (then HPX) and also a variable used in this file and following files. Udef B0 to avoid
-// compliation error when HPX is used.
-#undef B0
-#endif
 
 namespace dca {
 namespace phys {
@@ -275,10 +269,10 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   func::function<double, func::dmn_variadic<nu, KClusterDmn>> B;
 
   func::function<double, func::dmn_variadic<nu, KClusterDmn>> A0;
-  func::function<double, func::dmn_variadic<nu, KClusterDmn>> B0;
+  func::function<double, func::dmn_variadic<nu, KClusterDmn>> b0;
 
   compute_density_coefficients(A, B, MOMS.G_k_w);
-  compute_density_coefficients(A0, B0, MOMS.G0_k_w);
+  compute_density_coefficients(A0, b0, MOMS.G0_k_w);
 
   for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
     for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
@@ -291,7 +285,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
         std::complex<double> I_wn = (M_PI / beta) * (1 + 2 * l) * I;
 
         std::complex<double> G = 1. / (I_wn + A(nu_i, k_i) + B(nu_i, k_i) / I_wn);
-        std::complex<double> G0 = 1. / (I_wn + A0(nu_i, k_i) + B0(nu_i, k_i) / I_wn);
+        std::complex<double> G0 = 1. / (I_wn + A0(nu_i, k_i) + b0(nu_i, k_i) / I_wn);
 
         tmp = std::real(G - G0);
         sum += tmp;
