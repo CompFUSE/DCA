@@ -64,6 +64,8 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  void setSampleConfiguration(const io::Buffer& buff);
+
 private:
   void startWalker(int id);
   void startAccumulator(int id);
@@ -129,7 +131,6 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
 
       accumulators_queue_(),
 
-      config_dump_(nr_walkers_),
       autocorrelation_data_(parameters_, 0),
 
       writer_(writer) {
@@ -137,6 +138,9 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
   }
+
+  if (parameters_.store_configuration())
+    config_dump_.resize(nr_walkers_);
 
   for (int i = 0; i < nr_walkers_; ++i) {
     rng_vector_.emplace_back(concurrency_.id(), concurrency_.number_of_processors(),
@@ -148,6 +152,16 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
   // Create a sufficient amount of cublas handles, cuda streams and threads.
   linalg::util::resizeHandleContainer(thread_task_handler_.size());
   parallel::ThreadPool::get_instance().enlarge(thread_task_handler_.size());
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::setSampleConfiguration(const io::Buffer& buff) {
+  if (parameters_.store_configuration())
+    return;
+
+  config_dump_.resize(nr_walkers_);
+  for (auto& x : config_dump_)
+    x = buff;
 }
 
 template <class QmciSolver>
@@ -213,6 +227,12 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   }
 
   print_metadata();
+
+  if (writer_ && config_dump_.size()) {  // write one sample configuration.
+    writer_->open_group("Configurations");
+    writer_->rewrite("sample", config_dump_[0]);
+    writer_->close_group();
+  }
 
   QmciSolver::accumulator_.finalize();
 }
