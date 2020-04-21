@@ -26,28 +26,28 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-struct PointGroup {
+struct FeAsPointGroup {
   using point_group_type_list =
       dca::util::Typelist<domains::identity_group_operation<2>, domains::Cn_2D<2, 4>>;
 };
 
 template <typename /*PointGroupType*/>
-class FeAsLattice : public bilayer_lattice<PointGroup> {
+class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
-  using BaseClass = bilayer_lattice<PointGroup>;
+  using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
   // Initialize the non interacting Hamiltonian.
   template <typename Parameters, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-  static void initialize_H_0(
+  static void initializeH0(
       const Parameters& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   // Initializes the interaction Hamiltonian  density-density local term.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-  static void initialize_H_interaction(
+  static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
@@ -61,7 +61,7 @@ public:
 
 template <typename PointGroupType>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void FeAsLattice<PointGroupType>::initialize_H_0(
+void FeAsLattice<PointGroupType>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -99,7 +99,7 @@ void FeAsLattice<PointGroupType>::initialize_H_0(
 
 template <typename PointGroupType>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
-void FeAsLattice<PointGroupType>::initialize_H_interaction(
+void FeAsLattice<PointGroupType>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
@@ -134,6 +134,7 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
     func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
     const parameters_type& parameters) {
   const double J = parameters.get_J();
+  const double Jp = parameters.get_Jp();
   const Nu nu;  // band-spin domain.
   constexpr int up(0), down(1);
 
@@ -144,7 +145,8 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
         continue;
       // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
       // Note: a factor of -1 comes from rearranging the fermion operators.
-      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+        non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+        non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
     }
 }
 

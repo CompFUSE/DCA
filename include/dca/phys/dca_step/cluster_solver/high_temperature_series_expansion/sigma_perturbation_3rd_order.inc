@@ -14,7 +14,7 @@ template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<3, parameters_type, k_dmn_t> {
 public:
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX_BOSONIC = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
+  using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
@@ -107,9 +107,9 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_RPA(
 
   Sigma_RPA = 0.;
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
-      int nu_c = (nu_ind - w_VERTEX_BOSONIC::dmn_size() / 2);
+      int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
       for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -139,7 +139,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_VC(
 
   Sigma_VC = 0.;
 
-  for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
+  for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
         int nu_minus_w = subtract_freq_fb(w_ind, nu_ind);
@@ -168,7 +168,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_VC(
 template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<3, parameters_type, k_dmn_t>::subtract_freq_fb(int w1, int w2) {
   int w_f = 2 * (w1 - w::dmn_size() / 2) + 1;             // transform fermionic
-  int w_b = 2 * (w2 - w_VERTEX_BOSONIC::dmn_size() / 2);  // transform bosonic
+  int w_b = 2 * (w2 - WVertexBosonicDmn::dmn_size() / 2);  // transform bosonic
   int res = ((w_b - w_f) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;
 }

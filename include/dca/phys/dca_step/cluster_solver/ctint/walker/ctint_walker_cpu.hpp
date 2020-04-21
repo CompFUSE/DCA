@@ -49,8 +49,6 @@ public:
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
-  void initialize();
-
   void doSweep();
 
 protected:
@@ -117,10 +115,6 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
                                                         const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id), det_ratio_{1, 1} {}
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::initialize() {
-  BaseClass::initialize();
-}
 
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
@@ -176,6 +170,12 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
     applyInsertion(S_, Q_, R_);
+
+    Real mc_weight_term = det_ratio_[0] * det_ratio_[1];
+    for (int i = 0; i < delta_vertices; ++i)
+      mc_weight_term *= -configuration_.getStrength(configuration_.size() - 1 - i);
+
+    BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_term));
   }
   return accept;
 }
@@ -188,6 +188,13 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
   if (accept) {
     if (acceptance_prob_ < 0)
       sign_ *= -1;
+
+    Real mc_weight_term = det_ratio_[0] * det_ratio_[1];
+    for (auto idx : removal_list_)
+      mc_weight_term /= -configuration_.getStrength(idx);
+
+    BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_term));
+
     applyRemoval();
   }
   return accept;

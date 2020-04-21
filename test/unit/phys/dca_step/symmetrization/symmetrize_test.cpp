@@ -33,6 +33,8 @@ using Model = dca::phys::models::TightBindingModel<
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, void, dca::phys::solver::CT_AUX>;
 
+using Lattice = typename Parameters::lattice_type;
+
 using RClusterDmn = typename Parameters::RClusterDmn;
 using KClusterDmn = typename Parameters::KClusterDmn;
 using TDmn = typename Parameters::TDmn;
@@ -60,7 +62,7 @@ public:
       domain_initialized = true;
     }
 
-    Parameters::model_type::initialize_H_0(parameters_, H0_);
+    Parameters::model_type::initializeH0(parameters_, H0_);
     Parameters::model_type::initialize_H_symmetries(H_symmetry_);
   }
 
@@ -85,8 +87,8 @@ TEST_F(SymmetrizeTest, G0_t) {
   G0_r_t = dca::func::util::real(G0_r_t_cmplx, true);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute(G0_k_t, H_symmetry_, true);
-  dca::phys::symmetrize::execute(G0_r_t, H_symmetry_, true);
+  dca::phys::symmetrize::execute<Lattice>(G0_k_t, H_symmetry_, true);
+  dca::phys::symmetrize::execute<Lattice>(G0_r_t, H_symmetry_, true);
 
   EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
 }
@@ -101,8 +103,8 @@ TEST_F(SymmetrizeTest, G0_w) {
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute(G0_k_w, H_symmetry_, true);
-  dca::phys::symmetrize::execute(G0_r_w, H_symmetry_, true);
+  dca::phys::symmetrize::execute<Lattice>(G0_k_w, H_symmetry_, true);
+  dca::phys::symmetrize::execute<Lattice>(G0_r_w, H_symmetry_, true);
 
   EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
 }

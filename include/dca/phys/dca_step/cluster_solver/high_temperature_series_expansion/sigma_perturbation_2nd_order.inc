@@ -18,7 +18,7 @@ public:
   using ThisType = sigma_perturbation<2, parameters_type, k_dmn_t>;
 
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX_BOSONIC = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
+  using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
@@ -73,7 +73,7 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  func::function<std::complex<double>, func::dmn_variadic<b, b, k_dmn_t, w_VERTEX_BOSONIC>> U_chi_U;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, k_dmn_t, WVertexBosonicDmn>> U_chi_U;
 
   sp_function_type Sigma;
 
@@ -167,9 +167,9 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
 
   Sigma_2A = 0.;
 
-  for (int nu1_ind = 0; nu1_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu1_ind) {
+  for (int nu1_ind = 0; nu1_ind < WVertexBosonicDmn::dmn_size(); ++nu1_ind) {
     for (int q1_ind = 0; q1_ind < k_dmn_t::dmn_size(); ++q1_ind) {
-      for (int nu2_ind = 0; nu2_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu2_ind) {
+      for (int nu2_ind = 0; nu2_ind < WVertexBosonicDmn::dmn_size(); ++nu2_ind) {
         for (int q2_ind = 0; q2_ind < k_dmn_t::dmn_size(); ++q2_ind) {
           for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
             int w_minus_nu1 = subtract_freq_bf(nu1_ind, w_ind);
@@ -220,8 +220,8 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
       int k_minus_q = k_dmn_t::parameters_type::subtract(q_ind, k_ind);
 
-      for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
-        int nu_c = (nu_ind - w_VERTEX_BOSONIC::dmn_size() / 2);
+      for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
+        int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
         for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
           int w_minus_nu = w_ind - nu_c;
@@ -309,8 +309,8 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(
     for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind++) {
       int k_minus_q = k_dmn_t::parameter_type::subtract(q_ind, k_ind);
 
-      for (int nu_ind = 0; nu_ind < w_VERTEX_BOSONIC::dmn_size(); ++nu_ind) {
-        int nu_c = (nu_ind - w_VERTEX_BOSONIC::dmn_size() / 2);
+      for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
+        int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
         for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
           int w_minus_nu = w_ind - nu_c;
@@ -335,7 +335,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(
 template <class parameters_type, class k_dmn_t>
 int sigma_perturbation<2, parameters_type, k_dmn_t>::subtract_freq_bf(int w1, int w2) {
   int w_f = 2 * (w2 - w::dmn_size() / 2) + 1;             // transform fermionic
-  int w_b = 2 * (w1 - w_VERTEX_BOSONIC::dmn_size() / 2);  // transform bosonic
+  int w_b = 2 * (w1 - WVertexBosonicDmn::dmn_size() / 2);  // transform bosonic
   int res = ((w_f - w_b) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;
 }

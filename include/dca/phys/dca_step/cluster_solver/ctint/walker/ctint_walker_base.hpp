@@ -71,16 +71,14 @@ public:
     return configuration_;
   }
 
-  int getSign() const {
-    return sign_;
-  }
-
   void computeM(MatrixPair& m_accum) const;
 
+  // Reset the counters and recompute the configuration sign and weight.
   void markThermalized();
 
   // Recompute the matrix M from the configuration in O(expansion_order^3) time.
-  void setMFromConfig();
+  // Postcondition: sign_ and mc_log_weight_ are recomputed.
+  virtual void setMFromConfig();
 
   bool is_thermalized() const {
     return thermalized_;
@@ -92,8 +90,12 @@ public:
   double avgOrder() const {
     return order_avg_.count() ? order_avg_.mean() : order();
   }
-  int sign() const {
+  int get_sign() const {
     return sign_;
+  }
+
+  Real get_MC_log_weight() const {
+    return mc_log_weight_;
   }
 
   double acceptanceRatio() const {
@@ -104,6 +106,10 @@ public:
 
   const auto& get_configuration() const {
     return configuration_;
+  }
+
+  const auto& get_matrix_configuration() const {
+    return configuration_.get_sectors();
   }
 
   void updateShell(int meas_id, int meas_to_do) const;
@@ -196,6 +202,8 @@ protected:  // Members.
 
   float flop_ = 0.;
 
+  double mc_log_weight_ = 0;
+
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<Real, linalg::CPU> work_;
@@ -223,6 +231,9 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::initialize() {
   assert(total_interaction_);
+  sign_ = 1;
+  mc_log_weight_ = 1.;
+
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
       configuration_.insertRandom(rng_);
@@ -236,9 +247,12 @@ void CtintWalkerBase<Parameters, Real>::initialize() {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
-  // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+  mc_log_weight_ = 1.;
   sign_ = 1;
+
   for (int s = 0; s < 2; ++s) {
+    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
     const auto& sector = configuration_.getSector(s);
     auto& M = M_[s];
     const int n = sector.size();
@@ -249,10 +263,17 @@ void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
       for (int i = 0; i < n; ++i)
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
-    const Real det = linalg::matrixop::inverseAndDeterminant(M);
+    if (M.nrRows()) {
+      const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
+      mc_log_weight_ += log_det;
+      sign_ *= sign;
+    }
+  }
 
-    // Set the initial sign
-    if (det < 0)
+  for (int i = 0; i < configuration_.size(); ++i) {
+    const Real term = -configuration_.getStrength(i);
+    mc_log_weight_ += std::log(std::abs(term));
+    if (term < 0)
       sign_ *= -1;
   }
 }
@@ -268,8 +289,6 @@ void CtintWalkerBase<Parameters, Real>::updateSweepAverages() {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::markThermalized() {
-  if (partial_order_avg_.mean() == 0)
-    throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
 
   nb_steps_per_sweep_ =
@@ -279,6 +298,9 @@ void CtintWalkerBase<Parameters, Real>::markThermalized() {
   sign_avg_.reset();
   n_accepted_ = 0;
   n_steps_ = 0;
+
+  // Recompute the Monte Carlo weight.
+  setMFromConfig();
 }
 
 template <class Parameters, typename Real>

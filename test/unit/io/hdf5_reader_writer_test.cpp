@@ -13,6 +13,7 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 
+#include <array>
 #include <complex>
 #include <string>
 #include <vector>

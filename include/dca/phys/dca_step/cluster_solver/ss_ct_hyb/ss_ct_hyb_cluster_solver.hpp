@@ -52,6 +52,8 @@ public:
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
+  using Lattice = typename parameters_type::lattice_type;
+
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
 
   const static int MC_TYPE = SS_CT_HYB;
@@ -318,7 +320,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::warmUp(Walker& walke
     walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
-  walker.is_thermalized() = true;
+  walker.markThermalized();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;
@@ -408,11 +410,11 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute(accumulator_.get_G_r_w(), data_.H_symmetry);
+  symmetrize::execute<Lattice>(accumulator_.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute(accumulator_.get_GS_r_w(), data_.H_symmetry);
+  symmetrize::execute<Lattice>(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
-  std::vector<int> flavors = parameters_type::model_type::get_flavors();
+  std::vector<int> flavors = parameters_type::model_type::flavors();
   assert(flavors.size() == b::dmn_size());
 
   func::function<std::complex<double>, b> f_val;
@@ -462,7 +464,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
 
   compute_Sigma_new(accumulator_.get_G_r_w(), accumulator_.get_GS_r_w());
 
-  symmetrize::execute(Sigma_new, data_.H_symmetry);
+  symmetrize::execute<Lattice>(Sigma_new, data_.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
@@ -493,7 +495,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
     }
   }
 
-  symmetrize::execute(data_.Sigma, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;

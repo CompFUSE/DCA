@@ -19,7 +19,7 @@ TEST(McSolverParametersCtAuxTest, DefaultValues) {
   dca::phys::params::McSolverParameters<dca::phys::solver::CT_AUX> pars;
 
   EXPECT_EQ(1., pars.get_expansion_parameter_K());
-  EXPECT_EQ(10, pars.get_initial_configuration_size());
+  EXPECT_EQ(0, pars.get_initial_configuration_size());
   EXPECT_EQ(128, pars.get_initial_matrix_size());
   EXPECT_EQ(128, pars.get_max_submatrix_size());
   EXPECT_FALSE(pars.neglect_bennett_updates());

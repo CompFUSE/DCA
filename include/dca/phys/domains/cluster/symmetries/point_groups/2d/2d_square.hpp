@@ -62,14 +62,13 @@ struct S8 {
 };
 
 struct D4 {
-  typedef dca::util::Typelist<Cn_2D_1_4_type, Cn_2D_2_4_type, Cn_2D_3_4_type, Sn_2D_0_8_type,
-                              Sn_2D_1_8_type, Sn_2D_2_8_type, Sn_2D_3_8_type, Sn_2D_4_8_type, Sn_2D_5_8_type,
-                              Sn_2D_6_8_type, Sn_2D_7_8_type, identity_group_operation<2>>
-      point_group_type_list;
+  using point_group_type_list =
+      dca::util::Typelist<Sn_2D<0, 8>, Sn_2D<1, 8>, Sn_2D<2, 8>, Sn_2D<3, 8>, Cn_2D<1, 4>,
+                          Cn_2D<2, 4>, Cn_2D<3, 4>, identity_group_operation<2>>;
 };
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUPS_2D_2D_SQUARE_HPP

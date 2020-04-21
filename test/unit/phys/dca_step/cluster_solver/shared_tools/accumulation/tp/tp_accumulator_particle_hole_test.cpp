@@ -30,13 +30,16 @@
 
 constexpr char input_file[] = INPUT_DIR "input_tp_accumulator_particle_hole_test.json";
 
-using ConfigGenerator = dca::testing::AccumulationTest<double>;
-using Configuration = ConfigGenerator::Configuration;
-using Sample = ConfigGenerator::Sample;
 using TpAccumulatorTest =
     dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
+  using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;
+  using Real = TpAccumulatorType::Real;
+  using ConfigGenerator = dca::testing::AccumulationTest<Real>;
+  using Configuration = ConfigGenerator::Configuration;
+  using Sample = ConfigGenerator::Sample;
+
   Configuration config;
   Sample M;
   const std::array<int, 2> n{18, 22};
@@ -48,7 +51,6 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
       dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
       dca::phys::PARTICLE_HOLE_MAGNETIC, dca::phys::PARTICLE_HOLE_CHARGE});
 
-  using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;
   TpAccumulatorType accumulator_ph(data_->G0_k_w_cluster_excluded, parameters_);
 
   const int sign = 1;
@@ -82,9 +84,9 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_down_check;
 
   for (int l = 0; l < G4_ph_long_up_up_check.size(); ++l) {
-    G4_ph_long_up_up_check(l) = 0.5 * (G4_ph_charge(l) + G4_ph_magnetic(l));
+    G4_ph_long_up_up_check(l) = Real(0.5) * (G4_ph_charge(l) + G4_ph_magnetic(l));
 
-    G4_ph_long_up_down_check(l) = 0.5 * (G4_ph_charge(l) - G4_ph_magnetic(l));
+    G4_ph_long_up_down_check(l) = Real(0.5) * (G4_ph_charge(l) - G4_ph_magnetic(l));
   }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);

@@ -57,7 +57,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
 
   Data data(parameters);
   // initialize H only. G0 is read from file afterwards.
-  data.initialize_H_0_and_H_i();
+  data.initializeH0_and_H_i();
 
   // Read and broadcast the rest of the initialization from full DCA results.
   if (id == 0) {
