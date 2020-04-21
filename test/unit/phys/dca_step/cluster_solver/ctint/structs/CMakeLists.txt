@@ -5,7 +5,7 @@ dca_add_gtest(ct_int_interaction_vertices_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS ${DCA_LIBS} ${DCA_THREADING_LIBS}
+    LIBS ${DCA_LIBS}
     )
 
 dca_add_gtest(solver_configuration_test
