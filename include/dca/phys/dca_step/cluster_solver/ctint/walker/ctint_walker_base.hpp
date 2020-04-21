@@ -257,7 +257,7 @@ void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
-  mc_log_weight_ = 1.;
+  mc_log_weight_ = 0.;
   sign_ = 1;
 
   for (int s = 0; s < 2; ++s) {
