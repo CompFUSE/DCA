@@ -56,8 +56,8 @@ endif()
 # FFTW
 find_package(FFTW REQUIRED)
 
-list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
 
 ################################################################################
 # Simplex GM Rule

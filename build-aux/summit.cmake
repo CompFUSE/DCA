@@ -44,8 +44,8 @@ set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 # FFTW paths.
-set(FFTW_INCLUDE_DIRS $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARIES $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
+set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
+set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
 # Enable the threaded support.
 option(DCA_WITH_THREADED_SOLVER "Enable threaded support." ON)

@@ -20,5 +20,5 @@ set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 # FFTW paths.
-set(FFTW_INCLUDE_DIRS $ENV{FFTW_INC} CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARIES $ENV{FFTW_DIR}/libfftw3.a CACHE FILEPATH "The FFTW3(-compatible) library.")
+set(FFTW_INCLUDE_DIR $ENV{FFTW_INC} CACHE PATH "Path to fftw3.h.")
+set(FFTW_LIBRARY $ENV{FFTW_DIR}/libfftw3.a CACHE FILEPATH "The FFTW3(-compatible) library.")

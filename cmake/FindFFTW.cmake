@@ -9,8 +9,8 @@
 #
 # Defines the following variables:
 #   FFTW_FOUND          Boolean holding whether or not the FFTW3 library was found
-#   FFTW_INCLUDE_DIRS   The FFTW3 include directory
-#   FFTW_LIBRARIES      The FFTW3 library
+#   FFTW_INCLUDE_DIR   The FFTW3 include directory
+#   FFTW_LIBRARY      The FFTW3 library
 #
 # In case FFTW3 is not installed in the default directory, set the FFTW_ROOT variable to point to
 # the root of FFTW3, such that 'fftw3.h' can be found in $FFTW_ROOT/include. This can either be done
@@ -30,38 +30,38 @@ set(FFTW_PATHS
 )
 
 # Finds the include directories
-find_path(FFTW_INCLUDE_DIRS
+find_path(FFTW_INCLUDE_DIR
   NAMES fftw3.h
   HINTS ${FFTW_HINTS}
   PATH_SUFFIXES include api inc include/x86_64 include/x64
   PATHS ${FFTW_PATHS}
   DOC "FFTW3 include header fftw3.h"
 )
-mark_as_advanced(FFTW_INCLUDE_DIRS)
+mark_as_advanced(FFTW_INCLUDE_DIR)
 
 # Finds the library
-find_library(FFTW_LIBRARIES
+find_library(FFTW_LIBRARY
   NAMES fftw3
   HINTS ${FFTW_HINTS}
   PATH_SUFFIXES lib lib64 lib/x86_64 lib/x64 lib/x86 lib/Win32
   PATHS ${FFTW_PATHS}
   DOC "FFTW3 library"
 )
-mark_as_advanced(FFTW_LIBRARIES)
+mark_as_advanced(FFTW_LIBRARY)
 
 # ==================================================================================================
 
 # Notification messages
-if(NOT FFTW_INCLUDE_DIRS)
+if(NOT FFTW_INCLUDE_DIR)
     message(STATUS "Could NOT find 'fftw3.h', install FFTW3 or set FFTW_ROOT")
 endif()
-if(NOT FFTW_LIBRARIES)
+if(NOT FFTW_LIBRARY)
     message(STATUS "Could NOT find the FFTW3 library, install it or set FFTW_ROOT")
 endif()
 
 # Determines whether or not FFTW3 was found
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(FFTW DEFAULT_MSG FFTW_INCLUDE_DIRS FFTW_LIBRARIES)
+find_package_handle_standard_args(FFTW DEFAULT_MSG FFTW_INCLUDE_DIR FFTW_LIBRARY)
 
 # ==================================================================================================
-message("FFTW found ${FFTW_FOUND} ${FFTW_INCLUDE_DIRS} ${FFTW_LIBRARIES}")
+message("FFTW found ${FFTW_FOUND} ${FFTW_INCLUDE_DIR} ${FFTW_LIBRARY}")
