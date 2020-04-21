@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/threading.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -28,7 +29,6 @@
 #include "dca/math/random/random.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -67,7 +67,7 @@ using dca::phys::solver::CT_INT;
 template <ClusterSolverName name>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
+                                  Threading, dca::profiling::NullProfiler, Model,
                                   RandomNumberGenerator, name>;
 
 template <ClusterSolverName name>

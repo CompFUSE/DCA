@@ -42,10 +42,10 @@ using Real = float;
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::NoThreading;
+using NoThreading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
+using Parameters = dca::phys::params::Parameters<Concurrency, NoThreading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>

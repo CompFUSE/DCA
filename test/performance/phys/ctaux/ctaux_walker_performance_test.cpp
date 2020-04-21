@@ -48,7 +48,7 @@ using Profiler = dca::profiling::NullProfiler;
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::NoThreading;
+using NoThreading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
