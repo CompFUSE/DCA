@@ -437,7 +437,7 @@ whose autocorrelation is computed. This measurements requires some device memory
 `"stamping-period"` integer (0)  
 If larger than 0, the master MPI rank logs the walker configuration every `stamping-period` sweeps. 
  
-`"store-configuration":` : boolean (false)
+`"store-configuration":` : boolean (true)
 If true, the vertex configuration is stored between DCA iterations to initialize the walkers of 
 the following iteration.
 

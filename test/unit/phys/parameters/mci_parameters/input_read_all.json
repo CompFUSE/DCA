@@ -5,7 +5,7 @@
         "sweeps-per-measurement": [1.5, 1.5, 4.],
         "measurements": [100, 150, 200],
         "error-computation-type" : "JACK_KNIFE",
-        "store-configuration" : true,
+        "store-configuration" : false,
 
         "threaded-solver": {
             "walkers": 3,
