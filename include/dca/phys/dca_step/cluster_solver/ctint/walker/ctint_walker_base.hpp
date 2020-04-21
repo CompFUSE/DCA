@@ -272,7 +272,7 @@ void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
 
     if (M.nrRows()) {
       const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
-      mc_log_weight_ += log_det;
+      mc_log_weight_ -= log_det; // Weight proportional to det(M^{-1})
       sign_ *= sign;
     }
   }
