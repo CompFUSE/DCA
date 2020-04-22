@@ -17,6 +17,10 @@ if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
 endif()
 
 ################################################################################
+# Allow find package to use XXX_ROOT vars for searching
+cmake_policy(SET CMP0074 NEW)
+
+################################################################################
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
