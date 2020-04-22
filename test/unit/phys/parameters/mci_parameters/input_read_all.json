@@ -7,6 +7,10 @@
         "error-computation-type" : "JACK_KNIFE",
         "store-configuration" : true,
 
+        "time-correlation-window" : 100,
+        "compute-G-correlation" : true,
+        "stamping-period" : 100,
+
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,

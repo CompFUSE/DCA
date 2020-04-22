@@ -135,7 +135,7 @@ private:
   std::vector<int> measurements_;
   int measurements_final_iter_ = -1;
   int time_correlation_window_ = 0;
-  bool compute_G_correlation_ = true;
+  bool compute_G_correlation_ = false;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
