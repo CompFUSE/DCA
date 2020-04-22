@@ -15,6 +15,8 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 # Compile for Tesla compute architecture.
 # set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")  # default
 
+set(FFTW_ROOT $ENV{FFTW_DIR}/.. CACHE PATH "Path to fftw3 library")
+
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
 set(MAGMA_DIR $ENV{EBROOTMAGMA} CACHE PATH
