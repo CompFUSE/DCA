@@ -159,7 +159,8 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
   }
 
   auto size = readSize(full_name)[0];
-  const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
+  auto temp = HDF5_TYPE<Scalar>::get_PredType();
+  const auto type = H5::VarLenType(&temp);
 
   std::vector<hvl_t> data(size);
 
