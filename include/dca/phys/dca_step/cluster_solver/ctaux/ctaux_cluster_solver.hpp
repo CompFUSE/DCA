@@ -82,7 +82,7 @@ private:
 
 public:
   CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
-                     io::HDF5Writer* /*writer*/ = nullptr);
+                     const std::shared_ptr<io::HDF5Writer>& /*writer*/ = nullptr);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -162,9 +162,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& parameters_ref,
-                                                                   Data& data_ref,
-                                                                   io::HDF5Writer* /*writer*/)
+CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),

@@ -430,7 +430,7 @@ Determines the type of error computation that will be performed during the last 
  Maximum distance (in MC time) considered when computing the correlation between configurations.
  If 0, no auto-correlation is computed.
  
-`"compute-G-correlation":` boolean (true)
+`"compute-G-correlation":` boolean (false)
 If `time-correlation-window` is larger than 0, G(r = 0, t = 0) is included in the observables
 whose autocorrelation is computed. This measurements requires some device memory. 
  

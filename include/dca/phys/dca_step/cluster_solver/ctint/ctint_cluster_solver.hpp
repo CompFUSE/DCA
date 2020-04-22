@@ -53,7 +53,8 @@ public:
   using Data = DcaData<Parameters>;
   static constexpr linalg::DeviceType device = device_t;
 
-  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref);
+  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
+                     const std::shared_ptr<io::HDF5Writer>& = nullptr);
 
   ~CtintClusterSolver();
 
@@ -147,8 +148,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Parameters& parameters_ref,
-                                                                            Data& data_ref)
+CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
