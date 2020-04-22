@@ -12,11 +12,16 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 ################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
-  find_package(LAPACK REQUIRED)
+  mark_as_advanced(LAPACK_LIBRARIES)
+  find_package(MKL QUIET)
+  if (MKL_FOUND)
+     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
+     set(LAPACK_LIBRARIES mkl::mkl_intel_32bit_seq_dyn)
+  else()
+    find_package(LAPACK REQUIRED)
+  endif()
+  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 endif()
-
-mark_as_advanced(LAPACK_LIBRARIES)
-list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
 # HDF5
@@ -32,11 +37,13 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 
 ################################################################################
 # FFTW
-set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY "" CACHE FILEPATH "The FFTW3(-compatible) library.")
-
-list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
+# use find_package, if it was not found, use the old versions of lib/inc dirs
+find_package(FFTW QUIET)
+if (FFTW_FOUND)
+  set(FFTW_LIBRARY ${FFTW_LIBRARIES})
+  list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
+  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIRS} ${FFTW_INCLUDE_DIR})
+endif()
 
 ################################################################################
 # Simplex GM Rule
