@@ -111,7 +111,7 @@ private:
   update_chemical_potential_type update_chemical_potential_obj;
 
   std::string file_name_;
-  io::HDF5Writer output_file_;
+  std::shared_ptr<io::HDF5Writer> output_file_;
 
   unsigned dca_iteration_ = 0;
 
@@ -137,11 +137,12 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
 
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
-      output_file_(false),
-
-      monte_carlo_integrator_(parameters_ref, MOMS_ref, &output_file_) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
+
+    output_file_ = std::make_shared<io::HDF5Writer>(false);
+
     dca::util::SignalHandler::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
@@ -153,14 +154,15 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t\t start writing " << file_name_ << "\t" << dca::util::print_time() << "\n\n";
 
-    output_file_.set_verbose(true);
+    output_file_->set_verbose(true);
 
-    parameters.write(output_file_);
-    MOMS.write(output_file_);
-    monte_carlo_integrator_.write(output_file_);
-    DCA_info_struct.write(output_file_);
+    parameters.write(*output_file_);
+    MOMS.write(*output_file_);
+    monte_carlo_integrator_.write(*output_file_);
+    DCA_info_struct.write(*output_file_);
 
-    output_file_.close_file();
+    output_file_->close_file();
+    output_file_.reset();
 
     std::error_code code;
     std::filesystem::rename(file_name_ + ".tmp", file_name_, code);
@@ -192,7 +194,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::initialize() {
   }
 
   if (concurrency.id() == concurrency.first()) {
-    output_file_.open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
+    output_file_->open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
   }
 }
 
@@ -378,17 +380,17 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::logSelfEnergy(int i
   DCA_info_struct.last_completed_iteration = i;
 
   if (output_file_) {
-    output_file_.open_group("functions");
-    output_file_.execute(MOMS.Sigma);
-    output_file_.close_group();
+    output_file_->open_group("functions");
+    output_file_->execute(MOMS.Sigma);
+    output_file_->close_group();
 
-    output_file_.open_group("parameters");
-    output_file_.open_group("physics");
-    output_file_.execute("chemical-potential", parameters.get_chemical_potential());
-    output_file_.close_group();
-    output_file_.close_group();
+    output_file_->open_group("parameters");
+    output_file_->open_group("physics");
+    output_file_->execute("chemical-potential", parameters.get_chemical_potential());
+    output_file_->close_group();
+    output_file_->close_group();
 
-    DCA_info_struct.write(output_file_);
+    DCA_info_struct.write(*output_file_);
   }
 }
 
