@@ -17,6 +17,8 @@ set(CMAKE_CUDA_ARCHITECTURES 60 CACHE STRING "number of the CUDA compute archite
 
 #set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 
+set(FFTW_ROOT $ENV{FFTW_DIR}/.. CACHE PATH "Path to fftw3 library")
+
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
 set(MAGMA_DIR $ENV{MAGMAROOT} CACHE PATH

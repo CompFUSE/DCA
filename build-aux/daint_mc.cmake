@@ -6,5 +6,7 @@
 # CC automatically links against them.
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "")
 
+set(FFTW_ROOT $ENV{FFTW_DIR}/.. CACHE PATH "Path to fftw3 library")
+
 # Use srun for executing the tests.
 set(TEST_RUNNER "srun" CACHE STRING "Command for executing (MPI) programs.")
