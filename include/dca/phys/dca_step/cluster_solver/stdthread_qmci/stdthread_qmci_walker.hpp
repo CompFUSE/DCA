@@ -39,7 +39,7 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
 
 public:
   StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      io::HDF5Writer* writer);
+                      const std::shared_ptr<io::HDF5Writer>& writer);
 
   void initialize(int iteration_);
   void doSweep();
@@ -50,7 +50,7 @@ private:
   const unsigned stamping_period_;
   int thread_id_;
 
-  io::HDF5Writer* const writer_ = nullptr;
+  std::shared_ptr<io::HDF5Writer> writer_;
   std::size_t meas_id_ = 0;
 
   const int total_iterations_;
@@ -59,8 +59,9 @@ private:
 };
 
 template <class QmciWalker>
-StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters, Data& data_ref,
-                                                     Rng& rng, const int id, io::HDF5Writer* writer)
+StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(/*const*/ Parameters& parameters,
+                                                     Data& data_ref, Rng& rng, const int id,
+                                                     const std::shared_ptr<io::HDF5Writer>& writer)
     : QmciWalker(parameters, data_ref, rng, id),
       QmciAutocorrelationData<QmciWalker>(parameters, id),
       stamping_period_(parameters.stamping_period()),
@@ -117,7 +118,7 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>>
 
 public:
   StdThreadQmciWalker(/*const*/ Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      io::HDF5Writer* /*writer*/)
+                      const std::shared_ptr<io::HDF5Writer>& /*writer*/)
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
   }

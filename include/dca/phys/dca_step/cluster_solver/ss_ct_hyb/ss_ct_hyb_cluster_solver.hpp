@@ -61,7 +61,8 @@ public:
   static constexpr linalg::DeviceType device = device_t;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref,
+                       const std::shared_ptr<io::HDF5Writer>& = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -144,7 +145,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
+    parameters_type& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
@@ -570,8 +571,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
   return GS_r_w;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP

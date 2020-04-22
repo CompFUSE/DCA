@@ -55,7 +55,7 @@ public:
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
-                             io::HDF5Writer* file = nullptr);
+                             const std::shared_ptr<io::HDF5Writer>& file = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -107,16 +107,15 @@ private:
   std::vector<dca::io::Buffer> config_dump_;
   stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
-  io::HDF5Writer* writer_ = nullptr;
+  std::shared_ptr<io::HDF5Writer> writer_;
 
   bool last_iteration_ = false;
   unsigned measurements_ = 0;
 };
 
 template <class QmciSolver>
-StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& parameters_ref,
-                                                                   Data& data_ref,
-                                                                   io::HDF5Writer* writer)
+StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& writer)
     : BaseClass(parameters_ref, data_ref),
 
       nr_walkers_(parameters_.get_walkers()),
@@ -232,7 +231,7 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
   // Write and reset autocorrelation.
   autocorrelation_data_.sumConcurrency(concurrency_);
-  if (writer_)
+  if (writer_ && *writer_) // Writer exists and it is open.
     autocorrelation_data_.write(*writer_, dca_iteration_);
   autocorrelation_data_.reset();
 
