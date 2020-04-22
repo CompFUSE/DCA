@@ -21,7 +21,7 @@ if (DCA_HAVE_ADIOS2)
     LIBS dca_adios2 adios2::adios2;function)
   if (DCA_HAVE_MPI)
     dca_add_gtest(adios2_parallelIO_test
-      GTEST_MAIN
+      MPI MPI_NUMPROC 4
       LIBS dca_adios2 adios2::adios2 parallel_mpi_concurrency;function)
   endif()
 endif()
