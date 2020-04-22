@@ -67,7 +67,10 @@ public:
 
   void initialize(int iteration);
 
-  bool is_thermalized() const;
+  bool is_thermalized() const {
+    return thermalized_;
+  }
+
   void markThermalized();
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
@@ -422,11 +425,6 @@ double CtauxWalker<device_t, Parameters, Data, Real>::get_Gflop() {
   Gflop += G_tools_obj.get_Gflop();
 
   return Gflop;
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-bool CtauxWalker<device_t, Parameters, Data, Real>::is_thermalized() const {
-  return thermalized_;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>

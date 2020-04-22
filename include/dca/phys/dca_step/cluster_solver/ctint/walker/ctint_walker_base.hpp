@@ -237,7 +237,7 @@ template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
   sign_ = 1;
-  mc_log_weight_ = 1.;
+  mc_log_weight_ = 0.;
 
   sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
 
