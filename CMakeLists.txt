@@ -122,6 +122,7 @@ set(DCA_LIBS
   ctaux
   ctint
   ss_ct_hyb
+  g0_interpolation
   function_transform
   gaussian_quadrature
   nfft
@@ -139,8 +140,10 @@ set(DCA_LIBS
   cluster_domains
   quantum_domains
   time_and_frequency_domains
+  signals
   symmetrization
   coarsegraining
+  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack

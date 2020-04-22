@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_pair.hpp"
@@ -105,7 +106,13 @@ public:
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
 
+  auto get_matrix_configuration() const {
+    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+  }
+
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  void write(io::HDF5Writer& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -875,9 +882,43 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
          current_Nb_of_creatable_spins == rhs.current_Nb_of_creatable_spins;
 }
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::write(io::HDF5Writer& file,
+                                                     const std::string& stamp) const {
+  file.open_group(stamp);
+
+  const auto n = configuration.size();
+  std::vector<double> times(n);
+  std::vector<std::array<std::uint8_t, 2>> bands(n);
+  std::vector<std::array<std::int8_t, 2>> e_spins(n);
+  std::vector<std::array<std::uint16_t, 2>> sites(n);
+  std::vector<std::int8_t> hs_spin(n);
+
+  auto to_array = [](auto& arr, const std::pair<int, int>& pair) {
+    arr[0] = pair.first;
+    arr[1] = pair.second;
+  };
+
+  for (int i = 0; i < configuration.size(); ++i) {
+    times[i] = configuration[i].get_tau();
+    to_array(bands[i], configuration[i].get_bands());
+    to_array(e_spins[i], configuration[i].get_e_spins());
+    to_array(sites[i], configuration[i].get_r_sites());
+    hs_spin[i] = configuration[i].get_HS_spin();
+  }
+
+  file.execute("times", times);
+  file.execute("bands", bands);
+  file.execute("e_spins", e_spins);
+  file.execute("sites", sites);
+  file.execute("hs_spin", hs_spin);
+
+  file.close_group();
+}
+
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP

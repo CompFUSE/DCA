@@ -31,6 +31,14 @@
     "max-submatrix-size": 16
   },
 
+  "CT-INT" :
+  {
+    "use-submatrix" : true,
+    "max-submatrix-size": 4,
+    "initial-configuration-size": 5,
+    "alpha-dd-pos" : 0.501
+  },
+
   "DCA": {
     "iterations": 1,
     "self-energy-mixing-factor": 0.,

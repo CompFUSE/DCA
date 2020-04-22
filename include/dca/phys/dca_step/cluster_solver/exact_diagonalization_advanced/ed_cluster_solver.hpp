@@ -263,52 +263,28 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
 
-  const std::string& output_format = parameters.get_output_format();
+  std::cout << "\n\n\t\t start writing parameters\n\n";
+  parameters.write(writer);
 
-  if (output_format == "JSON") {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
+  std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
+  MOMS_imag.write(writer);
 
-    parameters.write(writer);
-    MOMS_imag.write(writer);
-    MOMS_real.write(writer);
+  std::cout << "\n\n\t\t start writing MOMS_real\n\n";
+  MOMS_real.write(writer);
 
-    if (parameters.isAccumulatingG4()) {
-      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-      tp_Greens_function_obj.write(writer);
-    }
-
-    writer.close_file();
+  if (parameters.isAccumulatingG4()) {
+    std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+    tp_Greens_function_obj.write(writer);
   }
 
-  else if (output_format == "HDF5") {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    std::cout << "\n\n\t\t start writing parameters\n\n";
-    parameters.write(writer);
-
-    std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
-    MOMS_imag.write(writer);
-
-    std::cout << "\n\n\t\t start writing MOMS_real\n\n";
-    MOMS_real.write(writer);
-
-    if (parameters.isAccumulatingG4()) {
-      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-      tp_Greens_function_obj.write(writer);
-    }
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
+  writer.close_file();
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ED_CLUSTER_SOLVER_HPP

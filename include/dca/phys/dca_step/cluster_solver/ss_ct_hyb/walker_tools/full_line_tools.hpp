@@ -52,7 +52,7 @@ private:
 private:
   hybridization_routines_type& hybridization_routines;
 
-  parameters_type& parameters;
+  const parameters_type& parameters;
   MOMS_type& MOMS;
 
   configuration_type& configuration;

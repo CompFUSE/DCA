@@ -2,7 +2,8 @@
     "output": {
         "directory": "./",
         "output-format": "HDF5",
-        "filename-dca": "data.dca_sp_DCA+_mpi_test.hdf5"
+        "filename-dca": "data.dca_sp_DCA+_mpi_test.hdf5",
+        "autoresume" : true
     },
 
     "physics": {

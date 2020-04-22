@@ -31,7 +31,7 @@ TEST(CtauxBilayerLatticeVerificationTest, GreensFunction) {
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
 
 
-  const int meas_per_node = parameters.get_measurements();
+  const int meas_per_node = parameters.get_measurements().back();
   parameters.set_measurements(meas_per_node * dca_test_env->concurrency.get_size());
 
   parameters.update_model();

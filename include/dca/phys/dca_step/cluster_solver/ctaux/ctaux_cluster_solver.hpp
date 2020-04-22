@@ -32,6 +32,8 @@
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -79,7 +81,8 @@ private:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref);
+  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
+                     const std::shared_ptr<io::HDF5Writer>& /*writer*/ = nullptr);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -148,6 +151,8 @@ private:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
 
+  G0Interpolation<device, typename Walker::Scalar> g0_;
+
   double accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
@@ -157,8 +162,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& parameters_ref,
-                                                                   Data& data_ref)
+CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -181,6 +186,8 @@ CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& p
       M_r_w_squared_("M_r_w_squared"),
 
       averaged_(false) {
+  TimeCorrelator<Parameters, typename Walker::Scalar, device>::setG0(g0_);
+
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -201,6 +208,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::write(Writer& writer) {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
+
+  g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   Sigma_old_ = data_.Sigma;
 
@@ -224,7 +233,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::integrate() {
 
   Walker walker(parameters_, data_, rng_, 0);
 
-  walker.initialize();
+  walker.initialize(dca_iteration_);
 
   {
     dca::profiling::WallTime start_time;
@@ -251,7 +260,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::integrate() {
 
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: "
+              << parameters_.get_measurements()[dca_iteration_] << std::endl;
 
     walker.printSummary();
   }
@@ -344,7 +354,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::measure(Walker& walker) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+  const int n_meas =
+      parallel::util::getWorkload(parameters_.get_measurements()[dca_iteration_], concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
     {
@@ -476,7 +487,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
   if (parameters_.additional_time_measurements()) {
     accumulator_.get_G_r_t() /= accumulated_sign_;
     data_.G_r_t = accumulator_.get_G_r_t();
-    accumulator_.get_G_r_t_stddev() /= accumulated_sign_ * std::sqrt(parameters_.get_measurements());
+    accumulator_.get_G_r_t_stddev() /=
+        accumulated_sign_ * std::sqrt(parameters_.get_measurements()[dca_iteration_]);
     accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
     accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
     accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
@@ -488,8 +500,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
               << "\n\t\t\t Gflop   : " << accumulator_.get_Gflop() << " [Gf]"
               << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]"
-              << "\n\t\t\t sign     : " << accumulated_sign_ / parameters_.get_measurements()
-              << " \n";
+              << "\n\t\t\t sign     : "
+              << accumulated_sign_ / parameters_.get_measurements()[dca_iteration_] << " \n";
 
   averaged_ = true;
 }

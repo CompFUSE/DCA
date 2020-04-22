@@ -1,0 +1,69 @@
+{
+    "output" :
+    {
+	"filename-qmc" : "qmc_FeAs.hdf5",
+	"dump-cluster-Greens-functions" : true
+    },
+
+    "physics": {
+	"beta"                      :  5,
+	"chemical-potential"        : 1.45,
+	"adjust-chemichal-potential" : false
+    },
+
+    "FeAs-model" : {
+	"t1" : -1,
+	"t2" : 1.3,
+	"t3" : -0.85,
+	"t4" : -0.85,
+	"U" : 4,
+	"V" : 1,
+	"J" : 1,
+	"Jp" : 1
+    },
+
+    "CT-INT" :
+    {
+	"double-update-probability" : 1,
+	"all-sites-partnership" : true,
+	"max-submatrix-size" : 16,
+	"initial-configuration-size" :5,
+	"alpha-dd-pos" : 0.51,
+	"alpha-dd-neg" : 0.51,
+	"alpha-ndd" : 0.0001
+    },
+
+    "domains": {
+	"real-space-grids": {
+	    "cluster": [[2, 0],
+			[0, 2]]
+	},
+	"imaginary-time": {
+	    "sp-time-intervals": 512
+	},
+	"imaginary-frequency": {
+	    "sp-fermionic-frequencies": 512
+	}
+    },
+
+    "DCA" : {
+	"interacting-orbitals" : [0,1]
+    },
+
+    "Monte-Carlo-integration" :
+    {
+	"warm-up-sweeps"         : 500,
+	"sweeps-per-measurement" : 1,
+	"measurements" : 10000,
+	"error-computation-type" : "NONE",
+
+	"threaded-solver": {
+	    "walkers": 1,
+	    "accumulators": 1,
+	    "shared-walk-and-accumulation-thread": true
+	},
+
+
+	"seed" : "random"
+    }
+}

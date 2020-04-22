@@ -24,12 +24,11 @@
 #include "dca/linalg/util/stream_container.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/util/integer_division.hpp"
@@ -60,6 +59,9 @@ public:
   using Matrix = linalg::Matrix<Real, linalg::CPU>;
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
+
+  using Scalar = Real;
+  constexpr static linalg::DeviceType device = linalg::CPU;
 
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
@@ -102,7 +104,7 @@ public:
     return Real(n_accepted_) / Real(n_steps_);
   }
 
-  void initialize();
+  void initialize(int iter);
 
   const auto& get_configuration() const {
     return configuration_;
@@ -158,10 +160,11 @@ public:
     return *streams_[s];
   }
 
+  static void sumConcurrency(const Concurrency&) {}
+
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
-  using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
   // Auxiliary methods.
   void updateSweepAverages();
@@ -202,6 +205,8 @@ protected:  // Members.
 
   float flop_ = 0.;
 
+  double sweeps_per_meas_ = 1.;
+
   double mc_log_weight_ = 0;
 
 private:
@@ -229,10 +234,12 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, typename Real>
-void CtintWalkerBase<Parameters, Real>::initialize() {
+void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
   sign_ = 1;
-  mc_log_weight_ = 1.;
+  mc_log_weight_ = 0.;
+
+  sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
 
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
@@ -291,8 +298,7 @@ template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::markThermalized() {
   thermalized_ = true;
 
-  nb_steps_per_sweep_ =
-      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean());
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();
@@ -340,7 +346,7 @@ void CtintWalkerBase<Parameters, Real>::printSummary() const {
 template <class Parameters, typename Real>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters, Real>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
+    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)

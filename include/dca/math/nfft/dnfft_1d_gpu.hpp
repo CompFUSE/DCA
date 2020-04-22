@@ -51,7 +51,7 @@ public:
   using ElementType = ScalarType;
   using BaseClass = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, CUBIC>;
 
-  Dnfft1DGpu(double beta, cudaStream_t stream, bool accumulate_m_sqr = false);
+  Dnfft1DGpu(double beta, const linalg::util::CudaStream& stream, bool accumulate_m_sqr = false);
 
   // Resets the accumulated quantities. To be called before each DCA iteration.
   void resetAccumulation();
@@ -96,7 +96,7 @@ private:
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
-  cudaStream_t stream_;
+  const linalg::util::CudaStream& stream_;
   const bool accumulate_m_sqr_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
@@ -112,9 +112,8 @@ private:
 };
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double beta,
-                                                                    cudaStream_t stream,
-                                                                    const bool accumulate_m_sqr)
+Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(
+    const double beta, const linalg::util::CudaStream& stream, const bool accumulate_m_sqr)
     : BaseClass(), beta_(beta), stream_(stream), accumulate_m_sqr_(accumulate_m_sqr) {
   initializeDeviceCoefficients();
   assert(cudaPeekAtLastError() == cudaSuccess);
@@ -139,7 +138,6 @@ template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCoefficients() {
   static std::once_flag flag;
   std::call_once(flag, [&]() {
-
     const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
     auto& dev_coeff = get_device_cubic_coeff();
     dev_coeff.resizeNoCopy(host_coeff.size());

@@ -56,8 +56,8 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   auto& parameters = TestFixture::parameters_;
 
   const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t);
-  ctint::G0Interpolation<CPU, Real> g0_cpu(g0_func);
-  ctint::G0Interpolation<GPU, Real> g0_gpu(g0_func);
+  G0Interpolation<CPU, Real> g0_cpu(g0_func);
+  G0Interpolation<GPU, Real> g0_gpu(g0_func);
   typename TestFixture::LabelDomain label_dmn;
 
   // TODO: improve API.

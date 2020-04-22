@@ -31,9 +31,14 @@ public:
   }
 
   CudaStream(const CudaStream& other) = delete;
+  CudaStream& operator=(const CudaStream& other) = delete;
 
   CudaStream(CudaStream&& other) {
     std::swap(stream_, other.stream_);
+  }
+  CudaStream& operator=(CudaStream&& other) {
+    std::swap(stream_, other.stream_);
+    return *this;
   }
 
   void sync() const {

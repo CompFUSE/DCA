@@ -22,6 +22,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
@@ -117,6 +118,10 @@ public:
   }
   static std::size_t staticDeviceFingerprint() {
     return 0;
+  }
+
+  linalg::util::CudaStream* get_stream() const {
+    return nullptr;
   }
 
 protected:

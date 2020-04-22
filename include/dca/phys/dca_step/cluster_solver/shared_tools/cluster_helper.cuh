@@ -12,15 +12,12 @@
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_CLUSTER_HELPER_CUH
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_CLUSTER_HELPER_CUH
 
-#include <vector>
-
 #include <cuda.h>
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace details {
-// dca::phys::solver::details::
+// dca::phys::solver::
 
 class ClusterHelper {
 public:
@@ -57,7 +54,6 @@ inline __device__ int ClusterHelper::minus(const int id) const {
   return sub_matrix_[id + nc_ * id_0];
 }
 
-}  // namespace details
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca

@@ -1,0 +1,6 @@
+{
+    "Monte-Carlo-integration": {
+        "sweeps-per-measurement": 4.,
+        "measurements": 200
+    }
+}

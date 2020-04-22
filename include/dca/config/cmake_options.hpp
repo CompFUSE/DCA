@@ -26,7 +26,6 @@ struct CMakeOptions {
   // Parallelization
   static const std::string dca_with_mpi;
   static const std::string dca_with_threaded_solver;
-  static const std::string dca_threading_library;
 
   // Others
   static const std::string dca_cluster_solver;

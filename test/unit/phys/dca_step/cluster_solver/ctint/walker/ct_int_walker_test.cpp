@@ -56,8 +56,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   auto& data = *CtintWalkerTest<Real>::data_;
   auto& parameters = CtintWalkerTest<Real>::parameters_;
 
-  ctint::G0Interpolation<dca::linalg::CPU, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  G0Interpolation<dca::linalg::CPU, Real> g0(dca::phys::solver::details::shrinkG0(data.G0_r_t));
   typename CtintWalkerTest<Real>::LabelDomain label_dmn;
 
   using Parameters = typename CtintWalkerTest<Real>::Parameters;
@@ -67,13 +66,12 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   Walker::setInteractionVertices(data, parameters);
 
   Walker walker(parameters, rng);
-  walker.initialize();
 
   // *******************************
   // Test vertex removal ***********
   // *******************************
-  // Set rng value to select: last vertex,  accept
-  rng.setNewValues(std::vector<double>{0.95, 0.01});
+  // Set rng value to select: last vertex, unused, unused, accept
+  rng.setNewValues(std::vector<double>{0.95, -1, -1, 0.01});
   MatrixPair<Real> old_M(walker.getM());
   bool result = walker.tryVertexRemoval();
   MatrixPair<Real> new_M(walker.getM());

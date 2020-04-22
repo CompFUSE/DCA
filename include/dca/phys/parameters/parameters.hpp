@@ -391,6 +391,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   ModelParameters<Model>::readWrite(reader_or_writer);
   OutputParameters::readWrite(reader_or_writer);
   PhysicsParameters::readWrite(reader_or_writer);
+
+  solveDcaIterationConflict(get_dca_iterations());
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

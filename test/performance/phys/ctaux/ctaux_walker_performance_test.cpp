@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     // Do one integration step.
     RngType rng(0, 1, 0);
     Walker<dca::linalg::CPU> walker(parameters, data, rng, 0);
-    walker.initialize();
+    walker.initialize(0);
 
     do_sweeps(walker, n_warmup);
     std::cout << "\n Warmed up.\n" << std::endl;
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
     RngType::resetCounter();
     RngType rng(0, 1, 0);
     Walker<dca::linalg::GPU> walker_gpu(parameters, data, rng, 0);
-    walker_gpu.initialize();
+    walker_gpu.initialize(0);
 
     do_sweeps(walker_gpu, n_warmup);
     std::cout << "\n Warmed up.\n" << std::endl;

@@ -22,7 +22,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
-//#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/math/random/random.hpp"
@@ -62,7 +62,7 @@ using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_6
 
 using dca::phys::solver::ClusterSolverName;
 using dca::phys::solver::CT_AUX;
-//using dca::phys::solver::CT_INT;
+using dca::phys::solver::CT_INT;
 
 template <ClusterSolverName name>
 using ParametersType =
@@ -80,10 +80,10 @@ template <DeviceType device>
 struct ClusterSolverSelector<CT_AUX, device> {
   using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<CT_AUX>, DcaData<CT_AUX>>;
 };
-//template <DeviceType device>
-//struct ClusterSolverSelector<CT_INT, device> {
-//  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<CT_INT>, true>;
-//};
+template <DeviceType device>
+struct ClusterSolverSelector<CT_INT, device> {
+  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<CT_INT>, true>;
+};
 template <ClusterSolverName name, DeviceType device>
 using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;
 
