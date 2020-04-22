@@ -78,6 +78,10 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
+  bool nvlink_enabled() const {
+    return nvlink_enabled_;
+  }
+
   // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
   // bias toward faster walkers, at the expanse of load balance.
   bool fix_meas_per_walker() const {
@@ -112,6 +116,7 @@ private:
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
+  bool nvlink_enabled_;
   bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
@@ -129,6 +134,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
+  buffer_size += concurrency.get_buffer_size(nvlink_enabled_);
   buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
@@ -147,6 +153,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.pack(buffer, buffer_size, position, nvlink_enabled_);
   concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
@@ -163,6 +170,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.unpack(buffer, buffer_size, position, nvlink_enabled_);
   concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
@@ -265,6 +273,23 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       catch (const std::exception& r_e) {
       }
       reader_or_writer.close_group();
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    // Read nvlink type.
+    try {
+      reader_or_writer.execute("nvlink-enabled", nvlink_enabled_);
+
+      if(nvlink_enabled_)
+      {
+        if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_ || walkers_ !=1 || accumulators_ != 1)
+        {
+            std::cout << "\n With NVLink enabled, 1) walker and accumulator must share thread, "
+                         "2) #walker == #accumulator, 3) #threads in DCA must set to 1\n";
+            throw;
+        }
+      }
     }
     catch (const std::exception& r_e) {
     }

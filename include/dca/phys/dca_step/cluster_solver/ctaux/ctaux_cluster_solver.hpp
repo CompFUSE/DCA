@@ -457,11 +457,10 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
         if (compute_jack_knife_)
           concurrency_.leaveOneOutSum(G4);
         else {
-#ifdef DCA_WITH_NVLINK
+          if(parameters_.nvlink_enabled())
             concurrency_.gatherv(G4, concurrency_.first());
-#else
+          else
             concurrency_.localSum(G4, concurrency_.first());
-#endif
         }
       }
     }

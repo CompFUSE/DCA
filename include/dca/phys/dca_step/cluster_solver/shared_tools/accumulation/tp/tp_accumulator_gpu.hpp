@@ -204,6 +204,7 @@ private:
 
   std::array<RMatrix, 2> G_;
 
+  bool nvlink_enabled_ = false;
   // send and receive buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
   std::array<RMatrix, 2> recvbuff_G_;
@@ -226,7 +227,8 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       queues_(),
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
-      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])} {
+      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
+      nvlink_enabled_(pars.nvlink_enabled()){
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -284,16 +286,17 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
-#ifdef DCA_WITH_CUDA
-      // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
-      int my_rank, mpi_size;
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-      const unsigned int local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
-      G4_channel.resizeNoCopy(local_G4_size_);
-#else
+
+      if(nvlink_enabled_) {
+          // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
+          int my_rank, mpi_size;
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+          const unsigned int local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
+          G4_channel.resizeNoCopy(local_G4_size_);
+      }
+
       G4_channel.resizeNoCopy(tp_dmn.get_size());
-#endif
       G4_channel.setToZeroAsync(streams_[0]);
     }
     catch (std::bad_alloc& err) {
@@ -342,9 +345,8 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
      flop += updateG4(channel);
   }
 
-#ifdef DCA_WITH_NVLINK
-  ringG(flop);
-#endif
+  if(nvlink_enabled_)
+    ringG(flop);
 
   return flop;
 }
@@ -438,49 +440,53 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   const FourPointType channel = channels_[channel_index];
 
   int my_rank, mpi_size, total_G4_size;
-#ifdef DCA_WITH_NVLINK
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  typename BaseClass::TpDomain tp_dmn;
-  total_G4_size = tp_dmn.get_size();
-#endif
+  if(nvlink_enabled_)
+  {
+    if(nvlink_enabled_)
+    {
+      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+      typename BaseClass::TpDomain tp_dmn;
+      total_G4_size = tp_dmn.get_size();
+    }
+   }
 
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size, nvlink_enabled_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
@@ -494,12 +500,13 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel)
   {
-#ifdef DCA_WITH_NVLINK
+    if(nvlink_enabled_)
+    {
       // modify G4 size in G4 cpu, otherwise, copyTo() operation failed to due incomparable size
       // reset_size() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
       G4_[channel].reset_size(get_G4()[channel].size());
-#endif
-      get_G4()[channel].copyTo(G4_[channel]);
+    }
+    get_G4()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.
   // get_G4().clear();

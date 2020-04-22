@@ -42,5 +42,3 @@ set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
-# NVLINK option
-option(DCA_WITH_NVLINK "Enable NVLINK support." ON)

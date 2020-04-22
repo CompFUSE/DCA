@@ -125,7 +125,6 @@ inline __device__ unsigned int G4Helper::g4Index(int k1, int k2, int k_ex, int w
          sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
 }
 
-#ifdef DCA_WITH_NVLINK
 inline __device__
 void G4Helper::getComputeRange(int my_rank, int mpi_size, int total_G4_size, int& start, int& end) const {
 
@@ -154,7 +153,6 @@ void G4Helper::getComputeRange(int my_rank, int mpi_size, int total_G4_size, int
     }
     start = offset;
 }
-#endif
 
 }  // namespace details
 }  // namespace accumulator

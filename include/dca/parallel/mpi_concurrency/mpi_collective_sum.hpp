@@ -313,6 +313,11 @@ void MPICollectiveSum::gatherv(func::function<scalar_type, domain>& f, int id) c
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
+    if(my_rank == 0)
+    {
+        std::cout << "\n *********performing MPI Gatherv Sum************* \n";
+    }
+
     my_rank == 0 ? gatherv_helper(f.values(), f.values(), f.get_domain().get_size(), id)
         : gatherv_helper(f.values(), f_sum.values(), f.get_domain().get_size(), id);
 }
