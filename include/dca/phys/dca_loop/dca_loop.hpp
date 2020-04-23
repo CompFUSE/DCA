@@ -202,6 +202,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::readInitialStatus(
     const std::string& filename) {
   io::Buffer buffer;
+  bool buffer_read = false;
 
   if (concurrency_.id() == concurrency_.first()) {
     io::HDF5Reader reader;
@@ -219,16 +220,21 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::readInitialStatus(
     reader.execute(data_.Sigma);
     reader.close_group();
 
-    reader.open_group("Configurations");
-    reader.execute("sample", buffer);
-    reader.close_group();
+    if (parameters_.store_configuration()) {
+      reader.open_group("Configurations");
+      buffer_read = reader.execute("sample", buffer);
+      reader.close_group();
+    }
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(data_.Sigma);
-  concurrency_.broadcast(buffer);
 
-  monte_carlo_integrator_.setSampleConfiguration(buffer);
+  concurrency_.broadcast(buffer_read);
+  if (buffer_read) {
+    concurrency_.broadcast(buffer);
+    monte_carlo_integrator_.setSampleConfiguration(buffer);
+  }
 
   perform_lattice_mapping();
 }
@@ -429,7 +435,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::logSelfEnergy(int i
   }
 }
 
-}  // namespace dca
+}  // namespace phys
 }  // namespace dca
 
 #endif  // DCA_PHYS_DCA_LOOP_DCA_LOOP_HPP
