@@ -39,6 +39,14 @@ list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
 
 ################################################################################
+# GPTL
+set(GPTL_INCLUDE_DIR "" CACHE PATH "Path to gptl.h.")
+set(GPTL_LIBRARY "" CACHE FILEPATH "The GPTL library.")
+
+list(APPEND DCA_EXTERNAL_LIBS ${GPTL_LIBRARY})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${GPTL_INCLUDE_DIR})
+
+################################################################################
 # Simplex GM Rule
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs/simplex_gm_rule)
 # list(APPEND DCA_EXTERNAL_LIBS ${SIMPLEX_GM_RULE_LIBRARY})
