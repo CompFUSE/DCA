@@ -76,17 +76,13 @@ QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& param
       accumulate_G_(parameters.compute_G_correlation()),
       time_correlator_(parameters, thread_id),
       order_correlator_(autocorrelation_window_),
-      weight_correlator_(autocorrelation_window_),
-      signs_(1),
-      weights_(1),
-      steps_(1),
-      thermalization_step_(1) {}
+      weight_correlator_(autocorrelation_window_) {}
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop) {
   // Write MC weights
   writer.open_group("Configuration");
-  writer.open_group("MC-weights");
+  writer.open_group("MC-weight-samples");
   writer.open_group("iteration " + std::to_string(dca_loop));
 
   writer.execute("steps", steps_);
@@ -145,8 +141,14 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) {
-  signs_.back().push_back(walker.get_sign());
+  if (weights_.size() == 0) {
+    weights_.resize(1);
+    signs_.resize(1);
+    steps_.resize(1);
+  }
+
   weights_.back().push_back(walker.get_MC_log_weight());
+  signs_.back().push_back(walker.get_sign());
   steps_.back().push_back(walker.get_steps());
 
   if (autocorrelation_window_ && walker.is_thermalized()) {
@@ -164,7 +166,8 @@ void QmciAutocorrelationData<Walker>::accumulateAutocorrelation(Walker& walker) 
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::markThermalized() {
-  thermalization_step_.back() = steps_.back().back();
+  assert(thermalization_step_.size() == 0);
+  thermalization_step_.push_back(steps_.back().back());
 }
 
 template <class Walker>
@@ -204,13 +207,9 @@ void QmciAutocorrelationData<Walker>::sumConcurrency(const Concurrency& concurre
 
 template <class Walker>
 void QmciAutocorrelationData<Walker>::reset() {
-  auto reset_vector_of_vector = [](auto& v) {
-    v.resize(1);
-    v.back().clear();
-  };
-  reset_vector_of_vector(weights_);
-  reset_vector_of_vector(signs_);
-  reset_vector_of_vector(steps_);
+  weights_.clear();
+  signs_.clear();
+  steps_.clear();
   thermalization_step_.clear();
 
   time_correlator_.reset();
