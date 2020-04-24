@@ -114,7 +114,6 @@ public:
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
-  void initializeSigma(const std::string& filename);
 
   void compute_single_particle_properties();
   void compute_Sigma_bands();
@@ -529,28 +528,6 @@ void DcaData<Parameters>::initialize_G0() {
   G0_r_t_cluster_excluded = G0_r_t;
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initializeSigma(const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {
-    io::HDF5Reader reader;
-    reader.open_file(filename);
-
-    if (parameters_.adjust_chemical_potential()) {
-      reader.open_group("parameters");
-      reader.open_group("physics");
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
-      reader.close_group();
-      reader.close_group();
-    }
-
-    reader.open_group("functions");
-    reader.execute(Sigma);
-    reader.close_group();
-  }
-
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast(Sigma);
-}
 
 template <class Parameters>
 void DcaData<Parameters>::compute_single_particle_properties() {

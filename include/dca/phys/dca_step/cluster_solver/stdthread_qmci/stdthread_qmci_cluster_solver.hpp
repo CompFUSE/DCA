@@ -64,6 +64,8 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  void setSampleConfiguration(const io::Buffer& buff);
+
 private:
   void startWalker(int id);
   void startAccumulator(int id);
@@ -77,6 +79,8 @@ private:
   void iterateOverLocalMeasurements(int walker_id, std::function<void(int, int, bool)>&& f);
 
   void printIntegrationMetadata() const;
+
+  void finalizeWalker(Walker& walker, int walker_id);
 
 private:
   using BaseClass::accumulator_;
@@ -110,6 +114,7 @@ private:
   std::shared_ptr<io::HDF5Writer> writer_;
 
   bool last_iteration_ = false;
+  bool read_configuration_ = false;
   unsigned measurements_ = 0;
 };
 
@@ -148,6 +153,18 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
   // Create a sufficient amount of cublas handles, cuda streams and threads.
   linalg::util::resizeHandleContainer(thread_task_handler_.size());
   parallel::ThreadPool::get_instance().enlarge(thread_task_handler_.size());
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::setSampleConfiguration(const io::Buffer& buff) {
+  if (!parameters_.store_configuration())
+    return;
+
+  config_dump_.resize(nr_walkers_);
+  for (auto& x : config_dump_)
+    x = buff;
+
+  read_configuration_ = true;
 }
 
 template <class QmciSolver>
@@ -214,6 +231,15 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
 
   print_metadata();
 
+  if (parameters_.store_configuration()) {
+    if (writer_) {  // write one sample configuration.
+      writer_->open_group("Configurations");
+      writer_->rewrite("sample", config_dump_[0]);
+      writer_->close_group();
+    }
+    read_configuration_ = true;
+  }
+
   QmciSolver::accumulator_.finalize();
 }
 
@@ -231,7 +257,7 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
   // Write and reset autocorrelation.
   autocorrelation_data_.sumConcurrency(concurrency_);
-  if (writer_ && *writer_) // Writer exists and it is open.
+  if (writer_ && *writer_)  // Writer exists and it is open.
     autocorrelation_data_.write(*writer_, dca_iteration_);
   autocorrelation_data_.reset();
 
@@ -300,18 +326,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     }
   }
 
-  if (id == 0 && concurrency_.id() == concurrency_.first()) {
-    std::cout << "\n\t\t QMCI ends\n" << std::endl;
-    walker.printSummary();
-  }
-
-  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
-                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
-    config_dump_[walker_index] = walker.dumpConfig();
-
-  walker_fingerprints_[walker_index] = walker.deviceFingerprint();
-
-  autocorrelation_data_ += walker;
+  finalizeWalker(walker, walker_index);
 
   Profiler::stop_threading(id);
 
@@ -325,9 +340,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
   Profiler profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
 
   // Read previous configuration.
-  if (config_dump_[walker_id].size()) {
+  if (read_configuration_) {
     walker.readConfig(config_dump_[walker_id]);
-    config_dump_[walker_id].setg(0);  // Ready to read again if it is not overwritten.
   }
 
   walker.initialize(dca_iteration_);
@@ -472,19 +486,24 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
 
-  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
-                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
-    config_dump_[id] = walker.dumpConfig();
-
-  walker_fingerprints_[id] = walker.deviceFingerprint();
-  accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
-
-  autocorrelation_data_ += walker;
+  finalizeWalker(walker, id);
 
   Profiler::stop_threading(id);
 
   if (current_exception)
     throw(*current_exception);
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::finalizeWalker(Walker& walker, int walker_id) {
+  config_dump_[walker_id] = walker.dumpConfig();
+  walker_fingerprints_[walker_id] = walker.deviceFingerprint();
+  autocorrelation_data_ += walker;
+
+  if (walker_id == 0 && concurrency_.id() == concurrency_.first()) {
+    std::cout << "\n\t\t QMCI ends\n" << std::endl;
+    walker.printSummary();
+  }
 }
 
 template <class QmciSolver>
@@ -519,6 +538,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
       reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
+
+    read_configuration_ = true;
   }
   catch (std::exception& err) {
     std::cerr << err.what() << "\nCould not read the configuration.\n";

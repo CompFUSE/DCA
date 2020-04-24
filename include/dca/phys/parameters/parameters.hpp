@@ -395,6 +395,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   PhysicsParameters::readWrite(reader_or_writer);
 
   solveDcaIterationConflict(get_dca_iterations());
+  solveConfigReadConflict(get_directory_config_read() != "");
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

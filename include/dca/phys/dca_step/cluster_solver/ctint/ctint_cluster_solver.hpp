@@ -126,6 +126,8 @@ protected:  // Protected for testing purposes.
 
   void computeErrorBars() const {}
 
+  void setSampleConfiguration(const io::Buffer&) {}
+
 protected:
   Parameters& parameters_;
   Concurrency& concurrency_;

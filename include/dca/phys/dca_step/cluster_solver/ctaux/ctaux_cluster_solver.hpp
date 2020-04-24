@@ -100,6 +100,8 @@ public:
   // Precondition: The accumulator_ data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
 
+  void setSampleConfiguration(const io::Buffer&) {}
+
 protected:
   void warmUp(Walker& walker);
 

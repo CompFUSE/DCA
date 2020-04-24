@@ -119,6 +119,7 @@ public:
 protected:
   // Resize vector arguments to have the same size as the number of iterations.
   void inline solveDcaIterationConflict(int iterations);
+  void inline solveConfigReadConflict(bool read);
 
 private:
   void generateRandomSeed() {
@@ -305,6 +306,11 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
 
   solve_confilct(measurements_);
   solve_confilct(sweeps_per_measurement_);
+}
+
+void MciParameters::solveConfigReadConflict(bool read) {
+  if(read)
+    store_configuration_ = true;
 }
 
 }  // namespace params

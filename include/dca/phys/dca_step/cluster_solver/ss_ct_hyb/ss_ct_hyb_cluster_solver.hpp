@@ -86,6 +86,8 @@ public:
   // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
 
+  void setSampleConfiguration(const io::Buffer&) {}
+
 protected:  // Interface to the thread jacket.
   using DataType = Data;
   using ParametersType = parameters_type;
