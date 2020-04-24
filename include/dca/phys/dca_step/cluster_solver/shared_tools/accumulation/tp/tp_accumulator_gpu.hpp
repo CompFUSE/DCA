@@ -522,7 +522,7 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     for (int s = 0; s < 2; ++s)
     {
         // set receive buffer size equals to G_ size
-        recvbuff_G_[s].resizeNoCopy(G_[s].size());
+//        recvbuff_G_[s].resizeNoCopy(G_[s].size());
 
         // copy locally generated G2 to send buff
         sendbuff_G_[s] = G_[s];
@@ -555,9 +555,9 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     //      d) also, the ringG() is enabled via compile time setting. TODO:: make it runtime
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
-        MPI_CHECK(MPI_Irecv(recvbuff_G_[0].ptr(), (recvbuff_G_[0].size().first)*(recvbuff_G_[0].size().second),
+        MPI_CHECK(MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
                             MPI_C_DOUBLE_COMPLEX, left_neighbor, 1, MPI_COMM_WORLD, &recv_request_1));
-        MPI_CHECK(MPI_Irecv(recvbuff_G_[1].ptr(), (recvbuff_G_[1].size().first)*(recvbuff_G_[1].size().second),
+        MPI_CHECK(MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
                             MPI_C_DOUBLE_COMPLEX, left_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &recv_request_2));
 
         MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
@@ -569,11 +569,11 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
         MPI_CHECK(MPI_Wait(&recv_request_1, &status_1));
         MPI_CHECK(MPI_Wait(&recv_request_2, &status_2));
 
-        // copy from receive buffer into local G2
-        for (int s = 0; s < 2; ++s)
-        {
-            G_[s] = recvbuff_G_[s];
-        }
+//        // copy from receive buffer into local G2
+//        for (int s = 0; s < 2; ++s)
+//        {
+//            G_[s] = recvbuff_G_[s];
+//        }
 
         // use newly copied G2 to update G4
         for (std::size_t channel = 0; channel < G4_.size(); ++channel)
