@@ -9,5 +9,5 @@ target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_SOURCE_DIR=
 
 if (DCA_HAVE_CUDA)
   target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_HAVE_CUDA)
-  target_link_libraries(ctint_walker_performance_test PRIVATE ${MAGMA_LIBRARY};${CUDA_cublas_LIBRARY})
+  target_link_libraries(ctint_walker_performance_test PRIVATE ${MAGMA_LIBRARIES};${CUDA_cublas_LIBRARY})
 endif ()

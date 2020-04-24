@@ -10,7 +10,8 @@ set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
 set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
-# Lapack
+# Lapack - if the user has a custom setting for linear algebra, they
+# will set DCA_HAVE_LAPACK and LAPACK_LIBRARIES
 if (NOT DCA_HAVE_LAPACK)
   mark_as_advanced(LAPACK_LIBRARIES)
   find_package(MKL QUIET)
@@ -40,9 +41,8 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${HDF5_INCLUDE_DIR})
 # use find_package, if it was not found, use the old versions of lib/inc dirs
 find_package(FFTW QUIET)
 if (FFTW_FOUND)
-  set(FFTW_LIBRARY ${FFTW_LIBRARIES})
   list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
-  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIRS} ${FFTW_INCLUDE_DIR})
+  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS})
 endif()
 
 ################################################################################

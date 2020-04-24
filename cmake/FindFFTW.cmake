@@ -1,67 +1,128 @@
-# ==================================================================================================
-# This file is part of the CodeVault project. The project is licensed under Apache Version 2.0.
-# CodeVault is part of the EU-project PRACE-4IP (WP7.3.C).
+# - Find the FFTW library
 #
-# Author(s):
-#   Cedric Nugteren <cedric.nugteren@surfsara.nl>
+# Usage:
+#   find_package(FFTW [REQUIRED] [QUIET] )
+#     
+# It sets the following variables:
+#   FFTW_FOUND               ... true if fftw is found on the system
+#   FFTW_LIBRARIES           ... full path to fftw library
+#   FFTW_INCLUDE_DIRS        ... fftw include directory
 #
-# ==================================================================================================
+# The following variables will be checked by the function
+#   FFTW_USE_STATIC_LIBS    ... if true, only static libraries are found
+#   FFTW_ROOT               ... if set, the libraries are exclusively searched
+#                               under this path
+#   FFTW_LIBRARY            ... fftw library to use
+#   FFTW_INCLUDE_DIR        ... fftw include directory
 #
-# Defines the following variables:
-#   FFTW_FOUND          Boolean holding whether or not the FFTW3 library was found
-#   FFTW_INCLUDE_DIRS   The FFTW3 include directory
-#   FFTW_LIBRARIES      The FFTW3 library
-#
-# In case FFTW3 is not installed in the default directory, set the FFTW_ROOT variable to point to
-# the root of FFTW3, such that 'fftw3.h' can be found in $FFTW_ROOT/include. This can either be done
-# using an environmental variable (e.g. export FFTW_ROOT=/path/to/fftw3) or using a CMake variable
-# (e.g. cmake -DFFTW_ROOT=/path/to/fftw3 ..).
-#
-# ==================================================================================================
 
-# Sets the possible install locations
-set(FFTW_HINTS
-  ${FFTW_ROOT}
-  $ENV{FFTW_ROOT}
-)
-set(FFTW_PATHS
-  /usr
-  /usr/local
-)
+include(FindPackageMessage)
 
-# Finds the include directories
-find_path(FFTW_INCLUDE_DIRS
-  NAMES fftw3.h
-  HINTS ${FFTW_HINTS}
-  PATH_SUFFIXES include api inc include/x86_64 include/x64
-  PATHS ${FFTW_PATHS}
-  DOC "FFTW3 include header fftw3.h"
-)
-mark_as_advanced(FFTW_INCLUDE_DIRS)
-
-# Finds the library
-find_library(FFTW_LIBRARIES
-  NAMES fftw3
-  HINTS ${FFTW_HINTS}
-  PATH_SUFFIXES lib lib64 lib/x86_64 lib/x64 lib/x86 lib/Win32
-  PATHS ${FFTW_PATHS}
-  DOC "FFTW3 library"
-)
-mark_as_advanced(FFTW_LIBRARIES)
-
-# ==================================================================================================
-
-# Notification messages
-if(NOT FFTW_INCLUDE_DIRS)
-    message(STATUS "Could NOT find 'fftw3.h', install FFTW3 or set FFTW_ROOT")
-endif()
-if(NOT FFTW_LIBRARIES)
-    message(STATUS "Could NOT find the FFTW3 library, install it or set FFTW_ROOT")
+#If environment variable FFTWDIR is specified, it has same effect as FFTW_ROOT
+if( NOT FFTW_ROOT AND ENV{FFTWDIR} )
+  set( FFTW_ROOT $ENV{FFTWDIR} )
 endif()
 
-# Determines whether or not FFTW3 was found
+# Check if we can use PkgConfig
+find_package(PkgConfig)
+
+#Determine from PKG
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules( PKG_FFTW QUIET "fftw3" )
+endif()
+
+#Check whether to search static or dynamic libs
+set( CMAKE_FIND_LIBRARY_SUFFIXES_SAV ${CMAKE_FIND_LIBRARY_SUFFIXES} )
+
+if( ${FFTW_USE_STATIC_LIBS} )
+  set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX} )
+else()
+  set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX} ${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+
+if( FFTW_ROOT )
+    # libraries
+    find_library(
+        FFTW_LIB
+        NAMES fftw3
+        PATHS ${FFTW_ROOT}
+        PATH_SUFFIXES "lib" "lib64"
+        NO_DEFAULT_PATH
+    )
+
+    find_library(
+        FFTWF_LIB
+        NAMES "fftw3f"
+        PATHS "${FFTW_ROOT}"
+        PATH_SUFFIXES "lib" "lib64"
+        NO_DEFAULT_PATH
+    )
+
+    find_library(
+        FFTWL_LIB
+        NAMES "fftw3l"
+        PATHS "${FFTW_ROOT}"
+        PATH_SUFFIXES "lib" "lib64"
+        NO_DEFAULT_PATH
+    )
+
+    # includes
+    find_path(
+        FFTW_INCLUDE_DIRS
+        NAMES "fftw3.h"
+        PATHS ${FFTW_ROOT}
+        PATH_SUFFIXES "include"
+        NO_DEFAULT_PATH
+    )
+
+else()
+
+    find_library(
+        FFTW_LIB
+        NAMES "fftw3"
+        PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    )
+
+    find_library(
+        FFTWF_LIB
+        NAMES "fftw3f"
+        PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    )
+
+    find_library(
+        FFTWL_LIB
+        NAMES "fftw3l"
+        PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+    )
+
+    find_path(
+        FFTW_INCLUDE_DIRS
+        NAMES "fftw3.h"
+        PATHS ${PKG_FFTW_INCLUDE_DIRS} ${INCLUDE_INSTALL_DIR}
+    )
+
+endif( FFTW_ROOT )
+
+set(FFTW_LIBRARY   ${FFTW_LIB})
+set(FFTW_LIBRARIES ${FFTW_LIB} )
+
+if(FFTWF_LIB)
+  set(FFTW_LIBRARIES ${FFTW_LIBRARIES} ${FFTWF_LIB})
+endif()
+
+if(FFTWL_LIB)
+  set(FFTW_LIBRARIES ${FFTW_LIBRARIES} ${FFTWL_LIB})
+endif()
+
+set( CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_SAV} )
+
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(FFTW DEFAULT_MSG FFTW_INCLUDE_DIRS FFTW_LIBRARIES)
+find_package_handle_standard_args(FFTW DEFAULT_MSG
+                                  FFTW_INCLUDE_DIRS FFTW_LIBRARIES)
 
-# ==================================================================================================
-message("FFTW found ${FFTW_FOUND} ${FFTW_INCLUDE_DIRS} ${FFTW_LIBRARIES}")
+mark_as_advanced(FFTW_INCLUDE_DIRS FFTW_LIBRARIES FFTW_LIB FFTWF_LIB FFTWL_LIB)
+if(FFTW_FOUND)
+    find_package_message(FFTW "Found FFTW: ${FFTW_LIBRARIES}"
+        "[${FFTW_INCLUDE_DIRS}]")
+endif()
+

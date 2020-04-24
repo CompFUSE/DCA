@@ -24,8 +24,13 @@ cmake_policy(SET CMP0074 NEW)
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-  enable_testing()
-  include(CTest)
+################################################################################
+# enable add_test cmake commands
+enable_testing()
+
+################################################################################
+# enable CTest/CDash  dashboard integration
+include(CTest)
 
 ################################################################################
 # Load global variables to store preprocessor definitions.
@@ -112,7 +117,7 @@ if(DCA_HAVE_CUDA)
   include_directories(${CUDA_TOOLKIT_INCLUDE})
 endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
-  include_directories(${MAGMA_INCLUDE_DIR})
+  include_directories(${MAGMA_INCLUDE_DIRS})
 endif(DCA_HAVE_MAGMA)
 ################################################################################
 # Libraries
