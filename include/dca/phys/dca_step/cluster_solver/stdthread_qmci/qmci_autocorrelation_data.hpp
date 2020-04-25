@@ -81,7 +81,7 @@ QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& param
 template <class Walker>
 void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop) {
   // Write MC weights
-  writer.open_group("Configuration");
+  writer.open_group("Configurations");
   writer.open_group("MC-weight-samples");
   writer.open_group("iteration " + std::to_string(dca_loop));
 
