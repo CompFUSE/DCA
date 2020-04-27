@@ -199,6 +199,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   print_metadata();
 
   QmciSolver::accumulator_.finalize();
+  // sync all processors at the end
+  MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 }
 
 template <class QmciSolver>

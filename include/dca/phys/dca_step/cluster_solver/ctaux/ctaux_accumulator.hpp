@@ -229,7 +229,7 @@ CtauxAccumulator<device_t, Parameters, Data, Real>::CtauxAccumulator(Parameters&
 
       single_particle_accumulator_obj(parameters_, compute_std_deviation_),
 
-      two_particle_accumulator_(data_.G0_k_w_cluster_excluded, parameters_) {}
+      two_particle_accumulator_(data_.G0_k_w_cluster_excluded, parameters_, id) {}
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iteration) {

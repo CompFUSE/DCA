@@ -205,9 +205,9 @@ private:
   std::array<RMatrix, 2> G_;
 
   bool nvlink_enabled_ = false;
-  // send and receive buffer for pipeline ring algorithm
+  const int nr_accumulators_;
+  // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
-  std::array<RMatrix, 2> recvbuff_G_;
 
   bool finalized_ = false;
   bool initialized_ = false;
@@ -228,7 +228,8 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      nvlink_enabled_(pars.nvlink_enabled()){
+      nvlink_enabled_(pars.nvlink_enabled()),
+      nr_accumulators_(pars.get_accumulators()){
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -521,9 +522,6 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     // get ready for send and receive
     for (int s = 0; s < 2; ++s)
     {
-        // set receive buffer size equals to G_ size
-//        recvbuff_G_[s].resizeNoCopy(G_[s].size());
-
         // copy locally generated G2 to send buff
         sendbuff_G_[s] = G_[s];
     }
@@ -542,7 +540,7 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     int right_neighbor = mod_op((my_concurrency_id + 1 + mpi_size), mpi_size);
 
     // sync all processors at the beginning
-    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+//    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 
     // Pipepline ring algorithm in the following for-loop:
     // 1) At each time step, local rank receives a new G2 from left hand neighbor,
@@ -556,24 +554,18 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
         MPI_CHECK(MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1, MPI_COMM_WORLD, &recv_request_1));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1));
         MPI_CHECK(MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &recv_request_2));
+                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2));
 
         MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1, MPI_COMM_WORLD, &send_request_1));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1));
         MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, 1 + mpi_size, MPI_COMM_WORLD, &send_request_2));
+                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &send_request_2));
 
-        // wait for recvbuf_G2 to be available again
+        // wait for G2 to be available again
         MPI_CHECK(MPI_Wait(&recv_request_1, &status_1));
         MPI_CHECK(MPI_Wait(&recv_request_2, &status_2));
-
-//        // copy from receive buffer into local G2
-//        for (int s = 0; s < 2; ++s)
-//        {
-//            G_[s] = recvbuff_G_[s];
-//        }
 
         // use newly copied G2 to update G4
         for (std::size_t channel = 0; channel < G4_.size(); ++channel)
@@ -591,9 +583,6 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
             sendbuff_G_[s] = G_[s];
         }
     }
-
-    // sync all processors at the end
-    MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
 }
 
 template <class Parameters>
