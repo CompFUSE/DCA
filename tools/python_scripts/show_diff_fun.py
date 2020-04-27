@@ -22,25 +22,27 @@ def compute_error(arr1, arr2):
 
 
 	for i in range(len(arr2)):
-		f_abs = abs(G4_1_f[i])
+		f_abs = abs(arr1[i])
 		l1 += f_abs
 		l2 += f_abs * f_abs
 		if(linf<f_abs):
 			linf=f_abs
 			index_max_linf = i
-		err = abs(G4_1_f[i] - G4_2_f[i])
+		err = abs(arr1[i] - arr2[i])
 		l1_error += err
 		l2_error += err * err
 		if(linf_error < err):
 			linf_error = err
 			index_max_linf_error = i
-		#if(G4_1_f[i].real == G4_2_f[i].real):
-		#	if(G4_1_f[i].real != 0):
-		#		print("non-zero equal at index: ", i, " val: ", G4_1_f[i].real)
-		#	else:
-		#		print("zero equal at index: ", i, " val: ", G4_1_f[i].real)
-		#else:
-		#	print("diff at index: ", i, "G4_1: ", G4_1_f[i].real, " G4_2: ", G4_2_f[i].real)
+		if(arr1[i] == arr2[i]):
+			if(arr1[i] != 0):
+				print("non-zero equal at index: ", i, " val: ", arr1[i])
+			else:
+				print("zero equal at index: ", i, " val: ", arr1[i])
+		elif (arr1[i] - arr2[i] < 5E-07):
+				print("acceptable at index: ", i, "val: ", arr1[i])
+		else:
+			print("diff at index: ", i, "G4_1: ", arr1[i], " G4_2: ", arr2[i].real)
 	
 	l1_error /= l1
 	l2_error = math.sqrt(l2_error / l2)
