@@ -519,10 +519,14 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
 
+    std::array<std::pair<int, int>, 2> G2_sz;
+
     // get ready for send and receive
     for (int s = 0; s < 2; ++s)
     {
+        G2_sz[s] = G_[s].size();
         // copy locally generated G2 to send buff
+        sendbuff_G_[s].resizeNoCopy(G2_sz[s]);
         sendbuff_G_[s] = G_[s];
     }
 
@@ -552,14 +556,14 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     //         measurements % ranks == 0 && local_measurement % threads == 0.
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
-        MPI_CHECK(MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
+        MPI_CHECK(MPI_Irecv(G_[0].ptr(), (G2_sz[0].first)*(G2_sz[0].second),
                             MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1));
-        MPI_CHECK(MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
+        MPI_CHECK(MPI_Irecv(G_[1].ptr(), (G2_sz[1].first)*(G2_sz[1].second),
                             MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2));
 
-        MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
+        MPI_CHECK(MPI_Isend(sendbuff_G_[0].ptr(), (G2_sz[0].first)*(G2_sz[0].second),
                             MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1));
-        MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
+        MPI_CHECK(MPI_Isend(sendbuff_G_[1].ptr(), (G2_sz[1].first)*(G2_sz[1].second),
                             MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &send_request_2));
 
         // wait for G2 to be available again
@@ -579,6 +583,7 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
         // get ready for send again
         for (int s = 0; s < 2; ++s)
         {
+            sendbuff_G_[s].resizeNoCopy(G2_sz[s]);
             sendbuff_G_[s] = G_[s];
         }
     }
