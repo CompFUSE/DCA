@@ -14,8 +14,6 @@
 #include <string>
 #include <iostream>
 
-#include "gptl.h"
-
 #include "dca/config/cmake_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/config/dca.hpp"
@@ -24,8 +22,6 @@
 #include "dca/util/modules.hpp"
 
 int main(int argc, char** argv) {
-int gptl_ret;
-gptl_ret = GPTLinitialize();
 
   if (argc < 2) {
     std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
@@ -100,9 +96,5 @@ gptl_ret = GPTLinitialize();
     concurrency.abort();
   }
 
-    gptl_ret = GPTLpr(concurrency.id());
-    std::string outfile("rank_" + std::to_string(concurrency.id()) + "summary.txt");
-    gptl_ret = GPTLpr_file(outfile.data());
-    gptl_ret = GPTLfinalize();
   return 0;
 }
