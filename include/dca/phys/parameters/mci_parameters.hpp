@@ -272,24 +272,30 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-      reader_or_writer.close_group();
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    // Read nvlink type.
-    try {
-      reader_or_writer.execute("nvlink-enabled", nvlink_enabled_);
-
-      if(nvlink_enabled_)
-      {
-        if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_ || walkers_ !=1 || accumulators_ != 1)
+      try {
+        // nvlink-enabled evaluation should be placed after walkers, accumulators,
+        // and shared-walk-and-accumulation-thread
+        reader_or_writer.execute("nvlink-enabled", nvlink_enabled_);
+        if(nvlink_enabled_)
         {
-            std::cout << "\n With NVLink enabled, 1) walker and accumulator must share thread, "
-                         "2) #walker == #accumulator, 3) #threads in DCA must set to 1\n";
-            throw;
+          if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_)
+          {
+            throw std::logic_error("\n With NVLink enabled, 1) walker and accumulator should share thread, "
+                                         "2) #walker == #accumulator\n");
+          }
+          int mpi_size;
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          int local_meas = measurements_ / mpi_size;
+          if( measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0)
+          {
+            throw std::logic_error("\n With NVLink enabled, 1) local measurements should be same across ranks, "
+                                     "2) each accumulator should have same measurements\n");
+          }
         }
       }
+      catch (const std::exception& r_e) {
+      }
+      reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
     }

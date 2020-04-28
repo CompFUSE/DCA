@@ -547,10 +547,9 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     // makes a copy locally and uses this G2 to update G4, and
     // sends this G2 to right hand neighbor. In total, the algorithm performs (mpi_size - 1) steps.
     // 2) This algorithm currently requires parameters in input file:
-    //      a) DCA threads = 1; TODO: consider multiple threads
-    //      b) walker = 1, accumulator = 1, and shared-walk-and-accumulation-thread = true;
-    //      c) and, local measurements are equal, i.e. measurements % ranks == 0.
-    //      d) also, the ringG() is enabled via compile time setting. TODO:: make it runtime
+    //      a) #walker == #accumulator and shared-walk-and-accumulation-thread = true;
+    //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
+    //         measurements % ranks == 0 && local_measurement % threads == 0.
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
         MPI_CHECK(MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
