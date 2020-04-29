@@ -526,8 +526,7 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     {
         G2_sz[s] = G_[s].size();
         // copy locally generated G2 to send buff
-        sendbuff_G_[s].resizeNoCopy(G2_sz[s]);
-        sendbuff_G_[s] = G_[s];
+        sendbuff_G_[s].copyFrom(G_[s]);
     }
 
     int my_concurrency_id, mpi_size;
@@ -583,8 +582,7 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
         // get ready for send again
         for (int s = 0; s < 2; ++s)
         {
-            sendbuff_G_[s].resizeNoCopy(G2_sz[s]);
-            sendbuff_G_[s] = G_[s];
+            sendbuff_G_[s].copyFrom(G_[s]);
         }
     }
 }

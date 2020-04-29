@@ -135,6 +135,8 @@ public:
   bool resizeNoCopy(int new_size) {
     return resizeNoCopy(std::make_pair(new_size, new_size));
   }
+  // Resizes *this to a new size of rhs matrix and perform element-wise copy from rhs
+  void copyFrom(const ThisType& rhs);
 
   // Reserves the space for at least (new_size.first * new_size.second) elements without changing
   // the matrix size. The value of the matrix elements is undefined after calling this method.
@@ -294,6 +296,20 @@ bool ReshapableMatrix<ScalarType, device_name, Allocator>::reserveNoCopy(std::si
     return true;
   }
   return false;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void ReshapableMatrix<ScalarType, device_name, Allocator>::copyFrom(const ThisType& rhs) {
+  auto new_size = rhs.size();
+  auto new_nrElements = nrElements(new_size);
+
+  if (new_nrElements > capacity_) {
+     Allocator::deallocate(data_);
+     capacity_ = nextCapacity(new_nrElements);
+     data_ = Allocator::allocate(capacity_);
+  }
+
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
