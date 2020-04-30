@@ -208,6 +208,7 @@ private:
   const int nr_accumulators_;
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
+  std::array<int, 2> sendbuff_allocated = {-1, -1};
 
   bool finalized_ = false;
   bool initialized_ = false;
@@ -527,7 +528,12 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
         G2_sz[s] = G_[s].size();
         // copy locally generated G2 to send buff
         // TODO: make allocation once
-        sendbuff_G_[s].allocate(G_[s]);
+        if (!sendbuff_allocated[s])
+        {
+            sendbuff_G_[s].allocate(G_[s]);
+            sendbuff_allocated[s] = 1;
+        }
+
         sendbuff_G_[s] = G_[s];
     }
 
