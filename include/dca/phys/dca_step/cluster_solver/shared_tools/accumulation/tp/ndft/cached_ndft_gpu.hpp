@@ -62,7 +62,7 @@ public:
   // Out: M_r_r_w_w.
   template <class Configuration, typename RealIn>
   float execute(const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M,
-                RMatrix& M_r_r_w_w, RMatrix& M_sendbuff = RMatrix());
+                RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
@@ -128,14 +128,12 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration, typename RealIn>
 float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_out, RMatrix& M_send_out) {
+    const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_out) {
   float flop = 0.;
 
   if (configuration.size() == 0) {  // The result is zero
     M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(stream_);
-    M_send_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
-    M_send_out.setToZero(stream_);
     return flop;
   }
 
@@ -149,7 +147,6 @@ float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::e
   const int order = std::max(config_dev_[0].size(), config_dev_[1].size());
   const int g_first_size = nw / 2 * n_orbitals_;
   M_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
-  M_send_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
   workspace_->reserveNoCopy(std::max(order * order, 2 * g_first_size * g_first_size));
 
   sortM(M, *workspace_);
