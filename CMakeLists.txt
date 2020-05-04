@@ -157,7 +157,7 @@ if (DCA_HAVE_CUDA)
     ${DCA_CUDA_LIBS})
 endif()
 
-if (DCA_HAVE_ADIOS2)
+if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
   list(APPEND DCA_LIBS
     dca_adios2 adios2::adios2
     )

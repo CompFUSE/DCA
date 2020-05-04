@@ -49,6 +49,12 @@ else()
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 endif()
 
+
+################################################################################
+# Enable ADIOS2.
+option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." ON)
+  dca_add_config_define(DCA_WITH_ADIOS2)
+
 ################################################################################
 # Select the point group, the lattice type, and the model type.
 # TODO: Add more point groups and lattices.
