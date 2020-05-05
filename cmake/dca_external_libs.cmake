@@ -10,13 +10,19 @@ set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
 set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
-# Lapack
+# Lapack - if the user has a custom setting for linear algebra, they
+# will set DCA_HAVE_LAPACK and LAPACK_LIBRARIES
 if (NOT DCA_HAVE_LAPACK)
-  find_package(LAPACK REQUIRED)
+  mark_as_advanced(LAPACK_LIBRARIES)
+  find_package(MKL QUIET)
+  if (MKL_FOUND)
+     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
+     set(LAPACK_LIBRARIES mkl::mkl_intel_32bit_seq_dyn)
+  else()
+    find_package(LAPACK REQUIRED)
+  endif()
+  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 endif()
-
-mark_as_advanced(LAPACK_LIBRARIES)
-list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
 # HDF5
@@ -28,15 +34,16 @@ if (NOT HDF5_FOUND)
 endif()
 
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${HDF5_INCLUDE_DIR})
 
 ################################################################################
 # FFTW
-set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY "" CACHE FILEPATH "The FFTW3(-compatible) library.")
-
-list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
+# use find_package, if it was not found, use the old versions of lib/inc dirs
+find_package(FFTW QUIET)
+if (FFTW_FOUND)
+  list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
+  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS})
+endif()
 
 ################################################################################
 # Simplex GM Rule

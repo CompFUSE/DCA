@@ -193,7 +193,8 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
     data[i].len = value[i].size();
   }
 
-  const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
+  auto temp = HDF5_TYPE<Scalar>::get_PredType();
+  const auto type = H5::VarLenType(&temp);
 
   write(full_name, std::vector<hsize_t>{data.size()}, type, data.data());
 }
