@@ -17,6 +17,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
@@ -35,6 +36,19 @@ namespace details {
 using namespace linalg;
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+
+// This function is used when nvlink is enabled
+// With nvlink enabled, each rank only computes 1/total_mpi_ranks of 1D linearized G4
+// with range (start <= g4_index) && (g4_index < end).
+// Here, we create a 1D thread blocks to update local G4 and each kernel thread
+// only updates one index of linearized G4. There might be at most one thread block will launch
+// more threads than we need (i.e. not enough G4 index to compute in last thread block)
+// and those threads will exit in kernel code.
+std::array<dim3, 2> getBlockSize1D(int my_rank, int mpi_size, const unsigned int total_G4_size) {
+    int start, end;
+    dca::parallel::util::getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
+    return std::array<dim3, 2>{dca::util::ceilDiv(end - start, 256), 256};
+}
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
@@ -186,13 +200,48 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
   const int size = nk * nw * nb * nb;
   // id_i is a linearized index of b1, b2, k1, k2.
-  const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   // id_j is a linearized index of b3, b4, k2, k_ex.
-  const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   // id_z is a linearized index of k_ex, w_ex.
-  const int id_z = blockIdx.z * blockDim.z + threadIdx.z;
-  if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
-    return;
+  int id_i, id_j, id_z;
+  // global 1D linearized g4 index
+  int g4_index;
+
+  if(nvlink_enabled)
+  {
+   // With GPUDirect enabled, each rank only computes 1/total_mpi_ranks of G4. Specifically, the
+   // originally flattened one dimensional G4 array will be evenly divided by total number of
+   // mpi ranks into different regions (range length of each region is equal up to 1). Since
+   // each rank only allocates its own portion of G4, so offsetting index is needed. Each rank
+   // only computes G4 elements within correct starting and ending index range, otherwise, returns.
+    const int local_g4_index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // get global G4 index
+    int start, end;
+    g4_helper.getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
+    g4_index = local_g4_index + start;
+
+    // thread exits if out of range, for example, this thread block has 256 threads while
+    // only first several threads should peform G4 update.
+    if(g4_index < start || g4_index >= end)
+      return;
+
+    // Decomposite global G4 index into 3D to reuse existing get_indices function and id_* variables
+    // Image G4 matrix is N by N by M, where N is nb * nb * nk * nw and M is k_ex * w_ex.
+    id_i = g4_index % size;
+    id_j = (g4_index - id_i)/size % size;
+    id_z = ((g4_index - id_i)/size-id_j)/size;
+
+    // offset global G4 index to local
+    g4_index = local_g4_index;
+  }
+  else
+  {
+    id_i = blockIdx.x * blockDim.x + threadIdx.x;
+    id_j = blockIdx.y * blockDim.y + threadIdx.y;
+    id_z = blockIdx.z * blockDim.z + threadIdx.z;
+    if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
+      return;
+  }
 
   // Unroll id_i and id_j.
   const int step2 = nb * nb;
@@ -216,25 +265,6 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   CudaComplex<Real> contribution;
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
-
-  int g4_index = g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
-
-  if(nvlink_enabled)
-  {
-    // With GPUDirect enabled, each rank only computes 1/total_mpi_ranks of G4. Specifically, the
-    // originally flattened one dimensional G4 array will be evenly divided by total number of
-    // mpi ranks into different regions (range length of each region is equal up to 1). Since
-    // each rank only allocates its own portion of G4, so offsetting index is needed. Each rank
-    // only computes G4 elements within correct starting and ending index range, otherwise, returns.
-    int start, end;
-    g4_helper.getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
-    if( start > g4_index || g4_index >= end)
-    {
-      return;
-    }
-    // offset G4 index
-    g4_index -= start;
-  }
 
   // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
   // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with
@@ -512,7 +542,9 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
   const int nw = 2 * nw_pos;
   const int size_12 = nw * nk * nb * nb;
   const int size_3 = nw_exchange * nk_exchange;
-  const auto blocks = getBlockSize3D(size_12, size_12, size_3);
+
+  const auto blocks = nvlink_enabled ? getBlockSize1D(my_rank, mpi_size, total_G4_size) :
+                        getBlockSize3D(size_12, size_12, size_3);
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
