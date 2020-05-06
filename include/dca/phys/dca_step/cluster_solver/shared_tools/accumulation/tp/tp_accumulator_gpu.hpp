@@ -294,7 +294,7 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
           int my_rank, mpi_size;
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-          const unsigned int local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
+          const uint64_t local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
           G4_channel.resizeNoCopy(local_G4_size_);
       }
 
@@ -441,7 +441,8 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
 
   const FourPointType channel = channels_[channel_index];
 
-  int my_rank, mpi_size, total_G4_size;
+  int my_rank, mpi_size;
+  uint64_t total_G4_size;
   if(distrbuted_g4_enabled_)
   {
     if(distrbuted_g4_enabled_)

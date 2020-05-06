@@ -42,14 +42,14 @@ int getWorkload(const unsigned int total_work, const unsigned int n_local_worker
   return getWorkload(local_work, n_local_workers, local_id);
 }
 
-inline void getComputeRange(int my_rank, int mpi_size, const unsigned int total_G4_size, int& start, int& end) {
-
-  unsigned int offset = 0;
+inline void getComputeRange(const int& my_rank, const int& mpi_size,
+                            const uint64_t& total_G4_size, uint64_t& start, uint64_t& end) {
+  uint64_t offset = 0;
   // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
   // if balanced, each rank has same amount of elements to compute
   // if not, ranks with (rank_id < nb_more_work_ranks) has to compute 1 more element than other ranks
   bool balanced = (total_G4_size % mpi_size == 0);
-  int local_work = total_G4_size / mpi_size;
+  uint64_t local_work = total_G4_size / mpi_size;
 
   if(balanced) {
         offset = my_rank  * local_work;
@@ -59,12 +59,12 @@ inline void getComputeRange(int my_rank, int mpi_size, const unsigned int total_
     int nb_more_work_ranks = total_G4_size % mpi_size;
 
     if (my_rank < nb_more_work_ranks) {
-          offset = my_rank * (local_work + 1);
-            end = offset + (local_work + 1);
+      offset = my_rank * (local_work + 1);
+      end = offset + (local_work + 1);
     } else {
         offset = nb_more_work_ranks * (local_work + 1) + (my_rank - nb_more_work_ranks) * local_work;
-            end = offset + local_work;
-        }
+        end = offset + local_work;
+      }
     }
     start = offset;
 }
