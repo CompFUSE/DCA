@@ -55,7 +55,7 @@ public:
   // Single band version of the above method.
   __device__ inline unsigned int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
 
-  // Returns range (start and end index) of G4 in which local rank should compute, when GPUDirect is enabled
+  // Returns range (start and end index) of G4 in which local rank should compute, when distributed g4 is enabled
   __device__ inline void getComputeRange(int my_rank, int mpi_size, int total_G4_size, int& start, int& end) const;
 
 protected:

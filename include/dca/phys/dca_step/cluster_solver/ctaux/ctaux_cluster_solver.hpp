@@ -457,7 +457,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
         if (compute_jack_knife_)
           concurrency_.leaveOneOutSum(G4);
         else {
-          if(parameters_.nvlink_enabled())
+          if(parameters_.distrbuted_g4_enabled())
             concurrency_.gatherv(G4, concurrency_.first());
           else
             concurrency_.localSum(G4, concurrency_.first());

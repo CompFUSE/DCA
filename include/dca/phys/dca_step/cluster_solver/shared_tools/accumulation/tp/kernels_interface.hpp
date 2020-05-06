@@ -37,7 +37,7 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
               const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
               const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
               bool atomic, cudaStream_t stream, int my_rank, int mpi_size, const unsigned int total_G4_size,
-              bool nvlink_enabled);
+              bool distrbuted_g4_enabled);
 
 }  // namespace details
 }  // namespace accumulator
