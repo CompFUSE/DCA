@@ -208,7 +208,6 @@ private:
   const int nr_accumulators_;
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
-  std::array<int, 2> sendbuff_G_allocated = {-1, -1};
 
   bool finalized_ = false;
   bool initialized_ = false;

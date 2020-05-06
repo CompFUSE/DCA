@@ -630,8 +630,8 @@ void MPICollectiveSum::gatherv_helper(const T* in, T* out, std::size_t total_siz
     int mpi_size = MPIProcessorGrouping::get_size();
     int my_rank = MPIProcessorGrouping::get_id();
 
-    int local_work = total_size / mpi_size;
-    int more_work_before_index;
+    uint64_t local_work = total_size / mpi_size;
+    uint64_t more_work_before_index;
 
     std::vector<int> ranks_workload(mpi_size, 0);
     std::vector<int> displs(mpi_size + 1, 0);
