@@ -263,6 +263,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   const int w_ex = id_z / nk_exchange;
   const int k_ex = id_z - w_ex * nk_exchange;
 
+  if(!distrbuted_g4_enabled)
+      g4_index = g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
+
   CudaComplex<Real> contribution;
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
