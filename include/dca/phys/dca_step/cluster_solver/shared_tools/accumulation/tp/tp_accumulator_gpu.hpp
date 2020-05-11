@@ -281,9 +281,10 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
+  typename BaseClass::TpDomain tp_dmn;
+  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
-      typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
@@ -293,11 +294,10 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
           int my_rank, mpi_size;
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-          const uint64_t local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
-          G4_channel.resizeNoCopy(local_G4_size_);
+          local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
       }
 
-      G4_channel.resizeNoCopy(tp_dmn.get_size());
+      G4_channel.resizeNoCopy(local_G4_size_);
       G4_channel.setToZeroAsync(streams_[0]);
     }
     catch (std::bad_alloc& err) {
