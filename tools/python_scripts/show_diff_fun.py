@@ -1,8 +1,15 @@
-# Prints the name of all groups and datasets stored in an HDF5 file.
+# Copyright (C) 2018 ETH Zurich
+# Copyright (C) 2018 UT-Battelle, LLC
+# All rights reserved.
 #
-# Usage: python show_hdf5.py <HDF5-output-file>
+# See LICENSE.txt for terms of usage.
+# See CITATION.txt for citation guidelines if you use this code for scientific publications.
 #
-# Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+# Author: Weile Wei (wwei9@lsu.edu)
+#
+# This file provides a method to compute the difference of two G4s from hdf5 file.
+# Details refer to difference.hpp
+# Usage: python show_diff_fun.py <HDF5-output-file>
 
 import h5py
 import sys
@@ -51,9 +58,7 @@ def compute_error(arr1, arr2):
 	print("l1_error: ", l1_error)
 	print("l2_error: ", l2_error)
 	print("linf_error: ", linf_error)
-	#print("index_max_linf: ", index_max_linf, "G4_1_f: ", G4_1_f[index_max_linf], " G4_2_f: ", G4_2_f[index_max_linf])
-	#print("index_max_linf_error: ", index_max_linf_error, "G4_1_f: ", G4_1_f[index_max_linf_error], " G4_2_f: ", G4_2_f[index_max_linf_error])
-	
+
 # Get the filename from the command line.
 filename1 = sys.argv[1]
 filename2 = sys.argv[2]
