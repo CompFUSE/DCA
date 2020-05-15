@@ -421,7 +421,7 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
-`"store-configuration"` : boolean (false)
+`"store-configuration"` : boolean (true)
 If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
 
 <br></br>
