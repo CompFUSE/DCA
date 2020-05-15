@@ -29,5 +29,5 @@ if (DCA_HAVE_CUDA)
 
     cuda_add_library(mc_kernels ${MC_KERNEL_FILES})
     target_compile_definitions(mc_kernels PUBLIC  "-DDCA_HAVE_CUDA")
-    target_link_libraries(mc_kernels ctint)
+    target_link_libraries(mc_kernels PUBLIC ctint)
 endif()

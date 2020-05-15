@@ -16,13 +16,14 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/cmake_options.hpp"
+#include "dca/config/threading.hpp"
+
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -54,7 +55,7 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
-      dca::phys::params::Parameters<Concurrency, dca::parallel::stdthread, dca::profiling::NullProfiler,
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                     ModelType, RngType, dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =

@@ -12,7 +12,15 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 ################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
-  find_package(LAPACK REQUIRED)
+  mark_as_advanced(LAPACK_LIBRARIES)
+  find_package(MKL QUIET)
+  if (MKL_FOUND)
+     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
+     set(LAPACK_LIBRARIES mkl::mkl)
+  else()
+    find_package(LAPACK REQUIRED)
+  endif()
+  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 endif()
 
 mark_as_advanced(LAPACK_LIBRARIES)
@@ -28,12 +36,11 @@ if (NOT HDF5_FOUND)
 endif()
 
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${HDF5_INCLUDE_DIR})
 
 ################################################################################
 # FFTW
-set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY "" CACHE FILEPATH "The FFTW3(-compatible) library.")
+find_package(FFTW REQUIRED)
 
 list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})

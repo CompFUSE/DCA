@@ -6,6 +6,9 @@
 
 include(CMakeParseArguments)
 
+include(ProcessorCount)
+ProcessorCount(CPUS)
+
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
@@ -81,7 +84,22 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
+    set(oldname ${name})
+    set(name ${name}_hpx)
+    add_executable(${name} ${oldname}.cpp ${DCA_ADD_GTEST_SOURCES})
+    hpx_setup_target(${name})
+    set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
+    if (DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
+      math(EXPR NUMTHREADS "${CPUS} / ${DCA_ADD_GTEST_MPI_NUMPROC}")
+      if ("${NUMTHREADS}" LESS "1")
+        set(NUMTHREADS "1")
+      endif()
+      set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
+    endif()
+  else()
+    add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+  endif()
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
   # tests.
@@ -89,15 +107,15 @@ function(dca_add_gtest name)
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
-    target_link_libraries(${name} gtest_main ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest_main)
   else()
     # Test has its own main.
-    target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest)
   endif()
 
   if (DCA_ADD_GTEST_CUDA)
     target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-    target_link_libraries(${name} ${DCA_CUDA_LIBS})
+    target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
@@ -117,16 +135,19 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>")
-                 target_link_libraries(${name} ${MPI_C_LIBRARIES})
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>"
+                     ${DCA_TESTING_ARGS_HPX})
+                 target_link_libraries(${name}  PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
+                   ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>"
+                   ${DCA_TESTING_ARGS_HPX})
     else (TEST_RUNNER)
       add_test(NAME ${name}
-               COMMAND "$<TARGET_FILE:${name}>")
+               COMMAND "$<TARGET_FILE:${name}>"
+               ${DCA_TESTING_ARGS_HPX})
     endif (TEST_RUNNER)
   endif()
 

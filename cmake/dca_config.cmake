@@ -27,9 +27,12 @@ endif()
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/concurrency.hpp" @ONLY)
 
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
+  "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
+
 ################################################################################
 # Enable CUDA.
-option(DCA_WITH_CUDA "Enable GPU support." OFF)
+option(DCA_WITH_CUDA "Enable GPU support." ON)
 
 if (DCA_WITH_CUDA)
   include(dca_cuda)
@@ -228,7 +231,23 @@ endif()
 ################################################################################
 # Threading options/settings
 if (UNIX)
-  set(DCA_THREADING_LIBS "pthread")
+  set(DCA_THREADING_LIBS pthread)
+endif()
+
+if (DCA_WITH_THREADED_SOLVER)
+  set(DCA_THREADING_LIBS ${DCA_THREADING_LIBS} parallel_stdthread)
+endif()
+
+################################################################################
+# Enable HPX threading support if desired
+option(DCA_WITH_HPX "Enable HPX for multi-threading" OFF)
+if (DCA_WITH_HPX)
+  # if HPX is not found then DCA_HAVE_HPX will not be set
+  include(dca_hpx)
+  if (NOT DCA_HAVE_HPX)
+    message(FATAL_ERROR "HPX library not found but requested.")
+  endif()
+  set(DCA_THREADING_LIBS parallel_hpx)
 endif()
 
 ################################################################################
@@ -239,7 +258,7 @@ if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
   set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
   set(DCA_THREADED_SOLVER_INCLUDE
-      "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
+    "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
 endif()
 
 ################################################################################

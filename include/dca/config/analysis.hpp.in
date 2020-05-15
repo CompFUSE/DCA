@@ -18,9 +18,7 @@
 #include "dca/config/concurrency.hpp"    // defines Concurrency
 #include "dca/config/lattice_model.hpp"  // defines Model
 #include "dca/config/profiler.hpp"       // defines Profiler
-
-#include "dca/parallel/stdthread/stdthread.hpp"
-using Threading = dca::parallel::stdthread;
+#include "dca/config/threading.hpp"      // defines Threading
 
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
 constexpr dca::phys::solver::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;

@@ -9,20 +9,20 @@
 //
 // Tests call_once_per_loop.hpp
 
+#include "dca/config/threading.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
 
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
-
-void task(unsigned int loop_id, std::vector<int>& data) {
+int task(unsigned int loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
 
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
     ++data[loop_id];
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    dca::parallel::thread_traits::sleep_for(std::chrono::microseconds(100));
   });
+  return 0;
 }
 
 TEST(CallOncePerLoopTest, All) {
@@ -33,10 +33,18 @@ TEST(CallOncePerLoopTest, All) {
     const int n_threads = 8;
     dca::parallel::ThreadPool pool(n_threads);
 
+    auto task_t = std::bind(task, std::placeholders::_1, std::ref(result));
+
     for (unsigned int loop_id = 0; loop_id < n_loops; ++loop_id) {
-      for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
-        pool.enqueue(task, loop_id, std::ref(result));
-      }
+
+    std::vector<dca::parallel::thread_traits::future_type<int>> futures;
+
+    for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
+        futures.emplace_back(pool.enqueue(task_t, loop_id));
+    }
+
+    for (auto& future : futures)
+        future.get();
     }
   }
 
