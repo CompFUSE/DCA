@@ -56,8 +56,8 @@ public:
   __device__ inline unsigned int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
 
   // Returns range (start and end index) of G4 in which local rank should compute, when distributed g4 is enabled
-  __device__ inline void getComputeRange(const int& my_rank, const int& mpi_size,
-                                         const uint64_t& total_G4_size, uint64_t & start, uint64_t& end) const;
+  __device__ inline void getComputeRange(const int my_rank, const int mpi_size,
+                                         const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const;
 
 protected:
   int lda_;
@@ -127,8 +127,8 @@ inline __device__ unsigned int G4Helper::g4Index(int k1, int k2, int k_ex, int w
 }
 
 inline __device__
-void G4Helper::getComputeRange(const int& my_rank, const int& mpi_size,
-                               const uint64_t& total_G4_size, uint64_t & start, uint64_t& end) const {
+void G4Helper::getComputeRange(const int my_rank, const int mpi_size,
+                               const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const {
 
     uint64_t offset = 0;
     // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks

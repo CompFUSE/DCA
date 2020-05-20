@@ -433,13 +433,10 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   uint64_t total_G4_size;
   if(distrbuted_g4_enabled_)
   {
-    if(distrbuted_g4_enabled_)
-    {
       MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
       MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
       typename BaseClass::TpDomain tp_dmn;
       total_G4_size = tp_dmn.get_size();
-    }
    }
 
   switch (channel) {

@@ -642,14 +642,13 @@ void MPICollectiveSum::gatherv_helper(const T* in, T* out, std::size_t total_siz
     else
     {
         more_work_before_index = total_size % mpi_size;
-        std::transform(ranks_workload.begin(), ranks_workload.begin() + more_work_before_index-1,
+        std::transform(ranks_workload.begin(), ranks_workload.begin() + more_work_before_index,
                        ranks_workload.begin(), [](int ele){ return ele+1; });
         std::partial_sum(ranks_workload.begin(), ranks_workload.end(),
                 displs.begin() + 1, std::plus<int>());
         // remove last running sum
         displs.pop_back();
     }
-
 
     MPI_Gatherv(in, ranks_workload[my_rank], MPITypeMap<T>::value(),
             out, p_ranks_workload, p_displs, MPITypeMap<T>::value(),
