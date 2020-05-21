@@ -40,7 +40,7 @@ public:
         fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE),
-        store_configuration_(false) {}
+        store_configuration_(true) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
