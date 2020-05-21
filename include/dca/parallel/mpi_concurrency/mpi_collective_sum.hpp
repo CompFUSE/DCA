@@ -618,7 +618,7 @@ void MPICollectiveSum::gatherv_helper(const T* in, T* out, std::size_t total_siz
     uint64_t local_work = total_size / mpi_size;
     uint64_t more_work_before_index;
 
-    std::vector<int> ranks_workload(mpi_size, 0);
+    std::vector<int> ranks_workload(mpi_size, local_work);
     // displs: integer array (of length group size).
     // We reserve mpi_size + 1 space, one extra space to fit STL algorithm logic.
     // Entry i specifies the displacement relative to recvbuf at which to place
@@ -626,8 +626,6 @@ void MPICollectiveSum::gatherv_helper(const T* in, T* out, std::size_t total_siz
     std::vector<int> displs(mpi_size + 1, 0);
     int* p_ranks_workload = ranks_workload.data();
     int* p_displs = displs.data();
-
-    std::fill(ranks_workload.begin(), ranks_workload.end(), local_work);
 
     bool balanced = (total_size % mpi_size) == 0 ? true : false;
 
