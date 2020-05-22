@@ -200,7 +200,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   // TODO: reduce code duplication.
   // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
 
-  const uint64_t size = nk * nw * nb * nb;
+  const uint64_t size = static_cast<uint64_t>(nk) * static_cast<uint64_t>(nw)
+                        * static_cast<uint64_t>(nb) * static_cast<uint64_t>(nb);
   // id_i is a linearized index of b1, b2, k1, k2.
   // id_j is a linearized index of b3, b4, k2, k_ex.
   // id_z is a linearized index of k_ex, w_ex.
@@ -215,7 +216,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
    // mpi ranks into different regions (range length of each region is equal up to 1). Since
    // each rank only allocates its own portion of G4, so offsetting index is needed. Each rank
    // only computes G4 elements within correct starting and ending index range, otherwise, returns.
-    const uint64_t local_g4_index = blockIdx.x * blockDim.x + threadIdx.x;
+    const uint64_t local_g4_index = static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x)
+                                    + static_cast<uint64_t>(threadIdx.x);
 
     // get global G4 index
     uint64_t start, end;

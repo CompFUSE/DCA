@@ -48,21 +48,22 @@ inline void getComputeRange(const int& my_rank, const int& mpi_size,
   // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
   // if balanced, each rank has same amount of elements to compute
   // if not, ranks with (rank_id < nb_more_work_ranks) has to compute 1 more element than other ranks
-  bool balanced = (total_G4_size % mpi_size == 0);
-  uint64_t local_work = total_G4_size / mpi_size;
+  bool balanced = (total_G4_size % static_cast<uint64_t>(mpi_size) == 0);
+  uint64_t local_work = total_G4_size / static_cast<uint64_t>(mpi_size);
 
   if(balanced) {
-        offset = my_rank  * local_work;
+        offset = static_cast<uint64_t>(my_rank)  * local_work;
         end  = offset + local_work;
   }
   else {
-    int nb_more_work_ranks = total_G4_size % mpi_size;
+    int nb_more_work_ranks = total_G4_size % static_cast<uint64_t>(mpi_size);
 
     if (my_rank < nb_more_work_ranks) {
-      offset = my_rank * (local_work + 1);
+      offset = static_cast<uint64_t>(my_rank) * (local_work + 1);
       end = offset + (local_work + 1);
     } else {
-        offset = nb_more_work_ranks * (local_work + 1) + (my_rank - nb_more_work_ranks) * local_work;
+        offset = nb_more_work_ranks * (local_work + 1) +
+                 (static_cast<uint64_t>(my_rank) - nb_more_work_ranks) * local_work;
         end = offset + local_work;
       }
     }
