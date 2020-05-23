@@ -78,8 +78,8 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
-  bool distrbuted_g4_enabled() const {
-    return distrbuted_g4_enabled_;
+  bool distributed_g4_enabled() const {
+    return distributed_g4_enabled_;
   }
 
   // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
@@ -116,7 +116,7 @@ private:
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
-  bool distrbuted_g4_enabled_;
+  bool distributed_g4_enabled_;
   bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
@@ -134,7 +134,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
-  buffer_size += concurrency.get_buffer_size(distrbuted_g4_enabled_);
+  buffer_size += concurrency.get_buffer_size(distributed_g4_enabled_);
   buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
@@ -153,7 +153,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
-  concurrency.pack(buffer, buffer_size, position, distrbuted_g4_enabled_);
+  concurrency.pack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
@@ -170,7 +170,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
-  concurrency.unpack(buffer, buffer_size, position, distrbuted_g4_enabled_);
+  concurrency.unpack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
@@ -273,10 +273,10 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       catch (const std::exception& r_e) {
       }
       try {
-        // distrbuted_g4_enabled_evaluation should be placed after walkers, accumulators,
+        // distributed_g4_enabled_evaluation should be placed after walkers, accumulators,
         // and shared-walk-and-accumulation-thread
-        reader_or_writer.execute("distributed-g4-enabled", distrbuted_g4_enabled_);
-        if(distrbuted_g4_enabled_)
+        reader_or_writer.execute("distributed-g4-enabled", distributed_g4_enabled_);
+        if(distributed_g4_enabled_)
         {
           if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_)
           {

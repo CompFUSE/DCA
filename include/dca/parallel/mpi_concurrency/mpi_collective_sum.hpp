@@ -66,7 +66,7 @@ public:
   void localSum(func::function<Scalar, Domain>& f, int root_id) const;
 
   // Wrapper to MPI_Reduce. Gathers into specified locations from all processes in a group
-  // Designed for collecting G4 when distrbuted_g4_enabled() == true but only for testing purpose
+  // Designed for collecting G4 when distributed_g4_enabled() == true but only for testing purpose
   // As if G4 is large enough that cannot fit into one GPU, one should not call this method
   template <typename Scalar, class Domain>
   void gatherv(func::function<Scalar, Domain>& f, int root_id) const;
@@ -174,7 +174,7 @@ private:
   void sum(const T* in, T* out, std::size_t n, int rank_id = -1) const;
 
   // Gather results accross ranks on process 'rank_id'
-  // Designed for collecting G4 when distrbuted_g4_enabled() == true but only for testing purpose
+  // Designed for collecting G4 when distributed_g4_enabled() == true but only for testing purpose
   // As if G4 is large enough that cannot fit into one GPU, one should not call this method
   template <typename T>
   void gatherv_helper(const T* in, T* out, std::size_t total_size, int root_id = 0) const;
