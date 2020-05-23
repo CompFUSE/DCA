@@ -300,15 +300,10 @@ function<scalartype, domain>::function(const std::string& name, const bool distr
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     Nb_elements = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
+  }
     fnc_values = new scalartype[Nb_elements];
     for (int linind = 0; linind < Nb_elements; ++linind)
       setToZero(fnc_values[linind]);
-  }
-  else {
-    fnc_values = new scalartype[Nb_elements];
-    for (int linind = 0; linind < Nb_elements; ++linind)
-      setToZero(fnc_values[linind]);
-  }
 }
 
 template <typename scalartype, class domain>
