@@ -28,11 +28,11 @@ class StreamContainer {
 public:
   StreamContainer(int max_threads = 0) : streams_(max_threads * streams_per_thread_) {}
 
-  int get_max_threads() const {
+  int get_max_threads() const noexcept {
     return streams_.size() / streams_per_thread_;
   }
 
-  int get_streams_per_thread() const {
+  int get_streams_per_thread() const noexcept {
     return streams_per_thread_;
   }
 
@@ -46,7 +46,7 @@ public:
   // Returns the 'stream_id'-th stream associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
-  CudaStream& operator()(int thread_id, int stream_id) {
+  CudaStream& operator()(int thread_id, int stream_id) noexcept {
     assert(thread_id >= 0 && thread_id < get_max_threads());
     assert(stream_id >= 0 && stream_id < streams_per_thread_);
     return streams_[stream_id + streams_per_thread_ * thread_id];
@@ -55,7 +55,7 @@ public:
   // Synchronizes the 'stream_id'-th stream associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
-  void sync(int thread_id, int stream_id) {
+  void sync(int thread_id, int stream_id) noexcept {
     operator()(thread_id, stream_id).sync();
   }
 

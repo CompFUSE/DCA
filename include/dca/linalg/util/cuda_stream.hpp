@@ -26,17 +26,23 @@ namespace util {
 
 class CudaStream {
 public:
-  CudaStream() {
+  CudaStream() noexcept {
     cudaStreamCreate(&stream_);
   }
 
   CudaStream(const CudaStream& other) = delete;
+  CudaStream& operator=(const CudaStream& other) = delete;
 
-  CudaStream(CudaStream&& other) {
+  CudaStream(CudaStream&& other) noexcept {
     std::swap(stream_, other.stream_);
   }
 
-  void sync() const {
+  CudaStream& operator=(CudaStream&& other) noexcept {
+    std::swap(stream_, other.stream_);
+    return *this;
+  }
+
+  void sync() const noexcept {
     checkRC(cudaStreamSynchronize(stream_));
   }
 
@@ -45,7 +51,7 @@ public:
       cudaStreamDestroy(stream_);
   }
 
-  operator cudaStream_t() const {
+  operator cudaStream_t() const noexcept {
     return stream_;
   }
 
@@ -60,7 +66,7 @@ class CudaStream {
 public:
   CudaStream() = default;
 
-  void sync() const {}
+  void sync() const noexcept {}
 };
 
 #endif  // DCA_HAVE_CUDA

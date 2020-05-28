@@ -23,19 +23,31 @@ namespace util {
 
 class MagmaQueue {
 public:
-  MagmaQueue() {
+  MagmaQueue() noexcept {
     magma_queue_create(&queue_);
+  }
+
+  MagmaQueue(const MagmaQueue&) = delete;
+  MagmaQueue& operator=(const MagmaQueue&) = delete;
+
+  MagmaQueue(MagmaQueue&& rhs) noexcept {
+    std::swap(queue_, rhs.queue_);
+  }
+
+  MagmaQueue& operator=(MagmaQueue&& rhs) noexcept {
+    std::swap(queue_, rhs.queue_);
+    return *this;
   }
 
   ~MagmaQueue() {
     magma_queue_destroy(queue_);
   }
 
-  inline operator magma_queue_t() {
+  operator magma_queue_t() const noexcept {
     return queue_;
   }
 
-  cudaStream_t getStream() const {
+  cudaStream_t getStream() const noexcept {
     return magma_queue_get_cuda_stream(queue_);
   }
 
@@ -43,9 +55,9 @@ private:
   magma_queue_t queue_ = nullptr;
 };
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_QUEUE_HPP

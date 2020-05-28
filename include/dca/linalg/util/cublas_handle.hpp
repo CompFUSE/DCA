@@ -23,15 +23,20 @@ namespace util {
 
 class CublasHandle {
 public:
-  CublasHandle() {
+  CublasHandle() noexcept {
     cublasStatus_t ret = cublasCreate(&handle_);
     checkRC(ret);
   }
 
   CublasHandle& operator=(const CublasHandle& other) = delete;
 
-  CublasHandle(CublasHandle&& other) {
+  CublasHandle(CublasHandle&& other) noexcept {
     std::swap(handle_, other.handle_);
+  }
+
+  CublasHandle& operator=(CublasHandle&& other) noexcept {
+    std::swap(handle_, other.handle_);
+    return *this;
   }
 
   ~CublasHandle() {
@@ -39,12 +44,12 @@ public:
       cublasDestroy(handle_);
   }
 
-  void setStream(cudaStream_t stream) {
+  void setStream(cudaStream_t stream) noexcept {
     cublasStatus_t ret = cublasSetStream(handle_, stream);
     checkRC(ret);
   }
 
-  operator cublasHandle_t() const {
+  operator cublasHandle_t() const noexcept {
     return handle_;
   }
 
