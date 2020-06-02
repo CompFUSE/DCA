@@ -21,6 +21,8 @@
 
 #include "dca/phys/error_computation_type.hpp"
 
+#include <mpi.h>
+
 namespace dca {
 namespace phys {
 namespace params {

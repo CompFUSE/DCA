@@ -27,6 +27,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/four_point_type.hpp"
 
+#include <mpi.h>
+
 namespace dca {
 namespace phys {
 namespace solver {
