@@ -307,9 +307,9 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
     // Allocate memory for G4.
-    G4_.emplace_back("G4_" + toString(channel));
+    G4_.emplace_back("G4_" + toString(channel), parameters_.distributed_g4_enabled());
     // Allocate memory for error on G4.
-    G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    G4_err_.emplace_back("G4_" + toString(channel) + "_err", parameters_.distributed_g4_enabled());
   }
 }
 

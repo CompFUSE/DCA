@@ -497,8 +497,8 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
     if(distributed_g4_enabled_)
     {
       // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
-      // reset_size() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
-      G4_[channel].reset_size(get_G4()[channel].size());
+      // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
+      G4_[channel].resize(get_G4()[channel].size());
     }
     get_G4()[channel].copyTo(G4_[channel]);
   }
