@@ -464,7 +464,7 @@ void function<scalartype, domain>::subind_2_linind(const int* const subind, int&
 template <typename scalartype, class domain>
 int function<scalartype, domain>::subind_2_linind(const std::vector<int>& subind) const {
   int linind = 0;
-  for (int i = 0; i < T(step_sbdm.size()); ++i)
+  for (int i = 0; i < int(step_sbdm.size()); ++i)
     linind += subind[i] * step_sbdm[i];
   return linind;
 }
