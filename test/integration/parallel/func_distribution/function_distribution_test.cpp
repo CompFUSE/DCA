@@ -73,10 +73,10 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexBalanced) {
     parallel::util::getComputeRange(i, num_ranks, f.size(), start, end);
     std::vector<int> subind_start = f.linind_2_subind(start);
     std::vector<int> subind_end = f.linind_2_subind(end);
-    std::cout << "rank: " << i << '\n'
+    std::cerr << "rank: " << i << '\n'
               << "start lin indices " << start 
               << "start subindicies " << subind_start << '\n';
-    std::cout               << "end lin indices " << end 
+    std::cerr               << "end lin indices " << end 
               << "end subindicies " << subind_end << '\n';
     EXPECT_EQ(start, static_cast<uint64_t>(i) * ( raw_data.size() / num_ranks ));
     EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks );
@@ -117,10 +117,10 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexUnbalanced) {
     parallel::util::getComputeRange(i, num_ranks, f.size(), start, end);
     std::vector<int> subind_start = f.linind_2_subind(start);
     std::vector<int> subind_end = f.linind_2_subind(end);
-    std::cout << "rank: " << i << '\n'
+    std::cerr << "rank: " << i << '\n'
               << "start lin indices " << start 
               << "start subindicies " << subind_start << '\n';
-    std::cout               << "end lin indices " << end 
+    std::cerr               << "end lin indices " << end 
               << "end subindicies " << subind_end << '\n';
 
     if (i < more_work_ranks)
