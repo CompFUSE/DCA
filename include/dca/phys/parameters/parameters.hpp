@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
@@ -103,7 +103,7 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using TP_measurement_scalar_type = config::AccumulationOptions::TPAccumulationScalar;
+  using TP_measurement_scalar_type = config::McOptions::TPAccumulationScalar;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
@@ -292,7 +292,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
     KSpHostDmn::parameter_type::print(std::cout);
 
   // Host grid for two-particle functions (tp-lattice)
-  if (do_dca_plus()) {
+  if (do_dca_plus() || doPostInterpolation()) {
     domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
                                                              DomainsParameters::get_tp_host());
   }

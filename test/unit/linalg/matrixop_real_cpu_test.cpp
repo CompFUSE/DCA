@@ -929,7 +929,7 @@ TEST(MatrixopCPUTest, Difference) {
       }
 }
 
-TEST(MatrixCPUTest, Determinant) {
+TEST(MatrixCPUTest, DeterminantAndLogDeterminant) {
   dca::linalg::Matrix<double, dca::linalg::CPU> m(3, 3);
   m(0, 0) = 3, m(0, 1) = -1, m(0, 2) = 0.5;
   m(1, 0) = 2;
@@ -937,7 +937,11 @@ TEST(MatrixCPUTest, Determinant) {
   m(2, 0) = 4;
   m(2, 1) = -1, m(2, 2) = 0;
 
-  EXPECT_NEAR(-4.5, dca::linalg::matrixop::determinantIP(m), 1e-14);
+  const double det = dca::linalg::matrixop::determinant(m);
+  const auto [log_det, sign] = dca::linalg::matrixop::logDeterminant(m);
+  EXPECT_NEAR(-4.5, det, 1e-14);
+  EXPECT_NEAR(std::log(std::abs(det)), log_det, 1e-14);
+  EXPECT_EQ(det >= 0 ? 1 : -1, sign);
 
   dca::linalg::Matrix<double, dca::linalg::CPU> m2(2, 2);
   m2(0, 0) = 3, m2(0, 1) = 6;
@@ -1041,14 +1045,22 @@ TYPED_TEST(MatrixopRealCPUTest, InverseAndDeterminant) {
 
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(7);
   testing::setMatrixElements(mat, values);
-  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_copy(mat);
+  auto mat_copy(mat);
+  auto mat_copy2(mat);
 
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
   dca::linalg::Vector<ScalarType, dca::linalg::CPU> work;
 
   const ScalarType det = dca::linalg::matrixop::inverseAndDeterminant(mat);
-
   dca::linalg::matrixop::inverse(mat_copy);
-  EXPECT_NEAR(dca::linalg::matrixop::determinant(mat_copy), det, 500 * this->epsilon);
-  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy, mat, 500 * this->epsilon));
+
+  const auto [log_det, sign] = dca::linalg::matrixop::inverseAndLogDeterminant(mat_copy2);
+
+  const auto tolerance = 500 * this->epsilon;
+  EXPECT_NEAR(dca::linalg::matrixop::determinant(mat_copy), det, tolerance);
+  EXPECT_NEAR(std::log(std::abs(det)), log_det, tolerance);
+  EXPECT_EQ(det >= 0 ? 1 : -1, sign);
+
+  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy, mat, tolerance));
+  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy2, mat, tolerance));
 }

@@ -10,13 +10,13 @@
 // G-matrix tools class.
 // Template specialization for CPU.
 
-template <typename parameters_type>
-class G_MATRIX_TOOLS<dca::linalg::CPU, parameters_type> {
-  typedef typename parameters_type::concurrency_type concurrency_type;
-  typedef typename parameters_type::profiler_type profiler_t;
+template <class Parameters, typename Real>
+class G_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real> {
+  using Concurrency = typename Parameters::concurrency_type;
+  using Profiler = typename Parameters::profiler_type;
 
 public:
-  G_MATRIX_TOOLS(int id, parameters_type& parameters_ref)
+  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -25,15 +25,15 @@ public:
   void read_G_matrix_elements(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
                               dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
                               dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
-                              dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj,
-                              dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-                              dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
-                              double* result_ptr, int incr) {
+                              dca::linalg::Vector<Real, dca::linalg::CPU>& exp_Vj,
+                              dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+                              dca::linalg::Matrix<Real, dca::linalg::CPU>& G_precomputed,
+                              Real* result_ptr, int incr) {
     assert(i_index.size() == j_index.size());
     assert(i_index.size() == is_Bennett.size());
     assert(i_index.size() == exp_Vj.size());
 
-    double result, delta;
+    Real result, delta;
 
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
@@ -52,12 +52,12 @@ public:
   }
 
   void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, dca::linalg::CPU>& indices,
-                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
-                                   double* row_ptr, int incr) {
+                                   dca::linalg::Vector<Real, dca::linalg::CPU>& exp_V,
+                                   dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+                                   dca::linalg::Matrix<Real, dca::linalg::CPU>& G_precomputed,
+                                   Real* row_ptr, int incr) {
     int i_index, j_index;
-    double result, delta;
+    Real result, delta;
 
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
@@ -80,12 +80,12 @@ public:
   }
 
   void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, dca::linalg::CPU>& indices,
-                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
-                                   double* col_ptr, int incr) {
+                                   dca::linalg::Vector<Real, dca::linalg::CPU>& exp_V,
+                                   dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
+                                   dca::linalg::Matrix<Real, dca::linalg::CPU>& G_precomputed,
+                                   Real* col_ptr, int incr) {
     int i_index, j_index;
-    double result, delta, exp_Vj;
+    Real result, delta, exp_Vj;
 
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
@@ -111,6 +111,6 @@ public:
 private:
   int thread_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  Parameters& parameters;
+  Concurrency& concurrency;
 };

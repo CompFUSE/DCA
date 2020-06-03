@@ -314,7 +314,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_lattice_map
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t lattice-mapping " << dca::util::print_time();
 
-  if (parameters.do_dca_plus()) {
+  if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
     if (parameters.hts_approximation()) {
       DcaDataType MOMS_HTS(parameters);
 

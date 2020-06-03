@@ -107,7 +107,7 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
     interpolation_obj.execute(f_source, f_target);
   }
 
-  {
+  if (parameters.do_dca_plus()) {
     if (concurrency.id() == concurrency.first())
       std::cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
@@ -139,8 +139,8 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_f
   util::Plot::heatMap(x, y, z_im);
 }
 
-}  // latticemapping
-}  // phys
-}  // dca
+}  // namespace latticemapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_TP_HPP

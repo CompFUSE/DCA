@@ -450,7 +450,10 @@ void DcaData<Parameters>::write(Writer& writer) {
   writer.execute(Sigma_err_);
 
   if (parameters_.dump_lattice_self_energy()) {
-    writer.execute(Sigma_lattice);
+    if (parameters_.do_dca_plus())
+      writer.execute(Sigma_lattice);
+    else if (parameters_.doPostInterpolation())
+      writer.execute(Sigma_lattice_interpolated);
   }
 
   if (parameters_.dump_cluster_Greens_functions()) {
