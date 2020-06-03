@@ -93,8 +93,18 @@ public:
   template <typename Scalar, typename domain_type>
   void execute(const func::function<Scalar, domain_type>& f);
 
+  /** experimental distributed function interface
+   */
+  template <typename Scalar, typename domain_type>
+  void execute(const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end);
+
   template <typename Scalar, typename domain_type>
   void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
+
+  /** experimental distributed function interface
+   */
+  template <typename Scalar, typename domain_type>
+  void execute(const std::string& name, const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end);
 
   template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -285,6 +295,18 @@ void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f) {
 }
 
 template <typename Scalar, typename domain_type>
+void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end) {
+  if (f.size() == 0)
+    return;
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name() << "\n";
+  }
+
+  execute(f.get_name(), f, start, end);
+}
+
+template <typename Scalar, typename domain_type>
 void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
@@ -298,6 +320,30 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
   // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
+  write<Scalar>(full_name, dims, f.values());
+
+  std::reverse(dims.begin(), dims.end());
+  addAttribute(full_name, "name", f.get_name());
+  addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+}
+
+template <typename Scalar, typename domain_type>
+void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end) {
+  if (f.size() == 0)
+    return;
+
+  const std::string full_name = get_path(name);
+
+  std::vector<size_t> dims;
+  for (int l = 0; l < f.signature(); ++l)
+    dims.push_back(f[l]);
+
+  // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
+  std::reverse(dims.begin(), dims.end());
+
+  // see test/integration/parallel/func_distribution/function_distribution_test.cpp for
+  // how to get the subindices spanned on this rank.  
+  
   write<Scalar>(full_name, dims, f.values());
 
   std::reverse(dims.begin(), dims.end());

@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 
 int rank, comm_size;
-dca::parallel::MPIConcurrency* concurrencyPtr;
+dca::parallel::MPIConcurrency* concurrency_ptr;
 
 template <typename Scalar>
 class ADIOS2ParallelIOTest : public ::testing::Test {};
@@ -47,11 +47,21 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
   for (auto& x : f1)
     x = ++val;
 
+  uint64_t start = 0;
+  uint64_t end = 0;
+  // This returns the linearized bounds of the function for a rank.
+  dca::parallel::util::getComputeRange(concurrency_ptr->id(), concurrency_ptr->number_of_processors(),
+                                     f1.size(), start, end);
+    
   {
-    dca::io::ADIOS2Writer writer(concurrencyPtr);
+    dca::io::ADIOS2Writer writer(concurrency_ptr);
     writer.open_file("test_func_" + typeStr + ".bp", true);
 
-    writer.execute(f1);
+    // Because the caller needs to know if its function is distributed or not we will assume this is so for the API as well.
+    // in the future I think something more sophisticated needs to be done and the function will need to know its
+    // distribution, but for now we distribute only over the fastest index
+
+    writer.execute(f1, start, end);
 
     writer.close_file();
 
@@ -78,7 +88,7 @@ int main(int argc, char** argv) {
   dca::parallel::MPIConcurrency concurrency(argc, argv);
   rank = concurrency.id();
   comm_size = concurrency.number_of_processors();
-  concurrencyPtr = &concurrency;
+  concurrency_ptr = &concurrency;
 
   ::testing::InitGoogleTest(&argc, argv);
 
