@@ -165,11 +165,17 @@ public:
   void linind_2_subind(int linind, int* subind) const;
   // std::vector version
   void linind_2_subind(int linind, std::vector<int>& subind) const;
+  // modern RVO version
+  std::vector<int> linind_2_subind(int linind) const;
 
+  
   // Computes the linear index for the given subindices of the leaf domains.
   // Precondition: subind stores the the subindices of all LEAF domains.
   // TODO: Use std::array or std::vector to be able to check the size of subind.
   void subind_2_linind(const int* subind, int& linind) const;
+
+  // using standard vector and avoiding returning argument
+  int subind_2_linind(const std::vector<int>& subind) const;
 
   // Computes and returns the linear index for the given subindices of the branch or leaf domains,
   // depending on the size of subindices.
@@ -438,10 +444,29 @@ void function<scalartype, domain>::linind_2_subind(int linind, std::vector<int>&
 }
 
 template <typename scalartype, class domain>
+std::vector<int> function<scalartype, domain>::linind_2_subind(int linind) const {
+  std::vector<int> subind(Nb_sbdms);
+  for (int i = 0; i < int(size_sbdm.size()); ++i) {
+    subind[i] = linind % size_sbdm[i];
+    linind = (linind - subind[i]) / size_sbdm[i];
+  }
+  return subind;
+}
+
+
+template <typename scalartype, class domain>
 void function<scalartype, domain>::subind_2_linind(const int* const subind, int& linind) const {
   linind = 0;
   for (int i = 0; i < int(step_sbdm.size()); ++i)
     linind += subind[i] * step_sbdm[i];
+}
+
+template <typename scalartype, class domain>
+int function<scalartype, domain>::subind_2_linind(const std::vector<int>& subind) const {
+  int linind = 0;
+  for (int i = 0; i < T(step_sbdm.size()); ++i)
+    linind += subind[i] * step_sbdm[i];
+  return linind;
 }
 
 template <typename scalartype, class domain>
