@@ -17,6 +17,7 @@
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
 
 #include <algorithm>  // std::min
+#include <numeric>  // std::partial_sum
 #include <map>
 #include <string>
 #include <utility>  // std::move, std::swap
@@ -63,6 +64,12 @@ public:
   // Wrapper to MPI_Reduce.
   template <typename Scalar, class Domain>
   void localSum(func::function<Scalar, Domain>& f, int root_id) const;
+
+  // Wrapper to MPI_Reduce. Gathers into specified locations from all processes in a group
+  // Designed for collecting G4 when distributed_g4_enabled() == true but only for testing purpose
+  // As if G4 is large enough that cannot fit into one GPU, one should not call this method
+  template <typename Scalar, class Domain>
+  void gatherv(func::function<Scalar, Domain>& f, int root_id) const;
 
   // Delay the execution of sum (implemented with MPI_Allreduce) until 'resolveSums' is called,
   // or 'delayedSum' is called with an object of different Scalar type.
@@ -165,6 +172,12 @@ private:
   // Compute the sum on process 'rank_id', or all processes if rank_id == -1.
   template <typename T>
   void sum(const T* in, T* out, std::size_t n, int rank_id = -1) const;
+
+  // Gather results accross ranks on process 'rank_id'
+  // Designed for collecting G4 when distributed_g4_enabled() == true but only for testing purpose
+  // As if G4 is large enough that cannot fit into one GPU, one should not call this method
+  template <typename T>
+  void gatherv_helper(const T* in, T* out, std::size_t total_size, int root_id = 0) const;
 
   template <typename T>
   void delayedSum(T* in, std::size_t n);
@@ -292,6 +305,26 @@ void MPICollectiveSum::localSum(func::function<scalar_type, domain>& f, int id) 
   sum(f.values(), f_sum.values(), f.size(), id);
 
   f = std::move(f_sum);
+}
+
+template <typename scalar_type, class domain>
+void MPICollectiveSum::gatherv(func::function<scalar_type, domain>& f, int id) const {
+    if (id < 0 || id > get_size())
+        throw(std::out_of_range("id out of range."));
+
+    func::function<scalar_type, domain> f_sum;
+
+    int my_rank, mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
+    if(my_rank == 0)
+    {
+        std::cout << "\n *********performing MPI Gatherv Sum************* \n";
+    }
+
+    my_rank == 0 ? gatherv_helper(f.values(), f.values(), f.get_domain().get_size(), id)
+        : gatherv_helper(f.values(), f_sum.values(), f.get_domain().get_size(), id);
 }
 
 template <typename some_type>
@@ -575,6 +608,49 @@ void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) cons
                  MPIProcessorGrouping::get());
     }
   }
+}
+
+template <typename T>
+void MPICollectiveSum::gatherv_helper(const T* in, T* out, std::size_t total_size, int root_id) const {
+    int mpi_size = MPIProcessorGrouping::get_size();
+    int my_rank = MPIProcessorGrouping::get_id();
+
+    uint64_t local_work = total_size / mpi_size;
+    uint64_t more_work_before_index;
+
+    std::vector<int> ranks_workload(mpi_size, local_work);
+    // displs: integer array (of length group size).
+    // We reserve mpi_size + 1 space, one extra space to fit STL algorithm logic.
+    // Entry i specifies the displacement relative to recvbuf at which to place
+    // the incoming data from process i (significant only at root)
+    std::vector<int> displs(mpi_size + 1, 0);
+    int* p_ranks_workload = ranks_workload.data();
+    int* p_displs = displs.data();
+
+    bool balanced = (total_size % mpi_size) == 0 ? true : false;
+
+    if(balanced)
+    {
+        // offset displs for each rank
+        std::partial_sum(ranks_workload.begin(), ranks_workload.end(),
+                displs.begin() + 1, std::plus<int>());
+        // remove last running sum
+        displs.pop_back();
+    }
+    else
+    {
+        more_work_before_index = total_size % mpi_size;
+        std::transform(ranks_workload.begin(), ranks_workload.begin() + more_work_before_index,
+                       ranks_workload.begin(), [](int ele){ return ele+1; });
+        std::partial_sum(ranks_workload.begin(), ranks_workload.end(),
+                displs.begin() + 1, std::plus<int>());
+        // remove last running sum
+        displs.pop_back();
+    }
+
+    MPI_Gatherv(in, ranks_workload[my_rank], MPITypeMap<T>::value(),
+            out, p_ranks_workload, p_displs, MPITypeMap<T>::value(),
+            root_id, MPIProcessorGrouping::get());
 }
 
 template <typename Scalar>

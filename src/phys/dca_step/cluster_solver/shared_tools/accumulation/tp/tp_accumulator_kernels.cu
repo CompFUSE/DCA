@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.ed)
 //
 // Implements the GPU kernels used by the DFT algorithm.
 
@@ -17,6 +18,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
@@ -24,6 +26,8 @@
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/four_point_type.hpp"
+
+#include <mpi.h>
 
 namespace dca {
 namespace phys {
@@ -35,6 +39,19 @@ namespace details {
 using namespace linalg;
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+
+// This function is used when distributed G4 is enabled
+// With distributed G4 enabled, each rank only computes 1/total_mpi_ranks of 1D linearized G4
+// with range (start <= g4_index) && (g4_index < end).
+// Here, we create a 1D thread blocks to update local G4 and each kernel thread
+// only updates one index of linearized G4. There might be at most one thread block will launch
+// more threads than we need (i.e. not enough G4 index to compute in last thread block)
+// and those threads will exit in kernel code.
+std::array<dim3, 2> getBlockSize1D(int my_rank, int mpi_size, const uint64_t& total_G4_size) {
+    uint64_t start, end;
+    dca::parallel::util::getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
+    return std::array<dim3, 2>{dca::util::ceilDiv(end - start, static_cast<uint64_t>(256)), 256};
+}
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
@@ -179,24 +196,63 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
                                const CudaComplex<Real>* __restrict__ G_up, const int ldgu,
                                const CudaComplex<Real>* __restrict__ G_down, const int ldgd,
                                const int nb, const int nk, const int nw, const int nw_exchange,
-                               const int nk_exchange, const int sign, const bool atomic) {
+                               const int nk_exchange, const int sign, const bool atomic,
+                               const int my_rank, const int mpi_size,
+                               const uint64_t total_G4_size, bool distributed_g4_enabled) {
   // TODO: reduce code duplication.
   // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
 
-  const int size = nk * nw * nb * nb;
+  const uint64_t size = static_cast<uint64_t>(nk) * static_cast<uint64_t>(nw)
+                        * static_cast<uint64_t>(nb) * static_cast<uint64_t>(nb);
   // id_i is a linearized index of b1, b2, k1, k2.
-  const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   // id_j is a linearized index of b3, b4, k2, k_ex.
-  const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   // id_z is a linearized index of k_ex, w_ex.
-  const int id_z = blockIdx.z * blockDim.z + threadIdx.z;
-  if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
-    return;
+  uint64_t id_i, id_j, id_z;
+  // global 1D linearized g4 index
+  uint64_t g4_index;
+
+  if(distributed_g4_enabled)
+  {
+   // With distributed g4 enabled, each rank only computes 1/total_mpi_ranks of G4. Specifically, the
+   // originally flattened one dimensional G4 array will be evenly divided by total number of
+   // mpi ranks into different regions (range length of each region is equal up to 1). Since
+   // each rank only allocates its own portion of G4, so offsetting index is needed. Each rank
+   // only computes G4 elements within correct starting and ending index range, otherwise, returns.
+    const uint64_t local_g4_index = static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x)
+                                    + static_cast<uint64_t>(threadIdx.x);
+
+    // get global G4 index
+    uint64_t start, end;
+    g4_helper.getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
+    g4_index = local_g4_index + start;
+
+    // thread exits if out of range, for example, this thread block has 256 threads while
+    // only first several threads should peform G4 update.
+    if(g4_index < start || g4_index >= end)
+      return;
+
+    // Decomposite global G4 index into 3D to reuse existing get_indices function and id_* variables
+    // Image G4 matrix is N by N by M, where N is nb * nb * nk * nw and M is k_ex * w_ex.
+    id_i = g4_index % size;
+    id_j = (g4_index - id_i)/size % size;
+    id_z = ((g4_index - id_i)/size-id_j)/size;
+
+    // offset global G4 index to local
+    g4_index = local_g4_index;
+  }
+  else
+  {
+    id_i = blockIdx.x * blockDim.x + threadIdx.x;
+    id_j = blockIdx.y * blockDim.y + threadIdx.y;
+    id_z = blockIdx.z * blockDim.z + threadIdx.z;
+    if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
+      return;
+  }
 
   // Unroll id_i and id_j.
   const int step2 = nb * nb;
   const int step1 = step2 * nk;
-  auto get_indices = [=](int id, int& b1, int& b2, int& k, int& w) {
+  auto get_indices = [=](uint64_t id, int& b1, int& b2, int& k, int& w) {
     w = id / step1;
     id -= w * step1;
     k = id / step2;
@@ -211,6 +267,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   // Unroll the exchange index id_z = k_ex + nk_exchange * w_ex.
   const int w_ex = id_z / nk_exchange;
   const int k_ex = id_z - w_ex * nk_exchange;
+
+  if(!distributed_g4_enabled)
+      g4_index = g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
 
   CudaComplex<Real> contribution;
   const int no = nk * nb;
@@ -476,9 +535,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       asm("trap;");
   }
 
-  CudaComplex<Real>* const result_ptr =
-      G4 + g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
-
+  CudaComplex<Real>* const result_ptr = G4 + g4_index;
   if (atomic)
     dca::linalg::atomicAdd(result_ptr, contribution * 0.5 * sign);
   else
@@ -489,15 +546,18 @@ template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
                const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
                const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
-               bool atomic, cudaStream_t stream) {
+               bool atomic, cudaStream_t stream, const int my_rank, const int mpi_size,
+               const uint64_t total_G4_size, const bool distributed_g4_enabled) {
   const int nw = 2 * nw_pos;
   const int size_12 = nw * nk * nb * nb;
   const int size_3 = nw_exchange * nk_exchange;
-  const auto blocks = getBlockSize3D(size_12, size_12, size_3);
+
+  const auto blocks = distributed_g4_enabled ? getBlockSize1D(my_rank, mpi_size, total_G4_size) :
+                        getBlockSize3D(size_12, size_12, size_3);
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
-      nw_exchange, nk_exchange, sign, atomic);
+      nw_exchange, nk_exchange, sign, atomic, my_rank, mpi_size, total_G4_size, distributed_g4_enabled);
 
   // Check for errors.
   auto err = cudaPeekAtLastError();
@@ -551,62 +611,74 @@ template void computeGMultiband<double>(std::complex<double>* G, int ldg,
 template float updateG4<float, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<float, PARTICLE_HOLE_MAGNETIC>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<float, PARTICLE_HOLE_CHARGE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<float, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_HOLE_MAGNETIC>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_HOLE_CHARGE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 template float updateG4<double, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream,
+    const int my_rank, const int mpi_size, const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 }  // namespace details
 }  // namespace accumulator

@@ -36,7 +36,8 @@ template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int lggu,
               const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
               const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
-              bool atomic, cudaStream_t stream);
+              bool atomic, cudaStream_t stream, const int my_rank, const int mpi_size,
+              const uint64_t total_G4_size, const bool distributed_g4_enabled);
 
 }  // namespace details
 }  // namespace accumulator

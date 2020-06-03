@@ -21,6 +21,8 @@
 
 #include "dca/phys/error_computation_type.hpp"
 
+#include <mpi.h>
+
 namespace dca {
 namespace phys {
 namespace params {
@@ -78,6 +80,10 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
+  bool distributed_g4_enabled() const {
+    return distributed_g4_enabled_;
+  }
+
   // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
   // bias toward faster walkers, at the expanse of load balance.
   bool fix_meas_per_walker() const {
@@ -112,6 +118,7 @@ private:
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
+  bool distributed_g4_enabled_;
   bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
@@ -129,6 +136,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
+  buffer_size += concurrency.get_buffer_size(distributed_g4_enabled_);
   buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
@@ -147,6 +155,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.pack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
@@ -163,6 +172,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.unpack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
@@ -261,6 +271,29 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       try {
         reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
+      }
+      catch (const std::exception& r_e) {
+      }
+      try {
+        // distributed_g4_enabled_evaluation should be placed after walkers, accumulators,
+        // and shared-walk-and-accumulation-thread
+        reader_or_writer.execute("distributed-g4-enabled", distributed_g4_enabled_);
+        if(distributed_g4_enabled_)
+        {
+          if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_)
+          {
+            throw std::logic_error("\n With distributed g4 enabled, 1) walker and accumulator should share thread, "
+                                         "2) #walker == #accumulator\n");
+          }
+          int mpi_size;
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          int local_meas = measurements_ / mpi_size;
+          if( measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0)
+          {
+            throw std::logic_error("\n With distributed g4 enabled, 1) local measurements should be same across ranks, "
+                                     "2) each accumulator should have same measurements\n");
+          }
+        }
       }
       catch (const std::exception& r_e) {
       }

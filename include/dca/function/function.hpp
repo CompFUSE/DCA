@@ -32,6 +32,9 @@
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/type_utils.hpp"
 
+#include "dca/parallel/util/get_workload.hpp"
+#include "mpi.h"
+
 namespace dca {
 namespace func {
 // dca::func::
@@ -47,7 +50,9 @@ public:
   // Default constructor
   // Constructs the function with the name name.
   // Postcondition: All elements are set to zero.
-  function(const std::string& name = default_name_);
+  // Special case: when distributed_g4_enabled, G4 related variables only gets
+  // allocation of 1/p of original G4 size, where p = #mpiranks
+  function(const std::string& name = default_name_, const bool distributed_g4_enabled = false);
 
   // Copy constructor
   // Constructs the function with the a copy of elements and name of other.
@@ -111,6 +116,10 @@ public:
   std::size_t size() const {
     return Nb_elements;
   }
+
+  void resize(std::size_t Nb_elements_new) {
+    Nb_elements = Nb_elements_new;
+  }
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
   int operator[](const int index) const {
@@ -156,11 +165,17 @@ public:
   void linind_2_subind(int linind, int* subind) const;
   // std::vector version
   void linind_2_subind(int linind, std::vector<int>& subind) const;
+  // modern RVO version
+  std::vector<int> linind_2_subind(int linind) const;
 
+  
   // Computes the linear index for the given subindices of the leaf domains.
   // Precondition: subind stores the the subindices of all LEAF domains.
   // TODO: Use std::array or std::vector to be able to check the size of subind.
   void subind_2_linind(const int* subind, int& linind) const;
+
+  // using standard vector and avoiding returning argument
+  int subind_2_linind(const std::vector<int>& subind) const;
 
   // Computes and returns the linear index for the given subindices of the branch or leaf domains,
   // depending on the size of subindices.
@@ -276,7 +291,7 @@ template <typename scalartype, class domain>
 const std::string function<scalartype, domain>::default_name_ = "no-name";
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(const std::string& name)
+function<scalartype, domain>::function(const std::string& name, const bool distributed_g4_enabled)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
@@ -285,9 +300,16 @@ function<scalartype, domain>::function(const std::string& name)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
-  fnc_values = new scalartype[Nb_elements];
-  for (int linind = 0; linind < Nb_elements; ++linind)
-    setToZero(fnc_values[linind]);
+  if(name.substr(0, 2) == "G4" && distributed_g4_enabled)
+  {
+    int my_rank, mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    Nb_elements = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
+  }
+    fnc_values = new scalartype[Nb_elements];
+    for (int linind = 0; linind < Nb_elements; ++linind)
+      setToZero(fnc_values[linind]);
 }
 
 template <typename scalartype, class domain>
@@ -422,10 +444,29 @@ void function<scalartype, domain>::linind_2_subind(int linind, std::vector<int>&
 }
 
 template <typename scalartype, class domain>
+std::vector<int> function<scalartype, domain>::linind_2_subind(int linind) const {
+  std::vector<int> subind(Nb_sbdms);
+  for (int i = 0; i < int(size_sbdm.size()); ++i) {
+    subind[i] = linind % size_sbdm[i];
+    linind = (linind - subind[i]) / size_sbdm[i];
+  }
+  return subind;
+}
+
+
+template <typename scalartype, class domain>
 void function<scalartype, domain>::subind_2_linind(const int* const subind, int& linind) const {
   linind = 0;
   for (int i = 0; i < int(step_sbdm.size()); ++i)
     linind += subind[i] * step_sbdm[i];
+}
+
+template <typename scalartype, class domain>
+int function<scalartype, domain>::subind_2_linind(const std::vector<int>& subind) const {
+  int linind = 0;
+  for (int i = 0; i < int(step_sbdm.size()); ++i)
+    linind += subind[i] * step_sbdm[i];
+  return linind;
 }
 
 template <typename scalartype, class domain>
