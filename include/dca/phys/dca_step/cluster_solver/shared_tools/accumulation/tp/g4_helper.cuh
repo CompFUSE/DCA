@@ -139,7 +139,7 @@ void G4Helper::getComputeRange(const int my_rank, const int mpi_size,
 
     if(balanced) {
         offset = static_cast<uint64_t>(my_rank)  * local_work;
-        end  = offset + local_work;
+        end  = offset + local_work - 1;
     }
     else {
         int nb_more_work_ranks = total_G4_size % static_cast<uint64_t>(mpi_size);
