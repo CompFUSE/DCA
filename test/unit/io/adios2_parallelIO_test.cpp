@@ -43,15 +43,18 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
   size_t dmn_size = 1;
   for (int l = 0; l < f1.signature(); ++l)
     dmn_size *= f1[l];
+
   int val = rank * dmn_size;
-  for (auto& x : f1)
-    x = ++val;
 
   uint64_t start = 0;
   uint64_t end = 0;
   // This returns the linearized bounds of the function for a rank.
   dca::parallel::util::getComputeRange(concurrency_ptr->id(), concurrency_ptr->number_of_processors(),
                                      f1.size(), start, end);
+
+  // only set this ranks values
+  for (int i = start; i <= end; ++i)
+    f1.data()[i] = ++val;
     
   {
     dca::io::ADIOS2Writer writer(concurrency_ptr);
