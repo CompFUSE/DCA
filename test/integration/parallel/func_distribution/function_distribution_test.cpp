@@ -87,7 +87,7 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexUnbalanced) {
   // The function's data need to be stored in a column major order, as the code relies on this for
   // interactions with the Vector and Matrix classes.
 
-  constexpr int dim1_size{15};
+  constexpr int dim1_size{16};
   constexpr int dim2_size{5};
   constexpr int dim3_size{4};
   using Dmn1 = dmn_0<dmn<dim1_size>>;
@@ -126,11 +126,11 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexUnbalanced) {
     if (i < more_work_ranks)
     {
       EXPECT_EQ(start, static_cast<uint64_t>(i) * ( raw_data.size() / num_ranks + 1));
-      EXPECT_EQ(end - start + 2, raw_data.size() / num_ranks + 1 );
+      EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks + 1 );
     }
     else
     {
-      EXPECT_EQ(start, static_cast<uint64_t>(i) * ( raw_data.size() / num_ranks ));
+      EXPECT_EQ(start, ( raw_data.size() / num_ranks + 1) * more_work_ranks + static_cast<uint64_t>(i - more_work_ranks) * ( raw_data.size() / num_ranks ));
       EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks );
     }
   }
