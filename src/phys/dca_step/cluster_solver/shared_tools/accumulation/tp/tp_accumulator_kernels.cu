@@ -228,7 +228,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
     // thread exits if out of range, for example, this thread block has 256 threads while
     // only first several threads should peform G4 update.
-    if(g4_index < start || g4_index >= end)
+    if(g4_index < start || g4_index > end)
       return;
 
     // Decomposite global G4 index into 3D to reuse existing get_indices function and id_* variables

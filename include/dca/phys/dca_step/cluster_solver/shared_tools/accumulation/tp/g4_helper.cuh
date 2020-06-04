@@ -146,12 +146,11 @@ void G4Helper::getComputeRange(const int my_rank, const int mpi_size,
 
         if (my_rank < more_work_ranks) {
             offset = static_cast<uint64_t>(my_rank) * (local_work + 1);
-            end = offset + (local_work + 1);
-        }
-        else {
-            offset = more_work_ranks * (local_work + 1) +
-                    (static_cast<uint64_t>(my_rank) - more_work_ranks) * local_work;
             end = offset + local_work;
+        } else {
+            offset = more_work_ranks * (local_work + 1) +
+                     (static_cast<uint64_t>(my_rank) - more_work_ranks) * local_work;
+            end = offset + local_work - 1;
         }
     }
     start = offset;
