@@ -19,6 +19,8 @@
 #include "dca/function/function.hpp"
 
 #include <iostream>
+#include <numeric>
+#include <functional>
 
 using dca::func::dmn;
 using dca::func::dmn_0;
@@ -40,6 +42,23 @@ std::ostream& operator<< (std::ostream& os, const std::vector<T>& v)
 }
 
 using Index = uint64_t;
+
+// independent way to count number of elements in column major subindex span
+int countSubIndexSpan(std::vector<int> sub_start, std::vector<int> sub_end, std::vector<size_t> dims)
+{
+  assert(sub_start.size() == sub_end.size());
+  if (sub_start.size() > 1)
+  {
+    size_t mult = std::accumulate(dims.begin(), dims.end() - (dims.size() - sub_start.size() + 1), 1, std::multiplies<size_t>());
+    return (sub_end.back() - sub_start.back()) *  mult + countSubIndexSpan(std::vector<int>(sub_start.begin(), sub_start.end() - 1),
+                                                                         std::vector<int>(sub_end.begin(), sub_end.end() - 1),
+                                                                             dims);
+  }
+  else if(sub_start.size() == 1)
+    return sub_end.front() - sub_start.front() + 1;
+  return 0;
+}
+
 
 TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexBalanced) {
   // The function's data need to be stored in a column major order, as the code relies on this for
@@ -68,6 +87,9 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexBalanced) {
 
   int num_ranks = 3;
 
+  auto& this_domain = f.get_domain();
+  auto& f_dims = this_domain.get_branch_domain_sizes();
+
   // balanced case
   for (int i = 0; i < num_ranks; ++i) {
     parallel::util::getComputeRange(i, num_ranks, f.size(), start, end);
@@ -80,6 +102,7 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexBalanced) {
               << "end subindicies " << subind_end << '\n';
     EXPECT_EQ(start, static_cast<uint64_t>(i) * ( raw_data.size() / num_ranks ));
     EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks );
+    EXPECT_EQ(countSubIndexSpan(subind_start, subind_end, f_dims), raw_data.size() / num_ranks);
   }
 }
 
@@ -111,7 +134,9 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexUnbalanced) {
   int num_ranks = 3;
 
   int more_work_ranks = f.size() % static_cast<uint64_t>(num_ranks);
-  
+
+  auto& this_domain = f.get_domain();
+  auto& f_dims = this_domain.get_branch_domain_sizes();
   // unbalanced case
   for (int i = 0; i < num_ranks; ++i) {
     parallel::util::getComputeRange(i, num_ranks, f.size(), start, end);
@@ -127,11 +152,13 @@ TEST(FunctionTest, SubindicesOfDistributionOverLinearIndexUnbalanced) {
     {
       EXPECT_EQ(start, static_cast<uint64_t>(i) * ( raw_data.size() / num_ranks + 1));
       EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks + 1 );
+      EXPECT_EQ(countSubIndexSpan(subind_start, subind_end, f_dims), raw_data.size() / num_ranks + 1);
     }
     else
     {
       EXPECT_EQ(start, ( raw_data.size() / num_ranks + 1) * more_work_ranks + static_cast<uint64_t>(i - more_work_ranks) * ( raw_data.size() / num_ranks ));
       EXPECT_EQ(end - start + 1, raw_data.size() / num_ranks );
+      EXPECT_EQ(countSubIndexSpan(subind_start, subind_end, f_dims), raw_data.size() / num_ranks);
     }
   }
 }
