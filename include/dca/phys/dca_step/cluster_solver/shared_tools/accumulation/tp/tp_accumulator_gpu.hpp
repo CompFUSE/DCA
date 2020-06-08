@@ -178,6 +178,8 @@ private:
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =
       linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using RMatrixValueType = typename RMatrix::ValueType;
+
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
@@ -529,9 +531,8 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     MPI_Status status_1, status_2, status_3, status_4;
 
     // get rank index of left and right neighbor
-    auto mod_op = [](int id, int mpi_size) {return id % mpi_size; };
-    int left_neighbor = mod_op((my_concurrency_id - 1 + mpi_size), mpi_size);
-    int right_neighbor = mod_op((my_concurrency_id + 1 + mpi_size), mpi_size);
+    int left_neighbor  = (my_concurrency_id - 1 + mpi_size) % mpi_size;
+    int right_neighbor = (my_concurrency_id + 1 + mpi_size) %  mpi_size;
 
     // Pipepline ring algorithm in the following for-loop:
     // 1) At each time step, local rank receives a new G2 from left hand neighbor,
@@ -544,16 +545,18 @@ void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
     for(int icount=0; icount < (mpi_size-1); icount++)
     {
         MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
+                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
+                  left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
         MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1 + nr_accumulators_,
-                            MPI_COMM_WORLD, &recv_request_2);
+                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
+                  left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2);
 
         MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1);
+                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
+                  right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1);
         MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_,
-                            MPI_COMM_WORLD, &send_request_2);
+                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
+                  right_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &send_request_2);
 
         // wait for G2 to be available again
         MPI_Wait(&recv_request_1, &status_1);
