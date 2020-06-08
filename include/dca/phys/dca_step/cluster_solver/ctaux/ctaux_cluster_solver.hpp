@@ -284,7 +284,7 @@ double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_
     }
   }
 
-  if (compute_jack_knife_ && parameters_.isAccumulatingG4()) {
+  if (compute_jack_knife_ && parameters_.isAccumulatingG4() && !parameters_.distributed_g4_enabled()) {
     for (std::size_t channel = 0; channel < data_.get_G4_error().size(); ++channel)
       data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
   }
@@ -458,7 +458,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
         {
           // do nothing, no accumulation should be performed as G4 size cannot fit into one GPU
           // reserve this function for testing purpose only
-//            concurrency_.gatherv(G4, concurrency_.first());
+          // concurrency_.gatherv(G4, concurrency_.first());
         }
         else
         {
