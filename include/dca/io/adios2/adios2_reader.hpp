@@ -15,6 +15,7 @@
 #include <complex>
 #include <numeric>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include "adios2.h"
@@ -24,6 +25,11 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
+
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#endif
 
 namespace dca {
 namespace io {
@@ -36,6 +42,11 @@ public:
 public:
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
   ADIOS2Reader(const std::string& config = "", bool verbose = false);
+#ifdef DCA_HAVE_MPI
+  ADIOS2Reader(const dca::parallel::MPIConcurrency* concurrency, const std::string& config = "",
+               bool verbose = false);
+#endif
+
   ~ADIOS2Reader();
 
   constexpr bool is_reader() {
@@ -84,7 +95,22 @@ public:
   bool execute(func::function<Scalartype, domain_type>& f);
 
   template <typename Scalartype, typename domain_type>
+  bool execute(func::function<Scalartype, domain_type>& f, uint64_t start, uint64_t end);
+
+  template <typename Scalartype, typename domain_type>
+  bool execute(func::function<Scalartype, domain_type>& f, const std::vector<int>& start,
+               const std::vector<int>& end);
+
+  template <typename Scalartype, typename domain_type>
   bool execute(const std::string& name, func::function<Scalartype, domain_type>& f);
+
+  template <typename Scalartype, typename domain_type>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f, uint64_t start,
+               uint64_t end);
+
+  template <typename Scalartype, typename domain_type>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+               const std::vector<int>& start, const std::vector<int>& end);
 
   template <typename Scalar>
   bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -105,8 +131,14 @@ private:
   template <typename Scalar>
   std::vector<size_t> getSize(const std::string& name);
 
+  template <class T>
+  std::string VectorToString(const std::vector<T>& v);
+
   adios2::ADIOS adios_;
   const bool verbose_;
+#ifdef DCA_HAVE_MPI
+  const dca::parallel::MPIConcurrency* concurrency_;
+#endif
 
   adios2::IO io_;
   std::string io_name_;
@@ -298,6 +330,183 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
+template <typename Scalartype, typename domain_type>
+bool ADIOS2Reader::execute(func::function<Scalartype, domain_type>& f, uint64_t start, uint64_t end) {
+  return execute(f.get_name(), f, start, end);
+}
+
+template <typename Scalartype, typename domain_type>
+bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+                           uint64_t start, uint64_t end) {
+  std::string full_name = get_path(name);
+  adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
+
+  if (!var) {
+    std::cout << "\n\t ADIOS2Reader:the function (" + name +
+                     ") does not exist in path : " + get_path() + "\n\n";
+    return false;
+  }
+
+  const int ndim = f.signature();
+
+  if (var.Shape().size() != 1) {
+    if (var.Shape().size() == ndim) {
+      // get the N-dimensional decomposition
+      std::vector<int> subind_start = f.linind_2_subind(start);
+      std::vector<int> subind_end = f.linind_2_subind(end);
+      return execute(name, f, subind_start, subind_end);
+    }
+    else {
+      std::cerr << "ERROR ADIOS2Reader: Dimension check failed on function " << name
+                << ". Reason: Function in file is not 1D but " << std::to_string(var.Shape().size())
+                << " while the function in memory is " << std::to_string(ndim) << std::endl;
+    }
+  }
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: Read function : " << name
+              << " in linear distributed manner, rank = " << concurrency_->id()
+              << " start = " << std::to_string(start) << " end = " << std::to_string(end) << "\n";
+  }
+
+  const std::string sizeAttrName = full_name + "/domain-sizes";
+  auto sizeAttr = io_.InquireAttribute<size_t>(sizeAttrName);
+
+  if (sizeAttr) {
+    try {
+      // Read sizes.
+      const std::vector<size_t>& dims = sizeAttr.Data();
+
+      // Check sizes.
+      if (dims.size() != ndim)
+        throw(std::length_error("The number of domains is different"));
+      for (int i = 0; i < ndim; ++i) {
+        if (dims[i] != f[i])
+          throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
+      }
+    }
+    catch (std::length_error& err) {
+      std::cerr << "ERROR ADIOS2Reader: Size check failed on function " << name
+                << ". Reason: " << err.what() << std::endl;
+      return false;
+    }
+
+    // Make 1-D selection
+    // ADIOS2 takes size_t vector of start and count
+    // and in row-major (reverse) order
+    std::vector<size_t> s = {start};
+    std::vector<size_t> c = {end - start + 1};
+
+    if (verbose_) {
+      std::cout << "\t ADIOS2Reader: Read function : " << name
+                << " in linear distributed manner, rank = " << concurrency_->id()
+                << " shape = " << VectorToString(var.Shape()) << " start = " << VectorToString(s)
+                << " count = " << VectorToString(c) << "\n";
+    }
+
+    var.SetSelection({s, c});
+    /* TODO: must pass the correct data pointer here, not f.values() */
+    file_.Get(full_name, f.values(), adios2::Mode::Sync);
+  }
+  else {
+    std::cerr << "ERROR ADIOS2Reader: Size check failed on function " << name
+              << ". Reason: missing attribute " << sizeAttrName << std::endl;
+    return false;
+  }
+  return true;
+}
+
+template <typename Scalartype, typename domain_type>
+bool ADIOS2Reader::execute(func::function<Scalartype, domain_type>& f,
+                           const std::vector<int>& start, const std::vector<int>& end) {
+  return execute(f.get_name(), f, start, end);
+}
+
+template <typename Scalartype, typename domain_type>
+bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+                           const std::vector<int>& start, const std::vector<int>& end) {
+  std::string full_name = get_path(name);
+  adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
+
+  if (!var) {
+    std::cout << "\n\t ADIOS2Reader:the function (" + name +
+                     ") does not exist in path : " + get_path() + "\n\n";
+    return false;
+  }
+
+  const int ndim = f.signature();
+
+  if (start.size() != ndim || end.size() != ndim) {
+    std::cerr << "ERROR ADIOS2Reader: Dimension mismatch on function " << name << ": function is "
+              << std::to_string(ndim) << "-D, start is " << std::to_string(start.size())
+              << "-D and end is " << std::to_string(end.size()) << std::endl;
+    return false;
+  }
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Reader: Read function : " << name
+              << " in distributed manner, rank = " << concurrency_->id()
+              << " start = " << VectorToString(start) << " end = " << VectorToString(end) << "\n";
+  }
+
+  const std::string sizeAttrName = full_name + "/domain-sizes";
+  auto sizeAttr = io_.InquireAttribute<size_t>(sizeAttrName);
+
+  if (sizeAttr) {
+    try {
+      // Read sizes.
+      const std::vector<size_t>& dims = sizeAttr.Data();
+
+      if (dims.size() != var.Shape().size()) {
+        throw(std::length_error("The function " + name + " in the file was written as a " +
+                                std::to_string(var.Shape().size()) +
+                                "-D array. Cannot read it back with " +
+                                std::to_string(start.size()) + "-D read selections"));
+      }
+
+      // Check sizes.
+      if (dims.size() != f.signature())
+        throw(std::length_error("The number of domains is different"));
+      for (int i = 0; i < f.signature(); ++i) {
+        if (dims[i] != f[i])
+          throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
+      }
+    }
+    catch (std::length_error& err) {
+      std::cerr << "ERROR ADIOS2Reader: Size check failed on function " << name
+                << ". Reason: " << err.what() << std::endl;
+      return false;
+    }
+
+    // Make N-D selection
+    // ADIOS2 takes size_t vector of start and count
+    // and in row-major (reverse) order
+    std::vector<size_t> s(ndim);
+    std::vector<size_t> c(ndim);
+    for (int i = 0; i < ndim; ++i) {
+      s[ndim - i - 1] = static_cast<size_t>(start[i]);
+      c[ndim - i - 1] = static_cast<size_t>(end[i] - start[i] + 1);
+    }
+
+    if (verbose_) {
+      std::cout << "\t ADIOS2Reader: Read function : " << name
+                << " in distributed manner, rank = " << concurrency_->id()
+                << " shape = " << VectorToString(var.Shape()) << " start = " << VectorToString(s)
+                << " count = " << VectorToString(c) << "\n";
+    }
+
+    var.SetSelection({s, c});
+    /* TODO: must pass the correct data pointer here, not f.values() */
+    file_.Get(full_name, f.values(), adios2::Mode::Sync);
+  }
+  else {
+    std::cerr << "ERROR ADIOS2Reader: Size check failed on function " << name
+              << ". Reason: missing attribute " << sizeAttrName << std::endl;
+    return false;
+  }
+  return true;
+}
+
 template <typename Scalar>
 bool ADIOS2Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path(name);
@@ -352,6 +561,19 @@ std::vector<size_t> ADIOS2Reader::getSize(const std::string& name) {
   else {
     return std::vector<size_t>();
   }
+}
+
+template <class T>
+std::string ADIOS2Reader::VectorToString(const std::vector<T>& v) {
+  std::stringstream ss;
+  ss << "[";
+  for (size_t i = 0; i < v.size(); ++i) {
+    if (i != 0)
+      ss << ",";
+    ss << v[i];
+  }
+  ss << "]";
+  return ss.str();
 }
 
 }  // namespace io

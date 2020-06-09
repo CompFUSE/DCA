@@ -99,12 +99,21 @@ public:
   void execute(const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end);
 
   template <typename Scalar, typename domain_type>
+  void execute(const func::function<Scalar, domain_type>& f, const std::vector<int>& start,
+               const std::vector<int>& end);
+
+  template <typename Scalar, typename domain_type>
   void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
 
   /** experimental distributed function interface
    */
   template <typename Scalar, typename domain_type>
-  void execute(const std::string& name, const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end);
+  void execute(const std::string& name, const func::function<Scalar, domain_type>& f,
+               uint64_t start, uint64_t end);
+
+  template <typename Scalar, typename domain_type>
+  void execute(const std::string& name, const func::function<Scalar, domain_type>& f,
+               const std::vector<int>& start, const std::vector<int>& end);
 
   template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -152,11 +161,19 @@ private:
 
   void write(const std::string& name, const std::string& data);
 
+  /** Write a distributed N-dimensional array with distribution info */
+  template <typename Scalar>
+  void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
+             const std::vector<size_t>& start, const std::vector<size_t>& count);
+
   template <typename Scalar>
   void addAttribute(const std::string& set, const std::string& name,
                     const std::vector<size_t>& size, const Scalar* data);
 
   void addAttribute(const std::string& set, const std::string& name, const std::string& value);
+
+  template <class T>
+  std::string VectorToString(const std::vector<T>& v);
 
   adios2::IO io_;
   std::string io_name_;
@@ -286,25 +303,25 @@ template <typename Scalar, typename domain_type>
 void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f) {
   if (f.size() == 0)
     return;
-
-  if (verbose_) {
-    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name() << "\n";
-  }
-
   execute(f.get_name(), f);
 }
 
 template <typename Scalar, typename domain_type>
-void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end) {
+void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f, uint64_t start,
+                           uint64_t end) {
   if (f.size() == 0)
     return;
-
-  if (verbose_) {
-    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name() << "\n";
-  }
-
   execute(f.get_name(), f, start, end);
 }
+
+template <typename Scalar, typename domain_type>
+void ADIOS2Writer::execute(const func::function<Scalar, domain_type>& f,
+                           const std::vector<int>& start, const std::vector<int>& end) {
+  if (f.size() == 0)
+    return;
+  execute(f.get_name(), f, start, end);
+
+}  // namespace io
 
 template <typename Scalar, typename domain_type>
 void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
@@ -328,7 +345,8 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
 }
 
 template <typename Scalar, typename domain_type>
-void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f, uint64_t start, uint64_t end) {
+void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f,
+                           uint64_t start, uint64_t end) {
   if (f.size() == 0)
     return;
 
@@ -342,9 +360,80 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
   std::reverse(dims.begin(), dims.end());
 
   // see test/integration/parallel/func_distribution/function_distribution_test.cpp for
-  // how to get the subindices spanned on this rank.  
-  
-  write<Scalar>(full_name, dims, f.values());
+  // how to get the subindices spanned on this rank.
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name()
+              << " in linear distributed manner, rank = " << concurrency_->id()
+              << " shape = " << VectorToString(dims) << " start = " << start << " end = " << end
+              << "\n";
+  }
+
+  // ADIOS2 needs start/count not start/end, and size_t type
+  // Write this function as 1D array since we only have distribution in linearized space
+  size_t nelems = 1;
+  for (const auto d : dims) {
+    nelems *= d;
+  }
+  std::vector<size_t> shape = {nelems};
+  std::vector<size_t> s = {start};
+  std::vector<size_t> count = {end - start + 1};
+
+  /* TODO: must pass the correct data pointer here, not f.values() */
+  write<Scalar>(full_name, shape, f.values(), s, count);
+
+  std::reverse(dims.begin(), dims.end());
+  addAttribute(full_name, "name", f.get_name());
+  addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+}
+
+template <typename Scalar, typename domain_type>
+void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f,
+                           const std::vector<int>& start, const std::vector<int>& end) {
+  if (f.size() == 0)
+    return;
+
+  const std::string full_name = get_path(name);
+
+  std::vector<size_t> dims;
+  for (int l = 0; l < f.signature(); ++l)
+    dims.push_back(f[l]);
+
+  int ndim = dims.size();
+
+  // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
+  std::reverse(dims.begin(), dims.end());
+
+  // see test/integration/parallel/func_distribution/function_distribution_test.cpp for
+  // how to get the subindices spanned on this rank.
+
+  if (start.size() != ndim || end.size() != ndim) {
+    std::cerr << "ADIOS2Writer::execute(,,,vector,vector): the size of start/end vectors"
+              << " must equal to the number of dimensions of the function. "
+              << " Here they were: dims = " << std::to_string(ndim)
+              << " start size = " << std::to_string(start.size())
+              << " end size = " << std::to_string(end.size()) << std::endl;
+    return;
+  }
+
+  // ADIOS2 takes size_t vector of start and count
+  // reverse it here in the loop
+  std::vector<size_t> s(ndim);
+  std::vector<size_t> c(ndim);
+  for (int i = 0; i < ndim; ++i) {
+    s[ndim - i - 1] = static_cast<size_t>(start[i]);
+    c[ndim - i - 1] = static_cast<size_t>(end[i] - start[i] + 1);
+  }
+
+  if (verbose_) {
+    std::cout << "\t ADIOS2Writer: Write function : " << f.get_name()
+              << " in distributed manner, rank = " << concurrency_->id()
+              << " shape = " << VectorToString(dims) << " start = " << VectorToString(s)
+              << " count = " << VectorToString(c) << "\n";
+  }
+
+  /* TODO: must pass the correct data pointer here, not f.values() */
+  write<Scalar>(full_name, dims, f.values(), s, c);
 
   std::reverse(dims.begin(), dims.end());
   addAttribute(full_name, "name", f.get_name());
@@ -405,6 +494,20 @@ void ADIOS2Writer::write(const std::string& name, const std::vector<size_t>& siz
 }
 
 template <typename Scalar>
+void ADIOS2Writer::write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
+                         const std::vector<size_t>& start, const std::vector<size_t>& count) {
+  size_t ndim = size.size();
+  adios2::Variable<Scalar> v;
+  if (ndim == 0) {
+    v = io_.DefineVariable<Scalar>(name);
+  }
+  else {
+    v = io_.DefineVariable<Scalar>(name, size, start, count);
+  }
+  file_.Put(v, data, adios2::Mode::Sync);
+}
+
+template <typename Scalar>
 void ADIOS2Writer::addAttribute(const std::string& set, const std::string& name,
                                 const std::vector<size_t>& size, const Scalar* data) {
   size_t ndim = size.size();
@@ -418,6 +521,19 @@ void ADIOS2Writer::addAttribute(const std::string& set, const std::string& name,
     throw(std::logic_error("ADIOS does not support multi-dimensional Attributes name = " + name +
                            " ndim = " + std::to_string(ndim) + "(" + __FUNCTION__ + ")"));
   }
+}
+
+template <class T>
+std::string ADIOS2Writer::VectorToString(const std::vector<T>& v) {
+  std::stringstream ss;
+  ss << "[";
+  for (size_t i = 0; i < v.size(); ++i) {
+    if (i != 0)
+      ss << ",";
+    ss << v[i];
+  }
+  ss << "]";
+  return ss.str();
 }
 
 }  // namespace io

@@ -19,7 +19,22 @@ namespace io {
 // dca::io::
 
 ADIOS2Reader::ADIOS2Reader(const std::string& config, bool verbose)
-    : adios_(adios2::ADIOS(config)), verbose_(verbose) {}
+    : adios_(adios2::ADIOS(config)),
+      verbose_(verbose)
+#ifdef DCA_HAVE_MPI
+      ,
+      concurrency_(nullptr)
+#endif
+{
+}
+
+#ifdef DCA_HAVE_MPI
+ADIOS2Reader::ADIOS2Reader(const dca::parallel::MPIConcurrency* concurrency,
+                           const std::string& config, bool verbose)
+    : adios_(adios2::ADIOS(config, concurrency->get())),
+      verbose_(verbose),
+      concurrency_(concurrency) {}
+#endif
 
 ADIOS2Reader::~ADIOS2Reader() {
   if (file_)
