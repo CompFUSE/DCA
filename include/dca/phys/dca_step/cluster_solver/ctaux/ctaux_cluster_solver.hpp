@@ -454,18 +454,16 @@ void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
         auto& G4 = data_.get_G4()[channel];
         // function operator = will reset this G4 size to other G4 size if they are not equal
         G4 = accumulator_.get_sign_times_G4()[channel];
-        if(parameters_.distributed_g4_enabled())
-        {
+        if (parameters_.distributed_g4_enabled()) {
           // do nothing, no accumulation should be performed as G4 size cannot fit into one GPU
           // reserve this function for testing purpose only
           // concurrency_.gatherv(G4, concurrency_.first());
         }
-        else
-        {
-            if (compute_jack_knife_)
-              concurrency_.leaveOneOutSum(G4);
-            else
-              concurrency_.localSum(G4, concurrency_.first());
+        else {
+          if (compute_jack_knife_)
+            concurrency_.leaveOneOutSum(G4);
+          else
+            concurrency_.localSum(G4, concurrency_.first());
         }
       }
     }

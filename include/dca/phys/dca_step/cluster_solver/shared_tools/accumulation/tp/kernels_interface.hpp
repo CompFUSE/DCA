@@ -32,12 +32,11 @@ template <typename Real>
 void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int ldg0,
                        int nb, int nk, int nw_pos, Real beta, cudaStream_t stream);
 
+// Updates G4 in the range [start, end)
 template <typename Real, FourPointType type>
-float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int lggu,
-              const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
-              const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
-              bool atomic, cudaStream_t stream, const int my_rank, const int mpi_size,
-              const uint64_t total_G4_size, const bool distributed_g4_enabled);
+float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
+               const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
+               cudaStream_t stream, std::size_t start, std::size_t end);
 
 }  // namespace details
 }  // namespace accumulator
