@@ -22,6 +22,7 @@
 #endif
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/parallel/util/call_once_per_loop.hpp"
 
 namespace dca {
 namespace phys {
@@ -73,15 +74,29 @@ public:
   float accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
                    const std::array<Configuration, 2>& configs, int sign);
 
+  // Downloads the accumulation result to the host.
+  void finalize();
+
   TpAccumulator(
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
+
+  // \todo resets are almost always a sign of a design problem, usually an object
+  //  that should be local to the body of a loop being persisted longer.
+  //  I think this is true here.
+  //  1. there is an expensive allocation?
+  //  2. Is interation to iteration state is being stashed in this object?
+  //  3. some other reason
+  
+  // Resets the object between DCA iterations.
+  void resetAccumulation(unsigned int dca_loop);
 
 private:
   // \todo remove this since tp_accumulator is only instantiated distributed g4 is used.
   bool distributed_g4_enabled_ = true;
 
   static inline std::vector<G4DevType>& get_G4();
+
   void resetG4();
   // Applies pipepline ring algorithm to move G matrices around all ranks
   void ringG(float& flop);
@@ -98,7 +113,8 @@ template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : BaseClass(G0, pars, thread_id){
+    : BaseClass(G0, pars, thread_id),
+      distributed_g4_enabled_(pars.distributed_g4_enabled()) {
 }
 
 template <class Parameters>
@@ -140,6 +156,39 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     M_dev[s].setAsync(M[s], streams_[0]);
 
   return accumulate(M_dev, configs, sign);
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::finalize() {
+  if (BaseClass::finalized_)
+    return;
+
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
+  {
+    // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
+    // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
+    G4_[channel].resize(get_G4()[channel].size());
+    get_G4()[channel].copyTo(G4_[channel]);
+  }
+  // TODO: release memory if needed by the rest of the DCA loop.
+  // get_G4().clear();
+
+  BaseClass::finalized_ = true;
+  BaseClass::initialized_ = false;
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(const unsigned int dca_loop) {
+  static dca::util::OncePerLoopFlag flag;
+
+  dca::util::callOncePerLoop(flag, dca_loop, [&]() {
+    resetG4();
+    BaseClass::initializeG0();
+    BaseClass::synchronizeStreams();
+  });
+
+  BaseClass::initialized_ = true;
+  BaseClass::finalized_ = false;
 }
 
 template <class Parameters>

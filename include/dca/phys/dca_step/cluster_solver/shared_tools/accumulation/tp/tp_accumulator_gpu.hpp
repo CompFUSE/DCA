@@ -213,7 +213,6 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      distributed_g4_enabled_(pars.distributed_g4_enabled()),
       nr_accumulators_(pars.get_accumulators()){
   initializeG4Helpers();
 
@@ -472,12 +471,6 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel)
   {
-    if(distributed_g4_enabled_)
-    {
-      // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
-      // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
-      G4_[channel].resize(get_G4()[channel].size());
-    }
     get_G4()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.
