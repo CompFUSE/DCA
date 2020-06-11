@@ -1,11 +1,10 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Weile Wei (wwei9@lsu.edu)
 //
 // Implementation of the two particle Green's function computation on the GPU.
 

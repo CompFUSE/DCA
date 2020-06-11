@@ -1,13 +1,15 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Peter Doak (doakpw@ornl.gov)
 //         Weile Wei (wwei9@lsu.edu)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Implementation of the two particle Green's function computation on the GPU.
+// Implementation of the two particle Green's function computation on the GPU with distrubtion
+// over MPI.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_MPI_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_MPI_GPU_HPP
