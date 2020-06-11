@@ -17,6 +17,8 @@
 
 #include "dca/phys/four_point_type.hpp"
 
+// This amount of namespace nesting is really uncalled for
+// http://open-std.org/JTC1/SC22/WG21/docs/papers/2017/p0816r0.pdf
 namespace dca {
 namespace phys {
 namespace solver {

@@ -10,13 +10,14 @@
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 
 #include <array>
 #include <functional>
 #include <string>
 #include "gtest/gtest.h"
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
@@ -57,7 +58,7 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
             data_->G0_k_w_cluster_excluded, parameters_);
-    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::MPI> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
     const int sign = 1;
 

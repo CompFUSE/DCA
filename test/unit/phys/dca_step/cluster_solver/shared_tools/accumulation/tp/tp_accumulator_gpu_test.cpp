@@ -9,6 +9,8 @@
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
+
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
@@ -37,6 +39,8 @@ using TpAccumulatorGpuTest =
     dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
 
 uint loop_counter = 0;
+
+
 
 TEST_F(TpAccumulatorGpuTest, Accumulate) {
   dca::linalg::util::initializeMagma();
