@@ -20,6 +20,7 @@
 #include <string>
 
 #include "dca/phys/error_computation_type.hpp"
+#include "dca/distribution/dist_types.hpp"
 
 #include <mpi.h>
 
@@ -80,6 +81,10 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
+  DistType get_g4_distribution() const {
+    return g4_distribution_;
+  }
+  
   bool distributed_g4_enabled() const {
     return distributed_g4_enabled_;
   }
@@ -123,6 +128,7 @@ private:
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
+  DistType g4_distribution_;
 };
 
 template <typename Concurrency>
@@ -141,6 +147,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
   buffer_size += concurrency.get_buffer_size(store_configuration_);
+  buffer_size += concurrency.get_buffer_size(distributed_g4_enabled_);
 
   return buffer_size;
 }
@@ -160,6 +167,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
+  concurrency.pack(buffer, buffer_size, position, distributed_g4_enabled_);
 }
 
 template <typename Concurrency>
@@ -177,6 +185,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
+  concurrency.unpack(buffer, buffer_size, position, distributed_g4_enabled_);
 }
 
 template <typename ReaderOrWriter>
@@ -190,7 +199,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         // Try to read a seeding option.
         std::string seed_string;
         reader_or_writer.execute("seed", seed_string);
-        if (seed_string == "random")
+        if (strcmp(seed_string.c_str(), "random"))
           generateRandomSeed();
         else {
           std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed
@@ -250,6 +259,43 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     catch (const std::exception& r_e) {
     }
 
+    std::string g4_dist_input;
+    if (reader_or_writer.is_reader()) {
+      // The input file can contain an integral seed or the seeding option "random".
+      try {
+        // Try to read a seeding option.
+        reader_or_writer.execute("g4-distribution", g4_dist_input);
+        if (strcmp(g4_dist_input.c_str(), "MPI"))
+          g4_distribution_ = dca::DistType::MPI;
+        else if (g4_dist_input.size() == 0 || strcmp(g4_dist_input.c_str(), "NONE")) {
+          g4_distribution_ = dca::DistType::NONE;
+        }
+        else {
+          // I think we should throw a fatal exception here.
+          std::cerr << "Warning: Invalid g4-distribution. Using None." << std::endl;
+          g4_distribution_ = dca::DistType::NONE;
+        }
+      }
+      catch (const std::exception& r_e) {
+      }
+    }
+    else {
+      try {
+        switch (g4_distribution_) {
+        case dca::DistType::MPI:
+          g4_dist_input = "MPI";
+          reader_or_writer.execute("g4-distribution", g4_dist_input);
+            break;
+        case dca::DistType::NONE:
+          g4_dist_input = "NONE";
+          reader_or_writer.execute("g4-distribution", g4_dist_input);
+            break;
+        }
+      }
+      catch (const std::exception& r_e) {
+      }
+    }
+
     // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
@@ -278,20 +324,20 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         // distributed_g4_enabled_evaluation should be placed after walkers, accumulators,
         // and shared-walk-and-accumulation-thread
         reader_or_writer.execute("distributed-g4-enabled", distributed_g4_enabled_);
-        if(distributed_g4_enabled_)
-        {
-          if(!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_)
-          {
-            throw std::logic_error("\n With distributed g4 enabled, 1) walker and accumulator should share thread, "
-                                         "2) #walker == #accumulator\n");
+        if (distributed_g4_enabled_) {
+          if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+            throw std::logic_error(
+                "\n With distributed g4 enabled, 1) walker and accumulator should share thread, "
+                "2) #walker == #accumulator\n");
           }
           int mpi_size;
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           int local_meas = measurements_ / mpi_size;
-          if( measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0)
-          {
-            throw std::logic_error("\n With distributed g4 enabled, 1) local measurements should be same across ranks, "
-                                     "2) each accumulator should have same measurements\n");
+          if (measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0) {
+            throw std::logic_error(
+                "\n With distributed g4 enabled, 1) local measurements should be same across "
+                "ranks, "
+                "2) each accumulator should have same measurements\n");
           }
         }
       }
