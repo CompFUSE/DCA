@@ -53,7 +53,8 @@
 
     "threaded-solver" : {
       "accumulators" : 3
-    }
+    },
+    "g4-distribution" : "MPI"
   },
 
 

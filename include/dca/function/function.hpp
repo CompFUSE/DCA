@@ -27,6 +27,7 @@
 #include <utility>      // std::move, std::swap
 #include <vector>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
 #include "dca/util/pack_operations.hpp"
@@ -52,7 +53,7 @@ public:
   // Postcondition: All elements are set to zero.
   // Special case: when distributed_g4_enabled, G4 related variables only gets
   // allocation of 1/p of original G4 size, where p = #mpiranks
-  function(const std::string& name = default_name_, const bool distributed_g4_enabled = false);
+  function(const std::string& name = default_name_, const DistType dist = DistType::NONE);
 
   // Copy constructor
   // Constructs the function with the a copy of elements and name of other.
@@ -291,7 +292,7 @@ template <typename scalartype, class domain>
 const std::string function<scalartype, domain>::default_name_ = "no-name";
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(const std::string& name, const bool distributed_g4_enabled)
+function<scalartype, domain>::function(const std::string& name, DistType dist)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
@@ -300,7 +301,7 @@ function<scalartype, domain>::function(const std::string& name, const bool distr
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
-  if(name.substr(0, 2) == "G4" && distributed_g4_enabled)
+      if(name.substr(0, 2) == "G4" && dist == DistType::MPI)
   {
     int my_rank, mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);

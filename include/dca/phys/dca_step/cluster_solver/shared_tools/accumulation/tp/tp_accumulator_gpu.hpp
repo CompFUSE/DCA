@@ -190,7 +190,6 @@ protected:
 
   std::array<RMatrix, 2> G_;
 
-  bool distributed_g4_enabled_ = false;
   const int nr_accumulators_;
 
   bool finalized_ = false;
@@ -412,51 +411,52 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
 
   const FourPointType channel = channels_[channel_index];
 
-  int my_rank, mpi_size;
-  uint64_t total_G4_size;
-
+  int my_rank = 0;
+  int mpi_size = 1;
+  typename BaseClass::TpDomain tp_dmn;
+  uint64_t total_G4_size = tp_dmn.get_size();
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
           nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          my_rank, mpi_size, total_G4_size, false);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
