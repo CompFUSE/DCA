@@ -18,6 +18,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
