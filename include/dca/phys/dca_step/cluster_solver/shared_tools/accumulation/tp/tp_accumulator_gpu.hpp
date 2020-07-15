@@ -419,9 +419,9 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   //  get_G4().setStream(streams_[0]);
 
   const FourPointType channel = channels_[channel_index];
-
+  typename BaseClass::TpDomain tp_dmn;
   uint64_t start = 0;
-  uint64_t end = G4_.size();
+  uint64_t end = tp_dmn.get_size();
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
