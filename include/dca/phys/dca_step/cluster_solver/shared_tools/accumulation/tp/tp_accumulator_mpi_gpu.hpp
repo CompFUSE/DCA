@@ -66,8 +66,8 @@ private:
   using BaseClass::ndft_objs_;
   using BaseClass::space_trsf_objs_;
   
-  std::size_t start_;
-  std::size_t end_;
+  uint64_t start_;
+  uint64_t end_;
 
   // Eventually distribution strategy should be pushed down into linalg::Vector but
   // I think generalization should still wait.
@@ -127,9 +127,10 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   typename BaseClass::TpDomain tp_dmn;
-  std::size_t local_g4_size = tp_dmn.get_size();
+  uint64_t total_g4_size = tp_dmn.get_size();
   start_ = 0;
-  end_ = start_ + local_g4_size;
+  end_ = 0;
+  dca::parallel::util::getComputeRange(my_rank, mpi_size, total_g4_size, start_, end_);
 
   // possible these can both go into the parent class constructor
   BaseClass::initializeG4Helpers();
