@@ -121,7 +121,7 @@ template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-  : BaseClass(true, G0, pars, thread_id) {
+  : BaseClass(G0, pars, thread_id) {
 
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
   typename BaseClass::TpDomain tp_dmn;
@@ -226,8 +226,6 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
@@ -252,9 +250,6 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
   //        |           |
   //        |           |
   // b2 ------------------------ b4
-
-  const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
-  const int nk_exchange = domains::MomentumExchangeDomain::get_size();
 
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
@@ -321,7 +316,6 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   int left_neighbor = (my_concurrency_id - 1 + mpi_size) % mpi_size;
   int right_neighbor = (my_concurrency_id + 1 + mpi_size) % mpi_size;
 
-  typename dca::parallel::MPITypeMap<RMatrixValueType> mine;
   // Pipepline ring algorithm in the following for-loop:
   // 1) At each time step, local rank receives a new G2 from left hand neighbor,
   // makes a copy locally and uses this G2 to update G4, and

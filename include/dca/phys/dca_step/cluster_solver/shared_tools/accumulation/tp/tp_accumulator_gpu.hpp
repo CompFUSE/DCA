@@ -65,11 +65,6 @@ public:
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
-  // Constructor when parent to distributed G4 accumulator
-  TpAccumulator(
-		bool construct_as_parent, const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-      const Parameters& pars, int thread_id = 0);
-
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int dca_loop);
 
@@ -208,18 +203,6 @@ protected:
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
-
-template <class Parameters>
-TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
-    bool constructed_as_parent,
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-    const Parameters& pars, const int thread_id)
-    : BaseClass(G0, pars, thread_id),
-      queues_(),
-      streams_{queues_[0].getStream(), queues_[1].getStream()},
-      ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
-      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      nr_accumulators_(pars.get_accumulators()) {}
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
