@@ -27,7 +27,7 @@
 constexpr bool update_baseline = false;
 
 #define INPUT_DIR \
-  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
+  DCA_SOURCE_DIR "/test/integration/cluster_solver/shared_tools/accumulation/tp/"
 
 constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer.json";
 
@@ -76,7 +76,7 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
     for (int channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
         auto G4_gpu = accumulatorDevice.get_sign_times_G4()[channel];
         auto G4_cpu = accumulatorHost.get_sign_times_G4()[channel];
-        concurrency_.localSum(G4_gpu, concurrency.first());
+        concurrency_.gatherv(G4_gpu, concurrency.first());
         concurrency_.localSum(G4_cpu, concurrency.first());
         if (concurrency.get_id() == 0 && channel == 0){
             const auto diff = dca::func::util::difference(G4_cpu, G4_gpu);

@@ -110,6 +110,7 @@ private:
   void ringG(float& flop);
   float updateG4(const std::size_t channel_index);
 
+  using BaseClass::channels_;
   using BaseClass::G4_;
 
   // send buffer for pipeline ring algorithm
@@ -121,16 +122,17 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
   : BaseClass(true, G0, pars, thread_id) {
-  
-  int my_rank = 0, mpi_size = 1;
+
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
+  typename BaseClass::TpDomain tp_dmn;
+  std::size_t local_g4_size = tp_dmn.get_size();
+
+  int my_rank = 0, mpi_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t total_g4_size = tp_dmn.get_size();
-  start_ = 0;
-  end_ = 0;
-  dca::parallel::util::getComputeRange(my_rank, mpi_size, total_g4_size, start_, end_);
+  local_g4_size = dca::util::ceilDiv(local_g4_size, std::size_t(mpi_size));
+  start_ = local_g4_size * my_rank;
+  end_ = std::min(tp_dmn.get_size(), start_ + local_g4_size);
 
   // possible these can both go into the parent class constructor
   BaseClass::initializeG4Helpers();
@@ -224,13 +226,15 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
+  typename BaseClass::TpDomain tp_dmn;
+  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
         G4_channel.setStream(BaseClass::streams_[0]);
       }
 
-      G4_channel.resizeNoCopy(end_-start_);
+      G4_channel.resizeNoCopy(end_ - start_);
       G4_channel.setToZeroAsync(BaseClass::streams_[0]);
     }
     catch (std::bad_alloc& err) {
