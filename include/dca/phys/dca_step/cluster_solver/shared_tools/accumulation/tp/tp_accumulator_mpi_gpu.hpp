@@ -62,7 +62,15 @@ private:
   using typename BaseClass::RMatrix;
   using typename BaseClass::RMatrixValueType;
 
-  // This likely needs a distributed type
+  using BaseClass::workspaces_;
+  using BaseClass::ndft_objs_;
+  using BaseClass::space_trsf_objs_;
+  
+  std::size_t start_;
+  std::size_t end_;
+
+  // Eventually distribution strategy should be pushed down into linalg::Vector but
+  // I think generalization should still wait.
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
 
 public:
@@ -95,6 +103,8 @@ public:
 private:
   static inline std::vector<G4DevType>& get_G4();
 
+  // The semantics of this class used to make it possible that the G4 would get resized here if
+  // BaseClass::TpDomain had changed this is no longer true as the accessible size of G4 is set in the constructor.
   void resetG4();
   // Applies pipepline ring algorithm to move G matrices around all ranks
   void ringG(float& flop);
@@ -110,7 +120,30 @@ template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : BaseClass(G0, pars, thread_id) {}
+  : BaseClass(true, G0, pars, thread_id) {
+  
+  int my_rank = 0, mpi_size = 1;
+  // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  typename BaseClass::TpDomain tp_dmn;
+  std::size_t local_g4_size = tp_dmn.get_size();
+  start_ = 0;
+  end_ = start_ + local_g4_size;
+
+  // possible these can both go into the parent class constructor
+  BaseClass::initializeG4Helpers();
+
+  // I think it unlikely that want multiple streams for dist G4
+  // since there is a memory cost.
+  for (int i = 0; i < BaseClass::n_ndft_streams_; ++i) {
+    workspaces_.emplace_back(std::make_shared<RMatrix>());
+    workspaces_[i]->setStream(streams_[i]);
+    ndft_objs_[i].setWorkspace(workspaces_[i]);
+    space_trsf_objs_[i].setWorkspace(workspaces_[i]);
+  }
+
+}
 
 template <class Parameters>
 template <class Configuration, typename RealIn>
@@ -185,25 +218,19 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(
   BaseClass::finalized_ = false;
 }
 
+
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
         G4_channel.setStream(BaseClass::streams_[0]);
       }
 
-      int my_rank, mpi_size;
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-      local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
-
-      G4_channel.resizeNoCopy(local_G4_size_);
+      G4_channel.resizeNoCopy(end_-start_);
       G4_channel.setToZeroAsync(BaseClass::streams_[0]);
     }
     catch (std::bad_alloc& err) {
@@ -234,54 +261,36 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-  uint64_t total_G4_size = 0;
-  typename BaseClass::TpDomain tp_dmn;
-  total_G4_size = tp_dmn.get_size();
-
-  using BC = BaseClass;
-
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0], my_rank, mpi_size, total_G4_size,
-          true);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
@@ -291,13 +300,11 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   // get ready for send and receive
-  
+
   for (int s = 0; s < 2; ++s) {
     sendbuff_G_[s] = G_[s];
   }
 
-  
-  
   int my_concurrency_id, mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
@@ -320,19 +327,17 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
   //         measurements % ranks == 0 && local_measurement % threads == 0.
   for (int icount = 0; icount < (mpi_size - 1); icount++) {
-    MPI_Irecv(G_[0].ptr(), (G_[0].size().first) * (G_[0].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1,
-              MPI_COMM_WORLD, &recv_request_1);
-    MPI_Irecv(G_[1].ptr(), (G_[1].size().first) * (G_[1].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, left_neighbor,
-              thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2);
+    MPI_Irecv(G_[0].ptr(), (G_[0].size().first) * (G_[0].size().second), MPI_CXX_DOUBLE_COMPLEX,
+              left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
+    MPI_Irecv(G_[1].ptr(), (G_[1].size().first) * (G_[1].size().second), MPI_CXX_DOUBLE_COMPLEX,
+              left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2);
 
     MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first) * (sendbuff_G_[0].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1,
-              MPI_COMM_WORLD, &send_request_1);
+              MPI_CXX_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD,
+              &send_request_1);
     MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first) * (sendbuff_G_[1].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, right_neighbor,
-              thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &send_request_2);
+              MPI_CXX_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_,
+              MPI_COMM_WORLD, &send_request_2);
 
     // wait for G2 to be available again
     MPI_Wait(&recv_request_1, &status_1);

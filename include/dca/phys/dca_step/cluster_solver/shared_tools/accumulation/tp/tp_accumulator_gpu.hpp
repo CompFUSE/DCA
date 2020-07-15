@@ -63,6 +63,11 @@ public:
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
+  // Constructor when parent to distributed G4 accumulator
+  TpAccumulator(
+		bool construct_as_parent, const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const Parameters& pars, int thread_id = 0);
+
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int dca_loop);
 
@@ -121,7 +126,7 @@ public:
 
     return res;
   }
-  
+
 protected:
   using Profiler = typename Parameters::profiler_type;
 
@@ -204,6 +209,7 @@ protected:
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
+    bool constructed_as_parent,
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : BaseClass(G0, pars, thread_id),
@@ -211,7 +217,18 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      nr_accumulators_(pars.get_accumulators()){
+      nr_accumulators_(pars.get_accumulators()) {}
+
+template <class Parameters>
+TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
+    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const Parameters& pars, const int thread_id)
+    : BaseClass(G0, pars, thread_id),
+      queues_(),
+      streams_{queues_[0].getStream(), queues_[1].getStream()},
+      ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
+      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
+      nr_accumulators_(pars.get_accumulators()) {
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -265,6 +282,7 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
 
   for (auto& G4_channel : get_G4()) {
     try {
+      typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
@@ -402,52 +420,38 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
 
   const FourPointType channel = channels_[channel_index];
 
-  int my_rank = 0;
-  int mpi_size = 1;
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t total_G4_size = tp_dmn.get_size();
+  uint64_t start = 0;
+  uint64_t end = G4_.size();
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, false);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
@@ -459,8 +463,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
     get_G4()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.

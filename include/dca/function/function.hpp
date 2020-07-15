@@ -169,7 +169,6 @@ public:
   // modern RVO version
   std::vector<int> linind_2_subind(int linind) const;
 
-  
   // Computes the linear index for the given subindices of the leaf domains.
   // Precondition: subind stores the the subindices of all LEAF domains.
   // TODO: Use std::array or std::vector to be able to check the size of subind.
@@ -301,16 +300,15 @@ function<scalartype, domain>::function(const std::string& name, DistType dist)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
-      if(name.substr(0, 2) == "G4" && dist == DistType::MPI)
-  {
+  if (name.substr(0, 2) == "G4" && dist == DistType::MPI) {
     int my_rank, mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     nb_elements_ = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
   }
-    fnc_values = new scalartype[nb_elements_];
-    for (int linind = 0; linind < nb_elements_; ++linind)
-      setToZero(fnc_values[linind]);
+  fnc_values = new scalartype[nb_elements_];
+  for (int linind = 0; linind < nb_elements_; ++linind)
+    setToZero(fnc_values[linind]);
 }
 
 template <typename scalartype, class domain>
@@ -453,7 +451,6 @@ std::vector<int> function<scalartype, domain>::linind_2_subind(int linind) const
   }
   return subind;
 }
-
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::subind_2_linind(const int* const subind, int& linind) const {
