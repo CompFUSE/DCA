@@ -33,6 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -197,8 +198,7 @@ protected:
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType =
-      linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
 
@@ -263,15 +263,12 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
-      
-      G4_channel.resizeNoCopy(local_G4_size_);
+      G4_channel.resizeNoCopy(tp_dmn.get_size());
       G4_channel.setToZeroAsync(streams_[0]);
     }
     catch (std::bad_alloc& err) {
@@ -287,12 +284,11 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
   std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-    const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
     details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                           sub_mat.leadingDimension(), k0);
+                           sub_mat.leadingDimension());
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
@@ -315,9 +311,8 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
   flop += computeM(M, configs);
   computeG();
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
-     flop += updateG4(channel);
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
+    flop += updateG4(channel);
   }
 
   return flop;
@@ -402,12 +397,8 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   //        |           |
   // b2 ------------------------ b4
 
-  const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
-  const int nk_exchange = domains::MomentumExchangeDomain::get_size();
-
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
-
 
   const FourPointType channel = channels_[channel_index];
 

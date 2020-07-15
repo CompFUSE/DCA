@@ -461,12 +461,11 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
           // reserve this function for testing purpose only
           // concurrency_.gatherv(G4, concurrency_.first());
         }
-        else
-        {
-            if (compute_jack_knife_)
-              concurrency_.leaveOneOutSum(G4);
-            else
-              concurrency_.localSum(G4, concurrency_.first());
+        else {
+          if (compute_jack_knife_)
+            concurrency_.leaveOneOutSum(G4);
+          else
+            concurrency_.localSum(G4, concurrency_.first());
         }
       }
     }
