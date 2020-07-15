@@ -160,7 +160,6 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return flop;
 
-  resetG4();
   BaseClass::sign_ = sign;
   flop += BaseClass::computeM(M, configs);
   BaseClass::computeG();
