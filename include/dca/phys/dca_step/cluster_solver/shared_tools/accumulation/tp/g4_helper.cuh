@@ -12,6 +12,7 @@
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_G4_HELPER_CUH
 
+#include <cassert>
 #include <vector>
 
 #include <cuda.h>
@@ -27,9 +28,16 @@ namespace details {
 
 class G4Helper {
 public:
-  static void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
-                  const std::vector<int>& w_ex_indices, const int* add_k, int lda, const int* sub_k,
-                  int lds, int k0);
+  static void set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
+                  const std::vector<int>& delta_k, const std::vector<int>& delta_w,
+                  const int* add_k, unsigned int lda, const int* sub_k, unsigned int lds);
+
+  __device__ auto get_bands() const {
+    return nb_;
+  }
+  __device__ auto get_cluster_size() const {
+    return nc_;
+  }
 
   // Returns the index of k + k_ex.
   __device__ inline int addKex(int k_idx, int k_ex_idx) const;
@@ -48,25 +56,25 @@ public:
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
   __device__ inline bool extendGIndices(int& k1, int& k2, int& w1, int& w2) const;
 
-  // Returns the linear index of G4 as a function of
-  // band, band, band, band, k1, k2, k_ex, w1, w2, w_ex.
-  __device__ inline unsigned int g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k_ex,
-                                         int w1, int w2, int w_ex) const;
-  // Single band version of the above method.
-  __device__ inline unsigned int g4Index(int k1, int k2, int k_ex, int w1, int w2, int w_ex) const;
-
-  // Returns range (start and end index) of G4 in which local rank should compute, when distributed g4 is enabled
-  __device__ inline void getComputeRange(const int my_rank, const int mpi_size,
-                                         const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const;
+  // Unroll the linear index of G4 as a function of band, band, band, band,
+  // k1, k2, k_ex, w1, w2, w_ex.
+  __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
+                                     unsigned& b4, unsigned& k1, unsigned& w1, unsigned& k2,
+                                     unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
 
 protected:
-  int lda_;
-  int lds_;
-  int nw_pos_;
-  int ext_size_;
-  unsigned sbdm_steps_[10];
+  std::size_t sbdm_steps_[10];
+
   const int* w_ex_indices_;
   const int* k_ex_indices_;
+  unsigned ext_size_;
+
+  unsigned nw_pos_;
+  unsigned nb_;
+  unsigned nc_;
+  unsigned nw_;
+  unsigned n_k_ex_;
+  unsigned n_w_ex_;
 };
 
 // Global instance to be used in the tp accumulation kernel.
@@ -77,8 +85,7 @@ inline __device__ int G4Helper::addWex(const int w_idx, const int w_ex_idx) cons
 }
 
 inline __device__ int G4Helper::wexMinus(const int w_idx, const int w_ex_idx) const {
-  const int nw = 2 * nw_pos_;
-  return w_ex_indices_[w_ex_idx] + nw - 1 - w_idx;
+  return w_ex_indices_[w_ex_idx] + nw_ - 1 - w_idx;
 }
 
 inline __device__ int G4Helper::addKex(const int k_idx, const int k_ex_idx) const {
@@ -112,48 +119,26 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   }
 }
 
-inline __device__ unsigned int G4Helper::g4Index(int b1, int b2, int b3, int b4, int k1, int k2,
-                                                 int k_ex, int w1, int w2, int w_ex) const {
-  return sbdm_steps_[0] * b1 + sbdm_steps_[1] * b2 + sbdm_steps_[2] * b3 + sbdm_steps_[3] * b4 +
-         sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k_ex + sbdm_steps_[7] * w1 +
-         sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
-  ;
-}
+__device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
+                                             unsigned& b3, unsigned& b4, unsigned& k1, unsigned& w1,
+                                             unsigned& k2, unsigned& w2, unsigned& k_ex,
+                                             unsigned& w_ex) const {
+  auto unroll = [&](const unsigned dimension) {
+    unsigned result = index / sbdm_steps_[dimension];
+    index -= result * sbdm_steps_[dimension];
+    return result;
+  };
 
-inline __device__ unsigned int G4Helper::g4Index(int k1, int k2, int k_ex, int w1, int w2,
-                                                 int w_ex) const {
-  return sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k_ex + sbdm_steps_[7] * w1 +
-         sbdm_steps_[8] * w2 + sbdm_steps_[9] * w_ex;
-}
-
-inline __device__
-void G4Helper::getComputeRange(const int my_rank, const int mpi_size,
-                               const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const {
-
-    uint64_t offset = 0;
-    // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
-    // if balanced, each rank has same amount of elements to compute
-    // if not, ranks with (rank_id < more_work_ranks) has to compute 1 more element than other ranks
-    bool balanced = (total_G4_size % static_cast<uint64_t>(mpi_size) == 0);
-    uint64_t local_work = total_G4_size / static_cast<uint64_t>(mpi_size);
-
-    if(balanced) {
-        offset = static_cast<uint64_t>(my_rank)  * local_work;
-        end  = offset + local_work - 1;
-    }
-    else {
-        int more_work_ranks = total_G4_size % static_cast<uint64_t>(mpi_size);
-
-        if (my_rank < more_work_ranks) {
-            offset = static_cast<uint64_t>(my_rank) * (local_work + 1);
-            end = offset + local_work;
-        } else {
-            offset = more_work_ranks * (local_work + 1) +
-                     (static_cast<uint64_t>(my_rank) - more_work_ranks) * local_work;
-            end = offset + local_work - 1;
-        }
-    }
-    start = offset;
+  w_ex = unroll(9);
+  k_ex = unroll(8);
+  w2 = unroll(7);
+  k2 = unroll(6);
+  w1 = unroll(5);
+  k1 = unroll(4);
+  b4 = unroll(3);
+  b3 = unroll(2);
+  b2 = unroll(1);
+  b1 = unroll(0);
 }
 
 }  // namespace details

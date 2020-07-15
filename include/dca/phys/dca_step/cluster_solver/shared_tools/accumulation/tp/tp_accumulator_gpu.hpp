@@ -1,11 +1,10 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Weile Wei (wwei9@lsu.edu)
 //
 // Implementation of the two particle Green's function computation on the GPU.
 
@@ -34,6 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/util/integer_division.hpp"
 
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 
@@ -45,7 +45,7 @@ namespace accumulator {
 
 template <class Parameters>
 class TpAccumulator<Parameters, linalg::GPU> : public TpAccumulator<Parameters, linalg::CPU> {
-private:
+protected:
   using this_type = TpAccumulator<Parameters, linalg::GPU>;
   using BaseClass = TpAccumulator<Parameters, linalg::CPU>;
 
@@ -63,6 +63,11 @@ public:
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulator(
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const Parameters& pars, int thread_id = 0);
+
+  // Constructor when parent to distributed G4 accumulator
+  TpAccumulator(
+		bool construct_as_parent, const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
@@ -84,9 +89,6 @@ public:
 
   // Downloads the accumulation result to the host.
   void finalize();
-
-  // Applies pipepline ring algorithm to move G matrices around all ranks
-  void ringG(float& flop);
 
   // Sums on the host the accumulated Green's function to the accumulated Green's function of
   // other_acc.
@@ -127,7 +129,7 @@ public:
     return res;
   }
 
-private:
+protected:
   using Profiler = typename Parameters::profiler_type;
 
   using typename BaseClass::WTpDmn;
@@ -161,7 +163,6 @@ private:
 
   void synchronizeStreams();
 
-private:
   constexpr static int n_ndft_streams_ = config::McOptions::memory_savings ? 1 : 2;
 
   using BaseClass::beta_;
@@ -197,20 +198,28 @@ private:
 
   std::array<RMatrix, 2> G_;
 
-  bool distributed_g4_enabled_ = false;
   const int nr_accumulators_;
-  // send buffer for pipeline ring algorithm
-  std::array<RMatrix, 2> sendbuff_G_;
 
   bool finalized_ = false;
   bool initialized_ = false;
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType =
-      linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
+
+template <class Parameters>
+TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
+    bool constructed_as_parent,
+    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const Parameters& pars, const int thread_id)
+    : BaseClass(G0, pars, thread_id),
+      queues_(),
+      streams_{queues_[0].getStream(), queues_[1].getStream()},
+      ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
+      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
+      nr_accumulators_(pars.get_accumulators()) {}
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
@@ -221,8 +230,7 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      distributed_g4_enabled_(pars.distributed_g4_enabled()),
-      nr_accumulators_(pars.get_accumulators()){
+      nr_accumulators_(pars.get_accumulators()) {
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -274,23 +282,13 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
+      typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
-
-      if(distributed_g4_enabled_) {
-          // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
-          int my_rank, mpi_size;
-          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-          MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-          local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
-      }
-
-      G4_channel.resizeNoCopy(local_G4_size_);
+      G4_channel.resizeNoCopy(tp_dmn.get_size());
       G4_channel.setToZeroAsync(streams_[0]);
     }
     catch (std::bad_alloc& err) {
@@ -306,19 +304,18 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
   std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-    const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
     details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                           sub_mat.leadingDimension(), k0);
+                           sub_mat.leadingDimension());
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
 
 template <class Parameters>
 template <class Configuration, typename RealIn>
-float TpAccumulator<Parameters, linalg::GPU>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
@@ -334,13 +331,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
   flop += computeM(M, configs);
   computeG();
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
-     flop += updateG4(channel);
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
+    flop += updateG4(channel);
   }
-
-  if(distributed_g4_enabled_)
-    ringG(flop);
 
   return flop;
 }
@@ -424,67 +417,43 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   //        |           |
   // b2 ------------------------ b4
 
-  const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
-  const int nk_exchange = domains::MomentumExchangeDomain::get_size();
-
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
 
-
   const FourPointType channel = channels_[channel_index];
-
-  int my_rank, mpi_size;
-  uint64_t total_G4_size;
-  if(distributed_g4_enabled_)
-  {
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-      typename BaseClass::TpDomain tp_dmn;
-      total_G4_size = tp_dmn.get_size();
-   }
-
+  typename BaseClass::TpDomain tp_dmn;
+  uint64_t start = 0;
+  uint64_t end = tp_dmn.get_size();
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
@@ -496,14 +465,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
-    if(distributed_g4_enabled_)
-    {
-      // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
-      // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
-      G4_[channel].resize(get_G4()[channel].size());
-    }
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
     get_G4()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.
@@ -511,75 +473,6 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   finalized_ = true;
   initialized_ = false;
-}
-
-template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
-
-//    std::array<std::pair<int, int>, 2> G2_sz;
-
-    // get ready for send and receive
-    for (int s = 0; s < 2; ++s)
-    {
-        sendbuff_G_[s] = G_[s];
-    }
-
-    int my_concurrency_id, mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
-
-    MPI_Request recv_request_1, recv_request_2;
-    MPI_Request send_request_1, send_request_2;
-    MPI_Status status_1, status_2, status_3, status_4;
-
-    // get rank index of left and right neighbor
-    int left_neighbor  = (my_concurrency_id - 1 + mpi_size) % mpi_size;
-    int right_neighbor = (my_concurrency_id + 1 + mpi_size) %  mpi_size;
-
-    // Pipepline ring algorithm in the following for-loop:
-    // 1) At each time step, local rank receives a new G2 from left hand neighbor,
-    // makes a copy locally and uses this G2 to update G4, and
-    // sends this G2 to right hand neighbor. In total, the algorithm performs (mpi_size - 1) steps.
-    // 2) This algorithm currently requires parameters in input file, please refer to mci_parameters.hpp:
-    //      a) #walker == #accumulator and shared-walk-and-accumulation-thread = true;
-    //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
-    //         measurements % ranks == 0 && local_measurement % threads == 0.
-    for(int icount=0; icount < (mpi_size-1); icount++)
-    {
-        MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
-                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
-                  left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
-        MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
-                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
-                  left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2);
-
-        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
-                  right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1);
-        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                  dca::parallel::MPITypeMap<RMatrixValueType>::value(),
-                  right_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &send_request_2);
-
-        // wait for G2 to be available again
-        MPI_Wait(&recv_request_1, &status_1);
-        MPI_Wait(&recv_request_2, &status_2);
-
-        // use newly copied G2 to update G4
-        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-        {
-            flop += updateG4(channel);
-        }
-
-        // wait for sendbuf_G2 to be available again
-        MPI_Wait(&send_request_1, &status_3);
-        MPI_Wait(&send_request_2, &status_4);
-
-        // get ready for send again
-        for (int s = 0; s < 2; ++s)
-        {
-            sendbuff_G_[s].swap(G_[s]);
-        }
-    }
 }
 
 template <class Parameters>

@@ -17,7 +17,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <type_traits>
 
+#include "dca/util/type_utils.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/json/json_parser/json_context.hpp"
@@ -66,8 +68,9 @@ public:
   template <typename arbitrary_struct_t>
   static void from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);
 
-  template <typename scalartype>
-  void execute(std::string name, scalartype& value);
+  // Scalar type, std::string etc. 
+  template <typename T>
+  void execute(std::string name, T& value);
 
   // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
@@ -146,10 +149,9 @@ void JSONReader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
   reader_obj.close_file();
 }
 
-template <typename scalartype>
-void JSONReader::execute(std::string name, scalartype& value) {
+template <typename T>
+void JSONReader::execute(std::string name, T& value) {
   std::size_t index = 0;
-
   if (index == my_paths.size())
     value <= parse_result[name];
   else {
