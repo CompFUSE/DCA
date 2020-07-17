@@ -26,7 +26,8 @@ set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING
 set(SMPIARGS_FLAG_MPI "" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
 
 # When we want to us a cuda visible devices restriction we need this flag
-set(SMPIARGS_FLAG_MPI_CVD CACHE STRING "--smpiargs=gpu")
+set(SMPIARGS_FLAG_MPI_CVD "--smpiargs=-gpu" CACHE STRING 
+  "Spectrum MPI argument list for cuda-mpi tests")
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
