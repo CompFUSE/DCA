@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
@@ -39,7 +40,8 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+template <typename ParametersType, typename DcaDataType, typename MCIntegratorType,
+          DistType DIST = DistType::NONE>
 class DcaLoop {
 public:
   using profiler_type = typename ParametersType::profiler_type;
@@ -113,9 +115,8 @@ protected:
 };
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(ParametersType& parameters_ref,
-                                                                DcaDataType& MOMS_ref,
-                                                                concurrency_type& concurrency_ref)
+DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
+    ParametersType& parameters_ref, DcaDataType& MOMS_ref, concurrency_type& concurrency_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
@@ -247,7 +248,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_Greens_function() {
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
+             DIST>::perform_cluster_mapping_Greens_function() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 
@@ -288,7 +290,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(int DCA_iteration) {
+double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(
+    int DCA_iteration) {
   {
     profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
     monte_carlo_integrator_.initialize(DCA_iteration);
