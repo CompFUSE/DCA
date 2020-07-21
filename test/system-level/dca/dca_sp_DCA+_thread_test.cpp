@@ -62,7 +62,7 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
 
   using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>;
 
-  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
+  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
