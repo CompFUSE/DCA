@@ -162,7 +162,9 @@ public:
   // Pointer version
   // Precondition: The size of the array pointed to by subind must be equal to the number of leaf
   //               domains (Nb_sbdms).
-  // TODO: Replace pointer version with std::array to be able to check subind's size.
+  // \todo Replace pointer version with std::array to be able to check subind's size.
+  // \todo validate or not usage of these for distributed (across MPI) functions, I strongly suspect they are
+  //       not ok./
   void linind_2_subind(int linind, int* subind) const;
   // std::vector version
   void linind_2_subind(int linind, std::vector<int>& subind) const;
