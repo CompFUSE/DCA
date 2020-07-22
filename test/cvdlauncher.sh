@@ -1,4 +1,6 @@
 #!/bin/bash
+# simple wrapper setting CUDA_VISIBLE_DEVICES for jobs
+
 let ngpus=6;
 export cmd=$1
 if [ ! -z $CUDA_VISIBLE_DEVICES ]
