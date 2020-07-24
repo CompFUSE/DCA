@@ -206,13 +206,13 @@ set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB)
 
 if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
@@ -237,7 +237,7 @@ option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in 
 
 if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
-  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
+  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType<DIST>>)
   set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
 endif()

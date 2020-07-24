@@ -34,18 +34,24 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
 #include "dca/phys/dca_data/dca_data.hpp"
 using DcaDataType = dca::phys::DcaData<ParametersType>;
 
+// You know whats probably worse than using the C preprocessor,
+// generating code using cmake.
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
+template<dca::DistType DIST>
 using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 // TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
 #include "@DCA_THREADED_SOLVER_INCLUDE@"
+template<dca::DistType DIST>
 using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 #else
-using ClusterSolver = ClusterSolverBaseType;
+template<dca::DistType DIST>
+using ClusterSolver = ClusterSolverBaseType<DIST>;
 #endif  // DCA_WITH_THREADED_SOLVER
 
 #include "dca/phys/dca_loop/dca_loop.hpp"
-using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver>;
+template<dca::DistType DIST>
+using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver<DIST>, DIST>;
 
 #endif  // DCA_CONFIG_DCA_HPP

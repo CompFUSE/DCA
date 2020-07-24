@@ -52,7 +52,8 @@
     "seed" : 0,
 
     "threaded-solver" : {
-      "accumulators" : 3
+      "accumulators" : 3,
+      "g4-distribution" : "MPI"
     }
   },
 

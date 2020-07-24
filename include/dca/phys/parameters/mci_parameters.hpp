@@ -18,8 +18,12 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
+
+#include <mpi.h>
 
 namespace dca {
 namespace phys {
@@ -78,6 +82,10 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
+  DistType get_g4_distribution() const {
+    return g4_distribution_;
+  }
+
   // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
   // bias toward faster walkers, at the expanse of load balance.
   bool fix_meas_per_walker() const {
@@ -116,6 +124,7 @@ private:
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
+  DistType g4_distribution_;
 };
 
 template <typename Concurrency>
@@ -133,6 +142,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
   buffer_size += concurrency.get_buffer_size(store_configuration_);
+  buffer_size += concurrency.get_buffer_size(g4_distribution_);
 
   return buffer_size;
 }
@@ -151,6 +161,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
+  concurrency.pack(buffer, buffer_size, position, g4_distribution_);
 }
 
 template <typename Concurrency>
@@ -167,6 +178,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
+  concurrency.unpack(buffer, buffer_size, position, g4_distribution_);
 }
 
 template <typename ReaderOrWriter>
@@ -180,7 +192,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         // Try to read a seeding option.
         std::string seed_string;
         reader_or_writer.execute("seed", seed_string);
-        if (seed_string == "random")
+        if (strcmp(seed_string.c_str(), "random") == 0)
           generateRandomSeed();
         else {
           std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed
@@ -264,6 +276,61 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
+      std::string g4_dist_input;
+      if (reader_or_writer.is_reader()) {
+        try {
+          reader_or_writer.execute("g4-distribution", g4_dist_input);
+          if (g4_dist_input.size() > 0) {
+            if (strcmp(g4_dist_input.c_str(), "MPI") == 0) {
+              g4_distribution_ = dca::DistType::MPI;
+              if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+                throw std::logic_error(
+                    "\n With distributed g4 enabled, 1) walker and accumulator should share "
+                    "thread, "
+                    "2) #walker == #accumulator\n");
+              }
+              int mpi_size;
+              MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+              int local_meas = measurements_ / mpi_size;
+              if (measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0) {
+                throw std::logic_error(
+                    "\n With distributed g4 enabled, 1) local measurements should be same across "
+                    "ranks, "
+                    "2) each accumulator should have same measurements\n");
+              }
+            }
+            else if (g4_dist_input.size() == 0 || strcmp(g4_dist_input.c_str(), "NONE") == 0) {
+              g4_distribution_ = dca::DistType::NONE;
+            }
+            else {
+              std::cerr << "Warning: Invalid g4-distribution. Using None." << std::endl;
+              g4_distribution_ = dca::DistType::NONE;
+            }
+          }
+          else {
+            g4_distribution_ = dca::DistType::NONE;
+          }
+        }
+        catch (const std::exception& r_e) {
+        }
+      }
+      else {
+        try {
+          switch (g4_distribution_) {
+            case dca::DistType::MPI:
+              g4_dist_input = "MPI";
+              reader_or_writer.execute("g4-distribution", g4_dist_input);
+              break;
+            case dca::DistType::NONE:
+              g4_dist_input = "NONE";
+              reader_or_writer.execute("g4-distribution", g4_dist_input);
+              break;
+          }
+        }
+        catch (const std::exception& r_e) {
+        }
+      }
+
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
