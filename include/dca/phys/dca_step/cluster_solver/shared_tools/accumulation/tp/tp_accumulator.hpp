@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "dca/config/config_defines.hpp"
+#include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
@@ -41,11 +42,11 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters, linalg::DeviceType device = linalg::CPU>
+template <class Parameters, linalg::DeviceType device = linalg::CPU, DistType DT = DistType::NONE>
 class TpAccumulator;
 
 template <class Parameters>
-class TpAccumulator<Parameters, linalg::CPU> {
+class TpAccumulator<Parameters, linalg::CPU, dca::DistType::NONE> {
 public:
   using Real = typename Parameters::TP_measurement_scalar_type;
 
@@ -101,6 +102,9 @@ public:
 
   // Empty method for compatibility with GPU version.
   void finalize() {}
+
+  // Empty method for compatibility with GPU version.
+  void ringG() {}
 
   // Returns the accumulated Green's function.
   const auto& get_sign_times_G4() const;

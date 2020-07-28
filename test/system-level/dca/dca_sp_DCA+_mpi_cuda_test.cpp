@@ -57,7 +57,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
-  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
+  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

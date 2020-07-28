@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.ed)
 //
 // Implements the GPU kernels used by the DFT algorithm.
 
@@ -17,6 +18,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
@@ -46,20 +48,6 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
   const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
 
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
-
-std::array<dim3, 2> getBlockSize3D(const uint i, const uint j, const uint k) {
-  const uint n_threads_k = std::min(uint(8), k);
-  const uint max_block_size_ij = n_threads_k > 1 ? 8 : 32;
-  const uint n_threads_i = std::min(max_block_size_ij, i);
-  const uint n_threads_j = std::min(max_block_size_ij, j);
-
-  const uint n_blocks_i = dca::util::ceilDiv(i, n_threads_i);
-  const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
-  const uint n_blocks_k = dca::util::ceilDiv(k, n_threads_k);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j, n_blocks_k),
-                             dim3(n_threads_i, n_threads_j, n_threads_k)};
 }
 
 template <typename Real>
@@ -178,42 +166,29 @@ template <typename Real, FourPointType type>
 __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
                                const CudaComplex<Real>* __restrict__ G_up, const int ldgu,
                                const CudaComplex<Real>* __restrict__ G_down, const int ldgd,
-                               const int nb, const int nk, const int nw, const int nw_exchange,
-                               const int nk_exchange, const int sign, const bool atomic) {
+                               const int sign, const bool atomic, const uint64_t start,
+                               const uint64_t end) {
   // TODO: reduce code duplication.
   // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
 
-  const int size = nk * nw * nb * nb;
-  // id_i is a linearized index of b1, b2, k1, k2.
-  const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
-  // id_j is a linearized index of b3, b4, k2, k_ex.
-  const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
-  // id_z is a linearized index of k_ex, w_ex.
-  const int id_z = blockIdx.z * blockDim.z + threadIdx.z;
-  if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
+  const uint64_t local_g4_index =
+      static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x) +
+      static_cast<uint64_t>(threadIdx.x);
+
+  const uint64_t g4_index = local_g4_index + start;
+
+  if (g4_index >= end) {  // out of domain.
     return;
+  }
 
-  // Unroll id_i and id_j.
-  const int step2 = nb * nb;
-  const int step1 = step2 * nk;
-  auto get_indices = [=](int id, int& b1, int& b2, int& k, int& w) {
-    w = id / step1;
-    id -= w * step1;
-    k = id / step2;
-    id -= k * step2;
-    b2 = id / nb;
-    b1 = id - nb * b2;
-  };
-  int w1, w2, k1, k2, b1, b2, b3, b4;
-  get_indices(id_i, b1, b2, k1, w1);
-  get_indices(id_j, b3, b4, k2, w2);
+  unsigned b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex;
+  g4_helper.unrollIndex(g4_index, b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
 
-  // Unroll the exchange index id_z = k_ex + nk_exchange * w_ex.
-  const int w_ex = id_z / nk_exchange;
-  const int k_ex = id_z - w_ex * nk_exchange;
+  const unsigned nb = g4_helper.get_bands();
+  const unsigned nk = g4_helper.get_cluster_size();
 
   CudaComplex<Real> contribution;
-  const int no = nk * nb;
+  const unsigned no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
 
   // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
@@ -476,9 +451,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       asm("trap;");
   }
 
-  CudaComplex<Real>* const result_ptr =
-      G4 + g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
-
+  CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
   if (atomic)
     dca::linalg::atomicAdd(result_ptr, contribution * 0.5 * sign);
   else
@@ -487,17 +460,14 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
 template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
-               const std::complex<Real>* G_down, const int ldgd, const int nb, const int nk,
-               const int nw_pos, const int nw_exchange, const int nk_exchange, const int sign,
-               bool atomic, cudaStream_t stream) {
-  const int nw = 2 * nw_pos;
-  const int size_12 = nw * nk * nb * nb;
-  const int size_3 = nw_exchange * nk_exchange;
-  const auto blocks = getBlockSize3D(size_12, size_12, size_3);
+               const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
+               cudaStream_t stream, std::size_t start, std::size_t end) {
+  constexpr const std::size_t n_threads = 256;
+  const unsigned n_blocks = dca::util::ceilDiv(end - start, n_threads);
 
-  updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
-      castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
-      nw_exchange, nk_exchange, sign, atomic);
+  updateG4Kernel<Real, type>
+      <<<n_blocks, n_threads, 0, stream>>>(castCudaComplex(G4), castCudaComplex(G_up), ldgu,
+                                           castCudaComplex(G_down), ldgd, sign, atomic, start, end);
 
   // Check for errors.
   auto err = cudaPeekAtLastError();
@@ -506,7 +476,7 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
     throw(std::runtime_error("CUDA failed to launch the G4 kernel."));
   }
 
-  const std::size_t n_updates = size_12 * size_12 * size_3;
+  const std::size_t n_updates = end - start;
   switch (type) {
       // Note: sign flips  are ignored and a single complex * real multiplication is
       // present in all modes.
@@ -550,63 +520,65 @@ template void computeGMultiband<double>(std::complex<double>* G, int ldg,
 
 template float updateG4<float, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, PARTICLE_HOLE_MAGNETIC>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
-template float updateG4<float, PARTICLE_HOLE_CHARGE>(
-    std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+template float updateG4<float, PARTICLE_HOLE_CHARGE>(std::complex<float>* G4,
+                                                     const std::complex<float>* G_up, const int ldgu,
+                                                     const std::complex<float>* G_down,
+                                                     const int ldgd, const int sign, bool atomic,
+                                                     cudaStream_t stream, std::size_t start,
+                                                     std::size_t end);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_HOLE_TRANSVERSE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_HOLE_MAGNETIC>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_HOLE_CHARGE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int nb, const int nk, const int nw_pos,
-    const int nw_exchange, const int nk_exchange, const int sign, bool atomic, cudaStream_t stream);
+    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 }  // namespace details
 }  // namespace accumulator
