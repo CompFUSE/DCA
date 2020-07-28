@@ -23,7 +23,9 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
+#ifdef DCA_HAVE_MPI
 #include <mpi.h>
+#endif
 
 namespace dca {
 namespace phys {

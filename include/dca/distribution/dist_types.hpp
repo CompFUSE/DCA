@@ -13,7 +13,9 @@
 #define DCA_DIST_TYPE_HPP
 
 namespace dca {
-enum class DistType { NONE, MPI };
+enum class DistType {
+		     NONE,
+		     MPI };
 }  // namespace dca
 
 #endif  // DCA_DIST_TYPE_HPP

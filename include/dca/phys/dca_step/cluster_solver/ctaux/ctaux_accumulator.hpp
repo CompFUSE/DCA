@@ -53,7 +53,7 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real = double>
+  template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST = dca::DistType::NONE, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
@@ -162,7 +162,7 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return accumulator::TpAccumulator<Parameters, device_t>::staticDeviceFingerprint();
+    return accumulator::TpAccumulator<Parameters, device_t, DIST>::staticDeviceFingerprint();
   }
 
 private:
