@@ -29,15 +29,14 @@ namespace details {
 
 class NfftHelper {
 public:
-  using Scalar = dca::config::McOptions::MCScalar;
+  using Real = typename dca::config::McOptions::Real;
 
-  static void set(int nb, const int nc, const int* add_r, int lda, const int* sub_r, int lds,
-                  Scalar t0, Scalar delta_t, const Scalar t0_window, const Scalar delta_t_window,
-                  const Scalar beta);
+  static void set(int nb, const int nc, const int* add_r, int lda, const int* sub_r, int lds, Real t0,
+                  Real delta_t, const Real t0_window, const Real delta_t_window, const Real beta);
 
   __device__ int inline computeLinearIndex(int b1, int b2, int r1, int r2) const;
 
-  __device__ auto inline computeTau(Scalar t1, Scalar t2) const;
+  __device__ auto inline computeTau(Real t1, Real t2) const;
 
   __device__ inline int deltaR(int r1, int r2) const;
 
@@ -47,7 +46,7 @@ public:
 
 private:
   int nb_;
-  Scalar t0_, delta_t_, t0_window_, delta_t_window_, one_div_delta_, one_div_delta_t_window_,
+  Real t0_, delta_t_, t0_window_, delta_t_window_, one_div_delta_, one_div_delta_t_window_,
       tau_scale_;
 };
 
@@ -60,7 +59,7 @@ __device__ int inline NfftHelper::computeLinearIndex(const int b1, const int b2,
   return b1 + nb_ * (b2 + nb_ * delta_r);
 }
 
-__device__ auto NfftHelper::computeTau(Scalar t1, Scalar t2) const {
+__device__ auto NfftHelper::computeTau(Real t1, Real t2) const {
   return (t1 - t2) * tau_scale_;
 }
 

@@ -175,6 +175,19 @@ struct IsComplex<std::complex<T>> {
   constexpr static bool value = 1;
 };
 
+template<class T>
+struct RealImpl {
+  using type = T;
+};
+
+template<class T>
+struct RealImpl<std::complex<T>>{
+  using type = T;
+};
+
+template<class T>
+using Real = typename RealImpl<T>::type;
+
 }  // namespace util
 }  // namespace dca
 

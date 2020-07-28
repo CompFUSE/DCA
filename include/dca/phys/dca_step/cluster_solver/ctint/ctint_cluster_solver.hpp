@@ -48,7 +48,7 @@ namespace solver {
 template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
 class CtintClusterSolver {
 public:
-  using Real = typename config::McOptions::MCScalar;
+  using Real = typename config::McOptions::Real;
 
   using Data = DcaData<Parameters>;
   static constexpr linalg::DeviceType device = device_t;

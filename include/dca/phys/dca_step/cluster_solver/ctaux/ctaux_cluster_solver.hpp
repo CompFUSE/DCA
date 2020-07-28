@@ -62,7 +62,7 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using MCScalar = typename dca::config::McOptions::MCScalar;
+  using MCScalar = typename dca::config::McOptions::Real;
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data, MCScalar>;
   using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data, DIST, MCScalar>;
 

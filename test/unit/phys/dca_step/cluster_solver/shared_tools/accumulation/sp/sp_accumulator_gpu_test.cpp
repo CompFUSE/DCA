@@ -20,7 +20,7 @@
 #include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-using Scalar = typename dca::config::McOptions::MCScalar;
+using Scalar = typename dca::config::McOptions::Real;
 using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
 
 using MatrixPair = SpAccumulatorGpuTest::Sample;

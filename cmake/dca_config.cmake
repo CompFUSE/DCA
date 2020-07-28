@@ -307,21 +307,13 @@ else()
 endif()
 
 option(DCA_WITH_SINGLE_PRECISION_MC "Perform Monte Carlo and measurements in single precision." OFF)
-option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure two particle function in single precision." OFF)
 
 if (DCA_WITH_SINGLE_PRECISION_MC)
   set(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS ON CACHE BOOL "Measure two particle function in single precision." FORCE)
-  set(MC_SCALAR float)
+  set(MC_SINGLE_PRECISION true)
 else()
-  set(MC_SCALAR double)
+  set(MC_SINGLE_PRECISION false)
 endif()
-
-if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-  set(TP_ACCUMULATION_SCALAR float)
-else()
-  set(TP_ACCUMULATION_SCALAR double)
-endif()
-
 
 option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
 mark_as_advanced(DCA_WITH_MANAGED_MEMORY)

@@ -21,9 +21,9 @@ namespace details {
 
 __device__ __constant__ NfftHelper nfft_helper;
 
-void NfftHelper::set(int nb, const int nc, const int *add_r, int lda, const int *sub_r, int lds,
-                     Scalar t0, Scalar delta_t, const Scalar t0_window, const Scalar delta_t_window,
-                     const Scalar beta) {
+void NfftHelper::set(int nb, const int nc, const int* add_r, int lda, const int* sub_r, int lds,
+                     Real t0, Real delta_t, const Real t0_window, const Real delta_t_window,
+                     const Real beta) {
   static std::once_flag flag;
   std::call_once(flag, [=]() {
     dca::phys::solver::ClusterHelper::set(nc, add_r, lda, sub_r, lds, false);
