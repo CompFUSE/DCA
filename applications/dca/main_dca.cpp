@@ -21,6 +21,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "dca/util/signal_handler.hpp"
+#include "dca/application/dca_loop_dispatch.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -74,24 +75,23 @@ int main(int argc, char** argv) {
     DcaDataType dca_data(parameters);
     dca_data.initialize();
 
-    DcaLoopType dca_loop(parameters, dca_data, concurrency);
-
+    dca::DistType distribution = parameters.get_g4_distribution();
+    switch(distribution) {
+    case dca::DistType::MPI:
     {
-      Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
-
-      dca_loop.initialize();
-      dca_loop.execute();
-      dca_loop.finalize();
+      DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
+      dca_loop_dispatch(parameters, dca_data, concurrency);
+    }
+      break;
+    case dca::DistType::NONE:
+    {
+      DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
+      dca_loop_dispatch(parameters, dca_data, concurrency);
+    }
+      break;
     }
 
-    Profiler::stop(concurrency, parameters.get_filename_profiling());
 
-    if (concurrency.id() == concurrency.first()) {
-      std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-      dca_loop.write();
-
-      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
-    }
   }
   catch (const std::exception& err) {
     std::cout << "Unhandled exception in main function:\n\t" << err.what();

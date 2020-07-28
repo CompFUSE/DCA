@@ -56,7 +56,10 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
-  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
+  // The DistType parameter should be covered by the default in dca_loop.hpp
+  // but it doesn't work for gcc 8.3.0 on cray.
+  using DcaLoopType =
+      dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   auto& concurrency = dca_test_env->concurrency;
   dca::util::SignalHandler::init(concurrency.id() == concurrency.first());

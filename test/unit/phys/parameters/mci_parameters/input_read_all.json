@@ -11,6 +11,7 @@
         "compute-G-correlation" : true,
         "stamping-period" : 100,
 
+        "g4-distribution": "MPI",
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,
