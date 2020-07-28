@@ -188,6 +188,30 @@ struct RealImpl<std::complex<T>>{
 template<class T>
 using Real = typename RealImpl<T>::type;
 
+template<bool single_precision, bool complex>
+struct ScalarImpl;
+template<>
+struct ScalarImpl<true, true>{
+  using type = std::complex<float>;
+};
+template<>
+struct ScalarImpl<false, true>{
+  using type = std::complex<double>;
+};
+template<>
+struct ScalarImpl<true, false>{
+  using type = float;
+};
+template<>
+struct ScalarImpl<false, false>{
+  using type = double;
+};
+
+template<bool single_precision, bool complex>
+using Scalar = typename ScalarImpl<single_precision, complex>::type;
+
+
+
 }  // namespace util
 }  // namespace dca
 

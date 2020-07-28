@@ -49,6 +49,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/print_type.hpp"
 
 namespace dca {
@@ -76,6 +77,9 @@ public:
   using random_number_generator = RandomNumberGenerator;
   using model_type = Model;
   using lattice_type = typename Model::lattice_type;
+
+  using MCScalar =
+      util::Scalar<config::McOptions::single_precision, models::complex_g0<lattice_type>>;
 
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
