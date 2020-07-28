@@ -1,0 +1,1 @@
+dca_add_perftest(random_access_map_perftest)

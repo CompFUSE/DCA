@@ -31,7 +31,7 @@ struct CtintWalkerChoicheSelector;
 
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real, false>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, Real>;
 };
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
@@ -41,7 +41,7 @@ struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
 #ifdef DCA_HAVE_CUDA
 template <class Parameters, typename Real>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real, false>;
+  using type = CtintWalkerSubmatrixGpu<Parameters, Real>;
 };
 
 template <class Parameters, typename Real>

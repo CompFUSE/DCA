@@ -80,19 +80,6 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
       0, 0.99, 0.4, 0.2, -1,  // Insertion
   };
 
-  // NOTE: the non-submatrix walker reorders the configuration after each removal, therefore we need
-  // to change the vertex_id value for some removals, in order to obtain the same results.
-  const std::vector<double> rng_nosub_vals{
-      0, 0,    0.1, 0.8, -1,  // Insertion.
-      0, 0.99, 0.2, 0.8, -1,  // Insertion.
-      0, 0,    0.3, 0.8, 2,   // Insertion. Rejected.
-      1, 0,    -1,            // Remove tau = 0.00
-      1, 0.,   -1,            // Remove tau = 0.2
-      1, 0.99, 2,             // Remove tau = 0.1. Rejected
-      1, 0.2,  2,             // Remove tau = 0.01 . Rejected
-      0, 0.99, 0.4, 0.2, -1,  // Insertion
-  };
-
   for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
     SubmatrixWalker walker(parameters, rng);
@@ -116,7 +103,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     rng.setNewValues(setup_rngs);
     Walker walker_nosub(parameters, rng);
 
-    rng.setNewValues(rng_nosub_vals);
+    rng.setNewValues(rng_vals);
     for (int i = 0; i < steps; ++i)
       walker_nosub.doStep();
 
