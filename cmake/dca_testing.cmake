@@ -82,7 +82,11 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  if (DCA_ADD_GTEST_CUDA_CVD AND NOT DCA_HAVE_CUDA)
+  if (DCA_ADD_GTEST_CUDA_CVD AND NOT DCA_HAVE_CUDA )
+    return()
+  endif()
+
+  if (DCA_ADD_GTEST_CUDA_CVD AND (DCA_TEST_GPU_COUNT LESS 3) )
     return()
   endif()
 
