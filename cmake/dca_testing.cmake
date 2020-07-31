@@ -1,5 +1,6 @@
 ################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 #
 # Enables testing.
 # References: - https://github.com/ALPSCore/ALPSCore
@@ -81,7 +82,11 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  if (DCA_ADD_GTEST_CUDA_CVD AND NOT DCA_HAVE_CUDA)
+  if (DCA_ADD_GTEST_CUDA_CVD AND NOT DCA_HAVE_CUDA )
+    return()
+  endif()
+
+  if (DCA_ADD_GTEST_CUDA_CVD AND (DCA_TEST_GPU_COUNT LESS 3) )
     return()
   endif()
 
@@ -140,3 +145,33 @@ function(dca_add_gtest name)
   endif()
 
 endfunction()
+
+# Adds a performance test written with the Google benchmark.
+#
+# dca_add_gtest(name
+#               [INCLUDE_DIRS dir1 [dir2 ...]]
+#               [LIBS lib1 [lib2 ...]])
+#
+# If DCA_WITH_TESTS_PERFORMANCE is defined, adds a test called 'name', the source is assumed to be
+# 'name.cpp'.
+
+function(dca_add_perftest name)
+  set(multiValueArgs INCLUDE_DIRS LIBS)
+  cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  if (NOT DCA_WITH_TESTS_PERFORMANCE)
+    return()
+  endif()
+
+  add_executable(${name} ${name}.cpp)
+
+  target_include_directories(${name} PRIVATE ${benchmark_dir}/include ${PROJECT_SOURCE_DIR}/include
+                             ${DCA_ADD_PERFTEST_INCLUDE_DIRS})
+
+
+  target_link_libraries(${name} PRIVATE ${DCA_ADD_PERFTEST_LIBS};gtest benchmark_main benchmark)
+
+  target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+endfunction()
+
+

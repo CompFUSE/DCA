@@ -108,13 +108,20 @@ private:
   std::array<linalg::util::HostVector<int>, 2> matrix_removal_list_;
   std::array<linalg::util::HostVector<int>, 2> matrix_source_list_;
   std::vector<int> removal_list_;
+
+  // Number of random values to use to maintain testing consistency with the submatrix walker.
+  const unsigned n_removal_rngs_;
 };
 
 template <class Parameters, typename Real>
 CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parameters_ref,
                                                         const Data& /*data*/, Rng& rng_ref, int id)
-    : BaseClass(parameters_ref, rng_ref, id), det_ratio_{1, 1} {}
-
+    : BaseClass(parameters_ref, rng_ref, id),
+      det_ratio_{1, 1},
+      // If we perform double updates, we need at most 3 rng values for: selecting the first vertex,
+      // deciding if we select a second one, select the second vertex. Otherwise only the first is
+      // needed.
+      n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
 
 template <class Parameters, typename Real>
 void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
@@ -143,7 +150,10 @@ void CtintWalker<linalg::CPU, Parameters, Real>::doStep() {
     if (configuration_.size())
       n_accepted_ += tryVertexRemoval();
     else {
-      rng_(), rng_(), rng_();  // Burn random numbers for testing consistency.
+      // Burn random numbers for testing consistency.
+      // One extra rng for the acceptance probability.
+      for (unsigned i = 0; i < n_removal_rngs_ + 1; ++i)
+        rng_();
     }
   }
 
@@ -245,7 +255,11 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
 
 template <class Parameters, typename Real>
 Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
-  const auto candidates = configuration_.randomRemovalCandidate(rng_);
+  std::array<double, 3> removal_rngs;
+  for(unsigned i = 0; i < n_removal_rngs_; ++i)
+      removal_rngs[i] = rng_();
+
+  const auto candidates = configuration_.randomRemovalCandidate(removal_rngs);
   removal_list_.clear();
   for (int candidate : candidates) {
     if (candidate != -1)

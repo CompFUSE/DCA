@@ -36,13 +36,13 @@ struct WalkerSelector;
 template <class Parameters, typename Real>
 struct WalkerSelector<Parameters, CPU, Real> {
   // Fix rng order for testing.
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real, true>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, Real>;
 };
 
 #ifdef DCA_HAVE_CUDA
 template <class Parameters, typename Real>
 struct WalkerSelector<Parameters, GPU, Real> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real, true>;
+  using type = CtintWalkerSubmatrixGpu<Parameters, Real>;
 };
 #endif  // DCA_HAVE_CUDA
 
