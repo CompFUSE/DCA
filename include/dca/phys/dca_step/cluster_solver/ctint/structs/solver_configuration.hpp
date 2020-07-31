@@ -22,6 +22,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/util/containers/random_access_map.hpp"
 
 namespace dca {
 namespace phys {
@@ -50,11 +51,12 @@ public:
   void insertRandom(RngType& rng);
 
   // Returns the indices of the removal candidates. -1 stands for a missing candidate.
-  template <class RngType>
-  std::array<int, 2> randomRemovalCandidate(RngType& rng);
-
-  // Similar to the above method, but sample vertices irrespective of their order.
-  std::array<int, 2> randomRemovalCandidateSlow(const std::array<double, 3>& rng_vals);
+  std::array<int, 2> randomRemovalCandidate(const std::array<double, 3>& rvals);
+  // Similar to the method above.
+  // Precondition: no double moves are proposed.
+  std::array<int, 2> randomRemovalCandidate(double rval) {
+    return randomRemovalCandidate({rval, -1, -1});
+  }
 
   // Out: indices. Appends the result of the search to indices.
   template <class Alloc>
@@ -130,16 +132,17 @@ private:
   std::array<std::vector<ConfigRef>, 2> matrix_config_indices_;
 
   using BaseClass::H_int_;
-  std::vector<std::vector<std::size_t>> existing_;
 
-  // TODO: use a structure with fast (log N?) removal/insertion and random access.
-  // Or sample randomly from std::unordered_set using its hash function, if it's good enough.
-  std::vector<const std::vector<std::size_t>*> partners_lists_;
+  std::vector<details::VertexTypeList> existing_;
+
+  // Temporary storage for the removal candidate method.
+  std::vector<const details::VertexTypeList*> partners_lists_;
+
   unsigned short last_insertion_size_ = 1;
   const double max_tau_ = 0;
   const int n_bands_ = 0;
 
-  unsigned n_annihilatable_ = 0;
+  dca::util::RandomAccessMap<std::size_t, unsigned> anhilatable_indices_;
   std::uint64_t current_tag_ = 0;
 };
 
@@ -164,59 +167,6 @@ void SolverConfiguration::insertRandom(Rng& rng) {
   }
   assert(2 * size() == getSector(0).size() + getSector(1).size());
 }
-
-template <class RngType>
-std::array<int, 2> SolverConfiguration::randomRemovalCandidate(RngType& rng) {
-  std::array<int, 2> candidates{-1, -1};
-  if (n_annihilatable_ == 0)
-    return candidates;
-
-  // Note:
-  // When sampling by retrying in case of failure, the probability of success is p_s n /
-  // n_annihlatable, with n = size(). This translates to an expected cost of \sum_l l p_s (1 -
-  // p_s)^(l - 1) = 1 / p_s. Therefore this algorithm is faster than a read on all the
-  // vertices when n_annihlatable > cost(random _number) / cost(vertex_read).
-
-  // Lets assume cost(random _number) / cost(vertex_read) =~ 10
-  // This also helps when testing on a small configuration as we need only one random number.
-  constexpr unsigned threshold = 10;
-
-  if (n_annihilatable_ >= threshold) {
-    do {
-      candidates[0] = rng() * size();
-    } while (!vertices_[candidates[0]].annihilatable);
-  }
-  else {
-    unsigned annihilatable_idx = rng() * n_annihilatable_;
-    unsigned annihilatable_found = 0;
-    for (int i = 0; i < vertices_.size(); ++i) {
-      if (vertices_[i].annihilatable) {
-        if (annihilatable_found == annihilatable_idx) {
-          candidates[0] = i;
-          break;
-        }
-        ++annihilatable_found;
-      }
-    }
-  }
-
-  if (doDoubleUpdate(rng) &&
-      (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
-    partners_lists_.clear();
-    for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id)
-      partners_lists_.push_back(&existing_[partner_id]);
-
-    const auto tag = details::getRandomElement(partners_lists_, rng());
-    if (tag != -1) {
-      candidates[1] = findTag(tag);
-      assert(candidates[1] < int(size()) && candidates[1] >= 0);
-      assert(vertices_[candidates[1]].annihilatable);
-    }
-  }
-
-  assert(candidates[0] < int(size()));
-  return candidates;
-}  // namespace ctint
 
 template <class Rng>
 bool SolverConfiguration::doDoubleUpdate(Rng& rng) const {
