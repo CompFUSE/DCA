@@ -30,6 +30,7 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
+#include "dca/util/ignore.hpp"
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/type_utils.hpp"
 
@@ -304,6 +305,7 @@ function<scalartype, domain>::function(const std::string& name, DistType dist)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
+  dca::util::ignoreUnused(dist);
 #ifdef DCA_HAVE_MPI
   if (dist == DistType::MPI) {
     int my_rank, mpi_size;
