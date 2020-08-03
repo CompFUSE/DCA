@@ -34,7 +34,7 @@ TEST(SolverConfigurationTest, MoveAndShrink) {
   auto execute_test = [&](int conf_size, std::vector<int> remove) {
     dca::phys::solver::ctint::SolverConfiguration config(1, 1, interactions);
     for (int i = 0; i < conf_size; ++i) {
-        config.insertRandom(rng);
+      config.insertRandom(rng);
     }
 
     EXPECT_EQ(conf_size, config.size());
@@ -74,7 +74,7 @@ TEST(SolverConfigurationTest, randomRemovalCandidate) {
 
   auto execute_test = [&](int n_attempts) {
     for (int i = 0; i < n_attempts; ++i) {
-      const auto candidates = config.randomRemovalCandidate(rng);
+      const auto candidates = config.randomRemovalCandidate(rng());
       EXPECT_EQ(candidates[1], -1);
       const auto tag = config[candidates[0]].tag;
       EXPECT_EQ(tags.count(tag), 1);
