@@ -35,8 +35,6 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 #include "dca/util/integer_division.hpp"
 
-#include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
-
 namespace dca {
 namespace phys {
 namespace solver {

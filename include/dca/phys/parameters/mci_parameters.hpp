@@ -46,7 +46,8 @@ public:
         fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE),
-        store_configuration_(true) {}
+        store_configuration_(true),
+        g4_distribution_(DistType::NONE) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -185,171 +186,97 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
-  try {
-    reader_or_writer.open_group("Monte-Carlo-integration");
-
-    if (reader_or_writer.is_reader()) {
-      // The input file can contain an integral seed or the seeding option "random".
-      try {
-        // Try to read a seeding option.
-        std::string seed_string;
-        reader_or_writer.execute("seed", seed_string);
-        if (strcmp(seed_string.c_str(), "random") == 0)
-          generateRandomSeed();
-        else {
-          std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed
-                    << "." << std::endl;
-          seed_ = default_seed;
-        }
-      }
-      catch (const std::exception& r_e) {
-        try {
-          // Read the seed as an integer.
-          reader_or_writer.execute("seed", seed_);
-        }
-
-        catch (const std::exception& r_e2) {
-        }
-      }
-    }
-
-    else {
-      // Write the seed.
-      try {
-        reader_or_writer.execute("seed", seed_);
-      }
-      catch (const std::exception& r_e) {
-      }
-    }
-
+  auto try_to_read_write = [&](const std::string& name, auto& obj) {
     try {
-      reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
+      reader_or_writer.execute(name, obj);
     }
-    catch (const std::exception& r_e) {
+    catch (std::exception&) {
     }
-    try {
-      reader_or_writer.execute("sweeps-per-measurement", sweeps_per_measurement_);
-    }
-    catch (const std::exception& r_e) {
-    }
+  };
 
-    try {
-      reader_or_writer.execute("measurements", measurements_);
-    }
-    catch (const std::exception& r_e) {
-    }
+  reader_or_writer.open_group("Monte-Carlo-integration");
 
-    // Read error computation type.
-    std::string error_type = toString(error_computation_type_);
+  if (reader_or_writer.is_reader()) {
+    // The input file can contain an integral seed or the seeding option "random".
     try {
-      reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = stringToErrorComputationType(error_type);
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
-      reader_or_writer.execute("store-configuration", store_configuration_);
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    // Read arguments for threaded solver.
-    try {
-      reader_or_writer.open_group("threaded-solver");
-      try {
-        reader_or_writer.execute("walkers", walkers_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("accumulators", accumulators_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("shared-walk-and-accumulation-thread",
-                                 shared_walk_and_accumulation_thread_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      std::string g4_dist_input;
-      if (reader_or_writer.is_reader()) {
-        try {
-          reader_or_writer.execute("g4-distribution", g4_dist_input);
-          if (g4_dist_input.size() > 0) {
-            if (strcmp(g4_dist_input.c_str(), "MPI") == 0) {
-              g4_distribution_ = dca::DistType::MPI;
-              if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
-                throw std::logic_error(
-                    "\n With distributed g4 enabled, 1) walker and accumulator should share "
-                    "thread, "
-                    "2) #walker == #accumulator\n");
-              }
-              int mpi_size;
-              MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-              int local_meas = measurements_ / mpi_size;
-              if (measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0) {
-                throw std::logic_error(
-                    "\n With distributed g4 enabled, 1) local measurements should be same across "
-                    "ranks, "
-                    "2) each accumulator should have same measurements\n");
-              }
-            }
-            else if (g4_dist_input.size() == 0 || strcmp(g4_dist_input.c_str(), "NONE") == 0) {
-              g4_distribution_ = dca::DistType::NONE;
-            }
-            else {
-              std::cerr << "Warning: Invalid g4-distribution. Using None." << std::endl;
-              g4_distribution_ = dca::DistType::NONE;
-            }
-          }
-          else {
-            g4_distribution_ = dca::DistType::NONE;
-          }
-        }
-        catch (const std::exception& r_e) {
-        }
-      }
+      // Try to read a seeding option.
+      std::string seed_string;
+      reader_or_writer.execute("seed", seed_string);
+      if (seed_string == "random")
+        generateRandomSeed();
       else {
-        try {
-          switch (g4_distribution_) {
-            case dca::DistType::MPI:
-              g4_dist_input = "MPI";
-              reader_or_writer.execute("g4-distribution", g4_dist_input);
-              break;
-            case dca::DistType::NONE:
-              g4_dist_input = "NONE";
-              reader_or_writer.execute("g4-distribution", g4_dist_input);
-              break;
-          }
-        }
-        catch (const std::exception& r_e) {
-        }
+        std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed << "."
+                  << std::endl;
+        seed_ = default_seed;
       }
-
-      reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
+      // Read the seed as an integer.
+      try_to_read_write("seed", seed_);
+    }
+  }  // is_reader()
+
+  else {
+    // Write the seed directly.
+    try_to_read_write("seed", seed_);
+  }
+
+  // Read error computation type.
+  std::string error_type = toString(error_computation_type_);
+  try_to_read_write("error-computation-type", error_type);
+  error_computation_type_ = stringToErrorComputationType(error_type);
+
+  try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
+  try_to_read_write("sweeps-per-measurement", sweeps_per_measurement_);
+  try_to_read_write("measurements", measurements_);
+
+  try_to_read_write("store-configuration", store_configuration_);
+
+  // Read arguments for threaded solver.
+  reader_or_writer.open_group("threaded-solver");
+
+  try_to_read_write("walkers", walkers_);
+  try_to_read_write("accumulators", accumulators_);
+  try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
+  try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
+
+  // Read distribution type.
+  std::string g4_dist_name = toString(g4_distribution_);
+  try_to_read_write("g4-distribution", g4_dist_name);
+  g4_distribution_ = stringToDistType(g4_dist_name);
+
+  reader_or_writer.close_group();
+
+  // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
+  // 'false'.
+  // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
+
+  reader_or_writer.close_group();
+
+  // Check parameters requirements.
+  if (g4_distribution_ == DistType::MPI) {
+#ifdef DCA_HAVE_MPI
+    // Check for number of accumulators and walkers consistency.
+    if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) walker and accumulator should share "
+          "thread, "
+          "2) #walker == #accumulator\n");
     }
 
-    // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
-    // 'false'.
-    // try {
-    //   reader_or_writer.execute("adjust-self-energy-for-double-counting",
-    //                            adjust_self_energy_for_double_counting_);
-    // }
-    // catch (const std::exception& r_e) {
-    // }
-
-    reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
+    // Check for number of ranks and g4 measurements consistency.
+    int mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    int local_meas = measurements_ / mpi_size;
+    if (measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) local measurements should be same across "
+          "ranks, "
+          "2) each accumulator should have same measurements\n");
+    }
+#else
+    throw(std::logic_error("MPI distribution requested with no MPI available."));
+#endif  // DCA_HAVE_MPI
   }
 }
 
