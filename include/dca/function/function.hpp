@@ -34,7 +34,9 @@
 #include "dca/util/type_utils.hpp"
 
 #include "dca/parallel/util/get_workload.hpp"
+#ifdef DCA_HAVE_MPI
 #include "mpi.h"
+#endif
 
 namespace dca {
 namespace func {
@@ -302,12 +304,14 @@ function<scalartype, domain>::function(const std::string& name, DistType dist)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
-  if (name.substr(0, 2) == "G4" && dist == DistType::MPI) {
+#ifdef DCA_HAVE_MPI
+  if (dist == DistType::MPI) {
     int my_rank, mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     nb_elements_ = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
   }
+#endif  // DCA_HAVE_MPI
   fnc_values = new scalartype[nb_elements_];
   for (int linind = 0; linind < nb_elements_; ++linind)
     setToZero(fnc_values[linind]);
