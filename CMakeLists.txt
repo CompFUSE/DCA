@@ -147,11 +147,7 @@ set(DCA_LIBS
   cuda_utils
 )
 
-set(SYSTEM_GPU_COUNT 0)
-
 if (DCA_HAVE_CUDA)
-  EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
-                  OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   list(APPEND DCA_LIBS
     blas_kernels
     dnfft_kernels
@@ -170,8 +166,6 @@ option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
 option(DCA_WITH_TESTS_STOCHASTIC  "Build DCA++'s stochastic tests." OFF)
-
-set(DCA_TEST_GPU_COUNT "${SYSTEM_GPU_COUNT}" CACHE INTEGER "Number of GPUs available on one node for one test.")
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
