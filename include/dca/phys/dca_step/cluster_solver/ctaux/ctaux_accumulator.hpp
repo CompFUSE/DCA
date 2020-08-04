@@ -43,17 +43,18 @@
 #ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
 #ifdef DCA_HAVE_MPI
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 #endif // DCA_HAVE_MPI
+#endif  // DCA_HAVE_CUDA
+
 namespace dca {
 namespace phys {
 namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real = double>
+  template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST = dca::DistType::NONE, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
@@ -162,7 +163,7 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return accumulator::TpAccumulator<Parameters, device_t>::staticDeviceFingerprint();
+    return accumulator::TpAccumulator<Parameters, device_t, DIST>::staticDeviceFingerprint();
   }
 
 private:

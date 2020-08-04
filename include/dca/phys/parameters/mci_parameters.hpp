@@ -23,7 +23,9 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
+#ifdef DCA_HAVE_MPI
 #include <mpi.h>
+#endif
 
 namespace dca {
 namespace phys {
@@ -270,6 +272,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
   // Check parameters consistency.
   if (g4_distribution_ == DistType::MPI) {
+#ifdef DCA_HAVE_MPI
     // Check for number of accumulators and walkers consistency.
     if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
       throw std::logic_error(
@@ -288,6 +291,9 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
           "ranks, "
           "2) each accumulator should have same measurements\n");
     }
+#else
+    throw(std::logic_error("MPI distribution requested with no MPI available."));
+#endif  // DCA_HAVE_MPI
   }
 }
 
