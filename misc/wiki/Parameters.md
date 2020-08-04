@@ -421,7 +421,7 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
-`"store-configuration"` : boolean (false)
+`"store-configuration"` : boolean (true)
 If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
 
 <br></br>
@@ -434,7 +434,11 @@ Number of Monte Carlo accumulators.
 `"shared-walk-and-accumulation-thread":` boolean (false)\
 When this mode is activated, each thread will run an instance of a walker and an accumulator. This parameter is ignored if the numbers of walkers and accumulators are different.\
 `"fix-meas-per-walker":` boolean(false)\
-The number of sweeps performed by each walker is fixed a priori, avoiding possible bias in the sampling of faster walkers.
+The number of sweeps performed by each walker is fixed a priori, avoiding possible bias in the sampling of faster walkers.\
+`"distributed-g4-enabled":` boolean(false)\
+When this mode is activated, ringG pipeline algorithm will be performed. Each locally generated G2 will travel across all ranks to update G4 in all ranks. Meanwhile, each rank only allocates 1/p size of original G4 size, where p is total number of ranks. For example, rank 0 keeps 1st portion of G4, rank 1 keeps 2nd portion of G4, etc. \
+Moreover, to use distributed G4 functionality, CUDA aware MPI must be enabled. On Summit, use `jsrun --smpiargs=“-gpu”`. Also, `cvdlaunch.sh` script should be provided in jsrun command line, which can be found in `DCA/tools/distributed_G4`. A sample jsrun command line could be `jsrun -n60 -a1 -c7 -g1 -b rs --smpiargs="-gpu" ./cvdlauncher.sh ./main_dca input.json`. \
+When used this mode, one should make sure other parameters are set correctly: 1) walker and accumulator should share thread, 2) #walker == #accumulator, 3) local rank's measurements should be same across ranks, 4) each accumulator should have same measurements, 5) set "error-computation-type": NONE. 
 
 #### Example
 	
@@ -454,7 +458,27 @@ The number of sweeps performed by each walker is fixed a priori, avoiding possib
         }
     }
 	
-	
+#### Example with distributed-g4-enabled: true
+    {
+        "coarse-graining": {
+            "threads": 7
+        },
+    
+        "Monte-Carlo-integration": {
+            "measurements": 42000,
+            "error-computation-type": "NONE",
+
+            "threaded-solver": {
+                "walkers": 7,
+                "accumulators": 7,
+                "shared-walk-and-accumulation-thread": true,
+                "distributed-g4-enabled": true
+            }
+        }
+    }
+
+In this example, `distributed-g4-enabled: true`,  we plan to run it with 10 nodes, 6 ranks per node, and 1 cuda GPU per rank, so on the command line on Summit will look like, `jsrun -n60 -a1 -c7 -g1 -b rs --smpiargs="-gpu" ./cvdlauncher.sh ./main_dca input.json`. In total, we have 60 ranks and on each rank, we plan to run 7 threads on each rank that are shared by walker and accumulator. We now have 60*7=420 accumulators, and total measurements must be a number that can be divided by 420. Therefore, we pick 42000 or any other number % 420 == 0. Lastly, when one is using this mode, one should expect G4 is large enough that cannot fit into one node, g4 accumulation or sum should not be considered, so set `"error-computation-type": "NONE"`.  
+
 ## Monte Carlo solver parameters
 
 Defined in <tt>mc_solver_parameters.hpp</tt>.  
