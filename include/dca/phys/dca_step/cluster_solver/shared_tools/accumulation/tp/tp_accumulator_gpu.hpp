@@ -5,7 +5,6 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Weile Wei (wwei9@lsu.edu)
 //
 // Implementation of the two particle Green's function computation on the GPU.
 
@@ -83,9 +82,6 @@ public:
 
   // Downloads the accumulation result to the host.
   void finalize();
-
-  // Applies pipepline ring algorithm to move G matrices around all ranks
-  void ringG(float& flop);
 
   // Sums on the host the accumulated Green's function to the accumulated Green's function of
   // other_acc.
@@ -267,23 +263,13 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
-  typename BaseClass::TpDomain tp_dmn;
-  uint64_t local_G4_size_ = tp_dmn.get_size();
   for (auto& G4_channel : get_G4()) {
     try {
+      typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
         G4_channel.setStream(streams_[0]);
       }
-
-      if(distributed_g4_enabled_) {
-          // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
-          int my_rank, mpi_size;
-          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-          MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-          local_G4_size_ = dca::parallel::util::getWorkload(tp_dmn.get_size(), mpi_size, my_rank);
-      }
-
-      G4_channel.resizeNoCopy(local_G4_size_);
+      G4_channel.resizeNoCopy(tp_dmn.get_size());
       G4_channel.setToZeroAsync(streams_[0]);
     }
     catch (std::bad_alloc& err) {
@@ -468,74 +454,6 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   finalized_ = true;
   initialized_ = false;
-}
-
-template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::ringG(float& flop) {
-
-//    std::array<std::pair<int, int>, 2> G2_sz;
-
-    // get ready for send and receive
-    for (int s = 0; s < 2; ++s)
-    {
-        sendbuff_G_[s] = G_[s];
-    }
-
-    int my_concurrency_id, mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
-
-    MPI_Request recv_request_1, recv_request_2;
-    MPI_Request send_request_1, send_request_2;
-    MPI_Status status_1, status_2, status_3, status_4;
-
-    // get rank index of left and right neighbor
-    auto mod_op = [](int id, int mpi_size) {return id % mpi_size; };
-    int left_neighbor = mod_op((my_concurrency_id - 1 + mpi_size), mpi_size);
-    int right_neighbor = mod_op((my_concurrency_id + 1 + mpi_size), mpi_size);
-
-    // Pipepline ring algorithm in the following for-loop:
-    // 1) At each time step, local rank receives a new G2 from left hand neighbor,
-    // makes a copy locally and uses this G2 to update G4, and
-    // sends this G2 to right hand neighbor. In total, the algorithm performs (mpi_size - 1) steps.
-    // 2) This algorithm currently requires parameters in input file, please refer to mci_parameters.hpp:
-    //      a) #walker == #accumulator and shared-walk-and-accumulation-thread = true;
-    //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
-    //         measurements % ranks == 0 && local_measurement % threads == 0.
-    for(int icount=0; icount < (mpi_size-1); icount++)
-    {
-        MPI_Irecv(G_[0].ptr(), (G_[0].size().first)*(G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
-        MPI_Irecv(G_[1].ptr(), (G_[1].size().first)*(G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, left_neighbor, thread_id_ + 1 + nr_accumulators_,
-                            MPI_COMM_WORLD, &recv_request_2);
-
-        MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first)*(sendbuff_G_[0].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &send_request_1);
-        MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first)*(sendbuff_G_[1].size().second),
-                            MPI_C_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_,
-                            MPI_COMM_WORLD, &send_request_2);
-
-        // wait for G2 to be available again
-        MPI_Wait(&recv_request_1, &status_1);
-        MPI_Wait(&recv_request_2, &status_2);
-
-        // use newly copied G2 to update G4
-        for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-        {
-            flop += updateG4(channel);
-        }
-
-        // wait for sendbuf_G2 to be available again
-        MPI_Wait(&send_request_1, &status_3);
-        MPI_Wait(&send_request_2, &status_4);
-
-        // get ready for send again
-        for (int s = 0; s < 2; ++s)
-        {
-            sendbuff_G_[s].swap(G_[s]);
-        }
-    }
 }
 
 template <class Parameters>

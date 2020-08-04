@@ -27,8 +27,6 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/four_point_type.hpp"
 
-#include <mpi.h>
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -39,19 +37,6 @@ namespace details {
 using namespace linalg;
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
-
-// This function is used when distributed G4 is enabled
-// With distributed G4 enabled, each rank only computes 1/total_mpi_ranks of 1D linearized G4
-// with range (start <= g4_index) && (g4_index < end).
-// Here, we create a 1D thread blocks to update local G4 and each kernel thread
-// only updates one index of linearized G4. There might be at most one thread block will launch
-// more threads than we need (i.e. not enough G4 index to compute in last thread block)
-// and those threads will exit in kernel code.
-std::array<dim3, 2> getBlockSize1D(int my_rank, int mpi_size, const uint64_t& total_G4_size) {
-    uint64_t start, end;
-    dca::parallel::util::getComputeRange(my_rank, mpi_size, total_G4_size, start, end);
-    return std::array<dim3, 2>{dca::util::ceilDiv(end - start, static_cast<uint64_t>(256)), 256};
-}
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
@@ -201,9 +186,6 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
   const unsigned nb = g4_helper.get_bands();
   const unsigned nk = g4_helper.get_cluster_size();
-
-  if(!distributed_g4_enabled)
-      g4_index = g4_helper.g4Index(b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
 
   CudaComplex<Real> contribution;
   const unsigned no = nk * nb;

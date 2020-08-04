@@ -125,9 +125,6 @@ public:
     nb_elements_ = nb_elements_new;
   }
 
-  void resize(std::size_t Nb_elements_new) {
-    Nb_elements = Nb_elements_new;
-  }
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
   int operator[](const int index) const {
