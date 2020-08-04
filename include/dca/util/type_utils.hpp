@@ -36,7 +36,7 @@ template <typename Parameters>
 class dmn_0;
 template <typename... DomainList>
 class dmn_variadic;
-}  // func
+}  // namespace func
 
 namespace util {
 // dca::util::
@@ -175,7 +175,7 @@ struct IsComplex<std::complex<T>> {
   constexpr static bool value = 1;
 };
 
-}  // util
-}  // dca
+}  // namespace util
+}  // namespace dca
 
 #endif  // DCA_UTIL_TYPE_UTILS_HPP

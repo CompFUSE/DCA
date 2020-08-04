@@ -6,7 +6,7 @@
         "measurements": 200,
         "error-computation-type" : "JACK_KNIFE",
         "store-configuration" : false,
-
+        "g4-distribution": "MPI",
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,

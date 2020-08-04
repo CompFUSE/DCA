@@ -1,5 +1,6 @@
 ################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 #
 # Enables testing.
 # References: - https://github.com/ALPSCore/ALPSCore
@@ -23,7 +24,7 @@ include(CMakeParseArguments)
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA CUDA_CVD)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -81,6 +82,14 @@ function(dca_add_gtest name)
     return()
   endif()
 
+  if (DCA_ADD_GTEST_CUDA_CVD AND NOT DCA_HAVE_CUDA )
+    return()
+  endif()
+
+  if (DCA_ADD_GTEST_CUDA_CVD AND (DCA_TEST_GPU_COUNT LESS 3) )
+    return()
+  endif()
+
   add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
@@ -95,7 +104,7 @@ function(dca_add_gtest name)
     target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
   endif()
 
-  if (DCA_ADD_GTEST_CUDA)
+  if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_CVD)
     target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
     target_link_libraries(${name} ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
@@ -104,6 +113,11 @@ function(dca_add_gtest name)
       target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
     endif()
     cuda_add_cublas_to_target(${name})
+    # a less hacky way to do this would be good but this is used to test
+    # development only feature distributed G4 at the moment.
+    if (DCA_ADD_GTEST_CUDA_CVD)
+      set(CVD_LAUNCHER "${PROJECT_SOURCE_DIR}/test/cvdlauncher.sh")
+    endif()
   endif()
 
   target_include_directories(${name} PRIVATE
@@ -117,7 +131,7 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI_CVD} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
@@ -131,3 +145,33 @@ function(dca_add_gtest name)
   endif()
 
 endfunction()
+
+# Adds a performance test written with the Google benchmark.
+#
+# dca_add_gtest(name
+#               [INCLUDE_DIRS dir1 [dir2 ...]]
+#               [LIBS lib1 [lib2 ...]])
+#
+# If DCA_WITH_TESTS_PERFORMANCE is defined, adds a test called 'name', the source is assumed to be
+# 'name.cpp'.
+
+function(dca_add_perftest name)
+  set(multiValueArgs INCLUDE_DIRS LIBS)
+  cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  if (NOT DCA_WITH_TESTS_PERFORMANCE)
+    return()
+  endif()
+
+  add_executable(${name} ${name}.cpp)
+
+  target_include_directories(${name} PRIVATE ${benchmark_dir}/include ${PROJECT_SOURCE_DIR}/include
+                             ${DCA_ADD_PERFTEST_INCLUDE_DIRS})
+
+
+  target_link_libraries(${name} PRIVATE ${DCA_ADD_PERFTEST_LIBS};gtest benchmark_main benchmark)
+
+  target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+endfunction()
+
+

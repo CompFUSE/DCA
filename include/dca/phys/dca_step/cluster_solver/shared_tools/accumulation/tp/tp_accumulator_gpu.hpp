@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
@@ -34,6 +34,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -43,7 +44,7 @@ namespace accumulator {
 
 template <class Parameters>
 class TpAccumulator<Parameters, linalg::GPU> : public TpAccumulator<Parameters, linalg::CPU> {
-private:
+protected:
   using this_type = TpAccumulator<Parameters, linalg::GPU>;
   using BaseClass = TpAccumulator<Parameters, linalg::CPU>;
 
@@ -125,7 +126,7 @@ public:
     return res;
   }
 
-private:
+protected:
   using Profiler = typename Parameters::profiler_type;
 
   using typename BaseClass::WTpDmn;
@@ -159,7 +160,6 @@ private:
 
   void synchronizeStreams();
 
-private:
   constexpr static int n_ndft_streams_ = config::McOptions::memory_savings ? 1 : 2;
 
   using BaseClass::beta_;
@@ -178,6 +178,8 @@ private:
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using RMatrix =
       linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using RMatrixValueType = typename RMatrix::ValueType;
+
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
@@ -193,18 +195,14 @@ private:
 
   std::array<RMatrix, 2> G_;
 
-  bool distributed_g4_enabled_ = false;
   const int nr_accumulators_;
-  // send buffer for pipeline ring algorithm
-  std::array<RMatrix, 2> sendbuff_G_;
 
   bool finalized_ = false;
   bool initialized_ = false;
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType =
-      linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   static inline std::vector<G4DevType>& get_G4();
 };
 
@@ -217,8 +215,7 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       streams_{queues_[0].getStream(), queues_[1].getStream()},
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      distributed_g4_enabled_(pars.distributed_g4_enabled()),
-      nr_accumulators_(pars.get_accumulators()){
+      nr_accumulators_(pars.get_accumulators()) {
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -302,19 +299,18 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
   std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-    const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
     details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                           sub_mat.leadingDimension(), k0);
+                           sub_mat.leadingDimension());
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
 
 template <class Parameters>
 template <class Configuration, typename RealIn>
-float TpAccumulator<Parameters, linalg::GPU>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
@@ -330,13 +326,9 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
   flop += computeM(M, configs);
   computeG();
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
-     flop += updateG4(channel);
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
+    flop += updateG4(channel);
   }
-
-  if(distributed_g4_enabled_)
-    ringG(flop);
 
   return flop;
 }
@@ -420,67 +412,43 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
   //        |           |
   // b2 ------------------------ b4
 
-  const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
-  const int nk_exchange = domains::MomentumExchangeDomain::get_size();
-
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(streams_[0]);
 
-
   const FourPointType channel = channels_[channel_index];
-
-  int my_rank, mpi_size;
-  uint64_t total_G4_size;
-  if(distributed_g4_enabled_)
-  {
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-      MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-      typename BaseClass::TpDomain tp_dmn;
-      total_G4_size = tp_dmn.get_size();
-   }
-
+  typename BaseClass::TpDomain tp_dmn;
+  uint64_t start = 0;
+  uint64_t end = tp_dmn.get_size();
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, multiple_accumulators_, streams_[0],
-          my_rank, mpi_size, total_G4_size, distributed_g4_enabled_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
@@ -492,14 +460,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel)
-  {
-    if(distributed_g4_enabled_)
-    {
-      // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
-      // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
-      G4_[channel].resize(get_G4()[channel].size());
-    }
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
     get_G4()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.
