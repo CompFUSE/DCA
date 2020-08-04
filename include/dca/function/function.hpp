@@ -30,14 +30,9 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
-#include "dca/util/ignore.hpp"
 #include "dca/util/pack_operations.hpp"
+#include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
-
-#include "dca/parallel/util/get_workload.hpp"
-#ifdef DCA_HAVE_MPI
-#include "mpi.h"
-#endif
 
 namespace dca {
 namespace func {
@@ -54,9 +49,11 @@ public:
   // Default constructor
   // Constructs the function with the name name.
   // Postcondition: All elements are set to zero.
-  // Special case: when distributed_g4_enabled, G4 related variables only gets
-  // allocation of 1/p of original G4 size, where p = #mpiranks
-  function(const std::string& name = default_name_, const DistType dist = DistType::NONE);
+  function(const std::string& name = default_name_);
+
+  // Distributed function. Access with multi-index operator() is not safe.
+  template <class Concurrency>
+  function(const std::string& name, const Concurrency& concurrency);
 
   // Copy constructor
   // Constructs the function with the a copy of elements and name of other.
@@ -276,6 +273,11 @@ public:
   template <class concurrency_t>
   void unpack(const concurrency_t& concurrency, char* buffer, int buffer_size, int& position);
 
+  // Gather a function that was initialized as distributed.
+  // Precondition: concurrency must be the same object used during construction.
+  template <class Concurrency>
+  function gather(const Concurrency& concurrency) const;
+
 private:
   std::string name_;
   std::string function_type;
@@ -296,7 +298,7 @@ template <typename scalartype, class domain>
 const std::string function<scalartype, domain>::default_name_ = "no-name";
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(const std::string& name, DistType dist)
+function<scalartype, domain>::function(const std::string& name)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
@@ -305,15 +307,27 @@ function<scalartype, domain>::function(const std::string& name, DistType dist)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values(nullptr) {
-  dca::util::ignoreUnused(dist);
-#ifdef DCA_HAVE_MPI
-  if (dist == DistType::MPI) {
-    int my_rank, mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    nb_elements_ = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
-  }
-#endif  // DCA_HAVE_MPI
+  fnc_values = new scalartype[nb_elements_];
+  for (int linind = 0; linind < nb_elements_; ++linind)
+    setToZero(fnc_values[linind]);
+}
+
+template <typename scalartype, class domain>
+template <class Concurrency>
+function<scalartype, domain>::function(const std::string& name, const Concurrency& concurrency)
+    : name_(name),
+      function_type(__PRETTY_FUNCTION__),
+      dmn(),
+      nb_elements_(dmn.get_size()),
+      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      size_sbdm(dmn.get_leaf_domain_sizes()),
+      step_sbdm(dmn.get_leaf_domain_steps()),
+      fnc_values(nullptr) {
+  // TODO: multi-index access to partitioned function is not safe.
+  const std::size_t mpi_size = concurrency.number_of_processors();
+
+  nb_elements_ = dca::util::ceilDiv(nb_elements_, mpi_size);
+
   fnc_values = new scalartype[nb_elements_];
   for (int linind = 0; linind < nb_elements_; ++linind)
     setToZero(fnc_values[linind]);
@@ -703,6 +717,15 @@ template <class concurrency_t>
 void function<scalartype, domain>::unpack(const concurrency_t& concurrency, char* buffer,
                                           const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, *this);
+}
+
+template <typename scalartype, class domain>
+template <class Concurrency>
+function<scalartype, domain> function<scalartype, domain>::gather(const Concurrency& concurrency) const {
+  function result(name_);
+
+  concurrency.gather(*this, result, concurrency);
+  return result;
 }
 
 }  // namespace func
