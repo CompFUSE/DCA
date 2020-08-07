@@ -29,7 +29,7 @@ TYPED_TEST(G0InterpolationTest, G0Interpolation) {
   });
 
   using TestDomain = dmn_variadic<LabelDmn, dmn_0<time_domain>>;
-  dca::func::function<double, TestDomain> f;
+  dca::func::function<TypeParam, TestDomain> f;
 
   // Write function values.
   for (int i = 0; i < time_domain::get_size(); i++) {

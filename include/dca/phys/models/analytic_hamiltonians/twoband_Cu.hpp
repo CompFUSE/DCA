@@ -34,6 +34,8 @@ namespace models {
 template <typename PointGroup>
 class TwoBandCu {
 public:
+  static constexpr bool complex_g0 = false;
+
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef PointGroup DCA_point_group;
 

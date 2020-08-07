@@ -34,6 +34,8 @@ struct FeAsPointGroup {
 template <typename /*PointGroupType*/>
 class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
+  static constexpr bool complex_g0 = false;
+
   using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;

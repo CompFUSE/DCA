@@ -33,6 +33,8 @@ namespace models {
 template <typename point_group_type>
 class HundLattice : public bilayer_lattice<point_group_type> {
 public:
+  static constexpr bool complex_g0 = false;
+
   using BaseClass = bilayer_lattice<point_group_type>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;

@@ -47,7 +47,7 @@ struct mp_count;
 
 template <template <class...> class L, class... T, class V>
 struct mp_count<L<T...>, V> {
-  constexpr static int value = (0 + ... + std::is_same_v<T, V>);
+  constexpr static int value = (0 + ... + std::is_same<T, V>::value);
 };
 
 // mp_append

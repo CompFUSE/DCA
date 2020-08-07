@@ -35,21 +35,28 @@ using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
 // Represents all non-transformed domains.
 using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
-template <typename DnfftType>
-void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
+template <typename DnfftType, typename Scalar>
+void computeWithDnfft(const std::vector<double>& t, const std::vector<Scalar>& f,
                       DnfftType& dnfft_obj,
                       function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
-void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
+template <typename Scalar>
+void computeWithDft(const std::vector<double>& t, const std::vector<Scalar>& f,
                     function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
 
-TEST(Dnfft1DTest, CubicInterpolation) {
-  // Initialize time and frequency domains.
-  const double beta = 10.;
-  const int time_slices = 100;
-  const int positive_frequencies = time_slices - 2;
+void initializeDomains() {
+  static std::once_flag flag;
+  std::call_once(flag, []() {
+    const double beta = 10.;
+    const int time_slices = 100;
+    const int positive_frequencies = time_slices - 2;
 
-  dca::phys::domains::time_domain::initialize(beta, time_slices, 1.e-16);
-  dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
+    dca::phys::domains::time_domain::initialize(beta, time_slices, 1.e-16);
+    dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
+  });
+}
+
+TEST(Dnfft1DTest, CubicInterpolation) {
+  initializeDomains();
 
   // Prepare random samples.
   dca::math::random::StdRandomWrapper<std::mt19937_64> rng(0, 1, 0);
@@ -86,8 +93,48 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   EXPECT_LT(err.l_inf, 1.e-9);
 }
 
-template <typename DnfftType>
-void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
+TEST(Dnfft1DTest, ComplexValues) {
+  initializeDomains();
+
+  // Prepare random samples.
+  dca::math::random::StdRandomWrapper<std::mt19937_64> rng(0, 1, 42);
+  const int samples = 1e4;
+
+  std::vector<double> t(samples);
+  std::vector<std::complex<double>> f(samples);
+
+  const double begin = TimeDmn::get_elements().front();
+  const double delta = TimeDmn::get_elements().back() - TimeDmn::get_elements().front();
+
+  for (int l = 0; l < samples; ++l) {
+    const double t_val = begin + rng() * delta;
+    t[l] = t_val;
+    f[l].real(std::cos(-2. * M_PI / delta * (t_val - begin)));
+    f[l].imag(std::sin(-3. * M_PI / delta * (t_val - begin)));
+  }
+
+  // Compute f(w) using the discrete Fourier transform (DFT).
+  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dft("f_w_dft");
+  computeWithDft(t, f, f_w_dft);
+
+  // Compute f(w) using the delayed-NFFT algorithm.
+  constexpr int oversampling = 8;
+  dca::math::nfft::Dnfft1D<std::complex<double>, FreqDmn, OtherDmn, oversampling, dca::math::nfft::CUBIC>
+      dnfft_obj;
+
+  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dnfft("f_w_dnfft");
+  computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
+
+  // Check errors.
+  const auto err = dca::func::util::difference(f_w_dft, f_w_dnfft);
+
+  EXPECT_LT(err.l1, 1.e-9);
+  EXPECT_LT(err.l2, 1.e-9);
+  EXPECT_LT(err.l_inf, 1.e-9);
+}
+
+template <typename DnfftType, typename Scalar>
+void computeWithDnfft(const std::vector<double>& t, const std::vector<Scalar>& f,
                       DnfftType& dnfft_obj,
                       function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
   dnfft_obj.resetAccumulation();
@@ -104,7 +151,8 @@ void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f
   dnfft_obj.finalize(f_w);
 }
 
-void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
+template <class Scalar>
+void computeWithDft(const std::vector<double>& t, const std::vector<Scalar>& f,
                     function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
   const std::complex<double> i(0, 1);
 

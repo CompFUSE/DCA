@@ -33,6 +33,8 @@ namespace models {
 template <typename point_group_type>
 class fourband_lattice {
 public:
+  static constexpr bool complex_g0 = false;
+
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef point_group_type DCA_point_group;
 

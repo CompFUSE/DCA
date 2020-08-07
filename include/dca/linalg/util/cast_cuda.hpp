@@ -28,17 +28,30 @@ inline cuComplex** castCudaComplex(std::complex<float>** ptr) {
 inline cuComplex* castCudaComplex(std::complex<float>* ptr) {
   return reinterpret_cast<cuComplex*>(ptr);
 }
+inline const cuComplex* castCudaComplex(const std::complex<float>* ptr) {
+  return reinterpret_cast<const cuComplex*>(ptr);
+}
 inline cuComplex* castCudaComplex(std::complex<float>& el) {
   return castCudaComplex(&el);
 }
 inline const cuComplex* const* castCudaComplex(const std::complex<float>* const* ptr) {
   return reinterpret_cast<const cuComplex* const*>(ptr);
 }
-inline const cuComplex* castCudaComplex(const std::complex<float>* ptr) {
-  return reinterpret_cast<const cuComplex*>(ptr);
-}
 inline const cuComplex* castCudaComplex(const std::complex<float>& el) {
   return castCudaComplex(&el);
+}
+
+inline const float* castCudaComplex(const float* el) {
+  return el;
+}
+inline const double* castCudaComplex(const double* el) {
+  return el;
+}
+inline float* castCudaComplex(float* el) {
+  return el;
+}
+inline double* castCudaComplex(double* el) {
+  return el;
 }
 
 // returns a cuDoubleComplex pointer.
@@ -72,13 +85,27 @@ struct ComplexContainer<double> {
 };
 template <>
 struct ComplexContainer<float> {
-  using type = cuFloatComplex;
+  using type = cuComplex;
+};
+
+template<class T>
+struct CudaConvert{
+  using type = T;
+};
+
+template<class T>
+struct CudaConvert<std::complex<T>>{
+  using type = typename ComplexContainer<T>::type;
 };
 }  // namespace details
 // dca::linalg::util::
 
 template <typename Real>
 using CudaComplex = typename details::ComplexContainer<Real>::type;
+
+template <typename T>
+using CudaConvert = typename details::CudaConvert<T>::type;
+
 
 }  // namespace util
 }  // namespace linalg

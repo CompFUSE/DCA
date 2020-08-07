@@ -37,15 +37,18 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters, linalg::DeviceType device = linalg::CPU, typename Real = double>
+template <class Parameters, linalg::DeviceType device = linalg::CPU>
 class SpAccumulator;
 
-template <class Parameters, typename Real>
-class SpAccumulator<Parameters, linalg::CPU, Real> {
+template <class Parameters>
+class SpAccumulator<Parameters, linalg::CPU> {
 public:
-    using Profiler = typename Parameters::profiler_type;
-    using Scalar = Real;
-protected:
+  using Profiler = typename Parameters::profiler_type;
+
+  using Scalar = typename Parameters::MCScalar;
+  using Real = dca::util::Real<Scalar>;
+  using Complex = std::complex<Real>;
+
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using BDmn = func::dmn_0<domains::electron_band_domain>;
@@ -61,12 +64,12 @@ public:
   void resetAccumulation();
 
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
+  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
 
-  void sumTo(SpAccumulator<Parameters, linalg::CPU, Real>& other) const;
+  void sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const;
 
   void synchronizeCopy() {}
 
@@ -100,18 +103,18 @@ protected:
   std::unique_ptr<MFunction> M_r_w_, M_r_w_sqr_;
 
 private:
-  using NfftType = math::nfft::Dnfft1D<Real, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
+  using NfftType = math::nfft::Dnfft1D<Scalar, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_obj_;
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_sqr_obj_;
 };
 
-template <class Parameters, typename Real>
-SpAccumulator<Parameters, linalg::CPU, Real>::SpAccumulator(const Parameters& parameters_ref,
-                                                            const bool accumulate_m_sqr)
+template <class Parameters>
+SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(const Parameters& parameters_ref,
+                                                      const bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
   cached_nfft_obj_ = std::make_unique<std::array<NfftType, 2>>();
   if (accumulate_m_sqr_)
     cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
@@ -122,10 +125,10 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
   initialized_ = true;
 }
 
-template <class Parameters, typename Real>
+template <class Parameters>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
-    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
+void SpAccumulator<Parameters, linalg::CPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (!initialized_)
     throw(std::logic_error("The accumulator was not initialized."));
@@ -148,7 +151,7 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
         const double scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
 
         const int index = bbr_dmn(b_i, b_j, delta_r);
-        const Real f_val = Ms[s](i, j);
+        const Scalar f_val = Ms[s](i, j);
 
         (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
         if (accumulate_m_sqr_)
@@ -158,11 +161,11 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
   }
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::finalize() {
   if (finalized_)
     return;
-  func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
+  func::function<Complex, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
   const Real normalization = 1. / RDmn::dmn_size();
 
   auto finalize_function = [&](std::array<NfftType, 2>& ft_objs, MFunction& function) {
@@ -189,9 +192,8 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
   initialized_ = false;
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::sumTo(
-    SpAccumulator<Parameters, linalg::CPU, Real>& other) const {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const {
   if (!other.cached_nfft_obj_)
     other.cached_nfft_obj_.reset(new std::array<NfftType, 2>);
   if (!other.cached_nfft_sqr_obj_ && accumulate_m_sqr_)
@@ -204,15 +206,15 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::sumTo(
   }
 }
 
-template <class Parameters, typename Real>
-const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   return *M_r_w_;
 }
 
-template <class Parameters, typename Real>
-const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w_sqr() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   if (!accumulate_m_sqr_)

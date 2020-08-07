@@ -23,6 +23,9 @@
 #ifndef _MSC_VER
 #include <cxxabi.h>
 #endif
+#ifdef DCA_HAVE_CUDA
+#include <cuComplex.h>
+#endif
 
 #include "dca/util/type_list.hpp"
 
@@ -167,50 +170,75 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
 
 // Determine if a type is complex or not.
 template <class T>
-struct IsComplex {
+struct IsComplex : std::false_type {
   constexpr static bool value = 0;
 };
 template <class T>
-struct IsComplex<std::complex<T>> {
+struct IsComplex<std::complex<T>> : std::true_type {
   constexpr static bool value = 1;
 };
 
-template<class T>
+namespace {
+template <class T>
 struct RealImpl {
   using type = T;
 };
-
-template<class T>
-struct RealImpl<std::complex<T>>{
+template <class T>
+struct RealImpl<std::complex<T>> {
   using type = T;
 };
-
-template<class T>
-using Real = typename RealImpl<T>::type;
-
-template<bool single_precision, bool complex>
-struct ScalarImpl;
-template<>
-struct ScalarImpl<true, true>{
-  using type = std::complex<float>;
-};
-template<>
-struct ScalarImpl<false, true>{
-  using type = std::complex<double>;
-};
-template<>
-struct ScalarImpl<true, false>{
+#ifdef DCA_HAVE_CUDA
+template <>
+struct RealImpl<cuComplex> {
   using type = float;
 };
-template<>
-struct ScalarImpl<false, false>{
+template <>
+struct RealImpl<cuDoubleComplex> {
   using type = double;
 };
+#endif  // DCA_HAVE_CUDA
+}  // namespace
 
-template<bool single_precision, bool complex>
+template <class T>
+using Real = typename RealImpl<T>::type;
+
+namespace {
+template <class T>
+struct ComplexImpl {
+  using type = std::complex<T>;
+};
+template <class T>
+struct ComplexImpl<std::complex<T>> {
+  using type = std::complex<T>;
+};
+}  // namespace
+
+template <class T>
+using Complex = typename ComplexImpl<T>::type;
+
+namespace {
+template <bool single_precision, bool complex>
+struct ScalarImpl;
+template <>
+struct ScalarImpl<true, true> {
+  using type = std::complex<float>;
+};
+template <>
+struct ScalarImpl<false, true> {
+  using type = std::complex<double>;
+};
+template <>
+struct ScalarImpl<true, false> {
+  using type = float;
+};
+template <>
+struct ScalarImpl<false, false> {
+  using type = double;
+};
+}  // namespace
+
+template <bool single_precision, bool complex>
 using Scalar = typename ScalarImpl<single_precision, complex>::type;
-
-
 
 }  // namespace util
 }  // namespace dca

@@ -24,9 +24,9 @@ namespace solver {
 namespace details {
 // dca::phys::solver::details::
 
-template <typename Real>
-void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
-               DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
+template <typename Scalar, typename Real>
+void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
+               DeviceInterpolationData<Scalar> g0, const Real* t_l, const int* b_l,
                const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream);
 
 }  // namespace details

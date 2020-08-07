@@ -29,11 +29,11 @@ struct ConfigElem {
   int site;
 };
 
-template <int oversampling, int window_sampling, typename ScalarIn, typename ScalarOut>
-void accumulateOnDevice(const ScalarIn* M, const int ldm, const ScalarIn sign, ScalarOut* out,
-                        ScalarOut* out_sqr, const int ldo, const ConfigElem* config_left,
-                        const ConfigElem* config_right, const ScalarIn* tau,
-                        const ScalarOut* cubic_coeff, const int size, cudaStream_t stream_);
+template <int oversampling, int window_sampling, typename Scalar, typename Real>
+void accumulateOnDevice(const Scalar* M, const int ldm, const Real sign, Scalar* out,
+                        Scalar* out_sqr, const int ldo, const ConfigElem* config_left,
+                        const ConfigElem* config_right, const Real* tau,
+                        const Scalar* cubic_coeff, const int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);

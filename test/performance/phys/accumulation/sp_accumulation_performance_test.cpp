@@ -72,7 +72,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoT
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
-using Real = typename dca::config::McOptions::MCScalar;
+using Real = typename Parameters::MCScalar;
 template <dca::linalg::DeviceType device>
 using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
 
@@ -102,8 +102,7 @@ int main(int argc, char** argv) {
   Configuration config;
   prepareRandomConfig(config, M, n);
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU, Real> accumulator(
-      parameters);
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulator(parameters);
   accumulator.resetAccumulation();
 
   // Allows memory to be assigned.
@@ -138,7 +137,7 @@ int main(int argc, char** argv) {
   dca::linalg::util::CudaEvent start_event;
   dca::linalg::util::CudaEvent stop_event;
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Real> gpu_accumulator(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
       parameters);
   MatrixPair<GPU> M_dev{M[0], M[1]};
 

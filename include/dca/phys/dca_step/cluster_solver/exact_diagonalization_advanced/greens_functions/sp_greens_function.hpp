@@ -46,15 +46,16 @@ public:
   using BDmn = typename EdOptions::b_dmn;
   using SDmn = typename EdOptions::s_dmn;
 
+  using Lattice = typename Parameters::lattice_type;
+  using Scalar = std::conditional_t<Lattice::complex_g0, std::complex<double>, double>;
+  using Complex = dca::util::Complex<Scalar>;
+
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
   using Profiler = typename EdOptions::profiler_t;
   using Concurrency = typename EdOptions::concurrency_type;
-
-  using Scalar = typename EdOptions::scalar_type;
-  using Complex = typename EdOptions::complex_type;
 
   using Vector = typename EdOptions::vector_type;
   using Matrix = typename EdOptions::matrix_type;
@@ -97,27 +98,27 @@ public:
 
   template <typename w_dmn>
   void compute_S_k_w(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G_k_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G0_k_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& S_k_w);
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G_k_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G0_k_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& S_k_w);
 
 private:
   /*!
    *  new functions ...
    */
   void compute_real_space_Greens_functions(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
-      func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
+      func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_r_r_w_w,
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_k_k_w_w);
 
   void renormalize_real_space_Greens_functions(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
-      func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
+      func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                  WVertexDmn>>& G_nu_nu_r_r_w_w,
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
@@ -154,37 +155,37 @@ private:
    *  old functions ...
    */
   void compute_Greens_functions_main(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
           G_r_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>& G_k_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>& G_k_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WRealDmn>>&
           G_k_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>>& G_k_t);
 
   void compute_Greens_functions_st(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
           G_r_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t);
 
   void compute_Greens_functions_ac_translation(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
           G_r_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t);
 
   void compute_Greens_functions_ca_translation(
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
           G_r_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t);
 
   void compute_sp_Greens_function(
       int nu_i, int nu_j, int delta_r, Scalar E_0, Scalar E_1, Complex factor,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w,
+      func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>&
           G_r_WRealDmn,
       func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t);
 
@@ -252,21 +253,21 @@ SpGreensFunction<Parameters, EdOptions>::SpGreensFunction(const Parameters& para
 template <typename Parameters, typename EdOptions>
 template <typename w_dmn>
 void SpGreensFunction<Parameters, EdOptions>::compute_S_k_w(
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G_k_w,
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G0_k_w,
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& S_k_w) {
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G_k_w,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& G0_k_w,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, w_dmn>>& S_k_w) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   int matrix_dim = BDmn::dmn_size() * SDmn::dmn_size();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
+  dca::linalg::Matrix<Complex, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
+  dca::linalg::Matrix<Complex, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
       matrix_dim);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> sigma_matrix(matrix_dim);
+  dca::linalg::Matrix<Complex, dca::linalg::CPU> sigma_matrix(matrix_dim);
 
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  dca::linalg::Vector<Complex, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w_dmn::dmn_size(); w_ind++) {
@@ -338,9 +339,9 @@ void SpGreensFunction<Parameters, EdOptions>::compute_all_sp_functions_slow(
 
 template <typename Parameters, typename EdOptions>
 void SpGreensFunction<Parameters, EdOptions>::compute_real_space_Greens_functions(
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
-    func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
+    func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                WVertexDmn>>& /*G_nu_nu_r_r_w_w*/,
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
@@ -387,9 +388,9 @@ void SpGreensFunction<Parameters, EdOptions>::compute_real_space_Greens_function
 
 template <typename Parameters, typename EdOptions>
 void SpGreensFunction<Parameters, EdOptions>::renormalize_real_space_Greens_functions(
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
-    func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>& G_r_w_im,
+    func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn>>& G_r_w_re,
+    func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>& G_r_t,
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, RClusterDmn, WVertexDmn,
                                                WVertexDmn>>& G_nu_nu_r_r_w_w,
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, KClusterDmn, WVertexDmn,
@@ -492,8 +493,8 @@ void SpGreensFunction<Parameters, EdOptions>::compute_Greens_functions_ac_slow(
 template <typename Parameters, typename EdOptions>
 void SpGreensFunction<Parameters, EdOptions>::compute_Greens_functions_ca_slow(
     std::vector<SpGreensFunctionData>& data_vec)  // ,
-//                                                                                                     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn     > >& G_r_w,
-//                                                                                                     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn> >& G_r_WRealDmn,
+//                                                                                                     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn     > >& G_r_w,
+//                                                                                                     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WRealDmn> >& G_r_WRealDmn,
 //                                                                                                     func::function<             double , func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, t     > >& G_r_t)
 {
   if (concurrency.id() == concurrency.first())

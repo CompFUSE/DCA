@@ -30,27 +30,29 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <typename Real>
-class G0Interpolation<linalg::GPU, Real> final : public DeviceInterpolationData<Real>,
-                                                 public G0Interpolation<linalg::CPU, Real> {
+template <typename Scalar>
+class G0Interpolation<linalg::GPU, Scalar> final : public DeviceInterpolationData<Scalar>,
+                                                   public G0Interpolation<linalg::CPU, Scalar> {
 private:
   using PDmn = G0ParametersDomain;
   using PDmn0 = func::dmn_0<G0ParametersDomain>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using HostInterpolation = G0Interpolation<linalg::CPU, Real>;
+  using HostInterpolation = G0Interpolation<linalg::CPU, Scalar>;
+
+  using Real = typename HostInterpolation::Real;
 
 public:
   G0Interpolation() = default;
   G0Interpolation(const G0Interpolation& other) = delete;
 
-  template <class InputDmn>
-  G0Interpolation(const func::function<double, InputDmn>& G0_func) {
+  template <class InputDmn, typename Scalar2>
+  G0Interpolation(const func::function<Scalar2, InputDmn>& G0_func) {
     HostInterpolation::initialize(G0_func);
   }
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   // Call from the CPU only for testing purposes.
-  Real operator()(Real tau, int lindex) const;
+  Scalar operator()(Real tau, int lindex) const;
 
   using HostInterpolation::COEFF_SIZE;
 
@@ -60,27 +62,27 @@ private:
   using typename HostInterpolation::PTdmn;
   using typename HostInterpolation::InterpolationDmn;
 
-  void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) override;
+  void initialize(const FunctionProxy<Scalar, PTdmn>& G0_pars_t) override;
 
-  linalg::Vector<Real, linalg::GPU> G0_coeff_;
-  linalg::Vector<Real, linalg::GPU> g0_minus_dev_;
+  linalg::Vector<Scalar, linalg::GPU> G0_coeff_;
+  linalg::Vector<Scalar, linalg::GPU> g0_minus_dev_;
   int time_slices_ = -1;
 };
 
-template <typename Real>
-void G0Interpolation<linalg::GPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
+template <typename Scalar>
+void G0Interpolation<linalg::GPU, Scalar>::initialize(const FunctionProxy<Scalar, PTdmn>& G0_pars_t) {
   HostInterpolation::initialize(G0_pars_t);
   assert(HostInterpolation::beta_);
 
   time_slices_ = this->getTimeSlices();
-  DeviceInterpolationData<Real>::beta_ = HostInterpolation::beta_;
-  DeviceInterpolationData<Real>::n_div_beta_ = HostInterpolation::n_div_beta_;
-  DeviceInterpolationData<Real>::stride_ = HostInterpolation::getStride();
+  DeviceInterpolationData<Scalar>::beta_ = HostInterpolation::beta_;
+  DeviceInterpolationData<Scalar>::n_div_beta_ = HostInterpolation::n_div_beta_;
+  DeviceInterpolationData<Scalar>::stride_ = HostInterpolation::getStride();
 
   G0_coeff_.resizeNoCopy(HostInterpolation::G0_coeff_.size());
   g0_minus_dev_.setAsync(HostInterpolation::g0_minus_, 0, 0);
 
-  linalg::Vector<Real, linalg::CPU> host_coeff(HostInterpolation::G0_coeff_.size());
+  linalg::Vector<Scalar, linalg::CPU> host_coeff(HostInterpolation::G0_coeff_.size());
   std::copy_n(HostInterpolation::G0_coeff_.data(), host_coeff.size(), host_coeff.data());
 
   G0_coeff_.setAsync(host_coeff, 0, 0);
@@ -88,12 +90,12 @@ void G0Interpolation<linalg::GPU, Real>::initialize(const FunctionProxy<double, 
   linalg::util::syncStream(0, 0);
 
   // Copy pointer to the data structure.
-  DeviceInterpolationData<Real>::values_ = G0_coeff_.ptr();
-  DeviceInterpolationData<Real>::g0_minus_ = g0_minus_dev_.ptr();
+  DeviceInterpolationData<Scalar>::values_ = G0_coeff_.ptr();
+  DeviceInterpolationData<Scalar>::g0_minus_ = g0_minus_dev_.ptr();
 }
 
-template <typename Real>
-Real G0Interpolation<linalg::GPU, Real>::operator()(Real tau, int lindex) const {
+template <typename Scalar>
+Scalar G0Interpolation<linalg::GPU, Scalar>::operator()(Real tau, int lindex) const {
   return details::interpolateSlow(tau, lindex, static_cast<DeviceInterpolationData<Real>>(*this));
 }
 

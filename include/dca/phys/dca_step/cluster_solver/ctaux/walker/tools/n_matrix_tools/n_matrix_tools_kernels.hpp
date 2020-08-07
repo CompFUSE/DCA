@@ -19,11 +19,13 @@ namespace ctaux {
 namespace nkernels {
 // dca::phys::solver::ctaux::nkernels::
 
-void compute_G_cols(int N_i, int N_r, int N_c, int* p_ptr, double* exp_V_ptr, double* N_ptr,
-                    int N_ld, double* G_ptr, int G_ld, double* G_cols_ptr, int G_cols_ld,
+template<class T>
+void compute_G_cols(int N_i, int N_r, int N_c, const int* p_ptr, const T* exp_V_ptr, const T* N_ptr,
+                    int N_ld, const T* G_ptr, int G_ld, T* G_cols_ptr, int G_cols_ld,
                     int thread_id, int stream_id);
 
-void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_ptr, int N_ld,
+template<class T>
+void compute_d_vector(int N_i, const int* d_ind, T* d_ptr, int* p_ptr, const T* N_ptr, int N_ld,
                       int thread_id, int stream_id);
 }  // nkernels
 }  // ctaux

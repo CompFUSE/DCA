@@ -79,7 +79,7 @@ public:
   using lattice_type = typename Model::lattice_type;
 
   using MCScalar =
-      util::Scalar<config::McOptions::single_precision, models::complex_g0<lattice_type>>;
+      util::Scalar<config::McOptions::single_precision, lattice_type::complex_g0>;
 
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
@@ -106,8 +106,6 @@ public:
   using HostTpClusterFamily = typename CDA::HostTpClusterFamily;
 
   constexpr static int bands = Model::lattice_type::BANDS;
-
-  using TP_measurement_scalar_type = config::McOptions::Real;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 

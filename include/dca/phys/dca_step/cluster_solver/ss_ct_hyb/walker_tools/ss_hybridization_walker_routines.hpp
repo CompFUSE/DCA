@@ -237,8 +237,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
   math::interpolation::akima_interpolation<double> ai_obj(size);
 
-  double* x = new double[size];
-  double* y = new double[size];
+  std::vector<double> x(size);
+  std::vector<double> y(size);
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -277,9 +277,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
       }
     }
   }
-
-  delete[] x;
-  delete[] y;
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>

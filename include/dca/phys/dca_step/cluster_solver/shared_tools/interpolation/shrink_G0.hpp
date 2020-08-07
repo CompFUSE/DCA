@@ -36,12 +36,12 @@ template <int dimension>
 using RDmn = func::dmn_0<domains::cluster_domain<double, dimension, domains::CLUSTER,
                                                  domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
 
-template <int dimension>
-using SpGreensFunction = func::function<double, func::dmn_variadic<Nu, Nu, RDmn<dimension>, TDmn>>;
+template <int dimension, class Scalar>
+using SpGreensFunction = func::function<Scalar, func::dmn_variadic<Nu, Nu, RDmn<dimension>, TDmn>>;
 
-template <int dimension>
-auto shrinkG0(const SpGreensFunction<dimension>& G0) {
-  func::function<double, func::dmn_variadic<BDmn, BDmn, RDmn<dimension>, TDmn>> g0_trimmed;
+template <int dimension, class Scalar>
+auto shrinkG0(const SpGreensFunction<dimension, Scalar>& G0) {
+  func::function<Scalar, func::dmn_variadic<BDmn, BDmn, RDmn<dimension>, TDmn>> g0_trimmed;
   const int s = 0;
   for (int b1 = 0; b1 < BDmn::dmn_size(); b1++)
     for (int b2 = 0; b2 < BDmn::dmn_size(); b2++)

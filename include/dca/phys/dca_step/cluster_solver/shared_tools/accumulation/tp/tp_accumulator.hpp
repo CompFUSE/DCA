@@ -48,7 +48,8 @@ class TpAccumulator;
 template <class Parameters>
 class TpAccumulator<Parameters, linalg::CPU, dca::DistType::NONE> {
 public:
-  using Real = typename Parameters::TP_measurement_scalar_type;
+  using Scalar = typename Parameters::MCScalar;
+  using Real = dca::util::Real<Scalar>;
 
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;

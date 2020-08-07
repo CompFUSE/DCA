@@ -1233,7 +1233,7 @@ Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
       throw(std::logic_error("LU decomposition failed."));
   }
 
-  double det = 1.;
+  Scalar det = 1.;
   for (int i = 0; i < n; i++) {
     det *= M(i, i);
     if (ipiv[i] != i + 1)
@@ -1245,7 +1245,7 @@ Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
 // Copy and computes the determinant of the matrix.
 // Returns: determinant.
 template <typename Scalar, DeviceType device>
-double determinant(const Matrix<Scalar, device>& M) {
+Scalar determinant(const Matrix<Scalar, device>& M) {
   Matrix<Scalar, CPU> M_copy(M);
   return determinantIP(M_copy);
 }
@@ -1287,11 +1287,66 @@ std::pair<Scalar, int> logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<
   return {log_det, sign};
 }
 
+// Returns: logarithm of the absolute value of the determinant and the phase of the determinant,
+//          or zero if the determinant is zero.
+// Postcondition: M is its LU decomposition.
+template <template <typename, DeviceType> class MatrixType, typename Scalar>
+std::pair<Scalar, Scalar> logDeterminantIP(MatrixType<std::complex<Scalar>, CPU>& M,
+                                                         std::vector<int>& ipiv) {
+  assert(M.is_square());
+  static_assert(std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>,
+                " This function is defined only for Real numbers");
+
+  const int n = M.nrCols();
+  ipiv.resize(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return {0., 0};
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  Scalar log_det = 0.;
+  Scalar phase = 0;
+
+  for (int i = 0; i < n; i++) {
+    log_det += std::log(std::abs(M(i, i)));
+
+    phase += std::arg(M(i, i));
+
+    if (ipiv[i] != i + 1)
+      phase += M_PI;
+  }
+
+  return {log_det, phase};
+}
+
 template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
 auto logDeterminant(const MatrixType<Scalar, device>& m) {
   Matrix<Scalar, CPU> m_copy(m);
   std::vector<int> ipiv;
   return logDeterminantIP(m_copy, ipiv);
+}
+
+template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
+std::pair<Scalar, int> logRealDeterminant(const MatrixType<Scalar, device>& m) {
+  return logDeterminant(m);
+}
+template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
+std::pair<Scalar, int> logRealDeterminant(const MatrixType<std::complex<Scalar>, device>& m) {
+  auto [log_det, phase] = logDeterminant(m);
+  constexpr Scalar epsilon = std::numeric_limits<Scalar>::epsilon() * 500;
+
+  if (std::abs(phase - 0) < epsilon)
+    return std::pair(log_det, 1);
+  else if (std::abs(phase - M_PI) < epsilon)
+    return std::make_pair(log_det, -1);
+  else
+    throw(std::logic_error("The determinant is complex"));
 }
 
 template <typename Scalar, template <typename, DeviceType> class MatrixType>

@@ -19,9 +19,10 @@ namespace ctaux {
 namespace walkerkernels {
 // dca::phys::solver::ctaux::walkerkernels::
 
-void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r, int N_c, int N_ld,
-                   double* G, int G_r, int G_c, int G_ld, int* random_vertex_vector, double* exp_V,
-                   double* exp_delta_V, int thread_id, int stream_id);
+template<class T>
+void compute_Gamma(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r, int N_c, int N_ld,
+                   const T* G, int G_r, int G_c, int G_ld, const int* random_vertex_vector, const T* exp_V,
+                   const T* exp_delta_V, int thread_id, int stream_id);
 
 }  // walkerkernels
 }  // ctaux

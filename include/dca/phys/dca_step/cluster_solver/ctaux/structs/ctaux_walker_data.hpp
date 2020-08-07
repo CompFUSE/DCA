@@ -22,10 +22,13 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
+template <dca::linalg::DeviceType device_t, typename Parameters>
 class CtauxWalkerData {
 protected:
   const static int MAX_VERTEX_SINGLETS = 2;
+
+  using Scalar = typename Parameters::MCScalar;
+  using Real = dca::util::Real<Scalar>;
 
 public:
   CtauxWalkerData(const Parameters& parameters, int id);
@@ -39,24 +42,24 @@ public:
 
   int thread_id;
 
-  dca::linalg::Matrix<Real, device_t> N_up;
-  dca::linalg::Matrix<Real, device_t> N_dn;
+  dca::linalg::Matrix<Scalar, device_t> N_up;
+  dca::linalg::Matrix<Scalar, device_t> N_dn;
 
-  dca::linalg::Matrix<Real, device_t> G0_up;
-  dca::linalg::Matrix<Real, device_t> G0_dn;
+  dca::linalg::Matrix<Scalar, device_t> G0_up;
+  dca::linalg::Matrix<Scalar, device_t> G0_dn;
 
-  dca::linalg::Matrix<Real, device_t> Gamma_up;
-  dca::linalg::Matrix<Real, device_t> Gamma_dn;
+  dca::linalg::Matrix<Scalar, device_t> Gamma_up;
+  dca::linalg::Matrix<Scalar, device_t> Gamma_dn;
 
-  dca::linalg::Matrix<Real, device_t> stored_Gamma_up;
-  dca::linalg::Matrix<Real, device_t> stored_Gamma_dn;
+  dca::linalg::Matrix<Scalar, device_t> stored_Gamma_up;
+  dca::linalg::Matrix<Scalar, device_t> stored_Gamma_dn;
 
-  dca::linalg::Matrix<Real, device_t> G_up;
-  dca::linalg::Matrix<Real, device_t> G_dn;
+  dca::linalg::Matrix<Scalar, device_t> G_up;
+  dca::linalg::Matrix<Scalar, device_t> G_dn;
 };
 
-template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
-CtauxWalkerData<device_t, Parameters, Real>::CtauxWalkerData(const Parameters& parameters, int id)
+template <dca::linalg::DeviceType device_t, typename Parameters>
+CtauxWalkerData<device_t, Parameters>::CtauxWalkerData(const Parameters& parameters, int id)
     : thread_id(id),
 
       N_up("N_up", 0, parameters.get_initial_matrix_size()),
@@ -80,9 +83,9 @@ CtauxWalkerData<device_t, Parameters, Real>::CtauxWalkerData(const Parameters& p
            std::pair<int, int>(parameters.get_initial_matrix_size(),
                                MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size())) {}
 
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CTAUX_WALKER_DATA_HPP

@@ -23,9 +23,6 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-// ******************************
-// ** Non density interaction. **
-// ******************************
 template <class Lattice>
 static constexpr bool has_non_density_interaction = false;
 
@@ -54,12 +51,6 @@ std::enable_if_t<has_non_density_interaction<Lattice>> initializeNonDensityInter
 template <class Lattice, class HType, class Parameters>
 std::enable_if_t<!has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
-
-// ******************************
-// ******** Complex G0 **********
-// ******************************
-template <class Lattice>
-static constexpr bool complex_g0 = false;
 
 }  // namespace models
 }  // namespace phys

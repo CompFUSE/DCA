@@ -108,7 +108,7 @@ private:
 
   const int thread_id_;
 
-  accumulator::SpAccumulator<Parameters, device, Real> sp_accumulator_;
+  accumulator::SpAccumulator<Parameters, device> sp_accumulator_;
   accumulator::TpAccumulator<Parameters, device> tp_accumulator_;
 
   bool perform_tp_accumulation_ = false;

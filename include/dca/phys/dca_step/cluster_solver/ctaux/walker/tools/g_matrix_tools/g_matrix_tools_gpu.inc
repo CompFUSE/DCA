@@ -10,9 +10,12 @@
 // G-matrix tools class.
 // Template specialization for GPU.
 
-template <class Parameters, typename Real>
-class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
+template <class Parameters>
+class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters> {
   const static int MAX_VERTEX_SINGLETS = 4;
+
+  using Scalar = typename Parameters::MCScalar;
+  using Real = dca::util::Real<Scalar>;
 
   using Concurrency = typename Parameters::concurrency_type;
   using Profiler = typename Parameters::profiler_type;

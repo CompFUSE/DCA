@@ -18,6 +18,7 @@
 
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {
 namespace phys {
@@ -38,8 +39,8 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
 }
 
-template <typename InpScalar, typename Real>
-__global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
+template <typename Scalar, typename Real>
+__global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
                             CudaComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
                             const Triple<Real>* config2) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -50,12 +51,11 @@ __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];
-  sorted_M[id_i + lds * id_j].y = 0;
+  sorted_M[id_i + lds * id_j] = dca::linalg::makeComplex(M[inp_i + ldm * inp_j]);
 }
 
-template <typename InpScalar, typename Real>
-void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>* sorted_M,
+template <typename Scalar, typename Real>
+void sortM(const int size, const Scalar* M, const int ldm, std::complex<Real>* sorted_M,
            const int lds, const Triple<Real>* config1, const Triple<Real>* config2,
            const cudaStream_t stream) {
   if (!size)
@@ -63,8 +63,8 @@ void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>
 
   auto const blocks = getBlockSize(size, size);
 
-  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, M, ldm, castCudaComplex(sorted_M), lds,
-                                                   config1, config2);
+  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(
+      size, castCudaComplex(M), ldm, castCudaComplex(sorted_M), lds, config1, config2);
 }
 
 template <typename Real>
@@ -138,15 +138,15 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
 // Explicit instantiation.
 template void sortM<double, double>(int, const double*, int, std::complex<double>*, int,
                                     const Triple<double>*, const Triple<double>*, const cudaStream_t);
-template void sortM<double, float>(int, const double*, int, std::complex<float>*, int,
-                                   const Triple<float>*, const Triple<float>*,
-                                   const cudaStream_t stream);
-template void sortM<float, double>(int, const float*, int, std::complex<double>*, int,
-                                   const Triple<double>*, const Triple<double>*,
-                                   const cudaStream_t stream);
 template void sortM<float, float>(int, const float*, int, std::complex<float>*, int,
                                   const Triple<float>*, const Triple<float>*,
                                   const cudaStream_t stream);
+template void sortM<std::complex<double>, double>(int, const std::complex<double>*, int,
+                                                  std::complex<double>*, int, const Triple<double>*,
+                                                  const Triple<double>*, const cudaStream_t stream);
+template void sortM<std::complex<float>, float>(int, const std::complex<float>*, int,
+                                                std::complex<float>*, int, const Triple<float>*,
+                                                const Triple<float>*, const cudaStream_t stream);
 
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);

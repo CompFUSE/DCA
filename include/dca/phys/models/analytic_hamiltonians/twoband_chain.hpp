@@ -35,6 +35,8 @@ namespace models {
 template <typename point_group_type>
 class twoband_chain {
 public:
+  static constexpr bool complex_g0 = false;
+
   typedef domains::no_symmetry<1> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
