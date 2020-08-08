@@ -98,7 +98,7 @@ TEST(Dnfft1DTest, ComplexValues) {
 
   // Prepare random samples.
   dca::math::random::StdRandomWrapper<std::mt19937_64> rng(0, 1, 42);
-  const int samples = 1e4;
+  const int samples = 5e4;
 
   std::vector<double> t(samples);
   std::vector<std::complex<double>> f(samples);
@@ -109,8 +109,8 @@ TEST(Dnfft1DTest, ComplexValues) {
   for (int l = 0; l < samples; ++l) {
     const double t_val = begin + rng() * delta;
     t[l] = t_val;
-    f[l].real(std::cos(-2. * M_PI / delta * (t_val - begin)));
-    f[l].imag(std::sin(-3. * M_PI / delta * (t_val - begin)));
+    f[l].real(std::cos(-2. * M_PI / delta * t_val));
+    f[l].imag(std::sin(-3. * M_PI / delta * t_val));
   }
 
   // Compute f(w) using the discrete Fourier transform (DFT).

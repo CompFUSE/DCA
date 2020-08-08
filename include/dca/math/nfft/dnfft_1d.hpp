@@ -472,9 +472,56 @@ void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
 template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 template <typename OutReal>
 void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
-    func::function<std::complex<OutReal>, func::dmn_variadic<WDmn, PDmn>>& /*f_w*/,
-    std::true_type) const {
-  throw(std::runtime_error("not implemented"));
+    func::function<std::complex<OutReal>, func::dmn_variadic<WDmn, PDmn>>& f_w, std::true_type) const {
+  const int n_padded = nfft_time_domain<PADDED, ThisType>::get_size();
+  const int n = nfft_time_domain<LEFT_ORIENTED, ThisType>::get_size();
+  const int padding = (n_padded - n) / 2;
+
+  std::vector<std::complex<double>> f_in(n);
+
+  std::vector<std::complex<double>> f_out(n);
+  fftw_plan plan;
+
+  {
+    std::unique_lock<std::mutex> lock(fftw_mutex_);
+    plan = fftw_plan_dft_1d(n, reinterpret_cast<fftw_complex*>(f_in.data()),
+                            reinterpret_cast<fftw_complex*>(f_out.data()), FFTW_BACKWARD,
+                            FFTW_ESTIMATE);
+  }
+
+  func::function<std::complex<OutReal>, LeftOrientedPDmn> f_omega;
+  for (int p_ind = 0; p_ind < PDmn::dmn_size(); ++p_ind) {
+    std::copy_n(&f_tau_(padding, p_ind), n, f_in.data());
+
+    fftw_execute(plan);
+
+    for (int t_ind = 0; t_ind < n; ++t_ind) {
+      f_omega(t_ind, p_ind) = f_out[t_ind];
+    }
+  }
+
+  {
+    std::unique_lock<std::mutex> lock(fftw_mutex_);
+    fftw_destroy_plan(plan);
+  }
+
+  std::vector<int> w_indices;
+  const auto& matsubara_freq_indices = WDmn::parameter_type::get_indices();
+  for (int w_ind = 0; w_ind < WDmn::dmn_size(); ++w_ind) {
+    for (int t_ind = 0; t_ind < n; ++t_ind) {
+      if (matsubara_freq_indices[w_ind] == t_ind || matsubara_freq_indices[w_ind] + n == t_ind) {
+        w_indices.push_back(t_ind);
+        break;
+      }
+    }
+  }
+
+  for (int p_ind = 0; p_ind < PDmn::dmn_size(); ++p_ind)
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); ++w_ind)
+      f_w(w_ind, p_ind) = f_omega(w_indices[w_ind], p_ind) / get_phi_wn()(w_ind);
+
+  // TODO: understand why the  minus sign is necessary.
+  f_w *= -1. / n;
 }
 
 template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
