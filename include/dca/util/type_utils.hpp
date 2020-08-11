@@ -170,13 +170,9 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
 
 // Determine if a type is complex or not.
 template <class T>
-struct IsComplex : std::false_type {
-  constexpr static bool value = 0;
-};
+struct IsComplex : std::false_type {};
 template <class T>
-struct IsComplex<std::complex<T>> : std::true_type {
-  constexpr static bool value = 1;
-};
+struct IsComplex<std::complex<T>> : std::true_type {};
 
 namespace {
 template <class T>

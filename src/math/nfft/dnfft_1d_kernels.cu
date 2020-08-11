@@ -51,7 +51,7 @@ __global__ void accumulateOnDeviceKernel(const Scalar* __restrict__ M, const int
                                          int ldo, const ConfigElem* __restrict__ config_left,
                                          const ConfigElem* __restrict__ config_right,
                                          const Real* __restrict__ times,
-                                         const Scalar* __restrict__ cubic_coeff, const int m_size) {
+                                         const Real* __restrict__ cubic_coeff, const int m_size) {
   using namespace dca::linalg;
 
   constexpr int conv_size = 2 * oversampling;
@@ -81,17 +81,17 @@ __global__ void accumulateOnDeviceKernel(const Scalar* __restrict__ M, const int
 
   const auto conv_function_value =
       ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t + conv_coeff[0];
-  const auto contribution = f_val * sign * conv_function_value;
-  linalg::atomicAdd(out_ptr, contribution);
+
+  linalg::atomicAdd(out_ptr, sign * f_val * conv_function_value);
   if (accumulate_m_sqr) {
-    linalg::atomicAdd(out_sqr, f_val * f_val * conv_function_value);
+    linalg::atomicAdd(out_sqr, sign * f_val * f_val * conv_function_value);
   }
 }
 
 template <int oversampling, int window_sampling, typename Scalar, typename Real>
 void accumulateOnDevice(const Scalar* M, const int ldm, const Real sign, Scalar* out,
                         Scalar* out_sqr, const int ldo, const ConfigElem* config_left,
-                        const ConfigElem* config_right, const Real* tau, const Scalar* cubic_coeff,
+                        const ConfigElem* config_right, const Real* tau, const Real* cubic_coeff,
                         const int size, cudaStream_t stream_) {
   const auto blocks = getBlockSize(size * size * (2 * oversampling), 128);
   using dca::linalg::util::castCudaComplex;
@@ -99,15 +99,15 @@ void accumulateOnDevice(const Scalar* M, const int ldm, const Real sign, Scalar*
 
   if (out_sqr) {
     accumulateOnDeviceKernel<oversampling, window_sampling, CudaConvert<Scalar>, Real, true>
-        <<<blocks[0], blocks[1], 0, stream_>>>(
-            castCudaComplex(M), ldm, sign, castCudaComplex(out), castCudaComplex(out_sqr), ldo,
-            config_left, config_right, tau, castCudaComplex(cubic_coeff), size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castCudaComplex(M), ldm, sign, castCudaComplex(out),
+                                               castCudaComplex(out_sqr), ldo, config_left,
+                                               config_right, tau, cubic_coeff, size);
   }
   else {
     accumulateOnDeviceKernel<oversampling, window_sampling, CudaConvert<Scalar>, Real, false>
-        <<<blocks[0], blocks[1], 0, stream_>>>(
-            castCudaComplex(M), ldm, sign, castCudaComplex(out), castCudaComplex(out_sqr), ldo,
-            config_left, config_right, tau, castCudaComplex(cubic_coeff), size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castCudaComplex(M), ldm, sign, castCudaComplex(out),
+                                               castCudaComplex(out_sqr), ldo, config_left,
+                                               config_right, tau, cubic_coeff, size);
   }
 }
 
@@ -153,13 +153,13 @@ template void accumulateOnDevice<oversampling, window_sampling, float, float>(
 template void accumulateOnDevice<oversampling, window_sampling, std::complex<double>, double>(
     const std::complex<double>* M, const int ldm, const double sign, std::complex<double>* out,
     std::complex<double>* out_sqr, const int ldo, const ConfigElem* config_left,
-    const ConfigElem* config_right, const double* tau, const std::complex<double>* cubic_coeff,
-    const int size, cudaStream_t stream_);
+    const ConfigElem* config_right, const double* tau, const double* cubic_coeff, const int size,
+    cudaStream_t stream_);
 template void accumulateOnDevice<oversampling, window_sampling, std::complex<float>, float>(
     const std::complex<float>* M, const int ldm, const float sign, std::complex<float>* out,
     std::complex<float>* out_sqr, const int ldo, const ConfigElem* config_left,
-    const ConfigElem* config_right, const float* tau, const std::complex<float>* cubic_coeff,
-    const int size, cudaStream_t stream_);
+    const ConfigElem* config_right, const float* tau, const float* cubic_coeff, const int size,
+    cudaStream_t stream_);
 
 template void sum(const double* in, const int ldi, double* out, const int ldo, const int n,
                   const int m, cudaStream_t stream);

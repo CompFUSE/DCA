@@ -326,7 +326,7 @@ inline void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::convoluteToFTauFine
   assert(delta_tau_index == i * window_sampling_ + j);
 
   Scalar* f_tau_ptr = &f_tau_(tau_index, index);
-  Scalar* matrix_ptr = &get_linear_convolution_matrices()(0, i, j);
+  const Real* matrix_ptr = &get_linear_convolution_matrices()(0, i, j);
 
   NfftAtomicConvolution<oversampling>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
 }
@@ -374,7 +374,7 @@ inline void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::convoluteToFTauFine
   assert(delta_tau_index == i * window_sampling_ + j);
 
   Scalar* f_tau_ptr = &f_tau_(tau_index, index);
-  Scalar* matrix_ptr = &get_cubic_convolution_matrices()(0, i, j);
+  const auto* matrix_ptr = &get_cubic_convolution_matrices()(0, i, j);
 
   NfftAtomicConvolution<oversampling>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
 }
@@ -541,21 +541,21 @@ auto& Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::get_convolution_time_valu
 
 template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 auto& Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::get_linear_convolution_matrices() {
-  static func::function<Scalar, func::dmn_variadic<LinearCoefficientsDmn, OversamplingDmn, WindowSamplingDmn>>
+  static func::function<Real, func::dmn_variadic<LinearCoefficientsDmn, OversamplingDmn, WindowSamplingDmn>>
       linear_convolution_matrices("linear_convolution_matrices");
   return linear_convolution_matrices;
 }
 
 template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 auto& Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::get_cubic_convolution_matrices() {
-  static func::function<Scalar, func::dmn_variadic<CubicCoefficientsDmn, OversamplingDmn, WindowSamplingDmn>>
+  static func::function<Real, func::dmn_variadic<CubicCoefficientsDmn, OversamplingDmn, WindowSamplingDmn>>
       cubic_convolution_matrices("cubic_convolution_matrices");
   return cubic_convolution_matrices;
 }
 
 template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 auto& Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::get_phi_wn() {
-  static func::function<Scalar, WDmn> phi_wn("phi_wn");
+  static func::function<Real, WDmn> phi_wn("phi_wn");
   return phi_wn;
 }
 

@@ -95,7 +95,7 @@ private:
   void initializeDeviceCoefficients();
 
   using BaseClass::f_tau_;
-  static inline linalg::Vector<Scalar, linalg::GPU>& get_device_cubic_coeff();
+  static inline auto& get_device_cubic_coeff();
 
   const double beta_;
   const linalg::util::CudaStream& stream_;
@@ -144,7 +144,7 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCoeffi
     const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
     auto& dev_coeff = get_device_cubic_coeff();
     dev_coeff.resizeNoCopy(host_coeff.size());
-    cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(Scalar),
+    cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(Real),
                cudaMemcpyHostToDevice);
 
     const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
@@ -240,9 +240,8 @@ Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>& Dnfft1DGpu<Scalar, WDmn, RD
 }
 
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
-linalg::Vector<Scalar, linalg::GPU>& Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling,
-                                                CUBIC>::get_device_cubic_coeff() {
-  static linalg::Vector<Scalar, linalg::GPU> coefficients;
+auto& Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::get_device_cubic_coeff() {
+  static linalg::Vector<Real, linalg::GPU> coefficients;
   return coefficients;
 }
 

@@ -33,7 +33,7 @@ template <int oversampling, int window_sampling, typename Scalar, typename Real>
 void accumulateOnDevice(const Scalar* M, const int ldm, const Real sign, Scalar* out,
                         Scalar* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const Real* tau,
-                        const Scalar* cubic_coeff, const int size, cudaStream_t stream_);
+                        const Real* cubic_coeff, const int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);

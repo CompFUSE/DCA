@@ -27,6 +27,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace testing {
@@ -125,9 +126,10 @@ namespace {
 bool single_sector_accumulator_test_initialized = false;
 }  // namespace
 
-template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
+template <typename Scalar = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
+  using Real = dca::util::Real<Scalar>;
   using Complex = std::complex<Real>;
 
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
@@ -136,12 +138,12 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
 
-  static double get_beta() {
+  static Real get_beta() {
     return beta_;
   }
 
@@ -180,8 +182,8 @@ protected:
   Matrix M_;
 };
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfiguration(
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+void SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::prepareConfiguration(
     Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n) {
   config.resize(n);
   M.resize(n);
@@ -197,14 +199,16 @@ void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfig
   for (int j = 0; j < n; ++j)
     for (int i = 0; i < n; ++i) {
       M(i, j) = 2 * rng() - 1.;
+      if constexpr (dca::util::IsComplex<Scalar>::value)
+        M(i, j).imag(2 * rng() - 1.);
     }
 }
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+auto SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
     -> F_w_w {
   F_w_w f_w("2D frequency transform baseline.");
-  const std::complex<Real> imag(0, 1);
+  const Complex imag(0, 1);
 
   for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
     const Real w_val2 = FreqDmn::get_elements()[w_ind2];
