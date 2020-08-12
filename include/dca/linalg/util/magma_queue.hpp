@@ -39,12 +39,13 @@ public:
   MagmaQueue(const MagmaQueue& rhs) = delete;
   MagmaQueue& operator=(const MagmaQueue& rhs) = delete;
 
-  MagmaQueue(MagmaQueue&& rhs) {
-    swap(rhs);
+  MagmaQueue(MagmaQueue&& rhs) noexcept : CudaStream(std::move(rhs)) {
+    swapMembers(rhs);
   }
 
-  MagmaQueue& operator=(MagmaQueue&& rhs) {
-    swap(rhs);
+  MagmaQueue& operator=(MagmaQueue&& rhs) noexcept {
+    CudaStream::operator=(std::move(rhs));
+    swapMembers(rhs);
     return *this;
   }
 
@@ -58,14 +59,13 @@ public:
     return queue_;
   }
 
-  void swap(MagmaQueue& other) {
-    static_cast<CudaStream&>(*this).swap(static_cast<CudaStream&>(other));
-    std::swap(cublas_handle_, other.cublas_handle_);
-    std::swap(cusparse_handle_, other.cusparse_handle_);
-    std::swap(queue_, other.queue_);
+private:
+  void swapMembers(MagmaQueue& rhs) noexcept {
+    std::swap(cublas_handle_, rhs.cublas_handle_);
+    std::swap(cusparse_handle_, rhs.cusparse_handle_);
+    std::swap(queue_, rhs.queue_);
   }
 
-private:
   magma_queue_t queue_ = nullptr;
   cublasHandle_t cublas_handle_ = nullptr;
   cusparseHandle_t cusparse_handle_ = nullptr;
