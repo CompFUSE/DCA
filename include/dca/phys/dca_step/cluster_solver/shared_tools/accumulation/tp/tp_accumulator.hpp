@@ -124,7 +124,8 @@ public:
   }
 
   linalg::util::CudaStream* get_stream() const {
-    return nullptr;
+    static dca::linalg::util::CudaStream mock_stream;
+    return &mock_stream;
   }
 
 protected:
