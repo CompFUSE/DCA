@@ -23,6 +23,7 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/type_list.hpp"
 
 namespace dca {
@@ -40,22 +41,20 @@ public:
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
   // Initializes the interaction Hamiltonian non density-density local term.
-  template <typename Nu, typename RDmn, typename parameters_type>
+  template <typename Parameters>
   static void initializeNonDensityInteraction(
-      func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
-      const parameters_type& parameters);
+      NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 };
 
 template <typename point_group_type>
-template <typename Nu, typename RDmn, typename parameters_type>
+template <typename Parameters>
 void HundLattice<point_group_type>::initializeNonDensityInteraction(
-    func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
-    const parameters_type& parameters) {
+    NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters) {
   const double Jh = parameters.get_Jh();
-  const Nu nu;  // band-spin domain.
+  const NuDmn nu;  // band-spin domain.
   constexpr int up(0), down(1);
 
   non_density_interaction = 0.;

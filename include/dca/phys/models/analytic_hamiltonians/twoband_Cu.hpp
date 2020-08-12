@@ -76,8 +76,10 @@ public:
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
-  template <class HType, class Parameters>
-  static void initializeNonDensityInteraction(HType& interaction, const Parameters& pars);
+  // Initializes the interaction Hamiltonian non density-density local term.
+  template <typename Parameters>
+  static void initializeNonDensityInteraction(
+      NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
@@ -196,9 +198,9 @@ void TwoBandCu<PointGroup>::initializeHInteraction(
 }
 
 template <typename PointGroup>
-template <class HType, class Parameters>
-void TwoBandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
-                                                            const Parameters& pars) {
+template <class Parameters>
+void TwoBandCu<PointGroup>::initializeNonDensityInteraction(
+    NonDensityIntHamiltonian<Parameters>& interaction, const Parameters& pars) {
   const double J = pars.get_J();
   const double Jp = pars.get_Jp();
 
@@ -213,6 +215,7 @@ void TwoBandCu<PointGroup>::initializeNonDensityInteraction(HType& interaction,
       interaction(b1, up, b2, up, b1, down, b2, down, 0) = Jp;
     }
 }
+
 template <typename PointGroup>
 template <class domain>
 void TwoBandCu<PointGroup>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {

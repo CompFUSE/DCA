@@ -167,7 +167,8 @@ protected:
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
   constexpr static bool non_density_density_ =
-      models::has_non_density_interaction<typename Parameters::lattice_type>;
+      models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
+
   CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   SpGreenFunction G_;

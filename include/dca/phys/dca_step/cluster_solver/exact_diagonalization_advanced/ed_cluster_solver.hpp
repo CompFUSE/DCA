@@ -139,7 +139,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca
 
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS_imag.H_DCA, H_DCA);
 
-  if (models::has_non_density_interaction<Lattice>) {
+  if (models::HasInitializeNonDensityInteractionMethod<parameters_type>::value) {
     func::function<double, func::dmn_variadic<nu, nu, nu, nu, RClusterDmn>> H_nd;
     models::initializeNonDensityInteraction<Lattice>(H_nd, parameters);
     Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions, H_nd);
