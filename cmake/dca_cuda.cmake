@@ -20,6 +20,10 @@ if (CUDA_FOUND)
   list(APPEND DCA_CUDA_LIBS ${CUDA_LIBRARIES} ${CUDA_cusparse_LIBRARY} ${CUDA_cublas_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
   set(CUDA_SEPARABLE_COMPILATION ON)
+
+  set(CVD_LAUNCHER "" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
+  # Use the following script for systems with multiple gpus visible from a rank.
+  # set(CVD_LAUNCHER "test/cvd_launcher.sh" CACHE INTERNAL "")
 endif()
 
 # Find MAGMA.
