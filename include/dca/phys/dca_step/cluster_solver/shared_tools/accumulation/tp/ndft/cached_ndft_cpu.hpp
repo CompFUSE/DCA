@@ -35,14 +35,15 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-class CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>
-    : public CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density> {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+class CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>
+    : public CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
-  using BaseClass = CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>;
+  using BaseClass = CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>;
   using typename BaseClass::BDmn;
   using typename BaseClass::SDmn;
-  using Matrix = linalg::Matrix<ScalarType, dca::linalg::CPU>;
+  using Real = dca::util::Real<Scalar>;
+  using Complex = dca::util::Complex<Scalar>;
 
 public:
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
@@ -50,9 +51,9 @@ public:
   // In case OutDmn contains the spin domain as a subdomain, 'spin' is used to rearrange the output.
   // Out: M_r_r_w_w.
   // Returns: the number of flops performed by the method.
-  template <class Configuration, typename ScalarInp, class OutDmn>
-  float execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
-                 func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, int spin = 0);
+  template <class Configuration, class OutDmn>
+  float execute(const Configuration& configuration, const linalg::Matrix<Scalar, linalg::CPU>& M,
+                func::function<Complex, OutDmn>& M_r_r_w_w, int spin = 0);
 
 private:
   template <class Configuration>
@@ -67,23 +68,19 @@ private:
 
   void inline copyPartialResult(
       int orb1, int orb2, int /*spin*/,
-      func::function<std::complex<ScalarType>,
-                     func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const;
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const;
 
   void inline copyPartialResult(
       int orb1, int orb2, int spin,
-      func::function<std::complex<ScalarType>,
-                     func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const;
+      func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const;
 
   void inline setToZero(
       int orb1, int orb2, int /*spin*/,
-      func::function<std::complex<ScalarType>,
-                     func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const;
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const;
 
   void inline setToZero(
       int orb1, int orb2, int spin,
-      func::function<std::complex<ScalarType>,
-                     func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const;
+      func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const;
 
   static void orbitalToBR(int orbital, int& b, int& r);
 
@@ -97,21 +94,20 @@ private:
   using BaseClass::end_index_left_;
   using BaseClass::end_index_right_;
 
-  using MatrixPair = std::array<Matrix, 2>;
-  Matrix M_ij_;
-  MatrixPair T_l_times_M_ij_times_T_r_;
-  MatrixPair T_;
-  MatrixPair T_l_;
-  MatrixPair T_r_;
-  MatrixPair T_l_times_M_ij_;
-  std::array<Matrix, 5> work_;
+  using CmplxMatrix = linalg::Matrix<Complex, dca::linalg::CPU>;
+  CmplxMatrix M_ij_;
+  CmplxMatrix T_l_times_M_ij_times_T_r_;
+  CmplxMatrix T_;
+  CmplxMatrix T_l_;
+  CmplxMatrix T_r_;
+  CmplxMatrix T_l_times_M_ij_;
 };
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration, typename ScalarInp, class OutDmn>
-float CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
-    func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, const int spin) {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <class Configuration, class OutDmn>
+float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::execute(
+    const Configuration& configuration, const linalg::Matrix<Scalar, linalg::CPU>& M,
+    func::function<Complex, OutDmn>& M_r_r_w_w, const int spin) {
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 1] == WDmn::dmn_size());
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 2] == WPosDmn::dmn_size());
   double flops = 0.;
@@ -143,29 +139,27 @@ float CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densi
   return flops;
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeT(
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeT(
     const Configuration& configuration) {
   int n_v = configuration.size();
   int n_w = w_.size();
 
-  T_[0].resizeNoCopy(std::pair<int, int>(n_w, n_v));
-  T_[1].resizeNoCopy(std::pair<int, int>(n_w, n_v));
+  T_.resizeNoCopy(std::pair<int, int>(n_w, n_v));
 
   for (int j = 0; j < n_v; ++j) {
     for (int i = 0; i < n_w; ++i) {
-      const ScalarType x = configuration[j].get_tau() * w_[i];
+      const Real x = configuration[j].get_tau() * w_[i];
 
-      T_[0](i, j) = std::cos(x);
-      T_[1](i, j) = std::sin(x);
+      T_(i, j) = {std::cos(x), std::sin(x)};
     }
   }
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <typename ScalarInp>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeMMatrix(
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeMMatrix(
     const linalg::Matrix<ScalarInp, linalg::CPU>& M, const int orb_i, const int orb_j) {
   M_ij_.resizeNoCopy(std::pair<int, int>(end_index_left_[orb_i] - start_index_left_[orb_i],
                                          end_index_right_[orb_j] - start_index_right_[orb_j]));
@@ -179,67 +173,57 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
   }
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeTSubmatrices(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeTSubmatrices(
     const int orb_i, const int orb_j) {
   const int n_w = WDmn::dmn_size();
   const int n_w_pos = WPosDmn::dmn_size();
 
-  for (int re_im = 0; re_im < 2; ++re_im) {
-    // T_l_ matrix
-    T_l_[re_im].resizeNoCopy(
-        std::pair<int, int>(n_w_pos, end_index_left_[orb_i] - start_index_left_[orb_i]));
+  T_l_.resizeNoCopy(std::pair<int, int>(n_w_pos, end_index_left_[orb_i] - start_index_left_[orb_i]));
 
-    for (int l_i = start_index_left_[orb_i]; l_i < end_index_left_[orb_i]; ++l_i) {
-      const int i = l_i - start_index_left_[orb_i];
-      memcpy(&T_l_[re_im](0, i), &T_[re_im](n_w_pos, config_left_[l_i].idx),
-             sizeof(ScalarType) * n_w_pos);
-    }
+  for (int l_i = start_index_left_[orb_i]; l_i < end_index_left_[orb_i]; ++l_i) {
+    const int i = l_i - start_index_left_[orb_i];
+    memcpy(&T_l_(0, i), &T_(n_w_pos, config_left_[l_i].idx), sizeof(Scalar) * n_w_pos);
+  }
 
-    // T_r_ matrix
-    T_r_[re_im].resizeNoCopy(
-        std::pair<int, int>(n_w, end_index_right_[orb_j] - start_index_right_[orb_j]));
+  // T_r_ matrix
+  T_r_.resizeNoCopy(std::pair<int, int>(n_w, end_index_right_[orb_j] - start_index_right_[orb_j]));
 
-    for (int l_j = start_index_right_[orb_j]; l_j < end_index_right_[orb_j]; ++l_j) {
-      const int j = l_j - start_index_right_[orb_j];
-      memcpy(&T_r_[re_im](0, j), &T_[re_im](0, config_right_[l_j].idx), sizeof(ScalarType) * n_w);
-    }
+  for (int l_j = start_index_right_[orb_j]; l_j < end_index_right_[orb_j]; ++l_j) {
+    const int j = l_j - start_index_right_[orb_j];
+    memcpy(&T_r_(0, j), &T_(0, config_right_[l_j].idx), sizeof(Scalar) * n_w);
   }
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-float CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::executeTrimmedFT() {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::executeTrimmedFT() {
   float flops = 0.;
 
   assert(WPosDmn::dmn_size() == WDmn::dmn_size() / 2);
 
-  assert(T_l_[0].size().first == WPosDmn::dmn_size());
-  assert(T_l_[0].size().second == M_ij_.size().first);
+  assert(T_l_.size().first == WPosDmn::dmn_size());
+  assert(T_l_.size().second == M_ij_.size().first);
 
-  assert(T_r_[0].size().first == WDmn::dmn_size());
-  assert(T_r_[0].size().second == M_ij_.size().second);
+  assert(T_r_.size().first == WDmn::dmn_size());
+  assert(T_r_.size().second == M_ij_.size().second);
 
-  for (int re_im = 0; re_im < 2; ++re_im) {
-    T_l_times_M_ij_[re_im].resizeNoCopy(std::make_pair(WPosDmn::dmn_size(), M_ij_.size().second));
-    T_l_times_M_ij_times_T_r_[re_im].resizeNoCopy(
-        std::make_pair(WPosDmn::dmn_size(), WDmn::dmn_size()));
-  }
+  T_l_times_M_ij_.resizeNoCopy(std::make_pair(WPosDmn::dmn_size(), M_ij_.size().second));
+  T_l_times_M_ij_times_T_r_.resizeNoCopy(std::make_pair(WPosDmn::dmn_size(), WDmn::dmn_size()));
 
-  dca::linalg::matrixop::multiply(T_l_, M_ij_, T_l_times_M_ij_);
-  flops += 4 * T_l_[0].size().first * T_l_[0].size().second * M_ij_.size().second;
+  dca::linalg::matrixop::gemm(T_l_, M_ij_, T_l_times_M_ij_);
+  flops += 4 * T_l_.size().first * T_l_.size().second * M_ij_.size().second;
 
-  dca::linalg::matrixop::multiply('N', 'C', T_l_times_M_ij_, T_r_, T_l_times_M_ij_times_T_r_, work_);
-  flops += 8. * T_l_times_M_ij_[0].size().first * T_l_times_M_ij_[0].size().second *
-          T_l_times_M_ij_times_T_r_[0].size().second;
+  dca::linalg::matrixop::gemm('N', 'C', T_l_times_M_ij_, T_r_, T_l_times_M_ij_times_T_r_);
+  flops += 8. * T_l_times_M_ij_.size().first * T_l_times_M_ij_.size().second *
+           T_l_times_M_ij_times_T_r_.size().second;
 
   return flops;
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::copyPartialResult(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::copyPartialResult(
     const int orb1, const int orb2, int /*spin*/,
-    func::function<std::complex<ScalarType>,
-                   func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
+    func::function<Complex, func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
   int b1, b2, r1, r2;
@@ -247,16 +231,14 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
   orbitalToBR(orb2, b2, r2);
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1) {
-      f_out(b1, b2, r1, r2, w1, w2).real(T_l_times_M_ij_times_T_r_[0](w1, w2));
-      f_out(b1, b2, r1, r2, w1, w2).imag(T_l_times_M_ij_times_T_r_[1](w1, w2));
+      f_out(b1, b2, r1, r2, w1, w2) = T_l_times_M_ij_times_T_r_(w1, w2);
     }
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::copyPartialResult(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::copyPartialResult(
     const int orb1, const int orb2, const int spin,
-    func::function<std::complex<ScalarType>,
-                   func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
   int b1, b2, r1, r2;
@@ -264,16 +246,14 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
   orbitalToBR(orb2, b2, r2);
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1) {
-      f_out(r1, r2, b1, b2, spin, w1, w2).real(T_l_times_M_ij_times_T_r_[0](w1, w2));
-      f_out(r1, r2, b1, b2, spin, w1, w2).imag(T_l_times_M_ij_times_T_r_[1](w1, w2));
+      f_out(r1, r2, b1, b2, spin, w1, w2) = T_l_times_M_ij_times_T_r_(w1, w2);
     }
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::setToZero(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::setToZero(
     const int orb1, const int orb2, int /*spin*/,
-    func::function<std::complex<ScalarType>,
-                   func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
+    func::function<Complex, func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
   int b1, b2, r1, r2;
@@ -284,11 +264,10 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
       f_out(b1, b2, r1, r2, w1, w2) = 0;
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::setToZero(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::setToZero(
     const int orb1, const int orb2, const int spin,
-    func::function<std::complex<ScalarType>,
-                   func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
+    func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
   int b1, b2, r1, r2;
@@ -299,17 +278,17 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
       f_out(r1, r2, b1, b2, spin, w1, w2) = 0;
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::orbitalToBR(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::orbitalToBR(
     int orbital, int& b, int& r) {
   const static int n_bands = BDmn::dmn_size();
   r = orbital / n_bands;
   b = orbital % n_bands;
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_CPU_HPP

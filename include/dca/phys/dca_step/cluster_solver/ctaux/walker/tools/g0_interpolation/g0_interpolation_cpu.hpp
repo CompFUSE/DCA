@@ -216,7 +216,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
   int first_shuffled_index = configuration.get_first_shuffled_spin_index(e_spin);
 
   for (int j = 0; j < first_shuffled_index; j++) {
-    double* G0_ptr = G0.ptr(0, j);
+    Scalar* G0_ptr = G0.ptr(0, j);
 
     vertex_singleton_type& v_j = configuration_e_spin[j];
 
@@ -232,7 +232,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
   }
 
   for (int j = first_shuffled_index; j < configuration_size; j++) {
-    double* G0_ptr = G0.ptr(0, j);
+    Scalar* G0_ptr = G0.ptr(0, j);
 
     vertex_singleton_type& v_j = configuration_e_spin[j];
 

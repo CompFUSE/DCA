@@ -148,14 +148,15 @@ void SpAccumulator<Parameters, linalg::CPU>::accumulate(
         const int r_i = config[i].get_right_site();
         const Real t_i = config[i].get_tau();
         const int delta_r = RDmn::parameter_type::subtract(r_j, r_i);
-        const double scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
+        const Real scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
 
         const int index = bbr_dmn(b_i, b_j, delta_r);
         const Scalar f_val = Ms[s](i, j);
 
-        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
+        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, static_cast<Real>(sign) * f_val);
         if (accumulate_m_sqr_)
-          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
+          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau,
+                                                static_cast<Real>(sign) * f_val * f_val);
       }
     }
   }

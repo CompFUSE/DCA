@@ -40,18 +40,18 @@ public:
   typedef cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE> r_dmn;
   typedef cluster_domain<scalar_type, DIMENSION, NAME, MOMENTUM_SPACE, SHAPE> k_dmn;
 
-  static void execute(scalar_type* r_basis, std::vector<int> R_basis,
+  static void execute(const scalar_type* r_basis, std::vector<int> R_basis,
                       bool init_add_and_subtract_matrices = false);
 
-  static void execute(scalar_type* r_basis, std::vector<std::vector<int>> R_basis,
+  static void execute(const scalar_type* r_basis, std::vector<std::vector<int>> R_basis,
                       bool init_add_and_subtract_matrices = true);
 
 private:
   static void allocate_data(int N);
 
-  static void initialize_basis(scalar_type* r_basis, std::vector<int> R_basis);
+  static void initialize_basis(const scalar_type* r_basis, std::vector<int> R_basis);
 
-  static void initialize_basis(scalar_type* r_basis, std::vector<std::vector<int>> R_basis);
+  static void initialize_basis(const scalar_type* r_basis, std::vector<std::vector<int>> R_basis);
 
   static void compute_basis();
 
@@ -69,20 +69,20 @@ private:
   static void initialize_elements_2D(std::vector<int> R_basis);
   static void initialize_elements_3D(std::vector<int> R_basis);
 
-  static void initialize_add(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
+  static void initialize_add(const scalar_type* basis,
+                             std::vector<std::vector<scalar_type>>& elements,
                              dca::linalg::Matrix<int, dca::linalg::CPU>& A);
 
-  static void initialize_subtract(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
+  static void initialize_subtract(const scalar_type* basis,
+                                  std::vector<std::vector<scalar_type>>& elements,
                                   dca::linalg::Matrix<int, dca::linalg::CPU>& A);
 
   static void initialize_volume();
 };
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
-void cluster_domain_initializer<func::dmn_0<cluster_domain<
-    scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::execute(scalar_type* r_basis,
-                                                                std::vector<int> grid_size,
-                                                                bool init_add_and_subtract_matrices) {
+void cluster_domain_initializer<func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::execute(
+    const scalar_type* r_basis, std::vector<int> grid_size, bool init_add_and_subtract_matrices) {
   assert(SHAPE == PARALLELLEPIPEDUM);
 
   {
@@ -117,10 +117,10 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 }
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
-void cluster_domain_initializer<func::dmn_0<cluster_domain<
-    scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::execute(scalar_type* r_basis,
-                                                                std::vector<std::vector<int>> R_basis,
-                                                                bool init_add_and_subtract_matrices) {
+void cluster_domain_initializer<
+    func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
+    execute(const scalar_type* r_basis, std::vector<std::vector<int>> R_basis,
+            bool init_add_and_subtract_matrices) {
   assert(SHAPE == BRILLOUIN_ZONE);
 
   {
@@ -157,8 +157,8 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 }
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
-void cluster_domain_initializer<func::dmn_0<
-    cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int /*N*/) {
+void cluster_domain_initializer<
+    func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int /*N*/) {
   // assert(N == DIMENSION);
 
   {
@@ -179,9 +179,9 @@ void cluster_domain_initializer<func::dmn_0<
 }
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
-void cluster_domain_initializer<func::dmn_0<cluster_domain<
-    scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_basis(scalar_type* r_basis,
-                                                                         std::vector<int> R_basis) {
+void cluster_domain_initializer<
+    func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
+    initialize_basis(const scalar_type* r_basis, std::vector<int> R_basis) {
   {
     for (int d0 = 0; d0 < DIMENSION; d0++)
       for (int d1 = 0; d1 < DIMENSION; d1++)
@@ -198,7 +198,7 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<
     func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
-    initialize_basis(scalar_type* r_basis, std::vector<std::vector<int>> R_basis) {
+    initialize_basis(const scalar_type* r_basis, std::vector<std::vector<int>> R_basis) {
   {
     for (int d0 = 0; d0 < DIMENSION; d0++)
       for (int d1 = 0; d1 < DIMENSION; d1++)
@@ -588,8 +588,9 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 }
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
-void cluster_domain_initializer<func::dmn_0<cluster_domain<
-    scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_elements(std::vector<int> grid_size) {
+void cluster_domain_initializer<
+    func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
+    initialize_elements(std::vector<int> grid_size) {
   switch (DIMENSION) {
     case 1:
       initialize_elements_1D(grid_size);
@@ -688,7 +689,7 @@ void cluster_domain_initializer<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<
     func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
-    initialize_add(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
+    initialize_add(const scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
                    dca::linalg::Matrix<int, dca::linalg::CPU>& A) {
   assert(SHAPE == BRILLOUIN_ZONE);
 
@@ -730,7 +731,7 @@ void cluster_domain_initializer<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<
     func::dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
-    initialize_subtract(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
+    initialize_subtract(const scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
                         dca::linalg::Matrix<int, dca::linalg::CPU>& A) {
   assert(SHAPE == BRILLOUIN_ZONE);
 
@@ -799,8 +800,8 @@ void cluster_domain_initializer<
   }
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_CLUSTER_CLUSTER_DOMAIN_INITIALIZER_HPP

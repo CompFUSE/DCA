@@ -26,23 +26,23 @@ class N_MATRIX_TOOLS<dca::linalg::CPU, Parameters> {
 public:
   N_MATRIX_TOOLS(int id, const Parameters& parameters_ref);
 
-  auto get_device_ptr(dca::linalg::Vector<Scalar, dca::linalg::CPU>& v){
+  auto get_device_ptr(dca::linalg::Vector<Scalar, dca::linalg::CPU>& v) {
     return v.ptr();
   }
 
   const int* get_permutation() const;
   void set_permutation(const HostVector<int>& p);
 
-  void set_d_vector(dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv);
+  void set_d_vector(dca::linalg::Vector<Scalar, dca::linalg::CPU>& d_inv);
 
-  void scale_rows(dca::linalg::Matrix<Real, dca::linalg::CPU>& N);
+  void scale_rows(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N);
 
-  void copy_rows(dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-                 dca::linalg::Matrix<Real, dca::linalg::CPU>& N_new_spins);
+  void copy_rows(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+                 dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N_new_spins);
 
-  void compute_G_cols(HostVector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-                      dca::linalg::Matrix<Real, dca::linalg::CPU>& G,
-                      dca::linalg::Matrix<Real, dca::linalg::CPU>& G_cols);
+  void compute_G_cols(HostVector<Scalar>& exp_V, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+                      dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G,
+                      dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G_cols);
 
 private:
   int thread_id;
@@ -54,15 +54,14 @@ private:
   dca::linalg::Vector<int, dca::linalg::CPU> identity;
   dca::linalg::Vector<int, dca::linalg::CPU> permutation;
 
-  dca::linalg::Vector<Real, dca::linalg::CPU> exp_V;
-  dca::linalg::Vector<Real, dca::linalg::CPU> d_vec;
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> exp_V;
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> d_vec;
 
-  // dca::linalg::Matrix<Real, dca::linalg::CPU> data;
+  // dca::linalg::Matrix<Scalar, dca::linalg::CPU> data;
 };
 
 template <class Parameters>
-N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::N_MATRIX_TOOLS(int id,
-                                                                   const Parameters& parameters_ref)
+N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::N_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
     : thread_id(id),
       stream_id(0),
 
@@ -90,13 +89,13 @@ void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::set_permutation(const HostVec
 
 template <class Parameters>
 void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::set_d_vector(
-    dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv) {
+    dca::linalg::Vector<Scalar, dca::linalg::CPU>& d_inv) {
   d_vec = d_inv;
 }
 
 template <class Parameters>
 void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::scale_rows(
-    dca::linalg::Matrix<Real, dca::linalg::CPU>& N) {
+    dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N) {
   assert(permutation.size() == d_vec.size());
 
   dca::linalg::matrixop::scaleRows(N, permutation, d_vec, thread_id, stream_id);
@@ -104,8 +103,8 @@ void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::scale_rows(
 
 template <class Parameters>
 void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::copy_rows(
-    dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-    dca::linalg::Matrix<Real, dca::linalg::CPU>& N_new_spins) {
+    dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N_new_spins) {
   assert(N_new_spins.nrCols() == N.nrCols());
   assert(N_new_spins.nrRows() == permutation.size());
   assert(permutation.size() <= identity.size());
@@ -115,9 +114,9 @@ void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::copy_rows(
 
 template <class Parameters>
 void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::compute_G_cols(
-    HostVector<Real>& exp_V, dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-    dca::linalg::Matrix<Real, dca::linalg::CPU>& G,
-    dca::linalg::Matrix<Real, dca::linalg::CPU>& G_cols) {
+    HostVector<Scalar>& exp_V, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G,
+    dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G_cols) {
   assert(N.nrRows() == G.nrRows());
   assert(N.nrRows() == G_cols.nrRows());
   assert(permutation.size() == G_cols.nrCols());
@@ -133,7 +132,7 @@ void N_MATRIX_TOOLS<dca::linalg::CPU, Parameters>::compute_G_cols(
         G_cols(i, l) = G(i, permutation[l] - N_ind);
     }
     else {
-      Real alpha = exp_V[l] / (exp_V[l] - 1.);
+      const auto alpha = exp_V[l] / (exp_V[l] - 1.);
 
       for (int i = 0; i < N_r; ++i)
         G_cols(i, l) = alpha * N(i, permutation[l]);

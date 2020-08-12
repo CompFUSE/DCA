@@ -142,8 +142,8 @@ protected:
 
   Complex getGSingleband(int s, int k1, int k2, int w1, int w2) const;
 
-  template <class Configuration, typename RealIn>
-  float computeM(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
+  template <class Configuration>
+  float computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_id);
@@ -168,7 +168,7 @@ protected:
 
   constexpr static bool non_density_density_ =
       models::has_non_density_interaction<typename Parameters::lattice_type>;
-  CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   SpGreenFunction G_;
 
@@ -256,9 +256,9 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
 }
 
 template <class Parameters>
-template <class Configuration, typename RealIn>
+template <class Configuration>
 float TpAccumulator<Parameters, linalg::CPU>::computeM(
-    const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
 

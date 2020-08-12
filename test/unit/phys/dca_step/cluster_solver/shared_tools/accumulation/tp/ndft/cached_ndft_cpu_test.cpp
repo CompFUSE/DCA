@@ -64,10 +64,10 @@ double computeWithFastDNFT(const typename CachedNdftCpuTest<Real>::Configuration
   using RDmn = typename CachedNdftCpuTest<Real>::RDmn;
   using PosFreqDmn = typename CachedNdftCpuTest<Real>::PosFreqDmn;
   using FreqDmn = typename CachedNdftCpuTest<Real>::FreqDmn;
-  dca::func::function<std::complex<double>,
+  dca::func::function<std::complex<Real>,
                       dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, PosFreqDmn, FreqDmn>>
       f_b_b_r_r_w_w;
-  dca::phys::solver::accumulator::CachedNdft<double, RDmn, FreqDmn, PosFreqDmn, dca::linalg::CPU> nft_obj;
+  dca::phys::solver::accumulator::CachedNdft<Real, RDmn, FreqDmn, PosFreqDmn, dca::linalg::CPU> nft_obj;
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M, f_b_b_r_r_w_w);
