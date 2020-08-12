@@ -34,10 +34,10 @@ public:
   CudaStream& operator=(const CudaStream& other) = delete;
 
   CudaStream(CudaStream&& other) {
-    std::swap(stream_, other.stream_);
+    swap(other);
   }
   CudaStream& operator=(CudaStream&& other) {
-    std::swap(stream_, other.stream_);
+    swap(other);
     return *this;
   }
 
@@ -45,13 +45,17 @@ public:
     checkRC(cudaStreamSynchronize(stream_));
   }
 
-  ~CudaStream() {
+  virtual ~CudaStream() {
     if (stream_)
       cudaStreamDestroy(stream_);
   }
 
   operator cudaStream_t() const {
     return stream_;
+  }
+
+  void swap(CudaStream& other) {
+    std::swap(stream_, other.stream_);
   }
 
 private:
