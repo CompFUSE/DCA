@@ -45,7 +45,7 @@ public:
     checkRC(cudaStreamSynchronize(stream_));
   }
 
-  virtual ~CudaStream() {
+  ~CudaStream() {
     if (stream_)
       cudaStreamDestroy(stream_);
   }
