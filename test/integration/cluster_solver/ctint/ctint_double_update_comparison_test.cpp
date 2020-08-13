@@ -102,5 +102,15 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     EXPECT_NEAR(walker1.getAcceptanceProbability(), walker2.getAcceptanceProbability(), 5e-7);
     EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
     EXPECT_EQ(walker1.get_sign(), walker2.get_sign());
+
+    auto check_direct_weight = [] (auto& walker) {
+      const auto fast_weight = walker.get_MC_log_weight();
+      walker.setMFromConfig();
+      const auto direct_weight = walker.get_MC_log_weight();
+      EXPECT_NEAR(fast_weight, direct_weight, 5e-7);
+    };
+
+    check_direct_weight(walker1);
+    check_direct_weight(walker2);
   }
 }

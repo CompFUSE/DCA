@@ -82,7 +82,7 @@ public:
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
    * \frac{U_{ij}+U_{ji}}{2}\f$.
    */
-  void initialize();  // func::function<double, nu> mu_DC);
+  void initialize(int iteration);  // func::function<double, nu> mu_DC);
 
   /*!
    *  \brief Returns if the configuration has gone through a warm-up sweep.
@@ -168,7 +168,7 @@ private:
 private:
   parameters_type& parameters;
   MOMS_type& MOMS;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   rng_type& rng;
 
@@ -205,6 +205,8 @@ private:
 
   double p_0;
   double p_1;
+
+  double sweeps_per_measurement_ = 1.;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -253,7 +255,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize(int iteration) {
   ss_hybridization_solver_routines_obj.initialize_functions();
 
   ss_hybridization_walker_routines_obj.initialize_akima_coefficients(F_r_t);
@@ -286,6 +288,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize() {
       M(i).resize(0);
     }
   }
+
+  sweeps_per_measurement_ = parameters.get_sweeps_per_measurement().at(iteration);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -332,9 +336,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::doSweep() {
-  double factor = 1.;
-  if (thermalized)
-    factor = parameters.get_sweeps_per_measurement();
+  const double factor = thermalized ? sweeps_per_measurement_ : 1.;
 
   int nr_of_segments = std::max(16, configuration.size());
 

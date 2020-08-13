@@ -33,16 +33,15 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
   using Data = typename QmciAccumulator::DataType;
 
 public:
-  StdThreadQmciAccumulator(Parameters& parameters_ref, Data& data_ref, int id);
+  StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
 
   ~StdThreadQmciAccumulator();
 
   using QmciAccumulator::finalize;
   using QmciAccumulator::initialize;
-  using QmciAccumulator::get_configuration;
 
-  template <typename walker_type>
-  void updateFrom(walker_type& walker);
+  template <typename Walker>
+  void updateFrom(Walker& walker);
 
   void waitForQmciWalker();
 
@@ -59,15 +58,7 @@ public:
     return done_;
   }
 
-protected:
-  using QmciAccumulator::get_Gflop;
-  using QmciAccumulator::get_number_of_measurements;
-  using QmciAccumulator::get_accumulated_sign;
-
 private:
-  using QmciAccumulator::data_;
-  using QmciAccumulator::parameters_;
-
   int thread_id_;
   bool measuring_;
   std::atomic<bool> done_;
@@ -76,7 +67,7 @@ private:
 };
 
 template <class QmciAccumulator>
-StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(Parameters& parameters_ref,
+StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(const Parameters& parameters_ref,
                                                                     Data& data_ref, const int id)
     : QmciAccumulator(parameters_ref, data_ref, id), thread_id_(id), measuring_(false), done_(false) {}
 
@@ -84,8 +75,8 @@ template <class QmciAccumulator>
 StdThreadQmciAccumulator<QmciAccumulator>::~StdThreadQmciAccumulator() {}
 
 template <class QmciAccumulator>
-template <typename walker_type>
-void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(walker_type& walker) {
+template <typename Walker>
+void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(Walker& walker) {
   {
     // take a lock and keep it until it goes out of scope
     std::unique_lock<std::mutex> lock(mutex_accumulator_);
@@ -129,9 +120,9 @@ void StdThreadQmciAccumulator<QmciAccumulator>::notifyDone() {
   start_measuring_.notify_one();
 }
 
-}  // stdthreadqmci
-}  // solver
-}  // phys
-}  // dca
+}  // namespace stdthreadqmci
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_ACCUMULATOR_HPP

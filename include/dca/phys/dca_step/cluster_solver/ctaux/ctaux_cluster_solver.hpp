@@ -225,7 +225,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::integrate() {
 
   Walker walker(parameters_, data_, rng_, 0);
 
-  walker.initialize();
+  walker.initialize(dca_iteration_);
 
   {
     dca::profiling::WallTime start_time;
@@ -252,7 +252,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::integrate() {
 
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: "
+              << parameters_.get_measurements()[dca_iteration_] << std::endl;
 
     walker.printSummary();
   }
@@ -345,7 +346,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::measure(Walker& walke
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+  const int n_meas =
+      parallel::util::getWorkload(parameters_.get_measurements()[dca_iteration_], concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
     {
@@ -486,7 +488,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
   if (parameters_.additional_time_measurements()) {
     accumulator_.get_G_r_t() /= accumulated_sign_;
     data_.G_r_t = accumulator_.get_G_r_t();
-    accumulator_.get_G_r_t_stddev() /= accumulated_sign_ * std::sqrt(parameters_.get_measurements());
+    accumulator_.get_G_r_t_stddev() /=
+        accumulated_sign_ * std::sqrt(parameters_.get_measurements()[dca_iteration_]);
     accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
     accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
     accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
@@ -498,8 +501,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
               << "\n\t\t\t Gflop   : " << accumulator_.get_Gflop() << " [Gf]"
               << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]"
-              << "\n\t\t\t sign     : " << accumulated_sign_ / parameters_.get_measurements()
-              << " \n";
+              << "\n\t\t\t sign     : "
+              << accumulated_sign_ / parameters_.get_measurements()[dca_iteration_] << " \n";
 
   averaged_ = true;
 }

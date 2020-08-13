@@ -71,7 +71,7 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
-  TpEqualTimeAccumulator(Parameters& parameters_ref, Data& MOMS_ref, int id);
+  TpEqualTimeAccumulator(const Parameters& parameters_ref, Data& MOMS_ref, int id);
 
   void resetAccumulation();
 
@@ -155,8 +155,8 @@ private:
   };
 
 private:
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
   Data& MOMS;
 
   int thread_id;
@@ -235,7 +235,7 @@ private:
 };
 
 template <class Parameters, class Data, typename Real>
-TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(Parameters& parameters_ref,
+TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(const Parameters& parameters_ref,
                                                                        Data& MOMS_ref, int id)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),

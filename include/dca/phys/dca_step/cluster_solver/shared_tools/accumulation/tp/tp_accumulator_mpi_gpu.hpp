@@ -52,7 +52,7 @@ private:
   using BaseClass::n_bands_;
   using BaseClass::sign_;
   using BaseClass::multiple_accumulators_;
-  using BaseClass::streams_;
+  using BaseClass::queues_;
   using BaseClass::G_;
   using BaseClass::thread_id_;
   using BaseClass::nr_accumulators_;
@@ -150,9 +150,9 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
 
   // I think it unlikely that want multiple streams for dist G4
   // since there is a memory cost.
-  for (int i = 0; i < BaseClass::n_ndft_streams_; ++i) {
+  for (int i = 0; i < BaseClass::n_ndft_queues_; ++i) {
     workspaces_.emplace_back(std::make_shared<RMatrix>());
-    workspaces_[i]->setStream(streams_[i]);
+    workspaces_[i]->setStream(queues_[i]);
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
@@ -192,7 +192,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], streams_[0]);
+    M_dev[s].setAsync(M[s], queues_[0]);
 
   return accumulate(M_dev, configs, sign);
 }
@@ -238,11 +238,11 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
-        G4_channel.setStream(BaseClass::streams_[0]);
+        G4_channel.setStream(BaseClass::queues_[0]);
       }
 
       G4_channel.resizeNoCopy(end_ - start_);
-      G4_channel.setToZeroAsync(BaseClass::streams_[0]);
+      G4_channel.setToZeroAsync(BaseClass::queues_[0]);
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -261,7 +261,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
   // b2 ------------------------ b4
 
   //  TODO: set stream only if this thread gets exclusive access to G4.
-  //  get_G4().setStream(streams_[0]);
+  //  get_G4().setStream(queues_[0]);
 
   const FourPointType channel = BaseClass::channels_[channel_index];
 
@@ -273,32 +273,32 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, streams_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
