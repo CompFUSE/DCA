@@ -37,8 +37,8 @@ public:
   MciParameters()
       : seed_(default_seed),
         warm_up_sweeps_(20),
-        sweeps_per_measurement_(1.),
-        measurements_(100),
+        sweeps_per_measurement_{1.},
+        measurements_{100},
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
@@ -65,16 +65,19 @@ public:
   int get_warm_up_sweeps() const {
     return warm_up_sweeps_;
   }
-  double get_sweeps_per_measurement() const {
+
+  const std::vector<double>& get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements() const {
+
+  const std::vector<int>& get_measurements() const {
     return measurements_;
   }
   void set_measurements(const int measurements) {
     assert(measurements >= 0);
-    measurements_ = measurements;
+    std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
+
   int get_walkers() const {
     return walkers_;
   }
@@ -107,6 +110,10 @@ public:
     return store_configuration_;
   }
 
+protected:
+  // Resize vector arguments to have the same size as the number of iterations.
+  void inline solveDcaIterationConflict(int iterations);
+
 private:
   void generateRandomSeed() {
     std::random_device rd;
@@ -118,8 +125,8 @@ private:
 
   int seed_;
   int warm_up_sweeps_;
-  double sweeps_per_measurement_;
-  int measurements_;
+  std::vector<double> sweeps_per_measurement_;
+  std::vector<int> measurements_;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -194,6 +201,16 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
   };
 
+  auto try_to_read_write_vector = [&](const std::string& name, auto& vec) {
+    try {  // read as a vector.
+      reader_or_writer.execute(name, vec);
+    }
+    catch (std::exception&) {  // read as a scalar.
+      vec.resize(1);
+      try_to_read_write(name, vec[0]);
+    }
+  };
+
   reader_or_writer.open_group("Monte-Carlo-integration");
 
   if (reader_or_writer.is_reader()) {
@@ -227,8 +244,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   error_computation_type_ = stringToErrorComputationType(error_type);
 
   try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
-  try_to_read_write("sweeps-per-measurement", sweeps_per_measurement_);
-  try_to_read_write("measurements", measurements_);
+  try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
+  try_to_read_write_vector("measurements", measurements_);
 
   try_to_read_write("store-configuration", store_configuration_);
 
@@ -253,7 +270,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
   reader_or_writer.close_group();
 
-  // Check parameters requirements.
+  // Check parameters consistency.
   if (g4_distribution_ == DistType::MPI) {
 #ifdef DCA_HAVE_MPI
     // Check for number of accumulators and walkers consistency.
@@ -267,8 +284,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     // Check for number of ranks and g4 measurements consistency.
     int mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    int local_meas = measurements_ / mpi_size;
-    if (measurements_ % mpi_size != 0 || local_meas % accumulators_ != 0) {
+    int local_meas = measurements_.back() / mpi_size;
+    if (measurements_.back() % mpi_size != 0 || local_meas % accumulators_ != 0) {
       throw std::logic_error(
           "\n With distributed g4 enabled, 1) local measurements should be same across "
           "ranks, "
@@ -278,6 +295,14 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     throw(std::logic_error("MPI distribution requested with no MPI available."));
 #endif  // DCA_HAVE_MPI
   }
+}
+
+void MciParameters::solveDcaIterationConflict(int iterations) {
+  // Solve conflicts between number of iterations and mci parameters.
+  auto solve_confilct = [&](auto& param) { param.resize(iterations, param.back()); };
+
+  solve_confilct(measurements_);
+  solve_confilct(sweeps_per_measurement_);
 }
 
 }  // namespace params

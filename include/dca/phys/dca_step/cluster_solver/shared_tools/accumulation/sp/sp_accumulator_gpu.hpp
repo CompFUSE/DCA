@@ -25,8 +25,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/math/nfft/dnfft_1d_gpu.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
@@ -50,7 +50,7 @@ private:
   using typename BaseClass::Profiler;
 
 public:
-  SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
 
   void resetAccumulation();
 
@@ -77,8 +77,8 @@ public:
       event.block(stream);
   }
 
-  const auto& get_streams() const {
-    return streams_;
+  auto get_streams() {
+    return std::array<linalg::util::CudaStream*, 2>{&streams_[0], &streams_[1]};
   }
 
   // Returns the allocated device memory in bytes.
@@ -100,8 +100,8 @@ private:
 };
 
 template <class Parameters, typename Real>
-SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(/*const*/ Parameters& parameters_ref,
-                                                      const bool accumulate_m_sqr)
+SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(const Parameters& parameters_ref,
+                                                            const bool accumulate_m_sqr)
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
@@ -174,7 +174,8 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalize() {
 }
 
 template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(SpAccumulator<Parameters, linalg::GPU, Real>& other) {
+void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(
+    SpAccumulator<Parameters, linalg::GPU, Real>& other) {
   for (int s = 0; s < 2; ++s)
     other.cached_nfft_obj_[s] += cached_nfft_obj_[s];
 }

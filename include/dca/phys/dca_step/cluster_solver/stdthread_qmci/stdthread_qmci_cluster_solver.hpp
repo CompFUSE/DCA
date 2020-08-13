@@ -39,6 +39,7 @@ namespace solver {
 
 template <class QmciSolver>
 class StdThreadQmciClusterSolver : public QmciSolver {
+public:
   using BaseClass = QmciSolver;
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
 
@@ -52,7 +53,6 @@ class StdThreadQmciClusterSolver : public QmciSolver {
   using typename BaseClass::Walker;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
-public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
 
   void initialize(int dca_iteration);
@@ -103,6 +103,8 @@ private:
   std::condition_variable queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
+
+  unsigned measurements_ = 0;
 };
 
 template <class QmciSolver>
@@ -145,6 +147,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
 
   BaseClass::initialize(dca_iteration);
 
+  measurements_ = parameters_.get_measurements()[dca_iteration];
   walk_finished_ = 0;
   measurements_done_ = 0;
 }
@@ -302,10 +305,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker,
   // Read previous configuration.
   if (config_dump_[walker_id].size()) {
     walker.readConfig(config_dump_[walker_id]);
-    config_dump_[walker_id].setg(0); // Ready to read again if it is not overwritten.
+    config_dump_[walker_id].setg(0);  // Ready to read again if it is not overwritten.
   }
 
-  walker.initialize();
+  walker.initialize(dca_iteration_);
 
   if (id == 0 && concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up starts\n" << std::endl;
@@ -329,7 +332,7 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
     const int walker_id, std::function<void(int, int, bool)>&& f) {
   const bool fix_thread_meas = parameters_.fix_meas_per_walker();
-  const int total_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+  const int total_meas = parallel::util::getWorkload(measurements_, concurrency_);
 
   const int n_local_meas =
       fix_thread_meas ? parallel::util::getWorkload(total_meas, parameters_.get_walkers(), walker_id)
@@ -503,8 +506,8 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::printIntegrationMetadata() const {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements()
-              << "\nQMC-time\t" << total_time_ << "\n";
+              << "\n\nTotal number of measurements: " << measurements_ << "\nQMC-time\t"
+              << total_time_ << "\n";
     if (QmciSolver::device == linalg::GPU) {
       std::cout << "\nWalker fingerprints [MB]: \n";
       for (const auto& x : walker_fingerprints_)
