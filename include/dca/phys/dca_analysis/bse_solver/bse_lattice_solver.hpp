@@ -45,11 +45,11 @@ namespace phys {
 namespace analysis {
 // dca::phys::analysis::
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 class BseLatticeSolver {
 public:
-  using profiler_type = typename ParametersType::profiler_type;
-  using concurrency_type = typename ParametersType::concurrency_type;
+  using profiler_type = typename Parameters::profiler_type;
+  using concurrency_type = typename Parameters::concurrency_type;
 
   // Number of leading eigenvalues/eigenvectors to store.
   static constexpr int num_evals = 10;
@@ -64,17 +64,17 @@ public:
   using b_b = func::dmn_variadic<b, b>;
 
   using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_HOST =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_HOST_VERTEX =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using host_vertex_r_cluster_type =
-      domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
+      domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_TP,
                               domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
   using crystal_harmonics_expansion = domains::centered_cluster_domain<host_vertex_r_cluster_type>;
   using crystal_harmonics_expansion_dmn_t = func::dmn_0<crystal_harmonics_expansion>;
@@ -88,7 +88,7 @@ public:
 
   using HOST_matrix_dmn_t = func::dmn_variadic<LatticeEigenvectorDmn, LatticeEigenvectorDmn>;
 
-  BseLatticeSolver(ParametersType& parameters, DcaDataType& MOMS);
+  BseLatticeSolver(Parameters& parameters, DcaDataType& MOMS);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -137,7 +137,7 @@ private:
   // Prints the leading eigenvalues and some info about the corresponding eigenvectors on the shell.
   void printOnShell();
 
-  ParametersType& parameters;
+  Parameters& parameters;
   concurrency_type& concurrency;
 
   DcaDataType& MOMS;
@@ -167,9 +167,9 @@ private:
       leading_symmetry_functions;
 };
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::BseLatticeSolver(
-    ParametersType& parameters_ref, DcaDataType& MOMS_ref)
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+BseLatticeSolver<Parameters, DcaDataType, ScalarType>::BseLatticeSolver(
+    Parameters& parameters_ref, DcaDataType& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -192,9 +192,9 @@ BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::BseLatticeSolver(
   initialize();
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 template <typename Writer>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::write(Writer& writer) {
   writer.execute(leading_eigenvalues);
   writer.execute(leading_eigenvectors);
 
@@ -209,8 +209,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& wr
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::initialize() {
   {
     double r_cut_off = parameters.get_projection_cut_off_radius();
 
@@ -301,31 +301,31 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
 }
 
 // TODO: Add finite-size support?
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Lattice() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeChi0Lattice() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  clustermapping::coarsegraining_tp<ParametersType, k_HOST_VERTEX> coarsegraining_tp(parameters);
+  clustermapping::coarsegraining_tp<Parameters, k_HOST_VERTEX> coarsegraining_tp(parameters);
 
   // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
   if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
-    latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
+    latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST> lattice_map_sp(parameters);
 
     MOMS.Sigma_lattice_interpolated = 0.;
     MOMS.Sigma_lattice_coarsegrained = 0.;
     MOMS.Sigma_lattice = 0.;
 
     if (parameters.hts_approximation()) {
-      clustermapping::CoarsegrainingSp<ParametersType> CoarsegrainingSp(parameters);
+      clustermapping::CoarsegrainingSp<Parameters> CoarsegrainingSp(parameters);
 
       DcaDataType dca_data_hts(parameters);
       dca_data_hts.H_HOST = MOMS.H_HOST;
       dca_data_hts.H_interactions = MOMS.H_interactions;
 
-      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType> hts_solver(
+      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, Parameters, DcaDataType> hts_solver(
           parameters, dca_data_hts);
 
       lattice_map_sp.execute_with_HTS_approximation(
@@ -364,9 +364,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
             }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 template <typename ClusterMatrixDmn>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLattice(
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeGammaLattice(
     /*const*/ func::function<std::complex<ScalarType>, ClusterMatrixDmn>& Gamma_cluster) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
@@ -375,7 +375,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLatt
 
   // DCA+/DCA with post-interpolation: Compute Gamma_lattice with continuous momentum dependence.
   if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
-    latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp(
+    latticemapping::lattice_mapping_tp<Parameters, k_DCA, k_HOST_VERTEX> lattice_map_tp(
         parameters);
     lattice_map_tp.execute(Gamma_cluster, Gamma_lattice);
   }
@@ -389,17 +389,17 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLatt
   if (parameters.symmetrize_Gamma()) {
     if (concurrency.id() == concurrency.first())
       std::cout << "Symmetrize Gamma_lattice according to the symmetry group." << std::endl;
-    symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
+    Symmetrize<Parameters>::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
 
     if (concurrency.id() == concurrency.first())
       std::cout << "Symmetrize Gamma_lattice according to diagrammatic symmetries." << std::endl;
-    diagrammatic_symmetries<ParametersType> diagrammatic_sym(parameters);
+    diagrammatic_symmetries<Parameters> diagrammatic_sym(parameters);
     diagrammatic_sym.execute(Gamma_lattice);
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGammaChi0() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0() {
   if (parameters.project_onto_crystal_harmonics()) {
     diagonalize_folded_Gamma_chi_0();
   }
@@ -422,8 +422,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
   printOnShell();
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGammaChi0Symmetric() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0Symmetric() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
@@ -480,8 +480,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
   recordEigenvaluesAndEigenvectors(l, vr);
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGammaChi0Full() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0Full() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
@@ -528,9 +528,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
   symmetrizeLeadingEigenvectors();
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 template <typename EvElementType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvaluesAndEigenvectors(
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::recordEigenvaluesAndEigenvectors(
     const linalg::Vector<EvElementType, linalg::CPU>& l,
     const linalg::Matrix<EvElementType, linalg::CPU>& vr) {
   if (concurrency.id() == concurrency.first())
@@ -564,8 +564,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvalue
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_folded_Gamma_chi_0() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalize_folded_Gamma_chi_0() {
   if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
@@ -641,8 +641,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::record_eigenvalues_and_folded_eigenvectors(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::record_eigenvalues_and_folded_eigenvectors(
     dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& /*VL*/,
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VR) {
@@ -672,8 +672,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::record_eigenvalu
   symmetrizeLeadingEigenvectors();
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_susceptibility(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::compute_folded_susceptibility(
     dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VL,
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VR) {
@@ -776,8 +776,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::printOnShell() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
@@ -856,8 +856,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrizeLeadingEigenvectors() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::symmetrizeLeadingEigenvectors() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
@@ -897,8 +897,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrizeLeadin
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::characterizeLeadingEigenvectors() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::characterizeLeadingEigenvectors() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())

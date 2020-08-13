@@ -41,35 +41,35 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType,
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType,
           DistType DIST = DistType::NONE>
 class DcaLoop {
 public:
-  using profiler_type = typename ParametersType::profiler_type;
-  using concurrency_type = typename ParametersType::concurrency_type;
+  using profiler_type = typename Parameters::profiler_type;
+  using concurrency_type = typename Parameters::concurrency_type;
 
-  using Lattice = typename ParametersType::lattice_type;
+  using Lattice = typename Parameters::lattice_type;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_HOST =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
+  using cluster_exclusion_type = clustermapping::cluster_exclusion<Parameters, DcaDataType>;
   using double_counting_correction_type =
-      clustermapping::double_counting_correction<ParametersType, DcaDataType>;
-  using coarsegraining_sp_type = clustermapping::CoarsegrainingSp<ParametersType>;
-  using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
+      clustermapping::double_counting_correction<Parameters, DcaDataType>;
+  using coarsegraining_sp_type = clustermapping::CoarsegrainingSp<Parameters>;
+  using lattice_map_sp_type = latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST>;
   using update_chemical_potential_type =
-      clustermapping::update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;
+      clustermapping::update_chemical_potential<Parameters, DcaDataType, coarsegraining_sp_type>;
   using HTS_solver_type =
-      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
+      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, Parameters, DcaDataType>;
 
-  DcaLoop(ParametersType& parameters_ref, DcaDataType& data__ref, concurrency_type& concurrency_ref);
+  DcaLoop(Parameters& parameters_ref, DcaDataType& data__ref, concurrency_type& concurrency_ref);
 
   void write();
 
@@ -99,11 +99,11 @@ private:
 
   void readInitialStatus(const std::string& filename);
 
-  ParametersType& parameters_;
+  Parameters& parameters_;
   DcaDataType& data_;
   concurrency_type& concurrency_;
 
-  DcaLoopData<ParametersType> DCA_info_struct;
+  DcaLoopData<Parameters> DCA_info_struct;
 
   cluster_exclusion_type cluster_exclusion_obj;
   double_counting_correction_type double_counting_correction_obj;
@@ -122,9 +122,9 @@ protected:
   MCIntegratorType monte_carlo_integrator_;
 };
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
-    ParametersType& parameters_ref, DcaDataType& data_ref, concurrency_type& concurrency_ref)
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
+    Parameters& parameters_ref, DcaDataType& data_ref, concurrency_type& concurrency_ref)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(concurrency_ref),
@@ -152,8 +152,8 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::write() {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t\t start writing " << file_name_ << "\t" << dca::util::print_time() << "\n\n";
 
@@ -175,8 +175,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
 
   if (parameters_.autoresume()) {  // Try to read state of previous run.
@@ -199,8 +199,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() 
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::readInitialStatus(
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::readInitialStatus(
     const std::string& filename) {
   io::Buffer buffer;
   bool buffer_read = false;
@@ -240,8 +240,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::readInitialSt
   perform_lattice_mapping();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::execute() {
   for (; dca_iteration_ < parameters_.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 
@@ -267,28 +267,28 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::finalize() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::finalize() {
   perform_cluster_mapping_self_energy();
   data_.compute_Sigma_bands();
   data_.compute_single_particle_properties();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::adjust_chemical_potential() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::adjust_chemical_potential() {
   if (parameters_.adjust_chemical_potential())
     update_chemical_potential_obj.execute();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping() {
   perform_cluster_mapping_self_energy();
   perform_cluster_mapping_Greens_function();
   // perform_cluster_exclusion_step();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_self_energy() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_self_energy() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t coarsegrain-Selfenergy " << dca::util::print_time();
 
@@ -301,11 +301,11 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 
   data_.print_Sigma_QMC_versus_Sigma_cg();
 
-  symmetrize::execute<Lattice>(data_.Sigma_cluster, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma_cluster, data_.H_symmetry);
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType,
              DIST>::perform_cluster_mapping_Greens_function() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
@@ -323,21 +323,21 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
   else
     cluster_mapping_obj.compute_G_K_w(data_.Sigma, data_.G_k_w);
 
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::adjust_coarsegrained_self_energy() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::adjust_coarsegrained_self_energy() {
   double_counting_correction_obj.execute_before_solver();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::adjust_impurity_self_energy() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::adjust_impurity_self_energy() {
   double_counting_correction_obj.execute_after_solver();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_exclusion_step() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_cluster_exclusion_step() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t cluster-exclusion-step " << dca::util::print_time();
 
@@ -346,8 +346,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
   cluster_exclusion_obj.execute();
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+double DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(
     int DCA_iteration) {
   {
     profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
@@ -367,8 +367,8 @@ double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_clust
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_lattice_mapping() {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_lattice_mapping() {
   profiler_type profiler("lattice-mapping", "DCA", __LINE__);
 
   if (concurrency_.id() == concurrency_.first())
@@ -394,8 +394,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_latti
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::update_DCA_loop_data_functions(int i) {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::update_DCA_loop_data_functions(int i) {
   DCA_info_struct.density(i) = update_chemical_potential_obj.compute_density();
   DCA_info_struct.chemical_potential(i) = parameters_.get_chemical_potential();
 
@@ -419,8 +419,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::update_DCA_lo
           parameters_.get_beta() / M_PI;
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
+template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
   if (output_file_) {

@@ -236,11 +236,11 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
 
   // compute G_r_t and save it into data_.
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);
-  symmetrize::execute<Lattice>(data_.G_k_w);
+  Symmetrize<Parameters>::execute(data_.G_k_w);
 
   // transform  G_k_w and save into data_.
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
-  symmetrize::execute<Lattice>(data_.G_r_w);
+  Symmetrize<Parameters>::execute(data_.G_r_w);
 
   // compute and  save Sigma into data_
   // TODO: check if a better estimate exists
@@ -411,7 +411,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
     }
   }
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
   // TODO : if it is needed implement.
   //   if (parameters_.adjust_self_energy_for_double_counting())
   //    adjust_self_energy_for_double_counting();
@@ -462,7 +462,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
 
   double sign = accumulator_.get_accumulated_sign();
 
-  symmetrize::execute<Lattice>(M, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(M, data_.H_symmetry);
 
   // TODO: delay sum.
   auto collect = [&](auto& f) {

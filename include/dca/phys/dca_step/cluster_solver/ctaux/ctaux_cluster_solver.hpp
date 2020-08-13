@@ -524,8 +524,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::symmetrize_measuremen
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
-  symmetrize::execute<Lattice>(M_r_w_, data_.H_symmetry);
-  symmetrize::execute<Lattice>(M_r_w_squared_, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(M_r_w_, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(M_r_w_squared_, data_.H_symmetry);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -570,7 +570,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_
     }
   }
 
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
 
   delete[] G_matrix;
   delete[] G0_cluster_excluded_matrix;
@@ -625,7 +625,7 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_S_k_w_from_
 
   // set_non_interacting_bands_to_zero();
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
 
   if (parameters_.adjust_self_energy_for_double_counting())
     adjust_self_energy_for_double_counting();
@@ -666,7 +666,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_new(
     }
   }
 
-  symmetrize::execute<Lattice>(G_k_w_new, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(G_k_w_new, data_.H_symmetry);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -706,7 +706,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_S_k_w_new(
   //     if(concurrency_.id()==0)
   //       std::cout << "\n\t\t end compute-S_k_w\t" << dca::util::print_time() << "\n\n";
 
-  symmetrize::execute<Lattice>(S_k_w_new, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(S_k_w_new, data_.H_symmetry);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -788,13 +788,13 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::adjust_self_energy_fo
   //        }
   //    }
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 double CtauxClusterSolver<device_t, Parameters, Data, DIST>::mix_self_energy(double alpha) {
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
-  symmetrize::execute<Lattice>(data_.Sigma_cluster, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma_cluster, data_.H_symmetry);
 
   for (int l = 0; l < data_.Sigma.size(); l++)
     data_.Sigma(l) = alpha * data_.Sigma(l) + (1. - alpha) * data_.Sigma_cluster(l);

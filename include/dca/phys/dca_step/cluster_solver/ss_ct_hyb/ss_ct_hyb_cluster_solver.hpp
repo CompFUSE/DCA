@@ -413,9 +413,9 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute<Lattice>(accumulator_.get_G_r_w(), data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(accumulator_.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(accumulator_.get_GS_r_w(), data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
   std::vector<int> flavors = parameters_type::model_type::flavors();
   assert(flavors.size() == b::dmn_size());
@@ -467,7 +467,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
 
   compute_Sigma_new(accumulator_.get_G_r_w(), accumulator_.get_GS_r_w());
 
-  symmetrize::execute<Lattice>(Sigma_new, data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(Sigma_new, data_.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
@@ -498,7 +498,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
     }
   }
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(data_.Sigma, data_.H_symmetry);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;

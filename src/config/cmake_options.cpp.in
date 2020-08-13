@@ -32,7 +32,6 @@ const std::string CMakeOptions::dca_with_single_precision_mc = "@DCA_WITH_SINGLE
 const std::string CMakeOptions::dca_with_qmc_bit = "@DCA_WITH_QMC_BIT@";
 const std::string CMakeOptions::dca_with_memory_savings = "@DCA_WITH_MEMORY_SAVINGS@";
 const std::string CMakeOptions::dca_with_managed_memory = "@DCA_WITH_MANAGED_MEMORY@";
-const std::string CMakeOptions::dca_symmetrize = "@DCA_SYMMETRIZE@";
 
 void CMakeOptions::print() {
   std::cout << "\n"
@@ -62,7 +61,6 @@ void CMakeOptions::print() {
             << "DCA_WITH_MANAGED_MEMORY = " << CMakeOptions::dca_with_managed_memory << "\n"
             << "\n"
             << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_qmc_bit << "\n"
-            << "DCA_SYMMETRIZE = " << CMakeOptions::dca_symmetrize << "\n"
             << std::endl;
 }
 }  // namespace config

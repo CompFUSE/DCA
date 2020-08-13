@@ -103,7 +103,7 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
-  symmetrize::execute<Lattice>(f_source);
+  Symmetrize<parameters_type>::execute(f_source);
 
   // plot_function(f_source);
 
@@ -111,13 +111,13 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 
   // plot_function(f_interp);
 
-  symmetrize::execute<Lattice>(f_interp);
+  Symmetrize<parameters_type>::execute(f_interp);
 
   deconvolution_obj.execute(f_source, f_interp, f_approx, f_target);
 
   // plot_function(f_target);
 
-  symmetrize::execute<Lattice>(f_target);
+  Symmetrize<parameters_type>::execute(f_target);
 }
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>

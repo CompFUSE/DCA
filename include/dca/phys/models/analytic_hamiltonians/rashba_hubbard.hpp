@@ -32,6 +32,8 @@ template <typename /*PointGroup*/>
 class RashbaHubbard {
 public:
   static constexpr bool complex_g0 = true;
+  static constexpr bool spin_symmetric = false;
+
 
   typedef domains::no_symmetry<2> LDA_point_group;
   using DCA_point_group = domains::no_symmetry<2>;

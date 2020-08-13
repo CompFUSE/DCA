@@ -32,25 +32,25 @@ namespace phys {
 namespace analysis {
 // dca::phys::analysis::
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 class BseClusterSolver {
 public:
-  using profiler_t = typename ParametersType::profiler_type;
-  using concurrency_t = typename ParametersType::concurrency_type;
+  using profiler_t = typename Parameters::profiler_type;
+  using concurrency_t = typename Parameters::concurrency_type;
 
-  using Lattice = typename ParametersType::lattice_type;
+  using Lattice = typename Parameters::lattice_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, WVertexDmn>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
-  BseClusterSolver(ParametersType& parameters, DcaDataType& data);
+  BseClusterSolver(Parameters& parameters, DcaDataType& data);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -74,22 +74,22 @@ private:
   void solve_BSE_on_cluster(func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II,
                             func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0);
 
-  ParametersType& parameters;
+  Parameters& parameters;
   concurrency_t& concurrency;
 
   DcaDataType& data_;
 
   cluster_eigenvector_dmn_t cluster_eigenvector_dmn;
 
-  diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
+  diagrammatic_symmetries<Parameters> diagrammatic_symmetries_obj;
 
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> Gamma_cluster;
   func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, WVertexDmn>> G_II_0_function;
 };
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
-    ParametersType& parameters_ref, DcaDataType& data_ref)
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+BseClusterSolver<Parameters, DcaDataType, ScalarType>::BseClusterSolver(Parameters& parameters_ref,
+                                                                        DcaDataType& data_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       data_(data_ref),
@@ -101,14 +101,14 @@ BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
       Gamma_cluster("Gamma_cluster"),
       G_II_0_function("G_II_0_function") {}
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename Parameters, typename DcaDataType, typename ScalarType>
 template <typename Writer>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::write(Writer& writer) {
   writer.execute(G_II_0_function);
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::compute_Gamma_cluster() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::compute_Gamma_cluster() {
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II("G_II");
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_0("G_II_0");
 
@@ -124,20 +124,20 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::compute_Gamma_cl
   solve_BSE_on_cluster(G_II, G_II_0);
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries_sp() {
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::apply_symmetries_sp() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries_tp(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::apply_symmetries_tp(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II,
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.first())
@@ -148,8 +148,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
-      symmetrize::execute(G_II, parameters.get_four_point_momentum_transfer());
-      symmetrize::execute(G_II_0, parameters.get_four_point_momentum_transfer());
+      Symmetrize<Parameters>::execute(G_II, parameters.get_four_point_momentum_transfer());
+      Symmetrize<Parameters>::execute(G_II_0, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {
@@ -157,7 +157,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
         std::cout << "symmetrize Gamma_lattice according to diagrammatic symmetries \n"
                   << std::endl;
 
-      diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
+      diagrammatic_symmetries<Parameters> diagrammatic_symmetries_obj(parameters);
 
       diagrammatic_symmetries_obj.execute(G_II);
       diagrammatic_symmetries_obj.execute(G_II_0);
@@ -165,8 +165,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::load_G_II(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -203,8 +203,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
   delete[] coor_2;
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::load_G_II_0(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -281,8 +281,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0_function(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::load_G_II_0_function(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -299,8 +299,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0_func
                   G_II_0(n1, m1, K_ind, w_ind, n2, m2, K_ind, w_ind);
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_cluster(
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseClusterSolver<Parameters, DcaDataType, ScalarType>::solve_BSE_on_cluster(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II,
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.first())

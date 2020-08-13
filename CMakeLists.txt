@@ -141,7 +141,6 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   signals
-  symmetrization
   coarsegraining
   stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}

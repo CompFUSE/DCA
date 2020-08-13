@@ -31,6 +31,7 @@ template <typename point_group_type>
 class cubic_lattice {
 public:
   static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
 
   typedef domains::no_symmetry<3> LDA_point_group;
   typedef point_group_type DCA_point_group;

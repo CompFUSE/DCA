@@ -36,6 +36,7 @@ template <typename /*PointGroupType*/>
 class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
   static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
 
   using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;

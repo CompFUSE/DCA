@@ -35,6 +35,7 @@ template <typename PointGroup>
 class TwoBandCu {
 public:
   static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
 
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef PointGroup DCA_point_group;

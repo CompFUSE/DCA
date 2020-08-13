@@ -35,6 +35,7 @@ template <typename point_group_type>
 class HundLattice : public bilayer_lattice<point_group_type> {
 public:
   static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
 
   using BaseClass = bilayer_lattice<point_group_type>;
   constexpr static int BANDS = BaseClass::BANDS;
