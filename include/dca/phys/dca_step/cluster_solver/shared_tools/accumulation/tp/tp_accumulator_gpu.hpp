@@ -87,8 +87,8 @@ public:
   // other_acc.
   void sumTo(this_type& other_acc);
 
-  linalg::util::CudaStream* get_stream() {
-    return &queues_[0];
+  const linalg::util::CudaStream* get_stream() {
+    return &queues_[0].getStream();
   }
 
   void synchronizeCopy() {

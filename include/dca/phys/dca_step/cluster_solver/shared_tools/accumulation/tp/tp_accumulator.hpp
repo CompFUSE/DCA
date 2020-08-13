@@ -123,8 +123,8 @@ public:
     return 0;
   }
 
-  linalg::util::CudaStream* get_stream() const {
-    static dca::linalg::util::CudaStream mock_stream;
+  const linalg::util::CudaStream* get_stream() const {
+    static const dca::linalg::util::CudaStream mock_stream;
     return &mock_stream;
   }
 
