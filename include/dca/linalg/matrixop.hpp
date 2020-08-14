@@ -1116,10 +1116,10 @@ void eigensolverHermitian(char jobv, char uplo, const Matrix<std::complex<Scalar
   v = a;
 
   // Get optimal worksize.
-  auto lwork = util::getEigensolverHermitianWorkSize(jobv, uplo, v);
-  dca::linalg::Vector<std::complex<Scalar>, CPU> work(std::get<0>(lwork));
-  dca::linalg::Vector<Scalar, CPU> rwork(std::get<1>(lwork));
-  dca::linalg::Vector<int, CPU> iwork(std::get<2>(lwork));
+  auto [wsize, rsize, isize] = util::getEigensolverHermitianWorkSize(jobv, uplo, v);
+  dca::linalg::Vector<std::complex<Scalar>, CPU> work(wsize);
+  dca::linalg::Vector<Scalar, CPU> rwork(rsize);
+  dca::linalg::Vector<int, CPU> iwork(isize);
 
   lapack::heevd(&jobv, &uplo, v.nrRows(), v.ptr(), v.leadingDimension(), lambda.ptr(), work.ptr(),
                 work.size(), rwork.ptr(), rwork.size(), iwork.ptr(), iwork.size());
@@ -1133,7 +1133,7 @@ void eigensolverGreensFunctionMatrix(char jobv, char uplo, const Matrix<std::com
   int n = a.nrRows();
   assert(n % 2 == 0);
 
-  if (n == 2) {
+  if (n == 2) {  // must be diagonal in spin space.
     lambda.resize(2);
     v.resize(2);
 
@@ -1341,7 +1341,7 @@ std::pair<Scalar, int> logRealDeterminant(const MatrixType<std::complex<Scalar>,
   auto [log_det, phase] = logDeterminant(m);
   constexpr Scalar epsilon = std::numeric_limits<Scalar>::epsilon() * 1000;
 
-  if (std::abs(phase - 0) < epsilon)
+  if (std::abs(phase - 0) < epsilon || std::abs(phase - 2 * M_PI) < epsilon)
     return std::pair(log_det, 1);
   else if (std::abs(phase - M_PI) < epsilon)
     return std::make_pair(log_det, -1);

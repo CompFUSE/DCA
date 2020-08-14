@@ -67,7 +67,7 @@ public:
       const func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, LastDmn>>& f_input,
       func::function<Real, func::dmn_variadic<NuDmn, NuDmn, RDmn, LastDmn>>& f_output) {
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RDmn, LastDmn>> f_out_cmplx(
-        f_input.get_name());
+        f_output.get_name());
     execute(f_input, f_out_cmplx);
     f_output = std::move(func::util::real(f_out_cmplx, true));
   }

@@ -42,15 +42,14 @@ void compute_G0_k_w(
 
 // Computes the free imaginary time Green's function G_0(\vec{k}, \tau) from the non-interacting
 // Hamiltonian H_0(\vec{k}).
-template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
+template <typename Real, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
 void compute_G0_k_t(
-    const func::function<std::complex<Scalar>,
-                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
-    const Scalar mu, const Scalar beta,
-    func::function<std::complex<Scalar>,
+    const func::function<std::complex<Real>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
+    const Real mu, const Real beta,
+    func::function<std::complex<Real>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
   // Diagonal \mu function.
-  func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> mu_function;
+  func::function<std::complex<Real>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> mu_function;
   for (int k = 0; k < KDmn::dmn_size(); ++k) {
     for (int m = 0; m < OrbitalSpinDmn::dmn_size(); ++m) {
       mu_function(m, m, k) = mu;
@@ -58,11 +57,11 @@ void compute_G0_k_t(
   }
 
   // Helper function to store the result for fixed time.
-  func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> g;
+  func::function<std::complex<Real>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> g;
 
   for (int t = 0; t < ImagTimeDmn::dmn_size(); ++t) {
-    Scalar tau = ImagTimeDmn::get_elements()[t];
-    Scalar sign = -1;  // quadrature_integration_G_q_t_st requires Scalar.
+    Real tau = ImagTimeDmn::get_elements()[t];
+    Real sign = -1;  // quadrature_integration_G_q_t_st requires scalar.
 
     // G_0(\tau) = -G_0(\tau+\beta)
     if (tau < 0) {
@@ -72,7 +71,7 @@ void compute_G0_k_t(
 
     g = 0.;
 
-    clustermapping::quadrature_integration<Scalar, KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
+    clustermapping::quadrature_integration<Real, KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
         beta, sign, tau, mu_function, H0_k, g);
 
     std::copy_n(g.values(), g.size(), &G0_k_t(0, 0, 0, t));
