@@ -24,7 +24,7 @@ include(CMakeParseArguments)
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA CUDA_MPI)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -82,6 +82,16 @@ function(dca_add_gtest name)
     return()
   endif()
 
+  if (DCA_ADD_GTEST_CUDA_MPI AND (NOT (DCA_HAVE_CUDA AND DCA_HAVE_CUDA_AWARE_MPI)))
+    return()
+  endif()
+
+  # Right now we're only testing GPU distributed code on one node so its pointless
+  # without more than one GPU per node.
+  if (DCA_ADD_GTEST_CUDA_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
+    return()
+  endif()
+
   add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
@@ -96,7 +106,9 @@ function(dca_add_gtest name)
     target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
   endif()
 
-  if (DCA_ADD_GTEST_CUDA)
+  set(THIS_CVD_LAUNCHER "")
+  
+  if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)
     target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
     target_link_libraries(${name} ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
@@ -105,6 +117,10 @@ function(dca_add_gtest name)
       target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
     endif()
     cuda_add_cublas_to_target(${name})
+    if (DCA_ADD_GTEST_CUDA_MPI)
+      #We need to document which cuda aware openmpi requires this and which doesn't.
+      set(THIS_CVD_LAUNCHER "${CMAKE_SOURCE_DIR}/${CVD_LAUNCHER}")
+    endif()
   endif()
 
   target_include_directories(${name} PRIVATE
@@ -118,14 +134,13 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS}  ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${THIS_CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI}
-                   ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
     else (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND "$<TARGET_FILE:${name}>")
