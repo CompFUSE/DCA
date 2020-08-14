@@ -7,9 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Template specialization of model parameters for a 2D minimal model of iron oxypnictidesiron.
-// See "Minimal two-band model of the superconducting iron oxypnictides,
-// PHYSICAL REVIEW B 77, 220503 (2008)"
+// Template specialization of model parameters for a 2D Rashba-Hubbard model.
 
 template <typename PointGroup>
 class ModelParameters<models::TightBindingModel<models::RashbaHubbard<PointGroup>>> {

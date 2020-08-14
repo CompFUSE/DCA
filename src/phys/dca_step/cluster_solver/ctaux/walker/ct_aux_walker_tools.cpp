@@ -373,7 +373,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
   auto phani_gamma = exp_delta_V - Real(1.);
   auto determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
-  if (std::imag(determinant_ratio) > std::numeric_limits<Real>::epsilon() * 100) {
+  if (std::imag(determinant_ratio) > std::numeric_limits<Real>::epsilon() * 1000) {
     throw(std::logic_error("The determinant is complex."));
   }
 

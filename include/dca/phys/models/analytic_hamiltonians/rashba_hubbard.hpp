@@ -34,7 +34,6 @@ public:
   static constexpr bool complex_g0 = true;
   static constexpr bool spin_symmetric = false;
 
-
   typedef domains::no_symmetry<2> LDA_point_group;
   using DCA_point_group = domains::no_symmetry<2>;
 
@@ -118,18 +117,6 @@ void RashbaHubbard<PointGroup>::initializeHInteraction(
     const parameters_type& parameters) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Square lattice has one band.");
-  if (SpinDmn::dmn_size() != 2)
-    throw std::logic_error("Spin domain size must be 2.");
-
-  const std::vector<typename RDmn::parameter_type::element_type>& basis =
-      RDmn::parameter_type::get_basis_vectors();
-
-  assert(basis.size() == 2);
-
-  // There are two different nearest neighbor (nn) pairs: along the basis vector a1 and along the
-  // basis vector a2.
-  if (BandDmn::dmn_size() != 2)
-    throw std::logic_error("Band domain size must be 1.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 

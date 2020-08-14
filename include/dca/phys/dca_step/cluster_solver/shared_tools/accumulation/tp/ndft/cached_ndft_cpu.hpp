@@ -146,7 +146,7 @@ void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::
   int n_v = configuration.size();
   int n_w = w_.size();
 
-  T_.resizeNoCopy(std::pair<int, int>(n_w, n_v));
+  T_.resizeNoCopy(std::make_pair(n_w, n_v));
 
   for (int j = 0; j < n_v; ++j) {
     for (int i = 0; i < n_w; ++i) {
@@ -183,7 +183,7 @@ void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::
 
   for (int l_i = start_index_left_[orb_i]; l_i < end_index_left_[orb_i]; ++l_i) {
     const int i = l_i - start_index_left_[orb_i];
-    memcpy(&T_l_(0, i), &T_(n_w_pos, config_left_[l_i].idx), sizeof(Scalar) * n_w_pos);
+    std::copy_n(&T_(n_w_pos, config_left_[l_i].idx), n_w_pos, &T_l_(0, i));
   }
 
   // T_r_ matrix
@@ -191,7 +191,7 @@ void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::
 
   for (int l_j = start_index_right_[orb_j]; l_j < end_index_right_[orb_j]; ++l_j) {
     const int j = l_j - start_index_right_[orb_j];
-    memcpy(&T_r_(0, j), &T_(0, config_right_[l_j].idx), sizeof(Scalar) * n_w);
+    std::copy_n(&T_(0, config_right_[l_j].idx), n_w, &T_r_(0, j));
   }
 }
 

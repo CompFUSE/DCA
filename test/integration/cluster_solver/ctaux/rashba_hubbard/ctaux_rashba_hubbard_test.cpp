@@ -75,15 +75,17 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
   dca::phys::DcaLoopData<Parameters> dca_loop_data;
   qmc_solver.finalize(dca_loop_data);
 
-  if (not update_baseline) {
+  const std::string baseline = input_dir + "rashba_hubbard_baseline.hdf5";
+  if (!update_baseline) {
     // Read and confront with previous run
     if (dca_test_env->concurrency.id() == 0) {
       Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "rashba_hubbard_baseline.hdf5");
+      reader.open_file(baseline);
       reader.open_group("functions");
       reader.execute(G_k_w_check);
-      reader.close_group(), reader.close_file();
+      reader.close_group();
+      reader.close_file();
 
       auto diff = dca::func::util::difference(G_k_w_check, data.G_k_w);
       EXPECT_GE(1e-6, diff.l2);
@@ -93,7 +95,7 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
     //  Write results
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file(input_dir + "square_lattice_baseline.hdf5");
+      writer.open_file(baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();

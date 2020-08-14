@@ -1292,7 +1292,7 @@ std::pair<Scalar, int> logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<
 // Postcondition: M is its LU decomposition.
 template <template <typename, DeviceType> class MatrixType, typename Scalar>
 std::pair<Scalar, Scalar> logDeterminantIP(MatrixType<std::complex<Scalar>, CPU>& M,
-                                                         std::vector<int>& ipiv) {
+                                           std::vector<int>& ipiv) {
   assert(M.is_square());
   static_assert(std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>,
                 " This function is defined only for Real numbers");
@@ -1322,7 +1322,7 @@ std::pair<Scalar, Scalar> logDeterminantIP(MatrixType<std::complex<Scalar>, CPU>
       phase += M_PI;
   }
 
-  return {log_det, phase};
+  return {log_det, std::fmod(phase, 2 * M_PI)};
 }
 
 template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
@@ -1339,7 +1339,7 @@ std::pair<Scalar, int> logRealDeterminant(const MatrixType<Scalar, device>& m) {
 template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
 std::pair<Scalar, int> logRealDeterminant(const MatrixType<std::complex<Scalar>, device>& m) {
   auto [log_det, phase] = logDeterminant(m);
-  constexpr Scalar epsilon = std::numeric_limits<Scalar>::epsilon() * 500;
+  constexpr Scalar epsilon = std::numeric_limits<Scalar>::epsilon() * 1000;
 
   if (std::abs(phase - 0) < epsilon)
     return std::pair(log_det, 1);

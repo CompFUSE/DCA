@@ -1534,7 +1534,7 @@ void CtauxWalker<device_t, Parameters, Data>::updateShell(const int done, const 
     std::cout.unsetf(std::ios_base::floatfield);
 
     std::cout << "\t\t\t" << std::setw(14)
-              << static_cast<Scalar>(done) / static_cast<Scalar>(total) * 100. << " % completed"
+              << static_cast<Real>(done) / static_cast<Real>(total) * 100. << " % completed"
               << "\t" << std::setw(11)
               << "<k> = " << configuration_.get_number_of_interacting_HS_spins() << "\t"
               << std::setw(11) << "N = " << configuration_.size() << "\t" << dca::util::print_time()
