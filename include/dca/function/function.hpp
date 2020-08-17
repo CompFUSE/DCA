@@ -30,14 +30,9 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
-#include "dca/util/ignore.hpp"
 #include "dca/util/pack_operations.hpp"
+#include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
-
-#include "dca/parallel/util/get_workload.hpp"
-#ifdef DCA_HAVE_MPI
-#include "mpi.h"
-#endif
 
 namespace dca {
 namespace func {
@@ -54,9 +49,11 @@ public:
   // Default constructor
   // Constructs the function with the name name.
   // Postcondition: All elements are set to zero.
-  // Special case: when distributed_g4_enabled, G4 related variables only gets
-  // allocation of 1/p of original G4 size, where p = #mpiranks
-  function(const std::string& name = default_name_, const DistType dist = DistType::NONE);
+  function(const std::string& name = default_name_);
+
+  // Distributed function. Access with multi-index operator() is not safe.
+  template <class Concurrency>
+  function(const std::string& name, const Concurrency& concurrency);
 
   // Copy constructor
   // Constructs the function with the a copy of elements and name of other.
@@ -97,8 +94,6 @@ public:
   //                 The other function is in a non-specified state.
   function<scalartype, domain>& operator=(function<scalartype, domain>&& other);
 
-  ~function();
-
   // Resets the function by resetting the domain object and reallocating the memory for the function
   // elements.
   // Postcondition: All elements are set to zero.
@@ -118,11 +113,12 @@ public:
     return Nb_sbdms;
   }
   std::size_t size() const {
-    return nb_elements_;
+    return fnc_values_.size();
   }
 
+  // TODO: remove as it breaks class' invariant.
   void resize(std::size_t nb_elements_new) {
-    nb_elements_ = nb_elements_new;
+    fnc_values_.resize(nb_elements_new);
   }
 
   // Returns the size of the leaf domain with the given index.
@@ -132,31 +128,31 @@ public:
   }
 
   // Begin and end methods for compatibility with range for loop.
-  scalartype* begin() {
-    return fnc_values;
+  auto begin() {
+    return fnc_values_.begin();
   }
-  scalartype* end() {
-    return fnc_values + nb_elements_;
+  auto end() {
+    return fnc_values_.end();
   }
-  const scalartype* begin() const {
-    return fnc_values;
+  const auto begin() const {
+    return fnc_values_.begin();
   }
-  const scalartype* end() const {
-    return fnc_values + nb_elements_;
+  const auto end() const {
+    return fnc_values_.end();
   }
 
   // Returns a pointer to the function's elements.
   scalartype* values() {
-    return fnc_values;
+    return fnc_values_.data();
   }
   const scalartype* values() const {
-    return fnc_values;
+    return fnc_values_.data();
   }
   scalartype* data() {
-    return fnc_values;
+    return fnc_values_.data();
   }
   const scalartype* data() const {
-    return fnc_values;
+    return fnc_values_.data();
   }
 
   //
@@ -199,7 +195,7 @@ public:
   template <typename T>
   int subind_2_linind(const T ind) const {
     static_assert(std::is_integral<T>::value, "Index ind must be an integer.");
-    assert(ind >= 0 && ind < nb_elements_);
+    assert(ind >= 0 && ind < size());
     return ind;
   }
 
@@ -213,24 +209,24 @@ public:
   template <typename T>
   scalartype& operator()(const T linind) {
     static_assert(std::is_integral<T>::value, "Index linind must be an integer.");
-    assert(linind >= 0 && linind < nb_elements_);
-    return fnc_values[linind];
+    assert(linind >= 0 && linind < size());
+    return fnc_values_[linind];
   }
   template <typename T>
   const scalartype& operator()(const T linind) const {
     static_assert(std::is_integral<T>::value, "Index linind must be an integer.");
-    assert(linind >= 0 && linind < nb_elements_);
-    return fnc_values[linind];
+    assert(linind >= 0 && linind < size());
+    return fnc_values_[linind];
   }
 
   template <typename... Ts>
   scalartype& operator()(const Ts... subindices) {
     // We need to cast all indices to the same type for dmn_variadic.
-    return fnc_values[dmn(static_cast<int>(subindices)...)];
+    return fnc_values_[dmn(static_cast<int>(subindices)...)];
   }
   template <typename... Ts>
   const scalartype& operator()(const Ts... subindices) const {
-    return fnc_values[dmn(static_cast<int>(subindices)...)];
+    return fnc_values_[dmn(static_cast<int>(subindices)...)];
   }
 
   void operator+=(const function<scalartype, domain>& other);
@@ -245,7 +241,7 @@ public:
   void operator/=(scalartype c);
 
   // Equal-comparison opertor
-  // Returns true if the function's elements (fnc_values) are equal to other's elements, false
+  // Returns true if the function's elements (fnc_values_) are equal to other's elements, false
   // otherwise.
   // TODO: Make the equal-comparison operator a non-member function.
   bool operator==(const function<scalartype, domain>& other) const;
@@ -278,47 +274,58 @@ public:
   template <class concurrency_t>
   void unpack(const concurrency_t& concurrency, char* buffer, int buffer_size, int& position);
 
+  // Gather a function that was initialized as distributed.
+  // Precondition: concurrency must be the same object used during construction.
+  template <class Concurrency>
+  function gather(const Concurrency& concurrency) const;
+
 private:
   std::string name_;
   std::string function_type;
 
   domain dmn;  // TODO: Remove domain object?
 
-  std::size_t nb_elements_;
-
   // The subdomains (sbdmn) represent the leaf domains, not the branch domains.
   int Nb_sbdms;
   const std::vector<std::size_t>& size_sbdm;  // TODO: Remove?
   const std::vector<std::size_t>& step_sbdm;  // TODO: Remove?
 
-  scalartype* fnc_values;
+  std::vector<scalartype> fnc_values_;
 };
 
 template <typename scalartype, class domain>
 const std::string function<scalartype, domain>::default_name_ = "no-name";
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(const std::string& name, DistType dist)
+function<scalartype, domain>::function(const std::string& name)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
-      nb_elements_(dmn.get_size()),
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values(nullptr) {
-  dca::util::ignoreUnused(dist);
-#ifdef DCA_HAVE_MPI
-  if (dist == DistType::MPI) {
-    int my_rank, mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    nb_elements_ = dca::parallel::util::getWorkload(dmn.get_size(), mpi_size, my_rank);
-  }
-#endif  // DCA_HAVE_MPI
-  fnc_values = new scalartype[nb_elements_];
-  for (int linind = 0; linind < nb_elements_; ++linind)
-    setToZero(fnc_values[linind]);
+      fnc_values_(dmn.get_size()) {
+  for (int linind = 0; linind < size(); ++linind)
+    setToZero(fnc_values_[linind]);
+}
+
+template <typename scalartype, class domain>
+template <class Concurrency>
+function<scalartype, domain>::function(const std::string& name, const Concurrency& concurrency)
+    : name_(name),
+      function_type(__PRETTY_FUNCTION__),
+      dmn(),
+      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      size_sbdm(dmn.get_leaf_domain_sizes()),
+      step_sbdm(dmn.get_leaf_domain_steps()) {
+  // TODO: multi-index access to partitioned function is not safe.
+  const std::size_t mpi_size = concurrency.number_of_processors();
+
+  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+  fnc_values_.resize(nb_elements);
+
+  for (int linind = 0; linind < nb_elements; ++linind)
+    setToZero(fnc_values_[linind]);
 }
 
 template <typename scalartype, class domain>
@@ -326,17 +333,13 @@ function<scalartype, domain>::function(const function<scalartype, domain>& other
     : name_(other.name_),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
-      nb_elements_(dmn.get_size()),
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values(nullptr) {
+      fnc_values_(other.fnc_values_) {
   if (dmn.get_size() != other.dmn.get_size())
     // The other function has not been resetted after the domain was initialized.
     throw std::logic_error("Copy construction from a not yet resetted function.");
-
-  fnc_values = new scalartype[nb_elements_];
-  std::copy_n(other.fnc_values, nb_elements_, fnc_values);
 }
 
 template <typename scalartype, class domain>
@@ -344,18 +347,13 @@ function<scalartype, domain>::function(function<scalartype, domain>&& other)
     : name_(std::move(other.name_)),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
-      nb_elements_(dmn.get_size()),
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values(nullptr) {
+      fnc_values_(std::move(other.fnc_values_)) {
   if (dmn.get_size() != other.dmn.get_size())
     // The other function has not been resetted after the domain was initialized.
     throw std::logic_error("Move construction from a not yet resetted function.");
-
-  fnc_values = other.fnc_values;
-  other.nb_elements_ = 0;
-  other.fnc_values = nullptr;
 }
 
 template <typename scalartype, class domain>
@@ -372,7 +370,7 @@ function<scalartype, domain>& function<scalartype, domain>::operator=(
         throw std::logic_error("Copy assignment from a not yet resetted function.");
     }
 
-    std::copy_n(other.values(), nb_elements_, fnc_values);
+    fnc_values_ = other.fnc_values_;
   }
 
   return *this;
@@ -385,7 +383,7 @@ function<Scalar, domain>& function<Scalar, domain>::operator=(const function<Sca
     throw(std::logic_error("Function size does not match."));
   }
 
-  std::copy_n(other.values(), nb_elements_, fnc_values);
+  fnc_values_ = other.fnc_values_;
 
   return *this;
 }
@@ -404,33 +402,21 @@ function<scalartype, domain>& function<scalartype, domain>::operator=(
         throw std::logic_error("Move assignment from a not yet resetted function.");
     }
 
-    delete[] fnc_values;
-    fnc_values = other.fnc_values;
-
-    other.nb_elements_ = 0;
-    other.fnc_values = nullptr;
+    fnc_values_ = std::move(other.fnc_values_);
   }
 
   return *this;
 }
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::~function() {
-  delete[] fnc_values;
-}
-
-template <typename scalartype, class domain>
 void function<scalartype, domain>::reset() {
   dmn.reset();
 
-  nb_elements_ = dmn.get_size();
+  fnc_values_.resize(dmn.get_size());
   Nb_sbdms = dmn.get_leaf_domain_sizes().size();
 
-  delete[] fnc_values;
-  fnc_values = new scalartype[nb_elements_];
-
-  for (int linind = 0; linind < nb_elements_; ++linind)
-    setToZero(fnc_values[linind]);
+  for (int linind = 0; linind < size(); ++linind)
+    setToZero(fnc_values_[linind]);
 }
 
 template <typename scalartype, class domain>
@@ -482,8 +468,8 @@ scalartype& function<scalartype, domain>::operator()(const int* const subind) {
   int linind;
   subind_2_linind(subind, linind);
 
-  assert(linind >= 0 && linind < nb_elements_);
-  return fnc_values[linind];
+  assert(linind >= 0 && linind < size());
+  return fnc_values_[linind];
 }
 
 template <typename scalartype, class domain>
@@ -491,64 +477,64 @@ const scalartype& function<scalartype, domain>::operator()(const int* const subi
   int linind;
   subind_2_linind(subind, linind);
 
-  assert(linind >= 0 && linind < nb_elements_);
-  return fnc_values[linind];
+  assert(linind >= 0 && linind < size());
+  return fnc_values_[linind];
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator+=(const function<scalartype, domain>& other) {
-  for (int linind = 0; linind < nb_elements_; ++linind)
-    fnc_values[linind] += other(linind);
+  for (int linind = 0; linind < size(); ++linind)
+    fnc_values_[linind] += other(linind);
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator-=(const function<scalartype, domain>& other) {
-  for (int linind = 0; linind < nb_elements_; ++linind)
-    fnc_values[linind] -= other(linind);
+  for (int linind = 0; linind < size(); ++linind)
+    fnc_values_[linind] -= other(linind);
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator*=(const function<scalartype, domain>& other) {
-  for (int linind = 0; linind < nb_elements_; ++linind)
-    fnc_values[linind] *= other(linind);
+  for (int linind = 0; linind < size(); ++linind)
+    fnc_values_[linind] *= other(linind);
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator/=(const function<scalartype, domain>& other) {
-  for (int linind = 0; linind < nb_elements_; ++linind) {
+  for (int linind = 0; linind < size(); ++linind) {
     assert(std::abs(other(linind)) > 1.e-16);
-    fnc_values[linind] /= other(linind);
+    fnc_values_[linind] /= other(linind);
   }
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator=(const scalartype c) {
-  for (int linind = 0; linind < nb_elements_; linind++)
-    fnc_values[linind] = c;
+  for (int linind = 0; linind < size(); linind++)
+    fnc_values_[linind] = c;
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator+=(const scalartype c) {
-  for (int linind = 0; linind < nb_elements_; linind++)
-    fnc_values[linind] += c;
+  for (int linind = 0; linind < size(); linind++)
+    fnc_values_[linind] += c;
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator-=(const scalartype c) {
-  for (int linind = 0; linind < nb_elements_; linind++)
-    fnc_values[linind] -= c;
+  for (int linind = 0; linind < size(); linind++)
+    fnc_values_[linind] -= c;
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator*=(const scalartype c) {
-  for (int linind = 0; linind < nb_elements_; linind++)
-    fnc_values[linind] *= c;
+  for (int linind = 0; linind < size(); linind++)
+    fnc_values_[linind] *= c;
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator/=(const scalartype c) {
-  for (int linind = 0; linind < nb_elements_; linind++)
-    fnc_values[linind] /= c;
+  for (int linind = 0; linind < size(); linind++)
+    fnc_values_[linind] /= c;
 }
 
 template <typename scalartype, class domain>
@@ -557,8 +543,8 @@ bool function<scalartype, domain>::operator==(const function<scalartype, domain>
     // One of the function has not been resetted after the domain was initialized.
     throw std::logic_error("Comparing functions of different sizes.");
 
-  for (int i = 0; i < nb_elements_; ++i)
-    if (other(i) != fnc_values[i])
+  for (int i = 0; i < size(); ++i)
+    if (other(i) != fnc_values_[i])
       return false;
 
   return true;
@@ -576,7 +562,8 @@ void function<scalartype, domain>::slice(const int sbdm_index, int* subind,
   subind_2_linind(subind, linind);
 
   for (int i = 0; i < size_sbdm[sbdm_index]; i++)
-    fnc_vals[i] = ScalarCast<new_scalartype>::execute(fnc_values[linind + i * step_sbdm[sbdm_index]]);
+    fnc_vals[i] =
+        ScalarCast<new_scalartype>::execute(fnc_values_[linind + i * step_sbdm[sbdm_index]]);
 }
 
 template <typename scalartype, class domain>
@@ -604,12 +591,12 @@ void function<scalartype, domain>::slice(const int sbdm_index_1, const int sbdm_
 
   for (int j = 0; j < size_sbdm_2; j++) {
     fnc_ptr_left = &fnc_vals[0 + j * size_sbdm_1];
-    fnc_ptr_right = &fnc_values[linind + j * step_sbdm_2];
+    fnc_ptr_right = &fnc_values_[linind + j * step_sbdm_2];
 
     for (int i = 0; i < size_sbdm_1; i++)
       fnc_ptr_left[i] = fnc_ptr_right[i * step_sbdm_1];
-    //       fnc_vals[i+j*size_sbdm[sbdm_index_1]] = fnc_values[linind + i*step_sbdm[sbdm_index_1] +
-    //       j*step_sbdm[sbdm_index_2]];
+    //       fnc_vals[i+j*size_sbdm[sbdm_index_1]] = fnc_values_[linind + i*step_sbdm[sbdm_index_1]
+    //       + j*step_sbdm[sbdm_index_2]];
   }
 }
 
@@ -625,7 +612,7 @@ void function<scalartype, domain>::distribute(const int sbdm_index, int* subind,
   subind_2_linind(subind, linind);
 
   for (int i = 0; i < size_sbdm[sbdm_index]; i++)
-    fnc_values[linind + i * step_sbdm[sbdm_index]] = ScalarCast<scalartype>::execute(fnc_vals[i]);
+    fnc_values_[linind + i * step_sbdm[sbdm_index]] = ScalarCast<scalartype>::execute(fnc_vals[i]);
 }
 
 template <typename scalartype, class domain>
@@ -644,7 +631,7 @@ void function<scalartype, domain>::distribute(const int sbdm_index_1, const int 
 
   for (int i = 0; i < size_sbdm[sbdm_index_1]; i++)
     for (int j = 0; j < size_sbdm[sbdm_index_2]; j++)
-      fnc_values[linind + i * step_sbdm[sbdm_index_1] + j * step_sbdm[sbdm_index_2]] =
+      fnc_values_[linind + i * step_sbdm[sbdm_index_1] + j * step_sbdm[sbdm_index_2]] =
           fnc_vals[i + j * size_sbdm[sbdm_index_1]];
 }
 
@@ -663,8 +650,8 @@ void function<scalartype, domain>::print_fingerprint(std::ostream& stream) const
     stream << "  " << size_sbdm[i];
   stream << "\n";
 
-  stream << "# elements: " << nb_elements_ << "\n";
-  stream << "memory: " << nb_elements_ * sizeof(scalartype) / (1024. * 1024.) << " MiB\n";
+  stream << "# elements: " << size() << "\n";
+  stream << "memory: " << size() * sizeof(scalartype) / (1024. * 1024.) << " MiB\n";
   stream << "****************************************\n" << std::endl;
 }
 
@@ -675,11 +662,11 @@ void function<scalartype, domain>::print_elements(std::ostream& stream) const {
   stream << "****************************************\n";
 
   std::vector<int> subind(Nb_sbdms);
-  for (int lindex = 0; lindex < nb_elements_; ++lindex) {
+  for (int lindex = 0; lindex < size(); ++lindex) {
     linind_2_subind(lindex, subind);
     for (int index : subind)
       stream << index << "\t";
-    stream << " \t" << fnc_values[lindex] << "\n";
+    stream << " \t" << fnc_values_[lindex] << "\n";
   }
 
   stream << "****************************************\n" << std::endl;
@@ -705,6 +692,15 @@ template <class concurrency_t>
 void function<scalartype, domain>::unpack(const concurrency_t& concurrency, char* buffer,
                                           const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, *this);
+}
+
+template <typename scalartype, class domain>
+template <class Concurrency>
+function<scalartype, domain> function<scalartype, domain>::gather(const Concurrency& concurrency) const {
+  function result(name_);
+
+  concurrency.gather(*this, result, concurrency);
+  return result;
 }
 
 }  // namespace func

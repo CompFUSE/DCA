@@ -23,8 +23,9 @@
 #error "This file requires MPI."
 #endif
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 namespace dca {
 namespace phys {
@@ -110,19 +111,29 @@ private:
   void ringG(float& flop);
   float updateG4(const std::size_t channel_index);
 
+  void send(const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request);
+  void receive(std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request);
+
   using BaseClass::channels_;
   using BaseClass::G4_;
 
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
+
+  std::array<MPI_Request, 2> recv_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
+  std::array<MPI_Request, 2> send_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
+
+#ifndef DCA_WITH_CUDA_AWARE_MPI
+  std::array<std::vector<Complex>, 2> sendbuffer_;
+  std::array<std::vector<Complex>, 2> recvbuffer_;
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 };
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-  : BaseClass(G0, pars, thread_id) {
-
+    : BaseClass(G0, pars, thread_id) {
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
   typename BaseClass::TpDomain tp_dmn;
   std::size_t local_g4_size = tp_dmn.get_size();
@@ -145,7 +156,6 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
-
 }
 
 template <class Parameters>
@@ -219,7 +229,6 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(
   BaseClass::initialized_ = true;
   BaseClass::finalized_ = false;
 }
-
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
@@ -308,10 +317,6 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
 
-  MPI_Request recv_request_1, recv_request_2;
-  MPI_Request send_request_1, send_request_2;
-  MPI_Status status_1, status_2, status_3, status_4;
-
   // get rank index of left and right neighbor
   int left_neighbor = (my_concurrency_id - 1 + mpi_size) % mpi_size;
   int right_neighbor = (my_concurrency_id + 1 + mpi_size) % mpi_size;
@@ -325,21 +330,12 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
   //         measurements % ranks == 0 && local_measurement % threads == 0.
   for (int icount = 0; icount < (mpi_size - 1); icount++) {
-    MPI_Irecv(G_[0].ptr(), (G_[0].size().first) * (G_[0].size().second), MPI_CXX_DOUBLE_COMPLEX,
-              left_neighbor, thread_id_ + 1, MPI_COMM_WORLD, &recv_request_1);
-    MPI_Irecv(G_[1].ptr(), (G_[1].size().first) * (G_[1].size().second), MPI_CXX_DOUBLE_COMPLEX,
-              left_neighbor, thread_id_ + 1 + nr_accumulators_, MPI_COMM_WORLD, &recv_request_2);
-
-    MPI_Isend(sendbuff_G_[0].ptr(), (sendbuff_G_[0].size().first) * (sendbuff_G_[0].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1, MPI_COMM_WORLD,
-              &send_request_1);
-    MPI_Isend(sendbuff_G_[1].ptr(), (sendbuff_G_[1].size().first) * (sendbuff_G_[1].size().second),
-              MPI_CXX_DOUBLE_COMPLEX, right_neighbor, thread_id_ + 1 + nr_accumulators_,
-              MPI_COMM_WORLD, &send_request_2);
+    send(sendbuff_G_, right_neighbor, send_requests_);
+    receive(G_, left_neighbor, recv_requests_);
 
     // wait for G2 to be available again
-    MPI_Wait(&recv_request_1, &status_1);
-    MPI_Wait(&recv_request_2, &status_2);
+    for (int s = 0; s < 2; ++s)
+      MPI_Wait(&recv_requests_[s], MPI_STATUSES_IGNORE);
 
     // use newly copied G2 to update G4
     for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
@@ -347,8 +343,8 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
     }
 
     // wait for sendbuf_G2 to be available again
-    MPI_Wait(&send_request_1, &status_3);
-    MPI_Wait(&send_request_2, &status_4);
+    for (int s = 0; s < 2; ++s)
+      MPI_Wait(&send_requests_[s], MPI_STATUSES_IGNORE);
 
     // get ready for send again
     for (int s = 0; s < 2; ++s) {
@@ -361,6 +357,58 @@ template <class Parameters>
 auto TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::get_G4() -> std::vector<G4DevType>& {
   static std::vector<G4DevType> G4;
   return G4;
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::array<RMatrix, 2>& data,
+                                                                 int target,
+                                                                 std::array<MPI_Request, 2>& request) {
+  using dca::parallel::MPITypeMap;
+  const auto g_size = data[0].size().first * data[0].size().second;
+
+#ifdef DCA_WITH_CUDA_AWARE_MPI
+  for (int s = 0; s < 2; ++s) {
+    MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
+              MPI_COMM_WORLD, &request[s]);
+  }
+#else
+
+  for (int s = 0; s < 2; ++s) {
+    sendbuffer_[s].resize(g_size);
+    cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
+               cudaMemcpyDeviceToHost);
+
+    MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
+              MPI_COMM_WORLD, &request[s]);
+  }
+#endif  // DCA_WITH_CUDA_AWARE_MPI
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
+    std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request) {
+  using dca::parallel::MPITypeMap;
+  const auto g_size = data[0].size().first * data[0].size().second;
+
+#ifdef DCA_WITH_CUDA_AWARE_MPI
+  for (int s = 0; s < 2; ++s) {
+    MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
+              MPI_COMM_WORLD, &request[s]);
+  }
+
+#else
+  for (int s = 0; s < 2; ++s) {
+    recvbuffer_[s].resize(g_size);
+    MPI_Irecv(recvbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
+              MPI_COMM_WORLD, &request[s]);
+  }
+  for (int s = 0; s < 2; ++s) {
+    MPI_Wait(&request[s], MPI_STATUSES_IGNORE);
+    // Note: MPI can not access host memory allocated from CUDA, hence the usage of blocking communication.
+    cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
+               cudaMemcpyHostToDevice);
+  }
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 }
 
 }  // namespace accumulator

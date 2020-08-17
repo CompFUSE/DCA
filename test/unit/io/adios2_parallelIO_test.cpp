@@ -13,6 +13,7 @@
 #include "dca/io/adios2/adios2_reader.hpp"
 #include "dca/io/adios2/adios2_writer.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
 #include <array>
