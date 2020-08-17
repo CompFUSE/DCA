@@ -48,7 +48,7 @@ public:
   // Constructor
   // In: nw_pos: number of extended positive frequencies.
   // In: queue: the magma queue on which execute will run.
-  SpaceTransform2DGpu(int nw_pos, magma_queue_t queue);
+  SpaceTransform2DGpu(int nw_pos, const linalg::util::MagmaQueue& queue);
 
   // Performs the 2D fourier transform from real to momentum space in place and rearranges the
   // order of M's labels from (r, b, w) to (b, r, w).
@@ -63,7 +63,7 @@ public:
 
   // Returns: the stream associated with the magma queue.
   cudaStream_t get_stream() const {
-    return stream_;
+    return queue_.getStream();
   }
 
   std::size_t deviceFingerprint() const {
@@ -86,8 +86,7 @@ private:
   const int nw_;
   const int nc_;
 
-  magma_queue_t queue_;
-  cudaStream_t stream_;
+  const linalg::util::MagmaQueue& queue_;
 
   std::shared_ptr<RMatrix> workspace_;
 
@@ -96,12 +95,12 @@ private:
 };
 
 template <class RDmn, class KDmn, typename Real>
-SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, magma_queue_t queue)
+SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos,
+                                                           const linalg::util::MagmaQueue& queue)
     : n_bands_(BDmn::dmn_size()),
       nw_(2 * nw_pos),
       nc_(RDmn::dmn_size()),
       queue_(queue),
-      stream_(magma_queue_get_cuda_stream(queue_)),
       plan1_(queue_),
       plan2_(queue_) {
   workspace_ = std::make_shared<RMatrix>();
@@ -158,7 +157,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatr
       BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
   details::phaseFactorsAndRearrange(in.ptr(), in.leadingDimension(), out.ptr(),
                                     out.leadingDimension(), n_bands_, nc_, nw_, phase_factors_ptr,
-                                    stream_);
+                                    queue_);
 }
 
 template <class RDmn, class KDmn, typename Real>

@@ -70,7 +70,7 @@ public:
   void initialize() {}
   void initialize_akima_coefficients(func::function<double, nu_nu_r_DCA_t>& F_r_t);
 
-  parameters_t& get_parameters() {
+  const parameters_t& get_parameters() {
     return parameters;
   }
   MOMS_t& get_MOMS() {
@@ -202,9 +202,9 @@ public:
                  vertex_vertex_matrix_type& M);
 
 private:
-  parameters_t& parameters;
+  const parameters_t& parameters;
   MOMS_t& MOMS;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   configuration_t& configuration;
   rng_t& rng;

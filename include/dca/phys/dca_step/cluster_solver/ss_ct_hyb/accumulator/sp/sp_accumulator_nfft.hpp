@@ -71,7 +71,7 @@ public:
   void sumTo(SpAccumulatorNfft<parameters_type, base_cluster_type>& other) const;
 
 public:
-  SpAccumulatorNfft(parameters_type& parameters_ref);
+  SpAccumulatorNfft(const parameters_type& parameters_ref);
 
   void initialize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
                   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
@@ -89,8 +89,8 @@ private:
                              double t_start, int flavor);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   int N_spin_orbitals;
 
@@ -102,7 +102,8 @@ private:
 };
 
 template <class parameters_type, class base_cluster_type>
-SpAccumulatorNfft<parameters_type, base_cluster_type>::SpAccumulatorNfft(parameters_type& parameters_ref)
+SpAccumulatorNfft<parameters_type, base_cluster_type>::SpAccumulatorNfft(
+    const parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -255,9 +256,9 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::sumTo(
   other.cached_nfft_1D_GS_obj += cached_nfft_1D_GS_obj;
 }
 
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_ACCUMULATOR_SP_SP_ACCUMULATOR_NFFT_HPP
