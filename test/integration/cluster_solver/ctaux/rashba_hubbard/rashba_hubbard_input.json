@@ -26,8 +26,8 @@
 
     "domains": {
         "real-space-grids": {
-            "cluster": [[2, 0],
-                        [0, 2]]
+            "cluster": [[4, 0],
+                        [0, 4]]
         },
 
         "imaginary-time": {
