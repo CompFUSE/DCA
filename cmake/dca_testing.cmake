@@ -13,7 +13,7 @@ include(CMakeParseArguments)
 #               [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
-#               [CUDA]
+#               [CUDA | CUDA_MPI]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
 #               [SOURCES src1 [src2 ...]]
 #               [LIBS lib1 [lib2 ...]])
@@ -41,7 +41,7 @@ function(dca_add_gtest name)
                                        [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
-                                       [CUDA]\n
+                                       [CUDA | CUDA_MPI]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
                                        [SOURCES src1 [src2 ...]]\n
                                        [LIBS lib1 [lib2 ...]])")
@@ -82,13 +82,9 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  if (DCA_ADD_GTEST_CUDA_MPI AND (NOT (DCA_HAVE_CUDA AND DCA_HAVE_CUDA_AWARE_MPI)))
-    return()
-  endif()
-
   # Right now we're only testing GPU distributed code on one node so its pointless
   # without more than one GPU per node.
-  if (DCA_ADD_GTEST_CUDA_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
+  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_CUDA_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
     return()
   endif()
 
