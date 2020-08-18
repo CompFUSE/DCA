@@ -99,13 +99,15 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  RMatrix<Complex, dca::linalg::GPU> M_dev(M_in);
-  magma_queue_t queue;
-  magma_queue_create(&queue);
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>
+      M_dev(M_in);
+
+  dca::linalg::util::MagmaQueue queue;
+
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
-  cudaStreamSynchronize(transform_obj.get_stream());
-  magma_queue_destroy(queue);
+
+  queue.getStream().sync();
 
   constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 500;
 

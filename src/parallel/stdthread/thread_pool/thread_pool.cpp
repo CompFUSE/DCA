@@ -12,8 +12,6 @@
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
-#include "mpi.h"
-
 #include "dca/parallel/stdthread/thread_pool/affinity.hpp"
 
 namespace dca {

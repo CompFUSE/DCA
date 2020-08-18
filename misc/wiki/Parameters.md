@@ -409,11 +409,15 @@ Instead of an integer, the string `"random"` can be passed to generate a random 
 `"warm-up-sweeps":` integer (20)  
 Number of warm-up sweeps.
 
-`"sweeps-per-measurement":` double (1.)  
-Number of sweeps per measurement.
+`"sweeps-per-measurement":` vector\<double\> ({1.})  
+Number of sweeps per measurement in each Monte Carlo iteration. Can be initialized with a single
+scalar, in which case all the iterations will use this value. Automatically resized in case the 
+length is mismatched with the parameter "iterations".
 
-`"measurements":` integer (100)  
-Number of independent measurements in each Monte Carlo iteration.
+`"measurements":` vector\<int\> ({100})  
+Number of measurements in each Monte Carlo iteration. Can be initialized with a single scalar, 
+in which case all the iterations will use this value. Automatically resized in case the length is
+mismatched with the parameter "iterations".
 
 `"error-computation-type:"`  string("NONE")\
 Determines the type of error computation that will be performed during the last Monte Carlo iteration. Possible options are:

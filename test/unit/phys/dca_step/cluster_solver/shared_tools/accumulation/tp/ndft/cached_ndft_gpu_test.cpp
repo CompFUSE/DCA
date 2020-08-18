@@ -16,7 +16,6 @@
 
 #include "gtest/gtest.h"
 
-//#include "dca/config/mc_options.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"

@@ -26,6 +26,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/parallel//no_concurrency/no_concurrency.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper_submatrix.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -36,6 +37,13 @@
 #include "dca/util/modules.hpp"
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
+
+template <class WalkerType, class G0, class Parameters, class Data>
+void initializeWalkerStatic(const G0& g0, const Parameters& parameters, const Data& data) {
+  WalkerType::setDMatrixBuilder(g0);
+  WalkerType::setDMatrixAlpha(parameters.getAlphas(), parameters.adjustAlphaDd());
+  WalkerType::setInteractionVertices(data, parameters);
+}
 
 TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   using RngType = dca::testing::StubRng;
@@ -48,7 +56,9 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
                                     RngType, dca::phys::solver::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
-  using Walker =
+
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, double>;
+  using WalkerSubmatrix =
       testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, double>;
 
   Concurrency concurrency(0, nullptr);
@@ -66,9 +76,9 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
 
   dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters.getAlphas(), parameters.adjustAlphaDd());
-  Walker::setInteractionVertices(data, parameters);
+
+  initializeWalkerStatic<Walker>(g0, parameters, data);
+  initializeWalkerStatic<WalkerSubmatrix>(g0, parameters, data);
 
   RealRng rng(0, 1);
   std::vector<double> rng_vals(10000);
@@ -76,22 +86,31 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     x = rng();
   RngType rng1(rng_vals), rng2(rng_vals);
 
-  parameters.setMaxSubmatrixSize(1);
   Walker walker1(parameters, rng1);
 
   parameters.setMaxSubmatrixSize(16);
-  Walker walker2(parameters, rng2);
+  WalkerSubmatrix walker2(parameters, rng2);
+
+  EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 
   for (int i = 0; i < 128; ++i) {
-    parameters.setMaxSubmatrixSize(1);
     walker1.doSweep();
-    parameters.setMaxSubmatrixSize(16);
     walker2.doSweep();
 
     EXPECT_NEAR(walker1.getAcceptanceProbability(), walker2.getAcceptanceProbability(), 5e-7);
     EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
     EXPECT_EQ(walker1.get_sign(), walker2.get_sign());
+
+    auto check_direct_weight = [] (auto& walker) {
+      const auto fast_weight = walker.get_MC_log_weight();
+      walker.setMFromConfig();
+      const auto direct_weight = walker.get_MC_log_weight();
+      EXPECT_NEAR(fast_weight, direct_weight, 5e-7);
+    };
+
+    check_direct_weight(walker1);
+    check_direct_weight(walker2);
   }
 }

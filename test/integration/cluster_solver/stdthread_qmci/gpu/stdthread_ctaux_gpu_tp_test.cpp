@@ -64,7 +64,7 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
-      input_dir + "stdthread_ctaux_gpu_tp_test_input.json");
+      input_dir + "threaded_input.json");
   parameters.update_model();
   parameters.update_domains();
 
@@ -73,10 +73,6 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   data_cpu.initialize();
   data_gpu.initialize();
 
-  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
-  RngType::resetCounter();  // Use the same seed for both solvers.
-  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
-
   // Do one integration step.
   auto perform_integration = [&](auto& solver) {
     solver.initialize(0);
@@ -84,7 +80,11 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
     dca::phys::DcaLoopData<Parameters> loop_data;
     solver.finalize(loop_data);
   };
+  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
   perform_integration(qmc_solver_cpu);
+
+  RngType::resetCounter();  // Use the same seed for both solvers.
+  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
   perform_integration(qmc_solver_gpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);

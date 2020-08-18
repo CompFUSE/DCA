@@ -147,7 +147,11 @@ set(DCA_LIBS
   cuda_utils
 )
 
+set(SYSTEM_GPU_COUNT 0)
+
 if (DCA_HAVE_CUDA)
+  EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                  OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   list(APPEND DCA_LIBS
     blas_kernels
     dnfft_kernels
@@ -174,6 +178,8 @@ option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
 option(DCA_WITH_TESTS_STOCHASTIC  "Build DCA++'s stochastic tests." OFF)
 
+set(DCA_TEST_GPU_COUNT "${SYSTEM_GPU_COUNT}" CACHE INTEGER "Number of GPUs available on one node for one test.")
+
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
 set(MPIEXEC_PREFLAGS "" CACHE STRING "Flags to pass to TEST_RUNNER directly before the executable to run.")
@@ -181,6 +187,8 @@ separate_arguments(MPIEXEC_PREFLAGS UNIX_COMMAND ${MPIEXEC_PREFLAGS})
 
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
+set(benchmark_dir "${PROJECT_SOURCE_DIR}/libs/benchmark" CACHE PATH "Path to Google Benchmark.")
+mark_as_advanced(benchmark_dir)
 
 if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTIC OR
     DCA_WITH_TESTS_PERFORMANCE)
@@ -193,16 +201,20 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTI
     message(WARNING "Tests are built with NDEBUG defined!")
   endif()
 
-  if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    message(WARNING "Performance tests are only built in release mode.")
+  set(BENCHMARK_ENABLE_TESTING OFF)
+  add_subdirectory(${gtest_dir})
+  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+
+  if (DCA_WITH_TESTS_PERFORMANCE)
+    if(NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+      message(WARNING "Performance tests are only built in release mode.")
+    endif()
+    add_subdirectory(${benchmark_dir})
   endif()
 
   if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))
     message(FATAL_ERROR "TEST_RUNNER needs to be set to the command for executing MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
   endif()
-
-  add_subdirectory(${gtest_dir})
-  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
 
 ################################################################################

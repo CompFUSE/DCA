@@ -50,8 +50,8 @@ public:
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                           config::McOptions::TpAllocator<Complex>>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 
@@ -196,7 +196,7 @@ double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
 
   auto& T_times_M = M_out;
   bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
-  util::ignoreUnused(realloc);
+  dca::util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(stream_);
 

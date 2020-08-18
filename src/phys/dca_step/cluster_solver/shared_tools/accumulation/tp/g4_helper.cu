@@ -25,9 +25,9 @@ namespace details {
 
 __device__ __constant__ G4Helper g4_helper;
 
-void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
-                   const std::vector<int>& delta_w, const int* add_k, int lda, const int* sub_k,
-                   int lds, int k0) {
+void G4Helper::set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
+                   const std::vector<int>& delta_k, const std::vector<int>& delta_w,
+                   const int* add_k, unsigned int lda, const int* sub_k, unsigned int lds) {
   static std::once_flag flag;
 
   std::call_once(flag, [=]() {
@@ -35,37 +35,39 @@ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
     solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, true);
 
     G4Helper host_helper;
+    host_helper.nb_ = nb;
+    host_helper.nc_ = nk;
     host_helper.nw_pos_ = nw_pos;
+    host_helper.nw_ = 2 * nw_pos;
+    host_helper.n_k_ex_ = delta_k.size();
+    host_helper.n_w_ex_ = delta_w.size();
 
     host_helper.ext_size_ = 0;
-    for (const int idx : delta_w)
-      host_helper.ext_size_ = std::max(host_helper.ext_size_, std::abs(idx));
+    for (const auto idx : delta_w)
+      host_helper.ext_size_ = std::max(host_helper.ext_size_, static_cast<unsigned>(std::abs(idx)));
 
-    const int nw = 2 * nw_pos;
-    const std::array<int, 10> sizes{nb,
-                                    nb,
-                                    nb,
-                                    nb,
-                                    nk,
-                                    nw,
-                                    nk,
-                                    nw,
-                                    static_cast<int>(delta_k.size()),
-                                    static_cast<int>(delta_w.size())};
+    // compute strides
+    const std::array<unsigned, 10> sizes{nb,
+                                         nb,
+                                         nb,
+                                         nb,
+                                         nk,
+                                         host_helper.nw_,
+                                         nk,
+                                         host_helper.nw_,
+                                         static_cast<unsigned>(delta_k.size()),
+                                         static_cast<unsigned>(delta_w.size())};
 
-    std::array<int, 10> steps;
-    steps[0] = 1;
-    for (std::size_t i = 1; i < steps.size(); ++i)
-      steps[i] = steps[i - 1] * sizes[i - 1];
-
-    std::copy_n(steps.data(), steps.size(), host_helper.sbdm_steps_);
+    host_helper.sbdm_steps_[0] = 1;
+    for (std::size_t i = 1; i < sizes.size(); ++i)
+      host_helper.sbdm_steps_[i] = host_helper.sbdm_steps_[i - 1] * sizes[i - 1];
 
     cudaMalloc(&host_helper.w_ex_indices_, sizeof(int) * delta_w.size());
-    cudaMemcpy(const_cast<int*>(host_helper.w_ex_indices_), const_cast<int*>(delta_w.data()),
+    cudaMemcpy(const_cast<int*>(host_helper.w_ex_indices_), delta_w.data(),
                sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
 
     cudaMalloc(&host_helper.k_ex_indices_, sizeof(int) * delta_k.size());
-    cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), const_cast<int*>(delta_k.data()),
+    cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), delta_k.data(),
                sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
 
     cudaMemcpyToSymbol(g4_helper, &host_helper, sizeof(G4Helper));
