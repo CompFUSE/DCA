@@ -6,16 +6,16 @@
     },
 
     "physics": {
-        "beta": 5.,
+        "beta": 1.,
         "density": 1.0,
         "chemical-potential": 0.
     },
 
     "Rasha-Hubbard-model": {
         "t": 1.,
-        "h" : 1.5,
-        "lambda" : 2.,
-        "U": 4.
+        "h" : 0.1,
+        "lambda" : 0.5,
+        "U": 8.
     },
 
     "DCA": {
@@ -26,8 +26,8 @@
 
     "domains": {
         "real-space-grids": {
-            "cluster": [[4, 0],
-                        [0, 4]]
+            "cluster": [[6, 0],
+                        [0, 6]]
         },
 
         "imaginary-time": {
@@ -35,15 +35,27 @@
         },
 
         "imaginary-frequency": {
-            "sp-fermionic-frequencies": 512
+            "sp-fermionic-frequencies": 512,
+            "four-point-fermionic-frequencies": 8
         }
     },
+
+    "four-point": {
+        "type": "PARTICLE_PARTICLE_UP_DOWN"
+    },
+
 
     "Monte-Carlo-integration": {
         "seed": 985456376,
         "warm-up-sweeps": 50,
         "sweeps-per-measurement": 1,
-        "measurements": 1000
+        "measurements": 500,
+        "threaded-solver" : {
+            "walkers" : 2,
+            "accumulators" : 2,
+            "fix-meas-per-walker" : true,
+            "shared-walk-and-accumulation-thread" : true
+        }
     },
 
     "CT-AUX": {

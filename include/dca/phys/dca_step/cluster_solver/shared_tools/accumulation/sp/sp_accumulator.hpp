@@ -65,7 +65,7 @@ public:
 
   template <class Configuration>
   void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   void finalize();
 
@@ -129,7 +129,7 @@ template <class Parameters>
 template <class Configuration>
 void SpAccumulator<Parameters, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   if (!initialized_)
     throw(std::logic_error("The accumulator was not initialized."));
 
@@ -153,10 +153,9 @@ void SpAccumulator<Parameters, linalg::CPU>::accumulate(
         const int index = bbr_dmn(b_i, b_j, delta_r);
         const Scalar f_val = Ms[s](i, j);
 
-        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, static_cast<Real>(sign) * f_val);
+        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, factor * f_val);
         if (accumulate_m_sqr_)
-          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau,
-                                                static_cast<Real>(sign) * f_val * f_val);
+          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, factor * f_val * f_val);
       }
     }
   }

@@ -30,7 +30,7 @@ struct ConfigElem {
 };
 
 template <int oversampling, int window_sampling, typename Scalar, typename Real>
-void accumulateOnDevice(const Scalar* M, const int ldm, const Real sign, Scalar* out,
+void accumulateOnDevice(const Scalar* M, const int ldm, const Scalar factor, Scalar* out,
                         Scalar* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const Real* tau,
                         const Real* cubic_coeff, const int size, cudaStream_t stream_);

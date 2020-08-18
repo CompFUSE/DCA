@@ -104,11 +104,11 @@ public:
                      const configuration_type& configuration_e_dn,
                      const dca::linalg::Matrix<T, dca::linalg::CPU>& M_dn);
 
-  void accumulate_G_r_t(Real sign);
+  void accumulate_G_r_t(Scalar factor);
 
-  void accumulate_moments(Real sign);
+  void accumulate_moments(Scalar factor);
 
-  void accumulate_dwave_pp_correlator(Real sign);
+  void accumulate_dwave_pp_correlator(Scalar factor);
 
   // Accumulate all relevant quantities. This is equivalent to calling compute_G_r_t followed by all
   // the accumulation methods.
@@ -116,7 +116,7 @@ public:
   void accumulateAll(const configuration_type& configuration_e_up,
                      const dca::linalg::Matrix<T, dca::linalg::CPU>& M_up,
                      const configuration_type& configuration_e_dn,
-                     const dca::linalg::Matrix<T, dca::linalg::CPU>& M_dn, int sign);
+                     const dca::linalg::Matrix<T, dca::linalg::CPU>& M_dn, Scalar factor);
 
   double get_GFLOP();
 
@@ -227,13 +227,13 @@ private:
   func::function<Scalar, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated;
   func::function<Scalar, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated_squared;
 
-  func::function<Real, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
-  func::function<Real, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
+  func::function<Scalar, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
+  func::function<Scalar, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
 
   func::function<Real, k_dmn_t> dwave_k_factor;
   func::function<Real, r_dmn_t> dwave_r_factor;
 
-  func::function<Real, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<Scalar, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 };
 
 template <class Parameters, class Data>
@@ -654,18 +654,18 @@ void TpEqualTimeAccumulator<Parameters, Data>::compute_G_r_t(
 
 template <class Parameters, class Data>
 //     template<class configuration_type>
-void TpEqualTimeAccumulator<Parameters, Data>::accumulate_G_r_t(Real sign) {
+void TpEqualTimeAccumulator<Parameters, Data>::accumulate_G_r_t(Scalar factor) {
   for (int j = 0; j < b_r_t_VERTEX_dmn_t::dmn_size(); j++) {
     for (int i = 0; i < b_r_t_VERTEX_dmn_t::dmn_size(); i++) {
       G_r_t_accumulated(G0_indices_dn(i, j)) +=
-          sign * G0_integration_factor_dn(i, j) * G_r_t_dn(i, j);
+          factor * G0_integration_factor_dn(i, j) * G_r_t_dn(i, j);
       G_r_t_accumulated_squared(G0_indices_dn(i, j)) +=
-          sign * G0_integration_factor_dn(i, j) * G_r_t_dn(i, j) * G_r_t_dn(i, j);
+          factor * G0_integration_factor_dn(i, j) * G_r_t_dn(i, j) * G_r_t_dn(i, j);
 
       G_r_t_accumulated(G0_indices_up(i, j)) +=
-          sign * G0_integration_factor_up(i, j) * G_r_t_up(i, j);
+          factor * G0_integration_factor_up(i, j) * G_r_t_up(i, j);
       G_r_t_accumulated_squared(G0_indices_up(i, j)) +=
-          sign * G0_integration_factor_up(i, j) * G_r_t_up(i, j) * G_r_t_up(i, j);
+          factor * G0_integration_factor_up(i, j) * G_r_t_up(i, j) * G_r_t_up(i, j);
     }
   }
 }
@@ -674,7 +674,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulate_G_r_t(Real sign) {
  *   <S_z> = (n_up-1/2)*(n_dn-1/2)
  */
 template <class Parameters, class Data>
-void TpEqualTimeAccumulator<Parameters, Data>::accumulate_moments(Real sign) {
+void TpEqualTimeAccumulator<Parameters, Data>::accumulate_moments(Scalar factor) {
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     for (int r_i = 0; r_i < r_dmn_t::dmn_size(); r_i++) {
       for (int t_ind = 0; t_ind < t_VERTEX::dmn_size(); t_ind++) {
@@ -689,8 +689,10 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulate_moments(Real sign) {
           throw(std::logic_error("Imaginary charge"));
         }
 
-        charge_cluster_moment(b_ind, r_i) += sign * std::real(charge_val) / t_VERTEX::dmn_size();
-        magnetic_cluster_moment(b_ind, r_i) += sign * std::real(magnetic_val) / t_VERTEX::dmn_size();
+        charge_cluster_moment(b_ind, r_i) +=
+            factor * charge_val / static_cast<Real>(t_VERTEX::dmn_size());
+        magnetic_cluster_moment(b_ind, r_i) +=
+            factor * magnetic_val / static_cast<Real>(t_VERTEX::dmn_size());
       }
     }
   }
@@ -700,9 +702,9 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulate_moments(Real sign) {
  * P_d
  */
 template <class Parameters, class Data>
-void TpEqualTimeAccumulator<Parameters, Data>::accumulate_dwave_pp_correlator(Real sign) {
-  Real renorm = 1. / (t_VERTEX::dmn_size() * pow(r_dmn_t::dmn_size(), 2.));
-  Real factor = sign * renorm;
+void TpEqualTimeAccumulator<Parameters, Data>::accumulate_dwave_pp_correlator(Scalar factor) {
+  const Real renorm = 1. / (t_VERTEX::dmn_size() * pow(r_dmn_t::dmn_size(), 2.));
+  factor *= renorm;
 
   for (int r_i = 0; r_i < r_dmn_t::dmn_size(); r_i++) {
     for (int r_j = 0; r_j < r_dmn_t::dmn_size(); r_j++) {
@@ -902,14 +904,14 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulateAll(
     const configuration_type& configuration_e_up,
     const dca::linalg::Matrix<T, dca::linalg::CPU>& M_up,
     const configuration_type& configuration_e_dn,
-    const dca::linalg::Matrix<T, dca::linalg::CPU>& M_dn, int sign) {
+    const dca::linalg::Matrix<T, dca::linalg::CPU>& M_dn, Scalar factor) {
   compute_G_r_t(configuration_e_up, M_up, configuration_e_dn, M_dn);
 
-  accumulate_G_r_t(sign);
+  accumulate_G_r_t(factor);
 
-  accumulate_moments(sign);
+  accumulate_moments(factor);
 
-  accumulate_dwave_pp_correlator(sign);
+  accumulate_dwave_pp_correlator(factor);
 }
 
 template <class Parameters, class Data>

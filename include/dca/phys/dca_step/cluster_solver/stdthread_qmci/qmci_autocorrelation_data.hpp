@@ -63,7 +63,8 @@ private:
   math::statistics::Autocorrelation<Real> weight_correlator_;
 
   // Store MC weights for each chain
-  std::vector<std::vector<std::int8_t>> signs_;
+  using SignType = std::conditional_t<Walker::is_complex, typename Walker::Scalar, std::int8_t>;
+  std::vector<std::vector<SignType>> signs_;
   std::vector<std::vector<double>> weights_;
   std::vector<std::vector<unsigned long>> steps_;
   std::vector<unsigned> thermalization_step_;

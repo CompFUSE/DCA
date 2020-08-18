@@ -159,7 +159,8 @@ private:
 
   G0Interpolation<device, Scalar> g0_;
 
-  double accumulated_sign_;
+  constexpr static bool is_complex = dca::util::IsComplex<typename Parameters::MCScalar>::value;
+  std::conditional_t<is_complex, std::complex<double>, double> accumulated_sign_;
   func::function<Complex, NuNuRClusterWDmn> M_r_w_;
   func::function<Complex, NuNuRClusterWDmn> M_r_w_squared_;
 
@@ -317,7 +318,8 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
   dca_info_struct.average_expansion_order(dca_iteration_) = integral / total;
 
   dca_info_struct.sign(dca_iteration_) =
-      double(accumulator_.get_accumulated_sign()) / accumulator_.get_number_of_measurements();
+      accumulator_.get_accumulated_sign() /
+      static_cast<double>(accumulator_.get_number_of_measurements());
 
   dca_info_struct.thermalization_per_mpi_task(dca_iteration_) =
       thermalization_time_ / double(concurrency_.number_of_processors());
@@ -507,14 +509,21 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
   }
 
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t Collect measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-local-time : " << local_time << " [sec]"
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
               << "\n\t\t\t Gflop   : " << accumulator_.get_Gflop() << " [Gf]"
-              << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]"
-              << "\n\t\t\t sign     : "
-              << accumulated_sign_ / parameters_.get_measurements()[dca_iteration_] << " \n";
+              << "\n\t\t\t Gflop/s   : " << accumulator_.get_Gflop() / local_time << " [Gf/s]";
+
+    const auto measurements = static_cast<double>(parameters_.get_measurements()[dca_iteration_]);
+    if constexpr (is_complex) {
+      std::cout << "\n\t\t\t phase     : " << accumulated_sign_ / measurements << " \n";
+    }
+    else {
+      std::cout << "\n\t\t\t sign     : " << accumulated_sign_ / measurements << " \n";
+    }
+  }
 
   averaged_ = true;
 }

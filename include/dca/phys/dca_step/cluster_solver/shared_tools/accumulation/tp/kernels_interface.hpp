@@ -37,8 +37,9 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
 // Updates G4 in the range [start, end)
 template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
-               const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
-               bool spin_symmetric, cudaStream_t stream, std::size_t start, std::size_t end);
+               const std::complex<Real>* G_down, const int ldgd, const std::complex<Real> factor,
+               bool atomic, bool spin_symmetric, cudaStream_t stream, std::size_t start,
+               std::size_t end);
 
 }  // namespace details
 }  // namespace accumulator

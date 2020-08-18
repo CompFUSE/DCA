@@ -59,12 +59,12 @@ public:
 
   template <class Configuration>
   void accumulate(const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   // For testing purposes.
   template <class Configuration>
   void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   void finalize();
 
@@ -122,26 +122,26 @@ template <class Parameters>
 template <class Configuration>
 void SpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   if (finalized_)
     throw(std::logic_error("The accumulator is already finalized."));
 
   for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].reserve(configs[s].size());
   for (int s = 0; s < 2; ++s)
-    cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
+    cached_nfft_obj_[s].accumulate(Ms[s], configs[s], factor);
 }
 
 template <class Parameters>
 template <class Configuration>
 void SpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(Ms[s], streams_[s]);
 
-  accumulate(M_dev, configs, sign);
+  accumulate(M_dev, configs, factor);
 }
 
 template <class Parameters>

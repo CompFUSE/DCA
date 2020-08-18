@@ -37,8 +37,8 @@ inline cuComplex* castCudaComplex(std::complex<float>& el) {
 inline const cuComplex* const* castCudaComplex(const std::complex<float>* const* ptr) {
   return reinterpret_cast<const cuComplex* const*>(ptr);
 }
-inline const cuComplex* castCudaComplex(const std::complex<float>& el) {
-  return castCudaComplex(&el);
+inline const cuComplex& castCudaComplex(const std::complex<float>& el) {
+  return reinterpret_cast<const cuComplex&>(el);
 }
 
 inline const float* castCudaComplex(const float* el) {
@@ -51,6 +51,12 @@ inline float* castCudaComplex(float* el) {
   return el;
 }
 inline double* castCudaComplex(double* el) {
+  return el;
+}
+inline const float& castCudaComplex(const float& el) {
+  return el;
+}
+inline const double& castCudaComplex(const double& el) {
   return el;
 }
 
@@ -70,8 +76,8 @@ inline const cuDoubleComplex* const* castCudaComplex(const std::complex<double>*
 inline const cuDoubleComplex* castCudaComplex(const std::complex<double>* ptr) {
   return reinterpret_cast<const cuDoubleComplex*>(ptr);
 }
-inline const cuDoubleComplex* castCudaComplex(const std::complex<double>& el) {
-  return castCudaComplex(&el);
+inline const cuDoubleComplex& castCudaComplex(const std::complex<double>& el) {
+  return reinterpret_cast<const cuDoubleComplex&>(el);
 }
 
 // Provides a templated typedef.
@@ -88,13 +94,13 @@ struct ComplexContainer<float> {
   using type = cuComplex;
 };
 
-template<class T>
-struct CudaConvert{
+template <class T>
+struct CudaConvert {
   using type = T;
 };
 
-template<class T>
-struct CudaConvert<std::complex<T>>{
+template <class T>
+struct CudaConvert<std::complex<T>> {
   using type = typename ComplexContainer<T>::type;
 };
 }  // namespace details
@@ -105,7 +111,6 @@ using CudaComplex = typename details::ComplexContainer<Real>::type;
 
 template <typename T>
 using CudaConvert = typename details::CudaConvert<T>::type;
-
 
 }  // namespace util
 }  // namespace linalg

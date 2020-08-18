@@ -50,7 +50,7 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, Model, RngType, dca::phys::solver::CT_AUX>;
   using Data = dca::phys::DcaData<Parameters>;
-  using QmcBaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
+  using QmcBaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
   using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<QmcBaseSolver>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {

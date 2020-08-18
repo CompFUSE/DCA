@@ -99,7 +99,7 @@ public:
   // In: sign: sign of the configuration.
   template <class Configuration, typename RealIn>
   double accumulate(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
-                    const std::array<Configuration, 2>& configs, int sign);
+                    const std::array<Configuration, 2>& configs, Scalar phase);
 
   // Empty method for compatibility with GPU version.
   void finalize() {}
@@ -148,13 +148,15 @@ protected:
 
   double updateG4(int channel_id);
 
-  void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
-                             int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
-                             bool cross_legs);
+  void inline updateG4Atomic(Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a,
+                             const int w1_a, const int w2_a, const int s_b, const int k1_b,
+                             const int k2_b, const int w1_b, const int w2_b, const Scalar alpha,
+                             const bool cross_legs);
 
-  void inline updateG4SpinDifference(Complex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
-                                     int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
-                                     bool cross_legs);
+  void inline updateG4SpinDifference(Complex* G4_ptr, const int sign, const int k1_a,
+                                     const int k2_a, const int w1_a, const int w2_a, const int k1_b,
+                                     const int k2_b, const int w1_b, const int w2_b,
+                                     const Scalar alpha, const bool cross_legs);
 
 protected:
   constexpr static int spin_symmetric = Parameters::lattice_type::spin_symmetric;
@@ -180,7 +182,7 @@ protected:
 
   func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
-  int sign_;
+  Complex factor_;
 
   const int extension_index_offset_ = -1;
   const int n_pos_frqs_ = -1;
@@ -243,7 +245,7 @@ template <class Parameters>
 template <class Configuration, typename RealIn>
 double TpAccumulator<Parameters, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   if constexpr (!spin_symmetric)
     throw(std::logic_error("The non spin-symmetric accumulation is implemented only on the GPU."));
 
@@ -252,7 +254,7 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
   if (!(configs[0].size() + configs[1].size()))  // empty config
     return gflops;
 
-  sign_ = sign;
+  factor_ = factor;
   gflops += computeM(M_pair, configs);
   gflops += computeG();
 
@@ -415,7 +417,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const int channel_id) {
   // Returns the index of the exchange frequency w_ex minus the Matsubara frequency with index w.
   auto w_ex_minus_w = [](const int w, const int w_ex) { return w_ex + WTpDmn::dmn_size() - 1 - w; };
 
-  const Real sign_over_2 = 0.5 * sign_;
+  const auto sign_over_2 = 0.5 * factor_;
 
   const double flops_update_atomic = 3 * std::pow(n_bands_, 4);
   const double flops_update_spin_diff = flops_update_atomic + 2 * std::pow(n_bands_, 2);
@@ -591,8 +593,8 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4(const int channel_id) {
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
     Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
-    const int s_b, const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Real alpha,
-    const bool cross_legs) {
+    const int s_b, const int k1_b, const int k2_b, const int w1_b, const int w2_b,
+    const Scalar alpha, const bool cross_legs) {
   // This function performs the following update for each band:
   //
   // G4(k1, k2, w1, w2) += alpha * G(s_a, k1_a, k2_a, w1_a, w2_a) * G(s_b, k1_b, k2_b, w1_b, w2_b)
@@ -628,7 +630,7 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
     Complex* G4_ptr, const int sign, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
-    const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Real alpha,
+    const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Scalar alpha,
     const bool cross_legs) {
   // This function performs the following update for each band:
   //

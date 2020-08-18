@@ -74,21 +74,21 @@ public:
                             dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G_precomputed,
                             dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
                             dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_V,
-                            dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_delta_V, int thread_id,
-                            int stream_id);
+                            dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_delta_V,
+                            int thread_id, int stream_id);
 
   static void set_to_identity(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& M, int index);
 
   // inline Scalar solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
   // Scalar
   // exp_delta_V);
-  auto solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V,
-                     Real& max, Real& min) -> Real;
+  auto solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+                   Scalar exp_delta_V, Real& max, Real& min) -> Real;
   auto solve_Gamma_blocked(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
-                             Scalar exp_delta_V, Real& max, Real& min) -> Real;
+                           Scalar exp_delta_V, Real& max, Real& min) -> Scalar;
 
   auto apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
-                                Scalar phani_gamma, Real& max, Real& min) ->Real;
+                              Scalar phani_gamma, Real& max, Real& min) -> Real;
 
 private:
   void solve_Gamma_slow(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
@@ -99,7 +99,8 @@ private:
 
   void solve_Gamma_blocked(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
 
-  bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max, Real min);
+  bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
+                    Real min);
 
 private:
   dca::linalg::Vector<Scalar, dca::linalg::CPU> r;
@@ -119,8 +120,8 @@ public:
                             dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G,
                             dca::linalg::Vector<int, dca::linalg::GPU>& random_vertex_vector,
                             dca::linalg::Vector<Scalar, dca::linalg::GPU>& exp_V,
-                            dca::linalg::Vector<Scalar, dca::linalg::GPU>& exp_delta_V, int thread_id,
-                            int stream_id) {
+                            dca::linalg::Vector<Scalar, dca::linalg::GPU>& exp_delta_V,
+                            int thread_id, int stream_id) {
     Gamma.resize(random_vertex_vector.size());
 
     assert(Gamma.nrRows() == Gamma.nrCols());

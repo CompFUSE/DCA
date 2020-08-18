@@ -63,7 +63,7 @@ public:
   // Postcondition: M and config shall not be modified until 'synchronizeCopy' is called.
   template <class Configuration>
   void accumulate(const linalg::Matrix<Scalar, linalg::GPU>& M, const Configuration& config,
-                  const int sign);
+                  const Scalar factor);
 
   // Transforms the accumulated data to the frequency domain and stores it in f_w.
   // If get_square is true, transforms the accumulated squared data instead.
@@ -171,7 +171,7 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::reserve(std::size_t si
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
 template <class Configuration>
 void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::accumulate(
-    const linalg::Matrix<Scalar, linalg::GPU>& M, const Configuration& config, const int sign) {
+    const linalg::Matrix<Scalar, linalg::GPU>& M, const Configuration& config, const Scalar factor) {
   assert(M.is_square());
   if (config.size() == 0)  // Contribution is zero.
     return;
@@ -195,7 +195,7 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   times_dev_.setAsync(times_, stream_);
 
   details::accumulateOnDevice<oversampling, BaseClass::window_sampling_, Scalar, Real>(
-      M.ptr(), M.leadingDimension(), static_cast<Real>(sign), accumulation_matrix_.ptr(),
+      M.ptr(), M.leadingDimension(), factor, accumulation_matrix_.ptr(),
       accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
       config_right_dev_.ptr(), times_dev_.ptr(), get_device_cubic_coeff().ptr(), n, stream_);
 

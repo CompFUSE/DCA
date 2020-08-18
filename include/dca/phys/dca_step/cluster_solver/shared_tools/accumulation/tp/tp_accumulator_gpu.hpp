@@ -76,12 +76,12 @@ public:
   // Returns: number of flop.
   template <class Configuration, typename RealIn>
   float accumulate(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+                   const std::array<Configuration, 2>& configs, Scalar sign);
 
   // CPU input. For testing purposes.
   template <class Configuration>
-  float accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+  float accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
+                   const std::array<Configuration, 2>& configs, Scalar factor);
 
   // Downloads the accumulation result to the host.
   void finalize();
@@ -173,7 +173,7 @@ protected:
   using BaseClass::n_pos_frqs_;
 
   using BaseClass::non_density_density_;
-  using BaseClass::sign_;
+  using BaseClass::factor_;
   using BaseClass::thread_id_;
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
@@ -302,7 +302,7 @@ template <class Parameters>
 template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
 
@@ -312,7 +312,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return flop;
 
-  sign_ = sign;
+  factor_ = factor;
   flop += computeM(M, configs);
   computeG();
 
@@ -326,13 +326,13 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::NONE>::accumulate(
 template <class Parameters>
 template <class Configuration>
 float TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<dca::linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, Scalar factor) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0]);
 
-  return accumulate(M_dev, configs, sign);
+  return accumulate(M_dev, configs, factor);
 }
 
 template <class Parameters>
@@ -412,37 +412,37 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric,
-          queues_[0], start, end);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start, end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
           start, end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
           start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
           start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
           start, end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
           start, end);
 
     default:

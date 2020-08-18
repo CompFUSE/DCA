@@ -40,6 +40,8 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
+  constexpr static bool is_complex = dca::util::IsComplex<typename ParametersType::MCScalar>::value;
+
   DcaLoopData();
 
   template <typename Writer>
@@ -58,7 +60,8 @@ public:
   func::function<double, DCA_iteration_domain_type> Gflops_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> max_Gflops_per_mpi_task;
 
-  func::function<double, DCA_iteration_domain_type> sign;
+  using SignType = std::conditional_t<is_complex, std::complex<double>, double>;
+  func::function<SignType, DCA_iteration_domain_type> sign;
 
   func::function<double, DCA_iteration_domain_type> L2_Sigma_difference;
 

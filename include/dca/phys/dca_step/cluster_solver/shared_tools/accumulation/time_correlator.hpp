@@ -60,7 +60,7 @@ public:
 
   template <class WalkerConfig, typename RealInp>
   void compute_G_r_t(const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
-                     const std::array<WalkerConfig, 2>& configs, int sign);
+                     const std::array<WalkerConfig, 2>& configs, Scalar factor);
 
   // TODO: use a shared pointer.
   static void setG0(const G0Interpolation<device, Scalar>& g0) {
@@ -161,7 +161,7 @@ template <class Parameters, typename Scalar, DeviceType device>
 template <class WalkerConfig, typename RealInp>
 void TimeCorrelator<Parameters, Scalar, device>::compute_G_r_t(
     const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
-    const std::array<WalkerConfig, 2>& configs, int sign) {
+    const std::array<WalkerConfig, 2>& configs, Scalar factor) {
   if (!g0_) {
     throw(std::runtime_error("G0 is not set."));
   }
@@ -203,14 +203,14 @@ void TimeCorrelator<Parameters, Scalar, device>::compute_G_r_t(
   for (int b1 = 0; b1 < n_bands_; ++b1)
     for (int b2 = b1; b2 < n_bands_; ++b2, ++linindex) {
       // TODO: add autocorr for imaginary part.
-      autocorrelations_[linindex].addSample(sign * std::real(G_host_[0](b1, b2)));
+      autocorrelations_[linindex].addSample(factor * std::real(G_host_[0](b1, b2)));
     }
 }
 
 template <class Parameters, typename Scalar, DeviceType device>
 template <class WalkerConfig>
 void TimeCorrelator<Parameters, Scalar, device>::uploadConfig(const std::array<WalkerConfig, 2>& configs,
-                                                            const int s) {
+                                                              const int s) {
   const auto& sector = configs[s];
   m_l_host_config_[s].resizeNoCopy(sector.size());
   m_r_host_config_[s].resizeNoCopy(sector.size());
@@ -268,8 +268,8 @@ void TimeCorrelator<Parameters, Scalar, device>::reset() {
 #ifdef DCA_HAVE_CUDA
 template <class Parameters, typename Scalar, DeviceType device>
 void TimeCorrelator<Parameters, Scalar, device>::computeG0(linalg::Matrix<Scalar, GPU>& G0_mat,
-                                                         const Config<GPU>& config_l,
-                                                         const Config<GPU>& config_r) {
+                                                           const Config<GPU>& config_l,
+                                                           const Config<GPU>& config_r) {
   G0_mat.resizeNoCopy(std::make_pair(config_l.size(), config_r.size()));
 
   linalg::MatrixView<Scalar, device> G0_view(G0_mat);
@@ -281,8 +281,8 @@ void TimeCorrelator<Parameters, Scalar, device>::computeG0(linalg::Matrix<Scalar
 
 template <class Parameters, typename Scalar, DeviceType device>
 void TimeCorrelator<Parameters, Scalar, device>::computeG0(linalg::Matrix<Scalar, CPU>& G0_mat,
-                                                         const Config<CPU>& config_l,
-                                                         const Config<CPU>& config_r) {
+                                                           const Config<CPU>& config_l,
+                                                           const Config<CPU>& config_r) {
   G0_mat.resizeNoCopy(std::make_pair(config_l.size(), config_r.size()));
 
   using BDmn = func::dmn_0<domains::electron_band_domain>;

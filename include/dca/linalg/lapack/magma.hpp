@@ -145,8 +145,8 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_cgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b),
-                           ldb, *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+                           castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b),
+                           ldb, castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m, int* n, int* k,
@@ -157,8 +157,8 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_zgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b),
-                           ldb, *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+                           castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b),
+                           ldb, castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 
@@ -195,8 +195,8 @@ inline void magmablas_gemm_vbatched_max_nocheck(
     const int m_max, const int n_max, const int k_max, magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_cgemm_vbatched_max_nocheck(
-      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castCudaComplex(alpha),
-      castCudaComplex(a), lda, castCudaComplex(b), ldb, *castCudaComplex(beta), castCudaComplex(c),
+      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, castCudaComplex(alpha),
+      castCudaComplex(a), lda, castCudaComplex(b), ldb, castCudaComplex(beta), castCudaComplex(c),
       ldc, batch_count, m_max, n_max, k_max, queue);
   checkErrorsCudaDebug();
 }
@@ -208,8 +208,8 @@ inline void magmablas_gemm_vbatched_max_nocheck(
     const int m_max, const int n_max, const int k_max, magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_zgemm_vbatched_max_nocheck(
-      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castCudaComplex(alpha),
-      castCudaComplex(a), lda, castCudaComplex(b), ldb, *castCudaComplex(beta), castCudaComplex(c),
+      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, castCudaComplex(alpha),
+      castCudaComplex(a), lda, castCudaComplex(b), ldb, castCudaComplex(beta), castCudaComplex(c),
       ldc, batch_count, m_max, n_max, k_max, queue);
   checkErrorsCudaDebug();
 }
@@ -240,8 +240,8 @@ inline void magmablas_gemm_batched(const char transa, const char transb, const i
                                    const int ldc, const int batch_count, const magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_cgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                          *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
-                          *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+                          castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
+                          castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 inline void magmablas_gemm_batched(const char transa, const char transb, const int m, const int n,
@@ -252,8 +252,8 @@ inline void magmablas_gemm_batched(const char transa, const char transb, const i
                                    const int ldc, const int batch_count, const magma_queue_t queue) {
   using util::castCudaComplex;
   magmablas_zgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                          *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
-                          *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+                          castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
+                          castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 

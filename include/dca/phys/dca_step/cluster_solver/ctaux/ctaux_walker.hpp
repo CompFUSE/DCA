@@ -60,6 +60,7 @@ public:
   using Real = dca::util::Real<Scalar>;
 
   constexpr static dca::linalg::DeviceType device = device_t;
+  static constexpr bool is_complex = dca::util::IsComplex<Scalar>::value;
 
 public:
   CtauxWalker(const Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
@@ -104,7 +105,7 @@ public:
     return n_steps_;
   }
 
-  int get_sign();
+  auto get_sign() const;
 
   int get_thread_id();
 
@@ -194,8 +195,8 @@ private:
   // INTERNAL: Unused.
   HS_spin_states_type get_new_spin_value(HS_vertex_move_type HS_current_move);
 
-  auto calculate_acceptace_ratio(Real ratio, HS_vertex_move_type HS_current_move,
-                                 Real QMC_factor) ->Real const;
+  auto calculate_acceptace_ratio(Scalar ratio, HS_vertex_move_type HS_current_move,
+                                 Real QMC_factor) const;
 
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Scalar exp_delta_V);
@@ -308,7 +309,9 @@ private:
   bool thermalized_;
   bool Bennett;
 
-  int sign_;
+  using SignType = std::conditional_t<is_complex, Real, int>;
+  SignType phase_;
+
   Real mc_log_weight_ = 0.;
   const Real mc_log_weight_constant_;
 
@@ -379,7 +382,7 @@ CtauxWalker<device_t, Parameters, Data>::CtauxWalker(const Parameters& parameter
 
       thermalized_(false),
       Bennett(false),
-      sign_(1),
+      phase_(is_complex ? 0. : 1),
       mc_log_weight_constant_(
           std::log(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta()))),
 
@@ -418,8 +421,13 @@ void CtauxWalker<device_t, Parameters, Data>::printSummary() const {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-int CtauxWalker<device_t, Parameters, Data>::get_sign() {
-  return sign_;
+auto CtauxWalker<device_t, Parameters, Data>::get_sign() const {
+  if constexpr (is_complex) {
+    return std::polar(1., phase_);
+  }
+  else {
+    return static_cast<Real>(phase_);
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -454,7 +462,7 @@ void CtauxWalker<device_t, Parameters, Data>::initialize(int iteration) {
   annihilation_proposal_aborted_ = false;
   // aborted_vertex_id_ = 0;
 
-  sign_ = 1;
+  phase_ = is_complex ? 0. : 1;
 
   CV_obj.initialize(data_);
 
@@ -1146,8 +1154,8 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
   Scalar exp_delta_V_HS_field_DN = delayed_spins[delayed_index].exp_delta_V_HS_field_DN;
   Scalar exp_delta_V_HS_field_UP = delayed_spins[delayed_index].exp_delta_V_HS_field_UP;
 
-  Real ratio_HS_field_DN = 0;
-  Real ratio_HS_field_UP = 0;
+  Scalar ratio_HS_field_DN = 0.;
+  Scalar ratio_HS_field_UP = 0.;
 
   Real tmp_up_diag_max = Gamma_up_diag_max;
   Real tmp_up_diag_min = Gamma_up_diag_min;
@@ -1208,8 +1216,8 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
     // std::cout << "\n";
   }
 
-  Real determinant_ratio = ratio_HS_field_UP * ratio_HS_field_DN;
-  const Real acceptance_ratio =
+  const auto determinant_ratio = ratio_HS_field_UP * ratio_HS_field_DN;
+  const Scalar acceptance_ratio =
       calculate_acceptace_ratio(determinant_ratio, delayed_spins[delayed_index].HS_current_move,
                                 delayed_spins[delayed_index].QMC_factor);
 
@@ -1223,8 +1231,12 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
     else
       mc_log_weight_ -= mc_log_weight_constant_;
 
-    if (acceptance_ratio < 0)
-      sign_ *= -1;
+    if constexpr (is_complex) {
+      phase_ = std::fmod(phase_ + std::arg(determinant_ratio), 2. * M_PI);
+    }
+    else if (acceptance_ratio < 0) {
+      phase_ *= -1;
+    }
 
     assert(delayed_spins[delayed_index].delayed_spin_index == delayed_index);
 
@@ -1308,7 +1320,7 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
     }
   }
-}
+}  // namespace ctaux
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::apply_bennett_on_Gamma_matrices(int& /*Gamma_up_size*/,
@@ -1374,7 +1386,7 @@ void CtauxWalker<device_t, Parameters, Data>::apply_bennett_on_Gamma_matrices(in
     number_of_interacting_spins -= 1;
 
     if(acceptance_ratio < 0)
-    sign_ *= -1;
+    phase_ *= -1;
 
     {// set column and row to zero
     if(bennett_spins[bennett_index].e_spin_HS_field_DN == e_UP)
@@ -1475,7 +1487,7 @@ HS_spin_states_type CtauxWalker<device_t, Parameters, Data>::get_new_spin_value(
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 auto CtauxWalker<device_t, Parameters, Data>::calculate_acceptace_ratio(
-    Real determinant_ratio, HS_vertex_move_type HS_current_move, Real QMC_factor) -> Real const {
+    Scalar determinant_ratio, HS_vertex_move_type HS_current_move, Real QMC_factor) const {
   Real N = number_of_interacting_spins;
   Real K = parameters_.get_expansion_parameter_K();
 
@@ -1596,15 +1608,20 @@ io::Buffer CtauxWalker<device_t, Parameters, Data>::dumpConfig() const {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
   mc_log_weight_ = 0.;
-  sign_ = 1;
+  phase_ = is_complex ? 0. : 1;
 
   auto process_matrix = [&](auto& m) {
     if (!m.nrRows())
       return;
 
-    const auto [log_det, sign] = linalg::matrixop::logRealDeterminant(m);
+    const auto [log_det, phase] = linalg::matrixop::logDeterminant(m);
     mc_log_weight_ -= log_det;  // MC weight is proportional to det(N^-1)
-    sign_ *= sign;
+    if constexpr (is_complex) {
+      phase_ = std::fmod(phase_ - phase, 2 * M_PI);
+    }
+    else {
+      phase_ *= phase;
+    }
   };
 
   process_matrix(N_up);

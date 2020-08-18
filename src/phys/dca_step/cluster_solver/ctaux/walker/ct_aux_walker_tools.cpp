@@ -332,7 +332,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_BLAS(
 template <typename Scalar>
 auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
     int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V, Real& max,
-    Real& min) -> Real {
+    Real& min) -> Scalar {
   // std::cout << "\t(" << min << ", " << max << " ) ";
 
   solve_Gamma_blocked(n, Gamma_LU);
@@ -355,7 +355,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
       // update the Gamma matrix (which will set it to 1).
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_LU, n);
 
-      return 1.e-16;
+      return Scalar(1.e-16);
     }
     else {
       max = new_max;
@@ -373,11 +373,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
   auto phani_gamma = exp_delta_V - Real(1.);
   auto determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
-  if (std::abs(std::imag(determinant_ratio)) > std::numeric_limits<Real>::epsilon() * 1000) {
-    throw(std::logic_error("The determinant is complex."));
-  }
-
-  return std::real(determinant_ratio);
+  return determinant_ratio;
 }
 
 /*!                 /            |   \          /            |      \ /            |            \
