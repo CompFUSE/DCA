@@ -38,7 +38,7 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
 template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
                const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
-               cudaStream_t stream, std::size_t start, std::size_t end);
+               bool spin_symmetric, cudaStream_t stream, std::size_t start, std::size_t end);
 
 }  // namespace details
 }  // namespace accumulator

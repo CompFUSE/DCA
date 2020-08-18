@@ -101,6 +101,8 @@ public:
   void resetAccumulation(unsigned int dca_loop);
 
 private:
+  using BaseClass::spin_symmetric;
+
   static inline std::vector<G4DevType>& get_G4();
 
   // The semantics of this class used to make it possible that the G4 would get resized here if
@@ -121,8 +123,7 @@ template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-  : BaseClass(G0, pars, thread_id) {
-
+    : BaseClass(G0, pars, thread_id) {
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
   typename BaseClass::TpDomain tp_dmn;
   std::size_t local_g4_size = tp_dmn.get_size();
@@ -145,7 +146,6 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
-
 }
 
 template <class Parameters>
@@ -220,7 +220,6 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(
   BaseClass::finalized_ = false;
 }
 
-
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   // Note: this method is not thread safe by itself.
@@ -264,32 +263,38 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, spin_symmetric, queues_[0],
+          start_, end_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");

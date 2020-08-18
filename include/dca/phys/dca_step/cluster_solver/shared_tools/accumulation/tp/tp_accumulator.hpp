@@ -157,6 +157,8 @@ protected:
                                      bool cross_legs);
 
 protected:
+  constexpr static int spin_symmetric = Parameters::lattice_type::spin_symmetric;
+
   const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
@@ -204,6 +206,7 @@ TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
       G_b_(n_bands_) {
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));
+
   initializeG0();
 
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
@@ -241,6 +244,9 @@ template <class Configuration, typename RealIn>
 double TpAccumulator<Parameters, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
+  if constexpr (!spin_symmetric)
+    throw(std::logic_error("The non spin-symmetric accumulation is implemented only on the GPU."));
+
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
   if (!(configs[0].size() + configs[1].size()))  // empty config
