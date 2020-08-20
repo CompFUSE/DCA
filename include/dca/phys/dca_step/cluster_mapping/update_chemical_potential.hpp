@@ -249,7 +249,9 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
   double result_total = 0.0;
   for (int i = 0; i < nu::dmn_size(); i++) {
     const auto G_r_t_val = MOMS.G_r_t(i, i, RClusterDmn::parameter_type::origin_index(), 0);
-    assert(std::abs(std::imag(G_r_t_val)) < 1e-6);
+    if (std::abs(std::imag(G_r_t_val)) >= 1e-6) {
+      throw(std::logic_error("G_ii(r = 0, t = 0) is complex"));
+    }
 
     result(i) += 1. - std::real(G_r_t_val);
     MOMS.orbital_occupancy(i) = result(i);
