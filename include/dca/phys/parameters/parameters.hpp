@@ -78,8 +78,7 @@ public:
   using model_type = Model;
   using lattice_type = typename Model::lattice_type;
 
-  using MCScalar =
-      util::Scalar<config::McOptions::single_precision, lattice_type::complex_g0>;
+  using MCScalar = util::Scalar<config::McOptions::single_precision, lattice_type::complex_g0>;
 
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;

@@ -50,6 +50,9 @@ class CtintWalker;
 template <class Parameters, typename Real = double>
 class CtintWalkerBase {
 public:
+  // TODO: make compatibble with complex models.
+  constexpr bool static is_complex = false;
+
   using parameters_type = Parameters;
   using Data = DcaData<Parameters>;
   using Rng = typename Parameters::random_number_generator;

@@ -61,6 +61,9 @@ public:
   __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
                                      unsigned& b4, unsigned& k1, unsigned& w1, unsigned& k2,
                                      unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
+  // Unroll the linear index of G4 as a function of k1, k2, k_ex, w1, w2, w_ex.
+  __device__ inline void unrollIndex(std::size_t index, unsigned& k1, unsigned& w1, unsigned& k2,
+                                     unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
 
 protected:
   std::size_t sbdm_steps_[10];
@@ -138,7 +141,25 @@ __device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, un
   b4 = unroll(3);
   b3 = unroll(2);
   b2 = unroll(1);
-  b1 = unroll(0);
+  b1 = index;
+}
+
+__device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& k1, unsigned& w1,
+                                             unsigned& k2, unsigned& w2, unsigned& k_ex,
+                                             unsigned& w_ex) const {
+  assert(nb_ == 1);
+  auto unroll = [&](const unsigned dimension) {
+    unsigned result = index / sbdm_steps_[dimension];
+    index -= result * sbdm_steps_[dimension];
+    return result;
+  };
+
+  w_ex = unroll(9);
+  k_ex = unroll(8);
+  w2 = unroll(7);
+  k2 = unroll(6);
+  w1 = unroll(5);
+  k1 = index;
 }
 
 }  // namespace details

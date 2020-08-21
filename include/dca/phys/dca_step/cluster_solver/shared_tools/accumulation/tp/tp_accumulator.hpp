@@ -50,6 +50,7 @@ class TpAccumulator<Parameters, linalg::CPU, dca::DistType::NONE> {
 public:
   using Scalar = typename Parameters::MCScalar;
   using Real = dca::util::Real<Scalar>;
+  using Complex = dca::util::Complex<Scalar>;
 
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
@@ -72,23 +73,20 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-  using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, linalg::CPU>;
 
   using SpGreenFunction =
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
 
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+  using TpDomain = typename TpGreensFunction::this_domain_type;
 
 public:
   // Constructor:
   // In: G0: non interacting greens function.
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
-  TpAccumulator(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-      const Parameters& pars, int thread_id = 0);
+  TpAccumulator(const func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+                const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int /*dca_loop*/ = 0);
@@ -140,7 +138,7 @@ protected:
 
   void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, Complex beta = 0) const;
 
-  Complex getGSingleband(int s, int k1, int k2, int w1, int w2) const;
+  auto getGSingleband(int s, int k1, int k2, int w1, int w2) const;
 
   template <class Configuration>
   float computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
@@ -150,25 +148,30 @@ protected:
 
   void inline updateG4Atomic(Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a,
                              const int w1_a, const int w2_a, const int s_b, const int k1_b,
-                             const int k2_b, const int w1_b, const int w2_b, const Scalar alpha,
+                             const int k2_b, const int w1_b, const int w2_b, const Complex alpha,
                              const bool cross_legs);
 
   void inline updateG4SpinDifference(Complex* G4_ptr, const int sign, const int k1_a,
                                      const int k2_a, const int w1_a, const int w2_a, const int k1_b,
                                      const int k2_b, const int w1_b, const int w2_b,
-                                     const Scalar alpha, const bool cross_legs);
+                                     const Complex alpha, const bool cross_legs);
 
 protected:
   constexpr static int spin_symmetric = Parameters::lattice_type::spin_symmetric;
 
-  const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
+  const func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
   const int thread_id_;
   const bool multiple_accumulators_;
 
   const Real beta_ = -1;
-  constexpr static int n_bands_ = Parameters::model_type::BANDS;
+
+  // If the model is not spin symmetric, remove the spin degree of freedom from "bands".
+  // TODO: better variable naming.
+  constexpr static int n_bands_ = Parameters::lattice_type::spin_symmetric
+                                      ? Parameters::model_type::BANDS
+                                      : Parameters::model_type::BANDS / 2;
 
   constexpr static bool non_density_density_ =
       models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
@@ -194,7 +197,7 @@ private:
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::CPU>::TpAccumulator(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
@@ -350,9 +353,8 @@ void TpAccumulator<Parameters, linalg::CPU>::computeGMultiband(const int s, cons
 }
 
 template <class Parameters>
-std::complex<typename TpAccumulator<Parameters, linalg::CPU>::Real> TpAccumulator<
-    Parameters, linalg::CPU>::getGSingleband(const int s, const int k1, const int k2, const int w1,
-                                             const int w2) const {
+auto TpAccumulator<Parameters, linalg::CPU>::getGSingleband(const int s, const int k1, const int k2,
+                                                            const int w1, const int w2) const {
   const int w2_ext = w2 + extension_index_offset_;
   const int w1_ext = w1 + extension_index_offset_;
   auto minus_w1 = [=](const int w) { return n_pos_frqs_ - 1 - w; };
@@ -594,7 +596,7 @@ template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
     Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
     const int s_b, const int k1_b, const int k2_b, const int w1_b, const int w2_b,
-    const Scalar alpha, const bool cross_legs) {
+    const Complex alpha, const bool cross_legs) {
   // This function performs the following update for each band:
   //
   // G4(k1, k2, w1, w2) += alpha * G(s_a, k1_a, k2_a, w1_a, w2_a) * G(s_b, k1_b, k2_b, w1_b, w2_b)
@@ -630,7 +632,7 @@ void TpAccumulator<Parameters, linalg::CPU>::updateG4Atomic(
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::CPU>::updateG4SpinDifference(
     Complex* G4_ptr, const int sign, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
-    const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Scalar alpha,
+    const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Complex alpha,
     const bool cross_legs) {
   // This function performs the following update for each band:
   //

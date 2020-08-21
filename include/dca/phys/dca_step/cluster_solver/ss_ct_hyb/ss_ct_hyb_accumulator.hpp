@@ -30,9 +30,10 @@ namespace cthyb {
 // dca::phys::solver::cthyb::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-class SsCtHybAccumulator : public MC_accumulator_data,
+class SsCtHybAccumulator : public MC_accumulator_data<false>,
                            public ss_hybridization_solver_routines<parameters_type, Data> {
 public:
+  constexpr bool static is_complex = false;
   using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
 
   using ParametersType = parameters_type;
@@ -136,11 +137,11 @@ public:
   }
 
 protected:
-  using MC_accumulator_data::DCA_iteration;
-  using MC_accumulator_data::number_of_measurements;
+  using MC_accumulator_data<is_complex>::dca_iteration_;
+  using MC_accumulator_data<is_complex>::number_of_measurements_;
 
-  using MC_accumulator_data::current_sign;
-  using MC_accumulator_data::accumulated_sign;
+  using MC_accumulator_data<is_complex>::current_sign_;
+  using MC_accumulator_data<is_complex>::accumulated_sign_;
 
   const parameters_type& parameters_;
   Data& data_;
@@ -191,7 +192,7 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
-  MC_accumulator_data::initialize(dca_iteration);
+  MC_accumulator_data<is_complex>::initialize(dca_iteration);
 
   visited_expansion_order_k = 0;
 
@@ -228,7 +229,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) 
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& walker) {
-  current_sign = walker.get_sign();
+  current_sign_ = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
 
@@ -238,14 +239,14 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::measure() {
-  number_of_measurements += 1;
-  accumulated_sign += current_sign;
+  number_of_measurements_ += 1;
+  accumulated_sign_ += current_sign_;
 
   int k = configuration.size();
   if (k < visited_expansion_order_k.size())
     visited_expansion_order_k(k) += 1;
 
-  single_particle_accumulator_obj.accumulate(current_sign, configuration, M_matrices,
+  single_particle_accumulator_obj.accumulate(current_sign_, configuration, M_matrices,
                                              data_.H_interactions);
 }
 
@@ -292,8 +293,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other) {
-  other.accumulated_sign += accumulated_sign;
-  other.number_of_measurements += number_of_measurements;
+  other.accumulated_sign_ += accumulated_sign_;
+  other.number_of_measurements_ += number_of_measurements_;
 
   other.get_visited_expansion_order_k() += visited_expansion_order_k;
 

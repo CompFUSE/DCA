@@ -492,8 +492,8 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
     return;
   }
 
-  unsigned b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex;
-  g4_helper.unrollIndex(g4_index, b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
+  unsigned k1, k2, k_ex, w1, w2, w_ex;
+  g4_helper.unrollIndex(g4_index, k1, w1, k2, w2, k_ex, w_ex);
 
   const unsigned nb = g4_helper.get_bands();
   const unsigned nk = g4_helper.get_cluster_size();

@@ -66,11 +66,10 @@ public:
   }
 
   // Copy constructor with element-wise type conversion.
-  template<typename Scalar2>
-  function(const function<Scalar2, domain>& other) : function(){
+  template <typename Scalar2>
+  function(const function<Scalar2, domain>& other) : function() {
     *this = other;
   }
-
 
   // Move constructor
   // Constructs the function with elements and name of other using move semantics.

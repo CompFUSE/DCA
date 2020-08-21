@@ -38,6 +38,8 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 class ss_hybridization_walker_routines
     : public ss_hybridization_solver_routines<parameters_t, MOMS_t> {
 public:
+  constexpr static bool is_complex = false;
+
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
 
@@ -808,9 +810,9 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.leadingDimension());
 }
 
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_HPP
