@@ -31,7 +31,7 @@
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
 #include "dca/util/pack_operations.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/print_type.hpp"
 
 #include "dca/parallel/util/get_workload.hpp"
 #include "mpi.h"

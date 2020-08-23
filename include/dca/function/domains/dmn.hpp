@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/util/type_utils.hpp"  // for dca::util::type_name
+#include "dca/util/print_type.hpp"  // for dca::util::type_name
 
 namespace dca {
 namespace func {
