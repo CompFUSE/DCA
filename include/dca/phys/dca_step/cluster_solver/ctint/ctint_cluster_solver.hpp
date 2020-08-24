@@ -48,7 +48,8 @@ namespace solver {
 template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
 class CtintClusterSolver {
 public:
-  using Real = typename config::McOptions::Real;
+  using Scalar = typename Parameters::MCScalar;
+  using Real = dca::util::Real<Scalar>;
 
   using Data = DcaData<Parameters>;
   static constexpr linalg::DeviceType device = device_t;
@@ -91,8 +92,8 @@ protected:  // thread jacket interface.
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
 
-  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real>;
-  using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Scalar>;
+  using Accumulator = ctint::CtintAccumulator<Parameters, Scalar, device_t>;
 
 private:
   using BDmn = func::dmn_0<domains::electron_band_domain>;
@@ -145,7 +146,7 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  G0Interpolation<device_t, Real> g0_;
+  G0Interpolation<device_t, Scalar> g0_;
   Rng rng_;
 };
 
@@ -160,7 +161,7 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
 
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
   Walker::setDMatrixBuilder(g0_);
-  TimeCorrelator<Parameters, Real, device_t>::setG0(g0_);
+  TimeCorrelator<Parameters, Scalar, device_t>::setG0(g0_);
   Walker::setInteractionVertices(data_, parameters_);
 
   if (concurrency_.id() == concurrency_.first())
@@ -292,7 +293,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
     for (int k = 0; k < KDmn::dmn_size(); k++) {
       std::vector<double> x;
       for (int l = 0; l < WDmn::dmn_size() / 4; l++)
-        x.push_back(real(data_.Sigma(nu, nu, k, l)));
+        x.push_back(std::real(data_.Sigma(nu, nu, k, l)));
 
       loop_data.Sigma_zero_moment(nu, k, dca_iteration_) = math::statistics::util::mean(x);
       loop_data.standard_deviation(nu, k, dca_iteration_) =

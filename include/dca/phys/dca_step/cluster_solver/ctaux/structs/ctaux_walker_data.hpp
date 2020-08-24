@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "dca/linalg/matrix.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {

@@ -40,15 +40,13 @@ using G4FileIoTest =
 // Since we are not going to put a 1.6G file in the repo this has different logic from tp_accumulator_test.cpp
 
 TEST_F(G4FileIoTest, ReadWrite) {
-  const std::array<int, 2> n{18, 22};
-  
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);  
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   auto fillG4 = [&rng](auto& G4) {
                     for (size_t i = 0; i < G4.size(); ++i)
                       G4(i) = rng();
                 };
-                      
+
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
 
@@ -66,7 +64,7 @@ TEST_F(G4FileIoTest, ReadWrite) {
   writer.open_file(self_consistent_large_G4);
   writer.execute(func_names[g4_channel], g4_work);
   writer.close_file();
-  
+
   Data::TpGreensFunction g4_read("G4");
   reader.open_file(self_consistent_large_G4);
   g4_read.set_name(func_names[g4_channel]);

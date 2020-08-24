@@ -24,6 +24,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/triple.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {

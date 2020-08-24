@@ -43,7 +43,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   using Matrix = typename Walker::Matrix;
   using MatrixPair = std::array<Matrix, 2>;
   using SubmatrixWalker =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, Real, dca::linalg::CPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};

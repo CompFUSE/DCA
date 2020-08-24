@@ -1054,12 +1054,11 @@ TYPED_TEST(MatrixopRealCPUTest, InverseAndDeterminant) {
   const ScalarType det = dca::linalg::matrixop::inverseAndDeterminant(mat);
   dca::linalg::matrixop::inverse(mat_copy);
 
-  const auto [log_det, sign] = dca::linalg::matrixop::inverseAndLogDeterminant(mat_copy2);
+  const auto [log_det, phase] = dca::linalg::matrixop::inverseAndLogDeterminant(mat_copy2);
 
   const auto tolerance = 500 * this->epsilon;
   EXPECT_NEAR(dca::linalg::matrixop::determinant(mat_copy), det, tolerance);
-  EXPECT_NEAR(std::log(std::abs(det)), log_det, tolerance);
-  EXPECT_EQ(det >= 0 ? 1 : -1, sign);
+  EXPECT_NEAR(det, std::exp(log_det) * phase.getSign(), tolerance);
 
   EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy, mat, tolerance));
   EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy2, mat, tolerance));

@@ -30,7 +30,7 @@ class QmciAutocorrelationData {
   using Parameters = typename Walker::parameters_type;
   using Data = DcaData<Parameters>;
   using Concurrency = typename Parameters::concurrency_type;
-  using Real = typename Walker::Scalar;
+  using Scalar = typename Walker::Scalar;
 
   constexpr static auto device = Walker::device;
   constexpr static int bands = Parameters::bands;
@@ -56,11 +56,11 @@ private:
   const unsigned autocorrelation_window_;
   const bool accumulate_G_;
 
-  std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
+  std::array<dca::linalg::Matrix<Scalar, device>, 2> m_correlator_;
 
-  TimeCorrelator<Parameters, Real, device> time_correlator_;
+  TimeCorrelator<Parameters, Scalar, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
-  math::statistics::Autocorrelation<Real> weight_correlator_;
+  math::statistics::Autocorrelation<Scalar> weight_correlator_;
 
   // Store MC weights for each chain
   using SignType = std::conditional_t<Walker::is_complex, typename Walker::Scalar, std::int8_t>;
@@ -105,9 +105,9 @@ void QmciAutocorrelationData<Walker>::write(io::HDF5Writer& writer, int dca_loop
   if (accumulate_G_) {
     writer.open_group("G_t0");
 
-    linalg::Matrix<Real, linalg::CPU> g_corr(bands, "autocorr");
-    linalg::Matrix<Real, linalg::CPU> g_stdev(bands, "stdev");
-    linalg::Matrix<Real, linalg::CPU> g_mean(bands, "mean");
+    linalg::Matrix<Scalar, linalg::CPU> g_corr(bands, "autocorr");
+    linalg::Matrix<Scalar, linalg::CPU> g_stdev(bands, "stdev");
+    linalg::Matrix<Scalar, linalg::CPU> g_mean(bands, "mean");
 
     int lindex = 0;
     for (int b1 = 0; b1 < bands; ++b1)

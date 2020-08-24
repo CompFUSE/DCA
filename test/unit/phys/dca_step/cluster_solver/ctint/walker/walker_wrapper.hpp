@@ -22,10 +22,10 @@ namespace ctint {
 // testing::phys::solver::ctint::
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, typename Real = double>
-class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters, Real> {
+template <class Parameters, typename Scalar = double>
+class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters, Scalar> {
 public:
-  using BaseClass = CtintWalker<dca::linalg::CPU, Parameters, Real>;
+  using BaseClass = CtintWalker<dca::linalg::CPU, Parameters, Scalar>;
   using Rng = typename BaseClass::Rng;
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
@@ -47,17 +47,17 @@ public:
   using BaseClass::setMFromConfig;
   using BaseClass::getM;
 
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
 
   void setM(const Matrix& m) {
     BaseClass::getM() = m;
   }
 
-  Real getRatio() const {
+  auto getRatio() const {
     return BaseClass::det_ratio_[0] * BaseClass::det_ratio_[1];
   }
 
-  Real getAcceptanceProbability() const {
+  auto getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
 

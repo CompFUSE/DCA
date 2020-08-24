@@ -32,7 +32,7 @@ public:
     return accumulated_sign_;
   }
 
-  int get_number_of_measurements() const {
+  std::size_t get_number_of_measurements() const {
     return number_of_measurements_;
   }
 
@@ -60,7 +60,7 @@ protected:
   SignType current_sign_;
   SignType accumulated_sign_;
 
-  int number_of_measurements_;
+  std::size_t number_of_measurements_;
 };
 
 }  // namespace solver

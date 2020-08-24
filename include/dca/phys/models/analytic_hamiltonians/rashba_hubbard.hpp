@@ -126,7 +126,7 @@ void RashbaHubbard<PointGroup>::initializeHInteraction(
   // Set all elements to zero.
   H_interaction = 0.;
 
-  // On-site interaction, store up-down interation in the first sector.
+  // On-site interaction, store up-down interaction in the first sector.
   const double U = parameters.get_U();
   H_interaction(0, 0, 1, 0, origin) = U;
   H_interaction(1, 0, 0, 0, origin) = U;

@@ -967,28 +967,17 @@ TYPED_TEST(MatrixopComplexCPUTest, MultiplyRealArg) {
     }
 }
 
-TEST(MatrixCPUTest, DeterminantAndLogRealDeterminant) {
-  {
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> m(3, 3);
-    m(0, 0) = {3, 0}, m(0, 1) = {-1, 0.5}, m(0, 2) = {0.5, 1};
-    m(1, 0) = {-1, -0.5}, m(1, 1) = {2., 0}, m(1, 2) = {-0.5, 3};
-    m(2, 0) = {0.5, -1}, m(2, 1) = {-0.5, -3}, m(2, 2) = {0, 0};
+TEST(MatrixCPUTest, DeterminantAndLogDeterminant) {
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> m(3, 3);
+  m(0, 0) = {3, 0}, m(0, 1) = {-1, 0.5}, m(0, 2) = {0.5, 1};
+  m(1, 0) = {-1, -0.5}, m(1, 1) = {2., 0}, m(1, 2) = {-0.5, 3};
+  m(2, 0) = {0.5, -1}, m(2, 1) = {-0.5, -3}, m(2, 2) = {0, 0};
 
-    const auto det = dca::linalg::matrixop::determinant(m);
-    const auto [log_det, sign] = dca::linalg::matrixop::logRealDeterminant(m);
+  const auto det = dca::linalg::matrixop::determinant(m);
+  const auto [log_det, phase] = dca::linalg::matrixop::logDeterminant(m);
 
-    EXPECT_NEAR(std::log(std::abs(det)), log_det, 1e-14);
-    EXPECT_EQ(std::real(det) >= 0 ? 1 : -1, sign);
-  }
-  {
-    dca::linalg::Matrix<std::complex<float>, dca::linalg::CPU> m(2, 2);
-    m(0, 0) = 3, m(0, 1) = 6;
-    m(1, 0) = 1;
-    m(1, 1) = 2;
+  const auto det2 = std::exp(log_det) * phase.getSign();
 
-    const auto det = dca::linalg::matrixop::determinantIP(m);
-
-    EXPECT_NEAR(0., std::real(det), 1e-6);
-    EXPECT_NEAR(0., std::imag(det), 1e-6);
-  }
+  EXPECT_NEAR(std::real(det), std::real(det2), 1e-14);
+  EXPECT_NEAR(std::imag(det), std::imag(det2), 1e-14);
 }

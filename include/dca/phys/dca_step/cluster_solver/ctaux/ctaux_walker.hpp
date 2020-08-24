@@ -27,6 +27,7 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
+#include "dca/math/util/phase.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ctaux_walker_data.hpp"
@@ -309,8 +310,7 @@ private:
   bool thermalized_;
   bool Bennett;
 
-  using SignType = std::conditional_t<is_complex, Real, int>;
-  SignType phase_;
+  math::Phase<Scalar> phase_;
 
   Real mc_log_weight_ = 0.;
   const Real mc_log_weight_constant_;
@@ -382,7 +382,6 @@ CtauxWalker<device_t, Parameters, Data>::CtauxWalker(const Parameters& parameter
 
       thermalized_(false),
       Bennett(false),
-      phase_(is_complex ? 0. : 1),
       mc_log_weight_constant_(
           std::log(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta()))),
 
@@ -422,12 +421,7 @@ void CtauxWalker<device_t, Parameters, Data>::printSummary() const {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 auto CtauxWalker<device_t, Parameters, Data>::get_sign() const {
-  if constexpr (is_complex) {
-    return std::polar(1., phase_);
-  }
-  else {
-    return static_cast<Real>(phase_);
-  }
+  return phase_.getSign();
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -462,7 +456,7 @@ void CtauxWalker<device_t, Parameters, Data>::initialize(int iteration) {
   annihilation_proposal_aborted_ = false;
   // aborted_vertex_id_ = 0;
 
-  phase_ = is_complex ? 0. : 1;
+  phase_.reset();
 
   CV_obj.initialize(data_);
 
@@ -1231,12 +1225,7 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
     else
       mc_log_weight_ -= mc_log_weight_constant_;
 
-    if constexpr (is_complex) {
-      phase_ = std::fmod(phase_ + std::arg(determinant_ratio), 2. * M_PI);
-    }
-    else if (acceptance_ratio < 0) {
-      phase_ *= -1;
-    }
+    phase_.multiply(determinant_ratio);
 
     assert(delayed_spins[delayed_index].delayed_spin_index == delayed_index);
 
@@ -1608,7 +1597,7 @@ io::Buffer CtauxWalker<device_t, Parameters, Data>::dumpConfig() const {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
   mc_log_weight_ = 0.;
-  phase_ = is_complex ? 0. : 1;
+  phase_.reset();
 
   auto process_matrix = [&](auto& m) {
     if (!m.nrRows())
@@ -1616,12 +1605,7 @@ void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
 
     const auto [log_det, phase] = linalg::matrixop::logDeterminant(m);
     mc_log_weight_ -= log_det;  // MC weight is proportional to det(N^-1)
-    if constexpr (is_complex) {
-      phase_ = std::fmod(phase_ - phase, 2 * M_PI);
-    }
-    else {
-      phase_ *= phase;
-    }
+    phase_.divide(phase);
   };
 
   process_matrix(N_up);

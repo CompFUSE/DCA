@@ -19,6 +19,7 @@
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/mc_accumulator_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
@@ -34,12 +35,16 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-class CtintAccumulator {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+class CtintAccumulator : MC_accumulator_data<Parameters::lattice_type::complex_g0> {
 public:
-  using this_type = CtintAccumulator<Parameters, device, Real>;
+  using BaseClass = MC_accumulator_data<Parameters::lattice_type::complex_g0>;
+
+  using this_type = CtintAccumulator<Parameters, Scalar, device>;
   using ParametersType = Parameters;
   using DataType = phys::DcaData<Parameters>;
+
+  using Real = dca::util::Real<Scalar>;
 
   template <class Data>
   CtintAccumulator(const Parameters& pars, const Data& data, int id = 0);
@@ -62,22 +67,22 @@ public:
 
   const auto& get_sign_times_G4() const;
 
-  double avgSign() const {
-    return accumulated_sign_.mean();
+  auto avgSign() const {
+    return accumulated_sign_ / Scalar(number_of_measurements_);
   }
 
-  int get_accumulated_sign() const {
-    return accumulated_sign_.sum();
+  auto get_accumulated_sign() const {
+    return accumulated_sign_;
   }
-  int get_number_of_measurements() const {
-    return accumulated_sign_.count();
+  auto get_number_of_measurements() const {
+    return number_of_measurements_;
   }
 
   int order() const {
     return (configuration_.size(0) + configuration_.size(1)) / 2;
   }
   double avgOrder() const {
-    return accumulated_order_.mean();
+    return static_cast<double>(accumulated_order_) / number_of_measurements_;
   }
 
   std::size_t deviceFingerprint() const {
@@ -96,15 +101,16 @@ private:
   const Parameters& parameters_;
 
   // Internal instantaneous configuration.
-  std::array<linalg::Matrix<Real, device>, 2> M_;
+  std::array<linalg::Matrix<Scalar, device>, 2> M_;
   MatrixConfiguration configuration_;
-  int sign_ = 0;
 
   std::vector<linalg::util::CudaStream*> streams_;
   linalg::util::CudaEvent event_;
 
-  util::Accumulator<int> accumulated_sign_;
-  util::Accumulator<unsigned long> accumulated_order_;
+  unsigned long accumulated_order_ = 0;
+  using BaseClass::accumulated_sign_;
+  using BaseClass::number_of_measurements_;
+  using BaseClass::current_sign_;
 
   const int thread_id_;
 
@@ -118,10 +124,10 @@ private:
   float flop_ = 0.;
 };
 
-template <class Parameters, linalg::DeviceType device, typename Real>
+template <class Parameters, typename Scalar, linalg::DeviceType device>
 template <class Data>
-CtintAccumulator<Parameters, device, Real>::CtintAccumulator(const Parameters& pars, const Data& data,
-                                                       int id)
+CtintAccumulator<Parameters, Scalar, device>::CtintAccumulator(const Parameters& pars,
+                                                               const Data& data, int id)
     : parameters_(pars),
       thread_id_(id),
       sp_accumulator_(pars),
@@ -131,12 +137,12 @@ CtintAccumulator<Parameters, device, Real>::CtintAccumulator(const Parameters& p
   streams_.push_back(tp_accumulator_.get_stream());
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-void CtintAccumulator<Parameters, device, Real>::initialize(const int dca_iteration) {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+void CtintAccumulator<Parameters, Scalar, device>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
       parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
-  accumulated_order_.reset();
-  accumulated_sign_.reset();
+
+  BaseClass::initialize(dca_iteration);
 
   sp_accumulator_.resetAccumulation();
   if (perform_tp_accumulation_)
@@ -145,9 +151,9 @@ void CtintAccumulator<Parameters, device, Real>::initialize(const int dca_iterat
   finalized_ = false;
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
+template <class Parameters, typename Scalar, linalg::DeviceType device>
 template <class Walker>
-void CtintAccumulator<Parameters, device, Real>::updateFrom(Walker& walker) {
+void CtintAccumulator<Parameters, Scalar, device>::updateFrom(Walker& walker) {
   // Compute M.
   walker.computeM(M_);
 
@@ -162,36 +168,37 @@ void CtintAccumulator<Parameters, device, Real>::updateFrom(Walker& walker) {
   }
 
   configuration_ = walker.getConfiguration();
-  sign_ = walker.get_sign();
+  current_sign_ = walker.get_sign();
   flop_ += walker.stealFLOPs();
 
   ready_ = true;
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
+template <class Parameters, typename Scalar, linalg::DeviceType device>
 template <class Walker>
-void CtintAccumulator<Parameters, device, Real>::accumulate(Walker& walker) {
+void CtintAccumulator<Parameters, Scalar, device>::accumulate(Walker& walker) {
   updateFrom(walker);
   measure();
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-void CtintAccumulator<Parameters, device, Real>::measure() {
-  if (!ready_ || sign_ == 0)
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+void CtintAccumulator<Parameters, Scalar, device>::measure() {
+  if (!ready_ || current_sign_ == 0)
     throw(std::logic_error("No or invalid configuration to accumulate."));
 
-  accumulated_sign_.addSample(sign_);
-  accumulated_order_.addSample(order());
+  accumulated_sign_ += current_sign_;
+  accumulated_order_ += order();
+  number_of_measurements_ += 1;
 
-  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
+  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_);
   if (perform_tp_accumulation_)
-    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
+    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_);
 
   ready_ = false;
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-void CtintAccumulator<Parameters, device, Real>::sumTo(this_type& other_one) {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+void CtintAccumulator<Parameters, Scalar, device>::sumTo(this_type& other_one) {
   other_one.accumulated_order_ += accumulated_order_;
   other_one.accumulated_sign_ += accumulated_sign_;
 
@@ -203,8 +210,8 @@ void CtintAccumulator<Parameters, device, Real>::sumTo(this_type& other_one) {
   other_one.flop_ += flop_;
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-void CtintAccumulator<Parameters, device, Real>::finalize() {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+void CtintAccumulator<Parameters, Scalar, device>::finalize() {
   if (finalized_)
     return;
 
@@ -215,13 +222,13 @@ void CtintAccumulator<Parameters, device, Real>::finalize() {
   finalized_ = true;
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-const auto& CtintAccumulator<Parameters, device, Real>::get_sign_times_M_r_w() const {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+const auto& CtintAccumulator<Parameters, Scalar, device>::get_sign_times_M_r_w() const {
   return sp_accumulator_.get_sign_times_M_r_w();
 }
 
-template <class Parameters, linalg::DeviceType device, typename Real>
-const auto& CtintAccumulator<Parameters, device, Real>::get_sign_times_G4() const {
+template <class Parameters, typename Scalar, linalg::DeviceType device>
+const auto& CtintAccumulator<Parameters, Scalar, device>::get_sign_times_G4() const {
   if (!perform_tp_accumulation_)
     throw(std::logic_error("G4 was not accumulated."));
   return tp_accumulator_.get_sign_times_G4();

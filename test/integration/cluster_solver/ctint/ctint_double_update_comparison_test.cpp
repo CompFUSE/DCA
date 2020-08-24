@@ -59,7 +59,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
 
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, double>;
   using WalkerSubmatrix =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, double>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, double, dca::linalg::CPU>;
 
   Concurrency concurrency(0, nullptr);
   dca::util::GitVersion::print();
@@ -105,7 +105,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
     EXPECT_EQ(walker1.get_sign(), walker2.get_sign());
 
-    auto check_direct_weight = [] (auto& walker) {
+    auto check_direct_weight = [](auto& walker) {
       const auto fast_weight = walker.get_MC_log_weight();
       walker.setMFromConfig();
       const auto direct_weight = walker.get_MC_log_weight();
