@@ -171,7 +171,7 @@ list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
 # Testing
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
-option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Results only meaningful in Release mode.)" OFF)
 option(DCA_WITH_TESTS_STOCHASTIC  "Build DCA++'s stochastic tests." OFF)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
@@ -194,7 +194,7 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTI
   endif()
 
   if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    message(WARNING "Performance tests are only built in release mode.")
+    message(WARNING "Performance tests are only meaningful in release mode.")
   endif()
 
   if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))

@@ -52,9 +52,9 @@ function(dca_add_gtest name)
       return()
     endif()
     # Only build performance tests in Release mode.
-    if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-      return ()
-    endif()
+    # if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    #   return ()
+    # endif()
 
   elseif (DCA_ADD_GTEST_EXTENSIVE)
     if (NOT DCA_WITH_TESTS_EXTENSIVE)
