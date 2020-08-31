@@ -23,6 +23,7 @@
 #include <sstream>
 #include <fstream>
 
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/profiling/events/time_event.hpp"
 
@@ -80,7 +81,7 @@ int functionReadWrite(CommEnvironment comm_env) {
   uint64_t end = 0;
   // This returns the linearized bounds of the function for a rank.
   dca::parallel::util::getComputeRange(comm_env.concurrency_ptr->id(),
-                                       comm_env.concurrency_ptr->number_of_processors(), f1.size(),
+                                       comm_env.concurrency_ptr->number_of_processors(), static_cast<uint64_t>(f1.size()),
                                        start, end);
 
   // only set this ranks values
