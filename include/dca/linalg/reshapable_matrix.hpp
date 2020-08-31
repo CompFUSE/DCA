@@ -218,12 +218,11 @@ ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
 template <typename ScalarType, DeviceType device_name, class Allocator>
 ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
     ScalarType, device_name, Allocator>::operator=(const ThisType& rhs) {
-  size_ = rhs.size_;
-  capacity_ = rhs.capacity_;
+  if (this != &rhs) {
+    resizeNoCopy(rhs.size_);
+    util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  }
 
-  Allocator::deallocate(data_);
-  data_ = Allocator::allocate(capacity_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
 }
 
@@ -232,12 +231,9 @@ template <DeviceType rhs_device_name, class AllocatorRhs>
 ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
     ScalarType, device_name,
     Allocator>::operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
-  size_ = rhs.size_;
-  capacity_ = rhs.capacity_;
-
-  Allocator::deallocate(data_);
-  data_ = Allocator::allocate(capacity_);
+  resizeNoCopy(rhs.size_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+
   return *this;
 }
 

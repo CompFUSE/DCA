@@ -42,6 +42,39 @@ int getWorkload(const unsigned int total_work, const unsigned int n_local_worker
   return getWorkload(local_work, n_local_workers, local_id);
 }
 
+/** This returns the first and last linear indexes, not the last + 1
+ *
+ *  i.e. write for(index i = 0; i <= end; ++i) ... 
+ *  this with getting the proper subindices and this being integral indexes and not iterators
+ */
+inline void getComputeRange(const int& my_rank, const int& mpi_size,
+                            const uint64_t& total_G4_size, uint64_t& start, uint64_t& end) {
+  uint64_t offset = 0;
+  // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
+  // if balanced, each rank has same amount of elements to compute
+  // if not, ranks with (rank_id < more_work_ranks) has to compute 1 more element than other ranks
+  bool balanced = (total_G4_size % static_cast<uint64_t>(mpi_size) == 0);
+  uint64_t local_work = total_G4_size / static_cast<uint64_t>(mpi_size);
+
+  if(balanced) {
+        offset = static_cast<uint64_t>(my_rank) * local_work;
+        end  = offset + local_work - 1;
+  }
+  else {
+    int more_work_ranks = total_G4_size % static_cast<uint64_t>(mpi_size);
+
+    if (my_rank < more_work_ranks) {
+      offset = static_cast<uint64_t>(my_rank) * (local_work + 1);
+      end = offset + local_work;
+    } else {
+        offset = more_work_ranks * (local_work + 1) +
+                 (static_cast<uint64_t>(my_rank) - more_work_ranks) * local_work;
+        end = offset + local_work - 1;
+      }
+  }
+  start = offset;
+}
+
 }  // util
 }  // parallel
 }  // dca

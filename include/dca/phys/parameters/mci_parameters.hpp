@@ -18,8 +18,14 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
+
+#ifdef DCA_HAVE_MPI
+#include <mpi.h>
+#endif
 
 namespace dca {
 namespace phys {
@@ -40,7 +46,8 @@ public:
         fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE),
-        store_configuration_(true) {}
+        store_configuration_(true),
+        g4_distribution_(DistType::NONE) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -95,6 +102,10 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
+  DistType get_g4_distribution() const {
+    return g4_distribution_;
+  }
+
   // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
   // bias toward faster walkers, at the expanse of load balance.
   bool fix_meas_per_walker() const {
@@ -145,6 +156,7 @@ private:
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
   int stamping_period_ = 0;
+  DistType g4_distribution_;
 };
 
 template <typename Concurrency>
@@ -166,6 +178,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
   buffer_size += concurrency.get_buffer_size(store_configuration_);
   buffer_size += concurrency.get_buffer_size(stamping_period_);
+  buffer_size += concurrency.get_buffer_size(g4_distribution_);
 
   return buffer_size;
 }
@@ -188,6 +201,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
   concurrency.pack(buffer, buffer_size, position, stamping_period_);
+  concurrency.pack(buffer, buffer_size, position, g4_distribution_);
 }
 
 template <typename Concurrency>
@@ -208,6 +222,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
   concurrency.unpack(buffer, buffer_size, position, stamping_period_);
+  concurrency.unpack(buffer, buffer_size, position, g4_distribution_);
 }
 
 template <typename ReaderOrWriter>
@@ -230,74 +245,99 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
   };
 
-  try {
-    reader_or_writer.open_group("Monte-Carlo-integration");
+  reader_or_writer.open_group("Monte-Carlo-integration");
 
-    if (reader_or_writer.is_reader()) {
-      // The input file can contain an integral seed or the seeding option "random".
-      try {
-        // Try to read a seeding option.
-        std::string seed_string;
-        reader_or_writer.execute("seed", seed_string);
-        if (seed_string == "random")
-          generateRandomSeed();
-        else {
-          std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed
-                    << "." << std::endl;
-          seed_ = default_seed;
-        }
-      }
-      catch (const std::exception& r_e) {
-        // Read the seed as an integer.
-        try_to_read_write("seed", seed_);
-      }
-    }  // is_reader()
-
-    else {
-      // Write the seed directly.
-      try_to_read_write("seed", seed_);
-    }
-
-    // Read error computation type.
-    std::string error_type = toString(error_computation_type_);
-    try_to_read_write("error-computation-type", error_type);
-    error_computation_type_ = stringToErrorComputationType(error_type);
-
-    try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
-    try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
-    try_to_read_write_vector("measurements", measurements_);
-
-    try_to_read_write("time-correlation-window", time_correlation_window_);
-    try_to_read_write("compute-G-correlation", compute_G_correlation_);
-
-    try_to_read_write("stamping-period", stamping_period_);
-    try_to_read_write("store-configuration", store_configuration_);
-
-    // Read arguments for threaded solver.
+  if (reader_or_writer.is_reader()) {
+    // The input file can contain an integral seed or the seeding option "random".
     try {
-      reader_or_writer.open_group("threaded-solver");
-
-      try_to_read_write("walkers", walkers_);
-      try_to_read_write("accumulators", accumulators_);
-      try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
-      try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
-      reader_or_writer.close_group();
+      // Try to read a seeding option.
+      std::string seed_string;
+      reader_or_writer.execute("seed", seed_string);
+      if (seed_string == "random")
+        generateRandomSeed();
+      else {
+        std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed << "."
+                  << std::endl;
+        seed_ = default_seed;
+      }
     }
     catch (const std::exception& r_e) {
+      // Read the seed as an integer.
+      try_to_read_write("seed", seed_);
+    }
+  }  // is_reader()
+
+  else {
+    // Write the seed directly.
+    try_to_read_write("seed", seed_);
+  }
+
+  // Read error computation type.
+  std::string error_type = toString(error_computation_type_);
+  try_to_read_write("error-computation-type", error_type);
+  error_computation_type_ = stringToErrorComputationType(error_type);
+
+  try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
+  try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
+  try_to_read_write_vector("measurements", measurements_);
+
+  try_to_read_write("store-configuration", store_configuration_);
+
+  try_to_read_write("time-correlation-window", time_correlation_window_);
+  try_to_read_write("compute-G-correlation", compute_G_correlation_);
+
+  try_to_read_write("stamping-period", stamping_period_);
+  try_to_read_write("store-configuration", store_configuration_);
+
+  // Read arguments for threaded solver.
+  reader_or_writer.open_group("threaded-solver");
+
+  try_to_read_write("walkers", walkers_);
+  try_to_read_write("accumulators", accumulators_);
+  try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
+  try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
+
+  // Read distribution type.
+  std::string g4_dist_name = toString(g4_distribution_);
+  try_to_read_write("g4-distribution", g4_dist_name);
+  g4_distribution_ = stringToDistType(g4_dist_name);
+
+  // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
+  // 'false'.
+  // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
+
+  reader_or_writer.close_group();
+  reader_or_writer.close_group();
+
+  // Check parameters consistency.
+  if (g4_distribution_ == DistType::MPI) {
+#ifdef DCA_HAVE_MPI
+    // Check for number of accumulators and walkers consistency.
+    if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) walker and accumulator should share "
+          "thread, "
+          "2) #walker == #accumulator\n");
     }
 
-    // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
-    // 'false'.
-    // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
-
-    reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
+    // Check for number of ranks and g4 measurements consistency.
+    int mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    int local_meas = measurements_.back() / mpi_size;
+    if (measurements_.back() % mpi_size != 0 || local_meas % accumulators_ != 0) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) local measurements should be same across "
+          "ranks, "
+          "2) each accumulator should have same measurements\n");
+    }
+#else
+    throw(std::logic_error("MPI distribution requested with no MPI available."));
+#endif  // DCA_HAVE_MPI
   }
 
   // Solve conflicts
-  if(!time_correlation_window_)
-      compute_G_correlation_ = false;
+  if (!time_correlation_window_)
+    compute_G_correlation_ = false;
 }
 
 void MciParameters::solveDcaIterationConflict(int iterations) {
@@ -309,7 +349,7 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
 }
 
 void MciParameters::solveConfigReadConflict(bool read) {
-  if(read)
+  if (read)
     store_configuration_ = true;
 }
 

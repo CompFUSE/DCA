@@ -19,11 +19,11 @@
 #include <cassert>
 #include <initializer_list>
 #include <functional>
-#include <optional>
 #include <stack>
 #include <stdexcept>
 
 #include "dca/util/containers/fixed_size_allocator.hpp"
+#include "dca/util/containers/random_access_map_iterator.hpp"
 
 namespace dca {
 namespace util {
@@ -32,6 +32,9 @@ namespace util {
 template <class Key, class Value, std::size_t chunk_size = 256>
 class RandomAccessMap {
 public:
+  using const_iterator = RandomAccessMapIterator<Key, Value, true>;
+  using iterator = RandomAccessMapIterator<Key, Value, false>;
+
   RandomAccessMap() = default;
   RandomAccessMap(const std::initializer_list<std::pair<Key, Value>>& list);
   RandomAccessMap(const RandomAccessMap& rhs);
@@ -41,54 +44,65 @@ public:
 
   ~RandomAccessMap();
 
-  // Insert new key, value pair.
-  // Precondition: key is not already in the map.
-  void insert(const Key& key, const Value& value);
+  auto begin() const -> const_iterator;
+  auto end() const -> const_iterator;
+
+  auto begin() -> iterator;
+  auto end() -> iterator;
+
+  // Insert new key, value pair if key is not already present, and returns an iterator to the node
+  // and true.
+  // If the key is already present, update the value and returns an iterator to the node and false.
+  auto insert(const Key& key, const Value& value) noexcept -> std::pair<iterator, bool>;
+  auto insert(const std::pair<Key, Value>& pair) noexcept {
+    insert(pair.first, pair.second);
+  }
 
   // Remove the node relative to key.
-  // Precondition: key is in the map.
-  void erase(const Key& key);
+  // Returns: true if the key is found and removed. False if no operation is performed.
+  bool erase(const Key& key) noexcept;
 
-  // Returns a reference to the value associated with key.
-  // Precondition: key is in the map.
-  const Value& find(const Key& key) const;
-  Value& find(const Key& key);
+  // Remove the node.
+  // Precondition: the node is in the map.
+  void erase(iterator it);
 
-  // Like the above methods, but returns an empty object instead of throwing.
-  std::optional<std::reference_wrapper<const Value>> findOptional(const Key& key) const noexcept;
-  std::optional<std::reference_wrapper<Value>> findOptional(const Key& key) noexcept;
+  // Returns the iterator associated with key.
+  // If the key is not in the map, returns a null iterator.
+  auto findByKey(const Key& key) const noexcept -> const_iterator;
+  auto findByKey(const Key& key) noexcept -> iterator;
 
-  // Returns a reference to the key and value at position idx (in key order).
+  // Returns true if a stored key compares equal to the argument.
+  bool contains(const Key& key) const noexcept;
+  bool count(const Key& key) const noexcept {
+    return contains(key);
+  }
+
+  // Returns an iterator relative to the 'index'-th lowest key.
   // Precondition: 0 <= index < size()
-  const auto operator[](const std::size_t index) const;
+  auto findByIndex(const std::size_t index) const -> const_iterator;
+  auto findByIndex(const std::size_t index) -> iterator;
 
   // Number of keys stored in the map.
-  std::size_t size() const {
+  std::size_t size() const noexcept {
     return root_ ? root_->subtree_size : 0;
   }
 
   // Returns an array of ordered keys and value pairs.
-  std::vector<std::pair<Key, Value>> linearize() const;
+  std::vector<std::pair<Key, Value>> linearize() const noexcept;
 
-  bool checkConsistency() const;
+  // For testing purposes.
+  bool checkConsistency() const noexcept;
 
 private:
-  enum Color : std::uint8_t { RED, BLACK };
+  using Node = details::Node<Key, Value>;
+  constexpr static auto BLACK = details::BLACK;
+  constexpr static auto RED = details::RED;
 
-  struct Node {
-    Node(const Key& k, const Value& v, Node* p) : parent(p), key(k), val(v) {}
+  void eraseImpl(Node* to_delete) noexcept;
 
-    Node* left = nullptr;
-    Node* right = nullptr;
-    Node* parent = nullptr;
-
-    std::size_t subtree_size = 1;
-
-    Key key;
-    Value val;
-
-    Color color = RED;
-  };
+  const Key& get_key(const Node* node) const {
+    return node->data.first;
+  }
 
   void rightRotate(Node* node);
 
@@ -162,10 +176,8 @@ RandomAccessMap<Key, Value, chunk_size>& RandomAccessMap<Key, Value, chunk_size>
   if (this != &rhs) {
     *this = std::move(RandomAccessMap());  // clear content.
 
-    const auto linearized = rhs.linearize();
-    for (const auto& [key, val] : linearized) {
-      insert(key, val);
-    }
+    for (const auto& it : rhs)
+      insert(it);
   }
   return *this;
 }
@@ -179,30 +191,33 @@ RandomAccessMap<Key, Value, chunk_size>& RandomAccessMap<Key, Value, chunk_size>
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-void RandomAccessMap<Key, Value, chunk_size>::insert(const Key& key, const Value& val) {
+auto RandomAccessMap<Key, Value, chunk_size>::insert(const Key& key, const Value& val) noexcept
+    -> std::pair<iterator, bool> {
   if (!root_) {
     root_ = allocator_.create(key, val, nullptr);
     root_->color = BLACK;
-    return;
+    return {iterator(root_), true};
   }
 
   Node* node = root_;
   bool done = false;
 
   while (!done) {
-    if (key == node->key) {  // Key is already present. Undo changes and throw.
+    if (key == get_key(node)) {  // Key is already present. Undo changes and return.
+      node->data.second = val;
+      iterator return_it = iterator(node);
+
       node = node->parent;
       while (node) {
         --node->subtree_size;
         node = node->parent;
       }
 
-      throw(std::logic_error("Key already present."));
+      return {return_it, false};
     }
-
     ++node->subtree_size;
 
-    if (key < node->key) {
+    if (key < get_key(node)) {
       if (node->left == nullptr) {
         node->left = allocator_.create(key, val, node);
         done = true;
@@ -222,37 +237,49 @@ void RandomAccessMap<Key, Value, chunk_size>::insert(const Key& key, const Value
   fixRedRed(node);
 
   //  assert(checkConsistency());
+  return {iterator(node), true};
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-void RandomAccessMap<Key, Value, chunk_size>::erase(const Key& key) {
-  // Find node to delete
+bool RandomAccessMap<Key, Value, chunk_size>::erase(const Key& key) noexcept {
+  if (!root_)
+    return false;
   Node* to_delete = root_;
-  while (true) {
-    if (!to_delete) {  // Key not present. Undo changes and throw.
-      Node* node = to_delete ? to_delete->parent : nullptr;
-      while (node) {
-        ++node->subtree_size;
-        node = node->parent;
-      }
-      throw(std::logic_error("Key not found."));
-    }
 
-    if (key == to_delete->key)
+  // Search while updating subtree count.
+  bool found = false;
+
+  while (true) {
+    if (key == get_key(to_delete)) {
+      found = true;
       break;
+    }
 
     --to_delete->subtree_size;
 
-    if (key < to_delete->key) {
+    if (key < get_key(to_delete)) {
+      if (!to_delete->left)
+        break;
       to_delete = to_delete->left;
     }
     else {
+      if (!to_delete->right)
+        break;
       to_delete = to_delete->right;
     }
   }
 
-  // to_delete has two children.
-  if (to_delete->left != nullptr && to_delete->right != nullptr) {
+  if (!found) {  // undo change
+    ++to_delete->subtree_size;
+    while (to_delete->parent) {
+      to_delete = to_delete->parent;
+      ++to_delete->subtree_size;
+    }
+
+    return false;
+  }
+
+  if (to_delete->left != nullptr && to_delete->right != nullptr) {  // to_delete has two children.
     Node* const original = to_delete;
     --to_delete->subtree_size;
     to_delete = to_delete->right;
@@ -261,16 +288,45 @@ void RandomAccessMap<Key, Value, chunk_size>::erase(const Key& key) {
       to_delete = to_delete->left;
     }
 
-    // Move key and value from the next in-order node.
-    original->key = std::move(to_delete->key);
-    original->val = std::move(to_delete->val);
+    original->data = std::move(to_delete->data);
   }
 
+  --to_delete->subtree_size;
+  eraseImpl(to_delete);
+
+  return true;
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+void RandomAccessMap<Key, Value, chunk_size>::erase(iterator it) {
+  Node* to_delete = it.node_;
+
+  if (to_delete->left != nullptr && to_delete->right != nullptr) {  // to_delete has two children.
+    Node* const original = to_delete;
+    to_delete = to_delete->right;
+    while (to_delete->left) {
+      to_delete = to_delete->left;
+    }
+
+    original->data = std::move(to_delete->data);
+  }
+
+  eraseImpl(to_delete);
+
+  // Update subtree counts.
+  Node* ancestor = to_delete->parent;
+  while (ancestor) {
+    --ancestor->subtree_size;
+    ancestor = ancestor->parent;
+  }
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+void RandomAccessMap<Key, Value, chunk_size>::eraseImpl(Node* to_delete) noexcept {
   Node* replacement = to_delete->left ? to_delete->left : to_delete->right;
 
   auto color = [](const Node* n) { return n ? n->color : BLACK; };
   const bool both_black = color(replacement) == BLACK && to_delete->color == BLACK;
-  --to_delete->subtree_size;
 
   if (both_black) {
     fixDoubleBlack(to_delete);
@@ -356,11 +412,11 @@ void RandomAccessMap<Key, Value, chunk_size>::fixRedRed(Node* x) {
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-const auto RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t index) const {
+auto RandomAccessMap<Key, Value, chunk_size>::findByIndex(const std::size_t index) -> iterator {
   if (index >= size())
     throw(std::out_of_range("Index out of range"));
 
-  const Node* node = root_;
+  Node* node = root_;
 
   std::size_t on_the_left = 0;
   while (true) {
@@ -371,7 +427,7 @@ const auto RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t
       new_on_the_left += node->left->subtree_size;
 
     if (new_on_the_left == index) {
-      return std::make_pair(std::cref(node->key), std::cref(node->val));
+      return iterator(node);
     }
     else if (new_on_the_left > index) {  // go left
       node = node->left;
@@ -384,53 +440,47 @@ const auto RandomAccessMap<Key, Value, chunk_size>::operator[](const std::size_t
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-const Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) const {
-  auto result = findOptional(key);
-  if (result)
-    return result.value();
-  throw(std::logic_error("Key not found."));
+auto RandomAccessMap<Key, Value, chunk_size>::findByIndex(const std::size_t index) const
+    -> const_iterator {
+  return const_cast<RandomAccessMap&>(*this).findByIndex(index);
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-Value& RandomAccessMap<Key, Value, chunk_size>::find(const Key& key) {
-  auto result = findOptional(key);
-  if (result)
-    return result.value();
-  throw(std::logic_error("Key not found."));
-}
-
-template <class Key, class Value, std::size_t chunk_size>
-std::optional<std::reference_wrapper<const Value>> RandomAccessMap<Key, Value, chunk_size>::findOptional(
-    const Key& key) const noexcept {
-  const Node* node = root_;
-  while (node) {
-    if (node->key == key)
-      return std::optional{std::cref(node->val)};
-    else if (key < node->key)
-      node = node->left;
-    else
-      node = node->right;
-  }
-
-  // Value not found
-  return std::nullopt;
-}
-
-template <class Key, class Value, std::size_t chunk_size>
-std::optional<std::reference_wrapper<Value>> RandomAccessMap<Key, Value, chunk_size>::findOptional(
-    const Key& key) noexcept {
+auto RandomAccessMap<Key, Value, chunk_size>::findByKey(const Key& key) noexcept -> iterator {
   Node* node = root_;
   while (node) {
-    if (node->key == key)
-      return std::optional{std::ref(node->val)};
-    else if (key < node->key)
+    if (get_key(node) == key)
+      return iterator(node);
+    else if (key < get_key(node))
       node = node->left;
     else
       node = node->right;
   }
 
-  // Value not found
-  return std::nullopt;
+  // Key not found.
+  return iterator(nullptr);
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+auto RandomAccessMap<Key, Value, chunk_size>::findByKey(const Key& key) const noexcept
+    -> const_iterator {
+  // Avoid code duplication with a cast to non-const (const iterator does not allow data modification).
+  return const_iterator(const_cast<RandomAccessMap&>(*this).findByKey(key));
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+bool RandomAccessMap<Key, Value, chunk_size>::contains(const Key& key) const noexcept {
+  const Node* node = root_;
+  while (node) {
+    if (get_key(node) == key)
+      return true;
+    else if (key < get_key(node))
+      node = node->left;
+    else
+      node = node->right;
+  }
+
+  return false;
 }
 
 template <class Key, class Value, std::size_t chunk_size>
@@ -562,26 +612,19 @@ void RandomAccessMap<Key, Value, chunk_size>::leftRotate(Node* node) {
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-std::vector<std::pair<Key, Value>> RandomAccessMap<Key, Value, chunk_size>::linearize() const {
+std::vector<std::pair<Key, Value>> RandomAccessMap<Key, Value, chunk_size>::linearize() const
+    noexcept {
   std::vector<std::pair<Key, Value>> result;
+  result.reserve(size());
 
-  std::function<void(const Node*)> helper_func = [&](const Node* node) {
-    if (!node)
-      return;
-
-    helper_func(node->left);
-    result.emplace_back(node->key, node->val);
-    helper_func(node->right);
-  };
-
-  helper_func(root_);
-  assert(result.size() == size());
+  for (const auto& it : (*this))
+    result.emplace_back(it);
 
   return result;
 }
 
 template <class Key, class Value, std::size_t chunk_size>
-bool RandomAccessMap<Key, Value, chunk_size>::checkConsistency() const {
+bool RandomAccessMap<Key, Value, chunk_size>::checkConsistency() const noexcept {
   bool child_parent_violation = false;
   bool red_red_violation = false;
   bool black_count_violation = false;
@@ -671,6 +714,30 @@ void RandomAccessMap<Key, Value, chunk_size>::updateSubtreeSize(Node* node) {
     node->subtree_size += node->left->subtree_size;
   if (node->right)
     node->subtree_size += node->right->subtree_size;
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+auto RandomAccessMap<Key, Value, chunk_size>::begin() -> iterator {
+  Node* node = root_;
+  while (node->left)
+    node = node->left;
+
+  return iterator(node);
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+auto RandomAccessMap<Key, Value, chunk_size>::begin() const -> const_iterator {
+  return const_cast<RandomAccessMap&>(*this).begin();
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+auto RandomAccessMap<Key, Value, chunk_size>::end() const -> const_iterator {
+  return const_iterator{nullptr};
+}
+
+template <class Key, class Value, std::size_t chunk_size>
+auto RandomAccessMap<Key, Value, chunk_size>::end() -> iterator {
+  return iterator{nullptr};
 }
 
 }  // namespace util

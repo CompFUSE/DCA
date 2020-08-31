@@ -11,22 +11,22 @@
 
 #include "dca/util/containers/random_access_map.hpp"
 
-#include <map>
-#include <unordered_map>
+#include <vector>
 #include <random>
 #include <string>
+#include <map>
+#include <unordered_map>
 
 #include <benchmark/benchmark.h>
 
-#if __has_include(<absl/container/btree_map.h>)
-#define HAVE_ABSL
-#include <absl/container/btree_map.h>
-#endif
-
 const unsigned n_init = 10000;
 const unsigned n_test = 10;
-std::vector<int> keys;
-std::vector<int> vals;
+
+using Key = int;
+using Value = int;
+
+std::vector<Key> keys;
+std::vector<Value> vals;
 
 void init() {
   static bool initialized = false;
@@ -44,50 +44,60 @@ void init() {
 }
 
 template <template <class, class> class Map>
-void performSTLTest(benchmark::State& state) {
+static void performInsertRemoveTest(benchmark::State& state) {
   init();
-  Map<int, int> map;
-
+  Map<Key, Value> map;
   for (int i = 0; i < state.range(0); ++i)
-    map.insert(std::make_pair(keys[i], vals[i]));
+    map.insert({keys[i], vals[i]});
 
   for (auto _ : state) {
     for (int i = n_init; i < n_init + n_test; ++i)
-      map.insert(std::make_pair(keys[i], vals[i]));
+      map.insert({keys[i], vals[i]});
     for (int i = n_init; i < n_init + n_test; ++i)
       map.erase(keys[i]);
   }
 }
 
-static void BM_StdMap(benchmark::State& state) {
-  performSTLTest<std::map>(state);
+static void BM_StdMapInsertErase(benchmark::State& state) {
+  performInsertRemoveTest<std::map>(state);
 }
-BENCHMARK(BM_StdMap)->Arg(100)->Arg(1000)->Arg(10000);
+BENCHMARK(BM_StdMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
-static void BM_StdUMap(benchmark::State& state) {
-  performSTLTest<std::unordered_map>(state);
+static void BM_StdUnorderedMapInsertErase(benchmark::State& state) {
+  performInsertRemoveTest<std::unordered_map>(state);
 }
-BENCHMARK(BM_StdUMap)->Arg(100)->Arg(1000)->Arg(10000);
+BENCHMARK(BM_StdUnorderedMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
-#ifdef HAVE_ABSL
-static void BM_AbslMap(benchmark::State& state) {
-  performSTLTest<absl::btree_map>(state);
+static void BM_MyMapInsertErase(benchmark::State& state) {
+  performInsertRemoveTest<dca::util::RandomAccessMap>(state);
 }
-BENCHMARK(BM_AbslMap)->Arg(100)->Arg(1000)->Arg(10000);
-#endif
+BENCHMARK(BM_MyMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
-static void BM_MyMap(benchmark::State& state) {
+template <template <class, class> class Map>
+static void performFindTest(benchmark::State& state) {
   init();
-  dca::util::RandomAccessMap<int, int> map;
-
+  Map<Key, Value> map;
   for (int i = 0; i < state.range(0); ++i)
-    map.insert(keys[i], vals[i]);
+    map.insert({keys[i], vals[i]});
+  std::vector<std::uint8_t> findings(n_test);
 
   for (auto _ : state) {
-    for (int i = n_init; i < n_init + n_test; ++i)
-      map.insert(keys[i], vals[i]);
-    for (int i = n_init; i < n_init + n_test; ++i)
-      map.erase(keys[i]);
+    for (int i = 0; i < n_test; ++i)
+      findings[i] = map.count(keys[i]);
   }
 }
-BENCHMARK(BM_MyMap)->Arg(100)->Arg(1000)->Arg(10000);
+
+static void BM_StdMapFind(benchmark::State& state) {
+  performFindTest<std::map>(state);
+}
+BENCHMARK(BM_StdMapFind)->Arg(100)->Arg(1000)->Arg(n_init);
+
+static void BM_StdUnorderedMapFind(benchmark::State& state) {
+  performFindTest<std::unordered_map>(state);
+}
+BENCHMARK(BM_StdUnorderedMapFind)->Arg(100)->Arg(1000)->Arg(n_init);
+
+static void BM_MyMapFind(benchmark::State& state) {
+  performFindTest<dca::util::RandomAccessMap>(state);
+}
+BENCHMARK(BM_MyMapFind)->Arg(100)->Arg(1000)->Arg(n_init);

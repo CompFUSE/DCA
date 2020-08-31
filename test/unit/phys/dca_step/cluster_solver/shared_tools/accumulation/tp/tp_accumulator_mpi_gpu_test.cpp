@@ -1,13 +1,14 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Peter Doak (doakpw@ornl.gov)
+// Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements a no-change test for the two particles accumulation on the GPU.
+// This file implements a no-change test for the two particles accumulation with the distributed G4 for MPI/GPU.
 
 
 
@@ -60,7 +61,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::MPI> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 

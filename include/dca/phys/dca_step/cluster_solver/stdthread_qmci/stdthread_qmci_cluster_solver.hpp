@@ -32,6 +32,7 @@
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/distribution/dist_types.hpp"
 
 namespace dca {
 namespace phys {
