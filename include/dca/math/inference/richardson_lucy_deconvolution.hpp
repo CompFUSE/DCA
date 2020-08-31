@@ -78,7 +78,7 @@ private:
   linalg::Matrix<double, linalg::CPU> u_t_plus_1_;
 
   func::function<double, OtherDmn> shift_;
-  func::function<bool, OtherDmn> is_finished_;
+  func::function<char, OtherDmn> is_finished_;
   func::function<double, OtherDmn> error_;
 };
 

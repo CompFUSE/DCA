@@ -20,6 +20,8 @@ if (CUDA_FOUND)
   list(APPEND DCA_CUDA_LIBS ${CUDA_LIBRARIES} ${CUDA_cusparse_LIBRARY} ${CUDA_cublas_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
   set(CUDA_SEPARABLE_COMPILATION ON)
+
+  set(CVD_LAUNCHER "test/cvdlauncher.sh" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
 endif()
 
 # Find MAGMA.
@@ -48,4 +50,9 @@ endif()
 if (CUDA_FOUND AND DCA_HAVE_MAGMA)
   set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_CUDA)
+
+  option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." OFF)
+  if(DCA_WITH_CUDA_AWARE_MPI)
+    dca_add_haves_define(DCA_HAVE_CUDA_AWARE_MPI)
+  endif()
 endif()

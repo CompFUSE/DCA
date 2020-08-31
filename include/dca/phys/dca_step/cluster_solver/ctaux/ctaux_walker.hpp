@@ -63,7 +63,7 @@ public:
 public:
   CtauxWalker(/*const*/ Parameters& parameters, Data& MOMS_ref, Rng& rng_ref, int id);
 
-  void initialize();
+  void initialize(int iteration);
 
   bool is_thermalized() const {
     return thermalized_;
@@ -314,6 +314,8 @@ private:
   std::array<linalg::util::CudaEvent, 2> m_computed_events_;
 
   bool config_initialized_;
+
+  double sweeps_per_measurement_ = 1.;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -428,8 +430,9 @@ void CtauxWalker<device_t, Parameters, Data, Real>::markThermalized() {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxWalker<device_t, Parameters, Data, Real>::initialize() {
+void CtauxWalker<device_t, Parameters, Data, Real>::initialize(int iteration) {
   WalkerBIT<Parameters, Data, Real>::initialize();
+  sweeps_per_measurement_ = parameters_.get_sweeps_per_measurement().at(iteration);
 
   number_of_creations = 0;
   number_of_annihilations = 0;
@@ -490,7 +493,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::initialize() {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 void CtauxWalker<device_t, Parameters, Data, Real>::doSweep() {
   Profiler profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
-  const double sweeps_per_measurement{thermalized_ ? parameters_.get_sweeps_per_measurement() : 1.};
+  const double sweeps_per_measurement{thermalized_ ? sweeps_per_measurement_ : 1.};
 
   // Do at least one single spin update per sweep.
   const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&

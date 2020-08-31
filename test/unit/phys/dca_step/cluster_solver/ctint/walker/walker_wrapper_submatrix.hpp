@@ -36,13 +36,13 @@ struct WalkerSelector;
 template <class Parameters, typename Real>
 struct WalkerSelector<Parameters, CPU, Real> {
   // Fix rng order for testing.
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real, true>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, Real>;
 };
 
 #ifdef DCA_HAVE_CUDA
 template <class Parameters, typename Real>
 struct WalkerSelector<Parameters, GPU, Real> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real, true>;
+  using type = CtintWalkerSubmatrixGpu<Parameters, Real>;
 };
 #endif  // DCA_HAVE_CUDA
 
@@ -56,7 +56,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
   WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
         streams_(3) {
-    BaseClass::initialize();
+    BaseClass::initialize(0);
   }
 
   void doStep(const int n_steps_to_delay) {

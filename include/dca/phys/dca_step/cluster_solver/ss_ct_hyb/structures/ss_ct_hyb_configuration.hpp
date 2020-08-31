@@ -40,7 +40,7 @@ public:
     return vertices(i);
   }
 
-  bool& get_full_line(int i) {
+  char& get_full_line(int i) {
     return has_full_line(i);
   }
 
@@ -50,7 +50,7 @@ public:
 
 private:
   func::function<orbital_configuration_type, nu> vertices;
-  func::function<bool, nu> has_full_line;
+  func::function<char, nu> has_full_line;
 
   int N_spin_orbitals;
 };

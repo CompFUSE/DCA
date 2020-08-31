@@ -61,6 +61,9 @@ public:
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
   using CudaStream = linalg::util::CudaStream;
 
+  using Scalar = Real;
+  constexpr static linalg::DeviceType device = linalg::CPU;
+
 protected:  // The class is not instantiable.
   CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, int id = 0);
 
@@ -102,7 +105,7 @@ public:
     return Real(n_accepted_) / Real(n_steps_);
   }
 
-  void initialize();
+  void initialize(int iter);
 
   const auto& get_configuration() const {
     return configuration_;
@@ -158,6 +161,8 @@ public:
     return *streams_[s];
   }
 
+  static void sumConcurrency(const Concurrency&) {}
+
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
@@ -202,6 +207,8 @@ protected:  // Members.
 
   float flop_ = 0.;
 
+  double sweeps_per_meas_ = 1.;
+
   double mc_log_weight_ = 0;
 
 private:
@@ -229,8 +236,11 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, typename Real>
-void CtintWalkerBase<Parameters, Real>::initialize() {
+void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
+
+  sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
+
   sign_ = 1;
   mc_log_weight_ = 1.;
 
@@ -247,7 +257,7 @@ void CtintWalkerBase<Parameters, Real>::initialize() {
 
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
-  mc_log_weight_ = 1.;
+  mc_log_weight_ = 0.;
   sign_ = 1;
 
   for (int s = 0; s < 2; ++s) {
@@ -265,7 +275,7 @@ void CtintWalkerBase<Parameters, Real>::setMFromConfig() {
 
     if (M.nrRows()) {
       const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
-      mc_log_weight_ += log_det;
+      mc_log_weight_ -= log_det; // Weight proportional to det(M^{-1})
       sign_ *= sign;
     }
   }
@@ -291,8 +301,7 @@ template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::markThermalized() {
   thermalized_ = true;
 
-  nb_steps_per_sweep_ =
-      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean());
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
 
   order_avg_.reset();
   sign_avg_.reset();

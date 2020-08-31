@@ -44,15 +44,16 @@
 
   "Monte-Carlo-integration" :
   {
-    "Sigma-file" : "zero",
-
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements-per-process-and-accumulator" : 500,
+    "measurements" : 900,
     "seed" : 0,
 
     "threaded-solver" : {
-      "accumulators" : 3
+      "accumulators" : 3,
+      "walkers" : 3,
+      "shared-walk-and-accumulation-thread" : true,
+      "g4-distribution" : "MPI"
     }
   },
 

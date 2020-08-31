@@ -30,7 +30,7 @@ public:
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
-    BaseClass::initialize();
+    BaseClass::initialize(0);
   }
 
   using BaseClass::doStep;

@@ -2,11 +2,11 @@
     "Monte-Carlo-integration": {
         "seed": 42,
         "warm-up-sweeps": 40,
-        "sweeps-per-measurement": 4.,
-        "measurements": 200,
+        "sweeps-per-measurement": [1.5, 1.5, 4.],
+        "measurements": [100, 150, 200],
         "error-computation-type" : "JACK_KNIFE",
         "store-configuration" : false,
-
+        "g4-distribution": "MPI",
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,
