@@ -678,7 +678,7 @@ void symmetrize_single_particle_function::executeCluster(
         for (int s_ind = 0; s_ind < sym_super_cell_dmn_t::dmn_size(); ++s_ind) {
           int k_new = k_symmetry_matrix(k_ind, b0, s_ind).first;  // FIXME: b0 -> b1
 
-          int b0_new = k_symmetry_matrix(k_new, b0, s_ind).second;
+          int b0_new = k_symmetry_matrix(k_ind, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
           const double sign = Lattice::transformationSignOfK(b0, b1, s_ind);

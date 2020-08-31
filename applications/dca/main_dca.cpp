@@ -15,6 +15,7 @@
 #include <iostream>
 
 #include "dca/config/cmake_options.hpp"
+#include "dca/application/dca_loop_dispatch.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -74,23 +75,23 @@ int main(int argc, char** argv) {
     DcaDataType dca_data(parameters);
     dca_data.initialize();
 
-    DcaLoopType dca_loop(parameters, dca_data, concurrency);
-
-    {
-      Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
-
-      dca_loop.initialize();
-      dca_loop.execute();
-      dca_loop.finalize();
-    }
-
-    Profiler::stop(concurrency, parameters.get_filename_profiling());
-
-    if (concurrency.id() == concurrency.first()) {
-      std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-      dca_loop.write();
-
-      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    dca::DistType distribution = parameters.get_g4_distribution();
+    switch (distribution) {
+#ifdef DCA_HAVE_MPI
+      case dca::DistType::MPI: {
+        DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, dca_data, concurrency);
+      } break;
+#else
+      case dca::DistType::MPI: {
+        throw std::runtime_error(
+            "Input calls for function MPI distribution but DCA is not built with MPI.");
+      } break;
+#endif
+      case dca::DistType::NONE: {
+        DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, dca_data, concurrency);
+      } break;
     }
   }
   catch (const std::exception& err) {

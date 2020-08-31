@@ -20,7 +20,11 @@ namespace parallel {
 
 MPIInitializer::MPIInitializer(int argc, char** argv) {
   int provided = 0;
+#ifdef DCA_WITH_CUDA_AWARE_MPI
+  constexpr int required = MPI_THREAD_MULTIPLE;
+#else
   constexpr int required = MPI_THREAD_FUNNELED;
+#endif
   MPI_Init_thread(&argc, &argv, required, &provided);
   if (provided < required)
     throw(std::logic_error("MPI does not provide adequate thread support."));
@@ -32,8 +36,8 @@ MPIInitializer::~MPIInitializer() {
 
 void MPIInitializer::abort() const {
   std::cout << "\nAborting all processes.\n" << std::endl;
-  MPI_Abort(MPI_COMM_WORLD, 134); // Same error code as std::terminate().
+  MPI_Abort(MPI_COMM_WORLD, 134);  // Same error code as std::terminate().
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca

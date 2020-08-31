@@ -21,33 +21,36 @@ namespace ctaux {
 namespace g0kernels {
 // dca::phys::solver::ctaux::g0kernels::
 
+template <typename Real>
 void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, int* b, int* r,
-                                  double* t, double* G0, std::pair<int, int> G0_cs,
-                                  std::pair<int, int> G0_gs, double* r0_min_r1,
+                                  Real* t, Real* G0, std::pair<int, int> G0_cs,
+                                  std::pair<int, int> G0_gs, Real* r0_min_r1,
                                   std::pair<int, int> r0_min_r1_cs,
-                                  std::pair<int, int> r0_min_r1_gs, double* G0_r_t,
+                                  std::pair<int, int> r0_min_r1_gs, Real* G0_r_t,
                                   std::pair<int, int> G0_r_t_cs, std::pair<int, int> G0_r_t_gs,
-                                  double* grad_G0_r_t, std::pair<int, int> grad_G0_r_t_cs,
+                                  Real* grad_G0_r_t, std::pair<int, int> grad_G0_r_t_cs,
                                   std::pair<int, int> grad_G0_r_t_gs);
 
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
+template <typename Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
+                                Real* t, Real* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, Real* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
+                                Real* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs);
 
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
+template <typename Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
+                                Real* t, Real* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, Real* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
+                                Real* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs, int thread_id, int stream_id);
 
-}  // g0kernels
-}  // ctaux
-}  // solver
-}  // phys
-}  // dca
+}  // namespace g0kernels
+}  // namespace ctaux
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_KERNELS_HPP

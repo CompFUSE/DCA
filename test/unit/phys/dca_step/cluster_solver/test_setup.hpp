@@ -13,6 +13,8 @@
 #define DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
 
 #include <memory>
+#include <iostream>
+
 #include "gtest/gtest.h"
 
 #include "dca/io/json/json_reader.hpp"
@@ -69,8 +71,12 @@ struct G0Setup : public ::testing::Test {
   G0Setup() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
 
   virtual void SetUp() {
-    parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
-
+    try {
+      parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
+    }
+    catch (...) {
+      std::cout << "Attempting to read: " << input_name << std::endl;
+    }
     parameters_.update_model();
     static bool domain_initialized = false;
     if (!domain_initialized) {
@@ -84,7 +90,7 @@ struct G0Setup : public ::testing::Test {
   virtual void TearDown() {}
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP

@@ -23,7 +23,7 @@
 #include <complex>
 #include <memory>
 
-#include "dca/config/accumulation_options.hpp"
+#include "dca/config/mc_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -43,26 +43,26 @@ namespace accumulator {
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
     : public CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
-private:
+public:
   using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
 
   using typename BaseClass::BDmn;
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
-  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                           config::AccumulationOptions::TpAllocator<Complex>>;
+  using RMatrix =
+      linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
-public:
+
   CachedNdft(magma_queue_t queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // Out: M_r_r_w_w.
-  template <class Configuration>
-  float execute(const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M,
-                 RMatrix& M_r_r_w_w);
+  template <class Configuration, typename RealIn>
+  float execute(const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M,
+                RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
@@ -79,7 +79,8 @@ public:
   std::size_t deviceFingerprint() const;
 
 private:
-  void sortM(const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const;
+  template <typename RealIn>
+  void sortM(const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
   double performFT(RMatrix& work);
   void rearrangeOutput(RMatrix& output);
@@ -125,9 +126,9 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration>
+template <class Configuration, typename RealIn>
 float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_out) {
+    const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_out) {
   float flop = 0.;
 
   if (configuration.size() == 0) {  // The result is zero
@@ -159,8 +160,9 @@ float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::e
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename RealIn>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
-    const linalg::Matrix<double, linalg::GPU>& M, RMatrix& M_sorted) const {
+    const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(), stream_);
@@ -194,7 +196,7 @@ double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
 
   auto& T_times_M = M_out;
   bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
-  util::ignoreUnused(realloc);
+  dca::util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(stream_);
 

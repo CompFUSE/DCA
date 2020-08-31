@@ -16,7 +16,6 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/config/accumulation_options.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -64,6 +63,7 @@ template <typename Real>
 double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration& config,
                            const typename CachedNdftGpuTest<Real>::Matrix& M,
                            typename CachedNdftGpuTest<Real>::F_w_w& f_w) {
+  using Complex = std::complex<Real>;
   dca::linalg::util::initializeMagma();
   magma_queue_t queue;
   magma_queue_create(&queue);
@@ -73,22 +73,20 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   using FreqDmn = typename CachedNdftGpuTest<Real>::FreqDmn;
   using PosFreqDmn = typename CachedNdftGpuTest<Real>::PosFreqDmn;
 
-  dca::phys::solver::accumulator::CachedNdft<double, RDmn, FreqDmn, PosFreqDmn, dca::linalg::GPU> nft_obj(
-      queue);
+  using NftType =
+      dca::phys::solver::accumulator::CachedNdft<Real, RDmn, FreqDmn, PosFreqDmn, dca::linalg::GPU>;
+  NftType nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
   dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M);
-  using Complex = std::complex<double>;
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                dca::config::AccumulationOptions::TpAllocator<Complex>>
-      result_device(64);
+  typename NftType::RMatrix result_device(64);
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M_dev, result_device);
   cudaStreamSynchronize(nft_obj.get_stream());
   dca::profiling::WallTime end_time;
 
-  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::CPU> result_host(result_device);
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> result_host(result_device);
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).
