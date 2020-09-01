@@ -48,7 +48,8 @@ public:
 
   // Attempts to read the loop functions from 'filename'. If successful returns
   // the last completed iteration from the input file, otherwise it returns -1.
-  int tryToRead(const std::string& filename, const Concurrency& concurrency);
+  int tryToRead(const std::string& filename, const std::string& format,
+                const Concurrency& concurrency);
 
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
@@ -139,36 +140,44 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 }
 
 template <typename ParametersType>
-int DcaLoopData<ParametersType>::tryToRead(const std::string& filename,
+int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && std::filesystem::exists(filename)) {
-    io::HDF5Reader reader;
-    reader.open_file(filename);
-    reader.open_group("DCA-loop-functions");
+    auto read_all = [&](auto&& reader) {
+      reader.open_file(filename);
+      reader.open_group("DCA-loop-functions");
 
-    reader.execute("completed-iteration", last_completed_iteration);
+      reader.execute("completed-iteration", last_completed_iteration);
 
-    reader.execute(Gflop_per_mpi_task);
-    reader.execute(times_per_mpi_task);
-    reader.execute(Gflops_per_mpi_task);
+      reader.execute(Gflop_per_mpi_task);
+      reader.execute(times_per_mpi_task);
+      reader.execute(Gflops_per_mpi_task);
 
-    reader.execute(sign);
+      reader.execute(sign);
 
-    reader.execute(L2_Sigma_difference);
-    reader.execute(standard_deviation);
+      reader.execute(L2_Sigma_difference);
+      reader.execute(standard_deviation);
 
-    reader.execute(chemical_potential);
-    reader.execute(density);
-    reader.execute(average_expansion_order);
+      reader.execute(chemical_potential);
+      reader.execute(density);
+      reader.execute(average_expansion_order);
 
-    reader.execute(Sigma_zero_moment);
+      reader.execute(Sigma_zero_moment);
 
-    reader.execute(n_k);
-    reader.execute(A_k);
-    reader.execute(orbital_occupancies);
+      reader.execute(n_k);
+      reader.execute(A_k);
+      reader.execute(orbital_occupancies);
 
-    reader.open_group("DCA-loop-functions");
-    reader.close_file();
+      reader.open_group("DCA-loop-functions");
+      reader.close_file();
+    };
+
+    if (format == "HDF5")
+      read_all(io::HDF5Reader());
+    else if (format == "JSON")
+      read_all(io::JSONReader());
+    else
+      throw(std::logic_error("Invalid format"));
   }
 
   concurrency.broadcast(last_completed_iteration);

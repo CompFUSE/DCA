@@ -21,7 +21,7 @@
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
@@ -113,7 +113,7 @@ private:
   update_chemical_potential_type update_chemical_potential_obj;
 
   std::string file_name_;
-  std::shared_ptr<io::HDF5Writer> output_file_;
+  std::shared_ptr<io::Writer> output_file_;
 
   unsigned dca_iteration_ = 0;
 
@@ -142,7 +142,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
-    output_file_ = std::make_shared<io::HDF5Writer>(false);
+    output_file_ = std::make_shared<io::Writer>(parameters.get_output_format(), false);
 
     dca::util::SignalHandler::registerFile(output_file_);
 
@@ -178,7 +178,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() 
   int last_completed = -1;
 
   if (parameters.autoresume()) {  // Try to read state of previous run.
-    last_completed = DCA_info_struct.tryToRead(file_name_ + ".tmp", concurrency);
+    last_completed =
+        DCA_info_struct.tryToRead(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
   }
   if (last_completed >= 0) {
     if (concurrency.id() == concurrency.first())

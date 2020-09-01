@@ -42,7 +42,7 @@ void SignalHandler::handle(int signum) {
   exit(signum);
 }
 
-void SignalHandler::registerFile(const std::shared_ptr<io::HDF5Writer>& writer) {
+void SignalHandler::registerFile(const std::shared_ptr<io::Writer>& writer) {
   file_ptrs_.emplace_back(writer);
 }
 

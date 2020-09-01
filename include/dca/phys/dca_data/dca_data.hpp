@@ -555,20 +555,28 @@ void DcaData<Parameters>::initialize_G0() {
 template <class Parameters>
 void DcaData<Parameters>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
-    io::HDF5Reader reader;
-    reader.open_file(filename);
+    auto read_all = [&](auto&& reader) {
+      reader.open_file(filename);
 
-    if (parameters_.adjust_chemical_potential()) {
-      reader.open_group("parameters");
-      reader.open_group("physics");
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
-      reader.close_group();
-      reader.close_group();
-    }
+      if (parameters_.adjust_chemical_potential()) {
+        reader.open_group("parameters");
+        reader.open_group("physics");
+        reader.execute("chemical-potential", parameters_.get_chemical_potential());
+        reader.close_group();
+        reader.close_group();
+      }
 
-    reader.open_group("functions");
-    reader.execute(Sigma);
-    reader.close_group();
+      reader.open_group("functions");
+      reader.execute(Sigma);
+      reader.close_group();
+    };
+
+    if (parameters_.get_output_format() == "HDF5")
+      read_all(io::HDF5Reader());
+    else if (parameters_.get_output_format() == "JSON")
+      read_all(io::JSONReader());
+    else
+      throw(std::logic_error("Invalid format"));
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());

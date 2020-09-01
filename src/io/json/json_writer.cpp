@@ -16,7 +16,8 @@ namespace dca {
 namespace io {
 // dca::io::
 
-JSONWriter::JSONWriter() : file_name(""), path(""), elements_in_group(0) {
+JSONWriter::JSONWriter(bool verbose)
+    : file_name(""), path(""), elements_in_group(0), verbose_(verbose) {
   ss << std::fixed;
   ss.precision(16);
 }
@@ -40,6 +41,8 @@ void JSONWriter::close_file() {
 
   of.flush();
   of.close();
+
+  file_name = "";
 }
 
 void JSONWriter::open_group(const std::string& name) {
@@ -97,5 +100,5 @@ void JSONWriter::execute(const std::string& name, const std::vector<std::string>
   elements_in_group.back() += 1;
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca

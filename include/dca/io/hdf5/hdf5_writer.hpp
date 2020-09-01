@@ -112,16 +112,8 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
-  operator bool() const {
+  operator bool() const noexcept {
     return static_cast<bool>(file_);
-  }
-
-  void lock() {
-    mutex_.lock();
-  }
-
-  void unlock() {
-    mutex_.unlock();
   }
 
   void set_verbose(bool verbose) {
@@ -144,8 +136,6 @@ private:
   std::vector<std::string> my_paths_;
 
   bool verbose_;
-
-  std::mutex mutex_;
 
   std::vector<hsize_t> size_check_;
 };
