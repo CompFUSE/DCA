@@ -108,9 +108,8 @@ public:
   template <typename Reader>
   void read(Reader& reader);
 
-  void write(std::string filename);
   template <typename Writer>
-  void write(Writer& reader);
+  void write(Writer& writer);
 
   void initialize();
   void initializeH0_and_H_i();
@@ -385,19 +384,6 @@ void DcaData<Parameters>::read(Reader& reader) {
   }
 
   reader.close_group();
-}
-
-template <class Parameters>
-void DcaData<Parameters>::write(std::string file_name) {
-  std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
-
-  dca::io::HDF5Writer writer;
-  writer.open_file(file_name);
-
-  parameters_.write(writer);
-  this->write(writer);
-
-  writer.close_file();
 }
 
 template <class Parameters>

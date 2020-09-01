@@ -38,10 +38,10 @@ public:
     }
   }
 
-  constexpr bool is_reader() {
+  constexpr bool is_reader() const noexcept {
     return false;
   }
-  constexpr bool is_writer() {
+  constexpr bool is_writer() const noexcept {
     return true;
   }
 
