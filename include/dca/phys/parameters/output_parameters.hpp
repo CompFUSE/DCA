@@ -53,7 +53,7 @@ public:
   }
 
   bool autoresume() const {
-      return autoresume_;
+    return autoresume_;
   }
 
   const std::string& get_output_format() const {
@@ -201,6 +201,10 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+  }
+
+  if (autoresume_ && output_format_ != "HDF5") {
+    throw(std::logic_error("Autoresume requires HDF5 output."));
   }
 }
 
