@@ -74,8 +74,8 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
   uint64_t start = 0;
   uint64_t end = 0;
   // This returns the linearized bounds of the function for a rank.
-  dca::parallel::util::getComputeRange(
-      concurrency_ptr->id(), concurrency_ptr->number_of_processors(), f1.size(), start, end);
+  dca::parallel::util::getComputeRange(concurrency_ptr->id(), concurrency_ptr->number_of_processors(),
+                                       static_cast<uint64_t>(f1.size()), start, end);
 
   // only set this ranks values
   for (int i = start; i <= end; ++i)
@@ -157,8 +157,8 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
   uint64_t start = 0;
   uint64_t end = 0;
   // This returns the linearized bounds of the function for a rank.
-  dca::parallel::util::getComputeRange(
-      concurrency_ptr->id(), concurrency_ptr->number_of_processors(), f1.size(), start, end);
+  dca::parallel::util::getComputeRange(concurrency_ptr->id(), concurrency_ptr->number_of_processors(),
+                                       static_cast<uint64_t>(f1.size()), start, end);
 
   // only set this ranks values
   for (int i = start; i <= end; ++i)

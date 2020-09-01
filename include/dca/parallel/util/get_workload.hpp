@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.edu)
 //
 // This file provides a function that computes the local work size given local id and total amount
 // of work.
@@ -42,10 +43,15 @@ int getWorkload(const unsigned int total_work, const unsigned int n_local_worker
   return getWorkload(local_work, n_local_workers, local_id);
 }
 
-/** This returns the first and last linear indexes, not the last + 1
+/** This returns the first and last linear indexes, not the last + 1.
+ *
+ *  This must match the getComputeRange in implementation in g4_helper.cuh.
+ *  This is sucha bad code smell and common code should be used, \todo how
  *
  *  i.e. write for(index i = 0; i <= end; ++i) ...
  *  this with getting the proper subindices and this being integral indexes and not iterators
+ *
+ *  
  */
 inline void getComputeRange(const int& my_rank, const int& mpi_size, const uint64_t& total_G4_size,
                             uint64_t& start, uint64_t& end) {
