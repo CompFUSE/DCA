@@ -13,6 +13,7 @@
 #define DCA_PHYS_DCA_LOOP_DCA_LOOP_DATA_HPP
 
 #include <complex>
+#include <filesystem>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -140,7 +141,7 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::tryToRead(const std::string& filename,
                                            const Concurrency& concurrency) {
-  if (concurrency.id() == concurrency.first() && io::fileExists(filename)) {
+  if (concurrency.id() == concurrency.first() && std::filesystem::exists(filename)) {
     io::HDF5Reader reader;
     reader.open_file(filename);
     reader.open_group("DCA-loop-functions");
