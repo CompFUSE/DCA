@@ -121,18 +121,35 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
 template <typename ParametersType, typename DcaDataType>
 void BseSolver<ParametersType, DcaDataType>::write() {
+  const std::string& output_format = parameters_.get_output_format();
   const std::string& file_name = parameters_.get_directory() + parameters_.get_filename_analysis();
 
   std::cout << "Start writing " << file_name << "." << std::endl;
 
-  dca::io::HDF5Writer writer;
-  writer.open_file(file_name);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-  parameters_.write(writer);
-  // dca_data_.write(writer);
-  this->write(writer);
+    parameters_.write(writer);
+    // dca_data_.write(writer);
+    this->write(writer);
 
-  writer.close_file();
+    writer.close_file();
+  }
+
+  else if (output_format == "HDF5") {
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+
+    parameters_.write(writer);
+    // dca_data_.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <typename ParametersType, typename DcaDataType>
