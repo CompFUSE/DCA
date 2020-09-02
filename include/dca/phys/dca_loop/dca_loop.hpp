@@ -15,12 +15,12 @@
 
 #include <cmath>
 #include <iostream>
-#include <filesystem>
 #include <stdexcept>
 #include <string>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
+#include "dca/io/filesystem.hpp"
 #include "dca/io/writer.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -166,7 +166,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     output_file_.reset();
 
     std::error_code code;
-    std::filesystem::rename(file_name_ + ".tmp", file_name_, code);
+    filesystem::rename(file_name_ + ".tmp", file_name_, code);
     if (code) {
       std::cerr << "Failed to rename file." << std::endl;
     }

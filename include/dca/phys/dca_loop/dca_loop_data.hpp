@@ -13,10 +13,10 @@
 #define DCA_PHYS_DCA_LOOP_DCA_LOOP_DATA_HPP
 
 #include <complex>
-#include <filesystem>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/io/filesystem.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -142,7 +142,7 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
-  if (concurrency.id() == concurrency.first() && std::filesystem::exists(filename)) {
+  if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     auto read_all = [&](auto&& reader) {
       reader.open_file(filename);
       reader.open_group("DCA-loop-functions");

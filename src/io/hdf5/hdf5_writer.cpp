@@ -11,8 +11,8 @@
 // This file implements hdf5_writer.hpp.
 
 #include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/filesystem.hpp"
 
-#include <filesystem>
 #include <stdexcept>
 
 namespace dca {
@@ -32,7 +32,7 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
     file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
   else {
-    if (std::filesystem::exists(file_name))
+    if (filesystem::exists(file_name))
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDWR);
     else
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
