@@ -14,6 +14,9 @@ Defined in <tt>output_parameters.hpp</tt>.
 `"directory":` string ("./")  
 Directory to write the output to.
 
+`"output-format":` string ("HDF5")  
+File format of the output files. Options are: "HDF5" | "JSON".
+
 `"autoresume":` bool (false)
 If true, looks for a file named `<filename-dca>.tmp` generated from an aborted run, and starts 
 the DCA loop from the last completed iteration. If the read is successful the parameter 
@@ -57,6 +60,7 @@ Write out the &chi;<sub>0</sub> function of the BSE lattice solver.
     {
         "output": {
             "directory": "./T=0.5",
+            "output-format": "HDF5",
             "autoresume" : true,
             "filename-dca": "dca.hdf5",
             "filename-analysis": "analysis.hdf5",
