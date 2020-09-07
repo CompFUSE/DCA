@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -27,30 +27,42 @@ class PhaseImpl;
 template <>
 class PhaseImpl<true> {
 public:
+  PhaseImpl() noexcept = default;
+
+  template <class T>
+  PhaseImpl(const std::complex<T>& val) noexcept {
+    multiply(val);
+  }
+
   template <class T>
   void multiply(const std::complex<T>& val) noexcept {
     if (val == std::complex<T>{0, 0})
       makeNull();
-    phase_ = std::fmod(phase_ + std::arg(val), M_PI);
+    phase_ += std::arg(val);
+    adjustPhase();
   }
 
   void multiply(const PhaseImpl& other) noexcept {
-    phase_ = std::fmod(phase_ + other.phase_, M_PI);
+    phase_ += other.phase_;
+    adjustPhase();
   }
 
   template <class T>
   void divide(const std::complex<T>& val) noexcept {
     if (val == std::complex<T>{0, 0})
       makeNull();
-    phase_ = std::fmod(phase_ - std::arg(val), M_PI);
+    phase_ -= std::arg(val);
+    adjustPhase();
   }
 
   void divide(const PhaseImpl& other) noexcept {
-    phase_ = std::fmod(phase_ - other.phase_, M_PI);
+    phase_ -= other.phase_;
+    adjustPhase();
   }
 
   void flip() noexcept {
-    phase_ = std::fmod(phase_ + M_PI, M_PI);
+    phase_ += M_PI;
+    adjustPhase();
   }
 
   void reset() noexcept {
@@ -73,12 +85,24 @@ public:
   }
 
 private:
+  // map phase_ back into [-2*pi, 2*pi] (redundancy is intended).
+  void adjustPhase() noexcept {
+    phase_ = std::fmod(phase_, 2 * M_PI);
+  }
+
   double phase_ = 0.;
 };
 
 template <>
 class PhaseImpl<false> {
 public:
+  PhaseImpl() noexcept = default;
+
+  template <class T>
+  PhaseImpl(const T& val) noexcept {
+    multiply(val);
+  }
+
   template <class T>
   void multiply(const T& val) noexcept {
     if (val == 0)
