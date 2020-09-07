@@ -497,28 +497,30 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
 
   const unsigned nb = g4_helper.get_bands();
   const unsigned nk = g4_helper.get_cluster_size();
+  assert(nb == 2);
 
-  CudaComplex<Real> contribution = makeComplex(Real(0.));
   const auto delta_k1 = g4_helper.kexMinus(k1, k_ex);
   const auto delta_k2 = g4_helper.kexMinus(k2, k_ex);
   const auto delta_w1 = g4_helper.wexMinus(w1, k_ex);
   const auto delta_w2 = g4_helper.wexMinus(w2, k_ex);
+  CudaComplex<Real> contribution = makeComplex(Real(0.));
+
 
   // same spin contribution
-  // \sum_s G(k1, k2, -s, -s) * G(k_ex - k1, k_ex - k2, s, s).
-  contribution += getG(G, ldg, k1, k2, w1, w2, 1, 1) *
-                  getG(G, ldg, delta_k1, delta_k2, delta_w1, delta_w2, 0, 0);
+  // \sum_s G(k2, k1, -s, -s) * G(k_ex - k2, k_ex - k1, s, s).
+  contribution += getG(G, ldg, k2, k1, w2, w1, 1, 1) *
+                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, 0, 0);
   contribution += getG(G, ldg, k1, k2, w1, w2, 0, 0) *
-                  getG(G, ldg, delta_k1, delta_k2, delta_w1, delta_w2, 1, 1);
+                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, 1, 1);
 
   // opposite spin contribution
-  // - \sum_s G(k1, k_ex - k2, -s, s) * G(k_ex - k1, k2, s, -s).
-  contribution += getG(G, ldg, k1, delta_k2, w1, delta_w2, 1, 0) *
-                  getG(G, ldg, delta_k1, k2, delta_w1, w2, 0, 1);
-  contribution += getG(G, ldg, k1, delta_k2, w1, delta_w2, 0, 1) *
-                  getG(G, ldg, delta_k1, k2, delta_w1, w2, 1, 0);
+  // - \sum_s G(k2, k_ex - k1, -s, s) * G(k_ex - k2, k1, s, -s).
+  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, 1, 0) *
+                  getG(G, ldg, delta_k2, k1, delta_w2, w1, 0, 1);
+  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, 0, 1) *
+                  getG(G, ldg, delta_k2, k1, delta_w2, w1, 1, 0);
 
-  contribution = (factor * 0.5) * contribution;
+  contribution *= (factor * 0.5);
 
   CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
   if (atomic)

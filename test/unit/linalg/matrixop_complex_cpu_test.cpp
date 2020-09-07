@@ -974,8 +974,8 @@ TEST(MatrixCPUTest, DeterminantAndLogDeterminant) {
   m(2, 0) = {0.5, -1}, m(2, 1) = {-0.5, -3}, m(2, 2) = {0, 0};
 
   const auto det = dca::linalg::matrixop::determinant(m);
-  const auto [log_det, phase] = dca::linalg::matrixop::logDeterminant(m);
 
+  const auto [log_det, phase] = dca::linalg::matrixop::logDeterminant(m);
   const auto det2 = std::exp(log_det) * phase.getSign();
 
   EXPECT_NEAR(std::real(det), std::real(det2), 1e-14);

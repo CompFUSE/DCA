@@ -1251,8 +1251,8 @@ Scalar determinant(const Matrix<Scalar, device>& M) {
   return determinantIP(M_copy);
 }
 
-// Returns: logarithm of the absolute value of the determinant and the sign of the determinant,
-//          or zero if the determinant is zero.
+// Returns: logarithm of the absolute value of the determinant and the sign or phase of the
+// determinant. If the determinant is zero returns the null sign/phase.
 // Postcondition: M is its LU decomposition.
 template <template <typename, DeviceType> class MatrixType, typename Scalar>
 auto logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<int>& ipiv) {
