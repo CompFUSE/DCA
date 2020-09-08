@@ -36,7 +36,7 @@ class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
-        initial_configuration_size_(10),
+        initial_configuration_size_(0),
         initial_matrix_size_(128),
         max_submatrix_size_(128),
         neglect_bennett_updates_(false),

@@ -48,6 +48,11 @@ struct Memory<CPU> {
       std::complex<ScalarType>* ptr, size_t size) {
     std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
+
+  // Do nothing for non arithmetic types.
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == false, void> setToZero(
+      ScalarType /*ptr*/, size_t /*size*/) {}
 };
 
 #ifdef DCA_HAVE_CUDA
@@ -73,8 +78,8 @@ struct Memory<GPU> {
 };
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_MEMORY_HPP

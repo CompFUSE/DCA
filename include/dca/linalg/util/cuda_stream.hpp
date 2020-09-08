@@ -31,9 +31,14 @@ public:
   }
 
   CudaStream(const CudaStream& other) = delete;
+  CudaStream& operator=(const CudaStream& other) = delete;
 
-  CudaStream(CudaStream&& other) {
-    std::swap(stream_, other.stream_);
+  CudaStream(CudaStream&& other) noexcept {
+    swap(other);
+  }
+  CudaStream& operator=(CudaStream&& other) noexcept {
+    swap(other);
+    return *this;
   }
 
   void sync() const {
@@ -47,6 +52,10 @@ public:
 
   operator cudaStream_t() const {
     return stream_;
+  }
+
+  void swap(CudaStream& other) noexcept {
+    std::swap(stream_, other.stream_);
   }
 
 private:

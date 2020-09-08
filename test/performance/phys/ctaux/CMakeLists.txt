@@ -1,4 +1,3 @@
-
 add_executable(ctaux_walker_performance_test ctaux_walker_performance_test.cpp)
 
 target_link_libraries(ctaux_walker_performance_test PRIVATE ${DCA_LIBS})

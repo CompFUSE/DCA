@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#include "dca/config/accumulation_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -60,14 +59,20 @@ void initialize() {
 }
 
 template <typename Scalar, dca::linalg::DeviceType device>
-using Matrix = dca::linalg::ReshapableMatrix<Scalar, device>;
+using RMatrix = dca::linalg::ReshapableMatrix<Scalar, device>;
 
-TEST(SpaceTransform2DGpuTest, Execute) {
+template <typename Real>
+using SpaceTransform2DGpuTest = ::testing::Test;
+using TestTypes = ::testing::Types<float, double>;
+TYPED_TEST_CASE(SpaceTransform2DGpuTest, TestTypes);
+
+TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   initialize();
 
   using dca::func::dmn_variadic;
   using dca::func::function;
-  using Complex = std::complex<double>;
+  using Real = TypeParam;
+  using Complex = std::complex<Real>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> M_in;
 
@@ -91,20 +96,22 @@ TEST(SpaceTransform2DGpuTest, Execute) {
 
   // Transform on the CPU.
   function<Complex, dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
-                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>
       M_dev(M_in);
-  magma_queue_t queue;
-  magma_queue_create(&queue);
-  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, double> transform_obj(nw, queue);
-  transform_obj.execute(M_dev);
-  cudaStreamSynchronize(transform_obj.get_stream());
-  magma_queue_destroy(queue);
 
-  Matrix<Complex, dca::linalg::CPU> M_out(M_dev);
+  dca::linalg::util::MagmaQueue queue;
+
+  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real> transform_obj(nw, queue);
+  transform_obj.execute(M_dev);
+
+  queue.getStream().sync();
+
+  constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 500;
+
+  RMatrix<Complex, dca::linalg::CPU> M_out(M_dev);
   for (int w2 = 0; w2 < 2 * nw; ++w2)
     for (int w1 = 0; w1 < nw; ++w1)
       for (int r2 = 0; r2 < nr; ++r2)
@@ -115,6 +122,6 @@ TEST(SpaceTransform2DGpuTest, Execute) {
               auto index = [=](int b, int r, int w) { return b + nb * r + nb * nr * w; };
               const Complex val2 = M_out(index(b1, r1, w1), index(b2, r2, w2));
 
-              EXPECT_LE(std::abs(val1 - val2), 5e-7);
+              EXPECT_LE(std::abs(val1 - val2), tolerance);
             }
 }

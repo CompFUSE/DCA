@@ -103,8 +103,10 @@ void performTest(const std::string& input, const std::string& baseline) {
       const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
       const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4()[0]);
 
-      EXPECT_GE(5e-7, err_g.l_inf);
-      EXPECT_GE(5e-7, err_g4.l_inf);
+      using MCScalar = typename QmcSolver::MCScalar;
+      const auto tolerance = std::is_same<MCScalar, double>::value ? 5e-7 : 1e-5;
+      EXPECT_GE(tolerance, err_g.l_inf);
+      EXPECT_GE(tolerance, err_g4.l_inf);
     }
   }
   else {
@@ -114,7 +116,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       writer.open_file(input_dir + baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
-      writer.execute(data.get_G4()[0]);
+      writer.execute("G4", data.get_G4()[0]);
       writer.close_group(), writer.close_file();
     }
   }

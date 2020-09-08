@@ -26,7 +26,9 @@
 #include "dca/function/domains/local_domain.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
-std::unique_ptr<dca::parallel::MPIConcurrency> concurrency;
+//See below, life cycle issue with MPI
+//std::unique_ptr<dca::parallel::MPIConcurrency> concurrency;
+dca::parallel::MPIConcurrency* concurrency_ptr;
 
 TEST(MPIGatherTest, GatherLocalDmn) {
   using Dmn1 = dca::func::dmn<4>;
@@ -43,7 +45,7 @@ TEST(MPIGatherTest, GatherLocalDmn) {
     val2[i] = i;
   Dmn2::set_elements(val2);
 
-  dca::parallel::MPIGang gang(*concurrency, 4);
+  dca::parallel::MPIGang gang(*concurrency_ptr, 4);
 
   LocalDmn::initialize(gang);
 
@@ -55,7 +57,7 @@ TEST(MPIGatherTest, GatherLocalDmn) {
       local_f(i1, i2) = Dmn1::get_elements()[i1] * LocalDmn::get_elements()[i2];
 
 
-  concurrency->gather(local_f, f, gang);
+  concurrency_ptr->gather(local_f, f, gang);
 
   for (int i2 = 0; i2 < Dmn2::get_size(); ++i2)
     for (int i1 = 0; i1 < Dmn1::get_size(); ++i1)
@@ -65,16 +67,20 @@ TEST(MPIGatherTest, GatherLocalDmn) {
 int main(int argc, char** argv) {
   int result = 0;
 
-  concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
-
+  // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after the finalize.
+  // concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
+  concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
+ 
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  if (concurrency->id() != 0) {
+  if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
   result = RUN_ALL_TESTS();
 
+  delete concurrency_ptr;
+  
   return result;
 }
