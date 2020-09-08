@@ -87,8 +87,8 @@ public:
   // other_acc.
   void sumTo(this_type& other_acc);
 
-  linalg::util::CudaStream* get_stream() {
-    return &queues_[0];
+  const linalg::util::CudaStream* get_stream() {
+    return &queues_[0].getStream();
   }
 
   void synchronizeCopy() {
@@ -252,7 +252,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
-    G0[s].setAsync(G0_host[s], queues_[s]);
+    G0[s].setAsync(G0_host[s], queues_[s].getStream());
   }
 }
 
@@ -265,10 +265,10 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
     try {
       typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
-        G4_channel.setStream(queues_[0]);
+        G4_channel.setStream(queues_[0].getStream());
       }
       G4_channel.resizeNoCopy(tp_dmn.get_size());
-      G4_channel.setToZeroAsync(queues_[0]);
+      G4_channel.setToZeroAsync(queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -324,7 +324,7 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], queues_[0]);
+    M_dev[s].setAsync(M[s], queues_[0].getStream());
 
   return accumulate(M_dev, configs, sign);
 }
@@ -406,32 +406,38 @@ float TpAccumulator<Parameters, linalg::GPU>::updateG4(const std::size_t channel
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start,
+          end);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");

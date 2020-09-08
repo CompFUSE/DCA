@@ -9,9 +9,6 @@
 //
 // No-change test for CT-INT.
 // Square lattice with single band and double occupancy repulsion U.
-#define DCA_WITH_CUDA
-
-
 #include <iostream>
 #include <string>
 

@@ -54,7 +54,6 @@ public:
 
 private:
   const linalg::util::MagmaQueue& queue_;
-  const linalg::util::CudaStream& stream_;
   CudaEvent copied_;
 
   linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
@@ -69,7 +68,7 @@ private:
 
 template <typename ScalarType>
 MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(const linalg::util::MagmaQueue& queue)
-    : queue_(queue), stream_(queue), m_max_(0), n_max_(0), k_max_(0) {}
+    : queue_(queue), m_max_(0), n_max_(0), k_max_(0) {}
 
 template <typename ScalarType>
 MagmaVBatchedGemm<ScalarType>::MagmaVBatchedGemm(const int size, const linalg::util::MagmaQueue& queue)
@@ -114,17 +113,18 @@ void MagmaVBatchedGemm<ScalarType>::execute(const char transa, const char transb
   ldc_.push_back(0);
 
   // TODO: store in a buffer if the performance gain is necessary.
-  a_ptr_dev_.setAsync(a_ptr_, stream_);
-  b_ptr_dev_.setAsync(b_ptr_, stream_);
-  c_ptr_dev_.setAsync(c_ptr_, stream_);
-  lda_dev_.setAsync(lda_, stream_);
-  ldb_dev_.setAsync(ldb_, stream_);
-  ldc_dev_.setAsync(ldc_, stream_);
-  m_dev_.setAsync(m_, stream_);
-  n_dev_.setAsync(n_, stream_);
-  k_dev_.setAsync(k_, stream_);
+  const auto& stream = queue_.getStream();
+  a_ptr_dev_.setAsync(a_ptr_, stream);
+  b_ptr_dev_.setAsync(b_ptr_, stream);
+  c_ptr_dev_.setAsync(c_ptr_, stream);
+  lda_dev_.setAsync(lda_, stream);
+  ldb_dev_.setAsync(ldb_, stream);
+  ldc_dev_.setAsync(ldc_, stream);
+  m_dev_.setAsync(m_, stream);
+  n_dev_.setAsync(n_, stream);
+  k_dev_.setAsync(k_, stream);
 
-  copied_.record(stream_);
+  copied_.record(stream);
 
   const int n_batched = a_ptr_.size();
   magma::magmablas_gemm_vbatched_max_nocheck(
