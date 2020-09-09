@@ -63,7 +63,7 @@ public:
 
   // Returns: the stream associated with the magma queue.
   cudaStream_t get_stream() const {
-    return stream_;
+    return queue_.getStream();
   }
 
   std::size_t deviceFingerprint() const {
@@ -87,7 +87,6 @@ private:
   const int nc_;
 
   const linalg::util::MagmaQueue& queue_;
-  const linalg::util::CudaStream& stream_;
 
   std::shared_ptr<RMatrix> workspace_;
 
@@ -102,7 +101,6 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos,
       nw_(2 * nw_pos),
       nc_(RDmn::dmn_size()),
       queue_(queue),
-      stream_(queue),
       plan1_(queue_),
       plan2_(queue_) {
   workspace_ = std::make_shared<RMatrix>();
@@ -159,7 +157,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::phaseFactorsAndRearrange(const RMatr
       BaseClass::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
   details::phaseFactorsAndRearrange(in.ptr(), in.leadingDimension(), out.ptr(),
                                     out.leadingDimension(), n_bands_, nc_, nw_, phase_factors_ptr,
-                                    stream_);
+                                    queue_);
 }
 
 template <class RDmn, class KDmn, typename Real>

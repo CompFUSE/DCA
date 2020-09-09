@@ -14,7 +14,7 @@
 #include <memory>
 #include <vector>
 
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/writer.hpp"
 
 namespace dca {
 namespace util {
@@ -24,13 +24,13 @@ class SignalHandler{
 public:
     static void init(bool verbose = false);
 
-    static void registerFile(const std::shared_ptr<io::HDF5Writer>& writer);
+    static void registerFile(const std::shared_ptr<io::Writer>& writer);
 
 private:
     static void handle(int signum);
 
     static inline bool verbose_;
-    static inline std::vector<std::weak_ptr<io::HDF5Writer>> file_ptrs_;
+    static inline std::vector<std::weak_ptr<io::Writer>> file_ptrs_;
 };
 
 }  // namespace util

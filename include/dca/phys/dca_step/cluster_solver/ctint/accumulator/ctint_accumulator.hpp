@@ -100,7 +100,7 @@ private:
   MatrixConfiguration configuration_;
   int sign_ = 0;
 
-  std::vector<linalg::util::CudaStream*> streams_;
+  std::vector<const linalg::util::CudaStream*> streams_;
   linalg::util::CudaEvent event_;
 
   util::Accumulator<int> accumulated_sign_;

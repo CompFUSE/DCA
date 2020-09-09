@@ -15,8 +15,6 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "dca/io/hdf5/hdf5_writer.hpp"
-
 namespace dca {
 namespace io {
 // dca::io::
@@ -27,11 +25,15 @@ HDF5Reader::~HDF5Reader() {
 }
 
 void HDF5Reader::open_file(std::string file_name) {
-  if (!fileExists(file_name)) {
-    throw std::runtime_error("Cannot open file : " + file_name);
-  }
-  else if (verbose_) {
-    std::cout << "\n\n\topening file : " << file_name << "\n";
+  {  // check whether the file exists ...
+    std::wifstream tmp(file_name.c_str());
+
+    if (!tmp or !tmp.good() or tmp.bad()) {
+      throw std::runtime_error("Cannot open file : " + file_name);
+    }
+    else if (verbose_) {
+      std::cout << "\n\n\topening file : " << file_name << "\n";
+    }
   }
 
   file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDONLY);

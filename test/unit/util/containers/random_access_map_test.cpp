@@ -21,33 +21,53 @@
 TEST(RandomAccessMapTest, InsertFindErase) {
   dca::util::RandomAccessMap<std::string, int> map;
   // Map is empty
-  EXPECT_THROW(map.erase("foo"), std::logic_error);
+  EXPECT_FALSE(map.erase("foo"));
 
   map.insert("foo", 2);
   map.insert("bar", 1);
   EXPECT_EQ(2, map.size());
 
-  EXPECT_EQ(2, map.find("foo"));
-  EXPECT_EQ(1, map.find("bar"));
-  EXPECT_EQ("foo", map[1].first);  // foo > bar.
-  EXPECT_EQ(2, map[1].second);
+  EXPECT_EQ(2, map.findByKey("foo")->second);
+  EXPECT_EQ(1, map.findByKey("bar")->second);
+  EXPECT_EQ("foo", map.findByIndex(1)->first);  // foo > bar.
+  EXPECT_EQ(2, map.findByIndex(1)->second);
 
-  EXPECT_EQ("bar", map[0].first);
-  EXPECT_EQ(1, map[0].second);
+  EXPECT_EQ("bar", map.findByIndex(0)->first);
+  EXPECT_EQ(1, map.findByIndex(0)->second);
 
-  EXPECT_THROW(map.find("baz"), std::logic_error);
-  EXPECT_THROW(map[2], std::logic_error);
+  EXPECT_EQ(map.findByKey("baz"), map.end());
+  EXPECT_THROW(map.findByIndex(2), std::out_of_range);
+
+  // Change value.
+  auto it_bar = map.findByKey("bar");
+  ASSERT_TRUE(it_bar);
+  it_bar->second = -4;
+  EXPECT_EQ(-4, map.findByKey("bar")->second);
+
+  // Erase by iterator
+  map.erase(it_bar);
+  ASSERT_TRUE(map.checkConsistency());
+  // Erase by key.
+  EXPECT_TRUE(map.erase("foo"));
 
   // Map is now empty
-  map.erase("foo");
-  map.erase("bar");
   EXPECT_EQ(0, map.size());
 
-  // Test insertion after root has been deleted.
-  map.insert("baz", 3);
+  // Test insertion after root has been deleted and test insert return value.
+  auto [it_baz, success] = map.insert("baz", 3);
+  EXPECT_TRUE(success);
   EXPECT_EQ(1, map.size());
-  EXPECT_EQ(3, map.find("baz"));
-  EXPECT_EQ(3, map[0].second);
+  EXPECT_EQ(3, (*map.findByKey("baz")).second);
+  EXPECT_EQ(3, (*map.findByIndex(0)).second);
+
+  // Change iterator value
+  it_baz->second = 5;
+  EXPECT_EQ(5, map.findByKey("baz")->second);
+
+  auto [it2, success2] = map.insert("baz", 6);
+  EXPECT_FALSE(success2);
+  EXPECT_EQ(it_baz, it2);
+  EXPECT_EQ(6, it2->second);
 }
 
 // Perform the test with a number of randomly inserted and removed values.
@@ -90,12 +110,14 @@ TEST(RandomAccessMapTest, LinearizeAndRandomAccess) {
 
   std::size_t idx = 0;
   for (auto it : std_map) {
+    const auto my_it = my_map.findByIndex(idx);
+
     EXPECT_EQ(it.first, linearized[idx].first);
     EXPECT_EQ(it.second, linearized[idx].second);
 
     // Test random accessor.
-    EXPECT_EQ(it.first, my_map[idx].first);
-    EXPECT_EQ(it.second, my_map[idx].second);
+    EXPECT_EQ(it.first, my_it->first);
+    EXPECT_EQ(it.second, my_it->second);
 
     ++idx;
   }

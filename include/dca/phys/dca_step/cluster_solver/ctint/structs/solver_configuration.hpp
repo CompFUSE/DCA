@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
@@ -116,7 +116,7 @@ public:
     return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
-  void write(io::HDF5Writer& writer, const std::string& stamp) const;
+  void write(io::Writer& writer, const std::string& stamp) const;
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);

@@ -62,7 +62,7 @@ public:
 
 public:
   SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref,
-                       const std::shared_ptr<io::HDF5Writer>& = nullptr);
+                       const std::shared_ptr<io::Writer>& = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -147,7 +147,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
+    parameters_type& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),

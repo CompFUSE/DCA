@@ -36,7 +36,7 @@ std::size_t getRandomElement(const std::vector<const VertexTypeList*>& container
   std::size_t idx = size * rand;
   for (auto c_ptr : container_ptrs) {
     if (idx < c_ptr->size())
-      return (*c_ptr)[idx];
+      return (*c_ptr).findByIndex(idx);
     idx -= c_ptr->size();
   }
 

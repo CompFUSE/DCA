@@ -38,7 +38,7 @@ public:
   typedef JSON_context JsonDataType;
 
 public:
-  JSONWriter();
+  JSONWriter(bool verbose = false);
 
   bool is_reader() const {
     return false;
@@ -66,6 +66,9 @@ public:
 
   template <typename scalartype>
   void execute(const std::string& name, const std::vector<scalartype>& value);
+
+  template <typename Scalar, std::size_t n>
+  void execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
 
   template <typename scalartype>
   void execute(const std::string& name, const std::vector<std::vector<scalartype>>& value);
@@ -104,15 +107,32 @@ public:
   void execute(const std::string& name,
                const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A);
 
+  template <typename Scalar>
+  void execute(const linalg::Matrix<Scalar, linalg::CPU>& A) {
+    execute(A.get_name(), A);
+  }
+
   template <class T>
-  void execute(const std::string& name,
-	       const std::unique_ptr<T>& obj);
+  void execute(const std::string& name, const std::unique_ptr<T>& obj);
 
   template <class T>
   void execute(const std::unique_ptr<T>& obj);
 
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
+
+  template <class T>
+  void rewrite(const std::string& /*name*/, const T& /*obj*/) {
+    throw(std::runtime_error("JSON writer does not support rewriting."));
+  }
+
+  void set_verbose(bool verbose) noexcept {
+    verbose_ = verbose;
+  }
+
+  operator bool() const noexcept {
+    return file_name != "";
+  }
 
 private:
   std::stringstream ss;
@@ -122,6 +142,8 @@ private:
   std::string path;
 
   std::vector<int> elements_in_group;
+
+  bool verbose_;
 };
 
 template <typename arbitrary_struct_t>
@@ -134,9 +156,8 @@ void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, const std::string
 }
 
 template <typename scalartype>
-void JSONWriter::execute(
-    const std::string& name,
-    const scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
+void JSONWriter::execute(const std::string& name,
+                         const scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -172,6 +193,32 @@ void JSONWriter::execute(
   for (size_t i = 0; i < value.size(); i++) {
     ss << value[i];
 
+    if (i < value.size() - 1)
+      ss << ", ";
+  }
+
+  ss << "]";
+
+  elements_in_group.back() += 1;
+}
+
+template <typename Scalartype, std::size_t n>
+void JSONWriter::execute(const std::string& name,
+                         const std::vector<std::array<Scalartype, n>>& value) {
+  if (elements_in_group.back() != 0)
+    ss << ",\n";
+
+  ss << get_path() << "\"" << name << "\" : [";
+
+  for (size_t i = 0; i < value.size(); i++) {
+    ss << "[";
+    for (size_t j = 0; j < n; ++j) {
+      ss << value[i][j];
+      if (j != n - 1)
+        ss << ", ";
+    }
+
+    ss << "]";
     if (i < value.size() - 1)
       ss << ", ";
   }
@@ -225,7 +272,8 @@ void JSONWriter::execute(const std::string& name, const func::dmn_0<domain_type>
 
 template <typename scalar_type, typename domain_type>
 void JSONWriter::execute(const func::function<scalar_type, domain_type>& f) {
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -279,7 +327,8 @@ void JSONWriter::execute(const std::string& name, const func::function<scalar_ty
 
 template <typename scalar_type, typename domain_type>
 void JSONWriter::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -457,8 +506,7 @@ void JSONWriter::execute(const std::string& name,
 }
 
 template <class T>
-void JSONWriter::execute(const std::string& name,
-			 const std::unique_ptr<T>& obj) {
+void JSONWriter::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)
     execute(name, *obj);
 }
@@ -563,7 +611,7 @@ void JSONWriter::execute(stream_type& os, const JsonAccessor& w) {
   }
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_JSON_JSON_WRITER_HPP

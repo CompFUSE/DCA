@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_workload.hpp"
@@ -32,6 +32,7 @@
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/distribution/dist_types.hpp"
 
 namespace dca {
 namespace phys {
@@ -55,7 +56,7 @@ public:
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
-                             const std::shared_ptr<io::HDF5Writer>& file = nullptr);
+                             const std::shared_ptr<io::Writer>& file = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -111,7 +112,7 @@ private:
   std::vector<dca::io::Buffer> config_dump_;
   stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
-  std::shared_ptr<io::HDF5Writer> writer_;
+  std::shared_ptr<io::Writer> writer_;
 
   bool last_iteration_ = false;
   bool read_configuration_ = false;
@@ -120,7 +121,7 @@ private:
 
 template <class QmciSolver>
 StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
-    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& writer)
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& writer)
     : BaseClass(parameters_ref, data_ref),
 
       nr_walkers_(parameters_.get_walkers()),

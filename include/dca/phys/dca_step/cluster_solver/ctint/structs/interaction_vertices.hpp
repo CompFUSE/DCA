@@ -147,7 +147,7 @@ void InteractionVertices::initializeFromHamiltonian(
   // Assume the density-density interaction Hamiltonian function is double counted, i.e.
   // H(b1, b2, r1 - r2) == H(b2, b1, r -r2) and both terms describe the same addendum to the
   // physical Hamiltonian.
-  func::function<bool, func::dmn_variadic<Nu, Nu, Rdmn>> already_inserted;
+  func::function<char, func::dmn_variadic<Nu, Nu, Rdmn>> already_inserted;
   const int r0 = Rdmn::parameter_type::origin_index();
   for (unsigned short nu1 = 0; nu1 < Nu::dmn_size(); nu1++) {
     for (unsigned short nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
