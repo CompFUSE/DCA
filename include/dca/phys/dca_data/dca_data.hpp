@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
@@ -306,10 +307,15 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
-    // Allocate memory for G4.
-    G4_.emplace_back("G4_" + toString(channel));
-    // Allocate memory for error on G4.
-    G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    // Allocate memory for G4, eventually distributed among all processes.
+    if (parameters_.get_g4_distribution() == DistType::MPI) {
+      G4_.emplace_back("G4_" + toString(channel), concurrency_);
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err", concurrency_);
+    }
+    else {
+      G4_.emplace_back("G4_" + toString(channel));
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    }
   }
 }
 
@@ -475,7 +481,10 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.isAccumulatingG4()) {
+  // When distributed_g4_enabled, one should assume G4 size is fairly large and then should not
+  // accumulate G4 into one node and thus cannot write it out
+  // Until ADIOS2 is added
+  if (parameters_.isAccumulatingG4() && parameters_.get_g4_distribution() == DistType::NONE) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_err_);

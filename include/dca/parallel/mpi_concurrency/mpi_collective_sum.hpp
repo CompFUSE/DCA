@@ -17,6 +17,7 @@
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
 
 #include <algorithm>  // std::min
+#include <numeric>  // std::partial_sum
 #include <map>
 #include <string>
 #include <utility>  // std::move, std::swap

@@ -97,18 +97,15 @@ int TwoBandCu<PointGroup>::transformationSign(int b1, int b2, int s) {
   if (b1 == b2)
     return 1;
 
-  //  using List = typename PointGroup::PointGroup_list;
-  using dca::util::IndexOf;
-
   constexpr bool symmetrize_off_diagonal = true;
 
   if (symmetrize_off_diagonal) {
-    //    const bool is_odd_rotation = IndexOf<domains::Cn_2D<1, 4>, List>::value == s ||
-    //                                 IndexOf<domains::Cn_2D<3, 4>, List>::value == s;
     // TODO: generalize.
-    const bool is_odd_rotation = (s % 2) == 1;
 
-    return is_odd_rotation ? -1 : 1;
+    const bool is_odd_rotation = s == 1 || s == 3;
+    const bool is_odd_reflection = s == 4 || s == 6;
+
+    return is_odd_reflection || is_odd_rotation ? -1 : 1;
   }
 
   else {

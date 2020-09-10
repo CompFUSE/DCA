@@ -58,8 +58,6 @@
 
   "Monte-Carlo-integration" :
   {
-    "Sigma-file" : "zero",
-
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
     "measurements-per-process-and-accumulator" : 500,

@@ -43,6 +43,9 @@
 #ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#ifdef DCA_HAVE_MPI
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
+#endif // DCA_HAVE_MPI
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -51,10 +54,10 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real = double>
+  template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST = dca::DistType::NONE, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
-  using this_type = CtauxAccumulator<device_t, Parameters, Data, Real>;
+  using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
 
   using ParametersType = Parameters;
   using DataType = Data;
@@ -82,7 +85,7 @@ public:
 
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
-  CtauxAccumulator(Parameters& parameters_ref, Data& data_ref, int id);
+  CtauxAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -160,7 +163,7 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return accumulator::TpAccumulator<Parameters, device_t>::staticDeviceFingerprint();
+    return accumulator::TpAccumulator<Parameters, device_t, DIST>::staticDeviceFingerprint();
   }
 
 private:
@@ -173,9 +176,9 @@ private:
   void accumulate_two_particle_quantities();
 
 protected:
-  Parameters& parameters_;
+  const Parameters& parameters_;
   Data& data_;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   int thread_id;
 
@@ -203,13 +206,13 @@ protected:
 
   std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
 
-  accumulator::TpAccumulator<Parameters, device_t> two_particle_accumulator_;
+  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
 
   bool perform_tp_accumulation_ = false;
 };
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-CtauxAccumulator<device_t, Parameters, Data, Real>::CtauxAccumulator(Parameters& parameters_ref,
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const Parameters& parameters_ref,
                                                                      Data& data_ref, int id)
     : MC_accumulator_data(),
 
@@ -229,10 +232,10 @@ CtauxAccumulator<device_t, Parameters, Data, Real>::CtauxAccumulator(Parameters&
 
       single_particle_accumulator_obj(parameters_, compute_std_deviation_),
 
-      two_particle_accumulator_(data_.G0_k_w_cluster_excluded, parameters_) {}
+      two_particle_accumulator_(data_.G0_k_w_cluster_excluded, parameters_, id) {}
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dca_iteration) {
   // Note: profiling this function breaks the PAPI profiler as both the master
   // thread and the first
   // worker call this with the same thread_id.
@@ -262,8 +265,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::initialize(int dca_iter
   }
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::finalize() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::finalize() {
   // Note: only one thread calls this function.
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__);
 
@@ -275,7 +278,7 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    Real factor = 1. / std::sqrt(parameters_.get_measurements() - 1);
+    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(DCA_iteration) - 1);
 
     M_r_w_stddev *= factor;
   }
@@ -287,8 +290,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::finalize() {
     two_particle_accumulator_.finalize();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, Real>::get_configuration(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::get_configuration(
     e_spin_states_type e_spin) {
   if (e_spin == e_UP)
     return hs_configuration_[0];
@@ -296,9 +299,9 @@ std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, Real
     return hs_configuration_[1];
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 template <typename Writer>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::write(Writer& writer) {
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& writer) {
   //       writer.open_group("CT-AUX-SOLVER-functions");
 
 #ifdef DCA_WITH_QMC_BIT
@@ -330,9 +333,9 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::write(Writer& writer) {
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j}
  *   \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 template <typename walker_type>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::updateFrom(walker_type& walker) {
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::updateFrom(walker_type& walker) {
   profiler_type profiler("update from", "CT-AUX accumulator", __LINE__, thread_id);
 
   GFLOP += walker.get_Gflop();
@@ -361,8 +364,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::updateFrom(walker_type&
   two_particle_accumulator_.syncStreams(*event);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::measure() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
@@ -391,8 +394,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::measure() {
  * deviation and of the
  * error.
  */
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::store_standard_deviation(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::store_standard_deviation(
     int nr_measurements, std::ofstream& points_file, std::ofstream& norm_file) {
   single_particle_accumulator_obj.store_standard_deviation(nr_measurements, points_file, norm_file);
 }
@@ -402,8 +405,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::store_standard_deviatio
  * particle accumulator.
  *         It has to be called after each measurement.
  */
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::update_sum_squares() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::update_sum_squares() {
   single_particle_accumulator_obj.update_sum_squares();
 }
 #endif
@@ -414,8 +417,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::update_sum_squares() {
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_single_particle_quantities() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
 
   single_particle_accumulator_obj.accumulate(M_, hs_configuration_, current_sign);
@@ -430,15 +433,15 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_single_parti
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_equal_time_quantities() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_equal_time_quantities() {
   profiler_type profiler("equal-time-measurements", "CT-AUX accumulator", __LINE__, thread_id);
 
   return accumulate_equal_time_quantities(M_);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_equal_time_quantities(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_equal_time_quantities(
     const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M) {
   for (int s = 0; s < 2; ++s)
     M_host_[s].setAsync(M[s], thread_id, s);
@@ -448,8 +451,8 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_equal_time_q
   return accumulate_equal_time_quantities(M_host_);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_equal_time_quantities(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_equal_time_quantities(
     const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M) {
   equal_time_accumulator_ptr_->accumulateAll(hs_configuration_[0], M[0], hs_configuration_[1], M[1],
                                              current_sign);
@@ -463,14 +466,14 @@ void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_equal_time_q
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::accumulate_two_particle_quantities() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_two_particle_quantities() {
   profiler_type profiler("tp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
   GFLOP += 1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-void CtauxAccumulator<device_t, Parameters, Data, Real>::sumTo(this_type& other) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::sumTo(this_type& other) {
   other.GFLOP += GFLOP;
 
   other.accumulated_sign += accumulated_sign;
