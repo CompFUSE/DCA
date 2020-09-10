@@ -1,0 +1,78 @@
+{
+  "output": {
+    "directory": "./",
+    "output-format": "HDF5",
+    "filename-dca": "output.ctint_sp_DCA+_mpi_pthread_test.hdf5"
+  },
+
+  "physics": {
+    "beta": 1.,
+    "density": 0.9,
+    "chemical-potential": 0.,
+    "adjust-chemical-potential": true
+  },
+
+  "single-band-Hubbard-model": {
+    "t": 1.,
+    "U": 4.
+  },
+
+  "DCA": {
+    "initial-self-energy": "zero",
+    "iterations": 3,
+    "self-energy-mixing-factor": 0.75,
+    "interacting-orbitals": [0],
+
+    "coarse-graining": {
+      "k-mesh-recursion": 3,
+      "periods": 2,
+      "quadrature-rule": 1,
+      "threads": 4
+    },
+
+    "DCA+": {
+      "do-DCA+": false
+    }
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 2]],
+      "sp-host": [[8, 8],
+        [8,-8]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 256
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 256
+    }
+  },
+
+  "Monte-Carlo-integration": {
+    "seed": 42,
+    "warm-up-sweeps": 200,
+    "sweeps-per-measurement": 1,
+    "measurements": 2000,
+    "store-configuration" : true,
+
+    "error-computation-type" : "JACK_KNIFE",
+
+    "threaded-solver": {
+      "walkers": 1,
+      "accumulators": 3,
+      "shared-walk-and-accumulation-thread": false
+    }
+  },
+
+  "CT-INT" :
+  {
+    "initial-configuration-size" : 10,
+    "alpha-dd-pos" : 0.501,
+    "max-submatrix-size" : 4
+  }
+}
+
