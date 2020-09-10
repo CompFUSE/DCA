@@ -17,5 +17,5 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
-set(MAGMA_DIR $ENV{EBROOTMAGMA} CACHE PATH
+set(MAGMA_DIR $ENV{MAGMAROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
