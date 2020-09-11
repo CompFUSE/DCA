@@ -425,7 +425,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
       {
         Profiler profiler("Accumulator measuring", "stdthread-MC", __LINE__, id);
         accumulator_obj.updateFrom(walker);
-        accumulator_obj.measure();
+        accumulator_obj.measure(meas_id);
       }
       if (print)
         walker.updateShell(meas_id, n_meas);

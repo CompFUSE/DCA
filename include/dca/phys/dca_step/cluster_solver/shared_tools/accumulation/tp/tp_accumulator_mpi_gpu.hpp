@@ -77,12 +77,12 @@ private:
 public:
   template <class Configuration, typename RealIn>
   float accumulate(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+                   const std::array<Configuration, 2>& configs, int sign, const int meas_id = -1);
 
   // CPU input. For testing purposes.
   template <class Configuration>
   float accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+                   const std::array<Configuration, 2>& configs, int sign, const int meas_id = -1);
 
   // Downloads the accumulation result to the host.
   void finalize();
@@ -123,10 +123,10 @@ private:
   std::array<MPI_Request, 2> recv_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   std::array<MPI_Request, 2> send_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
 
-#ifndef DCA_HAVE_CUDA_AWARE_MPI
+#ifndef DCA_WITH_CUDA_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 };
 
 template <class Parameters>
@@ -162,7 +162,7 @@ template <class Parameters>
 template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const int sign, const int meas_id) {
   // typename BaseClass::Profiler profiler("accumulate", "tp-accumulation", __LINE__, BaseClass::thread_id_);
   float flop = 0;
 
@@ -189,7 +189,7 @@ template <class Parameters>
 template <class Configuration>
 float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
+    const std::array<Configuration, 2>& configs, const int sign, const int meas_id) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0]);
@@ -366,7 +366,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_HAVE_CUDA_AWARE_MPI
+#ifdef DCA_WITH_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -381,7 +381,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
   }
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 }
 
 template <class Parameters>
@@ -390,7 +390,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_HAVE_CUDA_AWARE_MPI
+#ifdef DCA_WITH_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -408,7 +408,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
     cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
                cudaMemcpyHostToDevice);
   }
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 }
 
 }  // namespace accumulator
