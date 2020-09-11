@@ -69,6 +69,8 @@ private:
 
   uint64_t start_;
   uint64_t end_;
+  int my_rank = 0;
+  int mpi_size = 1;
 
   // Eventually distribution strategy should be pushed down into linalg::Vector but
   // I think generalization should still wait.
@@ -108,7 +110,10 @@ private:
   // BaseClass::TpDomain had changed this is no longer true as the accessible size of G4 is set in the constructor.
   void resetG4();
   // Applies pipepline ring algorithm to move G matrices around all ranks
-  void ringG(float& flop);
+  void ringG(float& flop, const int meas_id);
+
+  void perform_one_communication_step(float& flop);
+
   float updateG4(const std::size_t channel_index);
 
   void send(const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request);
@@ -118,15 +123,15 @@ private:
   using BaseClass::G4_;
 
   // send buffer for pipeline ring algorithm
-  std::array<RMatrix, 2> sendbuff_G_;
+  std::array<RMatrix, 2> odd_sendbuff_G_;
 
   std::array<MPI_Request, 2> recv_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   std::array<MPI_Request, 2> send_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
 
-#ifndef DCA_WITH_CUDA_AWARE_MPI
+#ifndef DCA_HAVE_CUDA_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 };
 
 template <class Parameters>
@@ -138,7 +143,6 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
   typename BaseClass::TpDomain tp_dmn;
   std::size_t local_g4_size = tp_dmn.get_size();
 
-  int my_rank = 0, mpi_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   local_g4_size = dca::util::ceilDiv(local_g4_size, std::size_t(mpi_size));
@@ -180,7 +184,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     flop += updateG4(channel);
   }
 
-  ringG(flop);
+  ringG(flop, meas_id);
 
   return flop;
 }
@@ -265,10 +269,6 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
 
   const FourPointType channel = BaseClass::channels_[channel_index];
 
-  int my_rank, mpi_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
@@ -306,20 +306,10 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
-  // get ready for send and receive
-
-  for (int s = 0; s < 2; ++s) {
-    sendbuff_G_[s] = G_[s];
-  }
-
-  int my_concurrency_id, mpi_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_concurrency_id);
-
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::perform_one_communication_step(float& flop) {
   // get rank index of left and right neighbor
-  int left_neighbor = (my_concurrency_id - 1 + mpi_size) % mpi_size;
-  int right_neighbor = (my_concurrency_id + 1 + mpi_size) % mpi_size;
+  int left_neighbor = (my_rank - 1 + mpi_size) % mpi_size;
+  int right_neighbor = (my_rank + 1 + mpi_size) % mpi_size;
 
   // Pipepline ring algorithm in the following for-loop:
   // 1) At each time step, local rank receives a new G2 from left hand neighbor,
@@ -329,28 +319,51 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
   //      a) #walker == #accumulator and shared-walk-and-accumulation-thread = true;
   //      b) and, local measurements are equal, and each accumulator should have same #measurement, i.e.
   //         measurements % ranks == 0 && local_measurement % threads == 0.
-  for (int icount = 0; icount < (mpi_size - 1); icount++) {
-    send(sendbuff_G_, right_neighbor, send_requests_);
-    receive(G_, left_neighbor, recv_requests_);
 
-    // wait for G2 to be available again
-    for (int s = 0; s < 2; ++s)
-      MPI_Wait(&recv_requests_[s], MPI_STATUSES_IGNORE);
+  send(odd_sendbuff_G_, right_neighbor, send_requests_);
+  receive(G_, left_neighbor, recv_requests_);
 
-    // use newly copied G2 to update G4
-    for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-      flop += updateG4(channel);
-    }
+  // wait for G2 to be available again
+  for (int s = 0; s < 2; ++s)
+    MPI_Wait(&recv_requests_[s], MPI_STATUSES_IGNORE);
 
-    // wait for sendbuf_G2 to be available again
-    for (int s = 0; s < 2; ++s)
-      MPI_Wait(&send_requests_[s], MPI_STATUSES_IGNORE);
-
-    // get ready for send again
-    for (int s = 0; s < 2; ++s) {
-      sendbuff_G_[s].swap(G_[s]);
-    }
+  // use newly copied G2 to update G4
+  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
+    flop += updateG4(channel);
   }
+
+  // wait for sendbuf_G2 to be available again
+  for (int s = 0; s < 2; ++s)
+    MPI_Wait(&send_requests_[s], MPI_STATUSES_IGNORE);
+
+  // get ready for send again
+  for (int s = 0; s < 2; ++s) {
+    odd_sendbuff_G_[s].swap(G_[s]);
+  }
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop, const int meas_id) {
+  auto is_odd = [](int const i) -> bool { return ((i % 2) == 1); };
+  bool const perform_bidirectional_ring = is_odd(meas_id);
+
+//  if (perform_bidirectional_ring == true) {
+    // get ready for current send and receive (i.e. meas_id = 1, 3, 5...)
+    for (int s = 0; s < 2; ++s) {
+      odd_sendbuff_G_[s] = G_[s];
+    }
+
+    for (int icount = 0; icount < (mpi_size - 1); icount++) {
+      perform_one_communication_step(flop);
+    }
+//  }
+//  else {
+//    // store G2 in even measurement step (i.e. meas_id = 0, 2, 4...) as a previous G2
+//    for (int s = 0; s < 2; ++s) {
+//      even_G_[s] = G_[s];
+//      even_sendbuff_G_[s] = G_[s];
+//    }
+//  }
 }
 
 template <class Parameters>
@@ -366,7 +379,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -381,7 +394,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 }
 
 template <class Parameters>
@@ -390,7 +403,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -408,7 +421,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
     cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
                cudaMemcpyHostToDevice);
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 }
 
 }  // namespace accumulator
