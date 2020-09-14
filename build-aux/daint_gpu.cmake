@@ -22,5 +22,4 @@ set(MAGMA_DIR $ENV{MAGMAROOT} CACHE PATH
 
 
 # Intel MKL flags
-set(CMAKE_EXE_LINKER_FLAGS '-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_lp64
-    -lmkl_sequential -lmkl_core -lpthread -lm -ldl')
+set(CMAKE_EXE_LINKER_FLAGS '-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl' CACHE INTERNAL "" FORCE)
