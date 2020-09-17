@@ -165,17 +165,18 @@ void RashbaHubbard<PointGroup>::initializeH0(
     // kinetic term
     m(0, 0) = m(1, 1) = -2. * t * (std::cos(k[0]) + std::cos(k[1]));
 
+    // Note: spin space is {e_DN, e_UP}
     // Zeeman field
-    m(0, 0) += -h;
-    m(1, 1) += h;
+    m(0, 0) += h;
+    m(1, 1) += -h;
 
     // Pauli matrix sigma_x
     m(0, 1) = m(1, 0) = 2 * lambda * (-std::sin(k[1]));
 
     // Pauli matrix sigma_y
     const auto val = 2 * lambda * std::sin(k[0]);
-    m(0, 1) += -i * val;
-    m(1, 0) += i * val;
+    m(0, 1) += i * val;
+    m(1, 0) += -i * val;
 
     for (int s1 = 0; s1 < 2; ++s1)
       for (int s2 = 0; s2 < 2; ++s2)

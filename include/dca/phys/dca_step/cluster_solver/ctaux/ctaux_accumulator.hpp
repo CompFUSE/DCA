@@ -353,8 +353,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
   two_particle_accumulator_.synchronizeCopy();
 
   configuration_type& full_configuration = walker.get_configuration();
-  hs_configuration_[0] = full_configuration.get(e_UP);
-  hs_configuration_[1] = full_configuration.get(e_DN);
+  hs_configuration_[0] = full_configuration.get(e_DN);
+  hs_configuration_[1] = full_configuration.get(e_UP);
 
   const int k = full_configuration.get_number_of_interacting_HS_spins();
   if (k < visited_expansion_order_k.size())

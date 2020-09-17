@@ -1560,7 +1560,7 @@ const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data>::computeM
     for (int i = 0; i < config.size(); ++i)
       exp_v_minus_one_[s][i] = CV_obj.exp_V(config[i]) - 1.;
 
-    const auto& N = s == 0 ? N_up : N_dn;
+    const auto& N = s == 0 ? N_dn : N_up;
     auto& M = Ms[s];
 
     M.resizeNoCopy(N.size());
