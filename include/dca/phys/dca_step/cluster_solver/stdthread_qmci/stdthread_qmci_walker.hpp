@@ -61,7 +61,7 @@ private:
   const int total_iterations_;
 
   bool last_iteration_ = false;
-};  // namespace stdthreadqmci
+};
 
 template <class QmciWalker>
 StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameters,

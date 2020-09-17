@@ -5,10 +5,9 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Doak (doakpw@ornl.gov)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides distribution strategy tags
+// This file implements dist_types.hpp
 
 #include "dca/distribution/dist_types.hpp"
 

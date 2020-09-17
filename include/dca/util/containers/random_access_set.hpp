@@ -32,30 +32,32 @@ public:
 
   RandomAccessSet(const std::initializer_list<Key>& list);
 
-  // Insert new key.
-  // Precondition: key is not already in the map.
-  void insert(const Key& key);
+  // Insert new key. Returns false if the key is already present.
+  bool insert(const Key& key) noexcept;
 
-  // Remove the node relative to key.
-  // Precondition: key is in the map.
-  void erase(const Key& key);
+  // Remove the node relative to key. Returns true if the key was present.
+  // Returns false and leave the container unchanged otherwise.
+  bool erase(const Key& key) noexcept;
 
   // Returns true if the key is present.
-  bool find(const Key& key) const noexcept;
+  bool contains(const Key& key) const noexcept;
+  bool count(const Key& key) const noexcept {
+    return contains(key);
+  }
 
-  // Returns a reference to the value relative to the i-th key.
+  // Returns the "index"-th lowest key.
   // Precondition: 0 <= index < size()
-  const Key& operator[](const std::size_t index) const;
+  const Key& findByIndex(const std::size_t index) const;
 
   // Number of keys stored in the map.
-  std::size_t size() const {
+  std::size_t size() const noexcept {
     return map_.size();
   }
 
-  // Returns an array of ordered keys and value pairs.
-  std::vector<Key> linearize() const;
+  // Returns an array of ordered keys.
+  std::vector<Key> linearize() const noexcept;
 
-  bool checkConsistency() const {
+  bool checkConsistency() const noexcept {
     return map_.checkConsistency();
   }
 
@@ -64,7 +66,7 @@ private:
     Null() = default;
   };
 
-  // Members
+  // Member
   dca::util::RandomAccessMap<Key, Null, chunk_size> map_;
 };
 
@@ -75,35 +77,34 @@ RandomAccessSet<Key, chunk_size>::RandomAccessSet(const std::initializer_list<Ke
 }
 
 template <class Key, std::size_t chunk_size>
-void RandomAccessSet<Key, chunk_size>::insert(const Key& key) {
-  map_.insert(key, {});
+bool RandomAccessSet<Key, chunk_size>::insert(const Key& key) noexcept {
+  return map_.insert(key, {}).second;
 }
 
 template <class Key, std::size_t chunk_size>
-void RandomAccessSet<Key, chunk_size>::erase(const Key& key) {
-  map_.erase(key);
+bool RandomAccessSet<Key, chunk_size>::erase(const Key& key) noexcept {
+  return map_.erase(key);
 }
 
 template <class Key, std::size_t chunk_size>
-bool RandomAccessSet<Key, chunk_size>::find(const Key& key) const noexcept {
-  const auto& result = map_.findOptional(key);
-  return result.has_value();
+bool RandomAccessSet<Key, chunk_size>::contains(const Key& key) const noexcept {
+  return map_.contains(key);
 }
 
 template <class Key, std::size_t chunk_size>
-const Key& RandomAccessSet<Key, chunk_size>::operator[](const std::size_t index) const {
-  const auto& [key, _] = map_[index];
-  return key;
+const Key& RandomAccessSet<Key, chunk_size>::findByIndex(const std::size_t index) const {
+  auto it = map_.findByIndex(index);
+  assert(it);
+  return it->first;
 }
 
 template <class Key, std::size_t chunk_size>
-std::vector<Key> RandomAccessSet<Key, chunk_size>::linearize() const {
-  auto linear_map = map_.linearize();
+std::vector<Key> RandomAccessSet<Key, chunk_size>::linearize() const noexcept {
   std::vector<Key> result;
-  result.reserve(linear_map.size());
-  for (const auto& [key, _] : linear_map)
-    result.push_back(key);
+  result.reserve(size());
 
+  for (auto it : map_)
+    result.push_back(it.first);
   return result;
 }
 

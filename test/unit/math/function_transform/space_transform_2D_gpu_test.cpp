@@ -108,7 +108,7 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
 
-  queue.sync();
+  queue.getStream().sync();
 
   constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 500;
 

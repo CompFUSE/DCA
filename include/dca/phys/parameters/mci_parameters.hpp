@@ -23,7 +23,9 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
+#ifdef DCA_HAVE_MPI
 #include <mpi.h>
+#endif
 
 namespace dca {
 namespace phys {
@@ -270,20 +272,22 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_write("seed", seed_);
   }
 
-    // Read error computation type.
-    std::string error_type = toString(error_computation_type_);
-    try_to_read_write("error-computation-type", error_type);
-    error_computation_type_ = stringToErrorComputationType(error_type);
+  // Read error computation type.
+  std::string error_type = toString(error_computation_type_);
+  try_to_read_write("error-computation-type", error_type);
+  error_computation_type_ = stringToErrorComputationType(error_type);
 
   try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
   try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
   try_to_read_write_vector("measurements", measurements_);
 
-  try_to_read_write("time-correlation-window", time_correlation_window_);
-    try_to_read_write("compute-G-correlation", compute_G_correlation_);
+  try_to_read_write("store-configuration", store_configuration_);
 
-    try_to_read_write("stamping-period", stamping_period_);
-    try_to_read_write("store-configuration", store_configuration_);
+  try_to_read_write("time-correlation-window", time_correlation_window_);
+  try_to_read_write("compute-G-correlation", compute_G_correlation_);
+
+  try_to_read_write("stamping-period", stamping_period_);
+  try_to_read_write("store-configuration", store_configuration_);
 
   // Read arguments for threaded solver.
   reader_or_writer.open_group("threaded-solver");
@@ -298,45 +302,42 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   try_to_read_write("g4-distribution", g4_dist_name);
   g4_distribution_ = stringToDistType(g4_dist_name);
 
-  try { // Check parameters consistency.
-    if (g4_distribution_ == DistType::MPI) {
-      // Check for number of accumulators and walkers consistency.
-      if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
-        throw std::logic_error(
-            "\n With distributed g4 enabled, 1) walker and accumulator should share "
-            "thread, "
-            "2) #walker == #accumulator\n");
-      }
-
-      // Check for number of ranks and g4 measurements consistency.
-      int mpi_size;
-      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-      int local_meas = measurements_.back() / mpi_size;
-      if (measurements_.back() % mpi_size != 0 || local_meas % accumulators_ != 0) {
-        throw std::logic_error(
-            "\n With distributed g4 enabled, 1) local measurements should be same across "
-            "ranks, "
-            "2) each accumulator should have same measurements\n");
-      }
-    }
-  }
-  catch (...) { // close open groups and rethrow.
-    reader_or_writer.close_group();
-    reader_or_writer.close_group();
-    throw;
-  }
-
-  reader_or_writer.close_group();
-
   // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
   // 'false'.
   // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
 
   reader_or_writer.close_group();
+  reader_or_writer.close_group();
+
+  // Check parameters consistency.
+  if (g4_distribution_ == DistType::MPI) {
+#ifdef DCA_HAVE_MPI
+    // Check for number of accumulators and walkers consistency.
+    if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) walker and accumulator should share "
+          "thread, "
+          "2) #walker == #accumulator\n");
+    }
+
+    // Check for number of ranks and g4 measurements consistency.
+    int mpi_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    int local_meas = measurements_.back() / mpi_size;
+    if (measurements_.back() % mpi_size != 0 || local_meas % accumulators_ != 0) {
+      throw std::logic_error(
+          "\n With distributed g4 enabled, 1) local measurements should be same across "
+          "ranks, "
+          "2) each accumulator should have same measurements\n");
+    }
+#else
+    throw(std::logic_error("MPI distribution requested with no MPI available."));
+#endif  // DCA_HAVE_MPI
+  }
 
   // Solve conflicts
-  if(!time_correlation_window_)
-      compute_G_correlation_ = false;
+  if (!time_correlation_window_)
+    compute_G_correlation_ = false;
 }
 
 void MciParameters::solveDcaIterationConflict(int iterations) {
@@ -348,7 +349,7 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
 }
 
 void MciParameters::solveConfigReadConflict(bool read) {
-  if(read)
+  if (read)
     store_configuration_ = true;
 }
 

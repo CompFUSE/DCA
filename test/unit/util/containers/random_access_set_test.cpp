@@ -21,26 +21,27 @@
 TEST(RandomAccessSetTest, InsertAccessErase) {
   dca::util::RandomAccessSet<std::string> set;
   // Set is empty
-  EXPECT_THROW(set.erase("foo"), std::logic_error);
+  EXPECT_FALSE(set.erase("foo"));
 
-  set.insert("foo");
-  set.insert("bar");
+  EXPECT_TRUE(set.insert("foo"));
+  EXPECT_TRUE(set.insert("bar"));
+  EXPECT_FALSE(set.insert("bar"));
   EXPECT_EQ(2, set.size());
 
-  EXPECT_EQ("foo", set[1]);  // foo > bar.
-  EXPECT_EQ("bar", set[0]);
+  EXPECT_EQ("foo", set.findByIndex(1));  // foo > bar.
+  EXPECT_EQ("bar", set.findByIndex(0));
 
-  EXPECT_THROW(set[2], std::logic_error);
+  EXPECT_THROW(set.findByIndex(2), std::logic_error);
 
   // Set is now empty
-  set.erase("foo");
-  set.erase("bar");
+  EXPECT_TRUE(set.erase("foo"));
+  EXPECT_TRUE(set.erase("bar"));
   EXPECT_EQ(0, set.size());
 
   // Test insertion after root has been deleted.
   set.insert("baz");
   EXPECT_EQ(1, set.size());
-  EXPECT_EQ("baz", set[0]);
+  EXPECT_EQ("baz", set.findByIndex(0));
 }
 
 // Perform the test with a number of randomly inserted and removed values.
@@ -85,7 +86,7 @@ TEST(RandomAccessSetTest, LinearizeAndRandomAccess) {
     EXPECT_EQ(it, linearized[idx]);
 
     // Test random accessor.
-    EXPECT_EQ(it, my_set[idx]);
+    EXPECT_EQ(it, my_set.findByIndex(idx));
 
     ++idx;
   }

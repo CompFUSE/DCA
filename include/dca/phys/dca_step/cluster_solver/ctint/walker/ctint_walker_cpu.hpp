@@ -118,6 +118,9 @@ CtintWalker<linalg::CPU, Parameters, Scalar>::CtintWalker(const Parameters& para
                                                           const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
+      // If we perform double updates, we need at most 3 rng values for: selecting the first vertex,
+      // deciding if we select a second one, select the second vertex. Otherwise only the first is
+      // needed.
       n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
 
 template <class Parameters, class Scalar>
@@ -148,7 +151,8 @@ void CtintWalker<linalg::CPU, Parameters, Scalar>::doStep() {
       n_accepted_ += tryVertexRemoval();
     else {
       // Burn random numbers for testing consistency.
-      for (unsigned i = 0; i < n_removal_rngs_; ++i)
+      // One extra rng for the acceptance probability.
+      for (unsigned i = 0; i < n_removal_rngs_ + 1; ++i)
         rng_();
     }
   }

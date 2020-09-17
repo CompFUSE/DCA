@@ -308,12 +308,15 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
-    // Allocate memory for G4.
-    // temporarily we pass a flag here because the concept of distribution,
-    // has not been pushed down into "function"
-    G4_.emplace_back("G4_" + toString(channel), parameters_.get_g4_distribution());
-    // Allocate memory for error on G4.
-    G4_err_.emplace_back("G4_" + toString(channel) + "_err", parameters_.get_g4_distribution());
+    // Allocate memory for G4, eventually distributed among all processes.
+    if (parameters_.get_g4_distribution() == DistType::MPI) {
+      G4_.emplace_back("G4_" + toString(channel), concurrency_);
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err", concurrency_);
+    }
+    else {
+      G4_.emplace_back("G4_" + toString(channel));
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    }
   }
 }
 

@@ -76,22 +76,23 @@ int main(int argc, char** argv) {
     dca_data.initialize();
 
     dca::DistType distribution = parameters.get_g4_distribution();
-    switch(distribution) {
-    case dca::DistType::MPI:
-    {
-      DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
-      dca_loop_dispatch(parameters, dca_data, concurrency);
+    switch (distribution) {
+#ifdef DCA_HAVE_MPI
+      case dca::DistType::MPI: {
+        DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, dca_data, concurrency);
+      } break;
+#else
+      case dca::DistType::MPI: {
+        throw std::runtime_error(
+            "Input calls for function MPI distribution but DCA is not built with MPI.");
+      } break;
+#endif
+      case dca::DistType::NONE: {
+        DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, dca_data, concurrency);
+      } break;
     }
-      break;
-    case dca::DistType::NONE:
-    {
-      DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
-      dca_loop_dispatch(parameters, dca_data, concurrency);
-    }
-      break;
-    }
-
-
   }
   catch (const std::exception& err) {
     std::cout << "Unhandled exception in main function:\n\t" << err.what();

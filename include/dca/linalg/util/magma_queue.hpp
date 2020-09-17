@@ -25,26 +25,27 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-class MagmaQueue : public linalg::util::CudaStream {
+class MagmaQueue {
 public:
   MagmaQueue() {
     cublasCreate(&cublas_handle_);
     cusparseCreate(&cusparse_handle_);
     int device;
     cudaGetDevice(&device);
-    magma_queue_create_from_cuda(device, *this, cublas_handle_, cusparse_handle_, &queue_);
+    magma_queue_create_from_cuda(device, stream_, cublas_handle_, cusparse_handle_, &queue_);
   }
 
   MagmaQueue(const MagmaQueue& rhs) = delete;
   MagmaQueue& operator=(const MagmaQueue& rhs) = delete;
 
-  MagmaQueue(MagmaQueue&& rhs) : CudaStream(std::move(rhs)) {
-    swapMembers(rhs);
+  MagmaQueue(MagmaQueue&& rhs) noexcept : queue_(std::move(rhs.queue_)) {
+    std::swap(cublas_handle_, rhs.cublas_handle_);
+    std::swap(cusparse_handle_, rhs.cusparse_handle_);
+    std::swap(queue_, rhs.queue_);
   }
 
-  MagmaQueue& operator=(MagmaQueue&& rhs) {
-    CudaStream::operator=(std::move(rhs));
-    swapMembers(rhs);
+  MagmaQueue& operator=(MagmaQueue&& rhs) noexcept {
+    swap(rhs);
     return *this;
   }
 
@@ -58,13 +59,30 @@ public:
     return queue_;
   }
 
-private:
-  void swapMembers(MagmaQueue& rhs) {
+  // Allows a large number of calls that previously took a stream
+  // take a MagmaQueue, this makes all this code less intelligible
+  // but less verbose.  Consider this carefully.
+  operator cudaStream_t() const {
+    return static_cast<cudaStream_t>(stream_);
+  }
+
+  const CudaStream& getStream() const {
+    return stream_;
+  }
+
+  operator const CudaStream&() const {
+    return getStream();
+  }
+
+  void swap(MagmaQueue& rhs) noexcept {
+    std::swap(stream_, rhs.stream_);
     std::swap(cublas_handle_, rhs.cublas_handle_);
     std::swap(cusparse_handle_, rhs.cusparse_handle_);
     std::swap(queue_, rhs.queue_);
   }
 
+private:
+  CudaStream stream_;
   magma_queue_t queue_ = nullptr;
   cublasHandle_t cublas_handle_ = nullptr;
   cusparseHandle_t cusparse_handle_ = nullptr;

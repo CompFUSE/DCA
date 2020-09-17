@@ -23,14 +23,11 @@ set(MPIEXEC_PREFLAGS "-a 1 -g 1 -c 5" CACHE STRING
 set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING
   "Spectrum MPI argument list flag for serial tests.")
 # Let's keep this option in case we need it again in the future.
-set(SMPIARGS_FLAG_MPI "" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
-
-# When we want to us a cuda visible devices restriction we need this flag
-set(SMPIARGS_FLAG_MPI_CVD "--smpiargs=-gpu" CACHE STRING 
-  "Spectrum MPI argument list for cuda-mpi tests")
+set(SMPIARGS_FLAG_MPI "--smpiargs=\"-gpu\"" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
+option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
 
 # Compile for Volta compute architecture.
 set(CUDA_GPU_ARCH "sm_70" CACHE STRING "Name of the *real* architecture to build for.")

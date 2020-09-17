@@ -104,7 +104,7 @@ private:
   std::array<linalg::Matrix<Scalar, device>, 2> M_;
   MatrixConfiguration configuration_;
 
-  std::vector<linalg::util::CudaStream*> streams_;
+  std::vector<const linalg::util::CudaStream*> streams_;
   linalg::util::CudaEvent event_;
 
   unsigned long accumulated_order_ = 0;

@@ -33,7 +33,7 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(const std::array<
     return candidates;
 
   const std::size_t index = rvals[0] * anhilatable_indices_.size();
-  candidates[0] = anhilatable_indices_[index].second;
+  candidates[0] = anhilatable_indices_.findByIndex(index)->second;
 
   if (rvals[1] < double_insertion_prob_ &&
       (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
@@ -192,7 +192,7 @@ void SolverConfiguration::moveAndShrink(std::array<HostVector<int>, 2>& sector_f
     }
     // Update tag index
     if (v.annihilatable)
-      anhilatable_indices_.find(v.tag) = dead_index;
+      anhilatable_indices_.findByKey(v.tag)->second = dead_index;
 
     --living_index;
   }
@@ -235,13 +235,13 @@ bool SolverConfiguration::checkConsistency() const {
   unsigned idx = 0;
   for (const auto& v : vertices_) {
     if (v.annihilatable) {
-      const auto found = anhilatable_indices_.findOptional(v.tag);
-      if (!found || idx != found.value())
+      const bool found = anhilatable_indices_.contains(v.tag);
+      if (!found)
         annhilatable_consitency = false;
     }
     else {  // !v.annihilatable
-      auto found = anhilatable_indices_.findOptional(v.tag);
-      if (found.has_value())
+      const bool found = anhilatable_indices_.contains(v.tag);
+      if (found)
         annhilatable_consitency = false;
     }
     ++idx;
@@ -257,7 +257,7 @@ bool SolverConfiguration::checkConsistency() const {
       // check tags.
       if (v.annihilatable) {
         const auto& list = existing_[v.interaction_id];
-        if (!list.find(v.tag))
+        if (!list.contains(v.tag))
           return false;
       }
       // Check total size.
@@ -272,7 +272,7 @@ bool SolverConfiguration::checkConsistency() const {
 }
 
 int SolverConfiguration::findTag(std::uint64_t tag) const {
-  return anhilatable_indices_.find(tag);
+  return anhilatable_indices_.findByKey(tag)->second;
 }
 
 void SolverConfiguration::write(io::HDF5Writer& writer, const std::string& stamp) const {
