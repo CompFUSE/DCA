@@ -32,7 +32,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-template <typename ScalarType, DeviceType device_name>
+template <typename ScalarType, DeviceType device_name = CPU>
 class Matrix : public util::DefaultAllocator<ScalarType, device_name> {
 public:
   using ThisType = Matrix<ScalarType, device_name>;

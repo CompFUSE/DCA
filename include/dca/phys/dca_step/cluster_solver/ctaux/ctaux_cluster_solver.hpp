@@ -542,49 +542,33 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_
   func::function<Complex, NuNuKClusterWDmn> M_k_w;
   math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(M_r_w_, M_k_w);
 
-  int matrix_size = b::dmn_size() * s::dmn_size() * b::dmn_size() * s::dmn_size();
-  int matrix_dim = b::dmn_size() * s::dmn_size();
-
-  Complex* G_matrix = new Complex[matrix_size];
-  Complex* G0_cluster_excluded_matrix = new Complex[matrix_size];
-  Complex* M_matrix = new Complex[matrix_size];
-  Complex* G0_times_M_matrix = new Complex[matrix_size];
+  const std::size_t matrix_size = b::dmn_size() * s::dmn_size();
+  linalg::Matrix<Complex> G0_times_M_matrix(matrix_size);
+  using MatrixView = linalg::MatrixView<Complex>;
 
   // G = G0 - G0*M*G0/beta
-
   for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      memset(static_cast<void*>(G_matrix), 0, sizeof(Complex) * matrix_size);
-      memset(static_cast<void*>(G0_times_M_matrix), 0, sizeof(Complex) * matrix_size);
-
-      memcpy(G0_cluster_excluded_matrix, &data_.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
-             sizeof(Complex) * matrix_size);
-      memcpy(M_matrix, &M_k_w(0, 0, 0, 0, k_ind, w_ind), sizeof(Complex) * matrix_size);
+      const MatrixView G0_matrix(&data_.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
+                                 matrix_size);
+      const MatrixView M_matrix(&M_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_size);
 
       // G0 * M --> G0_times_M_matrix
-      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim, 1.,
-                              G0_cluster_excluded_matrix, matrix_dim, M_matrix, matrix_dim, 0.,
-                              G0_times_M_matrix, matrix_dim);
+      linalg::matrixop::gemm(G0_matrix, M_matrix, G0_times_M_matrix);
 
-      // - G0_times_M_matrix * G0 / beta --> G_matrix
-      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim,
-                              -1. / parameters_.get_beta(), G0_times_M_matrix, matrix_dim,
-                              G0_cluster_excluded_matrix, matrix_dim, 0., G_matrix, matrix_dim);
+      MatrixView G_matrix(&data_.G_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_size);
 
-      // G_matrix + G0_cluster_excluded_matrix --> G_matrix
-      for (int l = 0; l < matrix_size; l++)
-        G_matrix[l] = G_matrix[l] + G0_cluster_excluded_matrix[l];
+      // - G0_times_M_matrix * G0 --> G_matrix
+      linalg::matrixop::gemm(G0_times_M_matrix, G0_matrix, G_matrix);
 
-      memcpy(&data_.G_k_w(0, 0, 0, 0, k_ind, w_ind), G_matrix, sizeof(Complex) * matrix_size);
+      // G_matrix / beta + G0_cluster_excluded_matrix --> G_matrix
+      for (int j = 0; j < matrix_size; ++j)
+        for (int i = 0; i < matrix_size; ++i)
+          G_matrix(i, j) = G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
     }
   }
 
   Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
-
-  delete[] G_matrix;
-  delete[] G0_cluster_excluded_matrix;
-  delete[] M_matrix;
-  delete[] G0_times_M_matrix;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
