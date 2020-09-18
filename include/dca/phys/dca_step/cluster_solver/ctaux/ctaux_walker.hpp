@@ -1554,7 +1554,7 @@ const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data>::computeM
   sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
 
   for (int s = 0; s < 2; ++s) {
-    const auto& config = get_configuration().get(s == 0 ? e_UP : e_DN);
+    const auto& config = get_configuration().get(s == 0 ? e_DN : e_UP);
     exp_v_minus_one_[s].resizeNoCopy(config.size());
 
     for (int i = 0; i < config.size(); ++i)
