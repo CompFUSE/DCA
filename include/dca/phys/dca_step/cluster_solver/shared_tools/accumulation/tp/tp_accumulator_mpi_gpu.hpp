@@ -195,7 +195,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     const std::array<Configuration, 2>& configs, const Scalar factor) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], queues_[0]);
+    M_dev[s].setAsync(M[s], queues_[0].getStream());
 
   return accumulate(M_dev, configs, factor);
 }
@@ -241,11 +241,11 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
-        G4_channel.setStream(BaseClass::queues_[0]);
+        G4_channel.setStream(BaseClass::queues_[0].getStream());
       }
 
       G4_channel.resizeNoCopy(end_ - start_);
-      G4_channel.setToZeroAsync(BaseClass::queues_[0]);
+      G4_channel.setToZeroAsync(BaseClass::queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -264,7 +264,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
   // b2 ------------------------ b4
 
   //  TODO: set stream only if this thread gets exclusive access to G4.
-  //  get_G4().setStream(queues_[0]);
+  //  get_G4().setStream(queues_[0].getStream());
 
   const FourPointType channel = BaseClass::channels_[channel_index];
 
@@ -276,38 +276,44 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0],
-          start_, end_);
+          G_[1].leadingDimension(), factor_, multiple_accumulators_, spin_symmetric, queues_[0].getStream(),
+          start_,
+          end_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");

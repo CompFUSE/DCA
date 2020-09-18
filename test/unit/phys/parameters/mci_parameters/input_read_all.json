@@ -6,12 +6,12 @@
         "measurements": [100, 150, 200],
         "error-computation-type" : "JACK_KNIFE",
         "store-configuration" : false,
+        "g4-distribution": "MPI",
 
         "time-correlation-window" : 100,
         "compute-G-correlation" : true,
         "stamping-period" : 100,
 
-        "g4-distribution": "MPI",
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,

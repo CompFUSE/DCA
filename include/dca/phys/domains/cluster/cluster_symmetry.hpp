@@ -60,8 +60,8 @@ public:
   }
 };
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_CLUSTER_CLUSTER_SYMMETRY_HPP

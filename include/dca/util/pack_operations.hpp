@@ -22,7 +22,7 @@ namespace dca {
 namespace util {
 // dca::util::
 
-// returns is true only if all template arguments are true.
+// returns is true only if all arguments are true.
 template <class... Args>
 constexpr bool ifAll(Args... args) {
   return (args &&...);

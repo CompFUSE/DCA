@@ -53,7 +53,8 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data,
+          DistType DIST>
 class CtauxAccumulator
     : public MC_accumulator_data<dca::util::IsComplex<typename Parameters::MCScalar>::value> {
 public:
@@ -283,7 +284,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(dca_iteration_) - 1);
+    Real factor = 1. / std::sqrt(parameters_.get_measurements().back() - 1);
 
     M_r_w_stddev *= factor;
   }
