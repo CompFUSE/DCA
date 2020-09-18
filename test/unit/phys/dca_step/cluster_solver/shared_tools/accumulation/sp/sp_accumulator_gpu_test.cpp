@@ -13,15 +13,15 @@
 
 #include <array>
 #include <limits>
-#include <string>
 #include <vector>
 #include "gtest/gtest.h"
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/util/difference.hpp"
-#include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-using SpAccumulatorGpuTest = dca::testing::AccumulationTest<float, 1, 3, 128>;
+using Scalar = typename dca::config::McOptions::MCScalar;
+using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
 
 using MatrixPair = SpAccumulatorGpuTest::Sample;
 using Configuration = SpAccumulatorGpuTest::Configuration;
@@ -33,9 +33,9 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
   Configuration config;
   prepareConfiguration(config, M, n);
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU, Scalar> accumulatorHost(
       parameters_);
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar> accumulatorDevice(
       parameters_);
 
   const int sign = 1;
@@ -54,7 +54,8 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
 }
 
 TEST_F(SpAccumulatorGpuTest, SumTo) {
-  using Accumulator = dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU>;
+  using Accumulator =
+      dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar>;
   Accumulator accumulator1(parameters_);
   Accumulator accumulator2(parameters_);
   Accumulator accumulator_sum(parameters_);

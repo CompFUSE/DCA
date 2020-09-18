@@ -192,11 +192,11 @@ namespace dca {
     
     {
       int* coor_1 = new int[     G4        .signature()];
-      int* coor_2 = new int[MOMS.G4_k_k_w_w.signature()];
+      int* coor_2 = new int[MOMS.G4.signature()];
       
-      for(int i=0; i<MOMS.G4_k_k_w_w.size(); i++)
+      for(int i=0; i<MOMS.G4.size(); i++)
 	{
-	  MOMS.G4_k_k_w_w.linind_2_subind(i, coor_2);
+	  MOMS.G4.linind_2_subind(i, coor_2);
 	  
 	  coor_1[0] = coor_2[0];
 	  coor_1[1] = coor_2[1];
@@ -208,7 +208,7 @@ namespace dca {
 	  coor_1[7] = coor_2[7];//w_2
 	  
 	  G4(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7])
-	    = MOMS.G4_k_k_w_w(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
+	    = MOMS.G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
 	}
       
       delete [] coor_1;
@@ -242,7 +242,7 @@ namespace dca {
 
     apply_symmetries();
 
-    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4_k_k_w_w("G4_k_k_w_w");
+    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4("G4");
     FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_full   ("G4_k_w_k_w");
     //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
 
@@ -255,9 +255,9 @@ namespace dca {
 	VECTOR_OPERATIONS::PRINT(parameters.get_q_vector());
 	cout << "\t";
 
-	read_this_G4(q_ind, G4_k_k_w_w);
+	read_this_G4(q_ind, G4);
 
-	set_into_full_G4(q_ind, G4_k_k_w_w, G4_full);
+	set_into_full_G4(q_ind, G4, G4_full);
 
 // 	make_G4_0_obj.execute(*this);
 // 	for(int j=0; j<sqrt(full_chi_0.size()); ++j)

@@ -664,16 +664,13 @@ TEST(MatrixGPUTest, setToZero) {
   auto func = [](int i, int j) { return 10 * i - j; };
   testing::setMatrixElements(mat, func);
 
-  cudaStream_t stream;
-  cudaStreamCreate(&stream);
+  dca::linalg::util::CudaStream stream;
   mat.setToZero(stream);
-  cudaStreamSynchronize(stream);
+  stream.sync();
 
   dca::linalg::Matrix<long, dca::linalg::CPU> mat_copy(mat);
 
   for (int j = 0; j < mat_copy.nrCols(); ++j)
     for (int i = 0; i < mat_copy.nrRows(); ++i)
       EXPECT_EQ(0, mat_copy(i, j));
-
-  cudaStreamDestroy(stream);
 }

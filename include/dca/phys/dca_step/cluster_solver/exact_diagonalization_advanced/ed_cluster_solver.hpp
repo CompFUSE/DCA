@@ -20,6 +20,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/linalg/device_type.hpp"
@@ -34,6 +35,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -46,6 +48,7 @@ class EDClusterSolver {
 public:
   using MOMS_w_imag_type = DcaData<parameters_type>;
   using MOMS_w_real_type = DcaDataRealFreq<parameters_type>;
+  using Lattice = typename MOMS_w_imag_type::Lattice;
 
   using ed_options_type = ed::Options<parameters_type>;
 
@@ -59,7 +62,7 @@ public:
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
-  EDClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+  EDClusterSolver(const parameters_type& parameters_ref, MOMS_type& MOMS_ref,
                   MOMS_w_real_type& MOMS_real_ref);
 
   void initialize(int dca_iteration);
@@ -72,8 +75,8 @@ public:
   void write(std::string file_name);
 
 private:
-  parameters_type& parameters;
-  typename parameters_type::concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const typename parameters_type::concurrency_type& concurrency;
   MOMS_type& MOMS_imag;
   MOMS_w_real_type& MOMS_real;
 
@@ -86,7 +89,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
+    const parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -136,7 +139,13 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca
 
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS_imag.H_DCA, H_DCA);
 
-  Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
+  if (models::has_non_density_interaction<Lattice>) {
+    func::function<double, func::dmn_variadic<nu, nu, nu, nu, RClusterDmn>> H_nd;
+    models::initializeNonDensityInteraction<Lattice>(H_nd, parameters);
+    Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions, H_nd);
+  }
+  else
+    Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -154,7 +163,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
   overlap_obj.construct_creation_set_nonzero_sparse();
   overlap_obj.construct_annihilation_set_nonzero_sparse();
 
-  {  // non-interacting Greensfunction
+  {  // non-interacting Greens function)
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << dca::util::print_time() << std::endl;
     }
@@ -263,52 +272,28 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
 
-  const std::string& output_format = parameters.get_output_format();
+  std::cout << "\n\n\t\t start writing parameters\n\n";
+  parameters.write(writer);
 
-  if (output_format == "JSON") {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
+  std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
+  MOMS_imag.write(writer);
 
-    parameters.write(writer);
-    MOMS_imag.write(writer);
-    MOMS_real.write(writer);
+  std::cout << "\n\n\t\t start writing MOMS_real\n\n";
+  MOMS_real.write(writer);
 
-    if (parameters.isAccumulatingG4()) {
-      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-      tp_Greens_function_obj.write(writer);
-    }
-
-    writer.close_file();
+  if (parameters.isAccumulatingG4()) {
+    std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+    tp_Greens_function_obj.write(writer);
   }
 
-  else if (output_format == "HDF5") {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    std::cout << "\n\n\t\t start writing parameters\n\n";
-    parameters.write(writer);
-
-    std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
-    MOMS_imag.write(writer);
-
-    std::cout << "\n\n\t\t start writing MOMS_real\n\n";
-    MOMS_real.write(writer);
-
-    if (parameters.isAccumulatingG4()) {
-      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-      tp_Greens_function_obj.write(writer);
-    }
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
+  writer.close_file();
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ED_CLUSTER_SOLVER_HPP

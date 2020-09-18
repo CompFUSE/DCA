@@ -165,8 +165,8 @@ protected:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(const parameters_type& parameters_ref,
-                                                                        Data& data_ref, int id)
+SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(
+    const parameters_type& parameters_ref, Data& data_ref, int id)
     : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),

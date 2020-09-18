@@ -24,8 +24,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/util/integer_division.hpp"
 
 namespace dca {
@@ -256,8 +255,8 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
 template <class Parameters, typename Real>
 Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
   std::array<double, 3> removal_rngs;
-  for(unsigned i = 0; i < n_removal_rngs_; ++i)
-      removal_rngs[i] = rng_();
+  for (unsigned i = 0; i < n_removal_rngs_; ++i)
+    removal_rngs[i] = rng_();
 
   const auto candidates = configuration_.randomRemovalCandidate(removal_rngs);
   removal_list_.clear();

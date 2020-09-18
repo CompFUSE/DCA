@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "dca/linalg/linalg.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
 namespace phys {

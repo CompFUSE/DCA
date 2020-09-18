@@ -55,7 +55,7 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  BseSolver(ParametersType& parameters, DcaDataType& dca_data);
+  BseSolver(/*const*/ ParametersType& parameters, DcaDataType& dca_data);
 
   void write();
   template <typename Writer>
@@ -77,8 +77,8 @@ private:
   // TODO: Cleanup.
   void initialize_wave_functions();
 
-  ParametersType& parameters_;
-  ConcurrencyType& concurrency_;
+  /*const*/ ParametersType& parameters_;
+  const ConcurrencyType& concurrency_;
 
   DcaDataType& dca_data_;
 
@@ -90,7 +90,7 @@ private:
 };
 
 template <typename ParametersType, typename DcaDataType>
-BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, DcaDataType& dca_data)
+BseSolver<ParametersType, DcaDataType>::BseSolver(/*const*/ ParametersType& parameters, DcaDataType& dca_data)
     : parameters_(parameters),
       concurrency_(parameters.get_concurrency()),
 
@@ -121,35 +121,18 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
 template <typename ParametersType, typename DcaDataType>
 void BseSolver<ParametersType, DcaDataType>::write() {
-  const std::string& output_format = parameters_.get_output_format();
   const std::string& file_name = parameters_.get_directory() + parameters_.get_filename_analysis();
 
   std::cout << "Start writing " << file_name << "." << std::endl;
 
-  if (output_format == "JSON") {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
 
-    parameters_.write(writer);
-    // dca_data_.write(writer);
-    this->write(writer);
+  parameters_.write(writer);
+  // dca_data_.write(writer);
+  this->write(writer);
 
-    writer.close_file();
-  }
-
-  else if (output_format == "HDF5") {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    parameters_.write(writer);
-    // dca_data_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
+  writer.close_file();
 }
 
 template <typename ParametersType, typename DcaDataType>

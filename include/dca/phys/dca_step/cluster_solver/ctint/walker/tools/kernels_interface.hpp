@@ -7,7 +7,7 @@
 //
 // Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides access to the kernel building the G0 matrix on the GPU.
+// Kernel interface for GPU interpolation.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
@@ -17,7 +17,7 @@
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
 
 namespace dca {
 namespace phys {

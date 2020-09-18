@@ -16,6 +16,7 @@
 #include <complex>
 #include <cstring>
 #include "dca/linalg/device_type.hpp"
+#include "cuda_stream.hpp"
 
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
@@ -141,10 +142,22 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
+// Synchronous 1D memory copy fallback.
+template <typename ScalarType>
+void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size,
+                     const util::CudaStream& /*s*/) {
+  memoryCopyCpu(dest, src, size);
+}
+template <typename ScalarType>
+void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
+                     std::pair<int, int> size, const util::CudaStream& /*s*/) {
+  memoryCopyCpu(dest, ld_dest, src, ld_src, size);
+}
+
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_COPY_HPP

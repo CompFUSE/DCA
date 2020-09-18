@@ -16,7 +16,7 @@ class G_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real> {
   using Profiler = typename Parameters::profiler_type;
 
 public:
-  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
+  G_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -111,6 +111,6 @@ public:
 private:
   int thread_id;
 
-  Parameters& parameters;
-  Concurrency& concurrency;
+  const Parameters& parameters;
+  const Concurrency& concurrency;
 };

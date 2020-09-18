@@ -24,12 +24,11 @@
 #include "dca/linalg/util/stream_container.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/util/integer_division.hpp"
@@ -87,6 +86,10 @@ public:
     return thermalized_;
   }
 
+  unsigned long get_steps() const {
+    return n_steps_;
+  }
+
   int order() const {
     return configuration_.size();
   }
@@ -102,7 +105,7 @@ public:
   }
 
   double acceptanceRatio() const {
-    return Real(n_accepted_) / Real(n_steps_);
+    return Real(n_accepted_) / Real(n_steps_ - thermalization_steps_);
   }
 
   void initialize(int iter);
@@ -166,7 +169,6 @@ public:
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
-  using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
   // Auxiliary methods.
   void updateSweepAverages();
@@ -195,6 +197,7 @@ protected:  // Members.
   util::Accumulator<uint> order_avg_;
   util::Accumulator<int> sign_avg_;
   unsigned long n_steps_ = 0;
+  unsigned long thermalization_steps_ = 0;
   unsigned long n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
 
@@ -238,11 +241,10 @@ CtintWalkerBase<Parameters, Real>::CtintWalkerBase(const Parameters& parameters_
 template <class Parameters, typename Real>
 void CtintWalkerBase<Parameters, Real>::initialize(int iteration) {
   assert(total_interaction_);
+  sign_ = 1;
+  mc_log_weight_ = 0.;
 
   sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
-
-  sign_ = 1;
-  mc_log_weight_ = 1.;
 
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
@@ -302,11 +304,11 @@ void CtintWalkerBase<Parameters, Real>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
+  thermalization_steps_ = n_steps_;
 
   order_avg_.reset();
   sign_avg_.reset();
   n_accepted_ = 0;
-  n_steps_ = 0;
 
   // Recompute the Monte Carlo weight.
   setMFromConfig();
@@ -349,7 +351,7 @@ void CtintWalkerBase<Parameters, Real>::printSummary() const {
 template <class Parameters, typename Real>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters, Real>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
+    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)

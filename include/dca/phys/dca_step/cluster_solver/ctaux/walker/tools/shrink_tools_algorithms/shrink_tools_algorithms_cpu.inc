@@ -12,6 +12,8 @@
 
 template <typename Real>
 class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, Real> {
+  using HostVector = linalg::util::HostVector<int>;
+
 public:
   SHRINK_TOOLS_ALGORITHMS(int id) : thread_id(id), stream_id(0) {}
 
@@ -30,10 +32,10 @@ public:
     }
   }
 
-  void execute(std::vector<int>& source_index_up, std::vector<int>& target_index_up,
+  void execute(HostVector& source_index_up, HostVector& target_index_up,
                dca::linalg::Matrix<Real, dca::linalg::CPU>& N_up,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_up, std::vector<int>& source_index_dn,
-               std::vector<int>& target_index_dn, dca::linalg::Matrix<Real, dca::linalg::CPU>& N_dn,
+               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_up, HostVector& source_index_dn,
+               HostVector& target_index_dn, dca::linalg::Matrix<Real, dca::linalg::CPU>& N_dn,
                dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_dn) {
     assert(source_index_up.size() == target_index_up.size());
     assert(source_index_dn.size() == target_index_dn.size());

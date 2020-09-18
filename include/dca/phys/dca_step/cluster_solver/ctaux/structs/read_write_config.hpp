@@ -30,7 +30,6 @@ io::Buffer& operator<<(io::Buffer& buff, const vertex_pair<Parameters>& v) {
 
 template <class Parameters>
 io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Parameters>& v) {
-  v.creatable = false;
   v.annihilatable = true;
   v.successfully_flipped = false;
   v.Bennett = false;
@@ -66,12 +65,11 @@ io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Parameters>& co
 
   for (int i = 0; i < n; ++i) {
     vertex_pair<Parameters> vertex(config.parameters, config.rng, config.configuration.size(),
-                                   config.configuration_e_DN.size(),
-                                   config.configuration_e_UP.size(), config.next_vertex_id_++);
+                                   config.next_vertex_id_++);
 
     buff >> vertex;
 
-    ++config.current_Nb_of_annihilatable_spins;
+    ++config.current_Nb_of_annihilatable_spins_;
     config.update_configuration_e_spin(vertex);
     config.configuration.push_back(vertex);
   }

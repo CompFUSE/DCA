@@ -167,8 +167,8 @@ void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_c
 
 template <class parameters_type, class base_cluster_type>
 void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::finalize() {
-  concurrency.sum_and_average(G_r_l, parameters.get_measurements_per_process_and_accumulator());
-  concurrency.sum_and_average(GS_r_l, parameters.get_measurements_per_process_and_accumulator());
+  concurrency.sum_and_average(G_r_l, parameters.get_measurements_per_process());
+  concurrency.sum_and_average(GS_r_l, parameters.get_measurements_per_process());
 
   if (concurrency.id() == concurrency.first()) {
     for (int l = 0; l < legendre_dmn_t::dmn_size(); l++) {

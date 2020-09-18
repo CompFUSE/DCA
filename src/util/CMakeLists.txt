@@ -9,6 +9,9 @@ add_custom_target(git_version_helper
 
 add_library(git_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/git_version.cpp)
 add_dependencies(git_version git_version_helper)
+if(DCA_HAVE_CUDA)
+  target_compile_definitions(git_version PRIVATE -DDCA_HAVE_CUDA)
+endif()
 
 # Modules
 add_custom_target(modules_helper
@@ -21,3 +24,8 @@ add_dependencies(modules modules_helper)
 
 # Timer
 add_library(timer STATIC timer.cpp)
+
+# Signal handler
+add_library(signals STATIC signal_handler.cpp)
+target_include_directories(signals PUBLIC ${DCA_EXTERNAL_INCLUDE_DIRS})
+target_link_libraries(signals PUBLIC dca_hdf5)

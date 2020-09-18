@@ -115,7 +115,6 @@ public:
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
-  void initialize_Sigma();
 
   void compute_single_particle_properties();
   void compute_Sigma_bands();
@@ -123,7 +122,7 @@ public:
   void print_Sigma_QMC_versus_Sigma_cg();
 
 private:
-  Parameters& parameters_;
+  /*const*/ Parameters& parameters_;
   const Concurrency& concurrency_;
 
 public:
@@ -325,24 +324,10 @@ void DcaData<Parameters>::read(std::string filename) {
     std::cout << "\n\n\t starts reading \n\n";
 
   if (concurrency_.id() == concurrency_.first()) {
-    const std::string& output_format = parameters_.get_output_format();
-
-    if (output_format == static_cast<const std::string>("JSON")) {
-      dca::io::JSONReader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else if (output_format == static_cast<const std::string>("HDF5")) {
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else
-      throw std::logic_error(__FUNCTION__);
+    dca::io::HDF5Reader reader;
+    reader.open_file(filename);
+    this->read(reader);
+    reader.close_file();
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -391,30 +376,13 @@ template <class Parameters>
 void DcaData<Parameters>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  const std::string& output_format = parameters_.get_output_format();
+  dca::io::HDF5Writer writer;
+  writer.open_file(file_name);
 
-  if (output_format == static_cast<const std::string>("JSON")) {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
+  parameters_.write(writer);
+  this->write(writer);
 
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else if (output_format == static_cast<const std::string>("HDF5")) {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
+  writer.close_file();
 }
 
 template <class Parameters>
@@ -569,40 +537,6 @@ void DcaData<Parameters>::initialize_G0() {
   G0_r_t_cluster_excluded = G0_r_t;
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initialize_Sigma() {
-  if (parameters_.get_initial_self_energy() == "zero")
-    return;
-
-  auto initialize = [&](auto&& reader) {
-    reader.open_file(parameters_.get_initial_self_energy());
-
-    if (parameters_.adjust_chemical_potential()) {
-      reader.open_group("parameters");
-      reader.open_group("physics");
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
-      reader.close_group();
-      reader.close_group();
-    }
-
-    reader.open_group("functions");
-    reader.execute(Sigma);
-    reader.close_group();
-  };
-
-  if (concurrency_.id() == 0) {
-    const std::string& format = parameters_.get_output_format();
-    if (format == "HDF5")
-      initialize(io::HDF5Reader());
-    else if (format == "JSON")
-      initialize(io::JSONReader());
-    else
-      throw std::logic_error(__FUNCTION__);
-  }
-
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast(Sigma);
-}
 
 template <class Parameters>
 void DcaData<Parameters>::compute_single_particle_properties() {

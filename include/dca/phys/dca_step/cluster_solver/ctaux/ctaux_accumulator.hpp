@@ -45,7 +45,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #ifdef DCA_HAVE_MPI
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
-#endif // DCA_HAVE_MPI
+#endif  // DCA_HAVE_MPI
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -54,7 +54,8 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-  template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST = dca::DistType::NONE, typename Real = double>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data,
+          DistType DIST = dca::DistType::NONE, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
@@ -212,8 +213,8 @@ protected:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
-CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const Parameters& parameters_ref,
-                                                                     Data& data_ref, int id)
+CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(
+    const Parameters& parameters_ref, Data& data_ref, int id)
     : MC_accumulator_data(),
 
       parameters_(parameters_ref),
@@ -278,7 +279,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(DCA_iteration) - 1);
+    Real factor = 1. / std::sqrt(parameters_.get_measurements().back() - 1);
 
     M_r_w_stddev *= factor;
   }

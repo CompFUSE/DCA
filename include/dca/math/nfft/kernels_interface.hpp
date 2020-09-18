@@ -29,23 +29,22 @@ struct ConfigElem {
   int site;
 };
 
-template <typename ScalarType>
-void accumulateOnDevice(const ScalarType* M, int ldm, ScalarType sign, ScalarType* out,
-                        ScalarType* out_sqr, const int ldo, const ConfigElem* config_left,
-                        const ConfigElem* config_right, const ScalarType* tau,
-                        const ScalarType* cubic_coeff, int size, cudaStream_t stream_);
+template <int oversampling, int window_sampling, typename ScalarIn, typename ScalarOut>
+void accumulateOnDevice(const ScalarIn* M, const int ldm, const ScalarIn sign, ScalarOut* out,
+                        ScalarOut* out_sqr, const int ldo, const ConfigElem* config_left,
+                        const ConfigElem* config_right, const ScalarIn* tau,
+                        const ScalarOut* cubic_coeff, const int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);
 
-template <typename ScalarType>
-void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversampling,
-                          int window_sampling, ScalarType t0, ScalarType delta_t,
-                          ScalarType t0_window, ScalarType delta_t_window, ScalarType beta);
+void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+                          double t0, double delta_t, double t0_window, double delta_t_window,
+                          double beta);
 
-}  // details
-}  // nfft
-}  // math
-}  // dca
+}  // namespace details
+}  // namespace nfft
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_NFFT_KERNELS_INTERFACE_HPP

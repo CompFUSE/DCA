@@ -20,6 +20,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
+#include "dca/util/signal_handler.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 
 int main(int argc, char** argv) {
@@ -31,6 +32,8 @@ int main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
+    dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
+
     std::string input_file(argv[1]);
 
     Profiler::start();

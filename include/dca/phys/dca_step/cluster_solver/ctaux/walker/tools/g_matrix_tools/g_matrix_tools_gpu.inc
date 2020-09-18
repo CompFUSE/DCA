@@ -18,7 +18,7 @@ class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
   using Profiler = typename Parameters::profiler_type;
 
 public:
-  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
+  G_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -91,8 +91,8 @@ public:
 private:
   int thread_id;
 
-  Parameters& parameters;
-  Concurrency& concurrency;
+  const Parameters& parameters;
+  const Concurrency& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> i_index_gpu, j_index_gpu;
   dca::linalg::Vector<bool, dca::linalg::GPU> is_Bennett_gpu;
