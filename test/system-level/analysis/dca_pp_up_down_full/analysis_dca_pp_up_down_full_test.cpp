@@ -103,9 +103,9 @@ TEST(AnalysisDCAParticleParticleUpDownFullTest, LeadingEigenvalues) {
   }
   for (int i = 0; i < leading_symmetry_decomposition.size(); ++i) {
     EXPECT_NEAR(std::abs(leading_symmetry_decomposition_check(i).real()),
-                std::abs(leading_symmetry_decomposition(i).real()), 1.e-10);
+                std::abs(leading_symmetry_decomposition(i).real()), 1.e-8);
     EXPECT_NEAR(std::abs(leading_symmetry_decomposition_check(i).imag()),
-                std::abs(leading_symmetry_decomposition(i).imag()), 1.e-10);
+                std::abs(leading_symmetry_decomposition(i).imag()), 1.e-8);
   }
 
   std::cout << "\nWriting data.\n" << std::endl;
