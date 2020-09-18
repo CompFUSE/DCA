@@ -558,13 +558,13 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_
 
       MatrixView G_matrix(&data_.G_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_size);
 
-      // - G0_times_M_matrix * G0 --> G_matrix
+      // G0_times_M_matrix * G0 --> G_matrix
       linalg::matrixop::gemm(G0_times_M_matrix, G0_matrix, G_matrix);
 
-      // G_matrix / beta + G0_cluster_excluded_matrix --> G_matrix
+      // -G_matrix / beta + G0_cluster_excluded_matrix --> G_matrix
       for (int j = 0; j < matrix_size; ++j)
         for (int i = 0; i < matrix_size; ++i)
-          G_matrix(i, j) = G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
+          G_matrix(i, j) = -G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
     }
   }
 
