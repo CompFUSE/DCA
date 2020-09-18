@@ -102,13 +102,9 @@ public:
   using SpRGreensFunction =
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
 
-  using TpGreensFunction = std::conditional_t<
-      Lattice::spin_symmetric,
+  using TpGreensFunction =
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, WVertexDmn,
-                                                 KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>>,
-      func::function<Complex, func::dmn_variadic<KClusterDmn, WVertexDmn, KClusterDmn, WVertexDmn,
-                                                 KExchangeDmn, WExchangeDmn>>>;
-
+                                                 KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>>;
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);

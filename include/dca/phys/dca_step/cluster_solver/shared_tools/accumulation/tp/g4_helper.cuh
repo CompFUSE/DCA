@@ -147,7 +147,6 @@ __device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, un
 __device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& k1, unsigned& w1,
                                              unsigned& k2, unsigned& w2, unsigned& k_ex,
                                              unsigned& w_ex) const {
-  assert(nb_ == 1);
   auto unroll = [&](const unsigned dimension) {
     unsigned result = index / sbdm_steps_[dimension];
     index -= result * sbdm_steps_[dimension];

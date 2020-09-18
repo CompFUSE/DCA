@@ -167,12 +167,8 @@ protected:
 
   const Real beta_ = -1;
 
-  // If the model is not spin symmetric, remove the spin degree of freedom from "bands".
-  // TODO: better variable naming.
-  constexpr static int n_bands_ = Parameters::lattice_type::spin_symmetric
-                                      ? Parameters::model_type::BANDS
-                                      : Parameters::model_type::BANDS / 2;
-
+  constexpr static int n_bands_ = Parameters::model_type::BANDS
+                                      ;
   constexpr static bool non_density_density_ =
       models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
 

@@ -36,7 +36,7 @@
 
         "imaginary-frequency": {
             "sp-fermionic-frequencies": 512,
-            "four-point-fermionic-frequencies": 8
+            "four-point-fermionic-frequencies": 2
         }
     },
 

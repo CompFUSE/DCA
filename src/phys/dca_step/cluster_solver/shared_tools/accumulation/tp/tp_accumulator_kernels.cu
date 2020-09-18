@@ -479,9 +479,7 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
                                                const CudaComplex<Real>* __restrict__ G, const int ldg,
                                                const CudaComplex<Real> factor, const bool atomic,
                                                const uint64_t start, const uint64_t end) {
-  // only PARTICLE PARTICLE UP DOWN channel is supported on a singleband, two spins problem.
-  assert(g4_helper.get_bands() == 2);
-
+  // only PARTICLE PARTICLE UP DOWN channel is supported.
   const uint64_t local_g4_index =
       static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x) +
       static_cast<uint64_t>(threadIdx.x);
@@ -492,12 +490,8 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
     return;
   }
 
-  unsigned k1, k2, k_ex, w1, w2, w_ex;
-  g4_helper.unrollIndex(g4_index, k1, w1, k2, w2, k_ex, w_ex);
-
-  const unsigned nb = g4_helper.get_bands();
-  const unsigned nk = g4_helper.get_cluster_size();
-  assert(nb == 2);
+  unsigned k1, k2, k_ex, w1, w2, w_ex, s1, s2, s3, s4;
+  g4_helper.unrollIndex(g4_index, k1, w1, k2, w2, k_ex, w_ex, s1, s2, s3, s4);
 
   const auto delta_k1 = g4_helper.kexMinus(k1, k_ex);
   const auto delta_k2 = g4_helper.kexMinus(k2, k_ex);
@@ -505,22 +499,16 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
   const auto delta_w2 = g4_helper.wexMinus(w2, k_ex);
   CudaComplex<Real> contribution = makeComplex(Real(0.));
 
-
   // same spin contribution
-  // \sum_s G(k2, k1, -s, -s) * G(k_ex - k2, k_ex - k1, s, s).
-  contribution += getG(G, ldg, k2, k1, w2, w1, 1, 1) *
-                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, 0, 0);
-  contribution += getG(G, ldg, k1, k2, w1, w2, 0, 0) *
-                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, 1, 1);
+  // contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
+  contribution += getG(G, ldg, k2, k1, w2, w1, s3, s2) *
+                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, s4, s1);
 
-  // opposite spin contribution
-  // - \sum_s G(k2, k_ex - k1, -s, s) * G(k_ex - k2, k1, s, -s).
-  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, 1, 0) *
-                  getG(G, ldg, delta_k2, k1, delta_w2, w1, 0, 1);
-  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, 0, 1) *
-                  getG(G, ldg, delta_k2, k1, delta_w2, w1, 1, 0);
+  // contraction: -G(k2, k_ex - k1, s2, s1) * G(k_ex - k2, k1, s4, s1).
+  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, s3, s1) *
+                  getG(G, ldg, delta_k2, k1, delta_w2, w1, s4, s2);
 
-  contribution *= (factor * 0.5);
+  contribution *= factor;
 
   CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
   if (atomic)

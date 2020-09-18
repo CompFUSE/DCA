@@ -53,6 +53,8 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
   using QmcBaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
   using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<QmcBaseSolver>;
 
+  dca::linalg::util::initializeMagma();
+
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::util::GitVersion::print();
     dca::util::Modules::print();
@@ -80,15 +82,19 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
     // Read and confront with previous run
     if (dca_test_env->concurrency.id() == 0) {
       Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
+      Data::TpGreensFunction G4_check(data.get_G4()[0].get_name());
       dca::io::HDF5Reader reader;
       reader.open_file(baseline);
       reader.open_group("functions");
       reader.execute(G_k_w_check);
+      reader.execute(G4_check);
       reader.close_group();
       reader.close_file();
 
       auto diff = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      auto diff_g4 = dca::func::util::difference(G4_check, data.get_G4()[0]);
       EXPECT_GE(1e-6, diff.l2);
+      EXPECT_GE(1e-6, diff_g4.l2);
     }
   }
   else {
@@ -98,6 +104,7 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
       writer.open_file(baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
+      writer.execute(data.get_G4()[0]);
       writer.close_group(), writer.close_file();
     }
   }
