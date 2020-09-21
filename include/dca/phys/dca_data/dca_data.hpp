@@ -29,10 +29,8 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
-#include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
-#include "dca/io/json/json_reader.hpp"
-#include "dca/io/json/json_writer.hpp"
+#include "dca/io/reader.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/util/vector_operations.hpp"
@@ -105,8 +103,7 @@ public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
-  template <typename Reader>
-  void read(Reader& reader);
+  void read(io::Reader& reader);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -323,29 +320,13 @@ void DcaData<Parameters>::read(std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
-  if (concurrency_.id() == concurrency_.first()) {
-    const std::string& output_format = parameters_.get_output_format();
+  dca::io::Reader reader(parameters_.get_output_format());
 
-    if (output_format == static_cast<const std::string>("JSON")) {
-      dca::io::JSONReader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else if (output_format == static_cast<const std::string>("HDF5")) {
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else
-      throw std::logic_error(__FUNCTION__);
-  }
+  reader.open_file(filename);
+  read(reader);
+  reader.close_file();
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
-
   concurrency_.broadcast_object(Sigma);
 
   if (parameters_.isAccumulatingG4()) {
@@ -357,8 +338,7 @@ void DcaData<Parameters>::read(std::string filename) {
 }
 
 template <class Parameters>
-template <typename Reader>
-void DcaData<Parameters>::read(Reader& reader) {
+void DcaData<Parameters>::read(io::Reader& reader) {
   reader.open_group("parameters");
 
   reader.open_group("physics");
@@ -541,28 +521,20 @@ void DcaData<Parameters>::initialize_G0() {
 template <class Parameters>
 void DcaData<Parameters>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
-    auto read_all = [&](auto&& reader) {
-      reader.open_file(filename);
+    io::Reader reader(parameters_.get_output_format());
+    reader.open_file(filename);
 
-      if (parameters_.adjust_chemical_potential()) {
-        reader.open_group("parameters");
-        reader.open_group("physics");
-        reader.execute("chemical-potential", parameters_.get_chemical_potential());
-        reader.close_group();
-        reader.close_group();
-      }
-
-      reader.open_group("functions");
-      reader.execute(Sigma);
+    if (parameters_.adjust_chemical_potential()) {
+      reader.open_group("parameters");
+      reader.open_group("physics");
+      reader.execute("chemical-potential", parameters_.get_chemical_potential());
       reader.close_group();
-    };
+      reader.close_group();
+    }
 
-    if (parameters_.get_output_format() == "HDF5")
-      read_all(io::HDF5Reader());
-    else if (parameters_.get_output_format() == "JSON")
-      read_all(io::JSONReader());
-    else
-      throw(std::logic_error("Invalid format"));
+    reader.open_group("functions");
+    reader.execute(Sigma);
+    reader.close_group();
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
