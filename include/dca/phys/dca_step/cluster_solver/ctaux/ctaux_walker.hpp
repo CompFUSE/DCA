@@ -412,7 +412,7 @@ void CtauxWalker<device_t, Parameters, Data>::printSummary() const {
     std::cout << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n";
 
   std::cout << "# creations / # annihilations: "
-            << static_cast<Scalar>(number_of_creations) / static_cast<Scalar>(number_of_annihilations)
+            << static_cast<Real>(number_of_creations) / static_cast<Real>(number_of_annihilations)
             << "\n"
             << std::endl;
 
