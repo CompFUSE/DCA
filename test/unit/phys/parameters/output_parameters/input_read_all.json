@@ -1,7 +1,8 @@
 {
     "output": {
         "directory": "./T=0.5",
-        "output-format": "JSON",
+        "output-format": "HDF5",
+        "autoresume" : true,
         "directory-config-read" : "configuration",
         "directory-config-write" : "configuration",
         "filename-dca": "dca.json",
