@@ -1,64 +1,66 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements json_reader.hpp.
+// JSON reader.
 
 #include "dca/io/json/json_reader.hpp"
 
 #include <fstream>
-#include <stdexcept>
 
-namespace dca {
-namespace io {
-// dca::io::
+namespace dca::io {
 
-JSONReader::JSONReader(bool verbose)
-    : verbose_(verbose),
-      current_file_name("input.json"),
-      parser(),
-      parse_result(parser.get_JSON_tree().result),
-      my_paths(0) {}
-
-void JSONReader::open_file(std::string file_name) {
-  current_file_name = file_name;
-  parse(file_name);
+JSONReader::JSONReader(bool verbose) : verbose_(verbose) {
+  open_groups_.push(&root_);
 }
 
-std::string JSONReader::get_path() {
-  std::string path = "/";
+void JSONReader::open_file(const std::string& filename) {
+  std::ifstream inp(filename);
 
-  for (std::size_t i = 0; i < my_paths.size(); i++) {
-    path = path + my_paths[i];
-
-    if (i < my_paths.size() - 1)
-      path = path + "/";
+  if (!inp) {
+    throw(std::runtime_error("Can not open file " + filename));
   }
 
-  return path;
+  std::stringstream stream;
+  stream << inp.rdbuf();
+  inp.close();
+
+  try {
+    root_.read(stream);
+  }
+  catch (const std::logic_error& err) {
+    throw(std::logic_error("File " + filename + ":\n" + err.what()));
+  }
 }
 
-void JSONReader::parse(std::string& file_name_ref) {
-  std::string file_name = file_name_ref;
-
-  std::wifstream file(file_name.c_str());
-
-  if (!file or !file.good() or file.bad()) {
-    std::cout << "\n\n\tcannot open file : " << file_name << "\n";
-    throw std::runtime_error(__FUNCTION__);
-  }
-  else if (verbose_) {
-    std::cout << "\n\n\topening file : " << file_name << "\n";
-  }
-
-  while (parser.execute(file))
-    ;
+void JSONReader::close_file() noexcept {
+  root_.clear();
+  while (!open_groups_.empty())
+    open_groups_.pop();
 }
 
-}  // namespace io
-}  // namespace dca
+void JSONReader::open_group(const std::string& name) noexcept {
+  details::JSONGroup* new_group = nullptr;
+  if (open_groups_.top())
+    new_group = open_groups_.top()->getGroup(name);
+
+  // TODO: process error here.
+  //  if (!new_group)
+  //    throw(std::logic_error("Group " + name + " does not exist"));
+  open_groups_.push(new_group);
+}
+
+void JSONReader::close_group() {
+  if (open_groups_.size() == 1) {
+    throw(std::logic_error("Can't close root group."));
+  }
+
+  open_groups_.pop();
+}
+
+}  // namespace dca::io

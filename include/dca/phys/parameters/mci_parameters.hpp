@@ -193,80 +193,75 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
-  auto try_to_read_write = [&](const std::string& name, auto& obj) {
-    try {
-      reader_or_writer.execute(name, obj);
+  auto read_legacy_vector = [&](const std::string& name, auto& vec) {
+    if constexpr (ReaderOrWriter::is_reader) {
+      if (!reader_or_writer.execute(name, vec)) {
+        vec.resize(1);
+        reader_or_writer.execute(name, vec[0]);
+      }
     }
-    catch (std::exception&) {
-    }
-  };
-
-  auto try_to_read_write_vector = [&](const std::string& name, auto& vec) {
-    try {  // read as a vector.
+    else {
       reader_or_writer.execute(name, vec);
-    }
-    catch (std::exception&) {  // read as a scalar.
-      vec.resize(1);
-      try_to_read_write(name, vec[0]);
     }
   };
 
   reader_or_writer.open_group("Monte-Carlo-integration");
 
-  if (reader_or_writer.is_reader()) {
+  if constexpr (ReaderOrWriter::is_reader) {
     // The input file can contain an integral seed or the seeding option "random".
-    try {
-      // Try to read a seeding option.
-      std::string seed_string;
-      reader_or_writer.execute("seed", seed_string);
-      if (seed_string == "random")
+
+    std::string seed_string;
+    const bool string_seed = reader_or_writer.execute("seed", seed_string);
+    if (string_seed) {
+      if (seed_string == "random") {
         generateRandomSeed();
+      }
       else {
         std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed << "."
                   << std::endl;
         seed_ = default_seed;
       }
     }
-    catch (const std::exception& r_e) {
-      // Read the seed as an integer.
-      try_to_read_write("seed", seed_);
+    else {  // Read the seed as an integer.
+      reader_or_writer.execute("seed", seed_);
     }
-  }  // is_reader()
+  }  // is_reader
 
   else {
     // Write the seed directly.
-    try_to_read_write("seed", seed_);
+    reader_or_writer.execute("seed", seed_);
   }
 
   // Read error computation type.
   std::string error_type = toString(error_computation_type_);
-  try_to_read_write("error-computation-type", error_type);
+  reader_or_writer.execute("error-computation-type", error_type);
   error_computation_type_ = stringToErrorComputationType(error_type);
 
-  try_to_read_write("warm-up-sweeps", warm_up_sweeps_);
-  try_to_read_write_vector("sweeps-per-measurement", sweeps_per_measurement_);
-  try_to_read_write_vector("measurements", measurements_);
+  reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
+  read_legacy_vector("sweeps-per-measurement", sweeps_per_measurement_);
+  read_legacy_vector("measurements", measurements_);
 
-  try_to_read_write("store-configuration", store_configuration_);
+  reader_or_writer.execute("store-configuration", store_configuration_);
 
   // Read arguments for threaded solver.
   reader_or_writer.open_group("threaded-solver");
 
-  try_to_read_write("walkers", walkers_);
-  try_to_read_write("accumulators", accumulators_);
-  try_to_read_write("shared-walk-and-accumulation-thread", shared_walk_and_accumulation_thread_);
-  try_to_read_write("fix-meas-per-walker", fix_meas_per_walker_);
+  reader_or_writer.execute("walkers", walkers_);
+  reader_or_writer.execute("accumulators", accumulators_);
+  reader_or_writer.execute("shared-walk-and-accumulation-thread",
+                           shared_walk_and_accumulation_thread_);
+  reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
 
   // Read distribution type.
   std::string g4_dist_name = toString(g4_distribution_);
-  try_to_read_write("g4-distribution", g4_dist_name);
+  reader_or_writer.execute("g4-distribution", g4_dist_name);
   g4_distribution_ = stringToDistType(g4_dist_name);
 
   reader_or_writer.close_group();
 
   // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
   // 'false'.
-  // try_to_read_write("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
+  // reader_or_writer.execute("adjust-self-energy-for-double-counting", adjust_self_energy_for_double_counting_);
 
   reader_or_writer.close_group();
 
@@ -295,7 +290,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     throw(std::logic_error("MPI distribution requested with no MPI available."));
 #endif  // DCA_HAVE_MPI
   }
-}
+}  // namespace params
 
 void MciParameters::solveDcaIterationConflict(int iterations) {
   // Solve conflicts between number of iterations and mci parameters.

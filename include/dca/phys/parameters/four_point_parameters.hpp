@@ -147,51 +147,40 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
 template <int lattice_dimension>
 template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
-  auto try_to_execute = [&](const std::string& name, auto& obj) {
-    try {
-      reader_or_writer.execute(name, obj);
-    }
-    catch (const std::exception& r_e) {
-    }
-  };
+  reader_or_writer.open_group("four-point");
 
-  try {
-    reader_or_writer.open_group("four-point");
+  const std::string channel_par_name = "channels";
 
-    const std::string channel_par_name = "channels";
+  std::vector<std::string> channel_names;
+  if (ReaderOrWriter::is_reader) {
+    // Support legacy input files specifying a single channel name.
+    std::string four_point_name = "NONE";
+    reader_or_writer.execute("type", four_point_name);
+    if (four_point_name != "NONE")
+      four_point_channels_.push_back(stringToFourPointType(four_point_name));
 
-    std::vector<std::string> channel_names;
-    if (reader_or_writer.is_reader()) {
-      // Support legacy input files specifying a single channel name.
-      std::string four_point_name = "NONE";
-      try_to_execute("type", four_point_name);
-      if (four_point_name != "NONE")
-        four_point_channels_.push_back(stringToFourPointType(four_point_name));
+    reader_or_writer.execute(channel_par_name, channel_names);
+    for (auto name : channel_names)
+      four_point_channels_.push_back(stringToFourPointType(name));
 
-      try_to_execute(channel_par_name, channel_names);
-      for (auto name : channel_names)
-        four_point_channels_.push_back(stringToFourPointType(name));
-
-      // Remove duplicates
-      std::sort(four_point_channels_.begin(), four_point_channels_.end());
-      four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()), four_point_channels_.end());
-    }
-
-    else {  // is writer.
-      for (auto channel : four_point_channels_)
-        channel_names.push_back(toString(channel));
-
-      try_to_execute(channel_par_name, channel_names);
-    }
-
-    try_to_execute("momentum-transfer", four_point_momentum_transfer_input_);
-    try_to_execute("frequency-transfer", four_point_frequency_transfer_);
-    try_to_execute("compute-all-transfers", compute_all_transfers_);
-
-    reader_or_writer.close_group();
+    // Remove duplicates
+    std::sort(four_point_channels_.begin(), four_point_channels_.end());
+    four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()),
+                               four_point_channels_.end());
   }
-  catch (const std::exception& r_e) {
+
+  else {  // is writer.
+    for (auto channel : four_point_channels_)
+      channel_names.push_back(toString(channel));
+
+    reader_or_writer.execute(channel_par_name, channel_names);
   }
+
+  reader_or_writer.execute("momentum-transfer", four_point_momentum_transfer_input_);
+  reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
+  reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
+
+  reader_or_writer.close_group();
 
   if (compute_all_transfers_ && four_point_frequency_transfer_ < 0)
     throw(std::logic_error(
