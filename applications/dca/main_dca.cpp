@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     }
   }
   catch (const std::exception& err) {
-    std::cout << "Unhandled exception in main function:\n\t" << err.what();
+    std::cout << "Unhandled exception in main function:\n\t" << err.what() << std::endl;
     concurrency.abort();
   }
 
