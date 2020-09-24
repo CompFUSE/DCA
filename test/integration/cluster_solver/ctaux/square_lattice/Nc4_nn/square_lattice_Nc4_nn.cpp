@@ -139,9 +139,8 @@ int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
-
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv,
-                                                         DCA_SOURCE_DIR
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(concurrency, DCA_SOURCE_DIR
                                                          "/test/integration/cluster_solver/ctaux/"
                                                          "square_lattice/Nc4_nn/"
                                                          "input.square_lattice_Nc4_nn.json");

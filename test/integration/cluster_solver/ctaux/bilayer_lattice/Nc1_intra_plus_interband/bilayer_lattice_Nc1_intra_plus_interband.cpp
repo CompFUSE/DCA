@@ -154,8 +154,9 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR
+      concurrency, DCA_SOURCE_DIR
       "/test/integration/cluster_solver/ctaux/bilayer_lattice/Nc1_intra_plus_interband/"
       "input.bilayer_lattice_Nc1_intra_plus_interband.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
