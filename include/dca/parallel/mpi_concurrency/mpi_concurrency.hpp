@@ -35,6 +35,10 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
+/** Extremely overengineered
+ *
+ *  \todo simplify
+ */
 class MPIConcurrency final : public virtual MPIInitializer,
                              public virtual MPIProcessorGrouping,
                              public MPIPacking,

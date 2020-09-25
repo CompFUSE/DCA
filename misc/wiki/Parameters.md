@@ -17,12 +17,16 @@ Directory to write the output to.
 `"output-format":` string ("HDF5")  
 File format of the output files. Options are: "HDF5" | "JSON".
 
+`"autoresume":` bool (false)
+If true, looks for a file named `<filename-dca>.tmp` generated from an aborted run, and starts 
+the DCA loop from the last completed iteration. If the read is successful the parameter 
+`initial-self-energy` is ignored.
+
 `"directory-config-read":` string ("")  
 If not empty, the Monte Carlo configuration will be initialized with the configurations stored in this directory.
 
 `"directory-config-write":` string ("")  
 If not empty, after the last Monte Carlo iteration, the configurations are written in this directory.
-
 
 `"filename-dca":` string ("dca.hdf5")  
 Filename for the output of the application <tt>main_dca</tt>.
@@ -57,6 +61,7 @@ Write out the &chi;<sub>0</sub> function of the BSE lattice solver.
         "output": {
             "directory": "./T=0.5",
             "output-format": "HDF5",
+            "autoresume" : true,
             "filename-dca": "dca.hdf5",
             "filename-analysis": "analysis.hdf5",
             "filename-ed": "ed.hdf5",
