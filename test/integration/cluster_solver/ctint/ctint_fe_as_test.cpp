@@ -102,8 +102,10 @@ int main(int argc, char** argv) {
   int result = 0;
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+
   dca_test_env =
-      new dca::testing::DcaMpiTestEnvironment(argc, argv, input_dir + "fe_as_lattice_input.json");
+      new dca::testing::DcaMpiTestEnvironment(concurrency, input_dir + "fe_as_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

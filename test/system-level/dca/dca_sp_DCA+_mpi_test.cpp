@@ -6,9 +6,11 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // No-change test for a concurrent (using MPI) DCA+ calculation using the CT-AUX cluster solver.
-// It runs a simulation of a tight-binding model on 2D square lattice.
+// It runs a simulation of a tight-binding model on 2D square lattice. This also tests the
+// checkpointing between DCA iterations.
 
 #include <iostream>
 #include <string>
@@ -19,8 +21,10 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
+#include "dca/io/filesystem.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -28,9 +32,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -61,15 +62,15 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaLoopType =
       dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
-  using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-  using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
-  using s = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
-  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
-      double, LatticeType::DIMENSION, dca::phys::domains::CLUSTER,
-      dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
+  auto& concurrency = dca_test_env->concurrency;
+  dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+  if (concurrency.id() == concurrency.first()) {
+    // Copy initial state from an aborted run.
+    filesystem::copy_file(
+        DCA_SOURCE_DIR "/test/system-level/dca/data.dca_sp_DCA+_mpi_test.hdf5.tmp",
+        "./data.dca_sp_DCA+_mpi_test.hdf5.tmp", filesystem::copy_options::overwrite_existing);
+
     dca::util::GitVersion::print();
     dca::util::Modules::print();
     dca::config::CMakeOptions::print();
@@ -100,39 +101,40 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   dca_loop.execute();
   dca_loop.finalize();
 
-  auto& Sigma_DCA = dca_data.Sigma;
-
-  // Read QMC self-energy from check_data file and compare it with the newly
-  // computed QMC self-energy.
-  const std::string filename =
-      DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5";
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    if (!update_baseline) {
-      dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_DCA_check(
-          "Self_Energy");
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      reader.open_group("functions");
-      reader.execute(Sigma_DCA_check);
-      reader.close_file();
-
-      auto diff = dca::func::util::difference(Sigma_DCA_check, Sigma_DCA);
-      EXPECT_GT(1e-10, diff.l_inf);
-    }
-    else {
-      // Write results
-      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data "
+  if (!update_baseline) {
+    if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
                 << std::endl;
 
+      // Read self-energy from check_data file.
+      DcaDataType::SpGreensFunction Sigma_check("Self_Energy");
+      dca::io::HDF5Reader reader;
+      reader.open_file(DCA_SOURCE_DIR
+                       "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
+      reader.open_group("functions");
+      reader.execute(Sigma_check);
+      reader.close_file();
+
+      // Compare the computed self-energy with the expected result.
+      auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
+
+      EXPECT_NEAR(0, diff.l2, 1.e-9);
+
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data."
+                << std::endl;
+      dca_loop.write();
+      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    }
+  }
+  else {
+    if (concurrency.id() == concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file(filename);
+      writer.open_file(DCA_SOURCE_DIR
+                       "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
       writer.open_group("functions");
-      Sigma_DCA.set_name("Self_Energy");
-      writer.execute(Sigma_DCA);
-      writer.close_group();
+      writer.execute(dca_data.Sigma);
       writer.close_file();
     }
-    std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
 
@@ -141,8 +143,9 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_mpi_test.json");
+      concurrency, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
