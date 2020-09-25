@@ -30,7 +30,6 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
   ParametersType<CT_INT> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
 
-
   const int meas_per_node = parameters.get_measurements().back();
   parameters.set_measurements(meas_per_node * dca_test_env->concurrency.get_size());
 
@@ -117,8 +116,9 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, dca::testing::test_directory + "bilayer_lattice_input.json");
+      concurrency, dca::testing::test_directory + "bilayer_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
