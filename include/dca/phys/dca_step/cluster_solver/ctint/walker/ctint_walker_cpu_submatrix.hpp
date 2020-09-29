@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <map>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
