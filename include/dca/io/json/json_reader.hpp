@@ -30,8 +30,8 @@ public:
   void open_file(const std::string& filename);
   void close_file() noexcept;
 
-  void open_group(const std::string& name) noexcept;
-  void close_group();
+  bool open_group(const std::string& name) noexcept;
+  bool close_group() noexcept;
 
   constexpr static bool is_reader = true;
   constexpr static bool is_writer = false;

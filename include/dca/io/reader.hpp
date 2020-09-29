@@ -57,7 +57,8 @@ public:
 
   template <class... Args>
   bool execute(Args&&... args) noexcept {
-    return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); }, reader_);
+    return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },
+                      reader_);
   }
 
 private:
