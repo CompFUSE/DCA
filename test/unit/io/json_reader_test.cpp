@@ -31,8 +31,8 @@ TEST(ReadTest, All) {
   EXPECT_DOUBLE_EQ(d, 3.1456);
   reader.execute("int", i);
   EXPECT_EQ(i, 42);
-  EXPECT_THROW(reader.execute("not a field", i), std::logic_error);
-  EXPECT_THROW(reader.execute("int", s), std::logic_error);
+  EXPECT_FALSE(reader.execute("not a field", i));
+  EXPECT_FALSE(reader.execute("int", s));
   EXPECT_EQ(i, 42);
   reader.close_group();
 

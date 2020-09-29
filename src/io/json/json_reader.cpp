@@ -44,23 +44,26 @@ void JSONReader::close_file() noexcept {
     open_groups_.pop();
 }
 
-void JSONReader::open_group(const std::string& name) noexcept {
+bool JSONReader::open_group(const std::string& name) noexcept {
   details::JSONGroup* new_group = nullptr;
   if (open_groups_.top())
     new_group = open_groups_.top()->getGroup(name);
 
-  // TODO: process error here.
+  // TODO maybe: process error here.
   //  if (!new_group)
   //    throw(std::logic_error("Group " + name + " does not exist"));
   open_groups_.push(new_group);
+  return static_cast<bool>(new_group);
 }
 
-void JSONReader::close_group() {
+bool JSONReader::close_group() noexcept {
   if (open_groups_.size() == 1) {
-    throw(std::logic_error("Can't close root group."));
+    //    throw(std::logic_error("Can't close root group."));
+    return false;
   }
 
   open_groups_.pop();
+  return true;
 }
 
 }  // namespace dca::io
