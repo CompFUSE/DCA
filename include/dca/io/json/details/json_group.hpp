@@ -70,13 +70,7 @@ bool JSONGroup::readEntry(const std::string& name, T& val) const noexcept {
   if (!entry)
     return false;
 
-  try {
-    entry->write(val);
-    return true;
-  }
-  catch (...) {
-    return false;
-  }
+  return entry->write(val);
 }
 
 }  // namespace dca::io::details
