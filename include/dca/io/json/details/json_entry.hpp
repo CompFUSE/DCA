@@ -47,9 +47,11 @@ public:
     stream << data_;
   }
 
+  // Returns the success of the write operation. A common failure is a type not compatible with the
+  // string representation. In case of failure "obj: is unmodified.
   template <class T>
-  void write(T& obj) const {
-    obj = Convert<T>::execute(data_);
+  bool write(T& obj) const {
+    return Convert<T>::execute(data_, obj);
   }
 
   // Return true if this is the last element of a group.

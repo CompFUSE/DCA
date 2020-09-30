@@ -17,58 +17,171 @@
 #include <sstream>
 #include <vector>
 
+#include "dca/io/json/details/util.hpp"
+
 namespace dca::io {
 
 template <class T>
-std::istream& operator>>(std::istream& stream, std::vector<T>& vec);
-
-template <class T>
 struct Convert {
-  static T execute(const std::string& val) {
-    T ret;
-    std::stringstream stream(val);
-    stream >> ret;
-    return ret;
+  static bool execute(const std::string& inp, T& val) {
+    std::stringstream stream(inp);
+    try {
+      stream >> val;
+    }
+    catch (...) {
+      return false;
+    }
+    return true;
   }
 };
 
 template <>
 struct Convert<std::string> {
-  static std::string execute(const std::string& val) {
-    if (val.size() > 1 && (val[0] == '\"' && val.back() == '\"'))
-      return val.substr(1, val.size() - 2);
-    else
-      throw(std::logic_error("Not a string"));
+  static bool execute(std::string_view inp, std::string& val) {
+    inp = details::trimSpaces(inp);
+    if (inp.size() < 2 || (inp[0] == '\"' && inp.back() == '\"')) {
+      val = inp.substr(1, inp.size() - 2);
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 };
 
 template <>
 struct Convert<bool> {
-  static bool execute(const std::string& val) {
-    if (val.size() >= 4 && val.substr(0, 4) == "true")
-      return true;
-    else if (val.size() >= 5 && val.substr(0, 5) == "false")
-      return false;
+  static bool execute(const std::string& inp, bool& val) {
+    if (inp == "true")
+      val = true;
+    else if (inp == "false")
+      val = false;
     else
-      return std::stoi(val);
+      val = std::stoi(inp);
+
+    return true;
   }
 };
 
 template <class T1, class T2>
 struct Convert<std::pair<T1, T2>> {
-  static auto execute(const std::string& val) {
+  static bool execute(const std::string& inp, std::pair<T1, T2>& p) {
     static_assert(std::is_scalar_v<T1> && std::is_scalar_v<T2>,
                   "composite pair members are not supported");
 
-    const auto split = val.find(',');
-    if ((val.at(0) != '(' && val.back() != ')') || split == std::string::npos)
-      throw(std::logic_error("Not a pair"));
+    const auto split = inp.find(',');
+    if ((inp.at(0) != '(' && inp.back() != ')') || split == std::string::npos) {
+      // Not a pair
+      return false;
+    }
 
-    std::pair<T1, T2> p;
-    p.first = Convert<T1>::execute(val.substr(1, split - 1));
-    p.second = Convert<T2>::execute(val.substr(split + 1, val.size() - split - 2));
+    std::pair<T1, T2> result;
+    bool success = true;
 
-    return p;
+    success &= Convert<T1>::execute(inp.substr(1, split - 1), result.first);
+    success &= Convert<T2>::execute(inp.substr(split + 1, inp.size() - split - 2), result.second);
+
+    if (success) {
+      p = std::move(result);
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+};
+
+template <class T, std::size_t n>
+struct Convert<std::array<T, n>> {
+  static bool execute(const std::string& inp, std::array<T, n>& arr) {
+    std::vector<T> v;
+    v.reserve(n);
+
+    // Expansive but easy: delegate to vector conversion.
+    const bool success = Convert<std::vector<T>>::execute(inp, v);
+    if (!success || v.size() != n)
+      return false;
+
+    std::copy(v.begin(), v.end(), arr.begin());
+    return true;
+  }
+};
+
+template <class T>
+struct Convert<std::vector<T>> {
+  static bool execute(std::string_view inp, std::vector<T>& vec) {
+    inp = details::trimSpaces(inp);
+
+    if (inp.size() < 2 || inp[0] != '[' || inp.back() != ']') {
+      // Invalid vector format.
+      return false;
+    }
+
+    std::vector<T> result;  // move result into vec after it has been successfully read.
+
+    bool quote = false;
+    int parentheses = 0;
+    std::size_t pos = 1;
+    std::string entry;
+
+    auto add_element = [&]() {
+      bool success = true;
+      if (entry != "") {
+        result.emplace_back();
+        success = Convert<T>::execute(entry, result.back());
+        entry.clear();
+      }
+      return success;
+    };
+
+    while (pos < inp.size() - 1) {  // skip first and last square bracket.
+      const char c = inp[pos++];
+
+      if (!quote) {
+        switch (c) {
+          case '[':
+          case '(':
+            ++parentheses;
+            entry.push_back(c);
+            break;
+          case ')':
+          case ']':
+            --parentheses;
+            if (parentheses < 0) {  // imbalanced parentheses.
+              return false;
+            }
+            entry.push_back(c);
+            break;
+          case ',':
+            if (parentheses == 0) {
+              if (!add_element())
+                return false;
+            }
+            else {
+              entry.push_back(c);
+            }
+            break;
+          case '\"':
+            quote = true;
+            entry.push_back(c);
+            break;
+          default:
+            entry.push_back(c);
+        }
+      }
+      else {
+        if (c == '\"')
+          quote = false;
+        entry.push_back(c);
+      }
+    }
+
+    // Process last element.
+    if (!add_element())
+      return false;
+
+    vec = std::move(result);
+    return true;
   }
 };
 
@@ -97,118 +210,6 @@ std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec) {
 template <class T, std::size_t n>
 std::ostream& operator<<(std::ostream& stream, const std::array<T, n>& arr) {
   return stream << std::vector<T>(arr.begin(), arr.end());
-}
-
-template <class T, std::size_t n>
-std::istream& operator>>(std::istream& stream, std::array<T, n>& arr) {
-  std::vector<T> v;
-  v.reserve(n);
-
-  stream >> v;
-  std::copy(v.begin(), v.end(), arr.begin());
-  return stream;
-}
-
-template <class T, std::size_t n>
-std::istream& operator>>(std::istream& stream, std::vector<std::array<T, n>>& v) {
-  std::vector<std::vector<T>> vv;
-
-  stream >> vv;
-  v.resize(vv.size());
-  for (std::size_t i = 0; i < vv.size(); ++i) {
-    std::copy(vv[i].begin(), vv[i].end(), v[i].begin());
-  }
-  return stream;
-}
-
-template <class T>
-std::istream& operator>>(std::istream& stream, std::vector<T>& vec) {
-  vec.clear();
-
-  char c;
-  stream.read(&c, 1);
-  if (c != '[') {
-    stream.seekg(-1, stream.cur);
-    throw(std::logic_error("invalid vector format"));
-  }
-
-  std::string value;
-  bool quote = false;
-  int parentheses = 0;
-
-  while (stream.read(&c, 1)) {
-    if (!quote) {
-      switch (c) {
-        case ']':
-          if (value != "")
-            vec.push_back(Convert<T>::execute(value));
-          return stream;
-        case '(':
-          ++parentheses;
-          value.push_back(c);
-          break;
-        case ')':
-          --parentheses;
-          value.push_back(c);
-          break;
-        case ',':
-          if (parentheses == 0) {
-            vec.push_back(Convert<T>::execute(value));
-            value.clear();
-          }
-          else {
-            value.push_back(c);
-          }
-          break;
-        case '\"':
-          quote = true;
-          value.push_back(c);
-          break;
-        case ' ':
-          break;
-        default:
-          value.push_back(c);
-      }
-    }
-    else {
-      if (c == '\"')
-        quote = false;
-      value.push_back(c);
-    }
-  }
-
-  return stream;
-}
-
-template <class T>
-std::istream& operator>>(std::istream& stream, std::vector<std::vector<T>>& vec) {
-  vec.clear();
-
-  char c;
-  stream.read(&c, 1);
-  if (c != '[') {
-    stream.seekg(-1, stream.cur);
-    throw(std::logic_error("invalid vector format"));
-  }
-
-  while (true) {
-    vec.emplace_back();
-    stream >> vec.back();
-
-    // trim whitespaces.
-    while (stream.peek() == ' ')
-      stream.read(&c, 1);
-
-    stream.read(&c, 1);
-    if (c == ']')
-      break;
-
-    assert(c == ',');
-    while (stream.peek() == ' ')
-      stream.read(&c, 1);
-  }
-
-  return stream;
 }
 
 }  // namespace dca::io
