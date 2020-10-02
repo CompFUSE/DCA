@@ -169,10 +169,10 @@ __device__ Complex getG(const Complex* __restrict__ G, const int ldg, int k1, in
 
   const unsigned nb = g4_helper.get_bands();
   const unsigned nk = g4_helper.get_cluster_size();
-  const int no = nb * nk;
+  const unsigned no = nb * nk;
 
-  const int i_idx = b1 + nb * k1 + no * w1;
-  const int j_idx = b2 + nb * k2 + no * w2;
+  const unsigned i_idx = b1 + nb * k1 + no * w1;
+  const unsigned j_idx = b2 + nb * k2 + no * w2;
 
   const auto val = G[i_idx + ldg * j_idx];
   return is_conj ? conj(val) : val;
@@ -491,12 +491,12 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
   }
 
   unsigned k1, k2, k_ex, w1, w2, w_ex, s1, s2, s3, s4;
-  g4_helper.unrollIndex(g4_index, k1, w1, k2, w2, k_ex, w_ex, s1, s2, s3, s4);
+  g4_helper.unrollIndex(g4_index, s1, s2, s3, s4, k1, w1, k2, w2, k_ex, w_ex);
 
   const auto delta_k1 = g4_helper.kexMinus(k1, k_ex);
   const auto delta_k2 = g4_helper.kexMinus(k2, k_ex);
-  const auto delta_w1 = g4_helper.wexMinus(w1, k_ex);
-  const auto delta_w2 = g4_helper.wexMinus(w2, k_ex);
+  const auto delta_w1 = g4_helper.wexMinus(w1, w_ex);
+  const auto delta_w2 = g4_helper.wexMinus(w2, w_ex);
   CudaComplex<Real> contribution = makeComplex(Real(0.));
 
   // same spin contribution
@@ -504,7 +504,7 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
   contribution += getG(G, ldg, k2, k1, w2, w1, s3, s2) *
                   getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, s4, s1);
 
-  // contraction: -G(k2, k_ex - k1, s2, s1) * G(k_ex - k2, k1, s4, s1).
+  // contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
   contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, s3, s1) *
                   getG(G, ldg, delta_k2, k1, delta_w2, w1, s4, s2);
 
