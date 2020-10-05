@@ -27,26 +27,37 @@ public:
   JSONReader(bool verbose = true);
   ~JSONReader() = default;
 
+  // Load a file content in memory.
+  // Throws std::logic_error if the file is not correctly formatted, with a description of the issue.
   void open_file(const std::string& filename);
+
+  // Clears the internal memory. The reader will be able to read another file.
   void close_file() noexcept;
 
+  // Opens a new group from the currently topmost open group. Returns false if the group does not
+  // exists, but still pushes a null group to the stack of open groups.
   bool open_group(const std::string& name) noexcept;
+
+  // Closes the topmost open griup, irreardless of its validity. Returns false if trying to close
+  // the root group.
   bool close_group() noexcept;
 
   constexpr static bool is_reader = true;
   constexpr static bool is_writer = false;
 
+  // Reads the variable with given name from the current group into the object "obj".
+  // If the variable or the currently open group does not exist, or the internal string
+  // representation is not compatible with the desired type "T" returns false and leaves "obj"
+  // unmodified.
   template <class T>
   bool execute(const std::string& name, T& obj) noexcept;
-
   template <class Scalar, class Domain>
   bool execute(const std::string& name, func::function<Scalar, Domain>& f) noexcept;
-
   template <class Scalar>
-  bool execute(const std::string& name, linalg::Matrix<Scalar, dca::linalg::CPU>& m);
+  bool execute(const std::string& name, linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
 
   template <class T>
-  bool execute(T& f) {
+  bool execute(T& f) noexcept {
     return execute(f.get_name(), f);
   }
 
@@ -99,7 +110,8 @@ bool JSONReader::execute(const std::string& name, func::function<Scalar, Domain>
 }
 
 template <class Scalar>
-bool JSONReader::execute(const std::string& name, linalg::Matrix<Scalar, dca::linalg::CPU>& m) {
+bool JSONReader::execute(const std::string& name,
+                         linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept {
   open_group(name);
 
   bool result = true;

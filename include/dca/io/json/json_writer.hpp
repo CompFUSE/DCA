@@ -27,45 +27,51 @@ public:
   JSONWriter(bool verbose = true);
   ~JSONWriter();
 
+  // Acquires lock on file. If "overwrite" is true and the file exists, the content is read into
+  // memory and serves as the initial state of the writer.
   void open_file(const std::string& filename, bool overwrite = true);
+
+  // Flushes and closes the file.
   void close_file();
 
+  // Writes the current state to disk into the opened file.
   void flush();
 
+  // Creates or opens a pre-existing group.
+  // Throws if there is a data entry with the same name in the current group.
   void open_group(const std::string& name);
+  // Closes the topmost open group.
+  // Precondition: the current group is not the root.
   void close_group();
 
   constexpr static bool is_reader = false;
   constexpr static bool is_writer = true;
 
-  void set_verbose(bool verbose) {
+  void set_verbose(bool verbose) noexcept {
     verbose_ = verbose;
   }
 
+  // Returns true if a file is open.
   operator bool() const noexcept;
 
+  // Commits to the internal data representation the value of "obj".
   template <class T>
-  void execute(const std::string& name, const T& obj);
-
+  void execute(const std::string& name, const T& obj) noexcept;
   template <class Scalar, class Domain>
-  void execute(const std::string& name, const func::function<Scalar, Domain>& f);
-
+  void execute(const std::string& name, const func::function<Scalar, Domain>& f) noexcept;
   template <class Scalar>
-  void execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m);
-
+  void execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
   template <class T>
-  void execute(const std::string& name, const std::unique_ptr<T>& ptr) {
+  void execute(const std::string& name, const std::unique_ptr<T>& ptr) noexcept {
     if (ptr)
       execute(name, *ptr);
   }
-
   template <class T>
-  void execute(const T& f) {
+  void execute(const T& f) noexcept {
     execute(f.get_name(), f);
   }
-
   template <class T>
-  void execute(const std::unique_ptr<T>& f) {
+  void execute(const std::unique_ptr<T>& f) noexcept {
     if (f)
       execute(f->get_name(), *f);
   }
@@ -79,12 +85,12 @@ private:
 };
 
 template <class T>
-void JSONWriter::execute(const std::string& name, const T& obj) {
+void JSONWriter::execute(const std::string& name, const T& obj) noexcept {
   open_groups_.top()->addEntry(name, obj);
 }
 
 template <class Scalar, class Domain>
-void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain>& f) {
+void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain>& f) noexcept {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
@@ -98,7 +104,8 @@ void JSONWriter::execute(const std::string& name, const func::function<Scalar, D
 }
 
 template <class Scalar>
-void JSONWriter::execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) {
+void JSONWriter::execute(const std::string& name,
+                         const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept {
   open_group(name);
 
   std::vector<std::vector<Scalar>> data(m.nrRows());
