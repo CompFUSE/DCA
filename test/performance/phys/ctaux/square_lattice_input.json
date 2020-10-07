@@ -1,17 +1,14 @@
 {
   "physics": {
-    "beta"                      :  10,
+    "beta"                      :  50,
     "chemical-potential"        : 0
   },
 
-  "bilayer-Hubbard-model" :
-  {
-    "t"       : 1,
-    "tz"      : 0,
-    "U" : 4,
-    "V" : 4,
-    "V-prime" : 4
+  "single-band-Hubbard-model": {
+    "t": 1,
+    "U": 4
   },
+
 
   "CT-AUX" :
   {
@@ -34,7 +31,7 @@
 },
 
   "DCA" : {
-    "interacting-orbitals" : [0,1]
+    "interacting-orbitals" : [0]
   },
 
   "Monte-Carlo-integration" :

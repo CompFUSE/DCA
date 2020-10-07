@@ -13,6 +13,7 @@
 #include <complex>
 #include <iostream>
 #include <string>
+#include <dca/function/util/difference.hpp>
 
 #include "gtest/gtest.h"
 
@@ -40,6 +41,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
+constexpr bool update_baseline = false;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(bilayerLattice_Nc1_interband, Self_Energy) {
@@ -110,46 +112,34 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
+  const std::string filename = DCA_SOURCE_DIR
+      "/test/integration/cluster_solver/ctaux/bilayer_lattice/Nc1_interband/check_data.QMC.hdf5";
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
-        "Self_Energy");
-    dca::io::HDF5Reader reader;
-    reader.open_file(
-        DCA_SOURCE_DIR
-        "/test/integration/cluster_solver/ctaux/bilayer_lattice/Nc1_interband/check_data.QMC.hdf5");
-    reader.open_group("functions");
-    reader.execute(Sigma_QMC_check);
-    reader.close_file();
+    if (!update_baseline) {
+      dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
+          "Self_Energy");
+      dca::io::HDF5Reader reader;
+      reader.open_file(filename);
+      reader.open_group("functions");
+      reader.execute(Sigma_QMC_check);
+      reader.close_file();
 
-    for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-      for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-        for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
-          for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-10);
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-10);
-          }
-        }
-      }
+      auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
+      EXPECT_GT(1e-10, diff.l_inf);
     }
-  }
+    else {
+      // Write results
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data "
+                << std::endl;
 
-  // Write results
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    {
-      using namespace dca;
-      using namespace parallel;
-      std::cout << '\n' << dca_test_env->concurrency << '\n';
+      dca::io::HDF5Writer writer;
+      writer.open_file(filename);
+      writer.open_group("functions");
+      Sigma_QMC.set_name("Self_Energy");
+      writer.execute(Sigma_QMC);
+      writer.close_group();
+      writer.close_file();
     }
-    dca::io::HDF5Writer writer;
-    writer.open_file("output.hdf5");
-    writer.open_group("functions");
-    Sigma_QMC.set_name("Self_Energy");
-    writer.execute(Sigma_QMC);
-    writer.close_group();
-    writer.close_file();
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
@@ -159,8 +149,10 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR
+      concurrency,
+      DCA_SOURCE_DIR
       "/test/integration/cluster_solver/ctaux/bilayer_lattice/Nc1_interband/"
       "input.bilayer_lattice_Nc1_interband.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);

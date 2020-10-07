@@ -112,21 +112,15 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
-  operator bool() const {
+  operator bool() const noexcept {
     return static_cast<bool>(file_);
   }
 
-  void lock() {
-    mutex_.lock();
-  }
-
-  void unlock() {
-    mutex_.unlock();
+  void set_verbose(bool verbose) {
+    verbose_ = verbose;
   }
 
 private:
-  bool fexists(const char* filename);
-
   bool exists(const std::string& name) const;
 
   H5::DataSet write(const std::string& name, const std::vector<hsize_t>& size, H5::DataType type,
@@ -142,8 +136,6 @@ private:
   std::vector<std::string> my_paths_;
 
   bool verbose_;
-
-  std::mutex mutex_;
 
   std::vector<hsize_t> size_check_;
 };

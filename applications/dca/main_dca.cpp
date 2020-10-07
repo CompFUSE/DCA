@@ -14,13 +14,14 @@
 #include <string>
 #include <iostream>
 
+#include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "dca/application/dca_loop_dispatch.hpp"
+#include "dca/util/signal_handler.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -31,6 +32,8 @@ int main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
+    dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
+
     std::string input_file(argv[1]);
 
     Profiler::start();

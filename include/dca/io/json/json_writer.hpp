@@ -38,7 +38,7 @@ public:
   typedef JSON_context JsonDataType;
 
 public:
-  JSONWriter();
+  JSONWriter(bool verbose = false);
 
   bool is_reader() const {
     return false;
@@ -105,14 +105,21 @@ public:
                const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A);
 
   template <class T>
-  void execute(const std::string& name,
-	       const std::unique_ptr<T>& obj);
+  void execute(const std::string& name, const std::unique_ptr<T>& obj);
 
   template <class T>
   void execute(const std::unique_ptr<T>& obj);
 
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
+
+  void set_verbose(bool verbose) noexcept {
+    verbose_ = verbose;
+  }
+
+  operator bool() const noexcept {
+    return file_name != "";
+  }
 
 private:
   std::stringstream ss;
@@ -122,6 +129,8 @@ private:
   std::string path;
 
   std::vector<int> elements_in_group;
+
+  bool verbose_;
 };
 
 template <typename arbitrary_struct_t>
@@ -134,9 +143,8 @@ void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, const std::string
 }
 
 template <typename scalartype>
-void JSONWriter::execute(
-    const std::string& name,
-    const scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
+void JSONWriter::execute(const std::string& name,
+                         const scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -225,7 +233,8 @@ void JSONWriter::execute(const std::string& name, const func::dmn_0<domain_type>
 
 template <typename scalar_type, typename domain_type>
 void JSONWriter::execute(const func::function<scalar_type, domain_type>& f) {
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -279,7 +288,8 @@ void JSONWriter::execute(const std::string& name, const func::function<scalar_ty
 
 template <typename scalar_type, typename domain_type>
 void JSONWriter::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
-  std::cout << "\t starts writing function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
@@ -457,8 +467,7 @@ void JSONWriter::execute(const std::string& name,
 }
 
 template <class T>
-void JSONWriter::execute(const std::string& name,
-			 const std::unique_ptr<T>& obj) {
+void JSONWriter::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)
     execute(name, *obj);
 }
@@ -563,7 +572,7 @@ void JSONWriter::execute(stream_type& os, const JsonAccessor& w) {
   }
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_JSON_JSON_WRITER_HPP

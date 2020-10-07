@@ -51,6 +51,11 @@ public:
   const std::string& get_directory() const {
     return directory_;
   }
+
+  bool autoresume() const {
+    return autoresume_;
+  }
+
   const std::string& get_output_format() const {
     return output_format_;
   }
@@ -90,6 +95,7 @@ public:
 
 private:
   std::string directory_;
+  bool autoresume_ = false;
   std::string output_format_;
   std::string filename_dca_;
   std::string directory_config_read_;
@@ -109,6 +115,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(directory_);
+  buffer_size += concurrency.get_buffer_size(autoresume_);
   buffer_size += concurrency.get_buffer_size(output_format_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
   buffer_size += concurrency.get_buffer_size(directory_config_read_);
@@ -129,6 +136,7 @@ template <typename Concurrency>
 void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
                             int& position) const {
   concurrency.pack(buffer, buffer_size, position, directory_);
+  concurrency.pack(buffer, buffer_size, position, autoresume_);
   concurrency.pack(buffer, buffer_size, position, output_format_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
   concurrency.pack(buffer, buffer_size, position, directory_config_read_);
@@ -147,6 +155,7 @@ template <typename Concurrency>
 void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                               int& position) {
   concurrency.unpack(buffer, buffer_size, position, directory_);
+  concurrency.unpack(buffer, buffer_size, position, autoresume_);
   concurrency.unpack(buffer, buffer_size, position, output_format_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_read_);
@@ -175,6 +184,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.open_group("output");
 
     try_to_read_or_write("directory", directory_);
+    try_to_read_or_write("autoresume", autoresume_);
     try_to_read_or_write("output-format", output_format_);
     try_to_read_or_write("filename-dca", filename_dca_);
     try_to_read_or_write("directory-config-read", directory_config_read_);
@@ -191,6 +201,10 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+  }
+
+  if (autoresume_ && output_format_ != "HDF5") {
+    throw(std::logic_error("Autoresume requires HDF5 output."));
   }
 }
 
