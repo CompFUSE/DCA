@@ -194,11 +194,6 @@ public:
   // Swaps the contents of the matrix, included the name, with those of rhs.
   void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
-  // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
-  // + synchronization of stream
-  template <DeviceType rhs_device_name>
-  void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
-
 #ifdef DCA_HAVE_CUDA
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
@@ -416,15 +411,6 @@ template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::swapWithName(Matrix<ScalarType, device_name>& rhs) {
   std::swap(name_, rhs.name_);
   swap(rhs);
-}
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                          int thread_id, int stream_id) {
-  resize(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, thread_id,
-                   stream_id);
 }
 
 #ifdef DCA_HAVE_CUDA
