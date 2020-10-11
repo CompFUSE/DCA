@@ -13,6 +13,7 @@
 #include <cuda.h>
 
 #include "dca/linalg/matrix_view.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -20,25 +21,25 @@ namespace solver {
 namespace ctint {
 namespace details {
 
-template <typename Real>
-void setRightSectorToId(Real* m, int ldm, int n0, int n_max, cudaStream_t stream);
+using dca::linalg::MatrixView;
+using dca::linalg::GPU;
 
-template <typename Real>
-using MatrixView = linalg::MatrixView<Real, linalg::GPU>;
+template <typename Scalar>
+void setRightSectorToId(Scalar* m, int ldm, int n0, int n_max, cudaStream_t stream);
 
-template <typename Real>
-void computeGLeft(MatrixView<Real>& G, const MatrixView<Real>& M, const Real* f, int n_init,
-                  cudaStream_t stream);
+template <typename Scalar, typename Real>
+void computeGLeft(MatrixView<Scalar, GPU>& G, const MatrixView<Scalar, GPU>& M, const Real* f,
+                  int n_init, cudaStream_t stream);
 
-template <typename Real>
-void multiplyByFColFactor(MatrixView<Real>& M, const Real* f_vals, cudaStream_t stream);
+template <typename Scalar, typename Real>
+void multiplyByFColFactor(MatrixView<Scalar, GPU>& M, const Real* f_vals, cudaStream_t stream);
 
-template <typename Real>
-void multiplyByInverseFFactor(const MatrixView<Real>& m_in, MatrixView<Real>& m_out,
+template <typename Scalar, typename Real>
+void multiplyByInverseFFactor(const MatrixView<Scalar, GPU>& m_in, MatrixView<Scalar, GPU>& m_out,
                               const Real* f_vals, cudaStream_t stream);
 
-template <typename Real>
-void divideByGammaFactor(MatrixView<Real> m, const std::pair<int, Real>* gamma_indices,
+template <typename Scalar, typename Real>
+void divideByGammaFactor(MatrixView<Scalar, GPU> m, const std::pair<int, Real>* gamma_indices,
                          int n_indices, cudaStream_t stream);
 
 }  // namespace details

@@ -33,9 +33,9 @@ template <typename Type>
 inline void multiplyDiagonalLeft_gpu(int m, int n, const std::complex<Type>* d, int inc_d,
                                      const std::complex<Type>* a, int lda, std::complex<Type>* b,
                                      int ldb, int thread_id, int stream_id) {
-  auto cu_a = linalg::util::castCudaComplex(a);
-  auto cu_d = linalg::util::castCudaComplex(d);
-  auto cu_b = linalg::util::castCudaComplex(b);
+  auto cu_a = linalg::castCuda(a);
+  auto cu_d = linalg::castCuda(d);
+  auto cu_b = linalg::castCuda(b);
   multiplyDiagonalLeft_gpu(m, n, cu_d, inc_d, cu_a, lda, cu_b, ldb, thread_id, stream_id);
 }
 
@@ -51,9 +51,9 @@ template <typename Type>
 inline void multiplyDiagonalRight_gpu(int m, int n, const std::complex<Type>* a, int lda,
                                       const std::complex<Type>* d, int inc_d, std::complex<Type>* b,
                                       int ldb, int thread_id, int stream_id) {
-  auto cu_a = linalg::util::castCudaComplex(a);
-  auto cu_d = linalg::util::castCudaComplex(d);
-  auto cu_b = linalg::util::castCudaComplex(b);
+  auto cu_a = linalg::castCuda(a);
+  auto cu_d = linalg::castCuda(d);
+  auto cu_b = linalg::castCuda(b);
   multiplyDiagonalRight_gpu(m, n, cu_a, lda, cu_d, inc_d, cu_b, ldb, thread_id, stream_id);
 }
 

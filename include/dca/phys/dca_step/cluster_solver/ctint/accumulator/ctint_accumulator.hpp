@@ -36,9 +36,9 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <class Parameters, typename Scalar, linalg::DeviceType device>
-class CtintAccumulator : MC_accumulator_data<Parameters::lattice_type::complex_g0> {
+class CtintAccumulator : MC_accumulator_data<Scalar> {
 public:
-  using BaseClass = MC_accumulator_data<Parameters::lattice_type::complex_g0>;
+  using BaseClass = MC_accumulator_data<Scalar>;
 
   using this_type = CtintAccumulator<Parameters, Scalar, device>;
   using ParametersType = Parameters;
@@ -183,16 +183,16 @@ void CtintAccumulator<Parameters, Scalar, device>::accumulate(Walker& walker) {
 
 template <class Parameters, typename Scalar, linalg::DeviceType device>
 void CtintAccumulator<Parameters, Scalar, device>::measure() {
-  if (!ready_ || current_sign_ == 0)
+  if (!ready_ || current_sign_.isNull())
     throw(std::logic_error("No or invalid configuration to accumulate."));
 
-  accumulated_sign_ += current_sign_;
+  accumulated_sign_ += current_sign_.getSign();
   accumulated_order_ += order();
   number_of_measurements_ += 1;
 
-  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_);
+  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_.getSign());
   if (perform_tp_accumulation_)
-    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_);
+    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_sign_.getSign());
 
   ready_ = false;
 }

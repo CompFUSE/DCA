@@ -83,11 +83,10 @@ void compute_Gamma(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r, int
 
     cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
-    using dca::linalg::util::castCudaComplex;
+    using dca::linalg::castCuda;
     compute_Gamma_kernel<<<blocks, threads, 0, stream_handle>>>(
-        castCudaComplex(Gamma), Gamma_n, Gamma_ld, castCudaComplex(N), N_r, N_c, N_ld,
-        castCudaComplex(G), G_r, G_c, G_ld, random_vertex_vector, castCudaComplex(exp_V),
-        castCudaComplex(exp_delta_V));
+        castCuda(Gamma), Gamma_n, Gamma_ld, castCuda(N), N_r, N_c, N_ld, castCuda(G), G_r, G_c,
+        G_ld, random_vertex_vector, castCuda(exp_V), castCuda(exp_delta_V));
 
     checkErrorsCudaDebug();
   }

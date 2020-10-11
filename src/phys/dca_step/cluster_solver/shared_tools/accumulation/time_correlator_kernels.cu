@@ -21,6 +21,8 @@ namespace solver {
 namespace details {
 // dca::phys::solver::details::
 
+using namespace dca::linalg;
+
 template <typename Scalar, typename Real>
 __global__ void computeG0Kernel(linalg::MatrixView<Scalar, linalg::GPU> mat,
                                 const DeviceInterpolationData<Scalar> g0, const Real* t_l,
@@ -34,7 +36,7 @@ __global__ void computeG0Kernel(linalg::MatrixView<Scalar, linalg::GPU> mat,
   const auto index = solver_helper.index(b_l[i], b_r[j], r_l[i], r_r[j]);
   const Real tau = t_l[i] - t_r[j];
 
-  mat(i, j) = g0(tau, index);
+  castCuda(mat(i, j)) = castCuda(g0(tau, index));
 }
 
 template <class T>
@@ -56,14 +58,9 @@ void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
                const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream) {
   assert(SolverHelper::initialized());
   auto blocks = dca::util::get2DBlockSize(g0_mat.nrRows(), g0_mat.nrCols(), 32);
-  using dca::linalg::util::castCudaComplex;
+  using dca::linalg::castCuda;
 
-  using CudaScalar = typename CudaScalarImpl<Scalar>::type;
-  auto& g0_mat_cuda = reinterpret_cast<linalg::MatrixView<CudaScalar, linalg::GPU>&>(g0_mat);
-  const auto& g0_cuda = reinterpret_cast<const DeviceInterpolationData<CudaScalar>&>(g0);
-
-  computeG0Kernel<<<blocks[0], blocks[1], 0, stream>>>(g0_mat_cuda, g0_cuda, t_l, b_l, r_l, t_r,
-                                                       b_r, r_r);
+  computeG0Kernel<<<blocks[0], blocks[1], 0, stream>>>(g0_mat, g0, t_l, b_l, r_l, t_r, b_r, r_r);
 }
 
 // Instantation.

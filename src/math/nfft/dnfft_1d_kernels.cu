@@ -95,20 +95,20 @@ void accumulateOnDevice(const Scalar* M, const int ldm, const Scalar factor, Sca
                         const ConfigElem* config_right, const Real* tau, const Real* cubic_coeff,
                         const int size, cudaStream_t stream_) {
   const auto blocks = getBlockSize(size * size * (2 * oversampling), 128);
-  using dca::linalg::util::castCudaComplex;
-  using dca::linalg::util::CudaConvert;
+  using dca::linalg::castCuda;
+  using dca::linalg::CudaConvert;
 
   if (out_sqr) {
     accumulateOnDeviceKernel<oversampling, window_sampling, CudaConvert<Scalar>, Real, true>
-        <<<blocks[0], blocks[1], 0, stream_>>>(castCudaComplex(M), ldm, castCudaComplex(factor),
-                                               castCudaComplex(out), castCudaComplex(out_sqr), ldo,
-                                               config_left, config_right, tau, cubic_coeff, size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castCuda(M), ldm, castCuda(factor), castCuda(out),
+                                               castCuda(out_sqr), ldo, config_left, config_right,
+                                               tau, cubic_coeff, size);
   }
   else {
     accumulateOnDeviceKernel<oversampling, window_sampling, CudaConvert<Scalar>, Real, false>
-        <<<blocks[0], blocks[1], 0, stream_>>>(castCudaComplex(M), ldm, castCudaComplex(factor),
-                                               castCudaComplex(out), castCudaComplex(out_sqr), ldo,
-                                               config_left, config_right, tau, cubic_coeff, size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castCuda(M), ldm, castCuda(factor), castCuda(out),
+                                               castCuda(out_sqr), ldo, config_left, config_right,
+                                               tau, cubic_coeff, size);
   }
 }
 
@@ -128,9 +128,8 @@ template <typename ScalarType>
 void sum(const ScalarType* in, const int ldi, ScalarType* out, const int ldo, const int n,
          const int m, cudaStream_t stream) {
   auto blocks = getBlockSize(n, m, 16);
-  using dca::linalg::util::castCudaComplex;
-  sumKernel<<<blocks[0], blocks[1], 0, stream>>>(castCudaComplex(in), ldi, castCudaComplex(out),
-                                                 ldo, n, m);
+  using dca::linalg::castCuda;
+  sumKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(in), ldi, castCuda(out), ldo, n, m);
 }
 
 void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,

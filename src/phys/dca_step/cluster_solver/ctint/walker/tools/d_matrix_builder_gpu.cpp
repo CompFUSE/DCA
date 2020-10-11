@@ -12,6 +12,8 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
+#include <complex>
+
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 
@@ -21,8 +23,7 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-using linalg::CPU;
-using linalg::GPU;
+using namespace dca::linalg;
 
 template <typename Real>
 DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<GPU, Real>& g0,
@@ -35,20 +36,23 @@ DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<GPU, Rea
                     site_diff.leadingDimension(), nb, site_add.nrRows(), r0);
 }
 
-template <typename Real>
-void DMatrixBuilder<GPU, Real>::computeG0(Matrix& G0,
-                                          const details::DeviceConfiguration& configuration,
-                                          const int n_init, bool right_section,
-                                          cudaStream_t stream) const {
+template <typename Scalar>
+void DMatrixBuilder<GPU, Scalar>::computeG0(Matrix& G0,
+                                            const details::DeviceConfiguration& configuration,
+                                            const int n_init, bool right_section,
+                                            cudaStream_t stream) const {
   if (G0.nrRows() * G0.nrCols() == 0)
     return;
-  details::buildG0Matrix(linalg::MatrixView<Real, linalg::GPU>(G0), n_init, right_section,
-                         configuration, g0_ref_, stream);
+
+  dca::linalg::MatrixView<Scalar, linalg::GPU> g0_view(G0);
+  details::buildG0Matrix(g0_view, n_init, right_section, configuration, g0_ref_, stream);
 }
 
 // Instantation.
 template class DMatrixBuilder<GPU, float>;
 template class DMatrixBuilder<GPU, double>;
+template class DMatrixBuilder<GPU, std::complex<float>>;
+template class DMatrixBuilder<GPU, std::complex<double>>;
 
 }  // namespace ctint
 }  // namespace solver

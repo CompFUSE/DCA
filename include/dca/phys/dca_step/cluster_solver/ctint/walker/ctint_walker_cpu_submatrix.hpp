@@ -109,6 +109,7 @@ private:
 protected:
   using MatrixView = linalg::MatrixView<Scalar, linalg::CPU>;
   using Matrix = linalg::Matrix<Scalar, linalg::CPU>;
+  using Real = dca::util::Real<Scalar>;
 
   using BaseClass::parameters_;
   using BaseClass::configuration_;
@@ -129,7 +130,7 @@ protected:
   struct DelayedMoveType {
     Move move_type;
     std::array<double, 3> removal_rng{1., 1., 1.};
-    Scalar acceptance_rng;
+    double acceptance_rng;
     std::array<int, 2> indices{-1, -1};
   };
 
@@ -147,12 +148,12 @@ protected:
   MatrixPair q_;              // TODO: don't pin or store in Gamma inv
   MatrixPair r_;
   MatrixPair s_;
-  std::array<std::vector<Scalar>, 2> gamma_;
+  std::array<std::vector<Real>, 2> gamma_;
 
   Scalar det_ratio_;
-  std::map<int, std::array<Scalar, n_bands_>> f_;
-  std::map<int, std::array<Scalar, n_bands_>> prob_const_;
-  std::map<std::pair<int, int>, std::array<Scalar, n_bands_>> gamma_values_;
+  std::map<int, std::array<Real, n_bands_>> f_;
+  std::map<int, std::array<Real, n_bands_>> prob_const_;
+  std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
 
   using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
@@ -439,7 +440,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Scalar>::mainSubmatrixProcess() {
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
     const bool accepted =
-        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), Scalar(1.));
+        delayed_moves_[delay_ind].acceptance_rng < std::min(std::abs(acceptance_prob_), Real(1.));
 
     // NB: recomputeGammaInv is just a inefficient alternative to updateGammaInv. Only for testing
     // or debbuging.
@@ -610,7 +611,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Scalar>::computeGInit() {
       f = f_[field_type][b];
 
       for (int i = 0; i < n_max_[s]; ++i) {
-        G_[s](i, j) = (M_[s](i, j) * f - Scalar(i == j)) / (f - 1);
+        G_[s](i, j) = (M_[s](i, j) * f - Real(i == j)) / (f - 1.);
       }
     }
 
@@ -649,7 +650,7 @@ auto CtintWalkerSubmatrixCpu<Parameters, Scalar>::computeAcceptanceProbability()
   const int non_empty_sector = sector_indices_[0].size() ? 0 : 1;
 
   Scalar mc_weight_ratio = acceptance_probability;
-  Scalar K = total_interaction_;
+  Real K = total_interaction_;
 
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
     const auto field_type = configuration_.getSector(non_empty_sector)
@@ -671,8 +672,8 @@ auto CtintWalkerSubmatrixCpu<Parameters, Scalar>::computeAcceptanceProbability()
       acceptance_probability *= K / (n_ + 1);
     }
     else if (delta_vertices == 2) {
-      const Scalar possible_partners = configuration_.possiblePartners(index_[0]);
-      const Scalar combinatorial_factor =
+      const Real possible_partners = configuration_.possiblePartners(index_[0]);
+      const Real combinatorial_factor =
           (n_ + 2) * (configuration_.nPartners(index_[0]) + 1) / possible_partners;
       acceptance_probability *= configuration_.getStrength(index_[1]) * K / combinatorial_factor;
     }
@@ -684,8 +685,8 @@ auto CtintWalkerSubmatrixCpu<Parameters, Scalar>::computeAcceptanceProbability()
       acceptance_probability *= n_ / K;
     }
     else if (delta_vertices == 2) {
-      const Scalar possible_partners = configuration_.possiblePartners(index_[0]);
-      const Scalar combinatorial_factor =
+      const Real possible_partners = configuration_.possiblePartners(index_[0]);
+      const Real combinatorial_factor =
           n_ * configuration_.nPartners(index_[0]) / possible_partners;
       acceptance_probability *= combinatorial_factor / (configuration_.getStrength(index_[1]) * K);
     }
@@ -759,7 +760,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Scalar>::updateM() {
       p = 0;
       for (auto& i : move_indices_[s]) {
         for (int j = 0; j < n_max_[s]; ++j) {
-          M_[s](i, j) /= 1 + gamma_[s][p];
+          M_[s](i, j) /= 1. + gamma_[s][p];
         }
         ++p;
       }
@@ -925,7 +926,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Scalar>::computeInsertionMatrices(
       s_[s](i, j) = G_[s](insertion_indices[i], insertion_indices[j]);
       if (i == j) {
         const Scalar gamma_val = gamma_[s].at(gamma_[s].size() + i - nbr_of_indices_[s]);
-        s_[s](i, j) -= (1 + gamma_val) / gamma_val;
+        s_[s](i, j) -= (1. + gamma_val) / gamma_val;
       }
     }
 

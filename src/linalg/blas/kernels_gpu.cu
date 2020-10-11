@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cuComplex.h>
 #include <cuda_runtime.h>
+#include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
@@ -25,6 +26,8 @@ namespace linalg {
 namespace blas {
 namespace kernels {
 // dca::linalg::blas::kernels::
+
+using namespace dca::linalg;
 
 constexpr int copy_col_block_size = 128;
 constexpr int move_block_size_x = 32;
@@ -135,6 +138,8 @@ __global__ void moveUp(int m, int n, Type* a, int lda) {
   }
 }
 
+using dca::linalg::operator*=;
+
 template <typename Type>
 __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a,
                           int lda) {
@@ -216,7 +221,8 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
-    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, x, ldx, y, ldy);
+    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, castCuda(x), ldx,
+                                                      castCuda(y), ldy);
     checkErrorsCudaDebug();
   }
 }
@@ -225,6 +231,10 @@ template void copyRows(int row_size, int n_rows, const int* i_x, const float* x,
                        int ldy, int thread_id, int stream_id);
 template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
                        double* y, int ldy, int thread_id, int stream_id);
+template void copyRows(int row_size, int n_rows, const int* i_x, const std::complex<float>* x,
+                       int ldx, std::complex<float>* y, int ldy, int thread_id, int stream_id);
+template void copyRows(int row_size, int n_rows, const int* i_x, const std::complex<double>* x,
+                       int ldx, std::complex<double>* y, int ldy, int thread_id, int stream_id);
 
 template <typename Type>
 void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, const int* j_y,
@@ -260,8 +270,13 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
   }
 }
 
+
 template void copyCols(int, int, const int*, const float*, int, float*, int, int, int);
+template void copyCols(int, int, const int*, const std::complex<float>*, int, std::complex<float>*,
+                       int, int, int);
 template void copyCols(int, int, const int*, const double*, int, double*, int, int, int);
+template void copyCols(int, int, const int*, const std::complex<double>*, int,
+                       std::complex<double>*, int, int, int);
 
 template <typename Type>
 void moveLeft(int m, int n, Type* a, int lda) {

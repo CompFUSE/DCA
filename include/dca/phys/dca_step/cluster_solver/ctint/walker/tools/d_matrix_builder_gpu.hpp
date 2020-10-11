@@ -28,18 +28,18 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <typename Real>
-class DMatrixBuilder<linalg::GPU, Real> final : public DMatrixBuilder<linalg::CPU, Real> {
+template <typename Scalar>
+class DMatrixBuilder<linalg::GPU, Scalar> final : public DMatrixBuilder<linalg::CPU, Scalar> {
 private:
-  using Matrix = linalg::Matrix<Real, linalg::GPU>;
+  using Matrix = linalg::Matrix<Scalar, linalg::GPU>;
   using MatrixPair = std::array<Matrix, 2>;
-  using BaseClass = DMatrixBuilder<linalg::CPU, Real>;
+  using BaseClass = DMatrixBuilder<linalg::CPU, Scalar>;
 
 public:
   template <class RDmn>
-  DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0, int nb, const RDmn& /*rdmn*/);
+  DMatrixBuilder(const G0Interpolation<linalg::GPU, Scalar>& g0, int nb, const RDmn& /*rdmn*/);
 
-  DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
+  DMatrixBuilder(const G0Interpolation<linalg::GPU, Scalar>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
                  const linalg::Matrix<int, linalg::CPU>& site_add, int nb, int r0);
 
@@ -53,13 +53,13 @@ public:
                  bool right_section, cudaStream_t stream) const override;
 
 private:
-  const G0Interpolation<linalg::GPU, Real>& g0_ref_;
+  const G0Interpolation<linalg::GPU, Scalar>& g0_ref_;
 };
 
-template <typename Real>
+template <typename Scalar>
 template <class RDmn>
-DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<linalg::GPU, Real>& g0,
-                                                  int nb, const RDmn& /*rdmn*/)
+DMatrixBuilder<linalg::GPU, Scalar>::DMatrixBuilder(const G0Interpolation<linalg::GPU, Scalar>& g0,
+                                                    int nb, const RDmn& /*rdmn*/)
     : DMatrixBuilder(g0, RDmn::parameter_type::get_add_matrix(),
                      RDmn::parameter_type::get_subtract_matrix(), nb,
                      RDmn::parameter_type::origin_index()) {}

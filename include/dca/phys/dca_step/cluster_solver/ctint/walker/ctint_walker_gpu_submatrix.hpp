@@ -32,6 +32,9 @@ namespace phys {
 namespace solver {
 namespace ctint {
 
+using dca::linalg::MatrixView;
+using dca::linalg::GPU;
+
 template <class Parameters, typename Scalar>
 class CtintWalkerSubmatrixGpu : public CtintWalkerSubmatrixCpu<Parameters, Scalar> {
 public:
@@ -45,8 +48,6 @@ public:
   using typename BaseClass::CudaStream;
   using typename BaseClass::Real;
 
-  template <linalg::DeviceType dev>
-  using MatrixView = linalg::MatrixView<Scalar, dev>;
   template <linalg::DeviceType dev>
   using Matrix = linalg::Matrix<Scalar, dev>;
   template <linalg::DeviceType device_t>
@@ -118,12 +119,12 @@ private:
   MatrixPair<linalg::GPU> G_dev_;
   MatrixPair<linalg::GPU> G0_dev_;
 
-  std::array<linalg::Vector<Scalar, linalg::GPU>, 2> f_dev_;
-  std::array<linalg::Vector<Scalar, linalg::CPU>, 2> f_values_;
+  std::array<linalg::Vector<Real, linalg::GPU>, 2> f_dev_;
+  std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values_;
 
   std::array<linalg::Vector<int, linalg::GPU>, 2> move_indices_dev_;
-  std::array<linalg::util::HostVector<std::pair<int, Scalar>>, 2> gamma_index_;
-  std::array<linalg::Vector<std::pair<int, Scalar>, linalg::GPU>, 2> gamma_index_dev_;
+  std::array<linalg::util::HostVector<std::pair<int, Real>>, 2> gamma_index_;
+  std::array<linalg::Vector<std::pair<int, Real>, linalg::GPU>, 2> gamma_index_dev_;
 
   std::array<linalg::util::CudaEvent, 2> config_copied_;
 };
@@ -217,11 +218,13 @@ void CtintWalkerSubmatrixGpu<Parameters, Scalar>::computeMInit() {
       d_builder_ptr_->computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
                                 get_stream(s));
 
-      MatrixView<linalg::GPU> D_view(D_dev_[s]);
+      using typename dca::linalg::MatrixView;
+      using typename dca::linalg::GPU;
+      MatrixView<Scalar, GPU> D_view(D_dev_[s]);
       details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), get_stream(s));
 
-      MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
-      MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
+      MatrixView<Scalar, GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
+      MatrixView<Scalar, GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
       flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
@@ -242,8 +245,8 @@ void CtintWalkerSubmatrixGpu<Parameters, Scalar>::computeGInit() {
 
     G_dev_[s].resizeNoCopy(n_max_[s]);
 
-    MatrixView<linalg::GPU> G(G_dev_[s]);
-    const MatrixView<linalg::GPU> M(M_dev_[s]);
+    linalg::MatrixView<Scalar, linalg::GPU> G(G_dev_[s]);
+    const linalg::MatrixView<Scalar, linalg::GPU> M(M_dev_[s]);
     details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], get_stream(s));
 
     if (delta > 0) {
@@ -251,7 +254,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Scalar>::computeGInit() {
       d_builder_ptr_->computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
                                 get_stream(s));
 
-      MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
+      linalg::MatrixView<Scalar, linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
       flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
@@ -302,7 +305,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Scalar>::updateM() {
     flop_ += 2 * Gamma_inv_dev_[s].nrRows() * Gamma_inv_dev_[s].nrCols() * old_M.nrCols();
     flop_ += 2 * old_G.nrRows() * old_G.nrCols() * tmp.nrCols();
 
-    details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
+    details::divideByGammaFactor(linalg::MatrixView<Scalar, linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
                                  gamma_size, get_stream(s));
   }
 
@@ -330,8 +333,8 @@ void CtintWalkerSubmatrixGpu<Parameters, Scalar>::computeM(
     m_accum[s].resizeNoCopy(M_dev_[s].size());
 
   for (int s = 0; s < 2; ++s) {
-    MatrixView<linalg::GPU> m_in(M_dev_[s]);
-    MatrixView<linalg::GPU> m_out(m_accum[s]);
+    MatrixView<Scalar, linalg::GPU> m_in(M_dev_[s]);
+    MatrixView<Scalar, linalg::GPU> m_out(m_accum[s]);
     details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), get_stream(s));
   }
 

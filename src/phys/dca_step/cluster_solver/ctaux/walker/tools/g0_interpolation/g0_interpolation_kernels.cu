@@ -37,7 +37,7 @@ namespace g0kernels {
  ************************************/
 
 using namespace dca::linalg;
-using dca::linalg::util::castCudaComplex;
+using dca::linalg::castCuda;
 
 const static int BLOCK_SIZE_x = 32;
 const static int BLOCK_SIZE_y = 16;
@@ -176,7 +176,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int N
                                 std::pair<int, int> alpha_gs, int thread_id, int stream_id) {
   static_assert(std::is_same<dca::util::Real<Scalar>, Real>::value,
                 "Real is not the real type of Scalar");
-  using dca::linalg::util::castCudaComplex;
+  using dca::linalg::castCuda;
 
   if (Nv - Nc > 0 && Nv > 0) {
     checkErrorsCudaDebug();
@@ -190,8 +190,8 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int N
     cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     akima_interpolation_fat_column<<<blocks, threads, 0, stream_handle>>>(
-        Nb, Nr, Nt, beta, Nc, Nv, b, r, t, castCudaComplex(G0), G0_cs, G0_gs, r0_min_r1,
-        r0_min_r1_cs, r0_min_r1_gs, castCudaComplex(alpha), alpha_cs, alpha_gs);
+        Nb, Nr, Nt, beta, Nc, Nv, b, r, t, castCuda(G0), G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs,
+        r0_min_r1_gs, castCuda(alpha), alpha_cs, alpha_gs);
 
     checkErrorsCudaDebug();
   }
@@ -207,8 +207,8 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int N
     cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     akima_interpolation_fat_row<<<blocks, threads, 0, stream_handle>>>(
-        Nb, Nr, Nt, beta, Nc, Nv, b, r, t, castCudaComplex(G0), G0_cs, G0_gs, r0_min_r1,
-        r0_min_r1_cs, r0_min_r1_gs, castCudaComplex(alpha), alpha_cs, alpha_gs);
+        Nb, Nr, Nt, beta, Nc, Nv, b, r, t, castCuda(G0), G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs,
+        r0_min_r1_gs, castCuda(alpha), alpha_cs, alpha_gs);
 
     checkErrorsCudaDebug();
   }

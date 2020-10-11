@@ -50,6 +50,7 @@ template <class T>
 struct RealImpl<std::complex<T>> {
   using type = T;
 };
+
 #ifdef DCA_HAVE_CUDA
 template <>
 struct RealImpl<cuComplex> {

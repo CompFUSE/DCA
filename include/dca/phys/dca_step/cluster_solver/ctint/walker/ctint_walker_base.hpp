@@ -151,7 +151,7 @@ public:
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type, Real>& g0);
+  static void setDMatrixBuilder(const G0Interpolation<device_type, Scalar>& g0);
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
@@ -178,7 +178,7 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
+  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Scalar>> d_builder_ptr_;
   static inline InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -352,13 +352,13 @@ void CtintWalkerBase<Parameters, Scalar>::printSummary() const {
 template <class Parameters, typename Scalar>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters, Scalar>::setDMatrixBuilder(
-    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
+    const dca::phys::solver::G0Interpolation<device_type, Scalar>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Real>>(g0, n_bands_, RDmn());
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Scalar>>(g0, n_bands_, RDmn());
 }
 
 template <class Parameters, typename Scalar>

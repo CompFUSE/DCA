@@ -17,7 +17,7 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <bool complex_phase>
+template <class Scalar>
 class MC_accumulator_data {
 public:
   MC_accumulator_data() {
@@ -45,7 +45,7 @@ public:
 
     gflop_ = 0.;
 
-    current_sign_ = complex_phase ? 0. : 1;
+    current_sign_.reset();
     accumulated_sign_ = 0;
 
     number_of_measurements_ = 0;
@@ -56,9 +56,8 @@ protected:
 
   double gflop_;
 
-  using SignType = std::conditional_t<complex_phase, std::complex<double>, int>;
-  SignType current_sign_;
-  SignType accumulated_sign_;
+  math::Phase<Scalar> current_sign_;
+  std::conditional_t<util::IsComplex<Scalar>::value, Scalar, int> accumulated_sign_;
 
   std::size_t number_of_measurements_;
 };

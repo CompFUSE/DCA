@@ -31,7 +31,7 @@ namespace nkernels {
 
 using namespace dca::linalg;
 using dca::util::Real;
-using dca::linalg::util::castCudaComplex;
+using dca::linalg::castCuda;
 
 const static int BLOCK_SIZE_x = 32;
 const static int BLOCK_SIZE_y = 8;
@@ -82,8 +82,8 @@ void compute_G_cols(int N_i, int N_r, int N_c, const int* p_ptr, const T* exp_V_
     cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     compute_G_cols_kernel<<<blocks, threads, 0, stream_handle>>>(
-        N_i, N_r, N_c, p_ptr, castCudaComplex(exp_V_ptr), castCudaComplex(N_ptr), N_ld,
-        castCudaComplex(G_ptr), G_ld, castCudaComplex(G_cols_ptr), G_cols_ld);
+        N_i, N_r, N_c, p_ptr, castCuda(exp_V_ptr), castCuda(N_ptr), N_ld,
+        castCuda(G_ptr), G_ld, castCuda(G_cols_ptr), G_cols_ld);
 
     checkErrorsCudaDebug();
   }

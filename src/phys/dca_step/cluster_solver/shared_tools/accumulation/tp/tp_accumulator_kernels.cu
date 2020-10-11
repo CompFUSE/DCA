@@ -35,8 +35,8 @@ namespace details {
 // dca::phys::solver::accumulator::details::
 
 using namespace linalg;
-using linalg::util::CudaComplex;
-using linalg::util::castCudaComplex;
+using linalg::CudaComplex;
+using linalg::castCuda;
 
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
@@ -86,8 +86,8 @@ void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>
   const int n_rows = nk * nw_pos;
   auto blocks = getBlockSize(n_rows, n_rows * 2);
 
-  computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(
-      castCudaComplex(G), ldg, castCudaComplex(G0), nk, nw_pos, beta);
+  computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(G), ldg, castCuda(G0), nk,
+                                                                nw_pos, beta);
 }
 
 template <typename Real>
@@ -159,7 +159,7 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
   const auto blocks = getBlockSize(n_rows, n_rows * 2, width);
 
   computeGMultibandKernel<<<blocks[0], blocks[1], width * width * sizeof(std::complex<Real>), stream>>>(
-      castCudaComplex(G), ldg, castCudaComplex(G0), ldg0, nb, nk, nw_pos, beta);
+      castCuda(G), ldg, castCuda(G0), ldg0, nb, nk, nw_pos, beta);
 }
 
 template <typename Complex>
@@ -529,9 +529,9 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_dn, const int
   float flops;
 
   if (spin_symmetric) {
-    updateG4Kernel<Real, type><<<n_blocks, n_threads, 0, stream>>>(
-        castCudaComplex(G4), castCudaComplex(G_dn), ldgu, castCudaComplex(G_up), ldgu,
-        castCudaComplex(factor), atomic, start, end);
+    updateG4Kernel<Real, type>
+        <<<n_blocks, n_threads, 0, stream>>>(castCuda(G4), castCuda(G_dn), ldgu, castCuda(G_up),
+                                             ldgu, castCuda(factor), atomic, start, end);
 
     switch (type) {
         // Note: factor flips  are ignored and a single complex * real multiplication is
@@ -569,9 +569,8 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_dn, const int
       throw(std::logic_error("Not implemented."));
     }
 
-    updateG4NotSpinSymmetricKernel<Real>
-        <<<n_blocks, n_threads, 0, stream>>>(castCudaComplex(G4), castCudaComplex(G_dn), ldgd,
-                                             castCudaComplex(factor), atomic, start, end);
+    updateG4NotSpinSymmetricKernel<Real><<<n_blocks, n_threads, 0, stream>>>(
+        castCuda(G4), castCuda(G_dn), ldgd, castCuda(factor), atomic, start, end);
 
     // Each update of a G4 entry involves 4 complex additions,  4 complex multiplications,
     // and 3 real multiplications.

@@ -224,10 +224,11 @@ public:  // Optional members getters.
   //     non_density_interactions_(nu1, nu2, nu3, nu4, r1 - r2)
   // Note: this contribution to the Hamiltonian is not double counted.
   auto& get_non_density_interactions() {
-    if (not non_density_interactions_)
-      non_density_interactions_.reset(
-          new func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>(
-              "non_density_interaction"));
+    if (not non_density_interactions_) {
+      non_density_interactions_ = std::make_unique<
+          func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>(
+          "non_density_interaction");
+    }
     return *non_density_interactions_;
   }
   const auto& get_non_density_interactions() const {
@@ -245,7 +246,7 @@ private:  // Optional members.
   std::unique_ptr<SpGreensFunction> Sigma_err_;
   std::vector<TpGreensFunction> G4_;
   std::vector<TpGreensFunction> G4_err_;
-  std::unique_ptr<func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>
+  std::unique_ptr<func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>
       non_density_interactions_;
 };
 

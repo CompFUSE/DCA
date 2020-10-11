@@ -51,11 +51,11 @@ inline void gemm(cublasHandle_t handle, const char* transa, const char* transb, 
                  const std::complex<float>* b, int ldb, std::complex<float> beta,
                  std::complex<float>* c, int ldc) {
   checkErrorsCudaDebug();
-  const cuComplex* cu_alpha = util::castCudaComplex(alpha);
-  const cuComplex* cu_a = util::castCudaComplex(a);
-  const cuComplex* cu_b = util::castCudaComplex(b);
-  const cuComplex* cu_beta = util::castCudaComplex(beta);
-  cuComplex* cu_c = util::castCudaComplex(c);
+  const cuComplex* cu_alpha = castCuda(&alpha);
+  const cuComplex* cu_a = castCuda(a);
+  const cuComplex* cu_b = castCuda(b);
+  const cuComplex* cu_beta = castCuda(&beta);
+  cuComplex* cu_c = castCuda(c);
 
   cublasStatus_t status =
       cublasCgemm(handle, getCublasTransValue(*transa), getCublasTransValue(*transb), m, n, k,
@@ -68,11 +68,11 @@ inline void gemm(cublasHandle_t handle, const char* transa, const char* transb, 
                  const std::complex<double>* b, int ldb, std::complex<double> beta,
                  std::complex<double>* c, int ldc) {
   checkErrorsCudaDebug();
-  const cuDoubleComplex* cu_alpha = util::castCudaComplex(alpha);
-  const cuDoubleComplex* cu_a = util::castCudaComplex(a);
-  const cuDoubleComplex* cu_b = util::castCudaComplex(b);
-  const cuDoubleComplex* cu_beta = util::castCudaComplex(beta);
-  cuDoubleComplex* cu_c = util::castCudaComplex(c);
+  const cuDoubleComplex* cu_alpha = castCuda(&alpha);
+  const cuDoubleComplex* cu_a = castCuda(a);
+  const cuDoubleComplex* cu_b = castCuda(b);
+  const cuDoubleComplex* cu_beta = castCuda(&beta);
+  cuDoubleComplex* cu_c = castCuda(c);
 
   cublasStatus_t status =
       cublasZgemm(handle, getCublasTransValue(*transa), getCublasTransValue(*transb), m, n, k,
@@ -105,9 +105,9 @@ inline void trsm(cublasHandle_t handle, const char* side, const char* uplo, cons
                  const char* diag, int m, int n, std::complex<float> alpha,
                  const std::complex<float>* a, int lda, std::complex<float>* b, int ldb) {
   checkErrorsCudaDebug();
-  const cuComplex* cu_alpha = util::castCudaComplex(alpha);
-  const cuComplex* cu_a = util::castCudaComplex(a);
-  cuComplex* cu_b = util::castCudaComplex(b);
+  const cuComplex* cu_alpha = castCuda(&alpha);
+  const cuComplex* cu_a = castCuda(a);
+  cuComplex* cu_b = castCuda(b);
 
   cublasStatus_t status = cublasCtrsm(handle, getCublasSideValue(*side), getCublasUploValue(*uplo),
                                       getCublasTransValue(*transa), getCublasDiagValue(*diag), m, n,
@@ -119,9 +119,9 @@ inline void trsm(cublasHandle_t handle, const char* side, const char* uplo, cons
                  const char* diag, int m, int n, std::complex<double> alpha,
                  const std::complex<double>* a, int lda, std::complex<double>* b, int ldb) {
   checkErrorsCudaDebug();
-  const cuDoubleComplex* cu_alpha = util::castCudaComplex(alpha);
-  const cuDoubleComplex* cu_a = util::castCudaComplex(a);
-  cuDoubleComplex* cu_b = util::castCudaComplex(b);
+  const cuDoubleComplex* cu_alpha = castCuda(&alpha);
+  const cuDoubleComplex* cu_a = castCuda(a);
+  cuDoubleComplex* cu_b = castCuda(b);
 
   cublasStatus_t status = cublasZtrsm(handle, getCublasSideValue(*side), getCublasUploValue(*uplo),
                                       getCublasTransValue(*transa), getCublasDiagValue(*diag), m, n,
@@ -129,8 +129,8 @@ inline void trsm(cublasHandle_t handle, const char* side, const char* uplo, cons
   checkRC(status);
   checkErrorsCudaDebug();
 }
-}  // cublas
-}  // linalg
-}  // dca
+}  // namespace cublas
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_BLAS_CUBLAS3_HPP

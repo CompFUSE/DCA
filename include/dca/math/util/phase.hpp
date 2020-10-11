@@ -35,8 +35,8 @@ public:
   }
 
   template <class T>
-  void multiply(const std::complex<T>& val) noexcept {
-    if (val == std::complex<T>{0, 0})
+  void multiply(const T& val) noexcept {
+    if (val == T(0.))
       makeNull();
     phase_ += std::arg(val);
     adjustPhase();
@@ -48,8 +48,8 @@ public:
   }
 
   template <class T>
-  void divide(const std::complex<T>& val) noexcept {
-    if (val == std::complex<T>{0, 0})
+  void divide(const T& val) noexcept {
+    if (val == T(0.))
       makeNull();
     phase_ -= std::arg(val);
     adjustPhase();

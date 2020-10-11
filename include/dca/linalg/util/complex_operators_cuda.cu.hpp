@@ -19,6 +19,36 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
+__device__ __host__ static __inline__ auto makeComplex(float re, float im) {
+  return make_cuComplex(re, im);
+}
+__device__ __host__ static __inline__ auto makeComplex(double re, double im) {
+  return make_cuDoubleComplex(re, im);
+}
+
+__device__ __host__ static __inline__ auto makeComplex(const cuComplex& x) {
+  return x;
+}
+__device__ __host__ static __inline__ auto makeComplex(const cuDoubleComplex& x) {
+  return x;
+}
+__device__ __host__ static __inline__ auto makeComplex(const float x) {
+  return make_cuComplex(x, 0.f);
+}
+__device__ __host__ static __inline__ auto makeComplex(const double x) {
+  return make_cuDoubleComplex(x, 0);
+}
+
+template <class T>
+__device__ static __inline__ void assign(T& a, const T& b) {
+  a = b;
+}
+
+template <class T>
+__device__ static __inline__ void assign(CudaComplex<T>& a, const T& b) {
+  a = makeComplex(b);
+}
+
 __device__ __host__ static __inline__ cuComplex operator+(const cuComplex a, const cuComplex b) {
   return cuCaddf(a, b);
 }
@@ -48,10 +78,6 @@ __device__ __host__ static __inline__ cuComplex operator*(const float a, const c
 }
 __device__ __host__ static __inline__ cuComplex operator/(float a, const cuComplex& b) {
   return make_cuComplex(a / b.x, a / b.y);
-}
-__device__ __host__ static __inline__ cuComplex operator*=(cuComplex& a, const cuComplex b) {
-  a = a * b;
-  return a;
 }
 __device__ __host__ static __inline__ cuComplex operator+=(cuComplex& a, const cuComplex b) {
   a = a + b;
@@ -105,11 +131,6 @@ __device__ __host__ static __inline__ cuDoubleComplex operator*(const double a,
 __device__ __host__ static __inline__ cuDoubleComplex operator/(double a, const cuDoubleComplex& b) {
   return make_cuDoubleComplex(a / b.x, a / b.y);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator*=(cuDoubleComplex& a,
-                                                                 const cuDoubleComplex b) {
-  a = a * b;
-  return a;
-}
 __device__ __host__ static __inline__ cuDoubleComplex operator+=(cuDoubleComplex& a,
                                                                  const cuDoubleComplex& b) {
   a = a + b;
@@ -120,21 +141,39 @@ __device__ __host__ static __inline__ cuDoubleComplex operator-=(cuDoubleComplex
   a = a - b;
   return a;
 }
-__device__ __host__ static __inline__ cuDoubleComplex conj(const cuDoubleComplex& a) {
-  return make_cuDoubleComplex(a.x, -a.y);
+
+template <class T>
+__device__ __host__ static __inline__ CudaComplex<T>& operator*=(CudaComplex<T>& a,
+                                                                 const CudaComplex<T>& b) {
+  a = a * b;
+  return a;
 }
 
-__device__ __host__ static __inline__ auto makeComplex(const float x) {
-  return make_cuComplex(x, 0.);
+__device__ __host__ static __inline__ cuComplex& operator*=(cuComplex& a, const cuComplex& b) {
+  return a = a * b;
 }
-__device__ __host__ static __inline__ auto makeComplex(const double x) {
-  return make_cuDoubleComplex(x, 0.);
+__device__ __host__ static __inline__ cuDoubleComplex& operator*=(cuDoubleComplex& a,
+                                                                  const cuDoubleComplex& b) {
+  return a = a * b;
 }
-__device__ __host__ static __inline__ auto makeComplex(const cuComplex x) {
-  return x;
+
+template <class T>
+__device__ __host__ static __inline__ CudaComplex<T> operator/(CudaComplex<T>& a, const T& b) {
+  return makeComplex(a.x / b, a.y / b);
 }
-__device__ __host__ static __inline__ auto makeComplex(const cuDoubleComplex& x) {
-  return x;
+
+template <class T>
+__device__ __host__ static __inline__ CudaComplex<T>& operator*=(CudaComplex<T>& a, const T& b) {
+  return a = a * b;
+}
+
+template <class T>
+__device__ __host__ static __inline__ CudaComplex<T>& operator/=(CudaComplex<T>& a, const T& b) {
+  return a = a / b;
+}
+
+__device__ __host__ static __inline__ cuDoubleComplex conj(const cuDoubleComplex& a) {
+  return make_cuDoubleComplex(a.x, -a.y);
 }
 
 }  // namespace linalg

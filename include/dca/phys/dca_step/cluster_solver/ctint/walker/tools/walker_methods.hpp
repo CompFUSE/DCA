@@ -53,7 +53,7 @@ inline void smallInverse(MatrixA& m) {
       m(0, 0) = 1. / m(0, 0);
       break;
     case 2: {
-      const double det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
+      const auto det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
       std::swap(m(0, 0), m(1, 1));
       m(0, 0) /= det;
       m(1, 0) /= -det;
@@ -66,14 +66,14 @@ inline void smallInverse(MatrixA& m) {
 }
 
 template <class MatrixA, class MatrixB>
-inline void smallInverse(const MatrixA& in, MatrixB& out) {
+void smallInverse(const MatrixA& in, MatrixB& out) {
   assert(in.size() == out.size());
   switch (in.nrCols()) {
     case 1:
       out(0, 0) = 1. / in(0, 0);
       break;
     case 2: {
-      const double det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
+      const auto det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
       out(0, 0) = in(1, 1) / det;
       out(0, 1) = -in(0, 1) / det;
       out(1, 0) = -in(1, 0) / det;
@@ -138,7 +138,7 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
 }
 
 template <class MatrixType>
-inline double smallDeterminant(const MatrixType& M) {
+typename MatrixType::ValueType smallDeterminant(const MatrixType& M) {
   static_assert(MatrixType::device == linalg::CPU, "GPU small inverse is not defined.");
   assert(M.is_square());
   switch (M.nrCols()) {

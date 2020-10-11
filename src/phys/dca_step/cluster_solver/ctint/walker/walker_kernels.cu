@@ -13,10 +13,14 @@
 
 #include <array>
 #include <cassert>
+#include <complex>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/util/cuda_blocks.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -24,29 +28,35 @@ namespace solver {
 namespace ctint {
 namespace details {
 
-template <typename Real>
-__global__ void setRightSectorToIdKernel(Real* m, const int ldm, const int n0, const int n_max) {
+using namespace dca::linalg;
+
+template <typename Scalar>
+__global__ void setRightSectorToIdKernel(Scalar* m, const int ldm, const int n0, const int n_max) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y + n0;
 
   if (i >= n_max || j >= n_max)
     return;
 
-  m[i + ldm * j] = (i == j) ? 1. : 0.;
+  using Real = dca::util::Real<Scalar>;
+  assign(m[i + ldm * j], (i == j) ? Real(1.) : Real(0.));
 }
 
-template <typename Real>
-void setRightSectorToId(Real* m, const int ldm, const int n0, const int n_max, cudaStream_t stream) {
+template <typename Scalar>
+void setRightSectorToId(Scalar* m, const int ldm, const int n0, const int n_max, cudaStream_t stream) {
   auto blocks = dca::util::getBlockSize(n_max, n_max - n0);
 
-  setRightSectorToIdKernel<<<blocks[0], blocks[1], 0, stream>>>(m, ldm, n0, n_max);
+  setRightSectorToIdKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(m), ldm, n0, n_max);
 }
 
 template void setRightSectorToId(float*, const int, const int, const int, cudaStream_t);
 template void setRightSectorToId(double*, const int, const int, const int, cudaStream_t);
+template void setRightSectorToId(std::complex<double>*, const int, const int, const int,
+                                 cudaStream_t);
+template void setRightSectorToId(std::complex<float>*, const int, const int, const int, cudaStream_t);
 
-template <typename Real>
-__global__ void computeGLeftKernel(MatrixView<Real> G, const MatrixView<Real> M,
+template <typename Scalar, typename Real>
+__global__ void computeGLeftKernel(MatrixView<Scalar, GPU> G, const MatrixView<Scalar, GPU> M,
                                    const Real* __restrict__ f, int n_init) {
   const int i_t = threadIdx.x + blockDim.x * blockIdx.x;
   const int stride = blockDim.x * gridDim.x;
@@ -61,9 +71,9 @@ __global__ void computeGLeftKernel(MatrixView<Real> G, const MatrixView<Real> M,
     G(i, j) = (M(i, j) * fj - Real(i == j)) * factor;
 }
 
-template <typename Real>
-void computeGLeft(MatrixView<Real>& G, const MatrixView<Real>& M, const Real* f, int n_init,
-                  cudaStream_t stream) {
+template <typename Scalar, typename Real>
+void computeGLeft(MatrixView<Scalar, GPU>& G, const MatrixView<Scalar, GPU>& M, const Real* f,
+                  int n_init, cudaStream_t stream) {
   if (n_init == 0)
     return;
   const int n = G.nrRows();
@@ -71,18 +81,24 @@ void computeGLeft(MatrixView<Real>& G, const MatrixView<Real>& M, const Real* f,
   constexpr int thread_j = 4;
   constexpr int thread_i = 64;
   dim3 threads(thread_i, thread_j);
-  dim3 blocks(std::max(n / (10 * thread_i), 1), util::ceilDiv(n_init, thread_j));
+  dim3 blocks(std::max(n / (10 * thread_i), 1), dca::util::ceilDiv(n_init, thread_j));
 
-  computeGLeftKernel<<<blocks, threads, 0, stream>>>(G, M, f, n_init);
+  computeGLeftKernel<<<blocks, threads, 0, stream>>>(castCuda(G), castCuda(M), f, n_init);
 }
 
-template void computeGLeft(MatrixView<float>&, const MatrixView<float>&, const float*, int,
+template void computeGLeft(MatrixView<float, GPU>&, const MatrixView<float, GPU>&, const float*,
+                           int, cudaStream_t);
+template void computeGLeft(MatrixView<std::complex<float>, GPU>&,
+                           const MatrixView<std::complex<float>, GPU>&, const float*, int,
                            cudaStream_t);
-template void computeGLeft(MatrixView<double>&, const MatrixView<double>&, const double*, int,
-                           cudaStream_t);
+template void computeGLeft(MatrixView<double, GPU>&, const MatrixView<double, GPU>&, const double*,
+                           int, cudaStream_t);
+template void computeGLeft<std::complex<double>>(MatrixView<std::complex<double>, GPU>&,
+                                                 const MatrixView<std::complex<double>, GPU>&,
+                                                 const double*, int, cudaStream_t);
 
-template <typename Real>
-__global__ void multiplyByFColFactorKernel(MatrixView<Real> M, const Real* f_vals) {
+template <typename Scalar, typename Real>
+__global__ void multiplyByFColFactorKernel(MatrixView<Scalar, GPU> M, const Real* f_vals) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
   if (i >= M.nrRows() || j >= M.nrCols())
@@ -92,48 +108,59 @@ __global__ void multiplyByFColFactorKernel(MatrixView<Real> M, const Real* f_val
   M(i, j) *= factor;
 }
 
-template <typename Real>
-void multiplyByFColFactor(MatrixView<Real>& M, const Real* f_vals, cudaStream_t stream) {
+template <typename Scalar, typename Real>
+void multiplyByFColFactor(MatrixView<Scalar, GPU>& M, const Real* f_vals, cudaStream_t stream) {
   if (M.nrCols() == 0 || M.nrRows() == 0)
     return;
   const auto blocks = dca::util::getBlockSize(M.nrRows(), M.nrCols());
 
-  multiplyByFColFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(M, f_vals);
+  multiplyByFColFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(M), f_vals);
 }
 
-template void multiplyByFColFactor(MatrixView<float>&, const float*, cudaStream_t);
-template void multiplyByFColFactor(MatrixView<double>&, const double*, cudaStream_t);
+template void multiplyByFColFactor(MatrixView<float, GPU>&, const float*, cudaStream_t);
+template void multiplyByFColFactor(MatrixView<std::complex<float>, GPU>&, const float*, cudaStream_t);
+template void multiplyByFColFactor(MatrixView<double, GPU>&, const double*, cudaStream_t);
+template void multiplyByFColFactor<std::complex<double>>(MatrixView<std::complex<double>, GPU>&,
+                                                         const double*, cudaStream_t);
 
-template <typename Real>
-__global__ void multiplyByInverseFFactorKernel(const MatrixView<Real> m_in, MatrixView<Real> m_out,
-                                               const Real* f_vals) {
+template <typename Scalar, typename Real>
+__global__ void multiplyByInverseFFactorKernel(const MatrixView<Scalar, GPU> m_in,
+                                               MatrixView<Scalar, GPU> m_out, const Real* f_vals) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
   if (i >= m_in.nrRows() || j >= m_in.nrCols())
     return;
 
   const Real factor = -(f_vals[i] - 1.);
-  m_out(i, j) = factor * m_in(i, j);
+  m_out(i, j) = m_in(i, j) * factor;
 }
 
-template <typename Real>
-void multiplyByInverseFFactor(const MatrixView<Real>& m_in, MatrixView<Real>& m_out,
+template <typename Scalar, typename Real>
+void multiplyByInverseFFactor(const MatrixView<Scalar, GPU>& m_in, MatrixView<Scalar, GPU>& m_out,
                               const Real* f_vals, cudaStream_t stream) {
   assert(m_in.nrRows() == m_out.nrRows() && m_in.nrCols() == m_out.nrCols());
   if (m_in.nrCols() == 0 || m_in.nrRows() == 0)
     return;
   const auto blocks = dca::util::getBlockSize(m_in.nrRows(), m_out.nrCols());
 
-  multiplyByInverseFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(m_in, m_out, f_vals);
+  using dca::linalg::castCuda;
+  multiplyByInverseFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(m_in),
+                                                                      castCuda(m_out), f_vals);
 }
 
-template void multiplyByInverseFFactor(const MatrixView<float>&, MatrixView<float>&, const float*,
+template void multiplyByInverseFFactor(const MatrixView<float, GPU>&, MatrixView<float, GPU>&,
+                                       const float*, cudaStream_t);
+template void multiplyByInverseFFactor(const MatrixView<std::complex<float>, GPU>&,
+                                       MatrixView<std::complex<float>, GPU>&, const float*,
                                        cudaStream_t);
-template void multiplyByInverseFFactor(const MatrixView<double>&, MatrixView<double>&,
+template void multiplyByInverseFFactor(const MatrixView<double, GPU>&, MatrixView<double, GPU>&,
                                        const double*, cudaStream_t);
+template void multiplyByInverseFFactor(const MatrixView<std::complex<double>, GPU>&,
+                                       MatrixView<std::complex<double>, GPU>&, const double*,
+                                       cudaStream_t);
 
-template <typename Real>
-__global__ void divideByGammaFactorKernel(MatrixView<Real> m,
+template <typename Scalar, typename Real>
+__global__ void divideByGammaFactorKernel(MatrixView<Scalar, GPU> m,
                                           const std::pair<int, Real>* gamma_indices,
                                           const int n_indices) {
   // TODO: loop over a number of j indices.
@@ -145,21 +172,26 @@ __global__ void divideByGammaFactorKernel(MatrixView<Real> m,
   const int p = gamma_indices[i].first;
   assert(p < m.nrRows());
 
-  m(p, j) /= 1. + gamma_indices[i].second;
+  m(p, j) /= Real(1.) + gamma_indices[i].second;
 }
 
-template <typename Real>
-void divideByGammaFactor(MatrixView<Real> m, const std::pair<int, Real>* gamma_indices,
+template <typename Scalar, typename Real>
+void divideByGammaFactor(MatrixView<Scalar, GPU> m, const std::pair<int, Real>* gamma_indices,
                          const int n_indices, cudaStream_t stream) {
   const auto blocks = dca::util::getBlockSize(n_indices, m.nrCols());
 
-  divideByGammaFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(m, gamma_indices, n_indices);
+  divideByGammaFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(castCuda(m), gamma_indices,
+                                                                 n_indices);
 }
 
-template void divideByGammaFactor(MatrixView<float>, const std::pair<int, float>*, const int,
+template void divideByGammaFactor(MatrixView<float, GPU>, const std::pair<int, float>*, const int,
                                   cudaStream_t);
-template void divideByGammaFactor(MatrixView<double>, const std::pair<int, double>*, const int,
+template void divideByGammaFactor(MatrixView<std::complex<float>, GPU>,
+                                  const std::pair<int, float>*, const int, cudaStream_t);
+template void divideByGammaFactor(MatrixView<double, GPU>, const std::pair<int, double>*, const int,
                                   cudaStream_t);
+template void divideByGammaFactor(MatrixView<std::complex<double>, GPU>,
+                                  const std::pair<int, double>*, const int, cudaStream_t);
 
 }  // namespace details
 }  // namespace ctint
