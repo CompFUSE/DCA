@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <stdexcept>
 
 namespace dca {
 namespace io {
