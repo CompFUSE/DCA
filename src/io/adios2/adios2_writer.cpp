@@ -48,10 +48,17 @@ void ADIOS2Writer::open_file(const std::string& file_name_ref, bool overwrite) {
     std::cout << "\t ADIOS2Writer: Open for " << (overwrite ? "Write" : "Append")
               << " file : " << file_name_ref << "\n";
   }
+
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
   file_ = io_.Open(file_name_, mode);
+  // This is true if m_isClosed is false, that doesn't mean the "file" is open.
+  if (!file_) {
+    std::ostringstream error_message;
+    error_message << "ADIOS2Writer::open_file failed to open " << file_name_ref;
+    throw std::ios_base::failure(error_message.str());
+  }
 }
 
 void ADIOS2Writer::close_file() {
