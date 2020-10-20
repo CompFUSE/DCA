@@ -18,8 +18,9 @@ namespace dca {
 namespace io {
 // dca::io::
 
-JSONReader::JSONReader()
-    : current_file_name("input.json"),
+JSONReader::JSONReader(bool verbose)
+    : verbose_(verbose),
+      current_file_name("input.json"),
       parser(),
       parse_result(parser.get_JSON_tree().result),
       my_paths(0) {}
@@ -51,7 +52,7 @@ void JSONReader::parse(std::string& file_name_ref) {
     std::cout << "\n\n\tcannot open file : " << file_name << "\n";
     throw std::runtime_error(__FUNCTION__);
   }
-  else {
+  else if (verbose_) {
     std::cout << "\n\n\topening file : " << file_name << "\n";
   }
 
@@ -59,5 +60,5 @@ void JSONReader::parse(std::string& file_name_ref) {
     ;
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca

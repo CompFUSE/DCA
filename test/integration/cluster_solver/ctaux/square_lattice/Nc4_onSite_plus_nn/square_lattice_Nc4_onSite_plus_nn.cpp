@@ -41,6 +41,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
+constexpr bool update_baseline = false;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
@@ -83,9 +84,8 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
   // Read and broadcast ED data.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::io::HDF5Reader reader;
-    reader.open_file(
-        DCA_SOURCE_DIR
-        "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_onSite_plus_nn/data.ED.hdf5");
+    reader.open_file(DCA_SOURCE_DIR
+                     "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
     reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
@@ -106,32 +106,39 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
-  const auto& Sigma_QMC = dca_data_imag.Sigma;
+  auto& Sigma_QMC = dca_data_imag.Sigma;
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
+  const std::string filename = DCA_SOURCE_DIR
+      "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_onSite_plus_nn/"
+      "check_data.QMC.hdf5";
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
-        "Self_Energy");
-    dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_onSite_plus_nn/"
-                     "check_data.QMC.hdf5");
-    reader.open_group("functions");
-    ASSERT_TRUE(reader.execute(Sigma_QMC_check));
-    reader.close_file();
+    if (!update_baseline) {
+      dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
+          "Self_Energy");
+      dca::io::HDF5Reader reader;
+      reader.open_file(filename);
+      reader.open_group("functions");
+      reader.execute(Sigma_QMC_check);
+      reader.close_file();
 
-    const auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
-    EXPECT_LT(diff.l2, 1e-10);
+      auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_QMC);
+      EXPECT_GT(1e-10, diff.l_inf);
+    }
+    else {
+      // Write results
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data "
+                << std::endl;
 
-    // Write results
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    dca::io::HDF5Writer writer;
-    writer.open_file("output.hdf5");
-    writer.open_group("functions");
-    writer.execute(Sigma_QMC);
-    writer.close_group();
-    writer.close_file();
+      dca::io::HDF5Writer writer;
+      writer.open_file(filename);
+      writer.open_group("functions");
+      Sigma_QMC.set_name("Self_Energy");
+      writer.execute(Sigma_QMC);
+      writer.close_group();
+      writer.close_file();
+    }
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
@@ -141,8 +148,9 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv,
+      concurrency,
       DCA_SOURCE_DIR
       "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_onSite_plus_nn/"
       "input.square_lattice_Nc4_onSite_plus_nn.json");

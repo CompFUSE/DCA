@@ -451,27 +451,43 @@ void symmetrize_single_particle_function::executeTimeOrFreq(
 
       for (int b0 = 0; b0 < BDmn::dmn_size(); ++b0) {
         for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
-          scalartype tmp_0 = f(b0, b1, c_ind, w_ind);
-          scalartype tmp_1 = f(b1, b0, new_c_idx, w_0 - w_ind);
+          constexpr bool real_hamiltonian = true;  // TODO : replace with actual check.
+          if constexpr (real_hamiltonian) {
+            const auto tmp1 = f(b0, b1, c_ind, w_ind);
+            const auto tmp2 = f(b1, b0, new_c_idx, w_0 - w_ind);  // F(w) = conj(F^t(-w))
+            const auto tmp3 = f(b0, b1, c_ind, w_0 - w_ind);      // F(w) = conj(F(-w))
+            const auto tmp4 = f(b1, b0, new_c_idx, w_ind);        // F(w) = F^t(w)
 
-          scalartype tmp = (tmp_0 + std::conj(tmp_1)) / 2.;
+            const auto tmp = (tmp1 + std::conj(tmp2) + std::conj(tmp3) + tmp4) / 4.;
 
-          f_new(b0, b1, c_ind, w_ind) = tmp;
-          f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);
+            f_new(b0, b1, c_ind, w_ind) = tmp;
+            f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);
+            f_new(b0, b1, c_ind, w_0 - w_ind) = std::conj(tmp);
+            f_new(b1, b0, new_c_idx, w_ind) = tmp;
+          }
+          else {  // Hamiltonian is complex.
+            const auto tmp1 = f(b0, b1, c_ind, w_ind);
+            const auto tmp2 = f(b1, b0, new_c_idx, w_0 - w_ind);  // F(w) = conj(F^t(-w))
+
+            const auto tmp = (tmp1 + std::conj(tmp2)) / 2.;
+
+            f_new(b0, b1, c_ind, w_ind) = tmp;
+            f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);
+          }
         }
       }
     }
   }
 
-  double max = 0;
-  for (int ind = 0; ind < f.size(); ++ind) {
-    max = std::max(max, abs(f(ind) - f_new(ind)));
+  if (do_diff) {
+    double max = 0;
+    for (std::size_t ind = 0; ind < f.size(); ++ind) {
+      max = std::max(max, abs(f(ind) - f_new(ind)));
+    }
+    difference(max, f.get_name(), "WDmn-domain of the function : " + f.get_name() + "\n");
   }
 
   f = std::move(f_new);
-
-  if (do_diff)
-    difference(max, f.get_name(), "WDmn-domain of the function : " + f.get_name() + "\n");
 }
 
 template <typename scalartype>
@@ -678,7 +694,7 @@ void symmetrize_single_particle_function::executeCluster(
         for (int s_ind = 0; s_ind < sym_super_cell_dmn_t::dmn_size(); ++s_ind) {
           int k_new = k_symmetry_matrix(k_ind, b0, s_ind).first;  // FIXME: b0 -> b1
 
-          int b0_new = k_symmetry_matrix(k_new, b0, s_ind).second;
+          int b0_new = k_symmetry_matrix(k_ind, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
           const double sign = Lattice::transformationSignOfK(b0, b1, s_ind);

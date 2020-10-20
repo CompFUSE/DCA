@@ -40,7 +40,7 @@ public:
   typedef JSON_context JsonDataType;
 
 public:
-  JSONReader();
+  JSONReader(bool verbose = true);
 
   bool is_reader() {
     return true;
@@ -68,7 +68,7 @@ public:
   template <typename arbitrary_struct_t>
   static void from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);
 
-  // Scalar type, std::string etc. 
+  // Scalar type, std::string etc.
   template <typename T>
   void execute(std::string name, T& value);
 
@@ -132,6 +132,7 @@ private:
   }
 
 private:
+  bool verbose_;
   std::string current_file_name;
 
   JSON_parser<JsonDataType> parser;
@@ -175,7 +176,8 @@ void JSONReader::execute(std::string name, scalartype& value, const JsonAccessor
 
 template <typename scalartype, typename domain_type>
 void JSONReader::execute(func::function<scalartype, domain_type>& f) {
-  std::cout << "\t starts reading function : " << f.get_name() << "\n";
+  if (verbose_)
+    std::cout << "\t starts reading function : " << f.get_name() << "\n";
   execute(f.get_name(), f, parse_result, 0);
 }
 
@@ -321,7 +323,7 @@ void JSONReader::execute(std::string name,
   }
 }
 
-}  // io
-}  // dca
+}  // namespace io
+}  // namespace dca
 
 #endif  // DCA_IO_JSON_JSON_READER_HPP

@@ -140,8 +140,8 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/lattice_model.hpp.in"
 
 ################################################################################
 # Select the profiler type and enable auto-tuning.
-set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
-set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI)
+set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI | Cuda.")
+set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI Cuda)
 
 if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILING_EVENT_TYPE dca::profiling::time_event<std::size_t>)
@@ -154,6 +154,14 @@ elseif (DCA_PROFILER STREQUAL "PAPI")
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
   set(DCA_PROFILER_TYPE dca::profiling::CountingProfiler<Event>)
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
+
+# Note: this profiler requires using the PTHREAD library and CUDA_TOOLS_EXT_LIBRARY
+elseif (DCA_PROFILER STREQUAL "Cuda")
+  set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/time.hpp")
+  set(DCA_PROFILING_EVENT_TYPE "void")
+  set(DCA_PROFILER_TYPE dca::profiling::CudaProfiler)
+  set(DCA_PROFILER_INCLUDE "dca/profiling/cuda_profiler.hpp")
+  link_libraries(${CUDA_nvToolsExt_LIBRARY})
 
 else()  # DCA_PROFILER = None
   # The NullProfiler doesn't have an event type.

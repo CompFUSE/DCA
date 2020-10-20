@@ -23,15 +23,18 @@
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
+#include "dca/testing/dca_mpi_test_environment.hpp"
+#include "dca/testing/minimalist_printer.hpp"
 
 constexpr int update_baseline = false;
 
 const std::string test_directory = DCA_SOURCE_DIR "/test/integration/cluster_solver/ss_ct_hyb/";
 
-TEST(Ni0NoChangeTest, GreensFunction) {
-  using Concurrency = dca::parallel::MPIConcurrency;
-  Concurrency concurrency(0, nullptr);
+using Concurrency = dca::parallel::MPIConcurrency;
+dca::testing::DcaMpiTestEnvironment* dca_test_env = nullptr;
 
+TEST(Ni0NoChangeTest, GreensFunction) {
+  auto& concurrency = dca_test_env->concurrency;
   const int id = concurrency.id();
 
   if (id == 0)
@@ -108,4 +111,26 @@ TEST(Ni0NoChangeTest, GreensFunction) {
       writer.close_file();
     }
   }
+}
+
+int main(int argc, char** argv) {
+  int result = 0;
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(concurrency, "");
+  ::testing::AddGlobalTestEnvironment(dca_test_env);
+
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+
+  if (dca_test_env->concurrency.id() != 0) {
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new dca::testing::MinimalistPrinter);
+  }
+
+  result = RUN_ALL_TESTS();
+
+  return result;
 }
