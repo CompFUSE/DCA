@@ -94,6 +94,7 @@ auto interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
     -> Matrices {
   Profiler profiler(__FUNCTION__, "Interpolation matrices", __LINE__);
 
+ 
   Matrices matrices;
   r_centered_dmn::parameter_type::initialize();
 

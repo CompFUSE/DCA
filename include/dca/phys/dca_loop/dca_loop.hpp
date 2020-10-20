@@ -120,17 +120,12 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
-
       DCA_info_struct(),
-
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
-
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
-
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-
       monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
@@ -248,8 +243,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
-             DIST>::perform_cluster_mapping_Greens_function() {
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_Greens_function() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 

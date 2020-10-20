@@ -85,6 +85,17 @@ int main(int argc, char** argv) {
             "Input calls for function Blocked distribution but DCA is only supports this with MPI.");
       } break;
 #endif
+#ifdef DCA_HAVE_MPI
+    case dca::DistType::LINEAR: {
+      DCALoopDispatch<dca::DistType::LINEAR> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, dca_data, concurrency);
+      } break;
+#else
+    case dca::DistType::LINEAR: {
+        throw std::runtime_error(
+            "Input calls for function Linear distribution but DCA is only supports this with MPI.");
+      } break;
+#endif
       case dca::DistType::NONE: {
         DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
         dca_loop_dispatch(parameters, dca_data, concurrency);

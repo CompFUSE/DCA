@@ -498,6 +498,11 @@ void DcaData<Parameters>::write(Writer& writer) {
         writer.execute(G4_channel_err);
     }
   }
+  else if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
+           parameters_.get_g4_distribution() == DistType::LINEAR) {
+    for (const auto& G4_channel : G4_)
+      writer.execute(G4_channel);
+  }
 
   writer.close_group();
 }

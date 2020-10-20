@@ -22,6 +22,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#ifdef DCA_DIST_STRATEGIES
+#include "dca/function/function_dist_linear.hpp"
+#include "dca/function/function_dist_blocked.hpp"
+#endif
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
@@ -44,6 +48,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #ifdef DCA_HAVE_MPI
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 #endif // DCA_HAVE_MPI
 #endif  // DCA_HAVE_CUDA
@@ -206,7 +211,7 @@ protected:
 
   std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
 
-  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
+  accumulator::TpAccumulator<Parameters, device_t> two_particle_accumulator_;
 
   bool perform_tp_accumulation_ = false;
 };

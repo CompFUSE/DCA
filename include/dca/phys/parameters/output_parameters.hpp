@@ -26,6 +26,7 @@ public:
   OutputParameters()
       : directory_("./"),
         output_format_("HDF5"),
+        g4_output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
         directory_config_read_(""),
         directory_config_write_(""),
@@ -52,6 +53,9 @@ public:
     return directory_;
   }
   const std::string& get_output_format() const {
+    return output_format_;
+  }
+  const std::string& get_g4_output_format() const {
     return output_format_;
   }
   const std::string& get_directory_config_read() const {
@@ -91,6 +95,7 @@ public:
 private:
   std::string directory_;
   std::string output_format_;
+  std::string g4_output_format_;
   std::string filename_dca_;
   std::string directory_config_read_;
   std::string directory_config_write_;
@@ -176,6 +181,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
     try_to_read_or_write("directory", directory_);
     try_to_read_or_write("output-format", output_format_);
+    try_to_read_or_write("g4-output-format", g4_output_format_);
     try_to_read_or_write("filename-dca", filename_dca_);
     try_to_read_or_write("directory-config-read", directory_config_read_);
     try_to_read_or_write("directory-config-write", directory_config_write_);
