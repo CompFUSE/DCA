@@ -64,7 +64,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
     return;
   }
 
-  dca::func::function<Scalar, Dmn> f1("parallelFunc");
+  dca::func::function<Scalar, Dmn> f1("parallelFunc", *concurrency_ptr);
   size_t dmn_size = 1;
   for (int l = 0; l < f1.signature(); ++l)
     dmn_size *= f1[l];
@@ -73,12 +73,12 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
   uint64_t start = 0;
   uint64_t end = 0;
-  // This returns the linearized bounds of the function for a rank.
-  dca::parallel::util::getComputeRange(concurrency_ptr->id(), concurrency_ptr->number_of_processors(),
-                                       static_cast<uint64_t>(f1.size()), start, end);
 
+  
+  
+  std::cout << "Rank:" << rank << "  start: " << start << "  end:" << end << '\n';
   // only set this ranks values
-  for (int i = start; i <= end; ++i)
+  for (int i = 0; i <= end - start; ++i)
     f1.data()[i] = ++val;
 
   // get the N-dimensional decomposition
@@ -147,7 +147,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
   using Scalar = TypeParam;
   const std::string typeStr = typeid(TypeParam).name();
 
-  dca::func::function<Scalar, Dmn> f1("parallelFunc");
+  dca::func::function<Scalar, Dmn> f1("parallelFunc", *concurrency_ptr);
   size_t dmn_size = 1;
   for (int l = 0; l < f1.signature(); ++l)
     dmn_size *= f1[l];
@@ -233,3 +233,4 @@ int main(int argc, char** argv) {
 
   return result;
 }
+

@@ -16,7 +16,7 @@
 #include <string>
 
 namespace dca {
-enum class DistType { NONE, MPI };
+enum class DistType { NONE, LINEAR, BLOCKED };
 
 DistType stringToDistType(const std::string& name);
 std::string toString(DistType type);

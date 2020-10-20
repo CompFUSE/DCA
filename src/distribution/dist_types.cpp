@@ -15,8 +15,10 @@
 
 namespace dca {
 DistType stringToDistType(const std::string& name) {
-  if (name == "MPI")
-    return DistType::MPI;
+  if (name == "BLOCKED")
+    return DistType::BLOCKED;
+  else if (name == "LINEAR")
+    return DistType::LINEAR;
   else if (name == "NONE")
     return DistType::NONE;
   else
@@ -25,8 +27,10 @@ DistType stringToDistType(const std::string& name) {
 
 std::string toString(DistType type) {
   switch (type) {
-    case DistType::MPI:
-      return "MPI";
+    case DistType::BLOCKED:
+      return "BLOCKED";
+    case DistType::LINEAR:
+      return "LINEAR";
     case DistType::NONE:
       return "NONE";
     default:

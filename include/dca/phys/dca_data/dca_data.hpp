@@ -308,7 +308,7 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
     // Allocate memory for G4, eventually distributed among all processes.
-    if (parameters_.get_g4_distribution() == DistType::MPI) {
+    if (parameters_.get_g4_distribution() == DistType::BLOCKED) {
       G4_.emplace_back("G4_" + toString(channel), concurrency_);
       G4_err_.emplace_back("G4_" + toString(channel) + "_err", concurrency_);
     }

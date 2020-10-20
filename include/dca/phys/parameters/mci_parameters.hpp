@@ -275,7 +275,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.close_group();
 
   // Check parameters consistency.
-  if (g4_distribution_ == DistType::MPI) {
+  if (g4_distribution_ == DistType::BLOCKED) {
 #ifdef DCA_HAVE_MPI
     // Check for number of accumulators and walkers consistency.
     if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {

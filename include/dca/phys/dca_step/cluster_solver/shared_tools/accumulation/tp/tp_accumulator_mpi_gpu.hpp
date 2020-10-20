@@ -34,11 +34,11 @@ namespace accumulator {
 // dca::phys::solver::accumulator::
 
 template <class Parameters>
-class TpAccumulator<Parameters, linalg::GPU, DistType::MPI>
+class TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>
     : public TpAccumulator<Parameters, linalg::GPU> {
 private:
   // is there a smarter way to do this in c++17?
-  using this_type = TpAccumulator<Parameters, linalg::GPU, DistType::MPI>;
+  using this_type = TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>;
   using BaseClass = TpAccumulator<Parameters, linalg::GPU>;
 
   using RDmn = typename BaseClass::RDmn;
@@ -130,7 +130,7 @@ private:
 };
 
 template <class Parameters>
-TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
+TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : BaseClass(G0, pars, thread_id) {
@@ -160,7 +160,7 @@ TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::TpAccumulator(
 
 template <class Parameters>
 template <class Configuration, typename RealIn>
-float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   // typename BaseClass::Profiler profiler("accumulate", "tp-accumulation", __LINE__, BaseClass::thread_id_);
@@ -187,7 +187,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
 
 template <class Parameters>
 template <class Configuration>
-float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
+float TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::accumulate(
     const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
@@ -198,7 +198,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::finalize() {
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::finalize() {
   if (BaseClass::finalized_)
     return;
 
@@ -216,7 +216,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::finalize() {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::resetAccumulation(
     const unsigned int dca_loop) {
   static dca::util::OncePerLoopFlag flag;
 
@@ -231,7 +231,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetAccumulation(
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::resetG4() {
   // Note: this method is not thread safe by itself.
   get_G4().resize(G4_.size());
 
@@ -252,7 +252,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
 }
 
 template <class Parameters>
-float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std::size_t channel_index) {
+float TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::updateG4(const std::size_t channel_index) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -306,7 +306,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::ringG(float& flop) {
   // get ready for send and receive
 
   for (int s = 0; s < 2; ++s) {
@@ -354,13 +354,13 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::ringG(float& flop) {
 }
 
 template <class Parameters>
-auto TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::get_G4() -> std::vector<G4DevType>& {
+auto TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::get_G4() -> std::vector<G4DevType>& {
   static std::vector<G4DevType> G4;
   return G4;
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::array<RMatrix, 2>& data,
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::send(const std::array<RMatrix, 2>& data,
                                                                  int target,
                                                                  std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
@@ -385,7 +385,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
+void TpAccumulator<Parameters, linalg::GPU, DistType::BLOCKED>::receive(
     std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;

@@ -61,7 +61,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::MPI> accumulatorDevice(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::BLOCKED> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 

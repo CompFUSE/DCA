@@ -200,7 +200,7 @@ TpAccumulator<Parameters, linalg::CPU, DT>::TpAccumulator(
       G0_M_(n_bands_),
       G_a_(n_bands_),
       G_b_(n_bands_) {
-  if constexpr (DT == DistType::MPI) {
+  if constexpr (DT == DistType::BLOCKED) {
     std::cerr << "The MPI distribution of G4 on the CPU is not supported. Reverting to no "
                  "distribution.\n";
   }

@@ -75,14 +75,14 @@ int main(int argc, char** argv) {
     dca::DistType distribution = parameters.get_g4_distribution();
     switch (distribution) {
 #ifdef DCA_HAVE_MPI
-      case dca::DistType::MPI: {
-        DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
+      case dca::DistType::BLOCKED: {
+        DCALoopDispatch<dca::DistType::BLOCKED> dca_loop_dispatch;
         dca_loop_dispatch(parameters, dca_data, concurrency);
       } break;
 #else
-      case dca::DistType::MPI: {
+      case dca::DistType::BLOCKED: {
         throw std::runtime_error(
-            "Input calls for function MPI distribution but DCA is not built with MPI.");
+            "Input calls for function Blocked distribution but DCA is only supports this with MPI.");
       } break;
 #endif
       case dca::DistType::NONE: {
