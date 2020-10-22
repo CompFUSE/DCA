@@ -22,6 +22,11 @@ namespace func {
 template <typename scalartype, class domain>
 class function<scalartype, domain, DistType::BLOCKED> {
   static const std::string default_name_;
+  // This is a clumsy work around of the fact a constexpr DT shadows the template parameter in the
+  // generic class so it can't be defined there.  This breaks later if constexpr so that needs to be
+  // on DISTTYPE, but it is convenient for the specialized template classes declarations to "almost" match the
+  // general class declaration.
+  static constexpr auto DISTTYPE = DistType::BLOCKED;
   static constexpr auto DT = DistType::BLOCKED;
 
 public:
@@ -87,18 +92,29 @@ public:
   const std::string& get_name() const {
     return name_;
   }
-
-  std::size_t get_start() const {
-    return start_;
-  }
-  std::size_t get_end() const {
-    return end_;
-  }
-
   // TODO: Remove this method and use constructor parameter instead.
   void set_name(const std::string& name) {
     name_ = name;
   }
+
+  std::size_t get_start() const {
+    return start_;
+  }
+  /** end in sense of last index not  1 past.
+   */
+  std::size_t get_end() const {
+    return end_ - 1;
+  }
+
+  std::vector<int> get_start_subindex() const {
+    return linind_2_subind(start_);
+  }
+  /** end in sense of last subindex
+   */
+  std::vector<int> get_end_subindex() const {
+    return linind_2_subind(end_ - 1);
+  }
+
   int signature() const {
     return Nb_sbdms;
   }
@@ -114,6 +130,7 @@ public:
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
   int operator[](const int index) const {
+    throw std::runtime_error("function::operator[] broken for concurrency id > 0, therefore do not use for blocked functions");
     return size_sbdm[index-start_];
   }
 
@@ -281,7 +298,6 @@ private:
 
   std::vector<scalartype> fnc_values_;
 
-  std::vector<std::size_t> start_sbdm_;
   std::size_t start_;
   std::size_t end_;
 };
@@ -296,11 +312,9 @@ function<scalartype, domain, DistType::BLOCKED>::function(const std::string& nam
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()) {
-  // TODO throw exception if function cannot actually be evenly blocked across concurrency.
+  const std::size_t conc_size = concurrency.number_of_processors();
+  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
 
-  const std::size_t mpi_size = concurrency.number_of_processors();
-
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
   fnc_values_.resize(nb_elements);
 
   for (int linind = 0; linind < nb_elements; ++linind)
@@ -313,6 +327,7 @@ function<scalartype, domain, DistType::BLOCKED>::function(const std::string& nam
       dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
   start_ = local_function_size * my_concurrency_id;
   end_ = std::min(dmn.get_size(), start_ + local_function_size);
+  // This is a necessary but not sufficient proof of "regular blocking"
   if (end_ != start_ + local_function_size)
     throw std::runtime_error(
         "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "

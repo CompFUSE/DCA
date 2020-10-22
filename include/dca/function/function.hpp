@@ -41,6 +41,7 @@ namespace func {
 template <typename scalartype, class domain, DistType DT = DistType::NONE>
 class function {
   static const std::string default_name_;
+  static constexpr auto DISTTYPE = DistType::NONE;
 
 public:
   typedef scalartype this_scalar_type;

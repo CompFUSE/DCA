@@ -42,8 +42,6 @@ using G4FileIoTest =
 // Since we are not going to put a 1.6G file in the repo this has different logic from tp_accumulator_test.cpp
 
 TEST_F(G4FileIoTest, ReadWrite) {
-  const std::array<int, 2> n{18, 22};
-
   dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   auto fillG4 = [&rng](auto& G4) {

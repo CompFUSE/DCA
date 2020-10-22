@@ -337,11 +337,16 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
   // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
-  write<Scalar>(full_name, dims, f.values());
+  if constexpr ( DT == dca::DistType::BLOCKED ) {
+    execute(name, f, f.get_start_subindex(), f.get_end_subindex());
+  }
+  else {
+    write<Scalar>(full_name, dims, f.values());
 
-  std::reverse(dims.begin(), dims.end());
-  addAttribute(full_name, "name", f.get_name());
-  addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+    std::reverse(dims.begin(), dims.end());
+    addAttribute(full_name, "name", f.get_name());
+    addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+  }
 }
 
 template <typename Scalar, typename domain_type, DistType DT>
@@ -400,7 +405,7 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
     // working around totally broken function operator[] on ranks > 0
     dims.push_back(f.get_domain().get_subdomain_size(l));
   }
-  
+
   int ndim = dims.size();
 
   // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
@@ -415,6 +420,7 @@ void ADIOS2Writer::execute(const std::string& name, const func::function<Scalar,
               << " Here they were: dims = " << std::to_string(ndim)
               << " start size = " << std::to_string(start.size())
               << " end size = " << std::to_string(end.size()) << std::endl;
+    // \todo we should be able to throw an exception now with the LINEAR and BLOCKED dist templates.
     return;
   }
 

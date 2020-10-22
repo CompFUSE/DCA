@@ -303,6 +303,10 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   const std::string sizeAttrName = full_name + "/domain-sizes";
   auto sizeAttr = io_.InquireAttribute<size_t>(sizeAttrName);
 
+  if constexpr ( DT == dca::DistType::BLOCKED ) {
+    execute(name, f, f.get_start_subindex(), f.get_end_subindex());
+  }
+  else {
   if (sizeAttr) {
     try {
       // Read sizes.
@@ -326,6 +330,7 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   }
   else {
     std::cerr << "Could not perform a size check on the function  " << name << std::endl;
+  }
   }
   return true;
 }

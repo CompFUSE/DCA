@@ -22,6 +22,7 @@ namespace func {
 template <typename scalartype, class domain>
 class function<scalartype, domain, DistType::LINEAR> {
   static const std::string default_name_;
+  static constexpr auto DISTTYPE = DistType::LINEAR;
   static constexpr auto DT = DistType::LINEAR;
 
 public:
@@ -91,6 +92,16 @@ public:
   void set_name(const std::string& name) {
     name_ = name;
   }
+
+  std::size_t get_start() const {
+    return start_;
+  }
+  /** end in sense of last index not one past
+   */
+  std::size_t get_end() const {
+    return end_ - 1;
+  }
+  
   int signature() const {
     return Nb_sbdms;
   }
@@ -273,7 +284,6 @@ private:
 
   std::vector<scalartype> fnc_values_;
 
-  std::vector<std::size_t> start_sbdm_;
   std::size_t start_;
   std::size_t end_;
 };
