@@ -13,3 +13,8 @@ if (function_library_test)
 endif()
 
 dca_add_gtest(set_to_zero_test GTEST_MAIN)
+
+dca_add_gtest(function_construction_test
+  GTEST_MAIN
+  MPI MPI_NUMPROC 4
+  LIBS parallel_mpi_concurrency;function)

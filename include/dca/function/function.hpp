@@ -123,6 +123,7 @@ public:
 
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
+  // Broken off except on rank 0.
   int operator[](const int index) const {
     return size_sbdm[index];
   }
@@ -171,7 +172,6 @@ public:
   // modern RVO version
   std::vector<int> linind_2_subind(int linind) const;
 
-  
   // Computes the linear index for the given subindices of the leaf domains.
   // Precondition: subind stores the the subindices of all LEAF domains.
   // TODO: Use std::array or std::vector to be able to check the size of subind.
@@ -292,7 +292,14 @@ private:
 
   std::vector<scalartype> fnc_values_;
 };
+}  // namespace func
+}  // namespace dca
 
+#include "dca/function/function_dist_linear.hpp"
+#include "dca/function/function_dist_blocked.hpp"
+
+namespace dca {
+namespace func {
 template <typename scalartype, class domain, DistType DT>
 const std::string function<scalartype, domain, DT>::default_name_ = "no-name";
 
@@ -319,6 +326,8 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()) {
   // TODO: multi-index access to partitioned function is not safe.
+
+  std::cout << "Ended up in the DistType::NONE version of the concurrency aware function.\n";
   const std::size_t mpi_size = concurrency.number_of_processors();
 
   const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
@@ -378,7 +387,8 @@ function<scalartype, domain, DT>& function<scalartype, domain, DT>::operator=(
 
 template <typename Scalar, class domain, DistType DT>
 template <typename Scalar2>
-function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(const function<Scalar2, domain, DT>& other) {
+function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
+    const function<Scalar2, domain, DT>& other) {
   if (size() != other.size()) {
     throw(std::logic_error("Function size does not match."));
   }
@@ -553,7 +563,7 @@ bool function<scalartype, domain, DT>::operator==(const function<scalartype, dom
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
 void function<scalartype, domain, DT>::slice(const int sbdm_index, int* subind,
-                                         new_scalartype* fnc_vals) const {
+                                             new_scalartype* fnc_vals) const {
   assert(sbdm_index >= 0);
   assert(sbdm_index < Nb_sbdms);
 
@@ -569,7 +579,7 @@ void function<scalartype, domain, DT>::slice(const int sbdm_index, int* subind,
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
 void function<scalartype, domain, DT>::slice(const int sbdm_index_1, const int sbdm_index_2,
-                                         int* subind, new_scalartype* fnc_vals) const {
+                                             int* subind, new_scalartype* fnc_vals) const {
   assert(sbdm_index_1 >= 0);
   assert(sbdm_index_2 >= 0);
   assert(sbdm_index_1 < Nb_sbdms);
@@ -603,7 +613,7 @@ void function<scalartype, domain, DT>::slice(const int sbdm_index_1, const int s
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
 void function<scalartype, domain, DT>::distribute(const int sbdm_index, int* subind,
-                                              const new_scalartype* fnc_vals) {
+                                                  const new_scalartype* fnc_vals) {
   assert(sbdm_index >= 0);
   assert(sbdm_index < Nb_sbdms);
 
@@ -618,7 +628,7 @@ void function<scalartype, domain, DT>::distribute(const int sbdm_index, int* sub
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
 void function<scalartype, domain, DT>::distribute(const int sbdm_index_1, const int sbdm_index_2,
-                                              int* subind, const new_scalartype* fnc_vals) {
+                                                  int* subind, const new_scalartype* fnc_vals) {
   assert(sbdm_index_1 >= 0);
   assert(sbdm_index_2 >= 0);
   assert(sbdm_index_1 < Nb_sbdms);
@@ -683,20 +693,21 @@ int function<scalartype, domain, DT>::get_buffer_size(const concurrency_t& concu
 template <typename scalartype, class domain, DistType DT>
 template <class concurrency_t>
 void function<scalartype, domain, DT>::pack(const concurrency_t& concurrency, char* buffer,
-                                        const int buffer_size, int& position) const {
+                                            const int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, *this);
 }
 
 template <typename scalartype, class domain, DistType DT>
 template <class concurrency_t>
 void function<scalartype, domain, DT>::unpack(const concurrency_t& concurrency, char* buffer,
-                                          const int buffer_size, int& position) {
+                                              const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, *this);
 }
 
 template <typename scalartype, class domain, DistType DT>
 template <class Concurrency>
-function<scalartype, domain, DT> function<scalartype, domain, DT>::gather(const Concurrency& concurrency) const {
+function<scalartype, domain, DT> function<scalartype, domain, DT>::gather(
+    const Concurrency& concurrency) const {
   function result(name_);
 
   concurrency.gather(*this, result, concurrency);

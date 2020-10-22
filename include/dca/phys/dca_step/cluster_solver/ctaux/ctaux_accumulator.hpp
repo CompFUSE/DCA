@@ -22,10 +22,6 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#ifdef DCA_DIST_STRATEGIES
-#include "dca/function/function_dist_linear.hpp"
-#include "dca/function/function_dist_blocked.hpp"
-#endif
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"

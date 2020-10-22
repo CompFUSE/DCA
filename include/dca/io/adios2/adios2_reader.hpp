@@ -91,25 +91,25 @@ public:
     return false;
   }
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(func::function<Scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(func::function<Scalartype, domain_type, DT>& f);
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(func::function<Scalartype, domain_type>& f, uint64_t start, uint64_t end);
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(func::function<Scalartype, domain_type, DT>& f, uint64_t start, uint64_t end);
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(func::function<Scalartype, domain_type>& f, const std::vector<int>& start,
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(func::function<Scalartype, domain_type, DT>& f, const std::vector<int>& start,
                const std::vector<int>& end);
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f);
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f);
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f, uint64_t start,
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f, uint64_t start,
                uint64_t end);
 
-  template <typename Scalartype, typename domain_type>
-  bool execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+  template <typename Scalartype, typename domain_type, DistType DT>
+  bool execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
                const std::vector<int>& start, const std::vector<int>& end);
 
   template <typename Scalar>
@@ -281,13 +281,13 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<std::array<Scala
   return true;
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type>& f) {
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
   return execute(f.get_name(), f);
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f) {
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
   std::string full_name = get_path(name);
 
   if (!exists(full_name)) {
@@ -313,7 +313,7 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
       if (sizeAttr.Data().size() != f.signature())
         throw(std::length_error("The number of domains is different"));
       for (int i = 0; i < f.signature(); ++i) {
-        if (dims[i] != f[i])
+        if (dims[i] != f.get_domain().get_subdomain_size(i))
           throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
       }
     }
@@ -330,13 +330,13 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type>& f, uint64_t start, uint64_t end) {
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f, uint64_t start, uint64_t end) {
   return execute(f.get_name(), f, start, end);
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
                            uint64_t start, uint64_t end) {
   std::string full_name = get_path(name);
   adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
@@ -381,7 +381,7 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
       if (dims.size() != ndim)
         throw(std::length_error("The number of domains is different"));
       for (int i = 0; i < ndim; ++i) {
-        if (dims[i] != f[i])
+        if (dims[i] != f.get_domain().get_subdomain_size(i))
           throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
       }
     }
@@ -416,14 +416,14 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type>& f,
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f,
                            const std::vector<int>& start, const std::vector<int>& end) {
   return execute(f.get_name(), f, start, end);
 }
 
-template <typename Scalartype, typename domain_type>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type>& f,
+template <typename Scalartype, typename domain_type, DistType DT>
+bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
                            const std::vector<int>& start, const std::vector<int>& end) {
   std::string full_name = get_path(name);
   adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
@@ -468,7 +468,7 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
       if (dims.size() != f.signature())
         throw(std::length_error("The number of domains is different"));
       for (int i = 0; i < f.signature(); ++i) {
-        if (dims[i] != f[i])
+        if (dims[i] != f.get_domain().get_subdomain_size(i))
           throw(std::length_error("The size of domain " + std::to_string(i) + " is different"));
       }
     }
