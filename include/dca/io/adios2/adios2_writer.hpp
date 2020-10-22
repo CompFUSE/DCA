@@ -543,7 +543,6 @@ std::string ADIOS2Writer::VectorToString(const std::vector<T>& v) {
   ss << "]";
   return ss.str();
 }
-
 }  // namespace io
 }  // namespace dca
 

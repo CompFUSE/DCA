@@ -19,6 +19,13 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 
+#ifdef DCA_WITH_ADIOS2
+#include "dca/io/adios2/adios2_reader.hpp"
+#endif
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_reader.hpp"
+#endif
+
 namespace dca::io {
 
 class Reader {

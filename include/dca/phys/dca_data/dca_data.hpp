@@ -432,7 +432,6 @@ void DcaData<Parameters>::write(Writer& writer) {
 
   // When distributed_g4_enabled, one should assume G4 size is fairly large and then should not
   // accumulate G4 into one node and thus cannot write it out
-  // Until ADIOS2 is added
   if (parameters_.isAccumulatingG4() && parameters_.get_g4_distribution() == DistType::NONE) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
@@ -447,10 +446,18 @@ void DcaData<Parameters>::write(Writer& writer) {
         writer.execute(G4_channel_err);
     }
   }
-  else if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
-           parameters_.get_g4_distribution() != DistType::NONE) {
-    for (const auto& G4_channel : G4_)
+  if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
+           parameters_.get_g4_distribution() != DistType::NONE) {    
+    auto adios2_writer = dca::io::ADIOS2Writer(&concurrency_, "");
+    std::string file_name = parameters_.get_directory() + parameters_.get_filename_dca();
+    adios2_writer.open_file(file_name, false);
+    writer.open_group("functions");
+    for (const auto& G4_channel : G4_) {
+      // for now one file per chanel
       writer.execute(G4_channel);
+    }
+    adios2_writer.close_group();
+    adios2_writer.close_file();
   }
 
   writer.close_group();
@@ -696,3 +703,4 @@ void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
 }  // namespace dca
 
 #endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP
+
