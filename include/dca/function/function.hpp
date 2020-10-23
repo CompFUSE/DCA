@@ -328,7 +328,6 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
       step_sbdm(dmn.get_leaf_domain_steps()) {
   // TODO: multi-index access to partitioned function is not safe.
 
-  std::cout << "Ended up in the DistType::NONE version of the concurrency aware function.\n";
   const std::size_t mpi_size = concurrency.number_of_processors();
 
   const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);

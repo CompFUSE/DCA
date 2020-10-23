@@ -76,6 +76,7 @@ void general_interaction<parameters_type>::set_vertex(
 
   // Get a random pair of correlated spin-orbitals.
   const int pos = rng() * correlated_orbitals.size();
+  assert( pos != 0 );
   const int lin_ind = correlated_orbitals[pos];
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2
@@ -133,8 +134,8 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
   return correlated_orbitals;
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_GENERAL_INTERACTION_HPP

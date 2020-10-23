@@ -17,7 +17,8 @@ namespace dca {
 namespace util {
 // dca::util::
 
-void SignalHandler::init(bool verbose) {
+template<class Concurrency>
+void SignalHandler<Concurrency>::init(bool verbose) {
   verbose_ = verbose;
 
   signal(SIGABRT, handle);
@@ -29,7 +30,8 @@ void SignalHandler::init(bool verbose) {
   signal(SIGUSR2, handle);  // Summit out of time signal.
 }
 
-void SignalHandler::handle(int signum) {
+template<class Concurrency>
+void SignalHandler<Concurrency>::handle(int signum) {
   if (verbose_)
     std::cerr << "Received signal (" << signum << ") received." << std::endl;
 
@@ -42,9 +44,14 @@ void SignalHandler::handle(int signum) {
   exit(signum);
 }
 
-void SignalHandler::registerFile(const std::shared_ptr<io::Writer>& writer) {
+template<class Concurrency>
+void SignalHandler<Concurrency>::registerFile(const std::shared_ptr<io::Writer<Concurrency>>& writer) {
   file_ptrs_.emplace_back(writer);
 }
+
+#ifdef DCA_HAVE_MPI
+template class SignalHandler<dca::parallel::MPIConcurrency>;
+#endif
 
 }  // namespace util
 }  // namespace dca

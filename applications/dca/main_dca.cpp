@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
-    dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
+    dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
 
     std::string input_file(argv[1]);
 
