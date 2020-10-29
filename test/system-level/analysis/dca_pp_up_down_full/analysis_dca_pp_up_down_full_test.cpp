@@ -66,7 +66,6 @@ TEST(AnalysisDCAParticleParticleUpDownFullTest, LeadingEigenvalues) {
   dca_data.read(static_cast<std::string>(DCA_SOURCE_DIR "/test/system-level/analysis/dca_tp.hdf5"));
 
   BseSolverType bse_solver(parameters, dca_data);
-
   bse_solver.calculateSusceptibilities();
 
   std::cout << "\nChecking data.\n" << std::endl;

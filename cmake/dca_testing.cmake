@@ -104,6 +104,9 @@ function(dca_add_gtest name)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
       target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
     endif()
+    if(DCA_WITH_CUDA_AWARE_MPI)
+      target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
+    endif()
     cuda_add_cublas_to_target(${name})
   endif()
 
@@ -118,7 +121,7 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS}  ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)

@@ -14,6 +14,7 @@
 
 #include <mutex>
 
+#include "dca/io/writer.hpp"
 #include "dca/math/statistics/autocorrelation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
@@ -39,7 +40,7 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
 
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::HDF5Writer>& writer);
+                      const std::shared_ptr<io::Writer>& writer);
 
   void initialize(int iteration_);
   void doSweep();
@@ -55,7 +56,7 @@ private:
   const unsigned stamping_period_;
   int thread_id_;
 
-  std::shared_ptr<io::HDF5Writer> writer_;
+  std::shared_ptr<io::Writer> writer_;
   std::size_t meas_id_ = 0;
 
   const int total_iterations_;
@@ -66,7 +67,7 @@ private:
 template <class QmciWalker>
 StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameters,
                                                      Data& data_ref, Rng& rng, const int id,
-                                                     const std::shared_ptr<io::HDF5Writer>& writer)
+                                                     const std::shared_ptr<io::Writer>& writer)
     : QmciWalker(parameters, data_ref, rng, id),
       QmciAutocorrelationData<QmciWalker>(parameters, id),
       stamping_period_(parameters.stamping_period()),

@@ -61,7 +61,7 @@ TEST(CtauxSolverTest, RashaHubbardModel) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "rashba_hubbard_input.json");
   parameters.update_model();
   parameters.update_domains();
 
@@ -114,8 +114,9 @@ int main(int argc, char** argv) {
   int result = 0;
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env =
-      new dca::testing::DcaMpiTestEnvironment(argc, argv, input_dir + "rashba_hubbard_input.json");
+      new dca::testing::DcaMpiTestEnvironment(concurrency, "");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

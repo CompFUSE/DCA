@@ -180,7 +180,8 @@ TEST(Ni0, GS) {
 int main(int argc, char** argv) {
   int result = 0;
   ::testing::InitGoogleTest(&argc, argv);
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, "");
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(concurrency, "");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
   if (dca_test_env->concurrency.id() != 0) {

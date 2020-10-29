@@ -16,6 +16,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/io/filesystem.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -49,7 +50,8 @@ public:
 
   // Attempts to read the loop functions from 'filename'. If successful returns
   // the last completed iteration from the input file, otherwise it returns -1.
-  int tryToRead(const std::string& filename, const Concurrency& concurrency);
+  int tryToRead(const std::string& filename, const std::string& format,
+                const Concurrency& concurrency);
 
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
@@ -141,10 +143,11 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 }
 
 template <typename ParametersType>
-int DcaLoopData<ParametersType>::tryToRead(const std::string& filename,
+int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
-  if (concurrency.id() == concurrency.first() && io::fileExists(filename)) {
-    io::HDF5Reader reader;
+  if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
+    io::Reader reader(format);
+
     reader.open_file(filename);
     reader.open_group("DCA-loop-functions");
 

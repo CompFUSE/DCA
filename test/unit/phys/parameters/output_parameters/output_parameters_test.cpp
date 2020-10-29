@@ -19,6 +19,7 @@ TEST(OutputParametersTest, DefaultValues) {
   dca::phys::params::OutputParameters pars;
 
   EXPECT_EQ("./", pars.get_directory());
+  EXPECT_EQ("HDF5", pars.get_output_format());
   EXPECT_EQ(false, pars.autoresume());
   EXPECT_EQ("", pars.get_directory_config_read());
   EXPECT_EQ("", pars.get_directory_config_write());
@@ -45,6 +46,7 @@ TEST(OutputParametersTest, ReadAll) {
   // HDF5 is the recommended output format. We use JSON in this test, since HDF5 is already the
   // default.
   EXPECT_EQ("./T=0.5", pars.get_directory());
+  EXPECT_EQ("HDF5", pars.get_output_format()); // autoresume and JSON are incompatible.
   EXPECT_EQ(true, pars.autoresume());
   EXPECT_EQ("configuration", pars.get_directory_config_read());
   EXPECT_EQ("configuration", pars.get_directory_config_write());

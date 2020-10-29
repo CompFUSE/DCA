@@ -15,13 +15,13 @@
 
 #include <cmath>
 #include <iostream>
-#include <filesystem>
 #include <stdexcept>
 #include <string>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/filesystem.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
@@ -114,7 +114,7 @@ private:
   update_chemical_potential_type update_chemical_potential_obj;
 
   std::string file_name_;
-  std::shared_ptr<io::HDF5Writer> output_file_;
+  std::shared_ptr<io::Writer> output_file_;
 
   unsigned dca_iteration_ = 0;
 
@@ -123,8 +123,9 @@ protected:
 };
 
 template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
-    Parameters& parameters_ref, DcaDataType& data_ref, concurrency_type& concurrency_ref)
+DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::DcaLoop(Parameters& parameters_ref,
+                                                                  DcaDataType& data_ref,
+                                                                  concurrency_type& concurrency_ref)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(concurrency_ref),
@@ -139,13 +140,11 @@ DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
       update_chemical_potential_obj(parameters_, data_, cluster_mapping_obj),
 
-      output_file_(concurrency_.id() == concurrency_.first() ? std::make_shared<io::HDF5Writer>(false)
-                                                             : nullptr),
-
       monte_carlo_integrator_(parameters_ref, data_, output_file_) {
+
   if (concurrency_.id() == concurrency_.first()) {
     file_name_ = parameters_.get_directory() + parameters_.get_filename_dca();
-
+    output_file_ = std::make_shared<io::Writer>(parameters_.get_output_format(), false);
     dca::util::SignalHandler::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
@@ -168,7 +167,7 @@ void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::write() {
     output_file_.reset();
 
     std::error_code code;
-    std::filesystem::rename(file_name_ + ".tmp", file_name_, code);
+    filesystem::rename(file_name_ + ".tmp", file_name_, code);
     if (code) {
       std::cerr << "Failed to rename file." << std::endl;
     }
@@ -180,68 +179,31 @@ void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
 
   if (parameters_.autoresume()) {  // Try to read state of previous run.
-    last_completed = DCA_info_struct.tryToRead(file_name_ + ".tmp", concurrency_);
-  }
-  if (last_completed >= 0) {
-    if (concurrency_.id() == concurrency_.first())
-      std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1 << "  *******\n"
-                << std::endl;
+    last_completed = DCA_info_struct.tryToRead(file_name_ + ".tmp", parameters_.get_output_format(),
+                                               concurrency_);
+    if (last_completed >= 0) {
+      if (concurrency_.id() == concurrency_.first())
+        std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1
+                  << "  *******\n"
+                  << std::endl;
 
-    dca_iteration_ = std::min(last_completed + 1, parameters_.get_dca_iterations() - 1);
-    readInitialStatus(file_name_ + ".tmp");
-  }
-  else if (parameters_.get_initial_self_energy() != "zero") {
-    readInitialStatus(parameters_.get_initial_self_energy());
+      dca_iteration_ = std::min(last_completed + 1, parameters_.get_dca_iterations() - 1);
+      data_.read(file_name_ + ".tmp");
+      perform_lattice_mapping();
+    }
+    else if (parameters_.get_initial_self_energy() != "zero") {
+      data_.read(parameters_.get_initial_self_energy());
+      perform_lattice_mapping();
+    }
   }
 
-  if (concurrency_.id() == concurrency_.first()) {
+  if (output_file_) {
     output_file_->open_file(file_name_ + ".tmp", parameters_.autoresume() ? false : true);
   }
 }
 
-template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::readInitialStatus(
-    const std::string& filename) {
-  io::Buffer buffer;
-  bool buffer_read = false;
-
-  if (concurrency_.id() == concurrency_.first()) {
-    io::HDF5Reader reader;
-    reader.open_file(filename);
-
-    if (parameters_.adjust_chemical_potential()) {
-      reader.open_group("parameters");
-      reader.open_group("physics");
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
-      reader.close_group();
-      reader.close_group();
-    }
-
-    reader.open_group("functions");
-    reader.execute(data_.Sigma);
-    reader.close_group();
-
-    if (parameters_.store_configuration()) {
-      reader.open_group("Configurations");
-      buffer_read = reader.execute("sample", buffer);
-      reader.close_group();
-    }
-  }
-
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast(data_.Sigma);
-
-  concurrency_.broadcast(buffer_read);
-  if (buffer_read) {
-    concurrency_.broadcast(buffer);
-    monte_carlo_integrator_.setSampleConfiguration(buffer);
-  }
-
-  perform_lattice_mapping();
-}
-
-template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::execute() {
+template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   for (; dca_iteration_ < parameters_.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 
@@ -305,8 +267,7 @@ void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_cluster_m
 }
 
 template <typename Parameters, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<Parameters, DcaDataType, MCIntegratorType,
-             DIST>::perform_cluster_mapping_Greens_function() {
+void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_Greens_function() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 
@@ -423,12 +384,12 @@ template <typename Parameters, typename DcaDataType, typename MCIntegratorType, 
 void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
-  if (output_file_) {
+  if (output_file_ && parameters_.get_output_format() == "HDF5") {
     output_file_->open_group("functions");
     output_file_->execute(data_.Sigma);
     output_file_->close_group();
 
-    output_file_->open_group("parameters");
+    output_file_->open_group("parameters_");
     output_file_->open_group("physics");
     output_file_->execute("chemical-potential", parameters_.get_chemical_potential());
     output_file_->close_group();

@@ -59,7 +59,7 @@ using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data>;
 int main(int argc, char** argv) {
   int submatrix_size = -1;
   int n_warmup = 30;
-  int n_sweeps = 5;
+  int n_sweeps = 10;
   int n_walkers = -1;
 
   for (int i = 0; i < argc; ++i) {
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     std::cout << str << ": time taken: " << time.sec + 1e-6 * time.usec << std::endl;
   };
 
-  auto do_sweeps = [&parameters](auto& walker, int n, bool verbose) {
+  auto do_sweeps = [](auto& walker, int n, bool verbose) {
     for (int i = 0; i < n; ++i) {
       walker.doSweep();
       if (verbose)

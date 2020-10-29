@@ -29,10 +29,8 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
-#include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
-#include "dca/io/json/json_reader.hpp"
-#include "dca/io/json/json_writer.hpp"
+#include "dca/io/reader.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/util/vector_operations.hpp"
@@ -108,12 +106,10 @@ public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
-  template <typename Reader>
-  void read(Reader& reader);
+  void read(io::Reader& reader);
 
-  void write(std::string filename);
   template <typename Writer>
-  void write(Writer& reader);
+  void write(Writer& writer);
 
   void initialize();
   void initializeH0_and_H_i();
@@ -322,15 +318,13 @@ void DcaData<Parameters>::read(std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
-  if (concurrency_.id() == concurrency_.first()) {
-    dca::io::HDF5Reader reader;
-    reader.open_file(filename);
-    this->read(reader);
-    reader.close_file();
-  }
+  dca::io::Reader reader(parameters_.get_output_format());
+
+  reader.open_file(filename);
+  read(reader);
+  reader.close_file();
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
-
   concurrency_.broadcast_object(Sigma);
 
   if (parameters_.isAccumulatingG4()) {
@@ -342,8 +336,7 @@ void DcaData<Parameters>::read(std::string filename) {
 }
 
 template <class Parameters>
-template <typename Reader>
-void DcaData<Parameters>::read(Reader& reader) {
+void DcaData<Parameters>::read(io::Reader& reader) {
   reader.open_group("parameters");
 
   reader.open_group("physics");
@@ -369,19 +362,6 @@ void DcaData<Parameters>::read(Reader& reader) {
   }
 
   reader.close_group();
-}
-
-template <class Parameters>
-void DcaData<Parameters>::write(std::string file_name) {
-  std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
-
-  dca::io::HDF5Writer writer;
-  writer.open_file(file_name);
-
-  parameters_.write(writer);
-  this->write(writer);
-
-  writer.close_file();
 }
 
 template <class Parameters>

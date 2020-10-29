@@ -33,8 +33,6 @@ namespace dca {
 namespace io {
 // dca::io
 
-bool fileExists(const std::string& filename);
-
 class HDF5Writer {
 public:
   typedef H5::H5File file_type;
@@ -122,17 +120,8 @@ public:
     execute(name, obj);
   }
 
-  operator bool() const {
+  operator bool() const noexcept {
     return static_cast<bool>(file_);
-  }
-
-  void lock() {
-    H5::Exception::dontPrint();
-    mutex_.lock();
-  }
-
-  void unlock() {
-    mutex_.unlock();
   }
 
   void set_verbose(bool verbose) {
@@ -155,8 +144,6 @@ private:
   std::vector<std::string> my_paths_;
 
   bool verbose_;
-
-  std::mutex mutex_;
 
   std::vector<hsize_t> size_check_;
 };

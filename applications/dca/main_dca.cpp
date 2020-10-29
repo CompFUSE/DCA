@@ -14,6 +14,7 @@
 #include <string>
 #include <iostream>
 
+#include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/config/dca.hpp"
