@@ -384,12 +384,12 @@ template <typename Parameters, typename DcaDataType, typename MCIntegratorType, 
 void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
-  if (output_file_ && parameters_.get_output_format() == "HDF5") {
+  if (output_file_) {
     output_file_->open_group("functions");
     output_file_->execute(data_.Sigma);
     output_file_->close_group();
 
-    output_file_->open_group("parameters_");
+    output_file_->open_group("parameters");
     output_file_->open_group("physics");
     output_file_->execute("chemical-potential", parameters_.get_chemical_potential());
     output_file_->close_group();

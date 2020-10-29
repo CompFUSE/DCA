@@ -116,7 +116,7 @@ void RashbaHubbard<PointGroup>::initializeHInteraction(
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandDmn::dmn_size() != BANDS)
-    throw std::logic_error("Square lattice has one band.");
+    throw std::logic_error("Rashba lattice has 2 bands.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 

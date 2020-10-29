@@ -91,17 +91,15 @@ void DoubleCountingParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   catch (const std::exception& r_e) {
   }
 
-  // Check read values.
-  if (reader_or_writer.is_reader()) {
-    if (!(double_counting_method_ == "none" ||
-          double_counting_method_ == "constant-correction-without-U-correction" ||
-          double_counting_method_ == "constant-correction-with-U-correction"))
-      throw std::logic_error("Illegal value for double-counting method.");
-  }
+  // Check values.
+  if (!(double_counting_method_ == "none" ||
+        double_counting_method_ == "constant-correction-without-U-correction" ||
+        double_counting_method_ == "constant-correction-with-U-correction"))
+    throw std::logic_error("Illegal value for double-counting method.");
 }
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_DOUBLE_COUNTING_PARAMETERS_HPP

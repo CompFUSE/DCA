@@ -45,12 +45,8 @@ public:
 
   ~HDF5Writer();
 
-  constexpr bool is_reader() {
-    return false;
-  }
-  constexpr bool is_writer() {
-    return true;
-  }
+  constexpr static bool is_reader = false;
+  constexpr static bool is_writer = true;
 
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();

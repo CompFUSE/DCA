@@ -106,7 +106,7 @@ void ModelParameters<models::TightBindingModel<models::RashbaHubbard<PointGroup>
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 
-  if (reader_or_writer.is_reader()) {
+  if (ReaderOrWriter::is_reader) {
     std::cout << "\n\n"
               << "\tRasha-Hubbard-model : \n"
               << "\t--------------- \n\n"

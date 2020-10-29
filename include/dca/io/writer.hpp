@@ -37,12 +37,8 @@ public:
     }
   }
 
-  constexpr bool is_reader() const noexcept {
-    return false;
-  }
-  constexpr bool is_writer() const noexcept {
-    return true;
-  }
+  constexpr static bool is_reader = false;
+  constexpr static bool is_writer = true;
 
   void open_file(const std::string& file_name, bool overwrite = true) {
     std::visit([&](auto& var) { var.open_file(file_name, overwrite); }, writer_);
