@@ -374,12 +374,13 @@ template <class Parameters>
 void DcaData<Parameters>::writeAdios(adios2::ADIOS& adios) {
     if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
            parameters_.get_g4_distribution() != DistType::NONE) {    
-      auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
+      std::cerr << "trying to write G4 to adios\n";
+    auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
     std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
     adios2_writer.open_file(file_name, false);
     adios2_writer.open_group("functions");
     for (const auto& G4_channel : G4_) {
-      // for now one file per chanel
+      std::cerr << "Writing G4_channel:" << G4_channel.get_name() << "on rank: " << '\n';
       adios2_writer.execute(G4_channel);
     }
     adios2_writer.close_group();

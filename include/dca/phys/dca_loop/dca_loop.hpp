@@ -129,14 +129,14 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
+      adios_("", concurrency_ref.get()),
       DCA_info_struct(),
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-      monte_carlo_integrator_(parameters_ref, MOMS_ref),
-      adios_("", concurrency_ref.get()){
+      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
