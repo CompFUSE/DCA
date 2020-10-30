@@ -31,7 +31,7 @@ public:
 
       // Whether writing is on all ranks or not is now controlled at the writer level.
       //      if (concurrency.id() == concurrency.first()) {
-      std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+      //std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
       dca_loop.write();
 
       std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;

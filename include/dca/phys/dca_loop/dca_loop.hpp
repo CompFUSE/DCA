@@ -154,15 +154,17 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     std::cout << "\n\n\t\t start writing " << file_name_ << "\t" << dca::util::print_time() << "\n\n";
 
     output_file_->set_verbose(true);
-  }
-  parameters.write(*output_file_);
-  MOMS.write(*output_file_);
+    parameters.write(*output_file_);
+    MOMS.write(*output_file_);
 
+  }
+  
   MOMS.writeAdios(adios_);
+
+  if (concurrency.id() == concurrency.first()) {
   
   monte_carlo_integrator_.write(*output_file_);
   DCA_info_struct.write(*output_file_);
-  if (concurrency.id() == concurrency.first()) {
     output_file_->close_file();
     output_file_.reset();
 
