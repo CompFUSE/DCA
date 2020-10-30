@@ -44,6 +44,7 @@ struct CommEnvironment {
   int rank;
   int comm_size;
   dca::parallel::MPIConcurrency* concurrency_ptr;
+  adios2::ADIOS& adios;
 };
 
 template <int RANKS, int DMN3MULT, typename ST>
@@ -99,7 +100,7 @@ int functionReadWrite(CommEnvironment comm_env) {
 
   const std::string fname("ADIOS2ParallelIOTest_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(comm_env.concurrency_ptr, "", true);
+    dca::io::ADIOS2Writer writer(comm_env.adios, comm_env.concurrency_ptr, true);
     writer.open_file(fname, true);
 
     // Because the caller needs to know if its function is distributed or not we will assume this is
@@ -120,7 +121,7 @@ int functionReadWrite(CommEnvironment comm_env) {
       std::cout << " Read back data with 3D selection " << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(comm_env.concurrency_ptr, "", true);
+    dca::io::ADIOS2Reader reader(comm_env.adios, comm_env.concurrency_ptr, true);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn> f2("parallelFunc");
@@ -165,7 +166,10 @@ int functionReadWrite(CommEnvironment comm_env) {
 
 int main(int argc, char** argv) {
   dca::parallel::MPIConcurrency concurrency(argc, argv);
-  CommEnvironment comm_env{concurrency.id(), concurrency.number_of_processors(), &concurrency};
+  adios2::ADIOS adios("", concurrency.get());
+
+  CommEnvironment comm_env{concurrency.id(), concurrency.number_of_processors(), &concurrency, adios};
+  
   functionReadWrite<ADIOS2_PERF_TEST_RANKS, 10, double>(comm_env);
   functionReadWrite<ADIOS2_PERF_TEST_RANKS, 100, double>(comm_env);
   functionReadWrite<ADIOS2_PERF_TEST_RANKS, 1000, double>(comm_env);

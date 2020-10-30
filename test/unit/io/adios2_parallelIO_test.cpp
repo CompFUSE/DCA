@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
-  adios2::ADIOS adios("", concurrency_ptr);
+  adios2::ADIOS adios("", concurrency_ptr->get());
   adios_ptr = &adios;
 
   result = RUN_ALL_TESTS();
