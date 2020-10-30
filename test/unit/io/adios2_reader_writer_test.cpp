@@ -13,6 +13,7 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/io/adios2/adios2_reader.hpp"
 #include "dca/io/adios2/adios2_writer.hpp"
+#include "dca/testing/minimalist_printer.hpp"
 
 #include <array>
 #include <complex>
@@ -24,6 +25,10 @@
 
 adios2::ADIOS* adios_ptr;
 dca::parallel::NoConcurrency* concurrency_ptr;
+
+class ADIOS2ReaderWriterTest : public ::testing::Test {};
+
+//TEST_CASE(ADIOS2ReaderWriterTest);
 
 TEST(ADIOS2ReaderWriterTest, ReaderDestructorCleanUp) {
   std::string test_file_name = "adios2_reader_test.bp";
@@ -171,11 +176,11 @@ TEST(ADIOS2ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
 }
 
 template <typename Scalar>
-class ADIOS2ReaderWriterTest : public ::testing::Test {};
+class ADIOS2ReaderWriterTestTyped : public ::testing::Test {};
 using TestTypes = ::testing::Types<float, std::complex<double>>;
-TYPED_TEST_CASE(ADIOS2ReaderWriterTest, TestTypes);
+TYPED_TEST_CASE(ADIOS2ReaderWriterTestTyped, TestTypes);
 
-TYPED_TEST(ADIOS2ReaderWriterTest, FunctionReadWrite) {
+TYPED_TEST(ADIOS2ReaderWriterTestTyped, FunctionReadWrite) {
   using Dmn1 = dca::func::dmn_0<dca::func::dmn<5>>;
   using Dmn2 = dca::func::dmn_0<dca::func::dmn<4>>;
   using Dmn3 = dca::func::dmn_0<dca::func::dmn<2>>;
@@ -208,7 +213,7 @@ TYPED_TEST(ADIOS2ReaderWriterTest, FunctionReadWrite) {
   reader.close_file();
 }
 
-TYPED_TEST(ADIOS2ReaderWriterTest, MatrixReadWrite) {
+TYPED_TEST(ADIOS2ReaderWriterTestTyped, MatrixReadWrite) {
   using Scalar = TypeParam;
   const std::pair<int, int> m_size(7, 3);
 
@@ -336,6 +341,15 @@ int main(int argc, char** argv) {
   dca::parallel::NoConcurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
   //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", nullptr);
+  adios2::ADIOS adios("", false);
   adios_ptr = &adios;
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }
