@@ -30,7 +30,7 @@ dca_add_gtest(tp_accumulator_singleband_test
   LIBS     ${DCA_LIBS}
   )
 
-set(TPACC_PARTICLE_HOLE_LIBS cluster_domains time_and_frequency_domains quantum_domains timer json random
+set(TPACC_PARTICLE_HOLE_LIBS cuda_utils cluster_domains time_and_frequency_domains quantum_domains timer json random
   enumerations dca_algorithms parallel_stdthread parallel_util ${LAPACK_LIBRARIES})
 
 if (DCA_HAVE_ADIOS2)
@@ -39,6 +39,7 @@ endif()
   
 dca_add_gtest(tp_accumulator_particle_hole_test
   FAST
+  CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${PROJECT_SOURCE_DIR} ${FFTW_INCLUDE_DIR} ${HDF5_INCLUDE_DIR}
   LIBS function ${TPACC_PARTICLE_HOLE_LIBS})

@@ -21,6 +21,8 @@
 
 #include "dca/linalg/util/cublas_handle.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
+#include "dca/linalg/util/cuda_stream.hpp"
+
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -59,7 +61,8 @@ inline cublasHandle_t getHandle(const int thread_id) {
 //                0 <= stream_id < StreamContainer::get_streams_per_thread().
 inline cublasHandle_t getHandle(const int thread_id, const int stream_id) {
   assert(thread_id >= 0 && thread_id < getHandleContainer().size());
-  getHandleContainer()[thread_id].setStream(getStream(thread_id, stream_id));
+  CudaStream& stream = getStream(thread_id, stream_id);
+  getHandleContainer()[thread_id].setStream(stream.streamActually());
   return getHandleContainer()[thread_id];
 }
 

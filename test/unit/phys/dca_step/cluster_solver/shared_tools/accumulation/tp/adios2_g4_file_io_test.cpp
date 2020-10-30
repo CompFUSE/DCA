@@ -30,6 +30,9 @@
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
+adios2::ADIOS* adios_ptr;
+dca::parallel::NoConcurrency* concurrency_ptr;
+
 constexpr char input_file[] = INPUT_DIR "input_large_G4.json";
 
 using ConfigGenerator = dca::testing::AccumulationTest<double>;
@@ -49,8 +52,8 @@ TEST_F(G4FileIoTest, ReadWrite) {
       G4(i) = rng();
   };
 
-  dca::io::ADIOS2Writer writer;
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);;
 
   std::map<dca::phys::FourPointType, std::string> func_names;
   func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
@@ -73,4 +76,12 @@ TEST_F(G4FileIoTest, ReadWrite) {
   reader.execute(g4_read);
   const auto diff = dca::func::util::difference(g4_read, g4_work);
   EXPECT_GT(1e-8, diff.l_inf);
+}
+
+int main(int argc, char** argv) {
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+  //ADIOS expects MPI_COMM pointer or nullptr
+  adios2::ADIOS adios("", nullptr);
+  adios_ptr = &adios;
 }

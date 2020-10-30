@@ -27,6 +27,7 @@
 #include "dca/linalg/vector.hpp"
 
 #include "dca/config/haves_defines.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #ifdef DCA_HAVE_MPI
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 #endif
@@ -35,17 +36,15 @@ namespace dca {
 namespace io {
 // dca::io::
 
+template <class CT>
 class ADIOS2Reader {
 public:
   typedef adios2::ADIOS file_type;
 
 public:
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  ADIOS2Reader(const std::string& config = "", bool verbose = false);
-#ifdef DCA_HAVE_MPI
-  ADIOS2Reader(const dca::parallel::MPIConcurrency* concurrency, const std::string& config = "",
+  ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency,
                bool verbose = false);
-#endif
 
   ~ADIOS2Reader();
 
@@ -65,7 +64,7 @@ public:
   std::string get_path(const std::string& name = "");
 
   template <typename arbitrary_struct_t>
-  static void from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);
+  static void from_file(adios2::ADIOS& adios, arbitrary_struct_t& arbitrary_struct, std::string file_name);
 
   // `execute` returns true if the object is read correctly.
 
@@ -134,11 +133,9 @@ private:
   template <class T>
   std::string VectorToString(const std::vector<T>& v);
 
-  adios2::ADIOS adios_;
+  adios2::ADIOS& adios_;
   const bool verbose_;
-#ifdef DCA_HAVE_MPI
-  const dca::parallel::MPIConcurrency* concurrency_;
-#endif
+  const CT* concurrency_;
 
   adios2::IO io_;
   std::string io_name_;
@@ -148,16 +145,18 @@ private:
   std::vector<std::string> my_paths_;
 };
 
+template <class CT>
 template <typename arbitrary_struct_t>
-void ADIOS2Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name) {
-  ADIOS2Reader reader_obj;
+void ADIOS2Reader<CT>::from_file(adios2::ADIOS& adios, arbitrary_struct_t& arbitrary_struct, std::string file_name) {
+  ADIOS2Reader reader_obj(adios);
   reader_obj.open_file(file_name);
   arbitrary_struct.read_write(reader_obj);
   reader_obj.close_file();
 }
 
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(const std::string& name, Scalar& value) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, Scalar& value) {
   std::string full_name = get_path(name);
 
   if (!exists(full_name)) {
@@ -168,8 +167,9 @@ bool ADIOS2Reader::execute(const std::string& name, Scalar& value) {
   return true;
 }
 
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(const std::string& name, std::vector<Scalar>& value) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, std::vector<Scalar>& value) {
   std::string full_name = get_path(name);
 
   if (!exists(full_name)) {
@@ -181,8 +181,9 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<Scalar>& value) 
   return true;
 }
 
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path(name);
 
   adios2::Variable<Scalar> var = io_.InquireVariable<Scalar>(full_name);
@@ -241,8 +242,9 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<std::vector<Scal
   return true;
 }
 
+template <class CT>
 template <typename Scalar, std::size_t n>
-bool ADIOS2Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
   std::string full_name = get_path(name);
   if (!exists(full_name)) {
     return false;
@@ -281,13 +283,15 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<std::array<Scala
   return true;
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
+bool ADIOS2Reader<CT>::execute(func::function<Scalartype, domain_type, DT>& f) {
   return execute(f.get_name(), f);
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
   std::string full_name = get_path(name);
 
   if (!exists(full_name)) {
@@ -335,13 +339,15 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f, uint64_t start, uint64_t end) {
+bool ADIOS2Reader<CT>::execute(func::function<Scalartype, domain_type, DT>& f, uint64_t start, uint64_t end) {
   return execute(f.get_name(), f, start, end);
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
+bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
                            uint64_t start, uint64_t end) {
   std::string full_name = get_path(name);
   adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
@@ -421,14 +427,16 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(func::function<Scalartype, domain_type, DT>& f,
+bool ADIOS2Reader<CT>::execute(func::function<Scalartype, domain_type, DT>& f,
                            const std::vector<int>& start, const std::vector<int>& end) {
   return execute(f.get_name(), f, start, end);
 }
 
+template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
-bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
+bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
                            const std::vector<int>& start, const std::vector<int>& end) {
   std::string full_name = get_path(name);
   adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
@@ -512,8 +520,9 @@ bool ADIOS2Reader::execute(const std::string& name, func::function<Scalartype, d
   return true;
 }
 
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path(name);
   if (!exists(full_name)) {
     return false;
@@ -527,8 +536,10 @@ bool ADIOS2Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, 
   return true;
 }
 
+
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+bool ADIOS2Reader<CT>::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::string full_name = get_path(name);
   if (!exists(full_name)) {
     return false;
@@ -552,13 +563,15 @@ bool ADIOS2Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, 
   return true;
 }
 
+template <class CT>
 template <typename Scalar>
-bool ADIOS2Reader::execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+bool ADIOS2Reader<CT>::execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   return execute(A.get_name(), A);
 }
 
+template <class CT>
 template <typename Scalar>
-std::vector<size_t> ADIOS2Reader::getSize(const std::string& name) {
+std::vector<size_t> ADIOS2Reader<CT>::getSize(const std::string& name) {
   adios2::Variable<Scalar> var = io_.InquireVariable<Scalar>(name);
   if (var) {
     return var.Shape();
@@ -568,8 +581,9 @@ std::vector<size_t> ADIOS2Reader::getSize(const std::string& name) {
   }
 }
 
+template <class CT>
 template <class T>
-std::string ADIOS2Reader::VectorToString(const std::vector<T>& v) {
+std::string ADIOS2Reader<CT>::VectorToString(const std::vector<T>& v) {
   std::stringstream ss;
   ss << "[";
   for (size_t i = 0; i < v.size(); ++i) {
@@ -581,6 +595,10 @@ std::string ADIOS2Reader::VectorToString(const std::vector<T>& v) {
   return ss.str();
 }
 
+extern template class ADIOS2Reader<dca::parallel::NoConcurrency>;
+#ifdef DCA_HAVE_MPI
+extern template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
+#endif
 }  // namespace io
 }  // namespace dca
 

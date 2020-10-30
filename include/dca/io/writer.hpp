@@ -71,7 +71,7 @@ public:
 
   template <class... Args>
   void execute(const Args&... args) {
-    if constexpr (std::is_same<decltype(writer_), ADIOS2Writer>::value) {
+    if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
       std::visit([&](auto& var) { var.execute(args...); }, writer_);
     }
     else {

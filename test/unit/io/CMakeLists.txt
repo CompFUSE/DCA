@@ -18,7 +18,7 @@ dca_add_gtest(hdf5_reader_writer_test
 if (DCA_HAVE_ADIOS2)
   dca_add_gtest(adios2_reader_writer_test
     GTEST_MAIN
-    LIBS dca_adios2 adios2::adios2;function)
+    LIBS parallel_no_concurrency dca_adios2 adios2::adios2 function)
   if (DCA_HAVE_MPI)
     dca_add_gtest(adios2_parallelIO_test
       MPI MPI_NUMPROC 4

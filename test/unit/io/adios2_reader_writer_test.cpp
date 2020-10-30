@@ -10,6 +10,7 @@
 //
 // This file provides specific tests for the ADIOS2 reader and writer.
 
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/io/adios2/adios2_reader.hpp"
 #include "dca/io/adios2/adios2_writer.hpp"
 
@@ -20,13 +21,17 @@
 
 #include "gtest/gtest.h"
 
+
+adios2::ADIOS* adios_ptr;
+dca::parallel::NoConcurrency* concurrency_ptr;
+
 TEST(ADIOS2ReaderWriterTest, ReaderDestructorCleanUp) {
   std::string test_file_name = "adios2_reader_test.bp";
   std::string group_name = "magic-numbers";
   std::string object_name = "forty-two";
 
   // Create test file.
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   const int i = 42;
 
   writer.open_file(test_file_name);
@@ -36,7 +41,7 @@ TEST(ADIOS2ReaderWriterTest, ReaderDestructorCleanUp) {
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   int j;
 
   reader.open_file(test_file_name);
@@ -55,7 +60,7 @@ TEST(ADIOS2ReaderWriterTest, WriterDestructorCleanUp) {
   std::string group_name_2 = "magic-numbers";
   std::string object_name = "forty-two";
 
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);;
   const int i = 42;
 
   writer.open_file(test_file_name);
@@ -76,13 +81,13 @@ TEST(ADIOS2ReaderWriterTest, VectorReadWrite) {
       std::complex<double>(1., 0.), std::complex<double>(0., 1.), std::complex<double>(23.4, -1.5)};
 
   // Create test file.
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file(file_name);
   writer.execute(object_name, a_vector);
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   std::vector<std::complex<double>> vector_read;
   reader.open_file(file_name);
   EXPECT_TRUE(reader.execute(object_name, vector_read));
@@ -102,13 +107,13 @@ TEST(ADIOS2ReaderWriterTest, VectorOfVectorsReadWrite) {
   const std::vector<std::vector<double>> data_unequal_size{{1, 0, 2}, {1}, {1, 0}, {}, {2, 2}};
 
   // Create test file.
-  dca::io::ADIOS2Writer writer("", true);
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
   writer.open_file(file_name);
   writer.execute(object_name, data_unequal_size);
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader("", true);
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
   std::vector<std::vector<double>> data_read;
   reader.open_file(file_name);
   EXPECT_TRUE(reader.execute(object_name, data_read));
@@ -124,13 +129,13 @@ TEST(ADIOS2ReaderWriterTest, VectorOfArraysReadWrite) {
   std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}, {9, 2, -1}};
 
   // Create test file.
-  dca::io::ADIOS2Writer writer("", true);
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
   writer.open_file(file_name);
   writer.execute(object_name, data);
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader("", true);
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
   std::vector<std::array<int, 3>> data_read;
   reader.open_file(file_name);
   EXPECT_TRUE(reader.execute(object_name, data_read));
@@ -146,14 +151,14 @@ TEST(ADIOS2ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
   const std::string filename = "test_vec_of_strings.bp";
 
   // Create test file.
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file(filename);
   writer.execute("single-string", s1);
   writer.execute("strings", s_vec1);
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file(filename);
   //
   std::vector<std::string> s_vec2;
@@ -182,7 +187,7 @@ TYPED_TEST(ADIOS2ReaderWriterTest, FunctionReadWrite) {
   for (auto& x : f1)
     x = ++val;
 
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file("test_func.bp", true);
 
   writer.execute(f1);
@@ -190,7 +195,7 @@ TYPED_TEST(ADIOS2ReaderWriterTest, FunctionReadWrite) {
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file("test_func.bp");
 
   dca::func::function<Scalar, Dmn> f2("myfunc");
@@ -213,13 +218,13 @@ TYPED_TEST(ADIOS2ReaderWriterTest, MatrixReadWrite) {
     for (int i = 0; i < m1.nrRows(); ++i)
       m1(i, j) = ++val;
 
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file("test_mat.bp", true);
   writer.execute(m1);
   writer.close_file();
 
   // Read test file.
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file("test_mat.bp");
 
   dca::linalg::Matrix<Scalar, dca::linalg::CPU> m2;
@@ -239,7 +244,7 @@ TEST(ADIOS2ReaderWriterTest, NonAccessibleFile) {
   //dca::io::ADIOS2Writer writer;
   //EXPECT_THROW(writer.open_file("/not_accessible_directory/file.txt"), std::ios_base::failure);
 
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
 }
 
@@ -249,7 +254,7 @@ TEST(ADIOS2ReaderWriterTest, FunctionNotPresent) {
   dca::func::function<int, Dmn> present("present");
   present = 1;
 
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file("adios2_missing_func.bp");
   writer.execute(present);
   writer.close_file();
@@ -257,7 +262,7 @@ TEST(ADIOS2ReaderWriterTest, FunctionNotPresent) {
   dca::func::function<int, Dmn> not_present("not_present");
   present = 0;
 
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file("adios2_missing_func.bp");
   EXPECT_FALSE(reader.execute(not_present));
   EXPECT_TRUE(reader.execute(present));
@@ -269,7 +274,7 @@ TEST(ADIOS2ReaderWriterTest, FunctionNotPresent) {
 }
 
 TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file("group_open_close.bp");
 
   writer.open_group("foo");
@@ -286,7 +291,7 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
 
   writer.close_file();
 
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file("group_open_close.bp");
 
   int i_val;
@@ -306,7 +311,7 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
 }
 
 TEST(ADIOS2ReaderWriterTest, Overwrite) {
-  dca::io::ADIOS2Writer writer;
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
   writer.open_file("test.bp", true);
 
   writer.open_group("foo");
@@ -318,11 +323,19 @@ TEST(ADIOS2ReaderWriterTest, Overwrite) {
 
   writer.close_file();
 
-  dca::io::ADIOS2Reader reader;
+  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
   reader.open_file("test.bp");
 
   int i_val;
   reader.open_group("foo");
   reader.execute("a", i_val);
   EXPECT_EQ(1, i_val);
+}
+
+int main(int argc, char** argv) {
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+  //ADIOS expects MPI_COMM pointer or nullptr
+  adios2::ADIOS adios("", nullptr);
+  adios_ptr = &adios;
 }

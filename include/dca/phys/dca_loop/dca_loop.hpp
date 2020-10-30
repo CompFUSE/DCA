@@ -100,7 +100,7 @@ protected:
   ParametersType& parameters;
   DcaDataType& MOMS;
   concurrency_type& concurrency;
-
+  adios2::ADIOS adios_;
 private:
   DcaLoopData<ParametersType> DCA_info_struct;
 
@@ -121,6 +121,8 @@ protected:
   MCIntegratorType monte_carlo_integrator_;
 };
 
+/** setup objects with loop scope lifetime
+ */
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     ParametersType& parameters_ref, DcaDataType& MOMS_ref, concurrency_type& concurrency_ref)
@@ -133,7 +135,8 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref),
+      adios_("", concurrency_ref.get()){
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
@@ -154,6 +157,9 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   }
   parameters.write(*output_file_);
   MOMS.write(*output_file_);
+
+  MOMS.writeAdios(adios_);
+  
   monte_carlo_integrator_.write(*output_file_);
   DCA_info_struct.write(*output_file_);
   if (concurrency.id() == concurrency.first()) {

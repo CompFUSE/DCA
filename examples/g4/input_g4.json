@@ -14,15 +14,15 @@
         "chemical-potential": 0.0,
         "adjust-chemical-potential": false
     },
-    "single-band-hubbard-model":
+    "single-band-Hubbard-model":
     {
         "t"       : 1.,
-        "t-prime": 0.0,
+        "t-prime": 0.1,
         "U"       : 4
     },    
     "DCA": {
         "initial-self-energy": "zero",
-        "iterations": 10,
+        "iterations": 3,
         "self-energy-mixing-factor": 0.8,
         "interacting-orbitals": [0],
         "coarse-graining": {

@@ -67,7 +67,7 @@ get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
 
 if (GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run 'git status' for details.")
+  message(STATUS "Working tree is dirty. Run 'git status' for details.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
@@ -148,7 +148,7 @@ set(DCA_LIBS
   lapack
   cuda_utils
 )
-
+  
 set(SYSTEM_GPU_COUNT 0)
 
 if (DCA_HAVE_CUDA)
@@ -167,7 +167,7 @@ if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
   list(APPEND DCA_LIBS
     dca_adios2 adios2::adios2
     )
-  #message("-- Add dca_adios2 to targets")
+  message("-- Add dca_adios2 to targets")
 endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.

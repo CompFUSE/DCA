@@ -36,6 +36,12 @@ public:
   CudaStream(CudaStream&& other) noexcept {
     swap(other);
   }
+
+  // clang at least can't do the cudaStream_t() conversion
+  cudaStream_t streamActually(){
+    return stream_;
+  }
+
   CudaStream& operator=(CudaStream&& other) noexcept {
     swap(other);
     return *this;
@@ -70,6 +76,7 @@ public:
   CudaStream() = default;
 
   void sync() const {}
+
 };
 
 #endif  // DCA_HAVE_CUDA

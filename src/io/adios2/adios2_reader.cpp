@@ -18,30 +18,22 @@ namespace dca {
 namespace io {
 // dca::io::
 
-ADIOS2Reader::ADIOS2Reader(const std::string& config, bool verbose)
-    : adios_(adios2::ADIOS(config)),
-      verbose_(verbose)
-#ifdef DCA_HAVE_MPI
-      ,
-      concurrency_(nullptr)
-#endif
-{
-}
-
-#ifdef DCA_HAVE_MPI
-ADIOS2Reader::ADIOS2Reader(const dca::parallel::MPIConcurrency* concurrency,
-                           const std::string& config, bool verbose)
-    : adios_(adios2::ADIOS(config, concurrency->get())),
+template <class CT>
+ADIOS2Reader<CT>::ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency,
+                           bool verbose)
+    : adios_(adios),
       verbose_(verbose),
       concurrency_(concurrency) {}
-#endif
 
-ADIOS2Reader::~ADIOS2Reader() {
+template <class CT>
+ADIOS2Reader<CT>::~ADIOS2Reader() {
   if (file_)
     close_file();
 }
 
-void ADIOS2Reader::open_file(const std::string& file_name) {
+
+template <class CT>
+void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
   if (verbose_) {
     std::cout << "\t ADIOS2Reader: Open for Read file : " << file_name << "\n";
   }
@@ -52,26 +44,31 @@ void ADIOS2Reader::open_file(const std::string& file_name) {
   file_ = io_.Open(file_name_, adios2::Mode::Read);
 }
 
-void ADIOS2Reader::close_file() {
+template <class CT>
+void ADIOS2Reader<CT>::close_file() {
   if (file_) {
     file_.Close();
     adios_.RemoveIO(io_name_);
   }
 }
 
-void ADIOS2Reader::open_group(const std::string& name) {
+template <class CT>
+void ADIOS2Reader<CT>::open_group(const std::string& name) {
   size_t len = name.size();
   // remove trailing / from name
   for (; name[len - 1] == '/'; --len)
     ;
+
   my_paths_.push_back(std::string(name, 0, len));
 }
 
-void ADIOS2Reader::close_group() {
+template <class CT>
+void ADIOS2Reader<CT>::close_group() {
   my_paths_.pop_back();
 }
 
-std::string ADIOS2Reader::get_path(const std::string& name) {
+template <class CT>
+std::string ADIOS2Reader<CT>::get_path(const std::string& name) {
   std::string path = "/";
 
   for (size_t i = 0; i < my_paths_.size(); i++) {
@@ -85,7 +82,8 @@ std::string ADIOS2Reader::get_path(const std::string& name) {
   return path;
 }
 
-bool ADIOS2Reader::execute(const std::string& name, std::string& value) {
+template <class CT>
+bool ADIOS2Reader<CT>::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path(name);
   if (!exists(full_name)) {
     return false;
@@ -97,7 +95,8 @@ bool ADIOS2Reader::execute(const std::string& name, std::string& value) {
   return true;
 }
 
-bool ADIOS2Reader::execute(const std::string& name, std::vector<std::string>& value) {
+template <class CT>
+bool ADIOS2Reader<CT>::execute(const std::string& name, std::vector<std::string>& value) {
   std::string full_name = get_path(name);
   bool retval = true;
   if (exists(full_name)) {
@@ -122,10 +121,16 @@ bool ADIOS2Reader::execute(const std::string& name, std::vector<std::string>& va
   return retval;
 }
 
-bool ADIOS2Reader::exists(const std::string& name) const {
+template <class CT>
+bool ADIOS2Reader<CT>::exists(const std::string& name) const {
   std::string varType = io_.VariableType(name);
   return !varType.empty();
 }
+
+template class ADIOS2Reader<dca::parallel::NoConcurrency>;
+#ifdef DCA_HAVE_MPI
+template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
+#endif
 
 }  // namespace io
 }  // namespace dca

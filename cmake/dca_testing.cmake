@@ -133,7 +133,7 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${THIS_CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
