@@ -298,6 +298,7 @@ private:
 
   std::vector<scalartype> fnc_values_;
 
+  // These are the linear start and end indexes with respect to the complete function.
   std::size_t start_;
   std::size_t end_;
 };
