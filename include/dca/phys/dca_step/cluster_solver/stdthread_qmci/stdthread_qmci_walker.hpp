@@ -129,7 +129,7 @@ public:
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
   }
 
-  static void write(io::HDF5Writer& writer) {}
+  static void write(io::HDF5Writer& /*writer*/) {}
 };
 
 }  // namespace stdthreadqmci

@@ -144,10 +144,10 @@ public:
   auto end() {
     return fnc_values_.end();
   }
-  const auto begin() const {
+  auto begin() const {
     return fnc_values_.begin();
   }
-  const auto end() const {
+  auto end() const {
     return fnc_values_.end();
   }
 

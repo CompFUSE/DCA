@@ -154,7 +154,7 @@ public:
     return 0;
   }
 
-  static void write(io::HDF5Writer& writer) {}
+  static void write(io::HDF5Writer& /*writer*/) {}
 
 private:
   void test_interpolation();

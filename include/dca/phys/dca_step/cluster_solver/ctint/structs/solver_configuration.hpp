@@ -128,7 +128,7 @@ private:
   template <class Rng>
   bool doDoubleUpdate(Rng& rng) const;
 
-  const double double_insertion_prob_ = 0;
+  double double_insertion_prob_ = 0;
 
   std::vector<Vertex> vertices_;
   // Connection from Vertices to MatrixConfiguration elements.
@@ -142,8 +142,8 @@ private:
   std::vector<const details::VertexTypeList*> partners_lists_;
 
   unsigned short last_insertion_size_ = 1;
-  const double max_tau_ = 0;
-  const int n_bands_ = 0;
+  double max_tau_ = 0;
+  int n_bands_ = 0;
 
   dca::util::RandomAccessMap<std::size_t, unsigned> anhilatable_indices_;
   std::uint64_t current_tag_ = 0;

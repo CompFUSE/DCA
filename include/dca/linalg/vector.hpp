@@ -320,6 +320,7 @@ void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::Cuda
 #ifdef DCA_HAVE_CUDA
   cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream);
 #else
+  dca::util::ignoreUnused(stream);
   std::memset(data_, 0, size_ * sizeof(ScalarType));
 #endif
 }
