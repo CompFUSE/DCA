@@ -28,14 +28,14 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <typename /*PointGroup*/>
+template <typename PointGroup>
 class RashbaHubbard {
 public:
   static constexpr bool complex_g0 = true;
   static constexpr bool spin_symmetric = false;
 
-  typedef domains::no_symmetry<2> LDA_point_group;
-  using DCA_point_group = domains::no_symmetry<2>;
+  using LDA_point_group = domains::no_symmetry<2>;
+  using DCA_point_group = PointGroup;
 
   const static int DIMENSION = 2;
 

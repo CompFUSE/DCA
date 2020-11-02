@@ -110,7 +110,7 @@ elseif (DCA_LATTICE STREQUAL "twoband_Cu")
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 
 elseif (DCA_LATTICE STREQUAL "Rashba")
-  set(DCA_LATTICE_TYPE dca::phys::models::RashbaHubbard<dca::phys::domains::no_symmetry<2>>)
+  set(DCA_LATTICE_TYPE dca::phys::models::RashbaHubbard<PointGroup>)
   set(DCA_LATTICE_INCLUDE
           "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp")
 
