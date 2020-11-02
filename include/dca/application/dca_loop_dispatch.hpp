@@ -19,10 +19,15 @@
 template <dca::DistType DT>
 class DCALoopDispatch {
 public:
-  void operator()(ParametersType& parameters, DcaDataType& dca_data, Concurrency& concurrency) {
+  void operator()(ParametersType& parameters, Concurrency& concurrency) {
+    DcaDataType<DT> dca_data(parameters);
+    dca_data.initialize();
     DcaLoopType<DT> dca_loop(parameters, dca_data, concurrency);
     {
       Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
+
+      // Create and initialize the DCA data object.
+    
 
       dca_loop.initialize();
       dca_loop.execute();

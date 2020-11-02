@@ -45,6 +45,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
           DistType DIST = DistType::NONE>
 class DcaLoop {
 public:
+  static constexpr DistType DT = DIST;
   using profiler_type = typename ParametersType::profiler_type;
   using concurrency_type = typename ParametersType::concurrency_type;
 

@@ -45,7 +45,7 @@ using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 
 template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX,
-          const char* input_name = default_input>
+          const char* input_name = default_input, DistType DT = DistType::NONE>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
@@ -53,7 +53,7 @@ struct G0Setup : public ::testing::Test {
   using Concurrency = parallel::NoConcurrency;
   using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
                                               profiling::NullProfiler, Model, RngType, solver_name>;
-  using Data = phys::DcaData<Parameters>;
+  using Data = phys::DcaData<Parameters, DT>;
 
   // Commonly used domains.
   using RDmn = typename Parameters::RClusterDmn;

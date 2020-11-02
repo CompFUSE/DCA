@@ -64,7 +64,7 @@ public:
   using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
-  using Data = DcaData<Parameters>;
+  using Data = DcaData<Parameters, DT>;
   using TpGreensFunction = typename Data::TpGreensFunction;
 
 protected:

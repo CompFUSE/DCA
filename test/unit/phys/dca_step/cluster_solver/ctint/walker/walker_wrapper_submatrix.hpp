@@ -12,6 +12,7 @@
 #ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP
 #define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
@@ -29,27 +30,28 @@ using namespace dca::phys::solver::ctint;
 using dca::linalg::CPU;
 using dca::linalg::GPU;
 using dca::linalg::DeviceType;
+using dca::DistType;
 
-template <class Parameters, dca::linalg::DeviceType device, typename Real>
+template <class Parameters, dca::linalg::DeviceType device, typename Real, DistType DIST = DistType::NONE>
 struct WalkerSelector;
 
-template <class Parameters, typename Real>
-struct WalkerSelector<Parameters, CPU, Real> {
+template <class Parameters, typename Real, DistType DIST>
+struct WalkerSelector<Parameters, CPU, Real, DIST> {
   // Fix rng order for testing.
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, Real, DIST>;
 };
 
 #ifdef DCA_HAVE_CUDA
-template <class Parameters, typename Real>
-struct WalkerSelector<Parameters, GPU, Real> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real>;
+template <class Parameters, typename Real, DistType DIST>
+struct WalkerSelector<Parameters, GPU, Real, DIST> {
+  using type = CtintWalkerSubmatrixGpu<Parameters, Real, DIST>;
 };
 #endif  // DCA_HAVE_CUDA
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, DeviceType device_t = CPU, typename Real = double>
-struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real>::type {
-  using BaseClass = typename WalkerSelector<Parameters, device_t, Real>::type;
+template <class Parameters, DeviceType device_t = CPU, typename Real = double, DistType DIST = DistType::NONE>
+struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real, DIST>::type {
+  using BaseClass = typename WalkerSelector<Parameters, device_t, Real, DIST>::type;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
 

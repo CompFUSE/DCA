@@ -71,16 +71,12 @@ int main(int argc, char** argv) {
     parameters.update_model();
     parameters.update_domains();
 
-    // Create and initialize the DCA data object.
-    DcaDataType dca_data(parameters);
-    dca_data.initialize();
-
     dca::DistType distribution = parameters.get_g4_distribution();
     switch (distribution) {
 #ifdef DCA_HAVE_MPI
       case dca::DistType::BLOCKED: {
         DCALoopDispatch<dca::DistType::BLOCKED> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, dca_data, concurrency);
+        dca_loop_dispatch(parameters, concurrency);
       } break;
 #else
       case dca::DistType::BLOCKED: {
@@ -91,7 +87,7 @@ int main(int argc, char** argv) {
 #ifdef DCA_HAVE_MPI
     case dca::DistType::LINEAR: {
       DCALoopDispatch<dca::DistType::LINEAR> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, dca_data, concurrency);
+        dca_loop_dispatch(parameters, concurrency);
       } break;
 #else
     case dca::DistType::LINEAR: {
@@ -101,7 +97,7 @@ int main(int argc, char** argv) {
 #endif
       case dca::DistType::NONE: {
         DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, dca_data, concurrency);
+        dca_loop_dispatch(parameters, concurrency);
       } break;
     }
   }
