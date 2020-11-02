@@ -187,6 +187,14 @@ struct Convert<std::vector<T>> {
   }
 };
 
+// Clang requires this forward declaration.
+template <class T1, class T2>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& p);
+template <class T>
+std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec);
+template <class T, std::size_t n>
+std::ostream& operator<<(std::ostream& stream, const std::array<T, n>& arr);
+
 template <class T1, class T2>
 std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& p) {
   return stream << '(' << p.first << ", " << p.second << ')';
