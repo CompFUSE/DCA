@@ -23,6 +23,7 @@
 #error "This file requires MPI."
 #endif
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"

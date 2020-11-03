@@ -71,6 +71,7 @@ public:
 
   template <class... Args>
   void execute(const Args&... args) {
+    //currently only the ADIOS2Writer supports parallel writes
     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
       std::visit([&](auto& var) { var.execute(args...); }, writer_);
     }

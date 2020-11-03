@@ -42,9 +42,9 @@ public:
   // Constructs the function with the a copy of elements and name of other.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
-  function(const function<scalartype, domain>& other);
+  function(const function<scalartype, domain, DistType::LINEAR>& other);
   // Same as above, but with name = 'name'.
-  function(const function<scalartype, domain>& other, const std::string& name) : function(other) {
+  function(const function<scalartype, domain, DistType::LINEAR>& other, const std::string& name) : function(other) {
     name_ = name;
   }
 
@@ -53,9 +53,9 @@ public:
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
   // Postcondition: The other function is in a non-specified state.
-  function(function<scalartype, domain>&& other);
+  function(function<scalartype, domain, DistType::LINEAR>&& other);
   // Same as above, but with name = 'name'.
-  function(function<scalartype, domain>&& other, const std::string& name)
+  function(function<scalartype, domain, DistType::LINEAR>&& other, const std::string& name)
       : function(std::move(other)) {
     name_ = name;
   }

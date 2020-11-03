@@ -42,7 +42,7 @@ namespace accumulator {
 // dca::phys::solver::accumulator::
 
 template <class Parameters>
-class TpAccumulator<Parameters, linalg::GPU> : public TpAccumulator<Parameters, linalg::CPU> {
+class TpAccumulator<Parameters, linalg::GPU> : public TpAccumulator<Parameters, linalg::CPU, DistType::NONE> {
 protected:
   using this_type = TpAccumulator<Parameters, linalg::GPU>;
   using BaseClass = TpAccumulator<Parameters, linalg::CPU>;

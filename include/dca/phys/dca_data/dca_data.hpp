@@ -60,9 +60,10 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template <class Parameters, DistType DT = DistType::NONE>
+template <class Parameters, DistType DIST = DistType::NONE>
 class DcaData {
 public:
+  static constexpr DistType DT = DIST;
   using profiler_type = typename Parameters::profiler_type;
 
   using Concurrency = typename Parameters::concurrency_type;
@@ -219,7 +220,7 @@ public:  // Optional members getters.
     assert(!G4_err_.empty());
     return G4_err_;
   }
-  auto& get_G4_stdv() {
+  std::vector<DcaData<Parameters, DIST>::TpGreensFunction>& get_G4_stdv() {
     assert(!G4_err_.empty());
     return G4_err_;
   }
@@ -372,26 +373,34 @@ void DcaData<Parameters, DT>::read(io::Reader& reader) {
   reader.close_group();
 }
 
-template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::writeAdios(adios2::ADIOS& adios) {
-  if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
-      parameters_.get_g4_distribution() != DistType::NONE) {
-    std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
-    auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
-    std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
-    adios2_writer.open_file(file_name, true);
-    // adios2_writer.open_group("functions");
-    for (const auto& G4_channel : G4_) {
-      std::cerr << "Writing G4_channel:" << G4_channel.get_name()
-                << "on rank: " << concurrency_.id() << '\n';
-      std::cerr << "start: " << G4_channel.get_start() << "   end: " << G4_channel.get_end() << '\n';
-      auto str_sub_ind_start = VectorToString(G4_channel.get_start_subindex());
-      auto str_sub_ind_end = VectorToString(G4_channel.get_end_subindex());
-      std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
-      adios2_writer.execute(G4_channel);
+template <class Parameters, DistType DIST>
+void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
+  if constexpr (DIST == DistType::BLOCKED) {
+    if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
+        parameters_.get_g4_distribution() != DistType::NONE) {
+      std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
+      auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
+      std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
+      adios2_writer.open_file(file_name, true);
+      // adios2_writer.open_group("functions");
+      for (const auto& G4_channel : G4_) {
+        std::cerr << "Writing G4_channel:" << G4_channel.get_name()
+                  << "on rank: " << concurrency_.id() << '\n';
+        std::cerr << "start: " << G4_channel.get_start() << "   end: " << G4_channel.get_end()
+                  << '\n';
+        auto str_sub_ind_start = VectorToString(G4_channel.get_start_subindex());
+        auto str_sub_ind_end = VectorToString(G4_channel.get_end_subindex());
+        std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
+        adios2_writer.execute(G4_channel);
+      }
+      // adios2_writer.close_group();
+      adios2_writer.close_file();
     }
-    // adios2_writer.close_group();
-    adios2_writer.close_file();
+  }
+  else if constexpr (DIST == DistType::LINEAR) {
+  }
+  else  // DIST == DistType::NONE
+  {
   }
 }
 

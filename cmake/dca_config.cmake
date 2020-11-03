@@ -225,22 +225,22 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
   set(DCA_USE_CTINT_SUBMATRIX ON CACHE BOOL "Use submatrix updates if the CT-INT solver is selected.")
   if(DCA_USE_CTINT_SUBMATRIX)
     set(DCA_CLUSTER_SOLVER_TYPE
-            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true, DIST>")
   else()
     set(DCA_CLUSTER_SOLVER_TYPE
-            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, false>")
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, false, DIST>")
   endif()
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType<DIST>, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
 
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType<DIST>, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
         "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 

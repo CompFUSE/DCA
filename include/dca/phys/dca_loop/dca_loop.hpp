@@ -102,6 +102,7 @@ protected:
   DcaDataType& MOMS;
   concurrency_type& concurrency;
   adios2::ADIOS adios_;
+
 private:
   DcaLoopData<ParametersType> DCA_info_struct;
 
@@ -141,7 +142,8 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
-    output_file_ = std::make_shared<io::Writer<concurrency_type>>(concurrency_ref, parameters.get_output_format(), false);
+    output_file_ = std::make_shared<io::Writer<concurrency_type>>(
+        concurrency_ref, parameters.get_output_format(), false);
 
     dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
 
@@ -157,15 +159,13 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     output_file_->set_verbose(true);
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
-
   }
-  
+
   MOMS.writeAdios(adios_);
 
   if (concurrency.id() == concurrency.first()) {
-  
-  monte_carlo_integrator_.write(*output_file_);
-  DCA_info_struct.write(*output_file_);
+    monte_carlo_integrator_.write(*output_file_);
+    DCA_info_struct.write(*output_file_);
     output_file_->close_file();
     output_file_.reset();
 
@@ -177,8 +177,9 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() {
+template <typename ParametersType, typename DDT, typename MCIntegratorType, DistType DIST>
+void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
+  static_assert(std::is_same<DDT, ::DcaDataType<DIST>>::value);
   int last_completed = -1;
 
   if (parameters.autoresume()) {  // Try to read state of previous run.
@@ -206,6 +207,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() 
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
+  static_assert(std::is_same<DcaDataType, ::DcaDataType<DIST>>::value);
+  static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 
@@ -269,7 +272,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
-void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_cluster_mapping_Greens_function() {
+void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
+             DIST>::perform_cluster_mapping_Greens_function() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 
@@ -312,6 +316,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(
     int DCA_iteration) {
+  static_assert(std::is_same<DcaDataType, ::DcaDataType<DIST>>::value);
+  static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   {
     profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
     monte_carlo_integrator_.initialize(DCA_iteration);

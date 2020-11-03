@@ -53,6 +53,6 @@ using ClusterSolver = ClusterSolverBaseType<DIST>;
 
 #include "dca/phys/dca_loop/dca_loop.hpp"
 template<dca::DistType DIST>
-using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver<DIST>, DIST>;
+using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType<DIST>, ClusterSolver<DIST>, DIST>;
 
 #endif  // DCA_CONFIG_DCA_HPP

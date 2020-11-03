@@ -55,11 +55,11 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-  template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST = dca::DistType::NONE, typename Real = double>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
-
+  using TpAccumulator = accumulator::TpAccumulator<Parameters, device_t, DIST>;
   using ParametersType = Parameters;
   using DataType = Data;
 
@@ -207,7 +207,7 @@ protected:
 
   std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
 
-  accumulator::TpAccumulator<Parameters, device_t> two_particle_accumulator_;
+  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
 
   bool perform_tp_accumulation_ = false;
 };

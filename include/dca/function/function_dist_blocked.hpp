@@ -71,7 +71,7 @@ public:
   // Postcondition: The function's name is unchanged.
   function<scalartype, domain, DT>& operator=(const function<scalartype, domain, DT>& other);
   template <typename Scalar2>
-  function<scalartype, domain, DT>& operator=(const function<Scalar2, domain, DT>& other);
+  function<scalartype, domain, DistType::BLOCKED>& operator=(const function<Scalar2, domain, DistType::BLOCKED>& other);
 
   // Move assignment operator
   // Replaces the function's elements with those of other using move semantics.
