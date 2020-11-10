@@ -43,7 +43,7 @@ constexpr bool update_baseline = false;
 
 TEST(CtauxSolverTest, RashaHubbardModel) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
-  using Lattice = dca::phys::models::RashbaHubbard<void>;
+  using Lattice = dca::phys::models::RashbaHubbard<dca::phys::domains::no_symmetry<2>>;
   using Model = dca::phys::models::TightBindingModel<Lattice>;
   using Threading = dca::parallel::stdthread;
   using Parameters =
