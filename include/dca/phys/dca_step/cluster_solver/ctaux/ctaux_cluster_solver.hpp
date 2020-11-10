@@ -30,6 +30,7 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
@@ -86,7 +87,7 @@ private:
 
 public:
   CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
-                     const std::shared_ptr<io::HDF5Writer>& /*writer*/ = nullptr);
+                     const std::shared_ptr<io::Writer>& /*writer*/ = nullptr);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -170,7 +171,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, dca::DistType DIST>
 CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
-    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
