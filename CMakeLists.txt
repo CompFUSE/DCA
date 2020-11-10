@@ -142,12 +142,15 @@ set(DCA_LIBS
   time_and_frequency_domains
   signals
   coarsegraining
-  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
   cuda_utils
 )
+
+if(TARGET stdc++fs)    # std::filesystem
+  list(APPEND DCA_LIBS stdc++fs)
+endif()
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS
