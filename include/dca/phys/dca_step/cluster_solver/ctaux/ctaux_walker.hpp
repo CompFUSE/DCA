@@ -1370,7 +1370,7 @@ void CtauxWalker<device_t, Parameters, Data>::apply_bennett_on_Gamma_matrices(in
     Scalar acceptance_ratio  = calculate_acceptace_ratio(determinant_ratio,
     bennett_spins[bennett_index].HS_current_move);
 
-    if( std::fabs(acceptance_ratio) >= rng() )
+    if( std::abs(acceptance_ratio) >= rng() )
     {
     number_of_interacting_spins -= 1;
 
@@ -1501,7 +1501,7 @@ bool CtauxWalker<device_t, Parameters, Data>::assert_exp_delta_V_value(
       vertex_singleton& v_j =
           configuration_.get(e_spin_HS_field_DN)[configuration_e_spin_index_HS_field_DN];
 
-      if (std::fabs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {
+      if (std::abs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {
         std::cout << HS_field << "\t" << e_spin_HS_field_DN << std::endl;
         throw std::logic_error(__FUNCTION__);
       }
@@ -1515,7 +1515,7 @@ bool CtauxWalker<device_t, Parameters, Data>::assert_exp_delta_V_value(
       vertex_singleton& v_j =
           configuration_.get(e_spin_HS_field_UP)[configuration_e_spin_index_HS_field_UP];
 
-      if (std::fabs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {
+      if (std::abs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {
         std::cout << HS_field << "\t" << e_spin_HS_field_UP << std::endl;
         throw std::logic_error(__FUNCTION__);
       }

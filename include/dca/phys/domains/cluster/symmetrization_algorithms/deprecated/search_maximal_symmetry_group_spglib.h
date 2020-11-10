@@ -250,10 +250,10 @@ void search_maximal_symmetry_group<base_cluster_type, symmetry_package_spg_lib, 
 {
   for(int l=0; l<N_cell_symmetries; ){
     
-    bool is_a_3D_move = std::fabs(rotations_cart[l][2][2]-1.)>1.e-6 ? true: false;
+    bool is_a_3D_move = std::abs(rotations_cart[l][2][2]-1.)>1.e-6 ? true: false;
     
     for(size_t l0=0; l0<2; ++l0)
-      if(std::fabs(rotations_cart[l][l0][2]) > 1.e-6 || std::fabs(rotations_cart[l][2][l0]) > 1.e-6)
+      if(std::abs(rotations_cart[l][l0][2]) > 1.e-6 || std::abs(rotations_cart[l][2][l0]) > 1.e-6)
 	is_a_3D_move=true;
     
     if( is_a_3D_move )
@@ -278,12 +278,12 @@ void search_maximal_symmetry_group<base_cluster_type, symmetry_package_spg_lib, 
       bool is_the_same = true;
 
       for(int d0=0; d0<3; d0++)
-        if(std::fabs(translations_cart[j][d0]-translations_cart[i][d0]) > 1.e-6)
+        if(std::abs(translations_cart[j][d0]-translations_cart[i][d0]) > 1.e-6)
 	  is_the_same = false;
 
       for(int d0=0; d0<3; d0++)
 	for(int d1=0; d1<3; d1++)
-	  if(std::fabs(rotations_cart[j][d0][d1]-rotations_cart[i][d0][d1]) > 1.e-6)
+	  if(std::abs(rotations_cart[j][d0][d1]-rotations_cart[i][d0][d1]) > 1.e-6)
 	    is_the_same = false;
 
       if(is_the_same)

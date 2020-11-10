@@ -246,7 +246,7 @@ namespace DCA
                       double w_nu_min_wn = w::get_elements()[w_nu+(2*W-1-w)];
                       double beta        = parameters.get_beta();
 
-                      if(std::fabs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
+                      if(std::abs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
                         throw std::logic_error(__FUNCTION__);
 
 

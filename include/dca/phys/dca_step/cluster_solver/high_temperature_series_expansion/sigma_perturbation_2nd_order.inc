@@ -223,7 +223,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w::dmn_size() - std::abs(nu_c); ++w_ind) {
           int w_minus_nu = w_ind - nu_c;
 
           Sigma_2B(0, 0, 0, 0, k_ind, w_ind) +=
@@ -312,7 +312,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w::dmn_size() - std::abs(nu_c); ++w_ind) {
           int w_minus_nu = w_ind - nu_c;
 
           S(0, 0, 0, 0, k_ind, w_ind) +=

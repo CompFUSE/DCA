@@ -213,7 +213,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-      for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
+      for (int w_ind = std::abs(nu_c); w_ind < w::dmn_size() - std::abs(nu_c); ++w_ind) {
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
           int k_minus_q = k_dmn_t::parameters_type::subtract(q_ind, k_ind);
           int w_minus_nu = w_ind - nu_c;

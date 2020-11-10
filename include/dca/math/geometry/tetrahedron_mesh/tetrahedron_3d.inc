@@ -530,7 +530,7 @@ TetrahedronEigenvalueDegeneracy tetrahedron<3>::find_degeneracy(scalartype* f, s
 template <typename scalartype>
 scalartype tetrahedron<3>::compute_volume(scalartype* k0, scalartype* k1, scalartype* k2,
                                           scalartype* k3) {
-  return std::fabs(-(k0[2] * k1[1] * k2[0]) + k0[1] * k1[2] * k2[0] + k0[2] * k1[0] * k2[1] -
+  return std::abs(-(k0[2] * k1[1] * k2[0]) + k0[1] * k1[2] * k2[0] + k0[2] * k1[0] * k2[1] -
                    k0[0] * k1[2] * k2[1] - k0[1] * k1[0] * k2[2] + k0[0] * k1[1] * k2[2] +
                    k0[2] * k1[1] * k3[0] - k0[1] * k1[2] * k3[0] - k0[2] * k2[1] * k3[0] +
                    k1[2] * k2[1] * k3[0] + k0[1] * k2[2] * k3[0] - k1[1] * k2[2] * k3[0] -

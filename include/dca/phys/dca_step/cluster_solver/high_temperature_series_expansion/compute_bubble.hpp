@@ -179,7 +179,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 
   chi = 0.;
 
-  assert(std::fabs(WVertexBosonicDmn::get_elements()[WVertexBosonicDmn::dmn_size() / 2]) < 1.e-6);
+  assert(std::abs(WVertexBosonicDmn::get_elements()[WVertexBosonicDmn::dmn_size() / 2]) < 1.e-6);
 
   for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -188,7 +188,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w_dmn_t::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w_dmn_t::dmn_size() - std::abs(nu_c); ++w_ind) {
           int w_plus_nu = w_ind + nu_c;
 
           for (int j1 = 0; j1 < b::dmn_size(); ++j1)
@@ -228,7 +228,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w_dmn_t::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w_dmn_t::dmn_size() - std::abs(nu_c); ++w_ind) {
           int w_plus_nu = w_ind + nu_c;
 
           for (int j1 = 0; j1 < b::dmn_size(); ++j1)
@@ -254,7 +254,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 
   chi = 0.;
 
-  assert(std::fabs(WVertexBosonicDmn::get_elements()[WVertexBosonicDmn::dmn_size() / 2]) < 1.e-6);
+  assert(std::abs(WVertexBosonicDmn::get_elements()[WVertexBosonicDmn::dmn_size() / 2]) < 1.e-6);
 
   for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
@@ -263,7 +263,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w_dmn_t::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w_dmn_t::dmn_size() - std::abs(nu_c); ++w_ind) {
           int nu_minus_w = nu_c + (w::dmn_size() - 1 - w_ind);
 
           for (int j1 = 0; j1 < b::dmn_size(); ++j1)
@@ -303,7 +303,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
       for (int nu_ind = 0; nu_ind < WVertexBosonicDmn::dmn_size(); ++nu_ind) {
         int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-        for (int w_ind = std::fabs(nu_c); w_ind < w_dmn_t::dmn_size() - std::fabs(nu_c); ++w_ind) {
+        for (int w_ind = std::abs(nu_c); w_ind < w_dmn_t::dmn_size() - std::abs(nu_c); ++w_ind) {
           int nu_minus_w = nu_c + (w::dmn_size() - 1 - w_ind);
 
           for (int j1 = 0; j1 < b::dmn_size(); ++j1)

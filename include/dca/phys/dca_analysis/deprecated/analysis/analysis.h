@@ -184,12 +184,12 @@ namespace dca {
 //   {
 // //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
 // //       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// // 	if(std::abs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
 // //     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
 // //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// //       	if(std::abs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -399,7 +399,7 @@ namespace dca {
 	  cout.precision(6);
 	  cout << "\t ---> (leading) j=" << i 
 	       << "\t sval = "           << sqrt(square(1.0 - real(eigenvals[eigenvals.size()-1-i].first)) + square(imag(eigenvals[eigenvals.size()-1-i].first)))
-	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << std::fabs(imag(eigenvals[eigenvals.size()-1-i].first));
+	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << std::abs(imag(eigenvals[eigenvals.size()-1-i].first));
 
 	  cout << "\t|\t";
 	  for(int psi=0; psi<3; psi++)

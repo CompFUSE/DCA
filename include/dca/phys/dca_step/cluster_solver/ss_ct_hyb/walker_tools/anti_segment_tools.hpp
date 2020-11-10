@@ -275,7 +275,7 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_on
   assert(vertices.size() == 1);
   typename orbital_configuration_type::iterator s_down = vertices.begin();
 
-  double det_rat = std::fabs(M(this_flavor)(0, 0));
+  double det_rat = std::abs(M(this_flavor)(0, 0));
 
   double length = s_down->t_start() - s_down->t_end();
   if (length < 0)

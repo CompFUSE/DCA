@@ -492,7 +492,7 @@ template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLU
 inline double hspline_interpolation_kernel<scalartype,
                                            cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
                                            target_k_dmn_t>::evaluate_hermite_kernel(double x) {
-  double absX = std::fabs(x);
+  double absX = std::abs(x);
 
   if (absX > 2)
     return 0.;
@@ -527,7 +527,7 @@ inline double hspline_interpolation_kernel<
     case 1: {
       double Hx;
       for (size_t n0 = 0; n0 < neighbours.size(); ++n0) {
-        x[0] = k_vec[0] / std::fabs(neighbours[n0][0]);
+        x[0] = k_vec[0] / std::abs(neighbours[n0][0]);
 
         Hx = evaluate_hermite_kernel(x[0]);
 
@@ -540,7 +540,7 @@ inline double hspline_interpolation_kernel<
       double Hx, Hy;
       for (size_t n0 = 0; n0 < neighbours.size(); ++n0) {
         for (size_t n1 = 0; n1 < neighbours.size(); ++n1) {
-          if (std::fabs(volume(&neighbours[n0][0], &neighbours[n1][0])) > 1.e-6) {
+          if (std::abs(volume(&neighbours[n0][0], &neighbours[n1][0])) > 1.e-6) {
             coordinates(&neighbours[n0][0], &neighbours[n1][0], &k_vec[0], &x[0]);
 
             Hx = evaluate_hermite_kernel(x[0]);
@@ -558,7 +558,7 @@ inline double hspline_interpolation_kernel<
       for (size_t n0 = 0; n0 < neighbours.size(); ++n0) {
         for (size_t n1 = 0; n1 < neighbours.size(); ++n1) {
           for (size_t n2 = 0; n2 < neighbours.size(); ++n2) {
-            if (std::fabs(volume(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0])) >
+            if (std::abs(volume(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0])) >
                 1.e-6) {
               coordinates(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0], &k_vec[0],
                           &x[0]);

@@ -292,7 +292,7 @@ TpGreensFunction<parameters_type, ed_options>::TpGreensFunction(
   {
     for (int i = 0; i < WVertexDmn::dmn_size(); i++)
       for (int j = 0; j < WVertexDmn_EXTENDED::dmn_size(); j++)
-        if (std::fabs(WVertexDmn::get_elements()[i] - WVertexDmn_EXTENDED::get_elements()[j]) < 1.e-6)
+        if (std::abs(WVertexDmn::get_elements()[i] - WVertexDmn_EXTENDED::get_elements()[j]) < 1.e-6)
           w_vertex_2_w_vertex_ext(i) = j;
   }
 }

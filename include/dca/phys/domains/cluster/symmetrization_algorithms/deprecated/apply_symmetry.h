@@ -125,8 +125,8 @@ struct apply_symmetry {
 
     for (int i = 0; i < DIMENSION; i++)
       for (int j = 0; j < DIMENSION; j++)
-        if (!(std::fabs(std::fabs(permutation[i + j * DIMENSION]) - 1) < 1.e-6 ||
-              std::fabs(permutation[i + j * DIMENSION]) < 1.e-6))
+        if (!(std::abs(std::abs(permutation[i + j * DIMENSION]) - 1) < 1.e-6 ||
+              std::abs(permutation[i + j * DIMENSION]) < 1.e-6))
           is_permutation_matrix = false;
 
     for (int i = 0; i < DIMENSION; i++) {
@@ -134,11 +134,11 @@ struct apply_symmetry {
       double result_row = 0;
 
       for (int j = 0; j < DIMENSION; j++) {
-        result_col += std::fabs(permutation[j + i * DIMENSION]);
-        result_row += std::fabs(permutation[i + j * DIMENSION]);
+        result_col += std::abs(permutation[j + i * DIMENSION]);
+        result_row += std::abs(permutation[i + j * DIMENSION]);
       }
 
-      if (!(std::fabs(result_col - 1) < 1.e-6 && std::fabs(result_col - 1) < 1.e-6))
+      if (!(std::abs(result_col - 1) < 1.e-6 && std::abs(result_col - 1) < 1.e-6))
         is_permutation_matrix = false;
     }
 

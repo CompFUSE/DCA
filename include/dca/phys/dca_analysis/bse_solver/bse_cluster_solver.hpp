@@ -262,7 +262,7 @@ void BseClusterSolver<Parameters, DcaDataType, ScalarType>::load_G_II_0(
                 double w_nu_min_wn = w::get_elements()[w_nu + (2 * W - 1 - w)];
                 double beta = parameters.get_beta();
 
-                if (std::fabs((w_nu * M_PI / beta - wn) - w_nu_min_wn) > 1.e-6)
+                if (std::abs((w_nu * M_PI / beta - wn) - w_nu_min_wn) > 1.e-6)
                   throw std::logic_error(__FUNCTION__);
 
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
