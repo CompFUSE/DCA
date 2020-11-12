@@ -341,6 +341,12 @@ std::pair<wchar_t, JSON_character_class_type> JSON_parser<context_type>::get_nex
     }
 
     nextChar = inputStream.get();
+    if (inputStream.eof()) {
+      nextChar = EOF;
+      nextClass = C_EOF;
+
+      return result;
+    }
     numChar++;
 
     if (nextChar == L'\n')
