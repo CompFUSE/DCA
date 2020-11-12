@@ -142,7 +142,6 @@ set(DCA_LIBS
   time_and_frequency_domains
   signals
   coarsegraining
-  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
