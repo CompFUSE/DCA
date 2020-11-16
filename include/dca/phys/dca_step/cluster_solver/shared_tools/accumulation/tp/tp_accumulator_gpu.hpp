@@ -327,7 +327,8 @@ template <class Configuration>
 float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<dca::linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
     const std::array<Configuration, 2>& configs, Scalar factor) {
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
+  std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
+
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0].getStream());
 
