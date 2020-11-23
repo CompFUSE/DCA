@@ -41,11 +41,13 @@ namespace func {
 template <typename scalartype, class domain, DistType DT = DistType::NONE>
 class function;
 
+
+
 template <typename scalartype, class domain, DistType DT>
 class function {
   static const std::string default_name_;
-
-public:
+public:  
+  static constexpr DistType dist = DT;  
   typedef scalartype this_scalar_type;
   typedef domain this_domain_type;
 
@@ -314,17 +316,11 @@ private:
 
   std::vector<scalartype> fnc_values_;
 
+  // These are the linear start and end indexes with respect to the complete function.
   std::size_t start_;
   std::size_t end_;
 };
-}  // namespace func
-}  // namespace dca
 
-#include "dca/function/function_dist_linear.hpp"
-#include "dca/function/function_dist_blocked.hpp"
-
-namespace dca {
-namespace func {
 template <typename scalartype, class domain, DistType DT>
 const std::string function<scalartype, domain, DT>::default_name_ = "no-name";
 
@@ -337,55 +333,8 @@ function<scalartype, domain, DT>::function(const std::string& name)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values_(dmn.get_size()) {
-  for (int linind = 0; linind < size(); ++linind)
-    setToZero(fnc_values_[linind]);
-}
-
-template <typename scalartype, class domain>
-function<scalartype, domain, DistType::LINEAR>::function(const std::string& name)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values_(dmn.get_size()) {
-  for (int linind = 0; linind < size(); ++linind)
-    setToZero(fnc_values_[linind]);
-}
-
-template <typename scalartype, class domain>
-function<scalartype, domain, DistType::BLOCKED>::function(const std::string& name)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values_(dmn.get_size()) {
-  for (int linind = 0; linind < size(); ++linind)
-    setToZero(fnc_values_[linind]);
-}
-
-
-template <typename scalartype, class domain, DistType DT>
-template <class Concurrency>
-inline function<scalartype, domain, DT>::function(const std::string& name, const Concurrency& concurrency)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()) {
-  // TODO: multi-index access to partitioned function is not safe.
-
-  const std::size_t mpi_size = concurrency.number_of_processors();
-
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
-  fnc_values_.resize(nb_elements);
-
-  for (int linind = 0; linind < nb_elements; ++linind)
-    setToZero(fnc_values_[linind]);
+      for (int linind = 0; linind < size(); ++linind)
+        setToZero(fnc_values_[linind]);
 }
 
 template <typename scalartype, class domain, DistType DT>
@@ -402,22 +351,6 @@ function<scalartype, domain, DT>::function(const function<scalartype, domain, DT
     throw std::logic_error("Copy construction from a not yet reset function.");
 }
 
-template <typename scalartype, class domain>
-function<scalartype, domain, DistType::BLOCKED>::function(const function<scalartype, domain, DistType::BLOCKED>& other)
-    : name_(other.name_),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values_(other.fnc_values_) {
-  if (dmn.get_size() != other.dmn.get_size())
-    // The other function has not been resetted after the domain was initialized.
-    throw std::logic_error("Copy construction from a not yet reset function.");
-}
-
-
-
 template <typename scalartype, class domain, DistType DT>
 function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& other)
     : name_(std::move(other.name_)),
@@ -432,41 +365,9 @@ function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& ot
     throw std::logic_error("Move construction from a not yet resetted function.");
 }
 
-template <typename scalartype, class domain>
-function<scalartype, domain, DistType::LINEAR>::function(function<scalartype, domain, DistType::LINEAR>&& other)
-    : name_(std::move(other.name_)),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values_(std::move(other.fnc_values_)),
-      start_(other.start_),
-      end_(other.end_) {
-  if (dmn.get_size() != other.dmn.get_size())
-    // The other function has not been resetted after the domain was initialized.
-    throw std::logic_error("Move construction from a not yet resetted function.");
-}
-
-template <typename scalartype, class domain>
-function<scalartype, domain, DistType::LINEAR>::function(const function<scalartype, domain, DistType::LINEAR>& other)
-    : name_(other.name_),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()),
-      fnc_values_(other.fnc_values_),
-      start_(other.start_),
-      end_(other.end_) {
-  if (dmn.get_size() != other.dmn.get_size())
-    // The other function has not been resetted after the domain was initialized.
-    throw std::logic_error("Copy construction from a not yet reset function.");
-}
-
-template <typename scalartype, class domain>
+template <typename scalartype, class domain, DistType DT>
 template <class Concurrency>
-function<scalartype, domain, DistType::LINEAR>::function(const std::string& name,
+function<scalartype, domain, DT>::function(const std::string& name,
                                                          const Concurrency& concurrency)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
@@ -475,7 +376,18 @@ function<scalartype, domain, DistType::LINEAR>::function(const std::string& name
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()) {
   // \todo how to get rid of repeated code in C++17
+  if constexpr ( dist == DistType::NONE) {
+      const std::size_t mpi_size = concurrency.number_of_processors();
 
+      const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+      fnc_values_.resize(nb_elements);
+  
+      for (int linind = 0; linind < nb_elements; ++linind)
+        setToZero(fnc_values_[linind]);
+
+      start_ = 0;
+      end_ = dmn.get_size();
+    }  else if constexpr (dist == DistType::LINEAR) {
   const std::size_t mpi_size = concurrency.number_of_processors();
 
   const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
@@ -491,19 +403,7 @@ function<scalartype, domain, DistType::LINEAR>::function(const std::string& name
       dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
   start_ = local_function_size * my_concurrency_id;
   end_ = std::min(dmn.get_size(), start_ + local_function_size);
-}
-
-
-template <typename scalartype, class domain>
-template <class Concurrency>
-function<scalartype, domain, DistType::BLOCKED>::function(const std::string& name,
-                                                          const Concurrency& concurrency)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()) {
+    } else if constexpr (dist == DistType::BLOCKED) {
   const std::size_t conc_size = concurrency.number_of_processors();
   const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
 
@@ -524,6 +424,7 @@ function<scalartype, domain, DistType::BLOCKED>::function(const std::string& nam
     throw std::runtime_error(
         "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
         "functions size");
+    }
 }
 
 template <typename scalartype, class domain, DistType DT>
@@ -559,19 +460,6 @@ inline function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
   return *this;
 }
 
-template <typename scalartype, class domain>
-template <typename Scalar2>
-function<scalartype, domain, DistType::LINEAR>& function<scalartype, domain, DistType::LINEAR>::operator=(
-    const function<Scalar2, domain, DistType::LINEAR>& other) {
-  if (size() != other.size()) {
-    throw(std::logic_error("Function size does not match."));
-  }
-
-  fnc_values_ = other.fnc_values_;
-
-  return *this;
-}
-
 template <typename scalartype, class domain, DistType DT>
 inline function<scalartype, domain, DT>& function<scalartype, domain, DT>::operator=(
     function<scalartype, domain, DT>&& other) {
@@ -592,39 +480,8 @@ inline function<scalartype, domain, DT>& function<scalartype, domain, DT>::opera
   return *this;
 }
 
-template <typename scalartype, class domain>
-inline function<scalartype, domain, DistType::LINEAR>& function<scalartype, domain, DistType::LINEAR>::operator=(
-    function<scalartype, domain, DistType::LINEAR>&& other) {
-  if (this != &other) {
-    if (dmn.get_size() != other.dmn.get_size()) {
-      // Domain had not been initialized when the functions were created.
-      // Reset this function and check again.
-      reset();
-
-      if (dmn.get_size() != other.dmn.get_size())
-        // The other function has not been resetted after the domain was initialized.
-        throw std::logic_error("Move assignment from a not yet resetted function.");
-    }
-
-    fnc_values_ = std::move(other.fnc_values_);
-  }
-
-  return *this;
-}
-
 template <typename scalartype, class domain, DistType DT>
 void function<scalartype, domain, DT>::reset() {
-  dmn.reset();
-
-  fnc_values_.resize(dmn.get_size());
-  Nb_sbdms = dmn.get_leaf_domain_sizes().size();
-
-  for (int linind = 0; linind < size(); ++linind)
-    setToZero(fnc_values_[linind]);
-}
-
-template <typename scalartype, class domain>
-void function<scalartype, domain, DistType::LINEAR>::reset() {
   dmn.reset();
 
   fnc_values_.resize(dmn.get_size());
@@ -656,10 +513,22 @@ void function<scalartype, domain, DT>::linind_2_subind(int linind, std::vector<i
 template <typename scalartype, class domain, DistType DT>
 std::vector<int> function<scalartype, domain, DT>::linind_2_subind(int linind) const {
   std::vector<int> subind(Nb_sbdms);
+  if constexpr (dist == DistType::NONE) {
+      for (int i = 0; i < int(size_sbdm.size()); ++i) {
+    subind[i] = linind % size_sbdm[i];
+    linind = (linind - subind[i]) / size_sbdm[i];
+      }} else if constexpr ( dist == DistType::LINEAR ) {
+  std::cout << "linind:" << linind << '\n';
+  throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
+
+    } else if constexpr ( dist == DistType::BLOCKED) {
+
   for (int i = 0; i < int(size_sbdm.size()); ++i) {
     subind[i] = linind % size_sbdm[i];
     linind = (linind - subind[i]) / size_sbdm[i];
   }
+
+    }
   return subind;
 }
 
@@ -722,30 +591,8 @@ void function<scalartype, domain, DT>::operator/=(const function<scalartype, dom
   }
 }
 
-template <typename scalartype, class domain>
-void function<scalartype, domain, DistType::LINEAR>::operator/=(const function<scalartype, domain, DistType::LINEAR>& other) {
-  for (int linind = 0; linind < size(); ++linind) {
-    assert(std::abs(other(linind)) > 1.e-16);
-    fnc_values_[linind] /= other(linind);
-  }
-}
-
-template <typename scalartype, class domain>
-void function<scalartype, domain, DistType::BLOCKED>::operator/=(const function<scalartype, domain, DistType::BLOCKED>& other) {
-  for (int linind = 0; linind < size(); ++linind) {
-    assert(std::abs(other(linind)) > 1.e-16);
-    fnc_values_[linind] /= other(linind);
-  }
-}
-
 template <typename scalartype, class domain, DistType DT>
 inline void function<scalartype, domain, DT>::operator=(const scalartype c) {
-  for (int linind = 0; linind < size(); linind++)
-    fnc_values_[linind] = c;
-}
-
-template <typename scalartype, class domain>
-inline void function<scalartype, domain, DistType::LINEAR>::operator=(const scalartype c) {
   for (int linind = 0; linind < size(); linind++)
     fnc_values_[linind] = c;
 }
@@ -770,18 +617,6 @@ void function<scalartype, domain, DT>::operator*=(const scalartype c) {
 
 template <typename scalartype, class domain, DistType DT>
 void function<scalartype, domain, DT>::operator/=(const scalartype c) {
-  for (int linind = 0; linind < size(); linind++)
-    fnc_values_[linind] /= c;
-}
-
-template <typename scalartype, class domain>
-void function<scalartype, domain, DistType::LINEAR>::operator/=(const scalartype c) {
-  for (int linind = 0; linind < size(); linind++)
-    fnc_values_[linind] /= c;
-}
-
-template <typename scalartype, class domain>
-void function<scalartype, domain, DistType::BLOCKED>::operator/=(const scalartype c) {
   for (int linind = 0; linind < size(); linind++)
     fnc_values_[linind] /= c;
 }
@@ -953,43 +788,6 @@ function<scalartype, domain, DT> function<scalartype, domain, DT>::gather(
   return result;
 }
 
-
-template <typename scalartype, class domain>
-template <class Concurrency>
-function<scalartype, domain, DistType::LINEAR> function<scalartype, domain, DistType::LINEAR>::gather(
-    const Concurrency& concurrency) const {
-  function result(name_);
-
-  concurrency.gather(*this, result, concurrency);
-  return result;
-}
-
-template <typename scalartype, class domain>
-template <class Concurrency>
-function<scalartype, domain, DistType::BLOCKED> function<scalartype, domain, DistType::BLOCKED>::gather(
-    const Concurrency& concurrency) const {
-  function result(name_);
-
-  concurrency.gather(*this, result, concurrency);
-  return result;
-}
-
-template <typename scalartype, class domain>
-std::vector<int> function<scalartype, domain, DistType::LINEAR>::linind_2_subind(int linind) const {
-  std::cout << "linind:" << linind << '\n';
-  throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
-}
-
-
-template <typename scalartype, class domain>
-std::vector<int> function<scalartype, domain, DistType::BLOCKED>::linind_2_subind(int linind) const {
-  std::vector<int> subind(Nb_sbdms);
-  for (int i = 0; i < int(size_sbdm.size()); ++i) {
-    subind[i] = linind % size_sbdm[i];
-    linind = (linind - subind[i]) / size_sbdm[i];
-  }
-  return subind;
-}
 
 }  // namespace func
 }  // namespace dca

@@ -84,7 +84,7 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
     auto G4_gathered = G4_gpu.gather(concurrency);
     concurrency_.localSum(G4_cpu, concurrency.first());
     if (concurrency.get_id() == 0 && channel == 0) {
-      static_assert(G4_cpu.DT == G4_gathered.DT);
+      static_assert(G4_cpu.dist == G4_gathered.dist);
       
       const auto diff = dca::func::util::difference(G4_cpu, G4_gathered);
       EXPECT_GT(5e-7, diff.l_inf);

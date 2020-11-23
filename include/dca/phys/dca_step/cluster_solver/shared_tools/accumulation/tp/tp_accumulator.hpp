@@ -48,6 +48,7 @@ class TpAccumulator;
 template <class Parameters, DistType DT>
 class TpAccumulator<Parameters, linalg::CPU, DT> {
 public:
+  static constexpr DistType dist = DT;
   using Real = typename Parameters::TP_measurement_scalar_type;
 
   using RDmn = typename Parameters::RClusterDmn;

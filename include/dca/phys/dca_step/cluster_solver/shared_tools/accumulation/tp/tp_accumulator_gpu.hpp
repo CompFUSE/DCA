@@ -45,14 +45,14 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters>
-class TpAccumulator<Parameters, linalg::GPU, DistType::NONE>
-  : public TpAccumulatorBase<Parameters, DistType::NONE>, public TpAccumulatorGpuBase<Parameters, DistType::NONE>
+template <class Parameters, linalg::DeviceType device, DistType DT, >
+class TpAccumulator<Parameters, linalg::GPU, DT>
+  : public TpAccumulatorBase<Parameters, DT>, public TpAccumulatorGpuBase<Parameters, DT>
 {
 public:
-  static constexpr DistType DT = DistType::NONE;
+  static constexpr DistType dist = DT;
   using Base = TpAccumulatorBase<Parameters, DT>;
-  using BaseGpu = TpAccumulatorGpuBase<Parameters, DistType::NONE>;
+  using BaseGpu = TpAccumulatorGpuBase<Parameters, DT>;
   using ThisType = TpAccumulator<Parameters, linalg::GPU, DT>;
   using typename Base::Real;
   using RDmn = typename Base::RDmn;

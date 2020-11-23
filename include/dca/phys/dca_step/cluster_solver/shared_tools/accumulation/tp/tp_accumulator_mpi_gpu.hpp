@@ -236,12 +236,12 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::computeM(
   float flop = 0.;
 
   {
-    Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
+    [[maybe_unused]] Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
       flop += ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
   }
   {
-    Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
+    [[maybe_unused]] Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
       flop += space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }

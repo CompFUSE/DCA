@@ -45,8 +45,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #ifdef DCA_HAVE_MPI
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
+//#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
+//#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 #endif // DCA_HAVE_MPI
 #endif  // DCA_HAVE_CUDA
 
