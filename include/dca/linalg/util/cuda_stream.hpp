@@ -77,6 +77,10 @@ public:
 
   void sync() const {}
 
+  // clang at least can't do the cudaStream_t() conversion
+  auto streamActually(){
+    return 0;
+  }
 };
 
 #endif  // DCA_HAVE_CUDA

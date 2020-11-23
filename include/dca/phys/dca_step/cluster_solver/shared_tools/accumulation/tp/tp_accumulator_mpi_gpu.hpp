@@ -26,7 +26,7 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu_base.hpp"
 
 namespace dca {
 namespace phys {
@@ -36,44 +36,55 @@ namespace accumulator {
 
 template <class Parameters>
 class TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>
-    : public TpAccumulator<Parameters, linalg::GPU> {
+  : public TpAccumulatorBase<Parameters, DistType::LINEAR>, public TpAccumulatorGpuBase<Parameters, DistType::LINEAR> {
+public:
+  static constexpr DistType DT = DistType::LINEAR;
+  using Base = TpAccumulatorBase<Parameters, DT>;
+  using BaseGpu = TpAccumulatorGpuBase<Parameters, DT>;
+  using ThisType = TpAccumulator<Parameters, linalg::GPU, DT>;
+
 private:
   // is there a smarter way to do this in c++17?
-  using this_type = TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>;
-  using BaseClass = TpAccumulator<Parameters, linalg::GPU>;
+  using RDmn = typename Base::RDmn;
+  using KDmn = typename Base::KDmn;
+  using NuDmn = typename Base::NuDmn;
+  using WDmn = typename Base::WDmn;
 
-  using RDmn = typename BaseClass::RDmn;
-  using KDmn = typename BaseClass::KDmn;
-  using NuDmn = typename BaseClass::NuDmn;
-  using WDmn = typename BaseClass::WDmn;
+  using typename Base::Real;
+  using typename Base::Complex;
 
-  using typename BaseClass::Real;
-  using typename BaseClass::Complex;
+  using Base::channels_;
+  using Base::G4_;
+  using typename Base::TpGreensFunction;
+  using Base::n_bands_;
+  using Base::sign_;
+  using Base::multiple_accumulators_;
+  using Base::thread_id_;
+  using typename Base::WTpDmn;
+  using typename Base::WTpExtDmn;
+  using typename Base::WTpExtPosDmn;
+  using typename Base::WTpPosDmn;
+  using typename BaseGpu::RMatrix;
+  using typename BaseGpu::RMatrixValueType;
+  using Base::beta_;
 
-  using BaseClass::n_bands_;
-  using BaseClass::sign_;
-  using BaseClass::multiple_accumulators_;
-  using BaseClass::queues_;
-  using BaseClass::G_;
-  using BaseClass::thread_id_;
-  using BaseClass::nr_accumulators_;
-  using typename BaseClass::WTpDmn;
-  using typename BaseClass::WTpExtDmn;
-  using typename BaseClass::WTpExtPosDmn;
-  using typename BaseClass::WTpPosDmn;
-  using typename BaseClass::RMatrix;
-  using typename BaseClass::RMatrixValueType;
-
-  using BaseClass::workspaces_;
-  using BaseClass::ndft_objs_;
-  using BaseClass::space_trsf_objs_;
-
+  using BaseGpu::queues_;
+  using BaseGpu::ndft_objs_;
+  using BaseGpu::workspaces_;
+  using BaseGpu::G_;
+  using BaseGpu::space_trsf_objs_;
+  using BaseGpu::nr_accumulators_;
+  using BaseGpu::event_;
+  using BaseGpu::n_pos_frqs_;
+  using BaseGpu::n_ndft_queues_;
   uint64_t start_;
   uint64_t end_;
 
   // Eventually distribution strategy should be pushed down into linalg::Vector but
   // I think generalization should still wait.
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+
+  using BaseGpu::get_G0;
 
 public:
   template <class Configuration, typename RealIn>
@@ -102,11 +113,23 @@ public:
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int dca_loop);
 
+  std::vector<TpGreensFunction>& get_G4();
+
 private:
-  static inline std::vector<G4DevType>& get_G4();
+  static inline std::vector<G4DevType>& get_G4Dev();
+
+  void computeGMultiband(int s);
+
+  void computeGSingleband(int s);
+
+  void computeG();
+
+  template <class Configuration, typename RealIn>
+  float computeM(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
+                 const std::array<Configuration, 2>& configs);
 
   // The semantics of this class used to make it possible that the G4 would get resized here if
-  // BaseClass::TpDomain had changed this is no longer true as the accessible size of G4 is set in the constructor.
+  // Base::TpDomain had changed this is no longer true as the accessible size of G4 is set in the constructor.
   void resetG4();
   // Applies pipepline ring algorithm to move G matrices around all ranks
   void ringG(float& flop);
@@ -115,50 +138,30 @@ private:
   void send(const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request);
   void receive(std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request);
 
-  using BaseClass::channels_;
-  using BaseClass::G4_;
-
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
 
   std::array<MPI_Request, 2> recv_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   std::array<MPI_Request, 2> send_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
 
-#ifndef DCA_HAVE_CUDA_AWARE_MPI
+#ifndef DCA_WITH_CUDA_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 };
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : BaseClass(G0, pars, thread_id) {
+    : Base(G0, pars, thread_id), BaseGpu(pars, Base::get_n_pos_frqs(), thread_id_) {
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
-
-  // It's not a good idea to have only tp_accumulator know the contents are actual memory size of qyg4
-  typename BaseClass::TpDomain tp_dmn;
-  std::size_t local_g4_size = tp_dmn.get_size();
-
-  int my_rank = 0, mpi_size = 1;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-  local_g4_size = dca::util::ceilDiv(local_g4_size, std::size_t(mpi_size));
-  start_ = local_g4_size * my_rank;
-  end_ = std::min(tp_dmn.get_size(), start_ + local_g4_size);
+  // static_assert(std::is_same<std::vector<TpAccumulator<DistType::LINEAR>>, decltype(G4_)>);
+  start_ = G4_[0].get_start();
+  // The sense here is one past the last index held
+  end_ = G4_[0].get_end() + 1;
 
   // possible these can both go into the parent class constructor
-  BaseClass::initializeG4Helpers();
-
-  // I think it unlikely that want multiple streams for dist G4
-  // since there is a memory cost.
-  for (int i = 0; i < BaseClass::n_ndft_queues_; ++i) {
-    workspaces_.emplace_back(std::make_shared<RMatrix>());
-    workspaces_[i]->setStream(queues_[i]);
-    ndft_objs_[i].setWorkspace(workspaces_[i]);
-    space_trsf_objs_[i].setWorkspace(workspaces_[i]);
-  }
 }
 
 template <class Parameters>
@@ -166,24 +169,82 @@ template <class Configuration, typename RealIn>
 float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
-  // typename BaseClass::Profiler profiler("accumulate", "tp-accumulation", __LINE__, BaseClass::thread_id_);
+  // typename Base::Profiler profiler("accumulate", "tp-accumulation", __LINE__, Base::thread_id_);
   float flop = 0;
 
-  if (!BaseClass::initialized_)
+  if (!BaseGpu::initialized_)
     throw(std::logic_error("The accumulator is not ready to measure."));
 
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return flop;
 
-  BaseClass::sign_ = sign;
-  flop += BaseClass::computeM(M, configs);
-  BaseClass::computeG();
+  Base::sign_ = sign;
+  flop += BaseGpu::computeM(M, configs);
+  computeG();
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
     flop += updateG4(channel);
   }
 
   ringG(flop);
+
+  return flop;
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::computeGSingleband(const int s) {
+  details::computeGSingleband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
+                              KDmn::dmn_size(), n_pos_frqs_, beta_, queues_[s]);
+  assert(cudaPeekAtLastError() == cudaSuccess);
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::computeGMultiband(const int s) {
+  details::computeGMultiband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
+                             get_G0()[s].leadingDimension(), n_bands_, KDmn::dmn_size(),
+                             n_pos_frqs_, beta_, queues_[s]);
+  assert(cudaPeekAtLastError() == cudaSuccess);
+}
+
+template <class Parameters>
+void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::computeG() {
+  if (n_ndft_queues_ == 1) {
+    event_.record(queues_[0]);
+    event_.block(queues_[1]);
+  }
+  {
+    [[maybe_unused]] Profiler prf("ComputeG: HOST", "tp-accumulation", __LINE__, thread_id_);
+    for (int s = 0; s < 2; ++s) {
+      if (n_bands_ == 1)
+        computeGSingleband(s);
+      else
+        computeGMultiband(s);
+    }
+  }
+
+  event_.record(queues_[1]);
+  event_.block(queues_[0]);
+}
+
+template <class Parameters>
+template <class Configuration, typename RealIn>
+float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::computeM(
+    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
+    const std::array<Configuration, 2>& configs) {
+  auto stream_id = [&](const int s) { return n_ndft_queues_ == 1 ? 0 : s; };
+
+  float flop = 0.;
+
+  {
+    Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
+    for (int s = 0; s < 2; ++s)
+      flop += ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
+  }
+  {
+    Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
+    for (int s = 0; s < 2; ++s)
+      flop += space_trsf_objs_[stream_id(s)].execute(G_[s]);
+  }
 
   return flop;
 }
@@ -202,20 +263,20 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::accumulate(
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::finalize() {
-  if (BaseClass::finalized_)
+  if (BaseGpu::finalized_)
     return;
 
   for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
     // modify G4 size in G4 cpu, otherwise, copyTo() operation failed due to incomparable size
     // resize() only modifies member Nb_elements in function, does not change tp_dmn.get_size()
     G4_[channel].resize(get_G4()[channel].size());
-    get_G4()[channel].copyTo(G4_[channel]);
+    get_G4Dev()[channel].copyTo(G4_[channel]);
   }
   // TODO: release memory if needed by the rest of the DCA loop.
   // get_G4().clear();
 
-  BaseClass::finalized_ = true;
-  BaseClass::initialized_ = false;
+  BaseGpu::finalized_ = true;
+  BaseGpu::initialized_ = false;
 }
 
 template <class Parameters>
@@ -225,27 +286,28 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::resetAccumulation
 
   dca::util::callOncePerLoop(flag, dca_loop, [&]() {
     resetG4();
-    BaseClass::initializeG0();
-    BaseClass::synchronizeStreams();
+    BaseGpu::initializeG0();
+    BaseGpu::synchronizeStreams();
   });
 
-  BaseClass::initialized_ = true;
-  BaseClass::finalized_ = false;
+  BaseGpu::initialized_ = true;
+  BaseGpu::finalized_ = false;
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::resetG4() {
   // Note: this method is not thread safe by itself.
-  get_G4().resize(G4_.size());
+  get_G4Dev().resize(G4_.size());
 
-  for (auto& G4_channel : get_G4()) {
+  // These are the device G4's
+  for (auto& G4_channel : get_G4Dev()) {
     try {
-      if (!BaseClass::multiple_accumulators_) {
-        G4_channel.setStream(BaseClass::queues_[0]);
+      if (!Base::multiple_accumulators_) {
+        G4_channel.setStream(BaseGpu::queues_[0]);
       }
 
       G4_channel.resizeNoCopy(end_ - start_);
-      G4_channel.setToZeroAsync(BaseClass::queues_[0]);
+      G4_channel.setToZeroAsync(BaseGpu::queues_[0]);
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -255,7 +317,8 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::resetG4() {
 }
 
 template <class Parameters>
-float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(const std::size_t channel_index) {
+float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(
+    const std::size_t channel_index) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -266,7 +329,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(const s
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(queues_[0]);
 
-  const FourPointType channel = BaseClass::channels_[channel_index];
+  const FourPointType channel = Base::channels_[channel_index];
 
   int my_rank, mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -275,32 +338,32 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(const s
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
-          get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
 
     default:
@@ -357,19 +420,18 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::ringG(float& flop
 }
 
 template <class Parameters>
-auto TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::get_G4() -> std::vector<G4DevType>& {
+auto TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::get_G4Dev() -> std::vector<G4DevType>& {
   static std::vector<G4DevType> G4;
   return G4;
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(const std::array<RMatrix, 2>& data,
-                                                                 int target,
-                                                                 std::array<MPI_Request, 2>& request) {
+void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(
+    const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_HAVE_CUDA_AWARE_MPI
+#ifdef DCA_WITH_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -384,7 +446,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(const std::a
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
   }
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
 }
 
 template <class Parameters>
@@ -393,7 +455,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::receive(
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_HAVE_CUDA_AWARE_MPI
+#ifdef DCA_WITH_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -411,7 +473,20 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::receive(
     cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
                cudaMemcpyHostToDevice);
   }
-#endif  // DCA_HAVE_CUDA_AWARE_MPI
+#endif  // DCA_WITH_CUDA_AWARE_MPI
+}
+
+/** Return the G4 only as the correct type
+ *
+ *  the return type is quite a code smell
+ */
+template <class Parameters>
+std::vector<typename TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::TpGreensFunction>& TpAccumulator<
+    Parameters, linalg::GPU, DistType::LINEAR>::get_G4() {
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+
+  return G4_;
 }
 
 }  // namespace accumulator

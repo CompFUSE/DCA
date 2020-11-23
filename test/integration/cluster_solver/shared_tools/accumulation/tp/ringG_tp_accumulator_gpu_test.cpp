@@ -10,13 +10,14 @@
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 
 #include <array>
 #include <functional>
 #include <string>
 #include "gtest/gtest.h"
-
+#include "dca/function/function.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -55,7 +56,7 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU, dca::DistType::LINEAR> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::LINEAR>
       accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
@@ -77,12 +78,14 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
     std::cout << "\nCollecting Data from G4 distributed over" << concurrency.number_of_processors()
               << "ranks\n";
 
-  for (int channel = 0; channel < accumulatorDevice.get_sign_times_G4().size(); ++channel) {
-    auto G4_gpu = accumulatorDevice.get_sign_times_G4()[channel];
-    auto G4_cpu = accumulatorHost.get_sign_times_G4()[channel];
+  for (int channel = 0; channel < accumulatorDevice.get_G4().size(); ++channel) {
+    auto G4_gpu = accumulatorDevice.get_G4()[channel];
+    auto G4_cpu = accumulatorHost.get_G4()[channel];
     auto G4_gathered = G4_gpu.gather(concurrency);
     concurrency_.localSum(G4_cpu, concurrency.first());
     if (concurrency.get_id() == 0 && channel == 0) {
+      static_assert(G4_cpu.DT == G4_gathered.DT);
+      
       const auto diff = dca::func::util::difference(G4_cpu, G4_gathered);
       EXPECT_GT(5e-7, diff.l_inf);
       EXPECT_GT(5e-7, diff.l1);

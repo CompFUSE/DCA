@@ -27,6 +27,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 namespace dca {
 namespace testing {

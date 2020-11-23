@@ -31,7 +31,8 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/mc_accumulator_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
+
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -143,8 +144,8 @@ public:
   }
 
   // tp-measurements
-  const auto& get_sign_times_G4() {
-    return two_particle_accumulator_.get_sign_times_G4();
+  auto& get_sign_times_G4() {
+    return two_particle_accumulator_.get_G4();
   }
 
   bool compute_std_deviation() const {
@@ -166,6 +167,8 @@ public:
   static std::size_t staticDeviceFingerprint() {
     return accumulator::TpAccumulator<Parameters, device_t, DIST>::staticDeviceFingerprint();
   }
+
+  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
 
 private:
   void accumulate_single_particle_quantities();
@@ -206,8 +209,6 @@ protected:
   accumulator::SpAccumulator<Parameters, device_t, Real> single_particle_accumulator_obj;
 
   std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
-
-  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
 
   bool perform_tp_accumulation_ = false;
 };

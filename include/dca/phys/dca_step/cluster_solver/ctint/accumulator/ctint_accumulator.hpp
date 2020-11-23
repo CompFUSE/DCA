@@ -20,7 +20,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 
 #ifdef DCA_HAVE_CUDA

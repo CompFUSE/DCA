@@ -33,8 +33,8 @@ public:
   // Gather the function 'f_in' on all processes in 'gang' and copy the result into 'f_out',
   // discarding eventual padding.
   // Precondition: gang.get_size() * f_in.size() >= f_out.size()
-  template <class Scalar, class DmnIn, class DmnOut, class Gang>
-  void gather(const func::function<Scalar, DmnIn>& f_in, func::function<Scalar, DmnOut>& f_out,
+  template <class Scalar, class DmnIn, class DmnOut, class Gang, DistType DT>
+  void gather(const func::function<Scalar, DmnIn, DT>& f_in, func::function<Scalar, DmnOut, DT>& f_out,
               const Gang& gang) const;
 
 private:
@@ -42,9 +42,9 @@ private:
   void gather(const T* in, T* out, int local_n, const Gang& gang) const;
 };
 
-template <class Scalar, class DmnIn, class DmnOut, class Gang>
-void MPIGather::gather(const func::function<Scalar, DmnIn>& f_in,
-                       func::function<Scalar, DmnOut>& f_out, const Gang& gang) const {
+template <class Scalar, class DmnIn, class DmnOut, class Gang, DistType DT>
+void MPIGather::gather(const func::function<Scalar, DmnIn, DT>& f_in,
+                       func::function<Scalar, DmnOut, DT>& f_out, const Gang& gang) const {
   std::vector<Scalar> gathered(f_in.size() * gang.get_size());
   gather(f_in.values(), gathered.data(), f_in.size(), gang);
 

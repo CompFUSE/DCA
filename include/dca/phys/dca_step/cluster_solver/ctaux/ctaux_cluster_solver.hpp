@@ -407,8 +407,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
     // This creates a copy!
     static_assert(std::is_same<Data, ::DcaDataType<DIST>>::value);
-    static_assert(std::is_same<decltype(accumulator_.two_particle_accumulator_), accumulator::TpAccumulator<Parameters, device_t, DIST>>::value);
-    const std::vector<typename Data::TpGreensFunction> G4 = accumulator_.get_sign_times_G4();
+    std::vector<typename Data::TpGreensFunction>& G4 = accumulator_.get_sign_times_G4();
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /=

@@ -21,18 +21,18 @@ namespace func {
 
 template <typename scalartype, class domain>
 class function<scalartype, domain, DistType::LINEAR> {
+public:
   static const std::string default_name_;
   static constexpr auto DISTTYPE = DistType::LINEAR;
   static constexpr auto DT = DistType::LINEAR;
 
-public:
   typedef scalartype this_scalar_type;
   typedef domain this_domain_type;
 
   // Default constructor
   // Constructs the function with the name name.
   // Postcondition: All elements are set to zero.
-  function(const std::string& name = default_name_);
+  function(const std::string& name = "no-name");
 
   // Distributed function. Access with multi-index operator() is not safe.
   template <class Concurrency>
@@ -53,9 +53,9 @@ public:
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
   // Postcondition: The other function is in a non-specified state.
-  function(function<scalartype, domain, DistType::LINEAR>&& other);
+  inline function(function<scalartype, domain, DistType::LINEAR>&& other);
   // Same as above, but with name = 'name'.
-  function(function<scalartype, domain, DistType::LINEAR>&& other, const std::string& name)
+  inline function(function<scalartype, domain, DistType::LINEAR>&& other, const std::string& name)
       : function(std::move(other)) {
     name_ = name;
   }
@@ -67,7 +67,7 @@ public:
   // Postcondition: The function's name is unchanged.
   function<scalartype, domain, DT>& operator=(const function<scalartype, domain, DT>& other);
   template <typename Scalar2>
-  function<scalartype, domain, DT>& operator=(const function<Scalar2, domain, DT>& other);
+  function<scalartype, domain, DistType::LINEAR>& operator=(const function<Scalar2, domain, DistType::LINEAR>& other);
 
   // Move assignment operator
   // Replaces the function's elements with those of other using move semantics.
@@ -75,7 +75,7 @@ public:
   //               the other function's construction.
   // Postconditions: The function's name is unchanged.
   //                 The other function is in a non-specified state.
-  function<scalartype, domain, DT>& operator=(function<scalartype, domain, DT>&& other);
+  function<scalartype, domain, DistType::LINEAR>& operator=(function<scalartype, domain, DistType::LINEAR>&& other);
 
   // Resets the function by resetting the domain object and reallocating the memory for the function
   // elements.
@@ -224,9 +224,9 @@ public:
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
-  void operator/=(const function<scalartype, domain, DT>& other);
+  void operator/=(const function<scalartype, domain, DistType::LINEAR>& other);
 
-  void operator=(scalartype c);
+  inline void operator=(scalartype c);
   void operator+=(scalartype c);
   void operator-=(scalartype c);
   void operator*=(scalartype c);
@@ -288,41 +288,93 @@ private:
   std::size_t end_;
 };
 
-template <typename scalartype, class domain>
-template <class Concurrency>
-function<scalartype, domain, DistType::LINEAR>::function(const std::string& name,
-                                                         const Concurrency& concurrency)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()) {
-  // \todo how to get rid of repeated code in C++17
+// template <typename scalartype, class domain>
+// function<scalartype, domain, DistType::LINEAR>::function(const std::string& name)
+//     : name_(name),
+//       function_type(__PRETTY_FUNCTION__),
+//       dmn(),
+//       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+//       size_sbdm(dmn.get_leaf_domain_sizes()),
+//       step_sbdm(dmn.get_leaf_domain_steps()),
+//       fnc_values_(dmn.get_size()) {
+//   for (int linind = 0; linind < size(); ++linind)
+//     setToZero(fnc_values_[linind]);
+// }
 
-  const std::size_t mpi_size = concurrency.number_of_processors();
 
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
-  fnc_values_.resize(nb_elements);
+// template <typename scalartype, class domain>
+// function<scalartype, domain, DistType::LINEAR>::function(const function<scalartype, domain, DistType::LINEAR>& other)
+//     : name_(other.name_),
+//       function_type(__PRETTY_FUNCTION__),
+//       dmn(),
+//       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+//       size_sbdm(dmn.get_leaf_domain_sizes()),
+//       step_sbdm(dmn.get_leaf_domain_steps()),
+//       fnc_values_(other.fnc_values_),
+//       start_(other.start_),
+//       end_(other.end_) {
+//   if (dmn.get_size() != other.dmn.get_size())
+//     // The other function has not been resetted after the domain was initialized.
+//     throw std::logic_error("Copy construction from a not yet reset function.");
+// }
 
-  for (int linind = 0; linind < nb_elements; ++linind)
-    setToZero(fnc_values_[linind]);
+// template <typename scalartype, class domain>
+// function<scalartype, domain, DistType::LINEAR>::function(function<scalartype, domain, DistType::LINEAR>&& other)
+//     : name_(std::move(other.name_)),
+//       function_type(__PRETTY_FUNCTION__),
+//       dmn(),
+//       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+//       size_sbdm(dmn.get_leaf_domain_sizes()),
+//       step_sbdm(dmn.get_leaf_domain_steps()),
+//       fnc_values_(std::move(other.fnc_values_)) {
+//   if (dmn.get_size() != other.dmn.get_size())
+//     // The other function has not been resetted after the domain was initialized.
+//     throw std::logic_error("Move construction from a not yet resetted function.");
+// }
 
-  int my_concurrency_id = concurrency.id();
-  int my_concurrency_size = concurrency.number_of_processors();
+// template <typename scalartype, class domain>
+// function<scalartype, domain, DistType::LINEAR>& function<scalartype, domain, DistType::LINEAR>::operator=(function<scalartype, domain, DistType::LINEAR>&& other) {
+//   if (this != &other) {
+//     if (dmn.get_size() != other.dmn.get_size()) {
+//       // Domain had not been initialized when the functions were created.
+//       // Reset this function and check again.
+//       reset();
 
-  std::size_t local_function_size =
-      dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
-  start_ = local_function_size * my_concurrency_id;
-  end_ = std::min(dmn.get_size(), start_ + local_function_size);
-}
+//       if (dmn.get_size() != other.dmn.get_size())
+//         // The other function has not been resetted after the domain was initialized.
+//         throw std::logic_error("Move assignment from a not yet resetted function.");
+//     }
 
-template <typename scalartype, class domain>
-std::vector<int> function<scalartype, domain, DistType::LINEAR>::linind_2_subind(int linind) const {
-  std::cout << "linind:" << linind << '\n';
-  throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
-}
+//     fnc_values_ = std::move(other.fnc_values_);
+//   }
+
+//   return *this;
+// }
+
+
+// template <typename scalartype, class domain>
+// std::vector<int> function<scalartype, domain, DistType::LINEAR>::linind_2_subind(int linind) const {
+//   std::cout << "linind:" << linind << '\n';
+//   throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
+// }
+
+// template <typename scalartype, class domain>
+// template <class Concurrency>
+// function<scalartype, domain, DistType::LINEAR> function<scalartype, domain, DistType::LINEAR>::gather(
+//     const Concurrency& concurrency) const {
+//   function result(name_);
+
+//   concurrency.gather(*this, result, concurrency);
+//   return result;
+// }
+
+// template <typename scalartype, class domain>
+// void function<scalartype, domain, DistType::LINEAR>::operator=(const scalartype c) {
+//   for (int linind = 0; linind < size(); linind++)
+//     fnc_values_[linind] = c;
+// }
 
 }  // namespace func
 }  // namespace dca
 #endif
+

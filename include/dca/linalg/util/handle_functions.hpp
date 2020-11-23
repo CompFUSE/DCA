@@ -21,9 +21,10 @@
 
 #include "dca/linalg/util/cublas_handle.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
 
 #endif  // DCA_HAVE_CUDA
+
+#include "dca/linalg/util/cuda_stream.hpp"
 
 namespace dca {
 namespace linalg {

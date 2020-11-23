@@ -106,7 +106,7 @@ public:
   void ringG() {}
 
   // Returns the accumulated Green's function.
-  const std::vector<TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& get_sign_times_G4() const;
+  const std::vector<TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& get_G4() const;
 
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(TpAccumulator& other_acc);
@@ -666,7 +666,7 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4SpinDifference(
 }
 
 template <class Parameters, DistType DT>
-const std::vector<typename TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& TpAccumulator<Parameters, linalg::CPU, DT>::get_sign_times_G4() const {
+const std::vector<typename TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& TpAccumulator<Parameters, linalg::CPU, DT>::get_G4() const {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
 

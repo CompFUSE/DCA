@@ -26,8 +26,8 @@ class function<scalartype, domain, DistType::BLOCKED> {
   // generic class so it can't be defined there.  This breaks later if constexpr so that needs to be
   // on DISTTYPE, but it is convenient for the specialized template classes declarations to "almost" match the
   // general class declaration.
-  static constexpr auto DISTTYPE = DistType::BLOCKED;
-  static constexpr auto DT = DistType::BLOCKED;
+  static constexpr DistType DISTTYPE = DistType::BLOCKED;
+  static constexpr DistType DT = DistType::BLOCKED;
 
 public:
   typedef scalartype this_scalar_type;
@@ -46,9 +46,9 @@ public:
   // Constructs the function with the a copy of elements and name of other.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
-  function(const function<scalartype, domain, DT>& other);
+  function(const function<scalartype, domain, DistType::BLOCKED>& other);
   // Same as above, but with name = 'name'.
-  function(const function<scalartype, domain, DT>& other, const std::string& name) : function(other) {
+  function(const function<scalartype, domain, DistType::BLOCKED>& other, const std::string& name) : function(other) {
     name_ = name;
   }
 
@@ -238,7 +238,7 @@ public:
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
-  void operator/=(const function<scalartype, domain, DT>& other);
+  void operator/=(const function<scalartype, domain, DistType::BLOCKED>& other);
 
   void operator=(scalartype c);
   void operator+=(scalartype c);
@@ -303,47 +303,47 @@ private:
   std::size_t end_;
 };
 
-template <typename scalartype, class domain>
-template <class Concurrency>
-function<scalartype, domain, DistType::BLOCKED>::function(const std::string& name,
-                                                          const Concurrency& concurrency)
-    : name_(name),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(dmn.get_leaf_domain_steps()) {
-  const std::size_t conc_size = concurrency.number_of_processors();
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
+// template <typename scalartype, class domain>
+// template <class Concurrency>
+// function<scalartype, domain, DistType::BLOCKED>::function(const std::string& name,
+//                                                           const Concurrency& concurrency)
+//     : name_(name),
+//       function_type(__PRETTY_FUNCTION__),
+//       dmn(),
+//       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+//       size_sbdm(dmn.get_leaf_domain_sizes()),
+//       step_sbdm(dmn.get_leaf_domain_steps()) {
+//   const std::size_t conc_size = concurrency.number_of_processors();
+//   const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
 
-  fnc_values_.resize(nb_elements);
+//   fnc_values_.resize(nb_elements);
 
-  for (int linind = 0; linind < nb_elements; ++linind)
-    setToZero(fnc_values_[linind]);
+//   for (int linind = 0; linind < nb_elements; ++linind)
+//     setToZero(fnc_values_[linind]);
 
-  int my_concurrency_id = concurrency.id();
-  int my_concurrency_size = concurrency.number_of_processors();
+//   int my_concurrency_id = concurrency.id();
+//   int my_concurrency_size = concurrency.number_of_processors();
 
-  std::size_t local_function_size =
-      dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
-  start_ = local_function_size * my_concurrency_id;
-  end_ = std::min(dmn.get_size(), start_ + local_function_size);
-  // This is a necessary but not sufficient proof of "regular blocking"
-  if (end_ != start_ + local_function_size)
-    throw std::runtime_error(
-        "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
-        "functions size");
-}
+//   std::size_t local_function_size =
+//       dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
+//   start_ = local_function_size * my_concurrency_id;
+//   end_ = std::min(dmn.get_size(), start_ + local_function_size);
+//   // This is a necessary but not sufficient proof of "regular blocking"
+//   if (end_ != start_ + local_function_size)
+//     throw std::runtime_error(
+//         "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
+//         "functions size");
+// }
 
-template <typename scalartype, class domain>
-std::vector<int> function<scalartype, domain, DistType::BLOCKED>::linind_2_subind(int linind) const {
-  std::vector<int> subind(Nb_sbdms);
-  for (int i = 0; i < int(size_sbdm.size()); ++i) {
-    subind[i] = linind % size_sbdm[i];
-    linind = (linind - subind[i]) / size_sbdm[i];
-  }
-  return subind;
-}
+// template <typename scalartype, class domain>
+// std::vector<int> function<scalartype, domain, DistType::BLOCKED>::linind_2_subind(int linind) const {
+//   std::vector<int> subind(Nb_sbdms);
+//   for (int i = 0; i < int(size_sbdm.size()); ++i) {
+//     subind[i] = linind % size_sbdm[i];
+//     linind = (linind - subind[i]) / size_sbdm[i];
+//   }
+//   return subind;
+// }
 
 }  // namespace func
 }  // namespace dca

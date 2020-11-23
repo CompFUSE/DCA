@@ -77,18 +77,18 @@ public:
   template <typename domain_type>
   void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const func::function<scalar_type, domain_type>& f);
+  template <typename scalar_type, typename domain_type, DistType DT>
+  void execute(const func::function<scalar_type, domain_type, DT>& f);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const std::string& name, const func::function<scalar_type, domain_type>& f);
+  template <typename scalar_type, typename domain_type, DistType DT>
+  void execute(const std::string& name, const func::function<scalar_type, domain_type, DT>& f);
 
-  template <typename scalar_type, typename domain_type>
-  void execute(const func::function<std::complex<scalar_type>, domain_type>& f);
+  template <typename scalar_type, typename domain_type, DistType DT>
+  void execute(const func::function<std::complex<scalar_type>, domain_type, DT>& f);
 
-  template <typename scalar_type, typename domain_type>
+  template <typename scalar_type, typename domain_type, DistType DT>
   void execute(const std::string& name,
-               const func::function<std::complex<scalar_type>, domain_type>& f);
+               const func::function<std::complex<scalar_type>, domain_type, DT>& f);
 
   template <typename scalar_type>
   void execute(const std::string& name, const linalg::Vector<scalar_type, linalg::CPU>& V);
@@ -231,16 +231,16 @@ void JSONWriter::execute(const std::string& name, const func::dmn_0<domain_type>
   elements_in_group.back() += 1;
 }
 
-template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(const func::function<scalar_type, domain_type>& f) {
+template <typename scalar_type, typename domain_type, DistType DT>
+void JSONWriter::execute(const func::function<scalar_type, domain_type, DT>& f) {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
-template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(const std::string& name, const func::function<scalar_type, domain_type>& f) {
+template <typename scalar_type, typename domain_type, DistType DT>
+void JSONWriter::execute(const std::string& name, const func::function<scalar_type, domain_type, DT>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -286,17 +286,17 @@ void JSONWriter::execute(const std::string& name, const func::function<scalar_ty
   elements_in_group.back() += 1;
 }
 
-template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
+template <typename scalar_type, typename domain_type, DistType DT>
+void JSONWriter::execute(const func::function<std::complex<scalar_type>, domain_type, DT>& f) {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
-template <typename scalar_type, typename domain_type>
+template <typename scalar_type, typename domain_type, DistType DT>
 void JSONWriter::execute(const std::string& name,
-                         const func::function<std::complex<scalar_type>, domain_type>& f) {
+                         const func::function<std::complex<scalar_type>, domain_type, DT>& f) {
   open_group(name);
 
   execute("name", f.get_name());

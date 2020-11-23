@@ -22,7 +22,7 @@
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-constexpr bool update_baseline = false;
+[[maybe_unused]] constexpr bool update_baseline = false;
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
@@ -68,9 +68,9 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   accumulatorHost.accumulate(M, config, sign);
   accumulatorHost.finalize();
 
-  for (std::size_t channel = 0; channel < accumulatorHost.get_sign_times_G4().size(); ++channel) {
-    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[channel],
-                                                  accumulatorDevice.get_sign_times_G4()[channel]);
+  for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
+    const auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
+                                                  accumulatorDevice.get_G4()[channel]);
     EXPECT_GT(5e-7, diff.l_inf);
   }
 }
