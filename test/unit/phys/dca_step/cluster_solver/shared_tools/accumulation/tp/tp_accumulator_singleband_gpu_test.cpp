@@ -16,6 +16,7 @@
 #include <string>
 #include "gtest/gtest.h"
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
@@ -54,9 +55,9 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 

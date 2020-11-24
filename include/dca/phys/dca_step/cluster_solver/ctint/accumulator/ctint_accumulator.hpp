@@ -85,7 +85,7 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return accumulator::TpAccumulator<Parameters, device>::staticDeviceFingerprint();
+    return accumulator::TpAccumulator<Parameters, DIST, device>::staticDeviceFingerprint();
   }
 
   float getFLOPs() const {
@@ -109,7 +109,7 @@ private:
   const int thread_id_;
 
   accumulator::SpAccumulator<Parameters, device, Real> sp_accumulator_;
-  accumulator::TpAccumulator<Parameters, device> tp_accumulator_;
+  accumulator::TpAccumulator<Parameters, DIST, device> tp_accumulator_;
 
   bool perform_tp_accumulation_ = false;
   bool ready_ = false;

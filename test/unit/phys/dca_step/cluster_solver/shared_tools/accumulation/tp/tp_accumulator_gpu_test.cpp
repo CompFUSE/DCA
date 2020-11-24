@@ -58,9 +58,9 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 
@@ -87,14 +87,14 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   parameters_.set_four_point_channel(dca::phys::PARTICLE_HOLE_TRANSVERSE);
 
   using Accumulator =
-      dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::linalg::GPU>;
+      dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::DistType::NONE, dca::linalg::GPU>;
   Accumulator accumulator_sum(data_->G0_k_w_cluster_excluded, parameters_, 0);
   Accumulator accumulator1(data_->G0_k_w_cluster_excluded, parameters_, 1);
   Accumulator accumulator2(data_->G0_k_w_cluster_excluded, parameters_, 2);
   Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_, 3);
 
   auto prepare_configuration = [&](auto& M, auto& configuration, const auto& n) {
-    ConfigGenerator::prepareConfiguration(M, configuration, TpAccumulatorGpuTest::BDmn::dmn_size(),
+                                 ConfigGenerator::prepareConfiguration(M, configuration, TpAccumulatorGpuTest::BDmn::dmn_size(),
                                           TpAccumulatorGpuTest::RDmn::dmn_size(),
                                           parameters_.get_beta(), n);
   };

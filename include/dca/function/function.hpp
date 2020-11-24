@@ -41,13 +41,12 @@ namespace func {
 template <typename scalartype, class domain, DistType DT = DistType::NONE>
 class function;
 
-
-
 template <typename scalartype, class domain, DistType DT>
 class function {
   static const std::string default_name_;
-public:  
-  static constexpr DistType dist = DT;  
+
+public:
+  static constexpr DistType dist = DT;
   typedef scalartype this_scalar_type;
   typedef domain this_domain_type;
 
@@ -66,7 +65,8 @@ public:
   //               the other function's construction.
   function(const function<scalartype, domain, DT>& other);
   // Same as above, but with name = 'name'.
-  function(const function<scalartype, domain, DT>& other, const std::string& name) : function(other) {
+  function(const function<scalartype, domain, DT>& other, const std::string& name)
+      : function(other) {
     name_ = name;
   }
 
@@ -115,7 +115,7 @@ public:
     name_ = name;
   }
 
-    std::size_t get_start() const {
+  std::size_t get_start() const {
     return start_;
   }
   /** end in sense of last index not  1 past.
@@ -333,8 +333,8 @@ function<scalartype, domain, DT>::function(const std::string& name)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values_(dmn.get_size()) {
-      for (int linind = 0; linind < size(); ++linind)
-        setToZero(fnc_values_[linind]);
+  for (int linind = 0; linind < size(); ++linind)
+    setToZero(fnc_values_[linind]);
 }
 
 template <typename scalartype, class domain, DistType DT>
@@ -367,8 +367,7 @@ function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& ot
 
 template <typename scalartype, class domain, DistType DT>
 template <class Concurrency>
-function<scalartype, domain, DT>::function(const std::string& name,
-                                                         const Concurrency& concurrency)
+function<scalartype, domain, DT>::function(const std::string& name, const Concurrency& concurrency)
     : name_(name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
@@ -376,60 +375,62 @@ function<scalartype, domain, DT>::function(const std::string& name,
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()) {
   // \todo how to get rid of repeated code in C++17
-  if constexpr ( dist == DistType::NONE) {
-      const std::size_t mpi_size = concurrency.number_of_processors();
+  if constexpr (dist == DistType::NONE) {
+    const std::size_t mpi_size = concurrency.number_of_processors();
 
-      const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
-      fnc_values_.resize(nb_elements);
-  
-      for (int linind = 0; linind < nb_elements; ++linind)
-        setToZero(fnc_values_[linind]);
+    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+    fnc_values_.resize(nb_elements);
 
-      start_ = 0;
-      end_ = dmn.get_size();
-    }  else if constexpr (dist == DistType::LINEAR) {
-  const std::size_t mpi_size = concurrency.number_of_processors();
+    for (int linind = 0; linind < nb_elements; ++linind)
+      setToZero(fnc_values_[linind]);
 
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
-  fnc_values_.resize(nb_elements);
+    start_ = 0;
+    end_ = dmn.get_size();
+  }
+  else if constexpr (dist == DistType::LINEAR) {
+    const std::size_t mpi_size = concurrency.number_of_processors();
 
-  for (int linind = 0; linind < nb_elements; ++linind)
-    setToZero(fnc_values_[linind]);
+    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+    fnc_values_.resize(nb_elements);
 
-  int my_concurrency_id = concurrency.id();
-  int my_concurrency_size = concurrency.number_of_processors();
+    for (int linind = 0; linind < nb_elements; ++linind)
+      setToZero(fnc_values_[linind]);
 
-  std::size_t local_function_size =
-      dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
-  start_ = local_function_size * my_concurrency_id;
-  end_ = std::min(dmn.get_size(), start_ + local_function_size);
-    } else if constexpr (dist == DistType::BLOCKED) {
-  const std::size_t conc_size = concurrency.number_of_processors();
-  const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
+    int my_concurrency_id = concurrency.id();
+    int my_concurrency_size = concurrency.number_of_processors();
 
-  fnc_values_.resize(nb_elements);
+    std::size_t local_function_size =
+        dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
+    start_ = local_function_size * my_concurrency_id;
+    end_ = std::min(dmn.get_size(), start_ + local_function_size);
+  }
+  else if constexpr (dist == DistType::BLOCKED) {
+    const std::size_t conc_size = concurrency.number_of_processors();
+    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
 
-  for (int linind = 0; linind < nb_elements; ++linind)
-    setToZero(fnc_values_[linind]);
+    fnc_values_.resize(nb_elements);
 
-  int my_concurrency_id = concurrency.id();
-  int my_concurrency_size = concurrency.number_of_processors();
+    for (int linind = 0; linind < nb_elements; ++linind)
+      setToZero(fnc_values_[linind]);
 
-  std::size_t local_function_size =
-      dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
-  start_ = local_function_size * my_concurrency_id;
-  end_ = std::min(dmn.get_size(), start_ + local_function_size);
-  // This is a necessary but not sufficient proof of "regular blocking"
-  if (end_ != start_ + local_function_size)
-    throw std::runtime_error(
-        "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
-        "functions size");
-    }
+    int my_concurrency_id = concurrency.id();
+    int my_concurrency_size = concurrency.number_of_processors();
+
+    std::size_t local_function_size =
+        dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
+    start_ = local_function_size * my_concurrency_id;
+    end_ = std::min(dmn.get_size(), start_ + local_function_size);
+    // This is a necessary but not sufficient proof of "regular blocking"
+    if (end_ != start_ + local_function_size)
+      throw std::runtime_error(
+          "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
+          "functions size");
+  }
 }
 
 template <typename scalartype, class domain, DistType DT>
 function<scalartype, domain, DT>& function<scalartype, domain, DT>::operator=(
-   const function<scalartype, domain, DT>& other) {
+    const function<scalartype, domain, DT>& other) {
   if (this != &other) {
     if (dmn.get_size() != other.dmn.get_size()) {
       // Domain had not been initialized when the functions were created.
@@ -514,21 +515,21 @@ template <typename scalartype, class domain, DistType DT>
 std::vector<int> function<scalartype, domain, DT>::linind_2_subind(int linind) const {
   std::vector<int> subind(Nb_sbdms);
   if constexpr (dist == DistType::NONE) {
-      for (int i = 0; i < int(size_sbdm.size()); ++i) {
-    subind[i] = linind % size_sbdm[i];
-    linind = (linind - subind[i]) / size_sbdm[i];
-      }} else if constexpr ( dist == DistType::LINEAR ) {
-  std::cout << "linind:" << linind << '\n';
-  throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
-
-    } else if constexpr ( dist == DistType::BLOCKED) {
-
-  for (int i = 0; i < int(size_sbdm.size()); ++i) {
-    subind[i] = linind % size_sbdm[i];
-    linind = (linind - subind[i]) / size_sbdm[i];
-  }
-
+    for (int i = 0; i < int(size_sbdm.size()); ++i) {
+      subind[i] = linind % size_sbdm[i];
+      linind = (linind - subind[i]) / size_sbdm[i];
     }
+  }
+  else if constexpr (dist == DistType::LINEAR) {
+    std::cout << "linind:" << linind << '\n';
+    throw std::runtime_error("Subindices aren't valid accessors for DistType::LINEAR");
+  }
+  else if constexpr (dist == DistType::BLOCKED) {
+    for (int i = 0; i < int(size_sbdm.size()); ++i) {
+      subind[i] = linind % size_sbdm[i];
+      linind = (linind - subind[i]) / size_sbdm[i];
+    }
+  }
   return subind;
 }
 
@@ -712,7 +713,7 @@ void function<scalartype, domain, DT>::distribute(const int sbdm_index_1, const 
   subind[sbdm_index_1] = 0;
   subind[sbdm_index_2] = 0;
   subind_2_linind(subind, linind);
-  
+
   for (int i = 0; i < size_sbdm[sbdm_index_1]; i++)
     for (int j = 0; j < size_sbdm[sbdm_index_2]; j++)
       fnc_values_[linind + i * step_sbdm[sbdm_index_1] + j * step_sbdm[sbdm_index_2]] =
@@ -787,7 +788,6 @@ function<scalartype, domain, DT> function<scalartype, domain, DT>::gather(
   concurrency.gather(*this, result, concurrency);
   return result;
 }
-
 
 }  // namespace func
 }  // namespace dca

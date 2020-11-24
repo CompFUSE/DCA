@@ -60,7 +60,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
-  using TpAccumulator = accumulator::TpAccumulator<Parameters, device_t, DIST>;
+  using TpAccumulator = accumulator::TpAccumulator<Parameters, DIST, device_t>;
   using ParametersType = Parameters;
   using DataType = Data;
 
@@ -165,10 +165,10 @@ public:
   }
 
   static std::size_t staticDeviceFingerprint() {
-    return accumulator::TpAccumulator<Parameters, device_t, DIST>::staticDeviceFingerprint();
+    return accumulator::TpAccumulator<Parameters, DIST, device_t>::staticDeviceFingerprint();
   }
 
-  accumulator::TpAccumulator<Parameters, device_t, DIST> two_particle_accumulator_;
+  accumulator::TpAccumulator<Parameters, DIST, device_t> two_particle_accumulator_;
 
 private:
   void accumulate_single_particle_quantities();

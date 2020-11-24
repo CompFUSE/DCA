@@ -34,14 +34,14 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters>
-class TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>
-  : public TpAccumulatorBase<Parameters, DistType::LINEAR>, public TpAccumulatorGpuBase<Parameters, DistType::LINEAR> {
+template <class Parameters, DistType DT>
+class TpAccumulator<Parameters, DT, linalg::GPU> : public TpAccumulatorBase<Parameters, DT>,
+                                                   public TpAccumulatorGpuBase<Parameters, DT> {
 public:
-  static constexpr DistType DT = DistType::LINEAR;
+  static constexpr DistType dist = DT;
   using Base = TpAccumulatorBase<Parameters, DT>;
   using BaseGpu = TpAccumulatorGpuBase<Parameters, DT>;
-  using ThisType = TpAccumulator<Parameters, linalg::GPU, DT>;
+  using ThisType = TpAccumulator<Parameters, DT, linalg::GPU>;
 
 private:
   // is there a smarter way to do this in c++17?
@@ -371,10 +371,9 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(
   }
 }
 
-template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::ringG(float& flop) {
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop) {
   // get ready for send and receive
-
   for (int s = 0; s < 2; ++s) {
     sendbuff_G_[s] = G_[s];
   }
@@ -419,14 +418,15 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::ringG(float& flop
   }
 }
 
-template <class Parameters>
-auto TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::get_G4Dev() -> std::vector<G4DevType>& {
+template <class Parameters, DistType DT>
+auto TpAccumulator<Parameters, DT, linalg::GPU>::get_G4Dev()
+    -> std::vector<G4DevType>& {
   static std::vector<G4DevType> G4;
   return G4;
 }
 
-template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::GPU>::send(
     const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
@@ -434,7 +434,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(
 #ifdef DCA_WITH_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
-              MPI_COMM_WORLD, &request[s]);
+              MPI_COMM_WORLD, &requestxo[s]);
   }
 #else
 
@@ -449,8 +449,8 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::send(
 #endif  // DCA_WITH_CUDA_AWARE_MPI
 }
 
-template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::receive(
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::GPU>::receive(
     std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
@@ -480,8 +480,8 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::receive(
  *
  *  the return type is quite a code smell
  */
-template <class Parameters>
-std::vector<typename TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::TpGreensFunction>& TpAccumulator<
+template <class Parameters, DistType DT>
+std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::TpGreensFunction>& TpAccumulator<
     Parameters, linalg::GPU, DistType::LINEAR>::get_G4() {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");

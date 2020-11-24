@@ -24,14 +24,16 @@
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/testing/minimalist_printer.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
+int rank, comm_size;
+dca::parallel::MPIConcurrency* concurrency_ptr;
 adios2::ADIOS* adios_ptr;
-dca::parallel::NoConcurrency* concurrency_ptr;
 
 constexpr char input_file[] = INPUT_DIR "input_large_G4.json";
 
@@ -79,9 +81,25 @@ TEST_F(G4FileIoTest, ReadWrite) {
 }
 
 int main(int argc, char** argv) {
-  dca::parallel::NoConcurrency concurrency(argc, argv);
+  int result = 0;
+
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  rank = concurrency.id();
+  comm_size = concurrency.number_of_processors();
   concurrency_ptr = &concurrency;
-  //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", nullptr);
+  ::testing::InitGoogleTest(&argc, argv);
+
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  if (rank != 0) {
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new dca::testing::
+                     MinimalistPrinter);
+  }
+
+  adios2::ADIOS adios("", concurrency_ptr->get());
   adios_ptr = &adios;
+
+  result = RUN_ALL_TESTS();
+
+  return result;
 }

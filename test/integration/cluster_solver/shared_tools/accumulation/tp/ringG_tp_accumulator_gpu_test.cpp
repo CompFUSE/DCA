@@ -11,7 +11,7 @@
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
 #include <functional>
@@ -56,9 +56,9 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU, dca::DistType::LINEAR> accumulatorHost(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::LINEAR, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU, dca::DistType::LINEAR>
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::LINEAR, dca::linalg::GPU>
       accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 
