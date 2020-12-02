@@ -168,8 +168,6 @@ public:
     return accumulator::TpAccumulator<Parameters, DIST, device_t>::staticDeviceFingerprint();
   }
 
-  accumulator::TpAccumulator<Parameters, DIST, device_t> two_particle_accumulator_;
-
 private:
   void accumulate_single_particle_quantities();
 
@@ -208,11 +206,19 @@ protected:
 
   accumulator::SpAccumulator<Parameters, device_t, Real> single_particle_accumulator_obj;
 
+  accumulator::TpAccumulator<Parameters, DIST, device_t> two_particle_accumulator_;
+
   std::unique_ptr<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>> equal_time_accumulator_ptr_;
 
   bool perform_tp_accumulation_ = false;
 };
 
+/** This constructor takes a number of references for later convenience.
+ *
+ *  There is good possibility of initialization order issues here.  
+ *  So its better the use the passed in parameters_ref and data_ref than their local references 
+ *  in the initializers.
+ */
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const Parameters& parameters_ref,
                                                                      Data& data_ref, int id)
@@ -220,11 +226,11 @@ CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const
 
       parameters_(parameters_ref),
       data_(data_ref),
-      concurrency(parameters_.get_concurrency()),
+      concurrency(parameters_ref.get_concurrency()),
 
       thread_id(id),
 
-      compute_std_deviation_(parameters_.get_error_computation_type() ==
+      compute_std_deviation_(parameters_ref.get_error_computation_type() ==
                              ErrorComputationType::STANDARD_DEVIATION),
 
       error("numerical-error-distribution-of-N-matrices"),
@@ -232,9 +238,9 @@ CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const
 
       M_r_w_stddev("M_r_w_stddev"),
 
-      single_particle_accumulator_obj(parameters_, compute_std_deviation_),
+      single_particle_accumulator_obj(parameters_ref, compute_std_deviation_),
 
-      two_particle_accumulator_(data_.G0_k_w_cluster_excluded, parameters_, id) {}
+      two_particle_accumulator_(data_ref.G0_k_w_cluster_excluded, parameters_ref, id) {}
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dca_iteration) {
