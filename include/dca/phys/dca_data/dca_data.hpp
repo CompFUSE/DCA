@@ -375,7 +375,7 @@ void DcaData<Parameters, DT>::read(io::Reader& reader) {
 
 template <class Parameters, DistType DIST>
 void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
-  if constexpr (DIST == DistType::BLOCKED) {
+  if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
     if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
         parameters_.get_g4_distribution() != DistType::NONE) {
       std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
@@ -396,9 +396,7 @@ void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
       // adios2_writer.close_group();
       adios2_writer.close_file();
     }
-  }
-  else if constexpr (DIST == DistType::LINEAR) {
-  }
+    }
   else  // DIST == DistType::NONE
   {
   }
