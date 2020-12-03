@@ -11,7 +11,8 @@ if (DCA_HAVE_CUDA)
             ctint/walker/walker_kernels.cu
             ctint/walker/tools/d_matrix_kernels.cu
             ctint/device_helper/ctint_helper.cu
-            ctint/walker/tools/g0_interpolation_gpu.cu
+	    # disable due to function.hpp inclusion in cuda code.
+	    # ctint/walker/tools/g0_interpolation_gpu.cu
 
             # CT-AUX
             ctaux/walker/ct_aux_walker_tools_kernels.cu
