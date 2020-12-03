@@ -68,7 +68,10 @@ public:
 protected:
   using Base::non_density_density_;
   using Base::n_bands_;
+  using Base::extension_index_offset_;
+  using Base::n_pos_frqs_;
   using Base::G4_;
+  using Base::channels_;
   using Base::G0_;
   using Base::G0_ptr_;
   using Base::G_;
@@ -129,8 +132,6 @@ public:
   }
 
 protected:
-  void initializeG0();
-
   double computeG();
 
   void computeGMultiband(int s, int k1, int k2, int w1, int w2);
@@ -158,14 +159,7 @@ protected:
 protected:
   CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  std::vector<FourPointType> channels_;
-
-
   int sign_;
-
-  const int extension_index_offset_ = -1;
-  const int n_pos_frqs_ = -1;
-
 private:
   // work spaces for computeGMultiband.
   Matrix G0_M_, G_a_, G_b_;
@@ -184,14 +178,6 @@ TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
               << "Reverting to no distribution.\n";
   }
 
-  initializeG0();
-
-  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
-  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
-  // are expensive).
-  for (auto channel : channels_) {
-    G4_.emplace_back("G4_" + toString(channel));
-  }
 }
 
 template <class Parameters, DistType DT>
@@ -199,21 +185,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::resetAccumulation(unsigned int 
   for (auto& G4_channel : G4_)
     G4_channel = 0.;
 
-  initializeG0();
-}
-
-template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, DT, linalg::CPU>::initializeG0() {
-  const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
-
-  for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
-    assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
-    for (int k = 0; k < KDmn::dmn_size(); ++k)
-      for (int s = 0; s < 2; ++s)
-        for (int b2 = 0; b2 < n_bands_; ++b2)
-          for (int b1 = 0; b1 < n_bands_; ++b1)
-            G0_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
-  }
+  Base::initializeG0();
 }
 
 template <class Parameters, DistType DT>
@@ -335,8 +307,13 @@ auto TpAccumulator<Parameters, DT, linalg::CPU>::getGSingleband(const int s, con
     return KDmn::parameter_type::subtract(k, k0);
   };
 
-  if (w1_ext >= n_pos_frqs_)
-    return G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+  if (w1_ext >= n_pos_frqs_) {
+    // \todo This check can be probably be dropped it worked around another bug
+    if (w2_ext < 0)
+      return G_(0, 0, s, k1, k2, plus_w1(w1_ext), plus_w1(w2_ext));
+    else
+      return G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+  }
   else
     return std::conj(G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext)));
 }
@@ -356,10 +333,18 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
   };
 
   if (w1_ext >= n_pos_frqs_) {
-    const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
-    for (int b2 = 0; b2 < n_bands_; ++b2)
-      for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    if (w2_ext < 0) {
+      const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), plus_w1(w2_ext));
+      for (int b2 = 0; b2 < n_bands_; ++b2)
+        for (int b1 = 0; b1 < n_bands_; ++b1)
+          G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    }
+    else {
+      const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+      for (int b2 = 0; b2 < n_bands_; ++b2)
+        for (int b1 = 0; b1 < n_bands_; ++b1)
+          G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    }
   }
   else {
     const Complex* const G_ptr =

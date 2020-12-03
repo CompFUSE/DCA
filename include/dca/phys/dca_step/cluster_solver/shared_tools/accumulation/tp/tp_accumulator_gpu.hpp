@@ -212,7 +212,7 @@ TpAccumulator<Parameters, DT, linalg::GPU>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : Base(G0, pars, thread_id),
-      BaseGpu(pars, Base::get_n_pos_frqs(), thread_id) {}
+      BaseGpu(G0, pars, Base::get_n_pos_frqs(), thread_id) {}
 
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::resetAccumulation(const unsigned int dca_loop) {

@@ -75,11 +75,12 @@ protected:
   using RMatrix =
       linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using RMatrixValueType = typename RMatrix::ValueType;
-
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
 public:
-  TpAccumulatorGpuBase(const Parameters& pars, int n_pos_frqs, int thread_id);
+  TpAccumulatorGpuBase(
+      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const Parameters& pars, int n_pos_frqs, int thread_id);
 
 protected:
   void initializeG4Helpers() const;
@@ -92,6 +93,7 @@ protected:
 
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
 
+  // \todo is this violation of single source of truth necessary.
   const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
@@ -129,15 +131,16 @@ protected:
 };
 
 template <class Parameters, DistType DT>
-TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(const Parameters& pars,
-                                                                    const int n_pos_frqs, int thread_id)
-    : n_pos_frqs_(n_pos_frqs),
+TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
+    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const Parameters& pars, const int n_pos_frqs, int thread_id)
+    : G0_ptr_(&G0),
+      n_pos_frqs_(n_pos_frqs),
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
-      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]),
-                       DftType(n_pos_frqs_, queues_[1])},
+      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
       nr_accumulators_(pars.get_accumulators()),
-                       thread_id_(thread_id) {
+      thread_id_(thread_id) {
   initializeG4Helpers();
 
   // Create shared workspaces.
@@ -221,12 +224,11 @@ float TpAccumulatorGpuBase<Parameters, DT>::computeM(
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulatorGpuBase<Parameters, DT>::sumTo_(TpAccumulatorGpuBase<Parameters,DT>& /*other_one*/) {
+void TpAccumulatorGpuBase<Parameters, DT>::sumTo_(TpAccumulatorGpuBase<Parameters, DT>& /*other_one*/) {
   // Nothing to do: G4 on the device is shared.
   synchronizeStreams();
   return;
 }
-
 
 }  // namespace accumulator
 }  // namespace solver

@@ -196,21 +196,31 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
 
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));
+
+  initializeG0();
+
+  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
+  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
+  // are expensive).
+  for (auto channel : channels_) {
+    G4_.emplace_back("G4_" + toString(channel));
+  }
+
 }
 
-// template <class Parameters, DistType DT>
-// void TpAccumulator<Parameters, linalg::CPU, DT>::initializeG0() {
-//   const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
+template <class Parameters, DistType DT>
+void TpAccumulatorBase<Parameters, DT>::initializeG0() {
+  const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
 
-//   for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
-//     assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
-//     for (int k = 0; k < KDmn::dmn_size(); ++k)
-//       for (int s = 0; s < 2; ++s)
-//         for (int b2 = 0; b2 < n_bands_; ++b2)
-//           for (int b1 = 0; b1 < n_bands_; ++b1)
-//             G0_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
-//   }
-// }
+  for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
+    assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
+    for (int k = 0; k < KDmn::dmn_size(); ++k)
+      for (int s = 0; s < 2; ++s)
+        for (int b2 = 0; b2 < n_bands_; ++b2)
+          for (int b1 = 0; b1 < n_bands_; ++b1)
+            G0_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
+  }
+}
 
 // template <class Parameters, DistType DT>
 // template <class Configuration, typename RealIn>
