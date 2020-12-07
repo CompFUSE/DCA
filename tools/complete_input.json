@@ -2,6 +2,7 @@
     "output": {
         "directory": "./",
         "autoresume" : true,
+        "output-format": "HDF5",
         "filename-dca": "dca.hdf5",
         "filename-analysis": "analysis.hdf5",
         "filename-ed": "ed.hdf5",

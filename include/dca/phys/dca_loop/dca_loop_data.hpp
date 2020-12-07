@@ -143,41 +143,34 @@ template <typename ParametersType>
 int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-    auto read_all = [&](auto&& reader) {
-      reader.open_file(filename);
-      reader.open_group("DCA-loop-functions");
+    io::Reader reader(format);
 
-      reader.execute("completed-iteration", last_completed_iteration);
+    reader.open_file(filename);
+    reader.open_group("DCA-loop-functions");
 
-      reader.execute(Gflop_per_mpi_task);
-      reader.execute(times_per_mpi_task);
-      reader.execute(Gflops_per_mpi_task);
+    reader.execute("completed-iteration", last_completed_iteration);
 
-      reader.execute(sign);
+    reader.execute(Gflop_per_mpi_task);
+    reader.execute(times_per_mpi_task);
+    reader.execute(Gflops_per_mpi_task);
 
-      reader.execute(L2_Sigma_difference);
-      reader.execute(standard_deviation);
+    reader.execute(sign);
 
-      reader.execute(chemical_potential);
-      reader.execute(density);
-      reader.execute(average_expansion_order);
+    reader.execute(L2_Sigma_difference);
+    reader.execute(standard_deviation);
 
-      reader.execute(Sigma_zero_moment);
+    reader.execute(chemical_potential);
+    reader.execute(density);
+    reader.execute(average_expansion_order);
 
-      reader.execute(n_k);
-      reader.execute(A_k);
-      reader.execute(orbital_occupancies);
+    reader.execute(Sigma_zero_moment);
 
-      reader.open_group("DCA-loop-functions");
-      reader.close_file();
-    };
+    reader.execute(n_k);
+    reader.execute(A_k);
+    reader.execute(orbital_occupancies);
 
-    if (format == "HDF5")
-      read_all(io::HDF5Reader());
-    else if (format == "JSON")
-      read_all(io::JSONReader());
-    else
-      throw(std::logic_error("Invalid format"));
+    reader.open_group("DCA-loop-functions");
+    reader.close_file();
   }
 
   concurrency.broadcast(last_completed_iteration);

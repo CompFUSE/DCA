@@ -65,8 +65,10 @@ inline cublasHandle_t getHandle(const int thread_id, const int stream_id) {
 
 #else
 
-inline void resizeHandleContainer(int max_threads) {
-  resizeStreamContainer(max_threads);
+
+inline void resizeHandleContainer(const std::size_t max_threads) {
+  if (getStreamContainer().get_max_threads() < max_threads)
+    resizeStreamContainer(max_threads);
 }
 
 #endif  // DCA_HAVE_CUDA

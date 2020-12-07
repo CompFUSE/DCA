@@ -325,11 +325,10 @@ private:
 
   bool config_initialized_;
 
-  linalg::util::CudaEvent sync_streams_event_;
-
   double sweeps_per_measurement_ = 1.;
-
   unsigned long n_steps_ = 0;
+
+  linalg::util::CudaEvent sync_streams_event_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>

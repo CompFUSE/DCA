@@ -123,10 +123,10 @@ private:
   std::array<MPI_Request, 2> recv_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
   std::array<MPI_Request, 2> send_requests_{MPI_REQUEST_NULL, MPI_REQUEST_NULL};
 
-#ifndef DCA_WITH_CUDA_AWARE_MPI
+#ifndef DCA_HAVE_CUDA_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 };
 
 template <class Parameters>
@@ -372,7 +372,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -387,7 +387,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::send(const std::arra
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), target, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 }
 
 template <class Parameters>
@@ -396,7 +396,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_CUDA_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), source, thread_id_ + 1,
               MPI_COMM_WORLD, &request[s]);
@@ -414,7 +414,7 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::receive(
     cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
                cudaMemcpyHostToDevice);
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_CUDA_AWARE_MPI
 }
 
 }  // namespace accumulator

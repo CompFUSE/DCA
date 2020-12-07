@@ -44,8 +44,8 @@ public:
     return true;
   }
 
-  void open_file(std::string file_name_ref, bool overwrite = true) {
-    std::visit([&](auto& var) { var.open_file(file_name_ref, overwrite); }, writer_);
+  void open_file(const std::string& file_name, bool overwrite = true) {
+    std::visit([&](auto& var) { var.open_file(file_name, overwrite); }, writer_);
   }
 
   void close_file() {
