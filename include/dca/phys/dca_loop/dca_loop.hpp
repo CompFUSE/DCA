@@ -139,14 +139,17 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
       update_chemical_potential_obj(parameters_, data_, cluster_mapping_obj),
 
-      output_file_(concurrency_.id() == concurrency_.first()
-                       ? std::make_shared<io::Writer>(parameters_.get_output_format(), false)
-                       : nullptr),
 
       monte_carlo_integrator_(parameters_ref, data_, output_file_) {
-  dca::util::SignalHandler::registerFile(output_file_);
+  if (concurrency_.id() == concurrency_.first()) {
+    file_name_ = parameters_.get_directory() + parameters_.get_filename_dca();
 
-  std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
+    output_file_ = std::make_shared<io::Writer>(parameters_.get_output_format(), false);
+
+    dca::util::SignalHandler::registerFile(output_file_);
+
+    std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
+  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
@@ -192,7 +195,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::initialize() 
     readInitialStatus(parameters_.get_initial_self_energy());
   }
 
-  if (concurrency_.id() == concurrency_.first()) {
+  if (output_file_) {
     output_file_->open_file(file_name_ + ".tmp", parameters_.autoresume() ? false : true);
   }
 }
