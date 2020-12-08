@@ -61,6 +61,9 @@ public:
   __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
                                      unsigned& b4, unsigned& k1, unsigned& w1, unsigned& k2,
                                      unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
+  // Unroll the linear index of G4 as a function of k1, k2, k_ex, w1, w2, w_ex.
+  __device__ inline void unrollIndex(std::size_t index, unsigned& k1, unsigned& w1, unsigned& k2,
+                                     unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
 
 protected:
   std::size_t sbdm_steps_[10];
@@ -90,16 +93,16 @@ inline __device__ int G4Helper::wexMinus(const int w_idx, const int w_ex_idx) co
 
 inline __device__ int G4Helper::addKex(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return solver::details::cluster_momentum_helper.add(k_idx, k_ex);
+  return solver::cluster_momentum_helper.add(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kexMinus(const int k_idx, const int k_ex_idx) const {
   const int k_ex = k_ex_indices_[k_ex_idx];
-  return solver::details::cluster_momentum_helper.subtract(k_idx, k_ex);
+  return solver::cluster_momentum_helper.subtract(k_idx, k_ex);
 }
 
 inline __device__ int G4Helper::kMinus(const int k_idx) const {
-  return solver::details::cluster_momentum_helper.minus(k_idx);
+  return solver::cluster_momentum_helper.minus(k_idx);
 }
 
 inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
@@ -138,7 +141,24 @@ __device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, un
   b4 = unroll(3);
   b3 = unroll(2);
   b2 = unroll(1);
-  b1 = unroll(0);
+  b1 = index;
+}
+
+__device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& k1, unsigned& w1,
+                                             unsigned& k2, unsigned& w2, unsigned& k_ex,
+                                             unsigned& w_ex) const {
+  auto unroll = [&](const unsigned dimension) {
+    unsigned result = index / sbdm_steps_[dimension];
+    index -= result * sbdm_steps_[dimension];
+    return result;
+  };
+
+  w_ex = unroll(9);
+  k_ex = unroll(8);
+  w2 = unroll(7);
+  k2 = unroll(6);
+  w1 = unroll(5);
+  k1 = index;
 }
 
 }  // namespace details

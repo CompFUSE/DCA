@@ -204,16 +204,13 @@ TEST(VectorCPUTest, setAsync) {
   dca::linalg::Vector<int, dca::linalg::GPU> vec_copy;
   dca::linalg::Vector<int, dca::linalg::CPU> vec_copy_copy;
 
-  cudaStream_t stream;
-  cudaStreamCreate(&stream);
+  dca::linalg::util::CudaStream stream;
 
   vec_copy.setAsync(vec, stream);
   vec_copy_copy.setAsync(vec_copy, stream);
-  cudaStreamSynchronize(stream);
+  stream.sync();
 
   EXPECT_EQ(vec.size(), vec_copy_copy.size());
   for (int i = 0; i < vec.size(); ++i)
     EXPECT_EQ(vec[i], vec_copy_copy[i]);
-
-  cudaStreamDestroy(stream);
 }

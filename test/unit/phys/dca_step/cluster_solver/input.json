@@ -6,57 +6,45 @@
     "output-ED"  : "ed_results.hdf5",
     "output-QMC" : "output_QMC.hdf5"
   },
-
   "physics" :
   {
     "beta"                      :  2,
     "chemical-potential"        : 0
   },
-
   "bilayer-Hubbard-model":
   {
     "t"       : 1,
     "U"       : 2
   },
-
-  "Hund-model":
-  {
+  "Hund-model": {
     "t"       : 1,
     "U"       : 1,
     "V"       : 1,
     "Jh"      : 2
   },
-
-  "single-band-Hubbard-model":
-  {
+  "single-band-Hubbard-model": {
     "t"       : 1,
     "U"       : 2
   },
-
   "domains": {
     "real-space-grids": {
       "cluster": [[2, 0],
         [0, 2]]
     },
-
     "imaginary-time": {
       "sp-time-intervals": 512
     },
-
     "imaginary-frequency": {
       "sp-fermionic-frequencies": 512,
       "four-point-fermionic-frequencies" : 8
     }
   },
-
   "four-point": {
     "type": "NONE",
     "momentum-transfer": [0., 3.1415],
     "frequency-transfer": 2
   },
-
-  "Monte-Carlo-integration" :
-  {
+  "Monte-Carlo-integration" : {
     "Sigma-file" : "zero",
 
     "warm-up-sweeps"         : 100,
@@ -64,7 +52,6 @@
     "measurements" : 500,
     "seed" : 0
   },
-
   "CT-INT" :
   {
     "initial-configuration-size" :5,

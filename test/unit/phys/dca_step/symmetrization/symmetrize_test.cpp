@@ -88,10 +88,10 @@ TEST_F(SymmetrizeTest, G0_t) {
   G0_r_t = dca::func::util::real(G0_r_t_cmplx, true);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute<Lattice>(G0_k_t, H_symmetry_, true);
-  dca::phys::symmetrize::execute<Lattice>(G0_r_t, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_t, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_t, H_symmetry_, true);
 
-  EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
+  EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }
 
 TEST_F(SymmetrizeTest, G0_w) {
@@ -104,8 +104,8 @@ TEST_F(SymmetrizeTest, G0_w) {
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute<Lattice>(G0_k_w, H_symmetry_, true);
-  dca::phys::symmetrize::execute<Lattice>(G0_r_w, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_w, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_w, H_symmetry_, true);
 
-  EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
+  EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }

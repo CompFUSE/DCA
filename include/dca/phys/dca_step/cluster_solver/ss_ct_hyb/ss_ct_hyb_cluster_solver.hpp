@@ -61,7 +61,8 @@ public:
   static constexpr linalg::DeviceType device = device_t;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref,
+                       const std::shared_ptr<io::HDF5Writer>& = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -84,6 +85,8 @@ public:
   // For testing purposes.
   // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
+
+  void setSampleConfiguration(const io::Buffer&) {}
 
 protected:  // Interface to the thread jacket.
   using DataType = Data;
@@ -120,9 +123,9 @@ protected:
   void computeErrorBars();
 
 protected:  // Interface to the thread jacket.
-  ParametersType& parameters_;
+  const ParametersType& parameters_;
   Data& data_;
-  Concurrency& concurrency_;
+  const Concurrency& concurrency_;
 
   Accumulator accumulator_;
   double total_time_;
@@ -144,7 +147,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
+    parameters_type& parameters_ref, Data& data_ref, const std::shared_ptr<io::HDF5Writer>& /*writer*/)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
@@ -410,9 +413,9 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute<Lattice>(accumulator_.get_G_r_w(), data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(accumulator_.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(accumulator_.get_GS_r_w(), data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
   std::vector<int> flavors = parameters_type::model_type::flavors();
   assert(flavors.size() == b::dmn_size());
@@ -464,7 +467,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
 
   compute_Sigma_new(accumulator_.get_G_r_w(), accumulator_.get_GS_r_w());
 
-  symmetrize::execute<Lattice>(Sigma_new, data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(Sigma_new, data_.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
@@ -495,7 +498,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
     }
   }
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<parameters_type>::execute(data_.Sigma, data_.H_symmetry);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;
@@ -570,8 +573,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
   return GS_r_w;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP

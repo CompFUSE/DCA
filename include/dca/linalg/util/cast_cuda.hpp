@@ -16,50 +16,11 @@
 #include <complex>
 #include <cuComplex.h>
 
+#include "dca/linalg/matrix_view.hpp"
+
 namespace dca {
 namespace linalg {
-namespace util {
-// dca::linalg::util::
-
-// returns a cuComplex pointer.
-inline cuComplex** castCudaComplex(std::complex<float>** ptr) {
-  return reinterpret_cast<cuComplex**>(ptr);
-}
-inline cuComplex* castCudaComplex(std::complex<float>* ptr) {
-  return reinterpret_cast<cuComplex*>(ptr);
-}
-inline cuComplex* castCudaComplex(std::complex<float>& el) {
-  return castCudaComplex(&el);
-}
-inline const cuComplex* const* castCudaComplex(const std::complex<float>* const* ptr) {
-  return reinterpret_cast<const cuComplex* const*>(ptr);
-}
-inline const cuComplex* castCudaComplex(const std::complex<float>* ptr) {
-  return reinterpret_cast<const cuComplex*>(ptr);
-}
-inline const cuComplex* castCudaComplex(const std::complex<float>& el) {
-  return castCudaComplex(&el);
-}
-
-// returns a cuDoubleComplex pointer.
-inline cuDoubleComplex** castCudaComplex(std::complex<double>** ptr) {
-  return reinterpret_cast<cuDoubleComplex**>(ptr);
-}
-inline cuDoubleComplex* castCudaComplex(std::complex<double>* ptr) {
-  return reinterpret_cast<cuDoubleComplex*>(ptr);
-}
-inline cuDoubleComplex* castCudaComplex(std::complex<double>& el) {
-  return castCudaComplex(&el);
-}
-inline const cuDoubleComplex* const* castCudaComplex(const std::complex<double>* const* ptr) {
-  return reinterpret_cast<const cuDoubleComplex* const*>(ptr);
-}
-inline const cuDoubleComplex* castCudaComplex(const std::complex<double>* ptr) {
-  return reinterpret_cast<const cuDoubleComplex*>(ptr);
-}
-inline const cuDoubleComplex* castCudaComplex(const std::complex<double>& el) {
-  return castCudaComplex(&el);
-}
+// dca::linalg::
 
 // Provides a templated typedef.
 namespace details {
@@ -72,7 +33,17 @@ struct ComplexContainer<double> {
 };
 template <>
 struct ComplexContainer<float> {
-  using type = cuFloatComplex;
+  using type = cuComplex;
+};
+
+template <class T>
+struct CudaConvert {
+  using type = T;
+};
+
+template <class T>
+struct CudaConvert<std::complex<T>> {
+  using type = typename ComplexContainer<T>::type;
 };
 }  // namespace details
 // dca::linalg::util::
@@ -80,7 +51,49 @@ struct ComplexContainer<float> {
 template <typename Real>
 using CudaComplex = typename details::ComplexContainer<Real>::type;
 
-}  // namespace util
+template <typename T>
+using CudaConvert = typename details::CudaConvert<T>::type;
+
+template <class T>
+__device__ __host__ static auto& castCuda(T& x) {
+  return reinterpret_cast<CudaConvert<T>&>(x);
+}
+
+template <class T>
+__device__ __host__ static const auto& castCuda(const T& x) {
+  return reinterpret_cast<const CudaConvert<T>&>(x);
+}
+
+template <class T>
+__device__ __host__ static auto* castCuda(T* x) {
+  return reinterpret_cast<CudaConvert<T>*>(x);
+}
+
+template <class T>
+__device__ __host__ static const auto* castCuda(const T* x) {
+  return reinterpret_cast<const CudaConvert<T>*>(x);
+}
+
+template <class T>
+__device__ __host__ static auto* castCuda(T** x) {
+  return reinterpret_cast<CudaConvert<T>**>(x);
+}
+
+template <class T>
+__device__ __host__ static auto* castCuda(T const* const* x) {
+  return reinterpret_cast<CudaConvert<T> const* const*>(x);
+}
+
+template <class T>
+__device__ __host__ static auto& castCuda(MatrixView<T, GPU>& x) {
+  return reinterpret_cast<MatrixView<CudaConvert<T>, GPU>&>(x);
+}
+
+template <class T>
+__device__ __host__ static const auto& castCuda(const MatrixView<T, GPU>& x) {
+  return reinterpret_cast<const MatrixView<CudaConvert<T>, GPU>&>(x);
+}
+
 }  // namespace linalg
 }  // namespace dca
 

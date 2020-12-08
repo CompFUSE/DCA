@@ -85,7 +85,7 @@ private:
       func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, func::dmn_0<LocalWDmn>>>;
 
 public:
-  CoarsegrainingSp(Parameters& parameters_ref);
+  CoarsegrainingSp(const Parameters &parameters_ref);
 
   // Computes the coarse-grained G(K, w) using H_0 and chemichal potential stored in the parameters.
   template <class SigmaType,
@@ -111,8 +111,8 @@ private:
 
   bool checkSpinSymmetry() const;
 
-  Parameters& parameters_;
-  Concurrency& concurrency_;
+  const Parameters& parameters_;
+  const Concurrency& concurrency_;
   Gang gang_;
 
   std::vector<func::function<std::complex<ScalarType>, NuNuDmn>> H0_q_;
@@ -135,7 +135,7 @@ private:
 };
 
 template <typename Parameters>
-CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
+CoarsegrainingSp<Parameters>::CoarsegrainingSp(const Parameters &parameters_ref)
     : coarsegraining_routines<Parameters>(parameters_ref),
       tetrahedron_integration<Parameters>(parameters_ref),
 

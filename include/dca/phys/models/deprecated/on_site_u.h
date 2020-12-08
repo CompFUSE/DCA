@@ -77,7 +77,7 @@ public:
           vertex.get_bands().first, vertex.get_e_spins().first);
       vertex.get_spin_orbitals().second = domains::convert<int, nu>::spin_orbital(
           vertex.get_bands().second, vertex.get_e_spins().second);
-    } while (std::fabs(H_interactions(vertex.get_spin_orbitals().first,
+    } while (std::abs(H_interactions(vertex.get_spin_orbitals().first,
                                       vertex.get_spin_orbitals().second, origin)) < 1.e-3);
 
     int r_site = int(r_dmn_type::get_size() * concurrency.get_random_number());

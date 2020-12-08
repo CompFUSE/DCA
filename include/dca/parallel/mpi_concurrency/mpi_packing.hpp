@@ -28,7 +28,7 @@ class MPIPacking : public virtual MPIProcessorGrouping {
 public:
   MPIPacking() {}
 
-  template <typename scalar_type>
+  template <typename scalar_type, typename = std::enable_if_t<std::is_scalar_v<scalar_type>>>
   int get_buffer_size(scalar_type item) const;
   template <typename scalar_type>
   int get_buffer_size(const std::basic_string<scalar_type>& str) const;
@@ -41,7 +41,7 @@ public:
   template <typename scalar_type, class dmn_type>
   int get_buffer_size(const func::function<scalar_type, dmn_type>& f) const;
 
-  template <typename scalar_type>
+  template <typename scalar_type, typename = std::enable_if_t<std::is_scalar_v<scalar_type>>>
   void pack(char* buffer, int size, int& off_set, scalar_type item) const;
   template <typename scalar_type>
   void pack(char* buffer, int size, int& off_set, const std::basic_string<scalar_type>& str) const;
@@ -57,7 +57,7 @@ public:
   void pack(char* buffer, int size, int& off_set,
             const func::function<scalar_type, dmn_type>& f) const;
 
-  template <typename scalar_type>
+  template <typename scalar_type, typename = std::enable_if_t<std::is_scalar_v<scalar_type>>>
   void unpack(char* buffer, int size, int& off_set, scalar_type& item) const;
   template <typename scalar_type>
   void unpack(char* buffer, int size, int& off_set, std::basic_string<scalar_type>& str) const;
@@ -72,7 +72,7 @@ public:
   void unpack(char* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
 };
 
-template <typename scalar_type>
+template <typename scalar_type, typename>
 int MPIPacking::get_buffer_size(scalar_type /*item*/) const {
   int size(0);
 
@@ -175,7 +175,7 @@ int MPIPacking::get_buffer_size(const func::function<scalar_type, dmn_type>& f) 
   return result;
 }
 
-template <typename scalar_type>
+template <typename scalar_type, typename>
 void MPIPacking::pack(char* buffer, int size, int& off_set, scalar_type item) const {
   const scalar_type* tPtr(&item);
 
@@ -263,7 +263,7 @@ void MPIPacking::pack(char* buffer, int size, int& off_set,
            MPIProcessorGrouping::get());
 }
 
-template <typename scalar_type>
+template <typename scalar_type, typename>
 void MPIPacking::unpack(char* buffer, int size, int& off_set, scalar_type& item) const {
   scalar_type tmp;
 

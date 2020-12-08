@@ -154,7 +154,7 @@ void ModelParameters<models::TightBindingModel<models::HundLattice<PointGroup>>>
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 
-  if (reader_or_writer.is_reader())
+  if constexpr (ReaderOrWriter::is_reader)
     std::cout << "\n\n"
               << "\tHund-model : \n"
               << "\t--------------- \n\n"

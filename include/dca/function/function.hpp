@@ -32,6 +32,7 @@
 #include "dca/function/set_to_zero.hpp"
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/integer_division.hpp"
+#include "dca/util/print_type.hpp"
 #include "dca/util/type_utils.hpp"
 
 namespace dca {
@@ -64,6 +65,8 @@ public:
   function(const function<scalartype, domain>& other, const std::string& name) : function(other) {
     name_ = name;
   }
+  template <typename Scalar2>
+  function(const function<Scalar2, domain>& other);
 
   // Move constructor
   // Constructs the function with elements and name of other using move semantics.
@@ -82,9 +85,9 @@ public:
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
   // Postcondition: The function's name is unchanged.
-  function<scalartype, domain>& operator=(const function<scalartype, domain>& other);
+  function& operator=(const function& other);
   template <typename Scalar2>
-  function<scalartype, domain>& operator=(const function<Scalar2, domain>& other);
+  function& operator=(const function<Scalar2, domain>& other);
 
   // Move assignment operator
   // Replaces the function's elements with those of other using move semantics.
@@ -105,7 +108,6 @@ public:
   const std::string& get_name() const {
     return name_;
   }
-  // TODO: Remove this method and use constructor parameter instead.
   void set_name(const std::string& name) {
     name_ = name;
   }
@@ -120,10 +122,19 @@ public:
   void resize(std::size_t nb_elements_new) {
     fnc_values_.resize(nb_elements_new);
   }
+
+  // TODO: use a more standard method name.
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
   int operator[](const int index) const {
     return size_sbdm[index];
+  }
+
+  const auto& getDomainSizes() const noexcept {
+    return size_sbdm;
+  }
+  const std::vector<scalartype>& getValues() const noexcept {
+    return fnc_values_;
   }
 
   // Begin and end methods for compatibility with range for loop.
@@ -133,10 +144,10 @@ public:
   auto end() {
     return fnc_values_.end();
   }
-  const auto begin() const {
+  auto begin() const {
     return fnc_values_.begin();
   }
-  const auto end() const {
+  auto end() const {
     return fnc_values_.end();
   }
 
@@ -183,7 +194,7 @@ public:
   // Enable only if all arguments are integral to prevent subind_to_linind(int*, int) to resolve to
   // subind_to_linind(int...) rather than subind_to_linind(const int* const, int).
   template <typename... Ts>
-  std::enable_if_t<util::if_all<std::is_integral<Ts>::value...>::value, int> subind_2_linind(
+  std::enable_if_t<util::ifAll(std::is_integral<Ts>::value...), int> subind_2_linind(
       const Ts... subindices) const {
     // We need to cast all subindices to the same type for dmn_variadic.
     return dmn(static_cast<int>(subindices)...);
@@ -341,6 +352,24 @@ function<scalartype, domain>::function(const function<scalartype, domain>& other
 }
 
 template <typename scalartype, class domain>
+template <typename Scalar2>
+function<scalartype, domain>::function(const function<Scalar2, domain>& other)
+    : name_(other.get_name()),
+      function_type(__PRETTY_FUNCTION__),
+      dmn(),
+      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      size_sbdm(dmn.get_leaf_domain_sizes()),
+      step_sbdm(dmn.get_leaf_domain_steps()),
+      fnc_values_(dmn.get_size()) {
+  if (size() != other.size()) {
+    // The other function has not been resetted after the domain was initialized.
+    throw std::logic_error("Copy construction from a not yet resetted function.");
+  }
+
+  std::copy(other.begin(), other.end(), begin());
+}
+
+template <typename scalartype, class domain>
 function<scalartype, domain>::function(function<scalartype, domain>&& other)
     : name_(std::move(other.name_)),
       function_type(__PRETTY_FUNCTION__),
@@ -355,8 +384,7 @@ function<scalartype, domain>::function(function<scalartype, domain>&& other)
 }
 
 template <typename scalartype, class domain>
-function<scalartype, domain>& function<scalartype, domain>::operator=(
-    const function<scalartype, domain>& other) {
+function<scalartype, domain>& function<scalartype, domain>::operator=(const function& other) {
   if (this != &other) {
     if (dmn.get_size() != other.dmn.get_size()) {
       // Domain had not been initialized when the functions were created.
@@ -378,10 +406,17 @@ template <typename Scalar, class domain>
 template <typename Scalar2>
 function<Scalar, domain>& function<Scalar, domain>::operator=(const function<Scalar2, domain>& other) {
   if (size() != other.size()) {
-    throw(std::logic_error("Function size does not match."));
+    // Domain had not been initialized when the functions were created.
+    // Reset this function and check again.
+    reset();
   }
 
-  fnc_values_ = other.fnc_values_;
+  if (size() != other.size()) {
+    // The other function has not been resetted after the domain was initialized.
+    throw std::logic_error("Copy assignment from a not yet resetted function.");
+  }
+
+  std::copy(other.begin(), other.end(), begin());
 
   return *this;
 }

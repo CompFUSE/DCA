@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
@@ -115,6 +116,8 @@ public:
     return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
+  void write(io::Writer& writer, const std::string& stamp) const;
+
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
 
@@ -125,7 +128,7 @@ private:
   template <class Rng>
   bool doDoubleUpdate(Rng& rng) const;
 
-  const double double_insertion_prob_ = 0;
+  double double_insertion_prob_ = 0;
 
   std::vector<Vertex> vertices_;
   // Connection from Vertices to MatrixConfiguration elements.
@@ -139,8 +142,8 @@ private:
   std::vector<const details::VertexTypeList*> partners_lists_;
 
   unsigned short last_insertion_size_ = 1;
-  const double max_tau_ = 0;
-  const int n_bands_ = 0;
+  double max_tau_ = 0;
+  int n_bands_ = 0;
 
   dca::util::RandomAccessMap<std::size_t, unsigned> anhilatable_indices_;
   std::uint64_t current_tag_ = 0;

@@ -52,8 +52,8 @@ public:
   void execute_after_solver();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   MOMS_type& MOMS;
 

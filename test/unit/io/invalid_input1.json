@@ -1,0 +1,11 @@
+{
+  "group 1" : {
+    "group 11" : {
+      "scalar" : 3.1456,
+      "int" : 42
+    },
+
+    "missing comma" : "ciao"
+    "next field" : 42
+  }
+}

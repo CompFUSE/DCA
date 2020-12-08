@@ -49,6 +49,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/print_type.hpp"
 
 namespace dca {
@@ -77,6 +78,9 @@ public:
   using model_type = Model;
   using lattice_type = typename Model::lattice_type;
 
+  constexpr static bool complex_g0 = lattice_type::complex_g0;
+  using MCScalar = util::Scalar<config::McOptions::single_precision, complex_g0>;
+
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -103,12 +107,10 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using TP_measurement_scalar_type = config::McOptions::TPAccumulationScalar;
-
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>
-  void write(Writer& writer);
+  void write(Writer& writer) const;
   template <typename Reader>
   void read_input_and_broadcast(const std::string& file_name);
 
@@ -178,9 +180,11 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 template <typename Writer>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::write(
-    Writer& writer) {
+    Writer& writer) const {
   writer.open_group("parameters");
-  this->readWrite(writer);
+  const_cast<Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>*>(
+      this)
+      ->readWrite(writer);
   writer.close_group();
 
   writer.open_group("domains");
@@ -369,7 +373,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 template <typename ReaderOrWriter>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::readWrite(
     ReaderOrWriter& reader_or_writer) {
-  if (reader_or_writer.is_writer()) {
+  if (ReaderOrWriter::is_writer) {
     reader_or_writer.execute("date", date_);
     reader_or_writer.execute("time", time_);
     reader_or_writer.execute("compiler", compiler_);
@@ -393,6 +397,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   PhysicsParameters::readWrite(reader_or_writer);
 
   solveDcaIterationConflict(get_dca_iterations());
+  solveConfigReadConflict(get_directory_config_read() != "");
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

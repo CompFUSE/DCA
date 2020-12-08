@@ -1,6 +1,6 @@
 {
   "physics": {
-    "beta"                      :  10,
+    "beta"                      :  4,
     "chemical-potential"        : 0
   },
 

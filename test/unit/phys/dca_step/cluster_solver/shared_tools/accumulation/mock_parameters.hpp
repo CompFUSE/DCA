@@ -22,7 +22,7 @@ template <class BaseTestSetup, typename AccumType>
 struct MockParameters {
 public:
   using profiler_type = dca::profiling::NullProfiler;
-  using MC_measurement_scalar_type = AccumType;
+  using MCScalar = AccumType;
 
   using RClusterDmn = typename BaseTestSetup::RDmn;
 

@@ -22,6 +22,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "dca/util/signal_handler.hpp"
+#include "dca/application/dca_loop_dispatch.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -95,7 +96,7 @@ int main(int argc, char** argv) {
     }
   }
   catch (const std::exception& err) {
-    std::cout << "Unhandled exception in main function:\n\t" << err.what();
+    std::cout << "Unhandled exception in main function:\n\t" << err.what() << std::endl;
     concurrency.abort();
   }
 

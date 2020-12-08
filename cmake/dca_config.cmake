@@ -73,9 +73,9 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | threeband | FeAs.")
+    hund | twoband_Cu | threeband | FeAs | Rashba.")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
-             FeAs)
+             FeAs Rashba)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -99,22 +99,24 @@ elseif (DCA_LATTICE STREQUAL "threeband")
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp")
 
-elseif (DCA_LATTICE STREQUAL "twoband_chain")
-  set(DCA_LATTICE_TYPE dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<1>>)
-  set(DCA_LATTICE_INCLUDE
-      "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "FeAs")
   set(DCA_LATTICE_TYPE dca::phys::models::FeAsLattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
+
 elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 
+elseif (DCA_LATTICE STREQUAL "Rashba")
+  set(DCA_LATTICE_TYPE dca::phys::models::RashbaHubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+          "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp")
+
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | threeband | FeAs.")
+          hund | twoband_Cu | threeband | FeAs | Rashba.")
 endif()
 
 # Model type
@@ -307,21 +309,13 @@ else()
 endif()
 
 option(DCA_WITH_SINGLE_PRECISION_MC "Perform Monte Carlo and measurements in single precision." OFF)
-option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure two particle function in single precision." OFF)
 
 if (DCA_WITH_SINGLE_PRECISION_MC)
   set(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS ON CACHE BOOL "Measure two particle function in single precision." FORCE)
-  set(MC_SCALAR float)
+  set(MC_SINGLE_PRECISION true)
 else()
-  set(MC_SCALAR double)
+  set(MC_SINGLE_PRECISION false)
 endif()
-
-if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-  set(TP_ACCUMULATION_SCALAR float)
-else()
-  set(TP_ACCUMULATION_SCALAR double)
-endif()
-
 
 option(DCA_WITH_MANAGED_MEMORY "Use managed memory allocator." OFF)
 mark_as_advanced(DCA_WITH_MANAGED_MEMORY)
@@ -334,15 +328,6 @@ endif()
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
-
-################################################################################
-# Symmetrization
-option(DCA_SYMMETRIZE "Apply cluster, time and frequency symmetries to single particle functions."
-       ON)
-
-if(DCA_SYMMETRIZE)
-  add_compile_definitions(DCA_WITH_SYMMETRIZATION)
-endif()
 
 ################################################################################
 # Generate applications' config files.

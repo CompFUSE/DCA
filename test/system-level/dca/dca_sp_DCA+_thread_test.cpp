@@ -18,9 +18,9 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/stdthread/stdthread.hpp"
@@ -42,14 +42,14 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_baseline = false;
-
 TEST(dca_sp_DCAplus_thread, Self_energy) {
 #ifdef ATTACH_DEBUG
   std::cout << "Please press <return> after attaching debugger" << std::endl;
   char c;
   std::cin >> c;
 #endif  // ATTACH_DEBUG
+
+  constexpr bool update_baseline = false;
 
   using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using DcaPointGroupType = dca::phys::domains::D4;
@@ -104,37 +104,34 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   dca_loop.execute();
   dca_loop.finalize();
 
-  std::cout << "\nChecking data.\n" << std::endl;
-  auto& Sigma_DCA = dca_data.Sigma;
-
-  // Read QMC self-energy from check_data file and compare it with the newly
-  // computed QMC self-energy.
   const std::string filename =
       DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_thread_test.hdf5";
 
-  if (!update_baseline) {
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
+  if constexpr (!update_baseline) {
+    std::cout << "\nChecking data.\n" << std::endl;
+
+    // Read self-energy from check_data file.
+    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(filename);
     reader.open_group("functions");
-    reader.execute(Sigma_QMC_check);
+    ASSERT_TRUE(reader.execute(Sigma_check));
     reader.close_file();
 
-    auto diff = dca::func::util::difference(Sigma_QMC_check, Sigma_DCA);
-    EXPECT_GT(1e-10, diff.l_inf);
+    // Compare the computed self-energy with the expected result.
+    const auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
+    EXPECT_GT(1e-10, diff.l2);
   }
   else {
-    // Write results
-    std::cout << "\nWriting data " << std::endl;
-
     dca::io::HDF5Writer writer;
     writer.open_file(filename);
     writer.open_group("functions");
-    Sigma_DCA.set_name("Self_Energy");
-    writer.execute(Sigma_DCA);
-    writer.close_group();
-    writer.close_file();
+    writer.execute(dca_data.Sigma);
   }
-  std::cout << "\nDCA main ending.\n" << std::endl;
+
+  std::cout << "\nWriting data." << std::endl;
+  dca_loop.write();
+
+  std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
 }

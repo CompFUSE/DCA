@@ -14,6 +14,7 @@
 #ifndef DCA_MATH_UTIL_VECTOR_OPERATIONS_HPP
 #define DCA_MATH_UTIL_VECTOR_OPERATIONS_HPP
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <complex>
@@ -270,6 +271,24 @@ auto operator+(const std::vector<T>& x, const std::vector<T>& y) {
 template <typename T>
 auto operator-(const std::vector<T>& x, const std::vector<T>& y) {
   return subtract(y, x);  // Note: subtract(x, y) is defined as y - x;
+}
+
+template <class T, class Alloc, class Pred>
+void erase_if(std::vector<T, Alloc>& vec, Pred&& pred) {
+  vec.erase(std::remove_if(vec.begin(), vec.end(), pred), vec.end());
+}
+
+template <class T, class Alloc, class Pred>
+void erase_with_reorder_if(std::vector<T, Alloc>& vec, Pred&& pred) {
+  for (auto it = vec.begin(); it != vec.end();) {
+    if (pred(*it)) {
+      std::swap(*it, vec.back());
+      vec.pop_back();
+    }
+    else {
+      ++it;
+    }
+  }
 }
 
 // Returns true if pred evaluates to true for any element of v. Returns false if v is empty.

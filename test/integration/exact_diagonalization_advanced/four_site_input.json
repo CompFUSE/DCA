@@ -25,6 +25,7 @@
     },
 
     "ED": {
-        "eigenvalue-cut-off": 1.e-14
+        "eigenvalue-cut-off": 1.e-14,
+        "threads" : 4
     }
 }

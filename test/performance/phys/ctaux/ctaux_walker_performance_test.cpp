@@ -53,8 +53,8 @@ using Concurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
-using Real = dca::config::McOptions::MCScalar;
-using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;
+using Real = dca::config::McOptions::Real;
+using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data>;
 
 int main(int argc, char** argv) {
   int submatrix_size = -1;

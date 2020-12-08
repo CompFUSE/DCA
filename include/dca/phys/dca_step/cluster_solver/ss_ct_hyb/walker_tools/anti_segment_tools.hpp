@@ -1,6 +1,11 @@
-// Copyright (C) 2010 Philipp Werner
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
 //
-// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Bart Ydens
 //
 // This class implements the insertion and removal of antisegments \f$(c-c^{\dagger} pair)\f$.
 //
@@ -270,7 +275,7 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_on
   assert(vertices.size() == 1);
   typename orbital_configuration_type::iterator s_down = vertices.begin();
 
-  double det_rat = std::fabs(M(this_flavor)(0, 0));
+  double det_rat = std::abs(M(this_flavor)(0, 0));
 
   double length = s_down->t_start() - s_down->t_end();
   if (length < 0)

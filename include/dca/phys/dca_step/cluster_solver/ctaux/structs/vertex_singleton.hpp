@@ -41,7 +41,7 @@ public:
   this_type& operator=(const this_type& other_vertex_couple);
 
   template <class configuration_type>
-  const vertex_singleton& get_partner(configuration_type& configuration) const;
+  vertex_singleton& get_partner(configuration_type& configuration);
 
   int get_band() const {
     return band;
@@ -106,14 +106,14 @@ private:
   int delta_r;
   double tau;
 
-  HS_spin_states_type HS_spin;  // Auxiliary spin.
-  HS_field_sign_type HS_field;  // Marker to denote if it is the first or second singleton of a pair.
+  HS_spin_states_type HS_spin;
+  HS_field_sign_type HS_field;
 
   int configuration_index;
 };
 
 template <class configuration_type>
-const vertex_singleton& vertex_singleton::get_partner(configuration_type& configuration) const {
+vertex_singleton& vertex_singleton::get_partner(configuration_type& configuration) {
   e_spin_states_type e_spin;
   int configuration_e_spin;
 
@@ -131,9 +131,9 @@ const vertex_singleton& vertex_singleton::get_partner(configuration_type& config
   return configuration.get(e_spin)[configuration_e_spin];
 }
 
-}  // namespace ctaux
-}  // namespace solver
-}  // namespace phys
-}  // namespace dca
+}  // ctaux
+}  // solver
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_VERTEX_SINGLETON_HPP

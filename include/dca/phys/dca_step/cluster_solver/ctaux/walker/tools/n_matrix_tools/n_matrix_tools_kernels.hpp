@@ -19,18 +19,18 @@ namespace ctaux {
 namespace nkernels {
 // dca::phys::solver::ctaux::nkernels::
 
-template <typename Real>
-void compute_G_cols(int N_i, int N_r, int N_c, int* p_ptr, Real* exp_V_ptr, Real* N_ptr,
-                    int N_ld, Real* G_ptr, int G_ld, Real* G_cols_ptr, int G_cols_ld,
+template<class T>
+void compute_G_cols(int N_i, int N_r, int N_c, const int* p_ptr, const T* exp_V_ptr, const T* N_ptr,
+                    int N_ld, const T* G_ptr, int G_ld, T* G_cols_ptr, int G_cols_ld,
                     int thread_id, int stream_id);
 
-template <typename Real>
-void compute_d_vector(int N_i, int* d_ind, Real* d_ptr, int* p_ptr, Real* N_ptr, int N_ld,
+template<class T>
+void compute_d_vector(int N_i, const int* d_ind, T* d_ptr, int* p_ptr, const T* N_ptr, int N_ld,
                       int thread_id, int stream_id);
-}  // namespace nkernels
-}  // namespace ctaux
-}  // namespace solver
-}  // namespace phys
-}  // namespace dca
+}  // nkernels
+}  // ctaux
+}  // solver
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_N_MATRIX_TOOLS_N_MATRIX_TOOLS_KERNELS_HPP

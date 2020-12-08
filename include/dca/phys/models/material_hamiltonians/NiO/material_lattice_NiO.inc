@@ -16,6 +16,9 @@
 template <typename point_group_type>
 class material_lattice<NiO_symmetric, point_group_type> {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
 
@@ -239,6 +242,9 @@ void material_lattice<NiO_symmetric, point_group_type>::initializeH0(
 template <typename point_group_type>
 class material_lattice<NiO_unsymmetric, point_group_type> {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
 

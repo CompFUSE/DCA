@@ -70,6 +70,10 @@ public:
     return stream_;
   }
 
+  operator const CudaStream&() const {
+    return getStream();
+  }
+
   void swap(MagmaQueue& rhs) noexcept {
     std::swap(stream_, rhs.stream_);
     std::swap(cublas_handle_, rhs.cublas_handle_);

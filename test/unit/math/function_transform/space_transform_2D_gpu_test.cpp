@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include <string>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"

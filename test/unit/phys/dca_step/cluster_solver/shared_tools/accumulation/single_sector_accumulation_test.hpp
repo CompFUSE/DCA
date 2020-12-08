@@ -27,6 +27,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace testing {
@@ -59,6 +60,7 @@ public:
       throw(std::out_of_range(__FUNCTION__));
     return (j - i + size) % size;
   }
+
   static const auto& get_subtract_matrix() {
     auto initialize_subtract_matrix = []() {
       linalg::Matrix<int, linalg::CPU> m(size);
@@ -67,9 +69,27 @@ public:
           m(i, j) = subtract(i, j);
       return m;
     };
+    static auto sub_matrix = initialize_subtract_matrix();
+    return sub_matrix;
+  }
 
-    static const auto m_diff = initialize_subtract_matrix();
-    return m_diff;
+  static int add(int i, int j) {
+    if (i >= size || j >= size)
+      throw(std::out_of_range(__FUNCTION__));
+    return (j + i) % size;
+  }
+
+  static const auto& get_add_matrix() {
+    auto initialize_add_matrix = []() {
+      linalg::Matrix<int, linalg::CPU> m(size);
+      for (int j = 0; j < size; ++j)
+        for (int i = 0; i < size; ++i)
+          m(i, j) = add(i, j);
+      return m;
+    };
+
+    static const auto m_add = initialize_add_matrix();
+    return m_add;
   }
 };
 
@@ -106,9 +126,10 @@ namespace {
 bool single_sector_accumulator_test_initialized = false;
 }  // namespace
 
-template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
+template <typename Scalar = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
+  using Real = dca::util::Real<Scalar>;
   using Complex = std::complex<Real>;
 
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
@@ -117,12 +138,12 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
 
-  static double get_beta() {
+  static Real get_beta() {
     return beta_;
   }
 
@@ -161,8 +182,8 @@ protected:
   Matrix M_;
 };
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfiguration(
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+void SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::prepareConfiguration(
     Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n) {
   config.resize(n);
   M.resize(n);
@@ -178,25 +199,27 @@ void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfig
   for (int j = 0; j < n; ++j)
     for (int i = 0; i < n; ++i) {
       M(i, j) = 2 * rng() - 1.;
+      if constexpr (dca::util::IsComplex<Scalar>::value)
+        M(i, j).imag(2 * rng() - 1.);
     }
 }
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+auto SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
     -> F_w_w {
   F_w_w f_w("2D frequency transform baseline.");
-  const std::complex<double> imag(0, 1);
+  const Complex imag(0, 1);
 
   for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
-    const double w_val2 = FreqDmn::get_elements()[w_ind2];
+    const Real w_val2 = FreqDmn::get_elements()[w_ind2];
     for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
-      const double w_val1 = FreqDmn::get_elements()[w_ind1];
+      const Real w_val1 = FreqDmn::get_elements()[w_ind1];
       for (int j = 0; j < configuration_.size(); ++j) {
-        const auto t_val2 = configuration_[j].get_tau();
+        const Real t_val2 = configuration_[j].get_tau();
         const int b2 = configuration_[j].b_;
         const int r2 = configuration_[j].r_;
         for (int i = 0; i < configuration_.size(); ++i) {
-          const auto t_val1 = configuration_[i].get_tau();
+          const Real t_val1 = configuration_[i].get_tau();
           const int b1 = configuration_[i].b_;
           const int r1 = configuration_[i].r_;
 

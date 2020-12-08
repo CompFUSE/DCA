@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
@@ -85,7 +86,9 @@ TEST(HamiltonianTest, ConstructHamiltonian) {
   fock_obj.initialize_rep();
 
   phys::solver::ed::Hamiltonian<Parameters, EdOptions> hamiltonian_obj(params);
-  hamiltonian_obj.initialize(H_0, H_int);
+  auto H_0_real = dca::func::util::real(H_0, true);
+
+  hamiltonian_obj.initialize(H_0_real, H_int);
   hamiltonian_obj.construct_Hamiltonians(true);  // true: include the interaction part.
 
   Matrix ham_matrix_ref = referenceHamiltonian(t, U, params.get_chemical_potential());

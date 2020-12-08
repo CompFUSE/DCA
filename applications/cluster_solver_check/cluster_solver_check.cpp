@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     ed_solver.finalize(dca_loop_data);
 
     const auto Sigma_ed(dca_data_imag.Sigma);
-    const int tested_frequencies = 10;
+    const int tested_frequencies = 5;
     const auto G_ed(dca::math::util::cutFrequency(dca_data_imag.G_k_w, tested_frequencies));
 
     if (concurrency.id() == concurrency.first()) {

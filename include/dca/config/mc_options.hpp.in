@@ -12,6 +12,8 @@
 #ifndef DCA_CONFIG_MC_OPTIONS_HPP
 #define DCA_CONFIG_MC_OPTIONS_HPP
 
+#include <complex>
+#include <type_traits>
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/util/allocators/device_allocator.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
@@ -22,9 +24,9 @@ namespace config {
 // dca::config::
 
 struct McOptions {
-  using MCScalar = @MC_SCALAR@;
-
-  using TPAccumulationScalar = @TP_ACCUMULATION_SCALAR@;
+  static constexpr bool single_precision = @MC_SINGLE_PRECISION@;
+  using Real = std::conditional_t<single_precision, float, double>;
+  using Complex = std::complex<Real>;
 
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
 

@@ -52,7 +52,7 @@ namespace dca {
 
     void apply_symmetries();
 
-    void apply_particle_particle_symmetry_on_G4_k_k_w_w();
+    void apply_particle_particle_symmetry_on_G4();
 
     void load_G4_b_k_w__b_k_w();
     void load_G4_0_b_k_w__b_k_w();
@@ -184,12 +184,12 @@ namespace dca {
 //   {
 // //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
 // //       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// // 	if(std::abs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
 // //     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
 // //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// //       	if(std::abs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -233,7 +233,7 @@ namespace dca {
 	      chi_0_function(l1,l2,k1,w1) = G4_0_b_k_w__b_k_w(l1,l2,k1,w1, l1,l2,k1,w1);
     }
 
-    make_G4_matrix<parameter_type, MOMS_type>::execute(MOMS.G4_k_k_w_w, G4_b_k_w__b_k_w);
+    make_G4_matrix<parameter_type, MOMS_type>::execute(MOMS.G4, G4_b_k_w__b_k_w);
 
     compute_Gamma_b_k_w__b_k_w();
 
@@ -286,11 +286,11 @@ namespace dca {
 
     symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
 
-//     cout << "symmetrize MOMS.G4_k_k_w_w" << endl;
-//     symmetrize::execute(MOMS.G4_k_k_w_w, MOMS.H_symmetry, parameters.get_q_vector(), false);
+//     cout << "symmetrize MOMS.G4" << endl;
+//     symmetrize::execute(MOMS.G4, MOMS.H_symmetry, parameters.get_q_vector(), false);
 
 //     if(parameters.get_vertex_measurement_type() == PARTICLE_PARTICLE_UP_DOWN)
-//       apply_particle_particle_symmetry_on_G4_k_k_w_w();
+//       apply_particle_particle_symmetry_on_G4();
   }
     
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
@@ -399,7 +399,7 @@ namespace dca {
 	  cout.precision(6);
 	  cout << "\t ---> (leading) j=" << i 
 	       << "\t sval = "           << sqrt(square(1.0 - real(eigenvals[eigenvals.size()-1-i].first)) + square(imag(eigenvals[eigenvals.size()-1-i].first)))
-	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << std::fabs(imag(eigenvals[eigenvals.size()-1-i].first));
+	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << std::abs(imag(eigenvals[eigenvals.size()-1-i].first));
 
 	  cout << "\t|\t";
 	  for(int psi=0; psi<3; psi++)

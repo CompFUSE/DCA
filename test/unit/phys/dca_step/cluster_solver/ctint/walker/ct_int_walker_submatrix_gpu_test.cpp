@@ -44,9 +44,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   using Parameters = typename TestFixture::Parameters;
 
   using SbmWalkerCpu =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, Real, dca::linalg::CPU>;
   using SbmWalkerGpu =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::GPU, Real>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, Real, dca::linalg::GPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
@@ -56,8 +56,8 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   auto& parameters = TestFixture::parameters_;
 
   const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t);
-  ctint::G0Interpolation<CPU, Real> g0_cpu(g0_func);
-  ctint::G0Interpolation<GPU, Real> g0_gpu(g0_func);
+  G0Interpolation<CPU, Real> g0_cpu(g0_func);
+  G0Interpolation<GPU, Real> g0_gpu(g0_func);
   typename TestFixture::LabelDomain label_dmn;
 
   // TODO: improve API.

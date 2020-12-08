@@ -29,8 +29,8 @@ class nfft_time_domain {
 public:
   const static int DIMENSION = 1;
 
-  using scalar_type = typename dnfft_type::ElementType;
-  using element_type = typename dnfft_type::ElementType;
+  using scalar_type = typename dnfft_type::Real;
+  using element_type = typename dnfft_type::Real;
 
   typedef transform::domain_specifications<scalar_type, element_type, transform::DISCRETE,
                                            transform::KRONECKER_DELTA, transform::PERIODIC,

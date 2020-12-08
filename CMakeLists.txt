@@ -122,6 +122,7 @@ set(DCA_LIBS
   ctaux
   ctint
   ss_ct_hyb
+  g0_interpolation
   function_transform
   gaussian_quadrature
   nfft
@@ -140,9 +141,7 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   signals
-  symmetrization
   coarsegraining
-  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
@@ -152,10 +151,10 @@ set(DCA_LIBS
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS
     blas_kernels
-    dnfft_kernels
     lapack_kernels
     mc_kernels
     special_transform_kernels
+    cuda_utils
     ${DCA_CUDA_LIBS})
 endif()
 

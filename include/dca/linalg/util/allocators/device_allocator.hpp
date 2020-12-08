@@ -44,8 +44,13 @@ protected:
   void deallocate(T*& ptr, std::size_t /*n*/ = 0) noexcept {
     cudaError_t ret = cudaFree(ptr);
     if (ret != cudaSuccess) {
-      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
-      std::terminate();
+      if (ret == cudaErrorCudartUnloading) {
+        // std::cerr << "Warning: deallocating CUDA DEVICE memory after device shutdown" << std::endl;
+      }
+      else {
+        printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
+        std::terminate();
+      }
     }
     ptr = nullptr;
   }
@@ -55,8 +60,8 @@ public:
   void setStream(const cudaStream_t /*stream*/) const {}
 };
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_ALLOCATORS_DEVICE_ALLOCATOR_HPP

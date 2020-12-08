@@ -492,7 +492,7 @@ namespace DCA
     if(concurrency.id()==concurrency.last())
       std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
-    dca::make_G4_matrix  <parameters_type, MOMS_type>::execute(MOMS.G4_k_k_w_w, G4);
+    dca::make_G4_matrix  <parameters_type, MOMS_type>::execute(MOMS.G4, G4);
 
     dca::make_G4_0_matrix<parameters_type, MOMS_type>::execute(parameters, MOMS.G_k_w, G4_0);
 
@@ -1033,11 +1033,11 @@ namespace DCA
 
 //           std::cout << "    ---> (leading) j = " << i
 //           << "    sval = "             << sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))
-//           << "    eigenval = "         << real(lambda) << " ; " << std::fabs(imag(lambda))
+//           << "    eigenval = "         << real(lambda) << " ; " << std::abs(imag(lambda))
 //           << "    |    ";
 
         std::cout << "    ---> lambda_" << i << " = "
-             << real(lambda)                    << " ; " << std::fabs(imag(lambda))              << "    |    "
+             << real(lambda)                    << " ; " << std::abs(imag(lambda))              << "    |    "
              << std::abs(leading_phi_t_chi_0_phi(i)) << " , " << std::abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
 
         for(int H_ind=0; H_ind<N_HARMONICS; H_ind++)

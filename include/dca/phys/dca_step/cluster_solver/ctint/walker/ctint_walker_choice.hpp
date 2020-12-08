@@ -26,35 +26,35 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 namespace {
-template <linalg::DeviceType device, class Parameters, bool use_submatrix, typename Real>
+template <linalg::DeviceType device, class Parameters, bool use_submatrix, typename Scalar>
 struct CtintWalkerChoicheSelector;
 
-template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real>;
+template <class Parameters, typename Scalar>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true, Scalar> {
+  using type = CtintWalkerSubmatrixCpu<Parameters, Scalar>;
 };
-template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real> {
-  using type = CtintWalker<linalg::CPU, Parameters, Real>;
+template <class Parameters, typename Scalar>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Scalar> {
+  using type = CtintWalker<linalg::CPU, Parameters, Scalar>;
 };
 
 #ifdef DCA_HAVE_CUDA
-template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real>;
+template <class Parameters, typename Scalar>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Scalar> {
+  using type = CtintWalkerSubmatrixGpu<Parameters, Scalar>;
 };
 
-template <class Parameters, typename Real>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real> {
+template <class Parameters, typename Scalar>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Scalar> {
   // There is only a submatrix implementation of the GPU walker.
 };
 #endif  // DCA_HAVE_CUDA
 
 }  // namespace
 
-template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Real>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix, typename Scalar>
 using CtintWalkerChoice =
-    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix, Real>::type;
+    typename CtintWalkerChoicheSelector<device_t, Parameters, use_submatrix, Scalar>::type;
 
 }  // namespace ctint
 }  // namespace solver

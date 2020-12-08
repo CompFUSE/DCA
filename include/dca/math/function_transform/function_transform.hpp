@@ -22,6 +22,7 @@
 #include "dca/math/function_transform/special_transforms/space_to_momentum.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/util/type_list.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace math {

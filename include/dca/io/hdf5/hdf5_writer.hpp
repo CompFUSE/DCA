@@ -45,12 +45,8 @@ public:
 
   ~HDF5Writer();
 
-  constexpr bool is_reader() {
-    return false;
-  }
-  constexpr bool is_writer() {
-    return true;
-  }
+  constexpr static bool is_reader = false;
+  constexpr static bool is_writer = true;
 
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
@@ -59,6 +55,8 @@ public:
   void close_group();
 
   std::string get_path();
+
+  void erase(const std::string& name);
 
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
@@ -110,6 +108,12 @@ public:
 
   void execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
+  }
+
+  template <class T>
+  void rewrite(const std::string& name, const T& obj) {
+    erase(name);
+    execute(name, obj);
   }
 
   operator bool() const noexcept {

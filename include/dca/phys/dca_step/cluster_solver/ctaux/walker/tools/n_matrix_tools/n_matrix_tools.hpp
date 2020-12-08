@@ -29,7 +29,7 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 // Empty class template
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
+template <dca::linalg::DeviceType device_t, class Parameters>
 class N_MATRIX_TOOLS {};
 
 // Specialization for CPU

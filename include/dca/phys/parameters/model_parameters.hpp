@@ -28,6 +28,7 @@
 // #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 
@@ -63,6 +64,9 @@ class ModelParameters {};
 
 // Specialization for twoband Cu model
 #include "twoband_Cu_parameters.inc"
+
+// Specialization for Rashba-Hubbard model
+#include "model_parameters_rashba_hubbard.inc"
 
 #include "model_parameters_singleband_chain.inc"
 #include "model_parameters_twoband_chain.inc"

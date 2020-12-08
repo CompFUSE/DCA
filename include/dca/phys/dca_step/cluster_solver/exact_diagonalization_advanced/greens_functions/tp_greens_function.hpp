@@ -96,8 +96,9 @@ public:
   using TpGreensFunctionData = typename Data::TpGreensFunction;
 
 public:
-  TpGreensFunction(parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
-                   fermionic_overlap_type& overlap_ref);
+  TpGreensFunction(const parameters_type &parameters_ref,
+                   fermionic_Hamiltonian_type &Hamiltonian_ref,
+                   fermionic_overlap_type &overlap_ref);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -169,8 +170,8 @@ private:
   //                                                      >&                            G4);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   double CUT_OFF;
 
@@ -227,8 +228,8 @@ private:
 
 template <typename parameters_type, typename ed_options>
 TpGreensFunction<parameters_type, ed_options>::TpGreensFunction(
-    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
-    fermionic_overlap_type& overlap_ref)
+        const parameters_type &parameters_ref, fermionic_Hamiltonian_type &Hamiltonian_ref,
+        fermionic_overlap_type &overlap_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -291,7 +292,7 @@ TpGreensFunction<parameters_type, ed_options>::TpGreensFunction(
   {
     for (int i = 0; i < WVertexDmn::dmn_size(); i++)
       for (int j = 0; j < WVertexDmn_EXTENDED::dmn_size(); j++)
-        if (std::fabs(WVertexDmn::get_elements()[i] - WVertexDmn_EXTENDED::get_elements()[j]) < 1.e-6)
+        if (std::abs(WVertexDmn::get_elements()[i] - WVertexDmn_EXTENDED::get_elements()[j]) < 1.e-6)
           w_vertex_2_w_vertex_ext(i) = j;
   }
 }

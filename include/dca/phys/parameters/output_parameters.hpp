@@ -202,10 +202,6 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   }
   catch (const std::exception& r_e) {
   }
-
-  if (autoresume_ && output_format_ != "HDF5") {
-    throw(std::logic_error("Autoresume requires HDF5 output."));
-  }
 }
 
 }  // namespace params

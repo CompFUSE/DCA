@@ -46,11 +46,11 @@ public:
   static const int DIMENSION = Lattice::DIMENSION;
   static const int BANDS = Lattice::BANDS;
 
-  static double* get_r_DCA_basis();
-  static double* get_k_DCA_basis();
+  static const double* get_r_DCA_basis();
+  static const double* get_k_DCA_basis();
 
-  static double* get_r_LDA_basis();
-  static double* get_k_LDA_basis();
+  static const double* get_r_LDA_basis();
+  static const double* get_k_LDA_basis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -105,15 +105,13 @@ std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_DCA_basis() {
-  static double* r_DCA = Lattice::initializeRDCABasis();
-  return r_DCA;
+const double* TightBindingModel<Lattice>::get_r_DCA_basis() {
+  return Lattice::initializeRDCABasis();
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_LDA_basis() {
-  static double* r_LDA = Lattice::initializeRLDABasis();
-  return r_LDA;
+const double* TightBindingModel<Lattice>::get_r_LDA_basis() {
+  return Lattice::initializeRLDABasis();
 }
 
 template <typename Lattice>

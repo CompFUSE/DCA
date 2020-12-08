@@ -14,42 +14,53 @@
 #include <memory>
 #include <type_traits>
 
-#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
-#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
-#include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
+#include "dca/function/function.hpp"
+#include "dca/function/domains/dmn_0.hpp"
+#include "dca/function/domains/dmn_variadic.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace dca {
 namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <class Lattice>
-static constexpr bool has_non_density_interaction = false;
+using NuDmn = func::dmn_variadic<func::dmn_0<domains::electron_band_domain>,
+                                 func::dmn_0<domains::electron_spin_domain>>;
 
-template <class BaseLattice>
-static constexpr bool has_non_density_interaction<HundLattice<BaseLattice>> = true;
+template <class Parameters>
+using NonDensityIntHamiltonian =
+    func::function<double,
+                   func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
 
-template <class BaseLattice>
-static constexpr bool has_non_density_interaction<FeAsLattice<BaseLattice>> = true;
+// Class to detect if class T implements the templated "initializeNonDensityInteraction" method.
+template <class Pars>
+class HasInitializeNonDensityInteractionMethod {
+private:
+  template <typename U>
+  static std::true_type test(decltype(&U::lattice_type::template initializeNonDensityInteraction<U>));
+  template <typename U>
+  static std::false_type test(...);
 
-template <class PointGroup>
-static constexpr bool has_non_density_interaction<TwoBandCu<PointGroup>> = true;
+public:
+  constexpr static bool value = decltype(test<Pars>(nullptr))::value;
+};
 
-template <class Lattice, class HType, class Parameters>
-std::enable_if_t<has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
-    HType& interaction, const Parameters& pars) {
-  Lattice::initializeNonDensityInteraction(interaction, pars);
+template <class Parameters>
+std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
+    NonDensityIntHamiltonian<Parameters>& interaction, const Parameters& pars) {
+  Parameters::lattice_type::initializeNonDensityInteraction(interaction, pars);
+}
+
+template <class Lattice, class Parameters>
+std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
+    std::unique_ptr<NonDensityIntHamiltonian<Parameters>>& interaction, const Parameters& pars) {
+  interaction = std::make_unique<NonDensityIntHamiltonian<Parameters>>();
+  Parameters::lattice_type::initializeNonDensityInteraction(*interaction, pars);
 }
 
 template <class Lattice, class HType, class Parameters>
-std::enable_if_t<has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
-    std::unique_ptr<HType>& interaction, const Parameters& pars) {
-  interaction = std::make_unique<HType>();
-  Lattice::initializeNonDensityInteraction(*interaction, pars);
-}
-
-template <class Lattice, class HType, class Parameters>
-std::enable_if_t<!has_non_density_interaction<Lattice>> initializeNonDensityInteraction(
+std::enable_if_t<!HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
 
 }  // namespace models

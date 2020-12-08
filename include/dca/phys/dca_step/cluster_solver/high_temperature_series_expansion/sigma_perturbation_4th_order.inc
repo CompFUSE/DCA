@@ -33,7 +33,7 @@ public:
   using U_function_type = typename compute_interaction::function_type;
 
 public:
-  sigma_perturbation(parameters_type& parameters_ref, compute_interaction& interaction_obj,
+  sigma_perturbation(const parameters_type& parameters_ref, compute_interaction& interaction_obj,
                      compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
                      compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj);
 
@@ -74,8 +74,8 @@ private:
   int add_freq_bf(int, int);       // boson+fermion
 
 protected:
-  parameters_type& parameters;
-  concurrency_t& concurrency;
+  const parameters_type& parameters;
+  const concurrency_t& concurrency;
 
   U_function_type& U;
 
@@ -97,7 +97,7 @@ protected:
 
 template <class parameters_type, class k_dmn_t>
 sigma_perturbation<4, parameters_type, k_dmn_t>::sigma_perturbation(
-    parameters_type& parameters_ref, compute_interaction& interaction_obj,
+    const parameters_type& parameters_ref, compute_interaction& interaction_obj,
     compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
     compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj)
     : parameters(parameters_ref),
@@ -213,7 +213,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
     for (int q_ind = 0; q_ind < k_dmn_t::dmn_size(); ++q_ind) {
       int nu_c = (nu_ind - WVertexBosonicDmn::dmn_size() / 2);
 
-      for (int w_ind = std::fabs(nu_c); w_ind < w::dmn_size() - std::fabs(nu_c); ++w_ind) {
+      for (int w_ind = std::abs(nu_c); w_ind < w::dmn_size() - std::abs(nu_c); ++w_ind) {
         for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
           int k_minus_q = k_dmn_t::parameters_type::subtract(q_ind, k_ind);
           int w_minus_nu = w_ind - nu_c;

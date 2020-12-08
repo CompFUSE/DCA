@@ -38,12 +38,8 @@ public:
 
   ~HDF5Reader();
 
-  bool is_reader() {
-    return true;
-  }
-  bool is_writer() {
-    return false;
-  }
+  constexpr static bool is_reader = true;
+  constexpr static bool is_writer = false;
 
   void open_file(std::string file_name);
   void close_file();

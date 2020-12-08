@@ -35,6 +35,9 @@ namespace models {
 template <typename SymmetryGroup>
 class ThreebandHubbard {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   using LDA_point_group = domains::no_symmetry<2>;
   using DCA_point_group = SymmetryGroup;
   // typedef PointGroupType DCA_point_group;
