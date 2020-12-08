@@ -52,20 +52,26 @@ struct MeanType<std::complex<T>, typename std::enable_if_t<std::is_floating_poin
   using type = std::complex<T>;
 };
 
-}  // details
+}  // namespace details
 
 template <typename T>
 class Accumulator {
+public:
   using SampleType = T;
   using MeanType = typename details::MeanType<T>::type;
   using CountType = std::size_t;
 
-public:
   Accumulator() : count_{}, sum_{} {}
 
   void addSample(const SampleType& sample) {
     sum_ += sample;
     ++count_;
+  }
+
+  Accumulator& operator+=(const Accumulator& other) {
+    count_ += other.count_;
+    sum_ += other.sum_;
+    return *this;
   }
 
   CountType count() const {
@@ -90,14 +96,21 @@ public:
     sum_ = {};
   }
 
+  template <class Concurrency>
+  void sumConcurrency(const Concurrency& concurrency) {
+    // TODO: delay
+    concurrency.sum(count_);
+    concurrency.sum(sum_);
+  }
+
 private:
   CountType count_;
   SampleType sum_;
 };
 
-}  // util
-}  // solver
-}  // phys
-}  // dca
+}  // namespace util
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_UTIL_ACCUMULATOR_HPP

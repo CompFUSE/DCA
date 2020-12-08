@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -108,7 +107,7 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
 
-  queue.sync();
+  queue.getStream().sync();
 
   constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 500;
 

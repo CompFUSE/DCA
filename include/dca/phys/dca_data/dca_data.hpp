@@ -25,13 +25,12 @@
 #include <utility>
 #include <vector>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
-#include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
-#include "dca/io/json/json_reader.hpp"
-#include "dca/io/json/json_writer.hpp"
+#include "dca/io/reader.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/util/vector_operations.hpp"
@@ -104,17 +103,15 @@ public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
-  template <typename Reader>
-  void read(Reader& reader);
+  void read(io::Reader& reader);
 
-  void write(std::string filename);
   template <typename Writer>
-  void write(Writer& reader);
+  void write(Writer& writer);
 
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
-  void initialize_Sigma();
+  void initializeSigma(const std::string& filename);
 
   void compute_single_particle_properties();
   void compute_Sigma_bands();
@@ -306,10 +303,15 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
-    // Allocate memory for G4.
-    G4_.emplace_back("G4_" + toString(channel));
-    // Allocate memory for error on G4.
-    G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    // Allocate memory for G4, eventually distributed among all processes.
+    if (parameters_.get_g4_distribution() == DistType::MPI) {
+      G4_.emplace_back("G4_" + toString(channel), concurrency_);
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err", concurrency_);
+    }
+    else {
+      G4_.emplace_back("G4_" + toString(channel));
+      G4_err_.emplace_back("G4_" + toString(channel) + "_err");
+    }
   }
 }
 
@@ -318,29 +320,13 @@ void DcaData<Parameters>::read(std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
-  if (concurrency_.id() == concurrency_.first()) {
-    const std::string& output_format = parameters_.get_output_format();
+  dca::io::Reader reader(parameters_.get_output_format());
 
-    if (output_format == static_cast<const std::string>("JSON")) {
-      dca::io::JSONReader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else if (output_format == static_cast<const std::string>("HDF5")) {
-      dca::io::HDF5Reader reader;
-      reader.open_file(filename);
-      this->read(reader);
-      reader.close_file();
-    }
-
-    else
-      throw std::logic_error(__FUNCTION__);
-  }
+  reader.open_file(filename);
+  read(reader);
+  reader.close_file();
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
-
   concurrency_.broadcast_object(Sigma);
 
   if (parameters_.isAccumulatingG4()) {
@@ -352,8 +338,7 @@ void DcaData<Parameters>::read(std::string filename) {
 }
 
 template <class Parameters>
-template <typename Reader>
-void DcaData<Parameters>::read(Reader& reader) {
+void DcaData<Parameters>::read(io::Reader& reader) {
   reader.open_group("parameters");
 
   reader.open_group("physics");
@@ -379,36 +364,6 @@ void DcaData<Parameters>::read(Reader& reader) {
   }
 
   reader.close_group();
-}
-
-template <class Parameters>
-void DcaData<Parameters>::write(std::string file_name) {
-  std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
-
-  const std::string& output_format = parameters_.get_output_format();
-
-  if (output_format == static_cast<const std::string>("JSON")) {
-    dca::io::JSONWriter writer;
-    writer.open_file(file_name);
-
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else if (output_format == static_cast<const std::string>("HDF5")) {
-    dca::io::HDF5Writer writer;
-    writer.open_file(file_name);
-
-    parameters_.write(writer);
-    this->write(writer);
-
-    writer.close_file();
-  }
-
-  else
-    throw std::logic_error(__FUNCTION__);
 }
 
 template <class Parameters>
@@ -475,7 +430,10 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters_.isAccumulatingG4()) {
+  // When distributed_g4_enabled, one should assume G4 size is fairly large and then should not
+  // accumulate G4 into one node and thus cannot write it out
+  // Until ADIOS2 is added
+  if (parameters_.isAccumulatingG4() && parameters_.get_g4_distribution() == DistType::NONE) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_err_);
@@ -561,12 +519,10 @@ void DcaData<Parameters>::initialize_G0() {
 }
 
 template <class Parameters>
-void DcaData<Parameters>::initialize_Sigma() {
-  if (parameters_.get_initial_self_energy() == "zero")
-    return;
-
-  auto initialize = [&](auto&& reader) {
-    reader.open_file(parameters_.get_initial_self_energy());
+void DcaData<Parameters>::initializeSigma(const std::string& filename) {
+  if (concurrency_.id() == concurrency_.first()) {
+    io::Reader reader(parameters_.get_output_format());
+    reader.open_file(filename);
 
     if (parameters_.adjust_chemical_potential()) {
       reader.open_group("parameters");
@@ -579,16 +535,6 @@ void DcaData<Parameters>::initialize_Sigma() {
     reader.open_group("functions");
     reader.execute(Sigma);
     reader.close_group();
-  };
-
-  if (concurrency_.id() == 0) {
-    const std::string& format = parameters_.get_output_format();
-    if (format == "HDF5")
-      initialize(io::HDF5Reader());
-    else if (format == "JSON")
-      initialize(io::JSONReader());
-    else
-      throw std::logic_error(__FUNCTION__);
   }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());

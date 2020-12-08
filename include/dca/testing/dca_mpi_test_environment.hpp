@@ -23,10 +23,10 @@ namespace testing {
 struct DcaMpiTestEnvironment : public ::testing::Environment {
   using ConcurrencyType = dca::parallel::MPIConcurrency;
 
-  DcaMpiTestEnvironment(int argc, char* argv[], std::string file_name)
-      : concurrency(argc, argv), input_file_name(file_name) {}
+  DcaMpiTestEnvironment(ConcurrencyType& con, std::string file_name)
+      : concurrency(con), input_file_name(file_name) {}
 
-  ConcurrencyType concurrency;
+  ConcurrencyType& concurrency;
   std::string input_file_name;
 };
 

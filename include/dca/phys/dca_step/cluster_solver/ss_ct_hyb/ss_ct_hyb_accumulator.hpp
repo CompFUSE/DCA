@@ -74,7 +74,7 @@ public:
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
 public:
-  SsCtHybAccumulator(parameters_type& parameters_ref, Data& data_ref, int id = 0);
+  SsCtHybAccumulator(const parameters_type& parameters_ref, Data& data_ref, int id = 0);
 
   void initialize(int dca_iteration);
 
@@ -142,9 +142,9 @@ protected:
   using MC_accumulator_data::current_sign;
   using MC_accumulator_data::accumulated_sign;
 
-  parameters_type& parameters_;
+  const parameters_type& parameters_;
   Data& data_;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   int thread_id;
 
@@ -165,7 +165,7 @@ protected:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(parameters_type& parameters_ref,
+SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(const parameters_type& parameters_ref,
                                                                         Data& data_ref, int id)
     : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 

@@ -14,12 +14,8 @@
 
 #include <vector>
 
-#include <mpi.h>
-
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/parallel/mpi_concurrency/mpi_gang.hpp"
-#include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 #include "dca/util/integer_division.hpp"
 
 namespace dca {

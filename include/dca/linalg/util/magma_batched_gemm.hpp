@@ -54,7 +54,6 @@ public:
 
 private:
   const linalg::util::MagmaQueue& queue_;
-  const linalg::util::CudaStream& stream_;
   CudaEvent copied_;
 
   linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
@@ -66,7 +65,7 @@ private:
 
 template <typename ScalarType>
 MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(const linalg::util::MagmaQueue& queue)
-    : queue_(queue), stream_(queue_) {}
+    : queue_(queue) {}
 
 template <typename ScalarType>
 MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(const int size, magma_queue_t queue)
@@ -101,10 +100,10 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
                                            const ScalarType beta, const int lda, const int ldb,
                                            const int ldc) {
   // TODO: store in a buffer if the performance gain is necessary.
-  a_ptr_dev_.setAsync(a_ptr_, stream_);
-  b_ptr_dev_.setAsync(b_ptr_, stream_);
-  c_ptr_dev_.setAsync(c_ptr_, stream_);
-  copied_.record(stream_);
+  a_ptr_dev_.setAsync(a_ptr_, queue_.getStream());
+  b_ptr_dev_.setAsync(b_ptr_, queue_.getStream());
+  c_ptr_dev_.setAsync(c_ptr_, queue_.getStream());
+  copied_.record(queue_);
 
   const int n_batched = a_ptr_.size();
   magma::magmablas_gemm_batched(transa, transb, m, n, k, alpha, a_ptr_dev_.ptr(), lda,

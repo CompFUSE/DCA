@@ -134,8 +134,8 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/lattice_model.hpp.in"
 
 ################################################################################
 # Select the profiler type and enable auto-tuning.
-set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
-set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI)
+set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI | Cuda.")
+set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI Cuda)
 
 if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILING_EVENT_TYPE dca::profiling::time_event<std::size_t>)
@@ -148,6 +148,14 @@ elseif (DCA_PROFILER STREQUAL "PAPI")
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
   set(DCA_PROFILER_TYPE dca::profiling::CountingProfiler<Event>)
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
+
+# Note: this profiler requires using the PTHREAD library and CUDA_TOOLS_EXT_LIBRARY
+elseif (DCA_PROFILER STREQUAL "Cuda")
+  set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/time.hpp")
+  set(DCA_PROFILING_EVENT_TYPE "void")
+  set(DCA_PROFILER_TYPE dca::profiling::CudaProfiler)
+  set(DCA_PROFILER_INCLUDE "dca/profiling/cuda_profiler.hpp")
+  link_libraries(${CUDA_nvToolsExt_LIBRARY})
 
 else()  # DCA_PROFILER = None
   # The NullProfiler doesn't have an event type.
@@ -201,20 +209,34 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
 ################################################################################
 # Select the cluster solver.
 set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
-  "The cluster solver for the DCA(+) loop. Options are: CT-AUX | SS-CT-HYB.")
-set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB)
+  "The cluster solver for the DCA(+) loop. Options are: CT-AUX | CT-INT | SS-CT-HYB.")
+set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX CT-INT SS-CT-HYB)
 
-if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
+if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
+  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_INT)
+  set(DCA_CLUSTER_SOLVER_INCLUDE "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp")
+
+  set(DCA_USE_CTINT_SUBMATRIX ON CACHE BOOL "Use submatrix updates if the CT-INT solver is selected.")
+  if(DCA_USE_CTINT_SUBMATRIX)
+    set(DCA_CLUSTER_SOLVER_TYPE
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
+  else()
+    set(DCA_CLUSTER_SOLVER_TYPE
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, false>")
+  endif()
+
+elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
+      "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
+
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
+        "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
 # elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
 #   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::HIGH_TEMPERATURE_SERIES)
@@ -222,7 +244,8 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
 #     "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
+  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | CT_INT |
+          SS-CT-HYB.")
 endif()
 
 ################################################################################
@@ -237,7 +260,7 @@ option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in 
 
 if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
-  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
+  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType<DIST>>)
   set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
 endif()
@@ -311,6 +334,15 @@ endif()
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
+
+################################################################################
+# Symmetrization
+option(DCA_SYMMETRIZE "Apply cluster, time and frequency symmetries to single particle functions."
+       ON)
+
+if(DCA_SYMMETRIZE)
+  add_compile_definitions(DCA_WITH_SYMMETRIZATION)
+endif()
 
 ################################################################################
 # Generate applications' config files.

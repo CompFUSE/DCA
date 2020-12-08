@@ -1,8 +1,7 @@
 set(TEST_INCLUDES )
-set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_CUDA_LIBS} statistical_testing)
+set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_CUDA_LIBS})
 
 dca_add_gtest(NiO_no_change_test
-    GTEST_MAIN
     EXTENSIVE
     MPI MPI_NUMPROC 2
     INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}

@@ -28,7 +28,8 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
-#include "dca/function/util/difference.hpp"
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
@@ -40,10 +41,8 @@
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/minimalist_printer.hpp"
+#include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/util/git_version.hpp"
-#include "dca/util/modules.hpp"
-#include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/io/hdf5/hdf5_writer.hpp"
 
 // Set to true to dump the result in an hdf5 file.
 constexpr bool write_G_r_w = false;
@@ -76,8 +75,10 @@ using KDmn = Data::KClusterDmn;
 template <class SigmaType>
 void computeMockSigma(SigmaType& Sigma);
 
+dca::testing::DcaMpiTestEnvironment* dca_test_env;
+
 void performTest(const bool test_dca_plus) {
-  static Concurrency concurrency(0, nullptr);
+  auto& concurrency = dca_test_env->concurrency;
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input);
@@ -184,4 +185,25 @@ void computeMockSigma(SigmaType& Sigma) {
         for (int b = 0; b < BDmn::get_size(); ++b)
           Sigma(b, s, b, s, k, w) = sigma_val;
   }
+}
+
+int main(int argc, char** argv) {
+  int result = 0;
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(concurrency, "");
+  ::testing::AddGlobalTestEnvironment(dca_test_env);
+
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+
+  if (dca_test_env->concurrency.id() != 0) {
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new dca::testing::MinimalistPrinter);
+  }
+
+  result = RUN_ALL_TESTS();
+
+  return result;
 }
