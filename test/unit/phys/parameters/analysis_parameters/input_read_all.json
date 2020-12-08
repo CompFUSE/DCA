@@ -4,4 +4,5 @@
         "Gamma-deconvolution-cut-off": 0.1,
         "project-onto-crystal-harmonics": true,
         "projection-cut-off-radius": 3.0
+    }
 }
