@@ -333,6 +333,8 @@ function<scalartype, domain, DT>::function(const std::string& name)
       size_sbdm(dmn.get_leaf_domain_sizes()),
       step_sbdm(dmn.get_leaf_domain_steps()),
       fnc_values_(dmn.get_size()) {
+  start_ = 0;
+  end_ = dmn.get_size();
   for (int linind = 0; linind < size(); ++linind)
     setToZero(fnc_values_[linind]);
 }
@@ -349,6 +351,8 @@ function<scalartype, domain, DT>::function(const function<scalartype, domain, DT
   if (dmn.get_size() != other.dmn.get_size())
     // The other function has not been resetted after the domain was initialized.
     throw std::logic_error("Copy construction from a not yet reset function.");
+  start_ = 0;
+  end_ = dmn.get_size();
 }
 
 template <typename scalartype, class domain, DistType DT>
@@ -363,6 +367,8 @@ function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& ot
   if (dmn.get_size() != other.dmn.get_size())
     // The other function has not been resetted after the domain was initialized.
     throw std::logic_error("Move construction from a not yet resetted function.");
+  start_ = 0;
+  end_ = dmn.get_size();
 }
 
 template <typename scalartype, class domain, DistType DT>
