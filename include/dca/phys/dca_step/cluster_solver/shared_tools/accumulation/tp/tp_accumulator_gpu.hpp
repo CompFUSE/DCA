@@ -338,7 +338,7 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t cha
   const FourPointType channel = Base::channels_[channel_index];
   typename Base::TpDomain tp_dmn;
   uint64_t start = Base::G4_[0].get_start();
-  uint64_t end = Base::G4_[0].get_end();
+  uint64_t end = Base::G4_[0].get_end() + 1; // because the kernel expects this to be one past the end index
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
