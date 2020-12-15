@@ -12,7 +12,7 @@ dca_add_gtest(solver_configuration_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS random;ctint;time_and_frequency_domains;function
+    LIBS random;ctint;time_and_frequency_domains;function;json
     )
 
 dca_add_gtest(read_write_ctint_config_test
