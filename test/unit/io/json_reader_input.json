@@ -1,0 +1,28 @@
+{
+  "group 1" : {
+    "group 11" : {
+      "scalar" : 3.1456,
+      "int" : 42
+    },
+
+    "string" : "ciao",
+    "group 12" : {
+      "vec string" : ["an apple", "a pear"]
+    }
+  },
+
+  "group 2" : {},
+
+  "group 3" :
+  {
+    "bool" : false,
+    "bool 2" : true,
+    "bool 3" : 1,
+    "bool 4" : 0
+  },
+
+  "vec vec string" : [["aa", "ab"], ["ba", "bc"]],
+  "vec vec int" : [[11, 12],
+                   [21,11]],
+  "vec cmplx" : [(1,-1), (2, 3)]
+}

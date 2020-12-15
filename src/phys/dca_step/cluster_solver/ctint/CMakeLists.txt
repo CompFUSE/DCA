@@ -16,7 +16,7 @@ add_library(ctint
     ${CTINT_CUDA_CPP_FILES}
     )
 
-target_link_libraries(ctint PUBLIC time_and_frequency_domains)
+target_link_libraries(ctint PUBLIC time_and_frequency_domains dca_hdf5 json)
 
 if (DCA_HAVE_CUDA)
   target_compile_definitions(ctint PUBLIC "-DDCA_HAVE_CUDA")

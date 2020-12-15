@@ -1,0 +1,16 @@
+{
+  "group 1" : {
+    "group 11" : {
+      "scalar" : 0,
+      "scalar2" : 1,
+      "scalar3" : 2
+    },
+
+    "field" : "ciao",
+    "extra comma" : 42,
+  },
+
+  "group 2" : {
+    "other entry" : [1, 2, 3]
+  }
+}
