@@ -273,11 +273,9 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   catch (const std::exception& r_e) {
   }
 
-  // Check read parameters for consistency.
-  if (reader_or_writer.is_reader()) {
-    if (do_finite_size_qmc_ && do_dca_plus_)
-      throw std::logic_error("Finite-size QMC and DCA+ are mutually exclusive options.");
-  }
+  // Check parameters for consistency.
+  if (do_finite_size_qmc_ && do_dca_plus_)
+    throw std::logic_error("Finite-size QMC and DCA+ are mutually exclusive options.");
 }
 
 }  // namespace params

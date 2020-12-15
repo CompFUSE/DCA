@@ -369,7 +369,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 template <typename ReaderOrWriter>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::readWrite(
     ReaderOrWriter& reader_or_writer) {
-  if (reader_or_writer.is_writer()) {
+  if (ReaderOrWriter::is_writer) {
     reader_or_writer.execute("date", date_);
     reader_or_writer.execute("time", time_);
     reader_or_writer.execute("compiler", compiler_);
