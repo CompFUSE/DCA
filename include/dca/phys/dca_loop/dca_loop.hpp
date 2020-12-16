@@ -140,13 +140,12 @@ DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::DcaLoop(Parameters& pa
 
       update_chemical_potential_obj(parameters_, data_, cluster_mapping_obj),
 
-      monte_carlo_integrator_(parameters_ref, data_, output_file_) {
 
+      monte_carlo_integrator_(parameters_ref, data_, output_file_) {
   if (concurrency_.id() == concurrency_.first()) {
     file_name_ = parameters_.get_directory() + parameters_.get_filename_dca();
     output_file_ = std::make_shared<io::Writer>(parameters_.get_output_format(), false);
     dca::util::SignalHandler::registerFile(output_file_);
-
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
 }

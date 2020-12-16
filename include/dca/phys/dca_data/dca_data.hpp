@@ -315,14 +315,15 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
 
 template <class Parameters>
 void DcaData<Parameters>::read(std::string filename) {
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t starts reading \n\n";
 
-  dca::io::Reader reader(parameters_.get_output_format());
+    dca::io::Reader reader(parameters_.get_output_format());
 
-  reader.open_file(filename);
-  read(reader);
-  reader.close_file();
+    reader.open_file(filename);
+    read(reader);
+    reader.close_file();
+  }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast_object(Sigma);
@@ -556,6 +557,7 @@ void DcaData<Parameters>::compute_single_particle_properties() {
 
 template <class Parameters>
 void DcaData<Parameters>::compute_Sigma_bands() {
+  constexpr int n_spin_sectors = Parameters::complex_g0 ? 1 : 2;
   {
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
@@ -605,26 +607,26 @@ void DcaData<Parameters>::compute_Sigma_bands() {
   func::function<Complex, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
   for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
-    for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+    for (int s_ind = 0; s_ind < n_spin_sectors; ++s_ind)
       for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
         S_k_dmn(b_ind, s_ind, k_ind) =
             Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
 
   domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
-      S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
+      S_k_dmn, Sigma_band_structure_interpolated, -1. / n_spin_sectors);
 
   Sigma_band_structure_coarsegrained.reset();
   if (parameters_.do_dca_plus()) {
     func::function<Complex, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
-      for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+      for (int s_ind = 0; s_ind < n_spin_sectors; ++s_ind)
         for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
           S_k_dmn(b_ind, s_ind, k_ind) =
               Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
 
     domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
-        S_k_dmn, Sigma_band_structure_coarsegrained, -1. / 2.);
+        S_k_dmn, Sigma_band_structure_coarsegrained, -1. / n_spin_sectors);
   }
 }
 

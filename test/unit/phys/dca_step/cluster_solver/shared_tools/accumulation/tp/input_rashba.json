@@ -1,0 +1,41 @@
+{
+  "physics" :
+  {
+    "beta"                      :  2
+  },
+
+  "Rasha-Hubbard-model": {
+    "t": 1.,
+    "h" : 0.1,
+    "lambda" : 0.5,
+    "U": -4.
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[4, 0],
+        [0, 4]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies" : 8
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "frequency-transfer": 3,
+    "compute-all-transfers" : true
+  },
+
+
+  "Monte-Carlo-integration" :
+  {
+    "Sigma-file" : "zero"
+  }
+}

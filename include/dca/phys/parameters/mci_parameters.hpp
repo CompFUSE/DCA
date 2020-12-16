@@ -245,8 +245,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     // The input file can contain an integral seed or the seeding option "random".
 
     std::string seed_string;
-    const bool string_seed = reader_or_writer.execute("seed", seed_string);
-    if (string_seed) {
+    const bool seed_is_string = reader_or_writer.execute("seed", seed_string);
+    if (seed_is_string) {
       if (seed_string == "random") {
         generateRandomSeed();
       }

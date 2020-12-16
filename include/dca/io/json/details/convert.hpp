@@ -39,7 +39,7 @@ template <>
 struct Convert<std::string> {
   static bool execute(std::string_view inp, std::string& val) {
     inp = details::trimSpaces(inp);
-    if (inp.size() < 2 || (inp[0] == '\"' && inp.back() == '\"')) {
+    if (inp.size() >= 2 && inp[0] == '\"' && inp.back() == '\"') {
       val = inp.substr(1, inp.size() - 2);
       return true;
     }
@@ -51,13 +51,15 @@ struct Convert<std::string> {
 
 template <>
 struct Convert<bool> {
-  static bool execute(const std::string& inp, bool& val) {
+  static bool execute(std::string_view inp, bool& val) {
+    inp = details::trimSpaces(inp);
+
     if (inp == "true")
       val = true;
     else if (inp == "false")
       val = false;
     else
-      val = std::stoi(inp);
+      val = std::atoi(inp.data());
 
     return true;
   }

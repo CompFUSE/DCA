@@ -39,7 +39,7 @@ dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string input_dir =
     DCA_SOURCE_DIR "/test/integration/cluster_solver/ctaux/rashba_hubbard/";
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
 TEST(CtauxSolverTest, RashaHubbardModel) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
