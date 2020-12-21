@@ -252,7 +252,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
-    G0[s].setAsync(G0_host[s], queues_[s]);
+    G0[s].setAsync(G0_host[s], queues_[s].getStream());
   }
 }
 
@@ -265,10 +265,10 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
     try {
       typename BaseClass::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
-        G4_channel.setStream(queues_[0]);
+        G4_channel.setStream(queues_[0].getStream());
       }
       G4_channel.resizeNoCopy(tp_dmn.get_size());
-      G4_channel.setToZeroAsync(queues_[0]);
+      G4_channel.setToZeroAsync(queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -324,7 +324,7 @@ float TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], queues_[0]);
+    M_dev[s].setAsync(M[s], queues_[0].getStream());
 
   return accumulate(M_dev, configs, sign);
 }

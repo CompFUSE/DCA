@@ -100,9 +100,9 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
                                            const ScalarType beta, const int lda, const int ldb,
                                            const int ldc) {
   // TODO: store in a buffer if the performance gain is necessary.
-  a_ptr_dev_.setAsync(a_ptr_, queue_);
-  b_ptr_dev_.setAsync(b_ptr_, queue_);
-  c_ptr_dev_.setAsync(c_ptr_, queue_);
+  a_ptr_dev_.setAsync(a_ptr_, queue_.getStream());
+  b_ptr_dev_.setAsync(b_ptr_, queue_.getStream());
+  c_ptr_dev_.setAsync(c_ptr_, queue_.getStream());
   copied_.record(queue_);
 
   const int n_batched = a_ptr_.size();

@@ -192,7 +192,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], queues_[0]);
+    M_dev[s].setAsync(M[s], queues_[0].getStream());
 
   return accumulate(M_dev, configs, sign);
 }
@@ -238,11 +238,11 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::resetG4() {
   for (auto& G4_channel : get_G4()) {
     try {
       if (!BaseClass::multiple_accumulators_) {
-        G4_channel.setStream(BaseClass::queues_[0]);
+        G4_channel.setStream(BaseClass::queues_[0].getStream());
       }
 
       G4_channel.resizeNoCopy(end_ - start_);
-      G4_channel.setToZeroAsync(BaseClass::queues_[0]);
+      G4_channel.setToZeroAsync(BaseClass::queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
