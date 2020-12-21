@@ -8,7 +8,7 @@ dca_add_gtest(ct_int_interpolation_test
     LIBS     ${TEST_LIBS}
     )
 
-dca_add_gtest(ct_int_interpolation_test_gpu
+dca_add_gtest(ct_int_interpolation_gpu_test
     FAST
     CUDA
     GTEST_MAIN
@@ -16,10 +16,10 @@ dca_add_gtest(ct_int_interpolation_test_gpu
     LIBS     ${TEST_LIBS}
     )
 
-dca_add_gtest(d_matrix_builder_test_gpu
+dca_add_gtest(d_matrix_builder_gpu_test
     FAST
     CUDA
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS     ${TEST_LIBS};mc_kernels;ctint
+    LIBS     ${TEST_LIBS}
     )

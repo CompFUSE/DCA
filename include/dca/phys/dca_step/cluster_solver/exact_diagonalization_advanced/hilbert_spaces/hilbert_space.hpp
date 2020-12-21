@@ -68,7 +68,7 @@ public:
     return rep.size();
   }
 
-  bool empty() {
+  bool empty() const {
     return psi_states.empty();
   }
 
@@ -76,25 +76,25 @@ public:
     return psi_states[state];
   }
 
-  int get_N_occ() {
+  int get_N_occ() const {
     return psi_states[0].occupation_number;
   }
-  std::vector<std::string> get_name() {
+  const std::vector<std::string>& get_name() const {
     return names;
   }
-  std::vector<int> get_eigenvalues() {
+  const std::vector<int>& get_eigenvalues() const {
     return eigenvalues;
   }
 
   // assert or boolean to check wether occupation and magnetization is defined
-  int get_occupation() {
+  int get_occupation() const {
     return eigenvalues[0];
   }
-  int get_magnetization() {
+  int get_magnetization() const {
     return eigenvalues[1];
   }
 
-  Hilbert_space_phi_representation<parameter_type, ed_options>& get_rep() {
+  const Hilbert_space_phi_representation<parameter_type, ed_options>& get_rep() const {
     return rep;
   }
 
@@ -192,8 +192,7 @@ typename std::vector<psi_state<parameter_type, ed_options>>::iterator Hilbert_sp
   typename std::vector<psi_state<parameter_type, ed_options>>::iterator it =
       std::lower_bound(psi_states.begin(), psi_states.end(), psi);
 
-  while (it != psi_states.end() &&
-         !(ed::operator< <parameter_type, ed_options>(psi, *it))) {
+  while (it != psi_states.end() && !(ed::operator< <parameter_type, ed_options>(psi, *it))) {
     if (std::abs(abs(scalar_product<parameter_type, ed_options>(*it, psi)) - scalar_type(1.)) <
         ed_options::get_epsilon())  // 1.e-10)
       return it;
@@ -203,9 +202,9 @@ typename std::vector<psi_state<parameter_type, ed_options>>::iterator Hilbert_sp
   return psi_states.end();
 }
 
-}  // ed
-}  // solver
-}  // phys
-}  // dca
+}  // namespace ed
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_HPP

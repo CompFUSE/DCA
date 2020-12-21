@@ -292,53 +292,6 @@ TEST(MatrixCPUTest, MoveAssignement) {
   EXPECT_EQ(mat_ptr, &(mat = std::move(thief)));
 }
 
-TEST(MatrixCPUTest, Set) {
-  {
-    // Assign a matrix that fits into the capacity.
-    std::pair<int, int> size2(2, 3);
-
-    dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy(10);
-    auto old_ptr = mat_copy.ptr();
-    auto capacity = mat_copy.capacity();
-
-    dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
-    testing::setMatrixElements(mat, el_value);
-
-    mat_copy.set(mat, 0, 1);
-    EXPECT_EQ(mat.size(), mat_copy.size());
-    EXPECT_EQ(capacity, mat_copy.capacity());
-    EXPECT_EQ(old_ptr, mat_copy.ptr());
-
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        EXPECT_EQ(mat(i, j), mat_copy(i, j));
-        EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
-      }
-  }
-  {
-    // Assign a matrix that does not fit into the capacity.
-    dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy(10);
-    auto size2 = mat_copy.capacity();
-    ++size2.first;
-
-    dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
-    testing::setMatrixElements(mat, el_value);
-
-    mat_copy.set(mat, 0, 1);
-    EXPECT_EQ(mat.size(), mat_copy.size());
-    EXPECT_LE(mat.size().first, mat_copy.capacity().first);
-    EXPECT_LE(mat.size().second, mat_copy.capacity().second);
-
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        EXPECT_EQ(mat(i, j), mat_copy(i, j));
-        EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
-      }
-  }
-}
-
 TEST(MatrixCPUTest, Swap) {
   std::string mat1_name = "name 1";
   std::pair<int, int> mat1_size(7, 8);

@@ -2,6 +2,7 @@
     "output": {
         "directory": "./T=0.5",
         "output-format": "JSON",
+        "autoresume" : true,
         "directory-config-read" : "configuration",
         "directory-config-write" : "configuration",
         "filename-dca": "dca.json",

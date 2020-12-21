@@ -371,7 +371,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_
     dca::linalg::matrixop::gemm(T_l, M_ij, T_l_times_M_ij);
 
     {
-      int M = T_l.size().first;    // w_VERTEX::dmn_size();//N_w;
+      int M = T_l.size().first;    // WVertexDmn::dmn_size();//N_w;
       int K = T_l.size().second;   // n_I;
       int N = M_ij.size().second;  // n_J;
 

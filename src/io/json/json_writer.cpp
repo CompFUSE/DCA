@@ -1,101 +1,73 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements json_writer.hpp.
+// JSON reader.
 
 #include "dca/io/json/json_writer.hpp"
-#include <fstream>
 
-namespace dca {
-namespace io {
-// dca::io::
+#include "dca/io/filesystem.hpp"
 
-JSONWriter::JSONWriter() : file_name(""), path(""), elements_in_group(0) {
-  ss << std::fixed;
-  ss.precision(16);
+namespace dca::io {
+
+JSONWriter::JSONWriter(bool verbose) : verbose_(verbose) {
+  open_groups_.push(&root_);
 }
 
-std::stringstream& JSONWriter::open_file(const std::string& my_file_name, const bool /*overwrite*/) {
-  file_name = my_file_name;
+JSONWriter::~JSONWriter() {
+  close_file();
+}
 
-  ss << "{\n";
+void JSONWriter::open_file(const std::string& filename, bool overwrite) {
+  if (!overwrite && filesystem::exists(filename)) {  // Initialize with file state.
+    std::ifstream inp(filename);
+    if (inp) {
+      root_.read(inp);
+    }
+  }
 
-  elements_in_group.push_back(0);
-
-  return ss;
+  file_.open(filename);
+  if (!file_) {
+    throw(std::runtime_error("Can not open file " + filename));
+  }
 }
 
 void JSONWriter::close_file() {
-  ss << "\n}";
-
-  std::ofstream of(&file_name[0]);
-
-  of << ss.str();
-
-  of.flush();
-  of.close();
+  if (file_) {
+    flush();
+    file_.close();
+  }
 }
 
 void JSONWriter::open_group(const std::string& name) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n\n";
-
-  ss << get_path() << "\"" << name << "\""
-     << " : \n";
-
-  ss << get_path() << "{\n";
-
-  elements_in_group.push_back(0);
+  auto new_group = open_groups_.top()->addGroup(name);
+  if (!new_group)
+    throw(std::logic_error("Could not open group " + name));
+  open_groups_.push(new_group);
 }
 
 void JSONWriter::close_group() {
-  elements_in_group.pop_back();
-
-  ss << "\n" << get_path() << "}";
-
-  elements_in_group.back() += 1;
-}
-
-std::string JSONWriter::get_path() {
-  std::stringstream ss;
-  for (size_t i = 0; i < elements_in_group.size(); i++)
-    ss << "\t";
-
-  return ss.str();
-}
-
-void JSONWriter::execute(const std::string& name, const std::string& value) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n";
-
-  ss << get_path() << "\"" << name << "\" : \"" << value << "\"";
-
-  elements_in_group.back() += 1;
-}
-
-void JSONWriter::execute(const std::string& name, const std::vector<std::string>& value) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n";
-
-  ss << get_path() << "\"" << name << "\" : [";
-
-  for (size_t i = 0; i < value.size(); i++) {
-    ss << "\"" << value[i] << "\"";
-
-    if (i == value.size() - 1)
-      ss << "]";
-    else
-      ss << ", ";
+  if (open_groups_.size() == 1) {
+    throw(std::logic_error("Can't close root group."));
   }
 
-  elements_in_group.back() += 1;
+  open_groups_.pop();
 }
 
-}  // io
-}  // dca
+void JSONWriter::flush() {
+  file_.seekp(0);
+  root_.write(file_, 1);
+  file_ << "\n";
+  file_.flush();
+}
+
+JSONWriter::operator bool() const noexcept {
+  return file_.is_open();
+}
+
+}  // namespace dca::io

@@ -17,8 +17,8 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/cmake_options.hpp"
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
+#include "dca/io/filesystem.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/linalg/util/info_cuda.hpp"
@@ -30,9 +30,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -57,17 +54,15 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
-  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
-
-  using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-  using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
-  using s = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
-  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
-      double, LatticeType::DIMENSION, dca::phys::domains::CLUSTER,
-      dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
+  using DcaLoopType =
+      dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+    // Copy initial state from an aborted run.
+    filesystem::copy_file(
+        DCA_SOURCE_DIR "/test/system-level/dca/data.dca_sp_DCA+_mpi_test.hdf5.tmp",
+        "./data.dca_sp_DCA+_mpi_test.hdf5.tmp", filesystem::copy_options::overwrite_existing);
+
     dca::util::GitVersion::print();
     dca::util::Modules::print();
     dca::config::CMakeOptions::print();
@@ -107,8 +102,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
               << std::endl;
 
     // Read self-energy from check_data file.
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
-        "Self_Energy");
+    DcaDataType::SpGreensFunction Sigma_check("Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
@@ -116,21 +110,10 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     reader.close_file();
 
     // Compare the computed self-energy with the expected result.
-    for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-      for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-        for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
-          for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
-          }
-        }
-      }
-    }
-  }
+    auto diff = dca::func::util::difference(Sigma_check, dca_data.Sigma);
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+    EXPECT_NEAR(0, diff.l2, 1.e-12);
+
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data." << std::endl;
     dca_loop.write();
 
@@ -143,8 +126,9 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_mpi_test.json");
+      concurrency, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

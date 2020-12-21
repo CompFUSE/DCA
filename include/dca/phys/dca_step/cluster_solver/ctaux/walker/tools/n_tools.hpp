@@ -55,6 +55,9 @@ class N_TOOLS : public N_MATRIX_TOOLS<device_t, Parameters, Real> {
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
 
+  template <class T>
+  using HostVector = linalg::util::HostVector<T>;
+
 public:
   N_TOOLS(int id, Parameters& parameters, CV<Parameters>& CV_obj_ref);
 
@@ -87,7 +90,7 @@ public:
   }
 
 private:
-  void compute_d_vector(std::vector<int>& permutation, dca::linalg::Matrix<Real, device_t>& N,
+  void compute_d_vector(const HostVector<int>& permutation,
                         std::vector<HS_spin_states_type>& spin_values,
                         std::vector<vertex_singleton_type>& configuration_e_spin,
                         dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv);
@@ -112,6 +115,8 @@ private:
   dca::linalg::Matrix<Real, device_t> G;
   dca::linalg::Matrix<Real, device_t> N_new_spins;
   dca::linalg::Matrix<Real, device_t> G0_times_exp_V_minus_one;
+
+  std::array<HostVector<Real>, 2> exp_V_;
 };
 
 template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
@@ -283,8 +288,8 @@ void N_TOOLS<device_t, Parameters, Real>::update_N_matrix(configuration_type& co
     assert(N_r == N_c);
     dca::linalg::lapack::UseDevice<device_t>::laset(i, N_c - i, Real(0.), Real(0.), N.ptr(0, i), LD,
                                                     thread_id, stream_id);
-    dca::linalg::lapack::UseDevice<device_t>::laset(N_r - i, N_c - i, Real(0.), Real(1.), N.ptr(i, i), LD,
-                                                    thread_id, stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::laset(N_r - i, N_c - i, Real(0.), Real(1.),
+                                                    N.ptr(i, i), LD, thread_id, stream_id);
   }
 
   if (first_shuffled_vertex_index == configuration_size || first_non_interacting_vertex_index == 0)
@@ -350,7 +355,7 @@ void N_TOOLS<device_t, Parameters, Real>::rebuild_N_matrix_via_Gamma_LU(
 
   std::vector<HS_spin_states_type>& spin_values =
       full_configuration.get_changed_spin_values_e_spin(e_spin);
-  std::vector<int>& permutation = full_configuration.get_changed_spin_indices_e_spin(e_spin);
+  const auto& permutation = full_configuration.get_changed_spin_indices_e_spin(e_spin);
 
   assert(spin_values.size() == permutation.size());
   assert(Gamma_size == int(permutation.size()));
@@ -372,14 +377,12 @@ void N_TOOLS<device_t, Parameters, Real>::rebuild_N_matrix_via_Gamma_LU(
 
     G.resizeNoCopy(std::pair<int, int>(configuration_size, Gamma_size));
 
-    // if(true)
-    {
-      std::vector<Real> exp_V(permutation.size());
-      for (size_t l = 0; l < permutation.size(); ++l)
-        exp_V[l] = CV_obj.exp_V(configuration_e_spin[permutation[l]]);
+    auto& exp_V = e_spin == e_UP ? exp_V_[0] : exp_V_[1];
+    exp_V.resize(permutation.size());
+    for (size_t l = 0; l < permutation.size(); ++l)
+      exp_V[l] = CV_obj.exp_V(configuration_e_spin[permutation[l]]);
 
-      N_MATRIX_TOOLS<device_t, Parameters, Real>::compute_G_cols(exp_V, N, G_precomputed, G);
-    }
+    N_MATRIX_TOOLS<device_t, Parameters, Real>::compute_G_cols(exp_V, N, G_precomputed, G);
   }
 
   {  // Gamma_LU * X = N(p_k,:) --> X = Gamma_inv_times_N_new_spins ==> (stored in N_new_spins)
@@ -404,7 +407,7 @@ void N_TOOLS<device_t, Parameters, Real>::rebuild_N_matrix_via_Gamma_LU(
      // profiler_t profiler(concurrency, "(e) rescale", __FUNCTION__, __LINE__, true);
 
     const unsigned int spin_index = e_spin == e_UP ? 0 : 1;
-    compute_d_vector(permutation, N, spin_values, configuration_e_spin, d_inv[spin_index]);
+    compute_d_vector(permutation, spin_values, configuration_e_spin, d_inv[spin_index]);
 
     N_MATRIX_TOOLS<device_t, Parameters, Real>::scale_rows(N);
   }
@@ -457,8 +460,7 @@ void N_TOOLS<device_t, Parameters, Real>::rebuild_N_matrix_via_Gamma_LU(
 
 template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
 inline void N_TOOLS<device_t, Parameters, Real>::compute_d_vector(
-    std::vector<int>& permutation, dca::linalg::Matrix<Real, device_t>& /*N*/,
-    std::vector<HS_spin_states_type>& spin_values,
+    const HostVector<int>& permutation, std::vector<HS_spin_states_type>& spin_values,
     std::vector<vertex_singleton_type>& configuration_e_spin,
     dca::linalg::Vector<Real, dca::linalg::CPU>& d_inv) {
   int spin_orbital, spin_orbital_paired;
@@ -470,7 +472,7 @@ inline void N_TOOLS<device_t, Parameters, Real>::compute_d_vector(
 
   d_inv.resize(permutation.size());
 
-  std::vector<int> d_index(0);
+  // std::vector<int> d_index(0);
   // std::vector<int> N_index(0);
 
   for (int i = 0; i < int(permutation.size()); ++i) {
@@ -511,7 +513,7 @@ bool N_TOOLS<device_t, Parameters, Real>::assert_that_there_are_no_Bennett_spins
     configuration_type& full_configuration) {
   {
     std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_UP);
-    std::vector<int>& permutation = full_configuration.get_changed_spin_indices_e_spin(e_UP);
+    auto& permutation = full_configuration.get_changed_spin_indices_e_spin(e_UP);
 
     for (size_t i = 0; i < permutation.size(); i++) {
       int configuration_index = configuration_e_spin[permutation[i]].get_configuration_index();
@@ -523,7 +525,7 @@ bool N_TOOLS<device_t, Parameters, Real>::assert_that_there_are_no_Bennett_spins
 
   {
     std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_DN);
-    std::vector<int>& permutation = full_configuration.get_changed_spin_indices_e_spin(e_DN);
+    auto& permutation = full_configuration.get_changed_spin_indices_e_spin(e_DN);
 
     for (size_t i = 0; i < permutation.size(); i++) {
       int configuration_index = configuration_e_spin[permutation[i]].get_configuration_index();

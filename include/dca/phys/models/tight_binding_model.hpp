@@ -52,13 +52,13 @@ public:
   static double* get_r_LDA_basis();
   static double* get_k_LDA_basis();
 
-  static std::vector<int> get_flavors();
-  static std::vector<std::vector<double>> get_a_vectors();
+  static std::vector<int> flavors();
+  static std::vector<std::vector<double>> aVectors();
 
-  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
+  static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
@@ -68,8 +68,8 @@ public:
   static void initialize(parameters_type& /*parameters*/) {}
 
   template <typename ParametersType, typename FunctionType>
-  static void initialize_H_0(const ParametersType& parameters, FunctionType& H_0) {
-    Lattice::initialize_H_0(parameters, H_0);
+  static void initializeH0(const ParametersType& parameters, FunctionType& H_0) {
+    Lattice::initializeH0(parameters, H_0);
   }
 
 private:
@@ -106,37 +106,37 @@ std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
 
 template <typename Lattice>
 double* TightBindingModel<Lattice>::get_r_DCA_basis() {
-  static double* r_DCA = Lattice::initialize_r_DCA_basis();
+  static double* r_DCA = Lattice::initializeRDCABasis();
   return r_DCA;
 }
 
 template <typename Lattice>
 double* TightBindingModel<Lattice>::get_r_LDA_basis() {
-  static double* r_LDA = Lattice::initialize_r_LDA_basis();
+  static double* r_LDA = Lattice::initializeRLDABasis();
   return r_LDA;
 }
 
 template <typename Lattice>
-std::vector<int> TightBindingModel<Lattice>::get_flavors() {
-  return Lattice::get_flavors();
+std::vector<int> TightBindingModel<Lattice>::flavors() {
+  return Lattice::flavors();
 }
 
 template <typename Lattice>
-std::vector<std::vector<double>> TightBindingModel<Lattice>::get_a_vectors() {
-  return Lattice::get_a_vectors();
+std::vector<std::vector<double>> TightBindingModel<Lattice>::aVectors() {
+  return Lattice::aVectors();
 }
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initialize_H_interaction(func::function<double, domain>& H_interaction,
+void TightBindingModel<Lattice>::initializeHInteraction(func::function<double, domain>& H_interaction,
                                                           parameters_type& parameters) {
-  Lattice::initialize_H_interaction(H_interaction, parameters);
+  Lattice::initializeHInteraction(H_interaction, parameters);
 }
 
 template <typename Lattice>
 template <class domain>
 void TightBindingModel<Lattice>::initialize_H_symmetries(func::function<int, domain>& H_symmetry) {
-  Lattice::initialize_H_symmetry(H_symmetry);
+  Lattice::initializeHSymmetry(H_symmetry);
 }
 
 }  // models

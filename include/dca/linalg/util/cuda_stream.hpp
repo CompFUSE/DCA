@@ -11,15 +11,18 @@
 
 #ifndef DCA_LINALG_UTIL_CUDA_STREAM_HPP
 #define DCA_LINALG_UTIL_CUDA_STREAM_HPP
-#ifdef DCA_HAVE_CUDA
 
-#include <cuda.h>
-#include <magma.h>
+#ifdef DCA_HAVE_CUDA
+#include <cuda_runtime.h>
+#include "dca/linalg/util/error_cuda.hpp"
+#endif  // DCA_HAVE_CUDA
 
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
+
+#ifdef DCA_HAVE_CUDA
 
 class CudaStream {
 public:
@@ -28,9 +31,18 @@ public:
   }
 
   CudaStream(const CudaStream& other) = delete;
+  CudaStream& operator=(const CudaStream& other) = delete;
 
-  CudaStream(CudaStream&& other) {
-    std::swap(stream_, other.stream_);
+  CudaStream(CudaStream&& other) noexcept {
+    swap(other);
+  }
+  CudaStream& operator=(CudaStream&& other) noexcept {
+    swap(other);
+    return *this;
+  }
+
+  void sync() const {
+    checkRC(cudaStreamSynchronize(stream_));
   }
 
   ~CudaStream() {
@@ -42,13 +54,28 @@ public:
     return stream_;
   }
 
+  void swap(CudaStream& other) noexcept {
+    std::swap(stream_, other.stream_);
+  }
+
 private:
   cudaStream_t stream_ = nullptr;
 };
 
-}  // util
-}  // linalg
-}  // dca
+#else  // DCA_HAVE_CUDA
+
+// Mock object.
+class CudaStream {
+public:
+  CudaStream() = default;
+
+  void sync() const {}
+};
 
 #endif  // DCA_HAVE_CUDA
+
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
+
 #endif  // DCA_LINALG_UTIL_CUDA_STREAM_HPP

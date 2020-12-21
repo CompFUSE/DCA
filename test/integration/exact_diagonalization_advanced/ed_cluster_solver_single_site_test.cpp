@@ -31,7 +31,7 @@ TEST(EDClusterSolverSingleSiteTest, ComputeG0AndG) {
 
   dca::testing::Data data(params);
   dca::testing::DataRealFreq data_real(params);
-  data.initialize_H_0_and_H_i();
+  data.initializeH0_and_H_i();
 
   dca::phys::solver::EDClusterSolver<dca::linalg::CPU, dca::testing::Parameters, dca::testing::Data>
       ed_solver(params, data, data_real);

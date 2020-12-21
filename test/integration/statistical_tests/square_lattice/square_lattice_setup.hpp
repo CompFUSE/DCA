@@ -19,8 +19,10 @@
 #include "gtest/gtest.h"
 
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/math/random/random.hpp"
@@ -40,7 +42,13 @@ namespace dca {
 namespace testing {
 // dca::testing::
 
-const int n_frequencies = 10;
+constexpr int n_frequencies = 10;
+
+#ifdef DCA_HAVE_CUDA
+constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
+#else
+constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
+#endif // DCA_HAVE_CUDA
 
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/square_lattice/";
@@ -48,14 +56,36 @@ const std::string test_directory =
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::square_lattice<dca::phys::domains::D4>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
+
+using dca::phys::solver::ClusterSolverName;
+using dca::phys::solver::CT_AUX;
+using dca::phys::solver::CT_INT;
+
+template <ClusterSolverName name = CT_AUX>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                   dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, dca::phys::solver::CT_AUX>;
-using DcaData = dca::phys::DcaData<ParametersType>;
-using QuantumClusterSolver =
-    dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaData>;
-using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver>;
+                                  RandomNumberGenerator, name>;
+
+template <ClusterSolverName name>
+using DcaData = dca::phys::DcaData<ParametersType<name>>;
+
+template <ClusterSolverName name = CT_AUX>
+struct ClusterSolverSelector;
+template <>
+struct ClusterSolverSelector<CT_AUX> {
+  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<CT_AUX>,
+        DcaData<CT_AUX>>;
+};
+template <>
+struct ClusterSolverSelector<CT_INT> {
+  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<CT_INT>, true>;
+};
+template <ClusterSolverName name = CT_AUX>
+using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
+
+template <ClusterSolverName name = CT_AUX>
+using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;

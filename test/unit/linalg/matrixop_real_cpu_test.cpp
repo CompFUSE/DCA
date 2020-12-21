@@ -19,6 +19,7 @@
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/blas/blas3.hpp"
+#include "dca/math/random/random.hpp"
 #include "cpu_test_util.hpp"
 #include "matrixop_reference.hpp"
 
@@ -928,6 +929,27 @@ TEST(MatrixopCPUTest, Difference) {
       }
 }
 
+TEST(MatrixCPUTest, DeterminantAndLogDeterminant) {
+  dca::linalg::Matrix<double, dca::linalg::CPU> m(3, 3);
+  m(0, 0) = 3, m(0, 1) = -1, m(0, 2) = 0.5;
+  m(1, 0) = 2;
+  m(1, 1) = 2, m(1, 2) = -0.5;
+  m(2, 0) = 4;
+  m(2, 1) = -1, m(2, 2) = 0;
+
+  const double det = dca::linalg::matrixop::determinant(m);
+  const auto [log_det, sign] = dca::linalg::matrixop::logDeterminant(m);
+  EXPECT_NEAR(-4.5, det, 1e-14);
+  EXPECT_NEAR(std::log(std::abs(det)), log_det, 1e-14);
+  EXPECT_EQ(det >= 0 ? 1 : -1, sign);
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> m2(2, 2);
+  m2(0, 0) = 3, m2(0, 1) = 6;
+  m2(1, 0) = 1;
+  m2(1, 1) = 2;
+  EXPECT_NEAR(0, dca::linalg::matrixop::determinantIP(m2), 1e-14);
+}
+
 template <typename ScalarType>
 class MatrixopMixedCPUTest : public ::testing::Test {
 public:
@@ -1014,4 +1036,31 @@ TYPED_TEST(MatrixopMixedCPUTest, Gemm) {
       }
     }
   }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, InverseAndDeterminant) {
+  using ScalarType = TypeParam;
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 42);
+  auto values = [&rng](int, int) { return rng(); };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(7);
+  testing::setMatrixElements(mat, values);
+  auto mat_copy(mat);
+  auto mat_copy2(mat);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> work;
+
+  const ScalarType det = dca::linalg::matrixop::inverseAndDeterminant(mat);
+  dca::linalg::matrixop::inverse(mat_copy);
+
+  const auto [log_det, sign] = dca::linalg::matrixop::inverseAndLogDeterminant(mat_copy2);
+
+  const auto tolerance = 500 * this->epsilon;
+  EXPECT_NEAR(dca::linalg::matrixop::determinant(mat_copy), det, tolerance);
+  EXPECT_NEAR(std::log(std::abs(det)), log_det, tolerance);
+  EXPECT_EQ(det >= 0 ? 1 : -1, sign);
+
+  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy, mat, tolerance));
+  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy2, mat, tolerance));
 }

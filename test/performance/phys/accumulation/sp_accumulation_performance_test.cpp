@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
   const double time = duration(end_time, start_time);
 
   std::string precision("double");
-  if (std::is_same<float, Real>::value)
+  if (std::is_same_v<float, Real>)
     precision = "single";
 
   std::cout << "\nExpansion order:\t" << n;
@@ -145,19 +145,19 @@ int main(int argc, char** argv) {
   // Allows memory to be assigned.
   gpu_accumulator.resetAccumulation();
   gpu_accumulator.accumulate(M_dev, config, sign);
-  cudaStreamSynchronize(gpu_accumulator.get_streams()[0]);
-  cudaStreamSynchronize(gpu_accumulator.get_streams()[1]);
+  gpu_accumulator.get_streams()[0]->sync();
+  gpu_accumulator.get_streams()[1]->sync();
   gpu_accumulator.resetAccumulation();
 
   Profiler::start();
   cudaProfilerStart();
 
   // Profile Single invocation.
-  start_event.record(gpu_accumulator.get_streams()[0]);
+  start_event.record(*gpu_accumulator.get_streams()[0]);
   dca::profiling::WallTime host_start_time;
   gpu_accumulator.accumulate(M_dev, config, sign);
   dca::profiling::WallTime host_end_time;
-  stop_event.record(gpu_accumulator.get_streams()[1]);
+  stop_event.record(*gpu_accumulator.get_streams()[1]);
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);

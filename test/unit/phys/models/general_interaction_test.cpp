@@ -56,7 +56,7 @@ TEST(GeneralInteractionTest, MakeCorrelatedOrbitals) {
   using RClusterDmn= typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{1, 0}, {0, 1}};
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initializeRDCABasis(),
                                                             DCA_cluster);
 
   using ParametersType = FakeParameters<Lattice>;
@@ -66,7 +66,7 @@ TEST(GeneralInteractionTest, MakeCorrelatedOrbitals) {
   params.set_V_prime(1);
 
   func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
-  Lattice::initialize_H_interaction(H_interaction, params);
+  Lattice::initializeHInteraction(H_interaction, params);
 
   // Both orbitals are interacting.
   params.set_interacting_orbitals({0, 1});

@@ -18,13 +18,14 @@ if (CUDA_FOUND)
   # set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
   # dca_add_haves_define(DCA_HAVE_CUDA)
   list(APPEND DCA_CUDA_LIBS ${CUDA_LIBRARIES} ${CUDA_cusparse_LIBRARY} ${CUDA_cublas_LIBRARY})
+  CUDA_INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
   set(CUDA_SEPARABLE_COMPILATION ON)
   list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
-#  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-#    list(APPEND CUDA_NVCC_FLAGS "-G")
-#  endif()
-  # list(APPEND CUDA_NVCC_FLAGS_RELEASE "--use_fast_math")
   set(CMAKE_CUDA_STANDARD 14)
+
+  set(CVD_LAUNCHER "" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
+  # Use the following script for systems with multiple gpus visible from a rank.
+  # set(CVD_LAUNCHER "test/cvd_launcher.sh" CACHE INTERNAL "")
 endif()
 
 # Find MAGMA.
@@ -53,4 +54,9 @@ endif()
 if (CUDA_FOUND AND DCA_HAVE_MAGMA)
   set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_CUDA)
+
+  option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." OFF)
+  if(DCA_WITH_CUDA_AWARE_MPI)
+    dca_add_haves_define(DCA_HAVE_CUDA_AWARE_MPI)
+  endif()
 endif()

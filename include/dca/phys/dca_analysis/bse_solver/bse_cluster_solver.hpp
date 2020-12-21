@@ -38,14 +38,16 @@ public:
   using profiler_t = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
 
+  using Lattice = typename ParametersType::lattice_type;
+
   using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using k_DCA =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
+  using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, WVertexDmn>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
   BseClusterSolver(ParametersType& parameters, DcaDataType& data);
@@ -82,7 +84,7 @@ private:
   diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> Gamma_cluster;
-  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, w_VERTEX>> G_II_0_function;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, WVertexDmn>> G_II_0_function;
 };
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -129,9 +131,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute(data_.Sigma, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute(data_.G_k_w, data_.H_symmetry);
+  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -209,10 +211,10 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
 
   G_II_0 = 0.;
 
-  func::dmn_variadic<k_DCA, w_VERTEX> k_w_dmn;
+  func::dmn_variadic<k_DCA, WVertexDmn> k_w_dmn;
 
   int W = parameters.get_sp_fermionic_frequencies();  // TODO: Replace using w::dmn_size().
-  int W_vertex = w_VERTEX::dmn_size() / 2;
+  int W_vertex = WVertexDmn::dmn_size() / 2;
   int q = parameters.get_four_point_momentum_transfer_index();
 
   int w_nu = parameters.get_four_point_frequency_transfer();
@@ -285,7 +287,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0_func
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
-  for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
+  for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
     for (int K_ind = 0; K_ind < k_DCA::dmn_size(); K_ind++)
 
       for (int m2 = 0; m2 < b::dmn_size(); m2++)

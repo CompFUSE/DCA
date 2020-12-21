@@ -15,6 +15,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/util/containers/random_access_set.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -22,25 +24,10 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-template<class T>
-T getRandomElement(const std::vector<const std::vector<T>*>& v_ptrs, const double rand){
-    assert(rand >= 0 && rand <= 1);
+using VertexTypeList = dca::util::RandomAccessSet<std::size_t, 16>;
 
-    unsigned size = 0;
-    for(int i = v_ptrs.size() - 1; i >= 0; --i)
-        size += v_ptrs[i]->size();
-
-    // TODO: use binary search or other efficient scheme.
-    unsigned idx = size * rand;
-    for(auto v_ptr : v_ptrs){
-        if (idx < v_ptr->size())
-            return (*v_ptr)[idx];
-        idx -= v_ptr->size();
-    }
-
-    throw(std::logic_error("Something went wrong."));
-}
-
+std::size_t getRandomElement(const std::vector<const VertexTypeList*>& v_ptrs,
+                          double rand) noexcept;
 
 }  // namespace details
 }  // namespace ctint

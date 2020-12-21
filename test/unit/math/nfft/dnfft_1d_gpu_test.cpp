@@ -55,8 +55,7 @@ TEST_F(Dnfft1DGpuTest, Accumulate) {
   computeWithCpuDnfft(M_, configuration_, cpu_dnfft_obj, f_w_dnfft_cpu);
 
   // Compute f(w) using the delayed-NFFT algorithm on the GPU.
-  cudaStream_t stream;
-  cudaStreamCreate(&stream);
+  dca::linalg::util::CudaStream stream;
   dca::math::nfft::Dnfft1DGpu<double, FreqDmn, RDmn, oversampling, dca::math::nfft::CUBIC> gpu_dnfft_obj(
       beta_, stream);
   function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>> f_w_dnfft_gpu("f_w_dnfft_gpu");
@@ -64,8 +63,6 @@ TEST_F(Dnfft1DGpuTest, Accumulate) {
   gpu_dnfft_obj.resetAccumulation();
   gpu_dnfft_obj.accumulate(M_dev, configuration_, 1);
   gpu_dnfft_obj.finalize(f_w_dnfft_gpu);
-
-  cudaStreamDestroy(stream);
 
   // Check errors.
   const auto err = dca::func::util::difference(f_w_dnfft_cpu, f_w_dnfft_gpu);

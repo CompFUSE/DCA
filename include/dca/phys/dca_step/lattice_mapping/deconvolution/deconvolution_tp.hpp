@@ -33,7 +33,7 @@ class deconvolution_tp
     : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t> {
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using host_vertex_k_cluster_type =
       domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_TP,
@@ -45,12 +45,12 @@ public:
 
   template <typename k_dmn_t, typename scalartype>
   void execute(func::function<std::complex<scalartype>,
-                              func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>,
-                                                 func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>>>&
+                              func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, WVertexDmn>,
+                                                 func::dmn_variadic<b, b, k_dmn_t, WVertexDmn>>>&
                    Gamma_lattice_interp,
                func::function<std::complex<scalartype>,
-                              func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>,
-                                                 func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>>>&
+                              func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, WVertexDmn>,
+                                                 func::dmn_variadic<b, b, target_k_dmn_t, WVertexDmn>>>&
                    Gamma_lattice_deconv);
 
 private:
@@ -70,11 +70,11 @@ template <typename parameters_type, typename source_k_dmn_t, typename target_k_d
 template <typename k_dmn_t, typename scalartype>
 void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     func::function<std::complex<scalartype>,
-                   func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>,
-                                      func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>>>& Gamma_lattice_interp,
+                   func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, WVertexDmn>,
+                                      func::dmn_variadic<b, b, k_dmn_t, WVertexDmn>>>& Gamma_lattice_interp,
     func::function<std::complex<scalartype>,
-                   func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>,
-                                      func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>>>&
+                   func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, WVertexDmn>,
+                                      func::dmn_variadic<b, b, target_k_dmn_t, WVertexDmn>>>&
         Gamma_lattice_deconv) {
   int N = k_HOST_VERTEX::dmn_size();
 

@@ -8,6 +8,7 @@ if (DCA_HAVE_CUDA)
     # All the interdependent .cu files need to be compiled together due to limits of nvlink.
     cuda_add_library(mc_kernels
             # CT-INT
+            ctint/walker/walker_kernels.cu
             ctint/walker/tools/d_matrix_kernels.cu
             ctint/device_helper/ctint_helper.cu
             ctint/walker/tools/g0_interpolation_gpu.cu
@@ -28,4 +29,5 @@ if (DCA_HAVE_CUDA)
             ../../../math/nfft/nfft_helper.cu
             )
     target_compile_definitions(mc_kernels PUBLIC  "-DDCA_HAVE_CUDA")
+    target_link_libraries(mc_kernels ctint)
 endif()

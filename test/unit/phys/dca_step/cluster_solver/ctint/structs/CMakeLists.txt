@@ -12,7 +12,7 @@ dca_add_gtest(solver_configuration_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS random;ctint;time_and_frequency_domains;function
+    LIBS random;ctint;time_and_frequency_domains;function;json
     )
 
 dca_add_gtest(read_write_ctint_config_test
@@ -21,15 +21,3 @@ dca_add_gtest(read_write_ctint_config_test
   INCLUDE_DIRS ${TEST_INCLUDES}
   LIBS random;time_and_frequency_domains;function;ctint
   )
-
-if (DCA_HAVE_CUDA)
-  target_link_libraries(read_write_ctint_config_test cuda_utils)
-endif()
-
-dca_add_gtest(matrix_configuration_test
-
-    FAST
-    GTEST_MAIN
-    INCLUDE_DIRS
-    LIBS random;ctint;time_and_frequency_domains;function
-    )

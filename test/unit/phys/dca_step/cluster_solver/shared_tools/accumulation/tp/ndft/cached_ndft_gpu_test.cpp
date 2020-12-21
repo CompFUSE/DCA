@@ -16,7 +16,6 @@
 
 #include "gtest/gtest.h"
 
-//#include "dca/config/mc_options.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -66,8 +65,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
                            typename CachedNdftGpuTest<Real>::F_w_w& f_w) {
   using Complex = std::complex<Real>;
   dca::linalg::util::initializeMagma();
-  magma_queue_t queue;
-  magma_queue_create(&queue);
+  dca::linalg::util::MagmaQueue queue;
 
   using BDmn = typename CachedNdftGpuTest<Real>::BDmn;
   using RDmn = typename CachedNdftGpuTest<Real>::RDmn;
@@ -80,14 +78,17 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
   dca::linalg::Matrix<Real, dca::linalg::GPU> M_dev(M);
-  typename NftType::RMatrix result_device(64);
+  using Complex = std::complex<Real>;
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
+                                dca::config::McOptions::TpAllocator<Complex>>
+      result_device(64);
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M_dev, result_device);
   cudaStreamSynchronize(nft_obj.get_stream());
   dca::profiling::WallTime end_time;
 
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> result_host(result_device);
+  dca::linalg::ReshapableMatrix<std::complex<Real>, dca::linalg::CPU> result_host(result_device);
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).
@@ -105,8 +106,6 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;
               f_w(b1, b2, r1, r2, invert_w(w1 + n_w), invert_w(w2)) = std::conj(val);
             }
-
-  magma_queue_destroy(queue);
 
   dca::profiling::Duration duration(end_time, start_time);
   return duration.sec + 1.e-6 * duration.usec;

@@ -83,7 +83,7 @@ void compute_band_structure::execute(const ParametersType& parameters,
   // Compute H(k).
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
       "H_k");
-  ParametersType::lattice_type::initialize_H_0(parameters, H_k);
+  ParametersType::lattice_type::initializeH0(parameters, H_k);
 
   // Compute the bands.
   dca::linalg::Vector<double, dca::linalg::CPU> L_vec(nu::dmn_size());
