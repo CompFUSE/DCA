@@ -145,13 +145,14 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
                cudaMemcpyHostToDevice);
 
     const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
+    const auto& add_matrix = RDmn::parameter_type::get_add_matrix();
     using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn::parameter_type;
     using WindowTimeDmn = typename BaseClass::WindowFunctionTimeDmn::parameter_type;
-    details::initializeNfftHelper<ScalarType>(
-        BDmn::dmn_size(), RDmn::dmn_size(), sub_matrix.ptr(), sub_matrix.leadingDimension(),
-        oversampling, BaseClass::get_window_sampling(), PaddedTimeDmn::first_element(),
-        PaddedTimeDmn::get_Delta(), WindowTimeDmn::first_element(), WindowTimeDmn::get_delta(),
-        beta_);
+    details::initializeNfftHelper(BDmn::dmn_size(), RDmn::dmn_size(), add_matrix.ptr(),
+                                  add_matrix.leadingDimension(), sub_matrix.ptr(),
+                                  sub_matrix.leadingDimension(), PaddedTimeDmn::first_element(),
+                                  PaddedTimeDmn::get_Delta(), WindowTimeDmn::first_element(),
+                                  WindowTimeDmn::get_delta(), beta_);
 
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
@@ -190,11 +191,10 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   config_left_dev_.setAsync(config_left_, stream_);
   times_dev_.setAsync(times_, stream_);
 
-  details::accumulateOnDevice(M.ptr(), M.leadingDimension(), static_cast<ScalarType>(sign),
-                              accumulation_matrix_.ptr(), accumulation_matrix_sqr_.ptr(),
-                              accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
-                              config_right_dev_.ptr(), times_dev_.ptr(),
-                              get_device_cubic_coeff().ptr(), n, stream_);
+  details::accumulateOnDevice<oversampling, BaseClass::window_sampling_, RealInp, ScalarType>(
+      M.ptr(), M.leadingDimension(), static_cast<ScalarType>(sign), accumulation_matrix_.ptr(),
+      accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
+      config_right_dev_.ptr(), times_dev_.ptr(), get_device_cubic_coeff().ptr(), n, stream_);
 
   m_copied_event_.record(stream_);
 }
@@ -245,8 +245,8 @@ linalg::Vector<ScalarType, linalg::GPU>& Dnfft1DGpu<ScalarType, WDmn, RDmn, over
   return coefficients;
 }
 
-}  // nfft
-}  // math
-}  // dca
+}  // namespace nfft
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
