@@ -44,6 +44,7 @@ public:
   using Matrix = typename BaseClass::Matrix;
   using MatrixPair = typename BaseClass::MatrixPair;
   using MatrixView = typename linalg::MatrixView<Real, linalg::CPU>;
+  using ConstView = typename linalg::MatrixView<const Real, linalg::CPU>;
 
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
@@ -73,7 +74,7 @@ private:
   Real removalProbability();
   void applyRemoval();
 
-  virtual void smallInverse(const MatrixView& in, MatrixView& out, int s);
+  virtual void smallInverse(const ConstView& in, MatrixView& out, int s);
   virtual void smallInverse(MatrixView& in_out, int s);
 
 protected:
@@ -305,7 +306,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair
       continue;
     // update M matrix.
     const auto& R = Rp[s];
-    const auto S = linalg::makeConstantView(Sp[s]);
+    const ConstView S(Sp[s]);
     auto& M = M_[s];
     const auto& M_Q = M_Q_[s];
     const int m_size = M.nrCols();
@@ -313,7 +314,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair
     if (not m_size) {
       M.resizeNoCopy(delta);
       auto M_view = MatrixView(M);
-      smallInverse(*S, M_view, s);
+      smallInverse(S, M_view, s);
       continue;
     }
 
@@ -324,7 +325,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair
     M.resize(m_size + delta);
     //  S_tilde = S^-1.
     MatrixView S_tilde(M, m_size, m_size, delta, delta);
-    smallInverse(*S, S_tilde, s);
+    smallInverse(S, S_tilde, s);
 
     // R_tilde = - S * R * M
     MatrixView R_tilde(M, m_size, 0, delta, m_size);
@@ -410,7 +411,7 @@ void CtintWalker<linalg::CPU, Parameters, Real>::moveRemovalToEnd() {
 }
 
 template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::smallInverse(const MatrixView& in, MatrixView& out,
+void CtintWalker<linalg::CPU, Parameters, Real>::smallInverse(const ConstView& in, MatrixView& out,
                                                               const int s) {
   details::smallInverse(in, out, det_ratio_[s], ipiv_, v_work_);
 }

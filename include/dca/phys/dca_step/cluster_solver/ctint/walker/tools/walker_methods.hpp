@@ -89,7 +89,7 @@ template <class MatrixA, class MatrixB, typename Real>
 inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
                          linalg::Vector<int, linalg::CPU>& ipiv,
                          linalg::Vector<Real, linalg::CPU>& work) {
-  static_assert(std::is_same<typename MatrixA::ValueType, Real>::value,
+  static_assert(std::is_same<std::remove_cv_t<typename MatrixA::ValueType>, Real>::value,
                 "Scalar type MatrixA mismatch.");
   static_assert(std::is_same<typename MatrixB::ValueType, Real>::value,
                 "Scalar type MatrixB mismatch.");
