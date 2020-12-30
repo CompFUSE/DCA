@@ -56,8 +56,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   auto& data = *CtintWalkerTest<Real>::data_;
   auto& parameters = CtintWalkerTest<Real>::parameters_;
 
-  ctint::G0Interpolation<dca::linalg::CPU, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  G0Interpolation<dca::linalg::CPU, Real> g0(dca::phys::solver::details::shrinkG0(data.G0_r_t));
   typename CtintWalkerTest<Real>::LabelDomain label_dmn;
 
   using Parameters = typename CtintWalkerTest<Real>::Parameters;

@@ -273,32 +273,38 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::MPI>::updateG4(const std:
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0].getStream(), start_,
+          end_);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");

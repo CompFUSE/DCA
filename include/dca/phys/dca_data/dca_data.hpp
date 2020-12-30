@@ -317,14 +317,15 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
 
 template <class Parameters>
 void DcaData<Parameters>::read(std::string filename) {
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t starts reading \n\n";
 
-  dca::io::Reader reader(parameters_.get_output_format());
+    dca::io::Reader reader(parameters_.get_output_format());
 
-  reader.open_file(filename);
-  read(reader);
-  reader.close_file();
+    reader.open_file(filename);
+    read(reader);
+    reader.close_file();
+  }
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast_object(Sigma);

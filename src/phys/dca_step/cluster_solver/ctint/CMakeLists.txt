@@ -5,12 +5,10 @@ if (DCA_HAVE_CUDA)
 endif ()
 
 add_library(ctint
-    domains/ct_int_domains.cpp
     structs/interaction_vertices.cpp
     structs/ctint_matrix_configuration.cpp
     structs/read_write_configuration.cpp
     structs/solver_configuration.cpp
-    walker/tools/g0_interpolation.cpp
     walker/tools/d_matrix_builder.cpp
     structs/utils.cpp
     ${CTINT_CUDA_CPP_FILES}

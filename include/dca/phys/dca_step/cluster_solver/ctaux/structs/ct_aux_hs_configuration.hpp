@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
@@ -44,7 +45,7 @@ public:
   typedef vertex_pair<parameters_type> vertex_pair_type;
 
 public:
-  CT_AUX_HS_configuration(parameters_type& parameters_ref, rng_type& rng_ref);
+  CT_AUX_HS_configuration(const parameters_type& parameters_ref, rng_type& rng_ref);
 
   int size();
   vertex_pair_type& operator[](int index);
@@ -88,13 +89,12 @@ public:
   void erase(unsigned idx);
 
   // debug tools
-  void print() /*const*/;
-  void print(e_spin_states_type e_spin_type) /*const*/;
+  void print();
+  void print(e_spin_states_type e_spin_type);
 
-  bool assert_block_form(
-      e_spin_states_type e_spin_type) /*const*/;  // [non-shuffled-spin | shuffled-spins]
-  bool assert_counters() /*const*/;
-  bool assert_consistency() /*const*/;
+  bool assert_block_form(e_spin_states_type e_spin_type);  // [non-shuffled-spin | shuffled-spins]
+  bool assert_counters();
+  bool assert_consistency();
 
   // Unmarks the vertex vertex_index as annihilatable.
   // Precondition: The vertex vertex_index is marked as annihilatable.
@@ -110,7 +110,13 @@ public:
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
 
+  auto get_matrix_configuration() const {
+    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+  }
+
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  void write(io::Writer& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -118,7 +124,7 @@ public:
   friend io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Pars>& config);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   rng_type& rng;
 
   std::vector<vertex_pair_type> configuration;
@@ -145,7 +151,7 @@ private:
 };
 
 template <class parameters_type>
-CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_type& parameters_ref,
+CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(const parameters_type& parameters_ref,
                                                                   rng_type& rng_ref)
     : parameters(parameters_ref),
       rng(rng_ref),
@@ -619,7 +625,7 @@ bool CT_AUX_HS_configuration<parameters_type>::assert_consistency() /*const*/ {
 }
 
 template <class parameters_type>
-void CT_AUX_HS_configuration<parameters_type>::print() /*const*/ {
+void CT_AUX_HS_configuration<parameters_type>::print() {
   std::stringstream ss;
   ss << std::scientific;
   ss.precision(6);
@@ -798,6 +804,40 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
   // assert(assert_counters());
   return configuration == rhs.configuration && configuration_e_UP == rhs.configuration_e_UP &&
          configuration_e_DN == rhs.configuration_e_DN;
+}
+
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::write(io::Writer& file,
+                                                     const std::string& stamp) const {
+  file.open_group(stamp);
+
+  const auto n = configuration.size();
+  std::vector<double> times(n);
+  std::vector<std::array<std::uint8_t, 2>> bands(n);
+  std::vector<std::array<std::int8_t, 2>> e_spins(n);
+  std::vector<std::array<std::uint16_t, 2>> sites(n);
+  std::vector<std::int8_t> hs_spin(n);
+
+  auto to_array = [](auto& arr, const std::pair<int, int>& pair) {
+    arr[0] = pair.first;
+    arr[1] = pair.second;
+  };
+
+  for (int i = 0; i < configuration.size(); ++i) {
+    times[i] = configuration[i].get_tau();
+    to_array(bands[i], configuration[i].get_bands());
+    to_array(e_spins[i], configuration[i].get_e_spins());
+    to_array(sites[i], configuration[i].get_r_sites());
+    hs_spin[i] = configuration[i].get_HS_spin();
+  }
+
+  file.execute("times", times);
+  file.execute("bands", bands);
+  file.execute("e_spins", e_spins);
+  file.execute("sites", sites);
+  file.execute("hs_spin", hs_spin);
+
+  file.close_group();
 }
 
 }  // namespace ctaux

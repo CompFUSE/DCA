@@ -76,6 +76,12 @@ public:
       execute(f->get_name(), *f);
   }
 
+  // "execute" already takes care of overwriting.
+  template <class T>
+  void rewrite(const std::string& name, const T& obj){
+    execute(name, obj);
+  }
+
 private:
   bool verbose_;
   std::stack<details::JSONGroup*> open_groups_;

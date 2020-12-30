@@ -59,7 +59,7 @@ class N_TOOLS : public N_MATRIX_TOOLS<device_t, Parameters, Real> {
   using HostVector = linalg::util::HostVector<T>;
 
 public:
-  N_TOOLS(int id, Parameters& parameters, CV<Parameters>& CV_obj_ref);
+  N_TOOLS(int id, const Parameters& parameters, CV<Parameters>& CV_obj_ref);
 
   double get_Gflop();
 
@@ -104,8 +104,8 @@ private:
 
   double GFLOP;
 
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
 
   CV<Parameters>& CV_obj;
 
@@ -120,7 +120,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, typename Parameters, typename Real>
-N_TOOLS<device_t, Parameters, Real>::N_TOOLS(int id, Parameters& parameters_ref,
+N_TOOLS<device_t, Parameters, Real>::N_TOOLS(int id, const Parameters& parameters_ref,
                                              CV<Parameters>& CV_obj_ref)
     :
 

@@ -21,7 +21,7 @@ class N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
   using HostVector = linalg::util::HostVector<T>;
 
 public:
-  N_MATRIX_TOOLS(int id, Parameters& parameters_ref);
+  N_MATRIX_TOOLS(int id, const Parameters& parameters_ref);
 
   const int* get_permutation() const;
   void set_permutation(const HostVector<int>& p);
@@ -43,8 +43,8 @@ private:
   int thread_id;
   int stream_id;
 
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> identity;
   dca::linalg::Vector<int, dca::linalg::GPU> permutation;
@@ -58,7 +58,7 @@ private:
 };
 
 template <class Parameters, typename Real>
-N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::N_MATRIX_TOOLS(int id, Parameters& parameters_ref)
+N_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real>::N_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
     : thread_id(id),
       stream_id(0),
 

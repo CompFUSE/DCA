@@ -63,7 +63,6 @@ template <typename Real>
 double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration& config,
                            const typename CachedNdftGpuTest<Real>::Matrix& M,
                            typename CachedNdftGpuTest<Real>::F_w_w& f_w) {
-  using Complex = std::complex<Real>;
   dca::linalg::util::initializeMagma();
   dca::linalg::util::MagmaQueue queue;
 
@@ -72,9 +71,8 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   using FreqDmn = typename CachedNdftGpuTest<Real>::FreqDmn;
   using PosFreqDmn = typename CachedNdftGpuTest<Real>::PosFreqDmn;
 
-  using NftType =
-      dca::phys::solver::accumulator::CachedNdft<Real, RDmn, FreqDmn, PosFreqDmn, dca::linalg::GPU>;
-  NftType nft_obj(queue);
+  dca::phys::solver::accumulator::CachedNdft<Real, RDmn, FreqDmn, PosFreqDmn, dca::linalg::GPU> nft_obj(
+      queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
 
   dca::linalg::Matrix<Real, dca::linalg::GPU> M_dev(M);

@@ -41,7 +41,7 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
-  deconvolution_sp(parameters_type& parameters_ref);
+  deconvolution_sp(const parameters_type &parameters_ref);
 
   void execute(
       const func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
@@ -56,13 +56,13 @@ private:
                                        func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution_sp(
-    parameters_type& parameters_ref)
+        const parameters_type &parameters_ref)
     : deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>(parameters_ref),
 
       parameters(parameters_ref),

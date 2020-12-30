@@ -5,7 +5,6 @@
 
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 template <typename Real>
@@ -39,8 +38,7 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   const auto& data = *TestFixture::data_;
 
   // Setup interpolation and matrix builder class.
-  ctint::G0Interpolation<dca::linalg::GPU, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  G0Interpolation<dca::linalg::GPU, Real> g0(dca::phys::solver::details::shrinkG0(data.G0_r_t));
 
   const int nb = BDmn::dmn_size();
 

@@ -122,6 +122,7 @@ set(DCA_LIBS
   ctaux
   ctint
   ss_ct_hyb
+  g0_interpolation
   function_transform
   gaussian_quadrature
   nfft
@@ -154,6 +155,7 @@ if (DCA_HAVE_CUDA)
     lapack_kernels
     mc_kernels
     special_transform_kernels
+    cuda_utils
     ${DCA_CUDA_LIBS})
 endif()
 

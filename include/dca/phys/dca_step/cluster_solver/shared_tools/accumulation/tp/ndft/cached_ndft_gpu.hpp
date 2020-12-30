@@ -54,7 +54,6 @@ public:
       linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
-
   CachedNdft(const linalg::util::MagmaQueue& queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency

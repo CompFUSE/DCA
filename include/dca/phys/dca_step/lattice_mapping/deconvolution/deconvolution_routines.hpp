@@ -40,7 +40,7 @@ public:
   using trafo_r_to_k_type = math::transform::basis_transform<target_r_dmn_t, target_k_dmn_t>;
 
 public:
-  deconvolution_routines(parameters_type& parameters_ref);
+  deconvolution_routines(const parameters_type& parameters_ref);
 
   void compute_T_inv_matrix(double epsilon, dca::linalg::Matrix<double, dca::linalg::CPU>& T_eps);
   void compute_T_inv_matrix(double epsilon,
@@ -68,7 +68,7 @@ private:
                                     linalg::Matrix<double, dca::linalg::CPU>& projection_op);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
 
 protected:
   func::function<double, target_r_dmn_t> phi_r_inv;
@@ -85,7 +85,7 @@ private:
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution_routines(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : parameters(parameters_ref),
 
       phi_r_inv("phi_r_inv"),

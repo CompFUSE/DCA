@@ -31,9 +31,9 @@ void SignalHandler::init(bool verbose) {
 
 void SignalHandler::handle(int signum) {
   if (verbose_)
-    std::cerr << "Received signal (" << signum << ") received." << std::endl;
+    std::cerr << "Signal (" << signum << ") received." << std::endl;
 
-  for (auto file_ptr : file_ptrs_) {
+  for (auto& file_ptr : file_ptrs_) {
     auto file = file_ptr.lock();
     if (file)
       file->close_file();

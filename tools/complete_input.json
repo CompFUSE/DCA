@@ -109,6 +109,7 @@
         "measurements": 100,
         "error-computation-type" : "NONE",
         "store-configuration" : false,
+        "time-correlation-window" : 100,
 
         "threaded-solver": {
             "walkers": 1,

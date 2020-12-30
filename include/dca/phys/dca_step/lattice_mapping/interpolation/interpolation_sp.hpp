@@ -62,7 +62,7 @@ public:
   using nu_nu_k_HOST_w = func::dmn_variadic<nu, nu, k_HOST, w>;
 
 public:
-  interpolation_sp(parameters_type& parameters_ref);
+  interpolation_sp(const parameters_type& parameters_ref);
 
   void execute_with_alpha_transformation(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_self_energy,
@@ -79,13 +79,13 @@ private:
                    interp_self_energy);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_sp(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : interpolation_routines<parameters_type, source_k_dmn, target_k_dmn>(parameters_ref),
 
       parameters(parameters_ref),

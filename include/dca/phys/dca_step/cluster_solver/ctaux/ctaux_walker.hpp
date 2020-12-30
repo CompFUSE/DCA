@@ -58,10 +58,12 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
 
-  const static dca::linalg::DeviceType walker_device_type = device_t;
+  using Scalar = Real;
+
+  constexpr static dca::linalg::DeviceType device = device_t;
 
 public:
-  CtauxWalker(/*const*/ Parameters& parameters, Data& MOMS_ref, Rng& rng_ref, int id);
+  CtauxWalker(const Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
 
   void initialize(int iteration);
 
@@ -99,7 +101,12 @@ public:
     return configuration_.get_matrix_configuration();
   }
 
+  unsigned long get_steps() const {
+    return n_steps_;
+  }
+
   int get_sign();
+
   int get_thread_id();
 
   double get_Gflop();
@@ -108,6 +115,7 @@ public:
   void to_JSON(stream_type& /*ss*/) {}
 
   void readConfig(dca::io::Buffer& buff);
+
   dca::io::Buffer dumpConfig() const;
 
   // Writes the current progress, the number of interacting spins and the total configuration_ size
@@ -232,7 +240,7 @@ private:
   };
 
 private:
-  /*const*/ Parameters& parameters_;
+  const Parameters& parameters_;
   Data& data_;
   const Concurrency& concurrency_;
 
@@ -249,7 +257,7 @@ private:
   N_TOOLS<device_t, Parameters, Real> N_tools_obj;
   G_TOOLS<device_t, Parameters, Real> G_tools_obj;
 
-  SHRINK_TOOLS<device_t, Real> SHRINK_tools_obj;
+  SHRINK_TOOLS<Profiler, device_t, Real> SHRINK_tools_obj;
 
   using CtauxWalkerData<device_t, Parameters, Real>::N_up;
   using CtauxWalkerData<device_t, Parameters, Real>::N_dn;
@@ -318,17 +326,18 @@ private:
   bool config_initialized_;
 
   double sweeps_per_measurement_ = 1.;
+  unsigned long n_steps_ = 0;
 
   linalg::util::CudaEvent sync_streams_event_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
-CtauxWalker<device_t, Parameters, Data, Real>::CtauxWalker(/*const*/ Parameters& parameters,
+CtauxWalker<device_t, Parameters, Data, Real>::CtauxWalker(const Parameters& parameters_ref,
                                                            Data& MOMS_ref, Rng& rng_ref, int id)
-    : WalkerBIT<Parameters, Data, Real>(parameters, MOMS_ref, id),
-      CtauxWalkerData<device_t, Parameters, Real>(parameters, id),
+    : WalkerBIT<Parameters, Data, Real>(parameters_ref, MOMS_ref, id),
+      CtauxWalkerData<device_t, Parameters, Real>(parameters_ref, id),
 
-      parameters_(parameters),
+      parameters_(parameters_ref),
       data_(MOMS_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -655,7 +664,8 @@ void CtauxWalker<device_t, Parameters, Data, Real>::generate_delayed_spins(
           ? generateDelayedSpinsNeglectBennett(single_spin_updates_todo)
           : generateDelayedSpinsAbortAtBennett(single_spin_updates_todo);
 
-  //  assert(single_spin_updates_proposed > 0);
+  n_steps_ += single_spin_updates_proposed;
+
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
 
@@ -769,6 +779,7 @@ int CtauxWalker<device_t, Parameters, Data, Real>::generateDelayedSpinsAbortAtBe
       ++single_spin_updates_proposed;
     }
   }
+
   // We need to unmark all "virtual" interacting spins, that we have temporarily marked as
   // annihilatable in CT_AUX_HS_configuration::get_random_noninteracting_vertex().
   // TODO: Eliminate the need to mark and unmark these spins.
@@ -1412,7 +1423,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::update_N_matrix_with_Gamma_m
   Profiler profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   // kills Bennett-spins and puts the interacting vertices all in the left part of the configuration_
-  SHRINK_TOOLS<device_t, Real>::shrink_Gamma(configuration_, Gamma_up, Gamma_dn);
+  SHRINK_TOOLS<Profiler, device_t, Real>::shrink_Gamma(configuration_, Gamma_up, Gamma_dn);
 
   N_tools_obj.rebuild_N_matrix_via_Gamma_LU(configuration_, N_up, Gamma_up, G_up, e_UP);
   N_tools_obj.rebuild_N_matrix_via_Gamma_LU(configuration_, N_dn, Gamma_dn, G_dn, e_DN);

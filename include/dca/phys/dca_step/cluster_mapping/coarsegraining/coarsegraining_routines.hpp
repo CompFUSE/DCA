@@ -64,7 +64,7 @@ public:
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
 public:
-  coarsegraining_routines(parameters_type& parameters_ref);
+  coarsegraining_routines(const parameters_type& parameters_ref);
 
   // Transforms f_k into f_q by interpolating the shifted inverse as
   // f_q = [interpolation((f_q - i*alpha)^-1)]^-1 + i*alpha.
@@ -171,12 +171,12 @@ protected:
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) const;
 
 protected:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };
 
 template <typename parameters_type, typename K_dmn>
-coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(parameters_type& parameters_ref)
+coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(const parameters_type& parameters_ref)
     : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
   static std::once_flag flag;
   std::call_once(flag, [&]() {

@@ -26,7 +26,7 @@ void NfftHelper::set(int nb, const int nc, const int *add_r, int lda, const int 
                      const Scalar beta) {
   static std::once_flag flag;
   std::call_once(flag, [=]() {
-    dca::phys::solver::details::ClusterHelper::set(nc, add_r, lda, sub_r, lds, false);
+    dca::phys::solver::ClusterHelper::set(nc, add_r, lda, sub_r, lds, false);
 
     NfftHelper host_helper;
 
