@@ -165,6 +165,13 @@ public:
     return fnc_values_;
   }
 
+  const auto& getDomainSizes() const noexcept {
+    return size_sbdm;
+  }
+  const std::vector<scalartype>& getValues() const noexcept {
+    return fnc_values_;
+  }
+
   // Begin and end methods for compatibility with range for loop.
   auto begin() {
     return fnc_values_.begin();

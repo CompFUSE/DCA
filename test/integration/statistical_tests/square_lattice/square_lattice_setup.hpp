@@ -86,13 +86,14 @@ using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
 
 template <ClusterSolverName name = CT_AUX>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
+>>>>>>> f4e0ed1d... merging dca latest commit
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
 using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
 using dca::math::util::cutFrequency;
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // DCA_TEST_INTEGRATION_STATISTICAL_TESTS_SQUARE_LATTICE_SQUARE_LATTICE_SETUP_HPP
