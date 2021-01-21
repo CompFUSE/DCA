@@ -4,8 +4,8 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.3)
-project(DCA++ C CXX)
+cmake_minimum_required(VERSION 3.18)
+project(DCA++ LANGUAGES C CXX CUDA)
 
 ################################################################################
 # Disable in-source builds.
@@ -82,6 +82,8 @@ include(dca_config)
 # Depends on dca_config.
 include(dca_compiler_options)
 
+include(dca_check_stdlib)
+
 ################################################################################
 # Generate preprocessor definitions header files.
 # Depends on dca_config.
@@ -105,7 +107,7 @@ set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
 if(DCA_HAVE_CUDA)
-  include_directories(${CUDA_TOOLKIT_INCLUDE})
+#  include_directories(${CUDA_TOOLKIT_INCLUDE})
 endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
@@ -155,10 +157,15 @@ if (DCA_HAVE_CUDA)
     mc_kernels
     special_transform_kernels
     ${DCA_CUDA_LIBS})
+  set(DCA_KERNEL_LIBS
+    blas_kernels
+    lapack_kernels
+    mc_kernels
+    special_transform_kernels)  
 endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
-list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
+list(APPEND DCA_LIBS lapack ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
 # Testing

@@ -12,4 +12,5 @@ if (function_library_test)
   target_compile_options(function_library_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
 endif()
 
-dca_add_gtest(set_to_zero_test GTEST_MAIN)
+dca_add_gtest(set_to_zero_test
+  GTEST_MAIN)

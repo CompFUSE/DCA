@@ -16,6 +16,10 @@
 
 #include "dca/parallel/mpi_concurrency/kernel_test.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include <cuda_runtime.h>
+#endif
+
 namespace dca {
 namespace parallel {
 // dca::parallel::
@@ -26,6 +30,9 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*check)()) {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
+#ifdef DCA_HAVE_CUDA
+  cudaSetDevice(world_id_);
+#endif
   // Check if the process has the desired qualities, or remove it from the communicator.
   const bool is_valid = check();
 

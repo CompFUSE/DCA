@@ -12,17 +12,18 @@ set(DCA_HAVE_MAGMA FALSE CACHE INTERNAL "")
 set(DCA_CUDA_LIBS "" CACHE INTERNAL "")
 
 # Find CUDA.
-find_package(CUDA REQUIRED)
+#find_package(CUDA REQUIRED)
+include(CheckLanguage)
 
-if (CUDA_FOUND)
-  # set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
-  # dca_add_haves_define(DCA_HAVE_CUDA)
-  list(APPEND DCA_CUDA_LIBS ${CUDA_LIBRARIES} ${CUDA_cusparse_LIBRARY} ${CUDA_cublas_LIBRARY})
-  CUDA_INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
-  set(CUDA_SEPARABLE_COMPILATION ON)
-  list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
+find_package(CUDAToolkit REQUIRED)
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER)
+  enable_language(CUDA)
+  set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
+  dca_add_haves_define(DCA_HAVE_CUDA)
+  list(APPEND DCA_CUDA_LIBS CUDA::cudart_static CUDA::cublas)
+  list(APPEND CUDA_FLAGS "--expt-relaxed-constexpr")
   set(CMAKE_CUDA_STANDARD 14)
-
   set(CVD_LAUNCHER "" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
   # Use the following script for systems with multiple gpus visible from a rank.
   # set(CVD_LAUNCHER "test/cvd_launcher.sh" CACHE INTERNAL "")
@@ -45,8 +46,7 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # I have built magma without openmp for
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
-  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY} ${CUDA_cusparse_LIBRARY})
-  CUDA_INCLUDE_DIRECTORIES(${MAGMA_INCLUDE_DIR})
+  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY} CUDA::cusparse)
 endif()
 
 # At the moment the GPU code requires MAGMA. Therefore we set DCA_HAVE_CUDA to true, only if both

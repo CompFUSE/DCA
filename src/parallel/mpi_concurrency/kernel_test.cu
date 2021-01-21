@@ -15,6 +15,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include "dca/linalg/util/error_cuda.hpp"
+
 __global__ void kernel(int* out) {
   out[threadIdx.x] = threadIdx.x;
 }
@@ -29,6 +31,7 @@ bool kernelTest() {
 
   cudaMalloc(&dev, sizeof(int) * 32);
   kernel<<<1, 32>>>(dev);
+  dca::linalg::util::checkErrorsCudaDebugInternal(__builtin_FUNCTION(), "kernel_test", 34);
   cudaMemcpy(host.data(), dev, sizeof(int) * 32, cudaMemcpyDeviceToHost);
   cudaFree(dev);
 
