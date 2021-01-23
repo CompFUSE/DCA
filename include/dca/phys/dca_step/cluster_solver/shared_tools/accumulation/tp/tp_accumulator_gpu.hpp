@@ -141,13 +141,17 @@ public:
     for (const auto& G4_channel : get_G4Dev())
       res += G4_channel.deviceFingerprint();
 
-    res += get_G0()[0].deviceFingerprint() + get_G0()[1].deviceFingerprint();
+    res += BaseGpu::get_G0()[0].deviceFingerprint() + BaseGpu::get_G0()[1].deviceFingerprint();
 
     return res;
   }
-
-      // Returns the accumulated Green's function.
+  
+  // Returns the accumulated Green's function.
   std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& get_G4();
+  
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  // Returns the accumulated Green's function.
+  static inline std::vector<G4DevType>& get_G4Dev();
 
 protected:
   using typename BaseGpu::Matrix;
@@ -169,8 +173,6 @@ protected:
 
   using BaseGpu::n_ndft_queues_;
   
-  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
-
   using BaseGpu::get_G0;
 
   void initializeG0();
@@ -185,8 +187,6 @@ protected:
   float updateG4(const std::size_t channel_index);
 
   void synchronizeStreams();
-
-  static inline std::vector<G4DevType>& get_G4Dev();
 
   // For distributed G4's
   // Applies pipepline ring algorithm to move G matrices around all ranks
@@ -237,10 +237,10 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
     try {
       typename Base::TpDomain tp_dmn;
       if (!multiple_accumulators_) {
-        G4_channel.setStream(queues_[0]);
+        G4_channel.setStream(queues_[0].getStream());
       }
       G4_channel.resizeNoCopy(tp_dmn.get_size());
-      G4_channel.setToZeroAsync(queues_[0]);
+      G4_channel.setToZeroAsync(queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -284,7 +284,7 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(M[s], queues_[0]);
+    M_dev[s].setAsync(M[s], queues_[0].getStream());
 
   return accumulate(M_dev, configs, sign);
 }
@@ -342,7 +342,7 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t cha
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+                                                               get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_HOLE_MAGNETIC:

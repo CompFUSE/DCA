@@ -41,12 +41,8 @@ public:
     }
   }
 
-  constexpr bool is_reader() const noexcept {
-    return true;
-  }
-  constexpr bool is_writer() const noexcept {
-    return false;
-  }
+  constexpr static bool is_reader = true;
+  constexpr static bool is_writer = false;
 
   void open_file(const std::string& file_name) {
     std::visit([&](auto& var) { var.open_file(file_name); }, reader_);
@@ -64,8 +60,9 @@ public:
   }
 
   template <class... Args>
-  void execute(Args&... args) {
-    std::visit([&](auto& var) { var.execute(args...); }, reader_);
+  bool execute(Args&&... args) noexcept {
+    return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },
+                      reader_);
   }
 
 private:

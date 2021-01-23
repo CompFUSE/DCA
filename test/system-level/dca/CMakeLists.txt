@@ -17,5 +17,11 @@ dca_add_gtest(dca_sp_DCA+_thread_test
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
   LIBS ${DCA_LIBS})
 
+dca_add_gtest(ctint_sp_DCA_mpi_thread_test
+  MPI MPI_NUMPROC 2
+  EXTENSIVE
+  INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
+  LIBS ${DCA_LIBS})
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/initial_sigma.hdf5
                ${CMAKE_CURRENT_BINARY_DIR}/initial_sigma.hdf5 COPYONLY)

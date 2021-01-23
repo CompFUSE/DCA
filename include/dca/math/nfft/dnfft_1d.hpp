@@ -275,10 +275,10 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::convoluteToFTauExact(
   const ScalarType T_0 = PaddedTimeDmn::parameter_type::first_element();
   const ScalarType one_div_Delta = PaddedTimeDmn::parameter_type::get_one_div_Delta();
 
-  int lambda_0 = (t_val - T_0) * one_div_Delta;
+  const int lambda_0 = (t_val - T_0) * one_div_Delta;
 
-  for (int l = -oversampling; l <= oversampling; ++l)
-    f_tau_(lambda_0 + l, index) += f_val * WindowFunction::phi_t(tau(lambda_0 + l) - t_val);
+  for (int l = lambda_0 - oversampling + 1; l <= lambda_0 + oversampling; ++l)
+    f_tau_(l, index) += f_val * WindowFunction::phi_t(tau(l) - t_val);
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
@@ -316,7 +316,7 @@ inline void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::convoluteToFTau
   ScalarType* f_tau_ptr = &f_tau_(tau_index, index);
   ScalarType* matrix_ptr = &get_linear_convolution_matrices()(0, i, j);
 
-  nfft_atomic_convolution<2 * oversampling + 1, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
+  NfftAtomicConvolution<oversampling>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
@@ -364,7 +364,7 @@ inline void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::convoluteToFTau
   ScalarType* f_tau_ptr = &f_tau_(tau_index, index);
   ScalarType* matrix_ptr = &get_cubic_convolution_matrices()(0, i, j);
 
-  nfft_atomic_convolution<2 * oversampling + 1, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
+  NfftAtomicConvolution<oversampling>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
@@ -481,8 +481,8 @@ auto& Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::get_phi_wn() {
   return phi_wn;
 }
 
-}  // nfft
-}  // math
-}  // dca
+}  // namespace nfft
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_NFFT_DNFFT_1D_HPP

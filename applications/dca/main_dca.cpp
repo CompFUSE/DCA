@@ -22,6 +22,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "dca/util/signal_handler.hpp"
+#include "dca/io/writer.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
-    dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
+    //dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
 
     std::string input_file(argv[1]);
 
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
     }
   }
   catch (const std::exception& err) {
-    std::cout << "Unhandled exception in main function:\n\t" << err.what();
+    std::cout << "Unhandled exception in main function:\n\t" << err.what() << std::endl;
     concurrency.abort();
   }
 

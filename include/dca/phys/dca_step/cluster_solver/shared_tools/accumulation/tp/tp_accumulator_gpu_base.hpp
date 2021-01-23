@@ -196,7 +196,7 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
-    G0[s].setAsync(G0_host[s], queues_[s]);
+    G0[s].setAsync(G0_host[s], queues_[s].getStream());
   }
 }
 

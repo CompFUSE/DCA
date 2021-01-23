@@ -145,8 +145,8 @@ void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
         continue;
       // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
       // Note: a factor of -1 comes from rearranging the fermion operators.
-        non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
-        non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
     }
 }
 

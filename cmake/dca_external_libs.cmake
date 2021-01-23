@@ -16,6 +16,7 @@ if (NOT DCA_HAVE_LAPACK)
 endif()
 
 mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
 list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################

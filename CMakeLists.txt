@@ -4,8 +4,8 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.3)
-project(DCA++ C CXX)
+cmake_minimum_required(VERSION 3.18)
+project(DCA++ LANGUAGES C CXX CUDA)
 
 ################################################################################
 # Disable in-source builds.
@@ -94,6 +94,10 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
+
+include(dca_check_stdlib)
+
+
 ################################################################################
 # Include directories
 # For "dca/.../..." #includes.
@@ -105,7 +109,7 @@ set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
 if(DCA_HAVE_CUDA)
-  include_directories(${CUDA_TOOLKIT_INCLUDE})
+#  include_directories(${CUDA_TOOLKIT_INCLUDE})
 endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
@@ -142,7 +146,6 @@ set(DCA_LIBS
   signals
   symmetrization
   coarsegraining
-  stdc++fs # std::filesystem
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
@@ -156,11 +159,15 @@ if (DCA_HAVE_CUDA)
                   OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   list(APPEND DCA_LIBS
     blas_kernels
-    dnfft_kernels
     lapack_kernels
     mc_kernels
     special_transform_kernels
     ${DCA_CUDA_LIBS})
+  set(DCA_KERNEL_LIBS
+    blas_kernels
+    lapack_kernels
+    mc_kernels
+    special_transform_kernels)  
 endif()
 
 if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
@@ -171,7 +178,7 @@ if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
 endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
-list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
+list(APPEND DCA_LIBS lapack ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
 # Testing

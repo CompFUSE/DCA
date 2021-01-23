@@ -25,6 +25,8 @@
 #include "dca/function/domains/dmn_variadic.hpp"
 #include "dca/function/domains/local_domain.hpp"
 #include "dca/testing/minimalist_printer.hpp"
+#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 
 //See below, life cycle issue with MPI
 //std::unique_ptr<dca::parallel::MPIConcurrency> concurrency;
@@ -67,12 +69,21 @@ TEST(MPIGatherTest, GatherLocalDmn) {
 int main(int argc, char** argv) {
   int result = 0;
 
+  dca::linalg::util::printInfoDevices();
+
+  dca::linalg::util::initializeMagma();
+
   // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after the finalize.
   // concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
   concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
- 
+
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+
+
+  //dca::linalg::util::printInfoDevices();
+
+
   if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
     listeners.Append(new dca::testing::MinimalistPrinter);

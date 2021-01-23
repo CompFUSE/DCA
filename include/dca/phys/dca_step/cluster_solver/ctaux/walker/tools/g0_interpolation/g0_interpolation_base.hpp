@@ -9,8 +9,10 @@
 //
 // This class organizes the interpolation of \f$G^{0}\f$ towards the \f$G^{0}\f$-matrix.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_TEMPLATE_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_TEMPLATE_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_BASE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_BASE_HPP
+
+#include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -30,7 +32,7 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 template <typename Parameters, typename Real>
-class G0_INTERPOLATION_TEMPLATE {
+class G0InterpolationBase {
 public:
   using t = func::dmn_0<domains::time_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -53,7 +55,7 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
-  G0_INTERPOLATION_TEMPLATE(int id, Parameters& parameters);
+  G0InterpolationBase(int id, const Parameters& parameters);
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
@@ -68,8 +70,8 @@ protected:
 protected:
   int thread_id;
 
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
@@ -85,8 +87,7 @@ protected:
 };
 
 template <typename Parameters, typename Real>
-G0_INTERPOLATION_TEMPLATE<Parameters, Real>::G0_INTERPOLATION_TEMPLATE(int id,
-                                                                       Parameters& parameters_ref)
+G0InterpolationBase<Parameters, Real>::G0InterpolationBase(int id, const Parameters& parameters_ref)
     : thread_id(id),
 
       parameters(parameters_ref),
@@ -109,7 +110,7 @@ G0_INTERPOLATION_TEMPLATE<Parameters, Real>::G0_INTERPOLATION_TEMPLATE(int id,
  */
 template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize(MOMS_type& MOMS) {
   initialize_linear_coefficients(MOMS);
 
   initialize_akima_coefficients(MOMS);
@@ -117,7 +118,7 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize(MOMS_type& MOMS) {
 
 template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_linear_coefficients(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize_linear_coefficients(MOMS_type& MOMS) {
   for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++) {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
@@ -149,13 +150,13 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_linear_coefficients
 
 template <typename Parameters, typename Real>
 template <class MOMS_type>
-void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_akima_coefficients(MOMS_type& MOMS) {
+void G0InterpolationBase<Parameters, Real>::initialize_akima_coefficients(MOMS_type& MOMS) {
   int size = t::dmn_size() / 2;
 
   math::interpolation::akima_interpolation<Real> ai_obj(size);
 
-  Real* x = new Real[size];
-  Real* y = new Real[size];
+  std::vector<Real> x(size);
+  std::vector<Real> y(size);
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -167,7 +168,7 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_akima_coefficients(
           for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
             y[t_ind] = MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
 
-          ai_obj.initialize(x, y);
+          ai_obj.initialize(x.data(), y.data());
 
           for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++)
             for (int l = 0; l < 4; l++)
@@ -185,7 +186,7 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_akima_coefficients(
             y[t_ind - t::dmn_size() / 2] =
                 MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
 
-          ai_obj.initialize(x, y);
+          ai_obj.initialize(x.data(), y.data());
 
           for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size() - 1; t_ind++)
             for (int l = 0; l < 4; l++)
@@ -195,9 +196,6 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_akima_coefficients(
       }
     }
   }
-
-  delete[] x;
-  delete[] y;
 
   /*
     {
@@ -227,4 +225,4 @@ void G0_INTERPOLATION_TEMPLATE<Parameters, Real>::initialize_akima_coefficients(
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_TEMPLATE_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_BASE_HPP

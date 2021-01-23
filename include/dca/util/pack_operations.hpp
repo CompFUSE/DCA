@@ -16,32 +16,40 @@
 #ifndef DCA_UTIL_PACK_OPERATIONS_HPP
 #define DCA_UTIL_PACK_OPERATIONS_HPP
 
+#include "dca/util/type_list.hpp"
+
 namespace dca {
 namespace util {
 // dca::util::
 
-// if_all<b1, b2, ...>::value is true only if all template arguments are true, otherwise false.
-template <bool b1, bool... bs>
-struct if_all {
-  constexpr static bool value = b1 && if_all<bs...>::value;
-};
-template <bool b>
-struct if_all<b> {
-  constexpr static bool value = b;
-};
+// returns is true only if all template arguments are true.
+template <class... Args>
+constexpr bool ifAll(Args... args) {
+  return (args &&...);
+}
 
 // product(T1 a1, T2 a2, ...) returns the product of all its arguments. Equivalent to a1 * a2 * ...
-template <typename T>
-constexpr T product(T first) {
-  return first;
+template <class... Args>
+constexpr auto product(Args... args) {
+  return (args *...);
 }
 
-template <typename T, class... Args>
-constexpr T product(T first, Args... args) {
-  return first * product<Args...>(args...);
+// sum(T1 a1, T2 a2, ...) returns the sum of all its arguments. Equivalent to a1 + a2 + ...
+// sum() returns 0.
+template <class... Args>
+constexpr auto sum(Args... args) {
+  return (0 + ... + args);
 }
 
-}  // util
-}  // dca
+// size_sum.
+// size_sum<T_1, ..., T_n> = \sum_{i=1}^n sizeof(T_i)
+template <typename... Ts>
+constexpr unsigned size_sum = sum(sizeof(Ts)...);
+
+template <typename... Ts>
+constexpr unsigned size_sum<mp_list<Ts...>> = sum(sizeof(Ts)...);
+
+}  // namespace util
+}  // namespace dca
 
 #endif  // DCA_UTIL_PACK_OPERATIONS_HPP

@@ -145,7 +145,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     output_file_ = std::make_shared<io::Writer<concurrency_type>>(
         concurrency_ref, parameters.get_output_format(), false);
 
-    dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
+    //dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
@@ -392,7 +392,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
-  if (output_file_ && parameters.get_output_format() == "HDF5") {
+  if (output_file_) {
     output_file_->open_group("functions");
     output_file_->execute(MOMS.Sigma);
     output_file_->close_group();

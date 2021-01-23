@@ -21,15 +21,10 @@
 #ifdef DCA_WITH_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
 #endif
-#ifdef DCA_HAVE_ADIOS2
-#include "dca/io/adios2/adios2_writer.hpp"
-#endif
-#include "dca/io/adios2/adios2_writer.hpp"
-
 
 namespace dca::io {
 
-template<class Concurrency>
+template <class Concurrency>
 class Writer {
 public:
   // In: format. output format, HDF5 or JSON.
@@ -47,12 +42,8 @@ public:
     }
   }
 
-  constexpr bool is_reader() const noexcept {
-    return false;
-  }
-  constexpr bool is_writer() const noexcept {
-    return true;
-  }
+  constexpr static bool is_reader = false;
+  constexpr static bool is_writer = true;
 
   void open_file(const std::string& file_name, bool overwrite = true) {
     std::visit([&](auto& var) { var.open_file(file_name, overwrite); }, writer_);
@@ -71,15 +62,19 @@ public:
 
   template <class... Args>
   void execute(const Args&... args) {
-    //currently only the ADIOS2Writer supports parallel writes
+    // currently only the ADIOS2Writer supports parallel writes
+#ifdef DCA_HAVE_ADIOS2
     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
       std::visit([&](auto& var) { var.execute(args...); }, writer_);
     }
     else {
+#endif
       if (concurrency_.id() == concurrency_.first()) {
         std::visit([&](auto& var) { var.execute(args...); }, writer_);
       }
+#ifdef DCA_HAVE_ADIOS2
     }
+#endif
   }
 
   operator bool() const noexcept {

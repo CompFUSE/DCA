@@ -152,6 +152,13 @@ public:
     return size_sbdm[index];
   }
 
+  const auto& getDomainSizes() const noexcept {
+    return size_sbdm;
+  }
+  const std::vector<scalartype>& getValues() const noexcept {
+    return fnc_values_;
+  }
+
   // Begin and end methods for compatibility with range for loop.
   auto begin() {
     return fnc_values_.begin();
@@ -209,7 +216,7 @@ public:
   // Enable only if all arguments are integral to prevent subind_to_linind(int*, int) to resolve to
   // subind_to_linind(int...) rather than subind_to_linind(const int* const, int).
   template <typename... Ts>
-  std::enable_if_t<util::if_all<std::is_integral<Ts>::value...>::value, int> subind_2_linind(
+  std::enable_if_t<util::ifAll(std::is_integral_v<Ts>...), int> subind_2_linind(
       const Ts... subindices) const {
     // We need to cast all subindices to the same type for dmn_variadic.
     return dmn(static_cast<int>(subindices)...);

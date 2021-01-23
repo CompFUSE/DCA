@@ -96,17 +96,23 @@ function(dca_add_gtest name)
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
-    target_link_libraries(${name} gtest_main ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE gtest_main ${DCA_ADD_GTEST_LIBS})
   else()
     # Test has its own main.
-    target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE gtest ${DCA_ADD_GTEST_LIBS})
   endif()
 
-  set(THIS_CVD_LAUNCHER "")
+  if (DCA_HAVE_CUDA)
+    set_property(TARGET ${name} PROPERTY CUDA_ARCHITECTURES 70)
+    set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_link_libraries(${name} PRIVATE CUDA::cudart_static)
+  endif()
   
-  if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)
-    target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-    target_link_libraries(${name} ${DCA_CUDA_LIBS})
+  if (DCA_ADD_GTEST_CUDA)
+    target_include_directories(${name} PRIVATE ${CUDATookit_INCLUDE_DIRS})
+    target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
@@ -115,11 +121,11 @@ function(dca_add_gtest name)
     if(DCA_WITH_CUDA_AWARE_MPI)
       target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
     endif()
-    cuda_add_cublas_to_target(${name})
     if (DCA_ADD_GTEST_CUDA_MPI)
       #We need to document which cuda aware openmpi requires this and which doesn't.
       set(THIS_CVD_LAUNCHER "${CMAKE_SOURCE_DIR}/${CVD_LAUNCHER}")
     endif()
+    target_link_libraries(${name} PRIVATE CUDA::cublas)
   endif()
 
   target_include_directories(${name} PRIVATE
