@@ -54,6 +54,7 @@ TEST(MPIGatherTest, GatherLocalDmn) {
   dca::func::function<int, dca::func::dmn_variadic<dca::func::dmn_0<Dmn1>, dca::func::dmn_0<LocalDmn>>> local_f;
   dca::func::function<int, dca::func::dmn_variadic<dca::func::dmn_0<Dmn1>, dca::func::dmn_0<Dmn2>>> f;
 
+
   for (int i2 = 0; i2 < LocalDmn::get_physical_size(); ++i2)
     for (int i1 = 0; i1 < Dmn1::get_size(); ++i1)
       local_f(i1, i2) = Dmn1::get_elements()[i1] * LocalDmn::get_elements()[i2];
@@ -69,20 +70,19 @@ TEST(MPIGatherTest, GatherLocalDmn) {
 int main(int argc, char** argv) {
   int result = 0;
 
-  dca::linalg::util::printInfoDevices();
-
-  dca::linalg::util::initializeMagma();
-
   // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after the finalize.
   // concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
   concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
+
+  dca::linalg::util::printInfoDevices();
+
+  dca::linalg::util::initializeMagma();
 
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
 
 
   //dca::linalg::util::printInfoDevices();
-
 
   if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());

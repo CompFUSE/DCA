@@ -103,7 +103,7 @@ function(dca_add_gtest name)
   endif()
 
   if (DCA_HAVE_CUDA)
-    set_property(TARGET ${name} PROPERTY CUDA_ARCHITECTURES 70)
+    set_property(TARGET ${name} PROPERTY CMAKE_CUDA_ARCHITECTURES 70)
     set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)

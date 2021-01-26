@@ -25,4 +25,4 @@ add_library(timer STATIC timer.cpp)
 # Signal handler
 add_library(signals STATIC signal_handler.cpp)
 target_include_directories(signals PUBLIC ${DCA_EXTERNAL_INCLUDE_DIRS})
-target_link_libraries(signals PUBLIC json dca_hdf5 dca_adios2 ${DCA_CURRENCY_LIBS})
+target_link_libraries(signals PUBLIC json dca_hdf5 dca_adios2 ${DCA_CONCURRENCY_LIBS})

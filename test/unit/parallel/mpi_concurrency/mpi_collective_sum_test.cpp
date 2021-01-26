@@ -127,8 +127,35 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   const FunctionType f_copy(f);
 
   FunctionType err_expected;
-  err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  // Where the 21 comes from I don't know.
+  // original code
+  // err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
   err_expected(1) = 0.;
+
+  std::vector<double> rank_obs;
+  for (int i = 0; i < size_; ++i) {
+    rank_obs.push_back(i);
+    //      rank_obs.push_back(d);
+  }
+
+  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
+    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
+    std::vector<double> jack_samp(samples);
+    jack_samp.erase(jack_samp.begin() + rank);
+    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
+    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
+    double scale = double(samples.size() - 1) / double(samples.size());
+    return scale * estsqr;
+  };
+  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
+    std::vector<double> jack_knifes(samples.size(), 0.0);
+    for (int i = 0; i < samples.size(); ++i) {
+      jack_knifes[i] = jacknife_var(samples, i);
+    }
+    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
+  };
+
+  err_expected(0) = jacknife_err(rank_obs);
 
   // Do not overwrite the jackknife estimates with their average.
   auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
@@ -174,12 +201,39 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   f(0) = std::complex<double>(rank_, rank_ + r);
   f(1) = std::complex<double>(rank_, d);
 
+  std::vector<double> rank_obs_real;
+  std::vector<double> rank_obs_imag;
+
+  for (int i = 0; i < size_; ++i) {
+    rank_obs_real.push_back(i);
+    rank_obs_imag.push_back(i + r);
+    //      rank_obs.push_back(d);
+  }
+
   const FunctionType f_copy(f);
 
   FunctionType err_expected;
-  const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
-  err_expected(0) = std::complex<double>(err_tmp, err_tmp);
-  err_expected(1) = std::complex<double>(err_tmp, 0.);
+
+  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
+    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
+    std::vector<double> jack_samp(samples);
+    jack_samp.erase(jack_samp.begin() + rank);
+    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
+    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
+    double scale = double(samples.size() - 1) / double(samples.size());
+    return scale * estsqr;
+  };
+  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
+    std::vector<double> jack_knifes(samples.size(), 0.0);
+    for (int i = 0; i < samples.size(); ++i) {
+      jack_knifes[i] = jacknife_var(samples, i);
+    }
+    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
+  };
+
+  // const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  err_expected(0) = std::complex<double>(jacknife_err(rank_obs_real), jacknife_err(rank_obs_imag));
+  err_expected(1) = std::complex<double>(jacknife_err(rank_obs_real), 0.);
 
   // Do not overwrite the jackknife estimates with their average.
   auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
@@ -220,21 +274,32 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   sum_interface_.sum(f_mean);
   f_mean /= size_;
 
-  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
-  covariance_expected(0, 0) = 0.;
-  covariance_expected(0, 1) = 0.;
-  covariance_expected(0, 2) = 0.;
-  covariance_expected(0, 3) = 0.;
-  covariance_expected(1, 1) = 5.25;
-  covariance_expected(1, 2) = 10.5;
-  covariance_expected(1, 3) = 15.75;
-  covariance_expected(2, 2) = 21.0;
-  covariance_expected(2, 3) = 31.5;
-  covariance_expected(3, 3) = 47.25;
+  /// Calculate the equivalent covariance matrix without using function's etc
+  std::vector<std::vector<double>> cov;
+  for (int i = 0; i < f.size(); ++i)
+    cov.emplace_back(f.size(), 0.0);
+
+  auto covariance = [&cov](auto& samples, auto& f_estimated) {
+    for (int i = 0; i < samples.size(); ++i)
+      for (int j = 0; j < samples.size(); ++j)
+        cov.at(i)[j] += (samples[i] - f_estimated[i]) * (samples[j] - f_estimated[j]);
+  };
+
+  std::vector<double> vec_means(f.size(), 0.0);
 
   for (int i = 0; i < f.size(); ++i)
-    for (int j = i + 1; j < f.size(); ++j)
-      covariance_expected(j, i) = covariance_expected(i, j);
+    vec_means[i] = f_mean(i);
+
+  std::vector<double> samples(f.size(), 0.0);
+  for (int j = 0; j < size_; ++j) {
+    for (int i = 0; i < f.size(); ++i) {
+      samples[i] = i * j;
+    }
+    covariance(samples, vec_means);
+  }
+  for (int i = 0; i < samples.size(); ++i)
+    for (int j = 0; j < samples.size(); ++j)
+      cov.at(i)[j] /= size_;
 
   dca::func::function<double, CovarianceDomain> covariance_from_computeCovariance(
       "computeCovariance");
@@ -249,10 +314,11 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   for (int i = 0; i < f_mean.size(); ++i)
     EXPECT_DOUBLE_EQ(f_mean(i), f(i));
 
-  // The covariance matrices are identical as both are computed with respect to the mean of f.
-  for (int i = 0; i < covariance_expected.size(); ++i) {
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovariance(i));
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovarianceAndAvg(i));
+  for (int i = 0; i < f.size(); ++i) {
+    for (int j = 0; j < f.size(); ++j) {
+      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovariance(i, j));
+      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovarianceAndAvg(i, j));
+    }
   }
 }
 
@@ -271,22 +337,52 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   sum_interface_.sum(f_mean);
   f_mean /= size_;
 
-  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
-  covariance_expected(0, 0) = 0.;
-  covariance_expected(0, 1) = 0.;
-  covariance_expected(0, 2) = 0.;
-  covariance_expected(0, 3) = 0.;
-  covariance_expected(1, 1) = 5.25;
-  covariance_expected(1, 2) = 10.5;
-  covariance_expected(1, 3) = 15.75;
-  covariance_expected(2, 2) = 21.0;
-  covariance_expected(2, 3) = 31.5;
-  covariance_expected(3, 3) = 47.25;
+  /// Calculate the equivalent covariance matrix without using function's etc
+  /// The form of this matrix is quite bizarre that instead of being rank f complex it is instead
+  /// rank 2f matrix containing the decomposed M_zz over M_xx, M_xy, M_yx, M_zz in its quadrants.
 
-  for (int i = 0; i < 2 * f.size(); ++i)
-    for (int j = i + 1; j < 2 * f.size(); ++j)
-      covariance_expected(j, i) = covariance_expected(i, j);
+  /// Instead we will calculate the Covariance and Pseudo-covariance matrix which we use to check the M_xx, M_xy, etc.
 
+  std::vector<std::vector<std::complex<double>>> cov;
+  for (int i = 0; i < f.size(); ++i)
+    cov.emplace_back(f.size(), std::complex<double>{0.0, 0.0});
+
+  auto covariance = [&cov](auto& samples, auto& f_estimated) {
+    for (int i = 0; i < samples.size(); ++i)
+      for (int j = 0; j < samples.size(); ++j) {
+        cov.at(i).at(j) += (samples[i] - f_estimated[i]) * std::conj(samples[j] - f_estimated[j]);
+      }
+  };
+
+  std::vector<std::vector<std::complex<double>>> ps_cov;
+  for (int i = 0; i < f.size(); ++i)
+    ps_cov.emplace_back(f.size(), std::complex<double>{0.0, 0.0});
+
+  auto ps_covariance = [&ps_cov](auto& samples, auto& f_estimated) {
+    for (int i = 0; i < samples.size(); ++i)
+      for (int j = 0; j < samples.size(); ++j)
+        ps_cov.at(i).at(j) += (samples[i] - f_estimated[i]) * (samples[j] - f_estimated[j]);
+  };
+
+  std::vector<std::complex<double>> vec_means(f.size(), 0.0);
+
+  for (int i = 0; i < f.size(); ++i)
+    vec_means[i] = f_mean(i);
+
+  std::vector<std::complex<double>> samples(f.size());
+  for (int j = 0; j < size_; ++j) {
+    for (int i = 0; i < f.size(); ++i) {
+      samples[i] = std::complex<double>(j * i, j * (i + f.size()));
+    }
+    covariance(samples, vec_means);
+    ps_covariance(samples, vec_means);
+  }
+  for (int i = 0; i < samples.size(); ++i) {
+    for (int j = 0; j < samples.size(); ++j) {
+      cov.at(i)[j] /= size_;
+      ps_cov.at(i)[j] /= size_;
+    }
+  }
   dca::func::function<double, CovarianceDomain> covariance_from_computeCovariance(
       "computeCovariance");
   dca::func::function<double, CovarianceDomain> covariance_from_computeCovarianceAndAvg(
@@ -302,10 +398,17 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
     EXPECT_DOUBLE_EQ(f_mean(i).imag(), f(i).imag());
   }
 
-  // The covariance matrices are identical as both are computed with respect to the mean of f.
-  for (int i = 0; i < covariance_expected.size(); ++i) {
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovariance(i));
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovarianceAndAvg(i));
+  for (int i = 0; i < f.size(); ++i) {
+    for (int j = 0; j < f.size(); ++j) {
+      auto kzz_pzz_elem = std::complex<double>((cov.at(i)[j] + ps_cov.at(i)[j]));
+      double real_real_elem = .5 * kzz_pzz_elem.real();
+      kzz_pzz_elem = std::complex<double>((ps_cov.at(i)[j] - cov.at(i)[j]));
+      double real_imag_elem = .5 * kzz_pzz_elem.imag();
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovariance(i, j), 1.0E-12);
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovarianceAndAvg(i, j), 1.0E-12);
+      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovariance(i, j + f.size()));
+      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovarianceAndAvg(i, j + f.size()));
+    }
   }
 }
 
@@ -314,16 +417,58 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
   const std::vector<int> orders{3, 4};
 
   dca::func::function<double, FunctionDomain> f("f");
+
   std::vector<double> momenta(orders.size());
 
   for (int i = 0; i < f.size(); i++) {
     f(i) = rank_ * (i + 1);
   }
 
+
+  std::vector<std::vector<double>> m_momenta;
+  for (int i = 0; i < orders.size(); ++i)
+    m_momenta.emplace_back(f.size(), 0.0);
+  std::vector<double> samples(f.size(), 0.0);
+  std::vector<double> var2(samples.size(), 0.0);
+  auto unormalizedMomenta = [&var2, &m_momenta, &orders](auto& samples, auto& f_means) {
+    for (int i = 0; i < samples.size(); i++) {
+      const double diff = samples[i] - f_means[i];
+      var2[i] += diff * diff;
+      for (int iord = 0; iord < orders.size(); ++iord)
+        m_momenta.at(iord)[i] += std::pow(diff, orders[iord]);
+    }
+  };
+
+  std::vector<double> f_mean(f.size(), 0.0);
+  for (int ir = 0; ir < size_; ++ir) {
+    for (int i = 0; i < f.size(); ++i) {
+      f_mean[i] += ir * (i + 1);
+    }
+  }
+  for (int i = 0; i < f.size(); ++i)
+    f_mean[i] /= size_;
+
+  for (int ir = 0; ir < size_; ++ir) {
+    for (int i = 0; i < f.size(); ++i) {
+      samples[i] = ir * (i + 1);
+    }
+
+    unormalizedMomenta(samples, f_mean);
+  }
+  std::vector<double> expected_momenta_avg(orders.size(), 0.0);
+  for (int i = 0; i < f.size(); ++i) {
+    const double var = std::sqrt(var2[i] / size_);
+    for (int j = 0; j < orders.size(); ++j)
+      expected_momenta_avg[j] += std::abs(m_momenta.at(j)[i]) / (size_ * std::pow(var, orders[j]));
+  }
+
+  for (int ir = 0; ir < orders.size(); ++ir)
+    expected_momenta_avg[ir] /= f.size();
+
   momenta = sum_interface_.avgNormalizedMomenta(f, orders);
   // Expected values obtained with python
   EXPECT_NEAR(0., momenta[0], 1e-8);
-  EXPECT_NEAR(1.76190476, momenta[1], 1e-8);
+  EXPECT_NEAR(expected_momenta_avg[1], momenta[1], 1e-8);
 }
 
 TEST_F(MPICollectiveSumTest, DelayedSum) {

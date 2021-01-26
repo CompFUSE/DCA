@@ -22,9 +22,11 @@
 #include <iostream>
 #include <sstream>
 
+#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
+
 #include "gtest/gtest.h"
 
-int rank, comm_size;
 dca::parallel::MPIConcurrency* concurrency_ptr;
 
 template <typename Scalar>
@@ -35,6 +37,9 @@ using TestTypes = ::testing::Types<float>;
 TYPED_TEST_CASE(BlockDistributedFunctionTest, TestTypes);
 
 TYPED_TEST(BlockDistributedFunctionTest, CheckDomainSizesOnRanks) {
+  int rank = concurrency_ptr->id();
+  int comm_size = concurrency_ptr->number_of_processors();
+
   using Dmn1 = dca::func::dmn_0<dca::func::dmn<5>>;
   using Dmn2 = dca::func::dmn_0<dca::func::dmn<4>>;
   using Dmn3 = dca::func::dmn_0<dca::func::dmn<12>>;
@@ -61,20 +66,22 @@ TYPED_TEST(BlockDistributedFunctionTest, CheckDomainSizesOnRanks) {
 int main(int argc, char** argv) {
   int result = 0;
 
-  dca::parallel::MPIConcurrency concurrency(argc, argv);
-  rank = concurrency.id();
-  comm_size = concurrency.number_of_processors();
-  concurrency_ptr = &concurrency;
+  dca::linalg::util::printInfoDevices();
 
+  dca::linalg::util::initializeMagma();
+
+  concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
+  
   ::testing::InitGoogleTest(&argc, argv);
-
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  if (rank != 0) {
+  if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
   result = RUN_ALL_TESTS();
 
+  delete concurrency_ptr;
+  
   return result;
 }

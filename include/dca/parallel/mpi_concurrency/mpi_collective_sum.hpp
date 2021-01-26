@@ -372,10 +372,10 @@ func::function<Scalar, Domain, DIST> MPICollectiveSum::jackknifeError(func::func
 
   for (int k = 0; k < f_avg.size(); ++k)
     err(k) = (f_i(k) - f_avg(k)) * (f_i(k) - f_avg(k));
-
+  
   sum(err);
 
-  const double scale = double(n - 1) / double(n);
+  const double scale = double(1) / (double(n - 1) *  double(n));
   for (int k = 0; k < err.size(); ++k)
     err(k) = std::sqrt(scale * err(k));
 
@@ -406,7 +406,7 @@ func::function<std::complex<Scalar>, Domain, DIST> MPICollectiveSum::jackknifeEr
 
   sum(err);
 
-  const double scale = double(n - 1) / double(n);
+  const double scale = 1.0 / (double(n - 1) * double(n));
   for (int k = 0; k < err.size(); ++k) {
     err(k).real(std::sqrt(scale * err(k).real()));
     err(k).imag(std::sqrt(scale * err(k).imag()));
