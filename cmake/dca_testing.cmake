@@ -107,7 +107,7 @@ function(dca_add_gtest name)
     set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    target_link_libraries(${name} PRIVATE CUDA::cudart_static)
+    target_link_libraries(${name} PRIVATE CUDA::cudart)
   endif()
   
   if (DCA_ADD_GTEST_CUDA)

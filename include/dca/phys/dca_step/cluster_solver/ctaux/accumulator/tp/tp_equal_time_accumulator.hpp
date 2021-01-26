@@ -880,7 +880,6 @@ inline Real TpEqualTimeAccumulator<Parameters, Data, Real>::interpolate_akima(in
   const int t_ind = static_cast<int>(scaled_tau);
 
 #ifndef NDEBUG
-  // This code now causes a segfault
   assert(t_ind < shifted_t::get_elements().size() / 2);
   const auto* positive_times =
       shifted_t::get_elements().data() + shifted_t::get_elements().size() / 2;

@@ -77,8 +77,8 @@ private:
   using BaseGpu::event_;
   using BaseGpu::n_pos_frqs_;
   using BaseGpu::n_ndft_queues_;
-  uint64_t start_;
-  uint64_t end_;
+  //uint64_t start_;
+  //uint64_t end_;
 
   using BaseGpu::get_G0;
 
@@ -157,9 +157,9 @@ TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::TpAccumulator(
     : Base(G0, pars, thread_id), BaseGpu(pars, Base::get_n_pos_frqs(), thread_id_) {
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
   // static_assert(std::is_same<std::vector<TpAccumulator<DistType::LINEAR>>, decltype(G4_)>);
-  start_ = G4_[0].get_start();
+  //start_ = G4_[0].get_start();
   // The sense here is one past the last index held
-  end_ = G4_[0].get_end() + 1;
+  //end_ = G4_[0].get_end() + 1;
 
   // possible these can both go into the parent class constructor
 }
@@ -306,7 +306,9 @@ void TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::resetG4() {
         G4_channel.setStream(BaseGpu::queues_[0].getStream());
       }
 
-      G4_channel.resizeNoCopy(end_ - start_);
+      uint64_t start = get_G4Dev().get_start();
+      uint64_6 end = get_G4Dev().get_end() + 1;
+      G4_channel.resizeNoCopy(end - start);
       G4_channel.setToZeroAsync(BaseGpu::queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {
@@ -335,36 +337,39 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
+  uint64_t start = get_G4Dev().get_start();
+  uint64_6 end = get_G4Dev().get_end() + 1;
+  
   switch (channel) {
     case PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_HOLE_MAGNETIC:
       return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_HOLE_CHARGE:
       return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     case PARTICLE_PARTICLE_UP_DOWN:
       return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start_, end_);
+          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented.");
