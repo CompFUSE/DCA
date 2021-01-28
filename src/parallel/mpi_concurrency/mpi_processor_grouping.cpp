@@ -31,7 +31,9 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*check)()) {
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
 #ifdef DCA_HAVE_CUDA
-  cudaSetDevice(world_id_);
+  // This was set to world id but doesn't work with jsrun or on multiple nodes anywhere
+  // This temporary fix requires a working cvdlaunch wrapper or jsrun -a 1 -g1
+  cudaSetDevice(0);
 #endif
   // Check if the process has the desired qualities, or remove it from the communicator.
   const bool is_valid = check();

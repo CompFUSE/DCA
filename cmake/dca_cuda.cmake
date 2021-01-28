@@ -4,7 +4,7 @@
 # Checks for CUDA and MAGMA and accordingly sets DCA_HAVE_CUDA and DCA_HAVE_MAGMA.
 # In addition, set DCA_CUDA_LIBS.
 
-set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the real architecture to build for.")
+set(CUDA_ARCHITECTURES "sm_60" CACHE STRING "Name of the real architecture to build for.")
 set(MAGMA_DIR "" CACHE PATH "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 set(DCA_HAVE_CUDA FALSE CACHE INTERNAL "")
@@ -22,8 +22,8 @@ if (CMAKE_CUDA_COMPILER)
   set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_CUDA)
   list(APPEND DCA_CUDA_LIBS CUDA::cudart CUDA::cublas)
-  list(APPEND CUDA_FLAGS "--expt-relaxed-constexpr")
   set(DCA_CUDA_PROPERTIES "CMAKE_CUDA_ARCHITECTURES 70")
+  list(APPEND CUDAFLAGS "--expt-relaxed-constexpr" ${DCA_CUDA_OPTIONS})
   set(CMAKE_CUDA_STANDARD 14)
   set(CVD_LAUNCHER "" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
   # Use the following script for systems with multiple gpus visible from a rank.
@@ -32,7 +32,7 @@ endif()
 
 # Find MAGMA.
 find_library(MAGMA_LIBRARY
-  NAMES libmagma.a magma
+  NAMES libmagma.so magma
   HINTS ${MAGMA_DIR}/lib)
 find_path(MAGMA_INCLUDE_DIR magma.h HINTS ${MAGMA_DIR}/include)
 mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
