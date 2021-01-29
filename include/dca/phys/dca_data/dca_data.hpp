@@ -54,8 +54,10 @@
 #include "dca/phys/models/traits.hpp"
 #include "dca/util/timer.hpp"
 #include "dca/util/to_string.hpp"
-#include "dca/io/adios2/adios2_writer.hpp"
 #include "dca/distribution/dist_types.hpp"
+#ifdef DCA_WITH_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#endif
 namespace dca {
 namespace phys {
 // dca::phys::
@@ -113,7 +115,9 @@ public:
   template <typename Writer>
   void write(Writer& writer);
 
+#ifdef DCA_WITH_ADIOS2
   void writeAdios(adios2::ADIOS& adios);
+#endif
 
   void initialize();
   void initializeH0_and_H_i();
@@ -373,6 +377,8 @@ void DcaData<Parameters, DT>::read(io::Reader& reader) {
   reader.close_group();
 }
 
+#ifdef DCA_WITH_ADIOS2
+
 template <class Parameters, DistType DIST>
 void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
   if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
@@ -401,6 +407,7 @@ void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
   {
   }
 }
+#endif
 
 template <class Parameters, DistType DT>
 template <typename Writer>

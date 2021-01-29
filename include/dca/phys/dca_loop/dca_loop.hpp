@@ -101,7 +101,9 @@ protected:
   ParametersType& parameters;
   DcaDataType& MOMS;
   concurrency_type& concurrency;
+#ifdef DCA_WITH_ADIOS2
   adios2::ADIOS adios_;
+#endif
 
 private:
   DcaLoopData<ParametersType> DCA_info_struct;
@@ -131,7 +133,9 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
+#ifdef DCA_WITH_ADIOS2
       adios_("", concurrency_ref.get()),
+#endif
       DCA_info_struct(),
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
@@ -161,7 +165,10 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     MOMS.write(*output_file_);
   }
 
+  // This should eventually just be a generic parallel write here.
+#ifdef DCA_WITH_ADIOS2
   MOMS.writeAdios(adios_);
+#endif
 
   if (concurrency.id() == concurrency.first()) {
     monte_carlo_integrator_.write(*output_file_);

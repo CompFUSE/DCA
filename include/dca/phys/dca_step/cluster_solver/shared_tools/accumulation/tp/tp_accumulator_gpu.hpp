@@ -37,6 +37,11 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
+#endif
+
 #include "dca/util/integer_division.hpp"
 
 namespace dca {
@@ -44,6 +49,9 @@ namespace phys {
 namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
+#ifdef DCA_HAVE_MPI
+  using dca::parallel::MPITypeMap;
+#endif
 
 template <class Parameters, DistType DT>
 class TpAccumulator<Parameters, DT, linalg::GPU>
@@ -188,12 +196,14 @@ protected:
 
   void synchronizeStreams();
 
+#ifdef DCA_HAVE_MPI
   // For distributed G4's
   // Applies pipepline ring algorithm to move G matrices around all ranks
   void ringG(float& flop);
 
   void send(const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request);
   void receive(std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request);
+#endif
 
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
@@ -271,9 +281,11 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
     flop += updateG4(channel);
   }
 
+#ifdef DCA_HAVE_MPI
   if constexpr (dist == DistType::LINEAR || dist == DistType::BLOCKED) {
       ringG(flop);
-    }
+  }
+#endif
   return flop;
 }
 
@@ -417,6 +429,7 @@ std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensF
   return G4_;
 }
 
+#ifdef DCA_HAVE_MPI
 
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop) {
@@ -470,7 +483,7 @@ template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::send(
     const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request) {
   static_assert(dist != DistType::NONE);
-  using dca::parallel::MPITypeMap;
+
   const auto g_size = data[0].size().first * data[0].size().second;
 
 #ifdef DCA_WITH_CUDA_AWARE_MPI
@@ -518,8 +531,8 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(
   }
 #endif  // DCA_WITH_CUDA_AWARE_MPI
 }
-
-
+#endif // DCA_WITH_MPI
+  
 }  // namespace accumulator
 }  // namespace solver
 }  // namespace phys

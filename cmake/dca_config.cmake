@@ -52,9 +52,10 @@ endif()
 
 ################################################################################
 # Enable ADIOS2.
-option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." ON)
+option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." OFF)
+if (DCA_WITH_ADIOS2)
   dca_add_config_define(DCA_WITH_ADIOS2)
-
+endif()
 ################################################################################
 # Select the point group, the lattice type, and the model type.
 # TODO: Add more point groups and lattices.

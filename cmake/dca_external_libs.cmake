@@ -33,6 +33,7 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 
 ################################################################################
 # ADIOS2
+if (DCA_WITH_ADIOS2)
 set(DCA_HAVE_ADIOS2 FALSE CACHE INTERNAL "")
 find_package(ADIOS2)
 if (ADIOS2_FOUND)
@@ -41,7 +42,7 @@ if (ADIOS2_FOUND)
   set(DCA_HAVE_ADIOS2 TRUE CACHE INTERNAL "")
   #message("ADIOS2: libraries ${ADIOS2_LIBRARIES}")
 endif()
-
+endif()
 
 ################################################################################
 ################################################################################

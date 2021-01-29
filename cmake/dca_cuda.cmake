@@ -4,7 +4,7 @@
 # Checks for CUDA and MAGMA and accordingly sets DCA_HAVE_CUDA and DCA_HAVE_MAGMA.
 # In addition, set DCA_CUDA_LIBS.
 
-set(CUDA_ARCHITECTURES "sm_60" CACHE STRING "Name of the real architecture to build for.")
+#set(CUDA_ARCHITECTURES "sm_60" CACHE STRING "Name of the real architecture to build for.")
 set(MAGMA_DIR "" CACHE PATH "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 set(DCA_HAVE_CUDA FALSE CACHE INTERNAL "")

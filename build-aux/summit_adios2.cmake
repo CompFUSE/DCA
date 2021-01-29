@@ -12,6 +12,9 @@ set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPA
 set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL include directory.")
 mark_as_advanced(DCA_ESSL_INCLUDES)
 
+option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." ON)
+set(ADIOS2_DIR "/gpfs/alpine/proj-shared/cph102/epd/ADIOS2/build" CACHE PATH "Directory for ADIOS2")
+
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING
@@ -28,15 +31,16 @@ set(SMPIARGS_FLAG_MPI "--smpiargs=\"-gpu\"" CACHE STRING "Spectrum MPI argument 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
 option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
-
-# Compile for Volta compute architecture.
 set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
+# For the GPU support we also need MAGMA.
 set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
+
+option(DCA_WITH_TESTS_FAST "Fast minimal tests" ON)
 
 # FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
