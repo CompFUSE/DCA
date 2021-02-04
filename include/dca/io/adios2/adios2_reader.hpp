@@ -97,8 +97,8 @@ public:
   bool execute(func::function<Scalartype, domain_type, DT>& f, uint64_t start, uint64_t end);
 
   template <typename Scalartype, typename domain_type, DistType DT>
-  bool execute(func::function<Scalartype, domain_type, DT>& f, const std::vector<int>& start,
-               const std::vector<int>& end);
+  bool execute(func::function<Scalartype, domain_type, DT>& f, const std::vector<size_t>& start,
+               const std::vector<size_t>& end);
 
   template <typename Scalartype, typename domain_type, DistType DT>
   bool execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f);
@@ -109,7 +109,7 @@ public:
 
   template <typename Scalartype, typename domain_type, DistType DT>
   bool execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
-               const std::vector<int>& start, const std::vector<int>& end);
+               const std::vector<size_t>& start, const std::vector<size_t>& end);
 
   template <typename Scalar>
   bool execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -363,8 +363,8 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
   if (var.Shape().size() != 1) {
     if (var.Shape().size() == ndim) {
       // get the N-dimensional decomposition
-      std::vector<int> subind_start = f.linind_2_subind(start);
-      std::vector<int> subind_end = f.linind_2_subind(end);
+      std::vector<size_t> subind_start = f.linind_2_subind(start);
+      std::vector<size_t> subind_end = f.linind_2_subind(end);
       return execute(name, f, subind_start, subind_end);
     }
     else {
@@ -430,14 +430,14 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
 template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
 bool ADIOS2Reader<CT>::execute(func::function<Scalartype, domain_type, DT>& f,
-                           const std::vector<int>& start, const std::vector<int>& end) {
+                           const std::vector<size_t>& start, const std::vector<size_t>& end) {
   return execute(f.get_name(), f, start, end);
 }
 
 template <class CT>
 template <typename Scalartype, typename domain_type, DistType DT>
 bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f,
-                           const std::vector<int>& start, const std::vector<int>& end) {
+                           const std::vector<size_t>& start, const std::vector<size_t>& end) {
   std::string full_name = get_path(name);
   adios2::Variable<Scalartype> var = io_.InquireVariable<Scalartype>(full_name);
 

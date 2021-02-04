@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -8,6 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class connects the function values to the domains.
 //
@@ -33,6 +34,7 @@
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
+#include "dca/util/to_string.hpp"
 
 namespace dca {
 namespace func {
@@ -121,15 +123,17 @@ public:
   /** end in sense of last index not  1 past.
    */
   std::size_t get_end() const {
+    assert(end_ > 0);
     return end_ - 1;
   }
 
-  std::vector<int> get_start_subindex() const {
+  std::vector<size_t> get_start_subindex() const {
     return linind_2_subind(start_);
   }
   /** end in sense of last subindex
    */
-  std::vector<int> get_end_subindex() const {
+  std::vector<size_t> get_end_subindex() const {
+    assert(end_ > 0);
     return linind_2_subind(end_ - 1);
   }
 
@@ -201,7 +205,7 @@ public:
   // std::vector version
   void linind_2_subind(int linind, std::vector<int>& subind) const;
   // modern RVO version
-  std::vector<int> linind_2_subind(int linind) const;
+  std::vector<size_t> linind_2_subind(int linind) const;
 
   // Computes the linear index for the given subindices of the leaf domains.
   // Precondition: subind stores the the subindices of all LEAF domains.
@@ -389,55 +393,59 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
       step_sbdm(dmn.get_leaf_domain_steps()) {
   // \todo how to get rid of repeated code in C++17
   if constexpr (dist == DistType::NONE) {
-    const std::size_t mpi_size = concurrency.number_of_processors();
-
-    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+    const std::size_t nb_elements = dmn.get_size();
     fnc_values_.resize(nb_elements);
-
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
-
     start_ = 0;
     end_ = dmn.get_size();
   }
   else if constexpr (dist == DistType::LINEAR) {
-    const std::size_t mpi_size = concurrency.number_of_processors();
-
-    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), mpi_size);
+    const std::size_t my_concurrency_id = concurrency.id();
+    const std::size_t my_concurrency_size = concurrency.number_of_processors();
+    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
     fnc_values_.resize(nb_elements);
-
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
-
-    int my_concurrency_id = concurrency.id();
-    int my_concurrency_size = concurrency.number_of_processors();
-
     std::size_t local_function_size =
         dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
     start_ = local_function_size * my_concurrency_id;
     end_ = std::min(dmn.get_size(), start_ + local_function_size);
   }
   else if constexpr (dist == DistType::BLOCKED) {
-    const std::size_t conc_size = concurrency.number_of_processors();
-    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), conc_size);
-
+    const std::size_t my_concurrency_id = concurrency.id();
+    const std::size_t my_concurrency_size = concurrency.number_of_processors();
+    const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
     fnc_values_.resize(nb_elements);
-
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
-
-    int my_concurrency_id = concurrency.id();
-    int my_concurrency_size = concurrency.number_of_processors();
-
-    std::size_t local_function_size =
-        dca::util::ceilDiv(dmn.get_size(), std::size_t(my_concurrency_size));
-    start_ = local_function_size * my_concurrency_id;
-    end_ = std::min(dmn.get_size(), start_ + local_function_size);
+    std::size_t local_function_size = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
     // This is a necessary but not sufficient proof of "regular blocking"
-    if (end_ != start_ + local_function_size)
-      throw std::runtime_error(
-          "Blocked concurrency is not possible if concurrency size is not blockwise divisor of "
-          "functions size");
+    if (local_function_size * my_concurrency_size != dmn.get_size()) {
+      std::ostringstream error_message;
+      error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
+                    << " is not blockwise divisor of function with dimensions:\n"
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+      throw std::runtime_error(error_message.str());
+    }
+    start_ = local_function_size * my_concurrency_id;
+    end_ = start_ + local_function_size;
+    bool match_local_function_size = false;
+    std::size_t regular_block_size = 1;
+    for (int idim = 0; idim < dmn.get_Nb_leaf_domains(); ++idim) {
+      regular_block_size *= dmn.get_subdomain_size(idim);
+      if (regular_block_size == local_function_size) {
+        match_local_function_size = true;
+        break;
+      }
+    }
+    if (!match_local_function_size){
+            std::ostringstream error_message;
+      error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
+                    << " is not blockwise divisor of function with dimensions:\n"
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+      throw std::runtime_error(error_message.str());
+    }
   }
 }
 
@@ -525,8 +533,8 @@ void function<scalartype, domain, DT>::linind_2_subind(int linind, std::vector<i
 }
 
 template <typename scalartype, class domain, DistType DT>
-std::vector<int> function<scalartype, domain, DT>::linind_2_subind(int linind) const {
-  std::vector<int> subind(Nb_sbdms);
+std::vector<size_t> function<scalartype, domain, DT>::linind_2_subind(int linind) const {
+  std::vector<size_t> subind(Nb_sbdms);
   if constexpr (dist == DistType::NONE) {
     for (int i = 0; i < int(size_sbdm.size()); ++i) {
       subind[i] = linind % size_sbdm[i];

@@ -390,19 +390,21 @@ void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
       adios2_writer.open_file(file_name, true);
       // adios2_writer.open_group("functions");
       for (const auto& G4_channel : G4_) {
+#ifndef NDEBUG
         std::cerr << "Writing G4_channel:" << G4_channel.get_name()
                   << "on rank: " << concurrency_.id() << '\n';
         std::cerr << "start: " << G4_channel.get_start() << "   end: " << G4_channel.get_end()
                   << '\n';
-        auto str_sub_ind_start = VectorToString(G4_channel.get_start_subindex());
-        auto str_sub_ind_end = VectorToString(G4_channel.get_end_subindex());
+        auto str_sub_ind_start = vectorToString(G4_channel.get_start_subindex());
+        auto str_sub_ind_end = vectorToString(G4_channel.get_end_subindex());
         std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
+#endif
         adios2_writer.execute(G4_channel);
       }
       // adios2_writer.close_group();
       adios2_writer.close_file();
     }
-    }
+  }
   else  // DIST == DistType::NONE
   {
   }

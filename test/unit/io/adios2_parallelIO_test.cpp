@@ -91,8 +91,8 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
     f1.data()[i] = val++;
 
   // get the N-dimensional decomposition
-  std::vector<int> subind_start = f1.linind_2_subind(start);
-  std::vector<int> subind_end = f1.linind_2_subind(end);
+  std::vector<size_t> subind_start = f1.linind_2_subind(start);
+  std::vector<size_t> subind_end = f1.linind_2_subind(end);
   std::cout << "rank: " << rank << " start lin = " << start
             << " subindicies = " << VectorToString(subind_start) << " end lin = " << end
             << " subindicies = " << VectorToString(subind_end) << std::endl;
@@ -294,8 +294,8 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     }
 
     // get the N-dimensional decomposition, which is entirely wrong for this test
-    std::vector<int> subind_start = f3.linind_2_subind(start);
-    std::vector<int> subind_end = f3.linind_2_subind(end - 1);
+    std::vector<size_t> subind_start = f3.linind_2_subind(start);
+    std::vector<size_t> subind_end = f3.linind_2_subind(end - 1);
 
     /* 1D array on disk cannot be read back with 3D selection */
     EXPECT_FALSE(reader.execute(f3, subind_start, subind_end));

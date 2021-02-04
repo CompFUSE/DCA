@@ -13,7 +13,7 @@ set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL incl
 mark_as_advanced(DCA_ESSL_INCLUDES)
 
 option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." ON)
-set(ADIOS2_DIR "/gpfs/alpine/proj-shared/cph102/epd/ADIOS2/build" CACHE PATH "Directory for ADIOS2")
+set(ADIOS2_DIR "/gpfs/alpine/world-shared/cph102/epd/ADIOS2/build" CACHE PATH "Directory for ADIOS2")
 
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
@@ -37,7 +37,7 @@ set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
 # For the GPU support we also need MAGMA.
-set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
+set(MAGMA_DIR "/gpfs/alpine/world-shared/cph102/epd/magma_cuda11" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 option(DCA_WITH_TESTS_FAST "Fast minimal tests" ON)

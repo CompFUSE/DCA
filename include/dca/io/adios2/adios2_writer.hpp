@@ -38,7 +38,7 @@
 namespace dca {
 namespace io {
 // dca::io
-template<class CT>
+template <class CT>
 class ADIOS2Writer {
 public:
   typedef adios2::ADIOS file_type;
@@ -65,7 +65,8 @@ public:
   std::string get_path(const std::string& name = "");
 
   template <typename arbitrary_struct_t>
-  static void to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
+  static void to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct,
+                      const std::string& file_name);
 
   template <typename Scalar>
   void execute(const std::string& name, Scalar value);
@@ -98,8 +99,8 @@ public:
   void execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start, uint64_t end);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const func::function<Scalar, domain_type, DT>& f, const std::vector<int>& start,
-               const std::vector<int>& end);
+  void execute(const func::function<Scalar, domain_type, DT>& f, const std::vector<size_t>& start,
+               const std::vector<size_t>& end);
 
   template <typename Scalar, typename domain_type, DistType DT>
   void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
@@ -112,7 +113,7 @@ public:
 
   template <typename Scalar, typename domain_type, DistType DT>
   void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
-               const std::vector<int>& start, const std::vector<int>& end);
+               const std::vector<size_t>& start, const std::vector<size_t>& end);
 
   template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -186,7 +187,8 @@ private:
 
 template <class CT>
 template <typename arbitrary_struct_t>
-void ADIOS2Writer<CT>::to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct, const std::string& file_name) {
+void ADIOS2Writer<CT>::to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct,
+                               const std::string& file_name) {
   ADIOS2Writer wr_obj(adios);
   wr_obj.open_file(file_name);
   arbitrary_struct.read_write(wr_obj);
@@ -214,7 +216,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const std::pair<Scalar, 
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name,
-                           const std::vector<Scalar>& value)  //, H5File& file, std::string path)
+                               const std::vector<Scalar>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     std::string full_name = get_path(name);
@@ -225,7 +227,8 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path(name);
   const size_t n = value.size();
 
@@ -264,7 +267,8 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const std::vector<std::v
 
 template <class CT>
 template <typename Scalar, std::size_t n>
-void ADIOS2Writer<CT>::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const std::vector<std::array<Scalar, n>>& value) {
   std::string full_name = get_path(name);
 
   if (verbose_) {
@@ -314,7 +318,7 @@ void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f)
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
 void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start,
-                           uint64_t end) {
+                               uint64_t end) {
   if (f.size() == 0)
     return;
   execute(f.get_name(), f, start, end);
@@ -323,7 +327,7 @@ void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f,
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
 void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f,
-                           const std::vector<int>& start, const std::vector<int>& end) {
+                               const std::vector<size_t>& start, const std::vector<size_t>& end) {
   if (f.size() == 0)
     return;
   execute(f.get_name(), f, start, end);
@@ -332,7 +336,8 @@ void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f,
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f) {
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
     return;
 
@@ -345,7 +350,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
   // be careful --> ADIOS2 is by default row-major, while the function-class is column-major !
   std::reverse(dims.begin(), dims.end());
 
-  if constexpr ( DT == dca::DistType::BLOCKED ) {
+  if constexpr (DT == dca::DistType::BLOCKED) {
     execute(name, f, f.get_start_subindex(), f.get_end_subindex());
   }
   else {
@@ -359,8 +364,9 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
-                           uint64_t start, uint64_t end) {
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const func::function<Scalar, domain_type, DT>& f, uint64_t start,
+                               uint64_t end) {
   if (f.size() == 0)
     return;
 
@@ -391,7 +397,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
   }
   std::vector<size_t> shape = {nelems};
   std::vector<size_t> s = {start};
-  std::vector<size_t> count = {end - start + 1};
+  std::vector<size_t> count = {(end - start) + 1};
 
   /* TODO: must pass the correct data pointer here, not f.values() */
   write<Scalar>(full_name, shape, f.values(), s, count);
@@ -403,8 +409,9 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
-                           const std::vector<int>& start, const std::vector<int>& end) {
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const func::function<Scalar, domain_type, DT>& f,
+                               const std::vector<size_t>& start, const std::vector<size_t>& end) {
   if (f.size() == 0)
     return;
 
@@ -438,16 +445,20 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
   // reverse it here in the loop
   std::vector<size_t> s(ndim);
   std::vector<size_t> c(ndim);
+
   for (int i = 0; i < ndim; ++i) {
     s[ndim - i - 1] = static_cast<size_t>(start[i]);
-    c[ndim - i - 1] = static_cast<size_t>(end[i] - start[i] + 1);
+    // parantheses are important because size_t is unsigned
+    c[ndim - i - 1] = static_cast<size_t>((end[i] - start[i]) + 1);
   }
 
   if (verbose_) {
     std::cout << "\t ADIOS2Writer: Write function : " << f.get_name()
-              << " in distributed manner, rank = " << concurrency_->id()
+              << " in distributed manner, rank = " << concurrency_->id() << '\n'
+              << "start:" << VectorToString(start) << '\n'
+              << "end  :" << VectorToString(end) << '\n'
               << " shape = " << VectorToString(dims) << " start = " << VectorToString(s)
-              << " count = " << VectorToString(c) << "\n";
+              << " count = " << VectorToString(c) << std::endl;
   }
 
   /* TODO: must pass the correct data pointer here, not f.values() */
@@ -461,7 +472,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name, const func::function<Sca
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name,
-                           const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
+                               const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path(name);
   write<Scalar>(full_name, std::vector<size_t>{V.size()}, V.ptr());
   addAttribute(full_name, "name", V.get_name());
@@ -470,7 +481,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name,
-                           const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+                               const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<size_t> dims{size_t(A.nrRows()), size_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
 
@@ -503,7 +514,7 @@ void ADIOS2Writer<CT>::execute(const std::unique_ptr<T>& obj) {
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>& size,
-                         const Scalar* data) {
+                             const Scalar* data) {
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
@@ -518,8 +529,9 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
-                         const std::vector<size_t>& start, const std::vector<size_t>& count) {
+void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>& size,
+                             const Scalar* data, const std::vector<size_t>& start,
+                             const std::vector<size_t>& count) {
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
@@ -534,7 +546,7 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::addAttribute(const std::string& set, const std::string& name,
-                                const std::vector<size_t>& size, const Scalar* data) {
+                                    const std::vector<size_t>& size, const Scalar* data) {
   size_t ndim = size.size();
   if (ndim == 0) {
     io_.DefineAttribute(name, data, 1, set);
