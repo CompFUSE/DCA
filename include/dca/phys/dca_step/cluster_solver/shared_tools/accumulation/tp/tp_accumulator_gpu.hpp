@@ -249,7 +249,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
       if (!multiple_accumulators_) {
         G4_channel.setStream(queues_[0].getStream());
       }
-      G4_channel.resizeNoCopy(tp_dmn.get_size());
+      G4_channel.resizeNoCopy(G4_.size());
       G4_channel.setToZeroAsync(queues_[0].getStream());
     }
     catch (std::bad_alloc& err) {

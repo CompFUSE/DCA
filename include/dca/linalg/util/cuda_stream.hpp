@@ -15,6 +15,7 @@
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
+#include <iostream>
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -48,7 +49,11 @@ public:
   }
 
   void sync() const {
+    try {
     checkRC(cudaStreamSynchronize(stream_));
+    } catch(...) {
+      std::cout << "exception thrown from StreamSynchronize.\n";
+    }
   }
 
   ~CudaStream() {

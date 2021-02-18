@@ -203,7 +203,7 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
   // We want to avoid copies because function's copy ctor does not copy the name (and because copies
   // are expensive).
   for (auto channel : channels_) {
-    G4_.emplace_back("G4_" + toString(channel));
+    G4_.emplace_back("G4_" + toString(channel), pars.get_concurrency());
   }
 
 }

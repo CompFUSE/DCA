@@ -28,12 +28,26 @@ public:
 
       // Create and initialize the DCA data object.
     
-
-      dca_loop.initialize();
-      dca_loop.execute();
+      try {
+	dca_loop.initialize();
+      } catch (const std::exception& exc) {
+	std::cout << "unhandled exception in dca_loop.initialize(): " << exc.what() << std::endl;
+	throw exc;
+      }
+      try {
+	dca_loop.execute();
+      } catch (const std::exception& exc) {
+	std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
+	throw exc;
+      }
+      try {
       dca_loop.finalize();
       Profiler::stop(concurrency, parameters.get_filename_profiling());
-
+      } catch (const std::exception& exc) {
+	std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
+	throw exc;
+      }
+ 
       // Whether writing is on all ranks or not is now controlled at the writer level.
       //      if (concurrency.id() == concurrency.first()) {
       //std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;

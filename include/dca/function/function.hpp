@@ -394,7 +394,14 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
   // \todo how to get rid of repeated code in C++17
   if constexpr (dist == DistType::NONE) {
     const std::size_t nb_elements = dmn.get_size();
-    fnc_values_.resize(nb_elements);
+    try {
+      fnc_values_.resize(nb_elements);
+    }
+    catch (const std::exception& exc) {
+      std::cout << "exception caught on resize of blocked function: " << exc.what() << '\n';
+      throw(exc);
+    }
+
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
     start_ = 0;
@@ -404,7 +411,14 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
     const std::size_t my_concurrency_id = concurrency.id();
     const std::size_t my_concurrency_size = concurrency.number_of_processors();
     const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
-    fnc_values_.resize(nb_elements);
+    try {
+      fnc_values_.resize(nb_elements);
+    }
+    catch (const std::exception& exc) {
+      std::cout << "exception caught on resize of blocked function: " << exc.what() << '\n';
+      throw(exc);
+    }
+
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
     std::size_t local_function_size =
@@ -416,9 +430,6 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
     const std::size_t my_concurrency_id = concurrency.id();
     const std::size_t my_concurrency_size = concurrency.number_of_processors();
     const std::size_t nb_elements = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
-    fnc_values_.resize(nb_elements);
-    for (int linind = 0; linind < nb_elements; ++linind)
-      setToZero(fnc_values_[linind]);
     std::size_t local_function_size = dca::util::ceilDiv(dmn.get_size(), my_concurrency_size);
     // This is a necessary but not sufficient proof of "regular blocking"
     if (local_function_size * my_concurrency_size != dmn.get_size()) {
@@ -439,13 +450,28 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
         break;
       }
     }
-    if (!match_local_function_size){
-            std::ostringstream error_message;
+    if (!match_local_function_size) {
+      std::ostringstream error_message;
       error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
                     << " is not blockwise divisor of function with dimensions:\n"
                     << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
       throw std::runtime_error(error_message.str());
     }
+    // Ok this can be a blocked function so we finally resize i.e. allocate.
+    try {
+      fnc_values_.resize(nb_elements);
+    }
+    catch (const std::exception& exc) {
+      std::cout << "exception caught on resize of blocked function: " << exc.what() << '\n';
+      throw(exc);
+    }
+
+    for (int linind = 0; linind < nb_elements; ++linind)
+      setToZero(fnc_values_[linind]);
+    double block_size = (nb_elements * sizeof(scalartype)) / 1024 / 1024;  // megabytes
+
+    std::cout << "Blocked function " << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+              << "on rank: " << my_concurrency_id << " allocated: " << block_size << "meg\n";
   }
 }
 
