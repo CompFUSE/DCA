@@ -443,9 +443,11 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
     // This is a necessary but not sufficient proof of "regular blocking"
     if (local_function_size * my_concurrency_size != dmn.get_size()) {
       std::ostringstream error_message;
+      double block_size = (dmn.get_size() * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
       error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
                     << " is not blockwise divisor of function with dimensions:\n"
-                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+                    << "Total G4 Size: " << block_size << "GB\n";
       throw std::runtime_error(error_message.str());
     }
     start_ = local_function_size * my_concurrency_id;
@@ -461,9 +463,11 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
     }
     if (!match_local_function_size) {
       std::ostringstream error_message;
+      double block_size = (dmn.get_size() * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
       error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
                     << " is not blockwise divisor of function with dimensions:\n"
-                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+                    << "Total G4 Size: " << block_size << "MB\n";
       throw std::runtime_error(error_message.str());
     }
     // Ok this can be a blocked function so we finally resize i.e. allocate.
@@ -477,10 +481,10 @@ function<scalartype, domain, DT>::function(const std::string& name, const Concur
 
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
-    double block_size = (nb_elements * sizeof(scalartype)) / 1024 / 1024;  // megabytes
+    double block_size = (nb_elements * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
 
     std::cout << "Blocked function " << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
-              << "on rank: " << my_concurrency_id << " allocated: " << block_size << "meg\n";
+              << "on rank: " << my_concurrency_id << " allocated: " << block_size << "GB\n";
   }
 }
 
@@ -606,9 +610,11 @@ void function<scalartype, domain, DT>::reset(const Concurrency& concurrency) {
     // This is a necessary but not sufficient proof of "regular blocking"
     if (local_function_size * my_concurrency_size != dmn.get_size()) {
       std::ostringstream error_message;
+      double block_size = (dmn.get_size() * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
       error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
                     << " is not blockwise divisor of function with dimensions:\n"
-                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+                    << "Total G4 Size: " << block_size << "GB\n";
       throw std::runtime_error(error_message.str());
     }
     start_ = local_function_size * my_concurrency_id;
@@ -624,9 +630,11 @@ void function<scalartype, domain, DT>::reset(const Concurrency& concurrency) {
     }
     if (!match_local_function_size) {
       std::ostringstream error_message;
+      double block_size = (dmn.get_size() * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
       error_message << "Blocked concurrency is not possible. Concurrency size: " << my_concurrency_size
                     << " is not blockwise divisor of function with dimensions:\n"
-                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n';
+                    << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+                    << "Total G4 Size: " << block_size << "GB\n";
       throw std::runtime_error(error_message.str());
     }
     // Ok this can be a blocked function so we finally resize i.e. allocate.
@@ -640,10 +648,11 @@ void function<scalartype, domain, DT>::reset(const Concurrency& concurrency) {
 
     for (int linind = 0; linind < nb_elements; ++linind)
       setToZero(fnc_values_[linind]);
-    double block_size = (nb_elements * sizeof(scalartype)) / 1024 / 1024;  // megabytes
-
-    std::cout << "Blocked function " << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
-              << "on rank: " << my_concurrency_id << " allocated: " << block_size << "meg\n";
+    double block_size = (nb_elements * sizeof(scalartype)) / 1024 / 1024 / 1024;  // gigabytes
+    if (my_concurrency_id == 0) {
+      std::cout << "Blocked function " << vectorToString(dmn.get_leaf_domain_sizes()) << '\n'
+                << "on rank: " << my_concurrency_id << " allocated: " << block_size << "GB\n";
+    }
   }
 }
 

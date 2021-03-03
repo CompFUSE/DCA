@@ -3,13 +3,13 @@
         "directory": "./",
         "output-format": "HDF5",
         "g4-ouput-format": "ADIOS2",
-        "filename-g4": "data.gt_test_adios.bp",
+        "filename-g4": "data.g4_test.bp",
         "filename-dca": "data.g4_test.hdf5",
         "dump-lattice-self-energy": false,
         "dump-cluseter-Greens-functions": true
     },
     "physics": {
-        "beta": 2.5,
+        "beta": 1.0,
         "density": 1.0,
         "chemical-potential": 0.0,
         "adjust-chemical-potential": false
@@ -18,7 +18,7 @@
     {
         "t"       : 1.,
         "t-prime": 0.1,
-        "U"       : 4
+        "U"       : 2
     },    
     "DCA": {
         "initial-self-energy": "zero",
@@ -37,13 +37,13 @@
             "deconvolution-iterations": 16,
 	    "deconvolution-tolerance": 1.e-3,
             "HTS-approximation": true,
-	    "HTS-threads": 8
+	    "HTS-threads": 6
         }
     },
         "domains": {
         "real-space-grids": {
-            "cluster": [[2, 0],
-                        [0, 2]],
+            "cluster": [[4, 0],
+                        [0, 4]],
             "sp-host": [[20,20],
                         [20,-20]],
             "tp-host": [[8,8],
@@ -57,7 +57,7 @@
 
         "imaginary-frequency": {
             "sp-fermionic-frequencies": 2048,
-            "four-point-fermionic-frequencies" : 20,
+            "four-point-fermionic-frequencies" : 1024,
             "HTS-bosonic-frequencies": 32
         },
         "real-frequency": {
@@ -70,7 +70,7 @@
     "four-point": {
         "type": "PARTICLE_PARTICLE_UP_DOWN",
         "momentum-transfer": [0,0],
-        "frequency-transfer": 0,
+        "frequency-transfer": 64,
         "compute-all-transfers" : true
     },
 
@@ -78,7 +78,7 @@
     {
         "warm-up-sweeps"         : 500,
         "sweeps-per-measurement" : 1,
-        "measurements" : 24000,
+        "measurements" : 3900,
         "seed" : 9854546376,
         "threaded-solver" : {
             "accumulators" : 1,
@@ -91,8 +91,8 @@
     "CT-AUX": {
         "expansion-parameter-K": 1.,
         "initial-configuration-size": 10,
-        "initial-matrix-size": 128,
-        "max-submatrix-size": 128,
+        "initial-matrix-size": 256,
+        "max-submatrix-size": 256,
         "neglect-Bennett-updates": false,
         "additional-time-measurements": false
     }
