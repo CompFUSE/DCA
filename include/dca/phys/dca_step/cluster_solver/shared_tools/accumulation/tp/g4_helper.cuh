@@ -17,7 +17,7 @@
 #include <vector>
 
 #include <cuda.h>
-
+#include "dca/distribution/dist_types.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 
 namespace dca {
@@ -62,10 +62,6 @@ public:
   __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
                                      unsigned& b4, unsigned& k1, unsigned& w1, unsigned& k2,
                                      unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
-
-  // Returns range (start and end index) of G4 in which local rank should compute, when distributed g4 is enabled
-  __device__ inline void getComputeRange(const int my_rank, const int mpi_size,
-                                         const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const;
 
 protected:
   std::size_t sbdm_steps_[10];
@@ -144,37 +140,6 @@ __device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, un
   b3 = unroll(2);
   b2 = unroll(1);
   b1 = unroll(0);
-}
-
-inline __device__ __host__
-void G4Helper::getComputeRange(const int my_rank, const int mpi_size,
-                               const uint64_t total_G4_size, uint64_t & start, uint64_t& end) const {
-
-    uint64_t offset = 0;
-    // check if originally flattened one-dimensional G4 array can be equally (up to 0) distributed across ranks
-    // if balanced, each rank has same amount of elements to compute
-    // if not, ranks with (rank_id < more_work_ranks) has to compute 1 more element than other ranks
-    bool balanced = (total_G4_size % static_cast<uint64_t>(mpi_size) == 0);
-    uint64_t local_work = total_G4_size / static_cast<uint64_t>(mpi_size);
-
-    if(balanced) {
-        offset = static_cast<uint64_t>(my_rank)  * local_work;
-        end  = offset + local_work - 1;
-    }
-    else {
-        int more_work_ranks = total_G4_size % static_cast<uint64_t>(mpi_size);
-
-        if (my_rank < more_work_ranks) {
-            offset = static_cast<uint64_t>(my_rank) * (local_work + 1);
-            end = offset + (local_work + 1);
-        }
-        else {
-            offset = more_work_ranks * (local_work + 1) +
-                    (static_cast<uint64_t>(my_rank) - more_work_ranks) * local_work;
-            end = offset + local_work;
-        }
-    }
-    start = offset;
 }
 
 }  // namespace details

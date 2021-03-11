@@ -667,7 +667,8 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4SpinDifference(
 }
 
 template <class Parameters, DistType DT>
-const std::vector<typename TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& TpAccumulator<Parameters, linalg::CPU, DT>::get_G4() const {
+const std::vector<typename TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& TpAccumulator<
+    Parameters, linalg::CPU, DT>::get_G4() const {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
 

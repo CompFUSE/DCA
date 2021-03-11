@@ -33,7 +33,7 @@ adios2::ADIOS* adios_ptr;
 template <typename Scalar>
 class ADIOS2ParallelIOTest : public ::testing::Test {};
 // using TestTypes = ::testing::Types<float, std::complex<double>>;
-using TestTypes = ::testing::Types<float>;
+using TestTypes = ::testing::Types<float, double>;
 
 TYPED_TEST_CASE(ADIOS2ParallelIOTest, TestTypes);
 
@@ -101,7 +101,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
   const std::string fname("ADIOS2ParallelIOTest_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(*adios_ptr, concurrency_ptr, false);
     writer.open_file(fname, true);
 
     // Because the caller needs to know if its function is distributed or not we will assume this is
@@ -120,7 +120,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
       std::cout << " Read back data with 3D selection " << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, false);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
@@ -301,6 +301,83 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     EXPECT_FALSE(reader.execute(f3, subind_start, subind_end));
 
     reader.close_file();
+  }
+}
+
+TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
+  using Dmn1 = dca::func::dmn_0<dca::func::dmn<5>>;
+  using Dmn2 = dca::func::dmn_0<dca::func::dmn<4>>;
+  using Dmn3 = dca::func::dmn_0<dca::func::dmn<13>>;
+  using Dmn = dca::func::dmn_variadic<Dmn1, Dmn2, Dmn3>;
+  using Scalar = TypeParam;
+  const std::string typeStr = typeid(TypeParam).name();
+
+  dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f1("parallelFuncLin", *concurrency_ptr);
+
+  size_t dmn_size = 1;
+  for (int l = 0; l < f1.signature(); ++l) {
+    dmn_size *= f1.get_domain().get_subdomain_size(l);
+  }
+
+  std::cout << '\n';
+  std::cout << "signature: " << f1.signature() << " dmn_size: " << dmn_size << '\n';
+
+  uint64_t start = f1.get_start();
+  uint64_t end = f1.get_end();
+
+  for (size_t index = 0, i = start; i <= end; ++i, ++index)
+    f1.data()[index] = i + 1;
+
+  std::cout << "rank: " << rank << " start lin = " << start << " end lin = " << end << std::endl;
+
+  const std::string fname("ADIOS2ParallelIOTest_linear_" + typeStr + ".bp");
+  {
+    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    writer.open_file(fname, true);
+
+    // Because the caller needs to know if its function is distributed or not we will assume this is
+    // so for the API as well. in the future I think something more sophisticated needs to be done
+    // and the function will need to know its distribution, but for now we distribute only over the
+    // fastest index
+
+    writer.execute(f1, start, end);
+    MPI_Barrier(concurrency_ptr->get());
+    writer.close_file();
+  }
+  {
+    // Read test file.
+    if (!rank) {
+      std::cout << " Read back data with linear 1D selection " << std::endl;
+    }
+    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    reader.open_file(fname);
+
+    dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
+
+    EXPECT_TRUE(reader.execute(f2, start, end));
+
+    /* TODO: This should be working on every rank */
+
+    for (int i = 0; i < end - start + 1; ++i) {
+      EXPECT_EQ(f1(i), f2(i)) << " i =" << i << "  rank =" << rank;
+      if (f1(i) != f2(i))
+        break;
+    }
+
+    //   dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f3("parallelFuncLin",
+    //   *concurrency_ptr); if (!rank) {
+    //     std::cout << " Attempt to read back data with 3D selection should fail " << std::endl;
+    //   }
+
+    //   // get the N-dimensional decomposition, which is entirely wrong for this test
+    //   std::vector<size_t> subind_start = f3.linind_2_subind(start);
+    //   std::vector<size_t> subind_end = f3.linind_2_subind(end - 1);
+
+    //   /* 1D array on disk cannot be read back with 3D selection */
+    //   EXPECT_FALSE(reader.execute(f3, subind_start, subind_end));
+
+    //   reader.close_file();
+    // }
   }
 }
 

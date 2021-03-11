@@ -45,6 +45,7 @@ dca_add_gtest(tp_accumulator_particle_hole_test
   LIBS function ${TPACC_PARTICLE_HOLE_LIBS})
 
 dca_add_gtest(tp_accumulator_gpu_test
+  FAST
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
@@ -52,6 +53,7 @@ dca_add_gtest(tp_accumulator_gpu_test
   )
 
 dca_add_gtest(tp_accumulator_singleband_gpu_test
+  FAST
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
