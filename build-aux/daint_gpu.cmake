@@ -15,7 +15,7 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 # Compile for Tesla compute architecture.
 set(CMAKE_CUDA_ARCHITECTURES 60 CACHE STRING "number of the CUDA compute architecture to build for.")  # default
 
-set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+#set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
