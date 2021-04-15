@@ -286,7 +286,7 @@ void MPICollectiveSum::sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const {
 
 template <typename scalar_type, class domain, DistType DIST>
 void MPICollectiveSum::localSum(func::function<scalar_type, domain, DIST>& f, int id) const {
-  if constexpr (f.dist == DistType::NONE) {
+  if constexpr (DIST == DistType::NONE) {
     if (id < 0 || id > get_size())
       throw(std::out_of_range("id out of range."));
     func::function<scalar_type, domain, DistType::NONE> f_sum;

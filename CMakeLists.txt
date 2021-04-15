@@ -5,7 +5,7 @@
 # CMake build script for DCA++
 
 cmake_minimum_required(VERSION 3.18)
-project(DCA++ LANGUAGES C CXX CUDA)
+project(DCA++ LANGUAGES C CXX)
 
 ################################################################################
 # Disable in-source builds.
