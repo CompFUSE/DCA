@@ -23,6 +23,7 @@
 #include "dca/io/filesystem.hpp"
 #include "dca/io/writer.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
@@ -186,7 +187,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
 
 template <typename ParametersType, typename DDT, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
-  static_assert(std::is_same<DDT, ::DcaDataType<DIST>>::value);
+  static_assert(std::is_same<DDT, dca::phys::DcaData<ParametersType, DIST>>::value);
   int last_completed = -1;
 
   if (parameters.autoresume()) {  // Try to read state of previous run.
@@ -214,8 +215,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
-  static_assert(std::is_same<DcaDataType, ::DcaDataType<DIST>>::value);
-  static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
+  //static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
+  //static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 
@@ -323,8 +324,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_cluster_problem(
     int DCA_iteration) {
-  static_assert(std::is_same<DcaDataType, ::DcaDataType<DIST>>::value);
-  static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
+  //  static_assert(std::is_same<DcaDataType, ::DcaDataType<DIST>>::value);
+  // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   {
     profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
     monte_carlo_integrator_.initialize(DCA_iteration);

@@ -156,7 +156,7 @@ public:
   }
 
   // Returns the accumulated Green's function.
-  std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& get_G4();
+  const std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& get_G4() const;
 
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   // Returns the accumulated Green's function.
@@ -197,6 +197,7 @@ protected:
 
   void synchronizeStreams();
 
+#ifdef DCA_HAVE_MPI
   struct RingMessage {
     int target;
     int source;
@@ -206,18 +207,17 @@ protected:
   std::array<RingMessage, 2> recv_requests_{RingMessage{-1, -1, MPI_REQUEST_NULL},
                                             RingMessage{-1, -1, MPI_REQUEST_NULL}};
   std::array<RingMessage, 2> send_requests_{RingMessage{-1, -1, MPI_REQUEST_NULL},
-                                            RingMessage{-1, -1, MPI_REQUEST_NULL}};
-#ifdef DCA_HAVE_MPI
+RingMessage{-1, -1, MPI_REQUEST_NULL}};
   // For distributed G4's
   // Applies pipepline ring algorithm to move G matrices around all ranks
   void ringG(float& flop);
 
   void send(const std::array<RMatrix, 2>& data, std::array<RingMessage, 2>& request);
   void receive(std::array<RMatrix, 2>& data, std::array<RingMessage, 2>& request);
-#endif
 
   // send buffer for pipeline ring algorithm
   std::array<RMatrix, 2> sendbuff_G_;
+#endif
 
 #ifndef DCA_WITH_CUDA_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
@@ -428,8 +428,8 @@ auto TpAccumulator<Parameters, DT, linalg::GPU>::get_G4Dev() -> std::vector<G4De
  *  the return type is quite a code smell
  */
 template <class Parameters, DistType DT>
-std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& TpAccumulator<
-    Parameters, DT, linalg::GPU>::get_G4() {
+const std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& TpAccumulator<
+    Parameters, DT, linalg::GPU>::get_G4() const {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
 

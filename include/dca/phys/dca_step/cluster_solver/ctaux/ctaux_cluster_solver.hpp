@@ -372,7 +372,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::measure(Walker& walke
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
-  static_assert(std::is_same<Data, ::DcaDataType<DIST>>::value);
+  static_assert(std::is_same<Data, dca::phys::DcaData<ParametersType, DIST>>::value); //::DcaDataType<DIST>>::value);
 
   if (!accumulator_.compute_std_deviation())
     return;
@@ -406,8 +406,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
     // This creates a copy!
-    static_assert(std::is_same<Data, ::DcaDataType<DIST>>::value);
-    std::vector<typename Data::TpGreensFunction>& G4 = accumulator_.get_sign_times_G4();
+    static_assert(std::is_same<Data, dca::phys::DcaData<ParametersType, DIST>>::value);
+    std::vector<typename Data::TpGreensFunction> G4 = accumulator_.get_sign_times_G4();
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /=

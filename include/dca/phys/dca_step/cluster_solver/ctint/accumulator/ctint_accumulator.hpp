@@ -224,7 +224,7 @@ template <class Parameters, linalg::DeviceType device, typename Real, DistType D
 const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_G4() const {
   if (!perform_tp_accumulation_)
     throw(std::logic_error("G4 was not accumulated."));
-  return tp_accumulator_.get_sign_times_G4();
+  return tp_accumulator_.get_G4();
 }
 
 }  // namespace ctint

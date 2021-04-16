@@ -75,7 +75,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
   ++loop_counter;
 
   for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
-    const auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
+    auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
                                                   accumulatorDevice.get_G4()[channel]);
     EXPECT_GT(5e-7, diff.l_inf);
   }
