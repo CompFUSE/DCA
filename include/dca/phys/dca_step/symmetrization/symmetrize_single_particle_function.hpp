@@ -268,6 +268,25 @@ void SymmetrizeSingleParticleFunction<Parameters>::execute(
     symmetrize_over_electron_spin(f, do_diff);
   }
 
+  // // Symmetrize over orbitals, hardcoded for Rashba Hubbard model
+  // // For this case, orbital 0 (spin down) is equal to orbital 1 (spin up)
+  // for (int ind_1 = 0; ind_1 < FDmn1::dmn_size(); ind_1++) {
+  //   for (int ind_0 = 0; ind_0 < FDmn0::dmn_size(); ind_0++) {
+
+  //         Scalar tmp = (f(0, 0, 0, 0, ind_0, ind_1) + f(1, 0, 1, 0, ind_0, ind_1)) / 2.;
+
+  //         f(0, 0, 0, 0, ind_0, ind_1) = tmp;
+  //         f(1, 0, 1, 0, ind_0, ind_1) = tmp;
+
+  //         tmp = (f(0, 1, 0, 1, ind_0, ind_1) + f(1, 1, 1, 1, ind_0, ind_1)) / 2.;
+
+  //         f(0, 1, 0, 1, ind_0, ind_1) = tmp;
+  //         f(1, 1, 1, 1, ind_0, ind_1) = tmp;
+
+  //   }
+  // }
+
+
   // Symmetrize over real space or momentum.
   func::function<Scalar, func::dmn_variadic<BDmn, BDmn, FDmn0>> f0(f.get_name());
 
@@ -488,6 +507,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
             f_new(b1, b0, new_c_idx, w_ind) = tmp;
           }
           else {  // Hamiltonian is complex.
+            // std::cout << "Symmetrizing complex Hamiltonian \n";
             const auto tmp1 = f(b0, b1, c_ind, w_ind);
             const auto tmp2 = f(b1, b0, new_c_idx, w_0 - w_ind);  // F(w) = conj(F^t(-w))
 
@@ -498,8 +518,30 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
           }
         }
       }
+
+      // For Rashba model: Set inter-orbital (spin-up/down) component to zero when sin(kx)=0 & sin(ky)=0, 
+      // i.e. when inter-orbital (inter-spin) Hamiltonian is zero
+
+        if (representation == domains::MOMENTUM_SPACE) {
+          
+          const auto& k_vecs = ClusterDomain::get_elements();
+          const auto& k = k_vecs[c_ind];
+
+          if (abs(std::sin(k[0])) < 1.0e-4 && abs(std::sin(k[1])) < 1.0e-4) {
+            // std::cout << "Setting off-diag comp. to zero\n";
+
+            f_new(0,1,c_ind,w_ind) = 0.0;
+            f_new(1,0,c_ind,w_ind) = 0.0;
+            f_new(0,1,c_ind,w_0 - w_ind) = 0.0;
+            f_new(1,0,c_ind,w_0 - w_ind) = 0.0;
+          }
+        
+        }
+
     }
   }
+
+
 
   if (do_diff) {
     double max = 0;
@@ -624,13 +666,21 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
       for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
         double norm = 0.;
         for (int s_ind = 0; s_ind < SymDmn::dmn_size(); ++s_ind) {
+
           int R_new_ind = r_symmetry_matrix(r_ind, 0, s_ind).first;
 
           int b0_new = r_symmetry_matrix(r_ind, b0, s_ind).second;
           int b1_new = r_symmetry_matrix(0, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSignOfR(b0, b1, s_ind);
+          double sign = Lattice::transformationSignOfR(b0, b1, s_ind);
           norm += std::abs(sign);
+
+          if (b0 != b1) {
+            R_new_ind = r_ind;
+            b0_new = b0;
+            b1_new = b1;
+            sign = 1;
+          }
 
           f_new(b0, b1, r_ind) += sign * f(b0_new, b1_new, R_new_ind);
         }
@@ -721,8 +771,18 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
           int b0_new = k_symmetry_matrix(k_ind, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
-          const double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
+          double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
           norm += std::abs(sign);
+
+          if (b0 != b1) { // For Rashba model, the up-down elements transform like ix + y
+            // const auto& k_vecs = func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>::get_elements();
+            // const auto& k1 = k_vecs[k_ind];
+            // const auto& k2 = k_vecs[k_new];
+            k_new = k_ind;
+            b0_new = b0;
+            b1_new = b1;
+            sign = 1;
+          }
 
           f_new(b0, b1, k_ind) += sign * f(b0_new, b1_new, k_new);
         }

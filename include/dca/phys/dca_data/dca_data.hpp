@@ -136,6 +136,7 @@ public:
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
   func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
+
   func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> H_HOST;
 
   func::function<double, NuKCutDmn> band_structure;
@@ -490,6 +491,7 @@ void DcaData<Parameters>::initialize_G0() {
   util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
 
   // Compute G0_k_w.
+
   compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
                  parameters_.get_coarsegraining_threads(), G0_k_w);
   Symmetrize<Parameters>::execute(G0_k_w, H_symmetry, true);

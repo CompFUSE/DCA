@@ -500,13 +500,15 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
   CudaComplex<Real> contribution = makeComplex(Real(0.));
 
   // same spin contribution
-  // contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
-  contribution += getG(G, ldg, k2, k1, w2, w1, s3, s2) *
-                  getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, s4, s1);
+  //// contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
+  // Changed to: contraction: G(k1, k2, s1, s3) * G(k_ex - k1, k_ex - k2, s2, s4).
+  contribution += getG(G, ldg, k1, k2, w1, w2, s1, s3) *
+                  getG(G, ldg, delta_k1, delta_k2, delta_w1, delta_w2, s2, s4);
 
-  // contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
-  contribution -= getG(G, ldg, k2, delta_k1, w2, delta_w1, s3, s1) *
-                  getG(G, ldg, delta_k2, k1, delta_w2, w1, s4, s2);
+  //// contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
+  // Changed to: contraction: -G(k1, k_ex - k2, s1, s4) * G(k_ex - k1, k2, s2, s3).
+  contribution -= getG(G, ldg, k1, delta_k2, w1, delta_w2, s1, s4) *
+                  getG(G, ldg, delta_k1, k2, delta_w1, w2, s2, s3);
 
   contribution *= factor;
 

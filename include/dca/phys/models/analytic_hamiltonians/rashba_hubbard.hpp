@@ -51,6 +51,10 @@ public:
   constexpr static int transformationSignOfK(int, int, int) {
     return 1;
   }
+  // constexpr static int H0UpDownFinite(int k) {
+  //   // return 1;
+  //   return H0UpDownFiniteK(k);
+  // }
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -136,6 +140,11 @@ template <typename PointGroup>
 template <class domain>
 void RashbaHubbard<PointGroup>::initializeHSymmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
+
+  // H_symmetries(0, 0, 0, 0) = 0; // at b0, G of spin 0 or 1 has the same values.
+  // H_symmetries(1, 0, 1, 0) = 0;
+  // H_symmetries(0, 1, 0, 1) = 0; // at b0, G of spin 0 or 1 has the same values.
+  // H_symmetries(1, 0, 1, 0) = 0;
 }
 
 template <typename PointGroup>
@@ -175,7 +184,7 @@ void RashbaHubbard<PointGroup>::initializeH0(
 
     // Pauli matrix sigma_y
     const auto val = 2 * lambda * std::sin(k[0]);
-    m(0, 1) += i * val;
+    m(0, 1) += +i * val;
     m(1, 0) += -i * val;
 
     for (int s1 = 0; s1 < 2; ++s1)
@@ -183,6 +192,12 @@ void RashbaHubbard<PointGroup>::initializeH0(
         H_0(s1, 0, s2, 0, k_ind) = m(s1, s2);
   }
 }
+
+// template <typename PointGroup>
+// template <typename KDmn>
+// void RashbaHubbard<PointGroup>::H0UpDownFiniteK(int k) {
+
+// }
 
 }  // namespace models
 }  // namespace phys

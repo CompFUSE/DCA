@@ -177,6 +177,8 @@ void square_lattice<point_group_type>::initializeH0(
 
     H_0(0, 0, 0, 0, k_ind) = val;
     H_0(0, 1, 0, 1, k_ind) = val;
+    // H_0(0, 0, 0, 0, k_ind) = val;
+    // H_0(0, 1, 0, 1, k_ind) = val;
   }
 }
 

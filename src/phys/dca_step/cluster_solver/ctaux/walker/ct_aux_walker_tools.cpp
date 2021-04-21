@@ -91,13 +91,13 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
 template <typename Scalar>
 bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
     int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max_ref, Real min_ref) {
-  Real Gamma_val = std::fabs(Gamma_LU(0, 0));
+  Real Gamma_val = std::abs(Gamma_LU(0, 0));
 
   Real max = Gamma_val;
   Real min = Gamma_val;
 
   for (int i = 1; i < n + 1; i++) {
-    Gamma_val = std::fabs(Gamma_LU(i, i));
+    Gamma_val = std::abs(Gamma_LU(i, i));
 
     max = Gamma_val > max ? Gamma_val : max;
     min = Gamma_val < min ? Gamma_val : min;
@@ -129,7 +129,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma(
   // solve_Gamma_BLAS(n, Gamma_LU);
 
   Scalar Gamma_LU_n_n = Gamma_LU(n, n);
-  Real Gamma_val = std::fabs(Gamma_LU_n_n);
+  Real Gamma_val = std::abs(Gamma_LU_n_n);
 
   if (n > 0) {
     Real new_max = (Gamma_val > max) ? Gamma_val : max;
@@ -556,13 +556,13 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::apply_bennett_on_Gamma(
     ratio *= (Gamma_LU(i, i) / d_ptr[i]);
 
   {
-    Real Gamma_val = std::fabs(Gamma_LU(0, 0));
+    Real Gamma_val = std::abs(Gamma_LU(0, 0));
 
     max = Gamma_val;
     min = Gamma_val;
 
     for (int i = 1; i < n; i++) {
-      Gamma_val = std::fabs(Gamma_LU(i, i));
+      Gamma_val = std::abs(Gamma_LU(i, i));
 
       max = Gamma_val > max ? Gamma_val : max;
       min = Gamma_val < min ? Gamma_val : min;

@@ -178,6 +178,7 @@ void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
 
   if (parameters_.autoresume()) {  // Try to read state of previous run.
+
     last_completed = DCA_info_struct.tryToRead(file_name_ + ".tmp", parameters_.get_output_format(),
                                                concurrency_);
     if (last_completed >= 0) {
@@ -190,11 +191,11 @@ void DcaLoop<Parameters, DcaDataType, MCIntegratorType, DIST>::initialize() {
       data_.read(file_name_ + ".tmp");
       perform_lattice_mapping();
     }
-    else if (parameters_.get_initial_self_energy() != "zero") {
+    } else if (parameters_.get_initial_self_energy() != "zero") {
       data_.read(parameters_.get_initial_self_energy());
       perform_lattice_mapping();
     }
-  }
+  // }
 
   if (output_file_) {
     output_file_->open_file(file_name_ + ".tmp", parameters_.autoresume() ? false : true);

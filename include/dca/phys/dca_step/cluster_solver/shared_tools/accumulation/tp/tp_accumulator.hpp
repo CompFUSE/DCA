@@ -383,19 +383,25 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::getGMultiband(int s, int k1, in
     const static int k0 = KDmn::parameter_type::origin_index();
     return KDmn::parameter_type::subtract(k, k0);
   };
-
   if (w1_ext >= n_pos_frqs_) {
     const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+        // G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+        G(b1, b2) =  G_ptr[b1 + b2 * n_bands_];
   }
   else {
     const Complex* const G_ptr =
         &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
+        // &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
+          // G(b1, b2) = std::conj(G_ptr[b2 + b1 * n_bands_]);
+        // G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
+        if (b1 == b2)
+          G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b2 + b1 * n_bands_]);
+        else
+          G(b1, b2) = beta * G(b1, b2) - std::conj(G_ptr[b2 + b1 * n_bands_]);
   }
 }
 
@@ -602,26 +608,34 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                     // contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
-                    getGMultiband(0, k2, k1, w2, w1, G_a_);
-                    getGMultiband(0, q_minus_k(k2, k_ex), q_minus_k(k1, k_ex),
-                                  w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_);
+                    getGMultiband(0, k1, k2, w1, w2, G_a_);
+                    getGMultiband(0, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
+                                  w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                    // getGMultiband(0, k2, k1, w2, w1, G_a_);
+                    // getGMultiband(0, q_minus_k(k2, k_ex), q_minus_k(k1, k_ex),
+                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_);
                     for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                           for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
                             G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
-                                factor_ * G_a_(b3, b2) * G_b_(b4, b1);
+                                // factor_ * G_a_(b3, b2) * G_b_(b4, b1);
+                                factor_ * G_a_(b1, b3) * G_b_(b2, b4);
+                                // factor_ * G_a_(b1, b3);
                           }
 
                     // contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
-                    getGMultiband(0, k2, q_minus_k(k1, k_ex), w2, w_ex_minus_w(w1, w_ex), G_a_);
-                    getGMultiband(0, q_minus_k(k2, k_ex), k1, w_ex_minus_w(w2, w_ex), w1, G_b_);
+                    getGMultiband(0, k1, q_minus_k(k2, k_ex), w1, w_ex_minus_w(w2, w_ex), G_a_);
+                    getGMultiband(0, q_minus_k(k1, k_ex), k2, w_ex_minus_w(w1, w_ex), w2, G_b_);
+                    // getGMultiband(0, k2, q_minus_k(k1, k_ex), w2, w_ex_minus_w(w1, w_ex), G_a_);
+                    // getGMultiband(0, q_minus_k(k2, k_ex), k1, w_ex_minus_w(w2, w_ex), w1, G_b_);
                     for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                           for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
                             G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) -=
-                                factor_ * G_a_(b3, b1) * G_b_(b4, b2);
+                                // factor_ * G_a_(b3, b1) * G_b_(b4, b2);
+                                factor_ * G_a_(b1, b4) * G_b_(b2, b3);
                           }
                   }
           }

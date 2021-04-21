@@ -81,8 +81,8 @@ public:
   int order() const {
     return (configuration_.size(0) + configuration_.size(1)) / 2;
   }
-  double avgOrder() const {
-    return static_cast<double>(accumulated_order_) / number_of_measurements_;
+  double avgOrder() const {    
+    return static_cast<double>(accumulated_order_) / number_of_measurements_;    
   }
 
   std::size_t deviceFingerprint() const {

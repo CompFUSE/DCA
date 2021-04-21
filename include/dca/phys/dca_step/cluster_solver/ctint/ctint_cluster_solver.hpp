@@ -240,6 +240,7 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);
   Symmetrize<Parameters>::execute(data_.G_k_w);
 
+
   // transform  G_k_w and save into data_.
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
   Symmetrize<Parameters>::execute(data_.G_r_w);
@@ -414,6 +415,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
   }
 
   Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
+
   // TODO : if it is needed implement.
   //   if (parameters_.adjust_self_energy_for_double_counting())
   //    adjust_self_energy_for_double_counting();
@@ -464,6 +466,8 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
 
   auto sign = accumulator_.get_accumulated_sign();
 
+  // std::cout << "get_accumulated_sign " << sign << "\n";
+
   Symmetrize<Parameters>::execute(M, data_.H_symmetry);
 
   // TODO: delay sum.
@@ -477,8 +481,11 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
   collect(M);
   collect(sign);
 
-  std::size_t n_meas = accumulator_.get_number_of_measurements();
-  concurrency_.sum(n_meas);
+
+  // std::size_t n_meas = accumulator_.get_number_of_measurements();
+  // std::cout << "nmeas:" << n_meas << "\n";
+  // concurrency_.sum(n_meas);
+  // std::cout << "nmeas after sum:" << n_meas << "\n";
 
   M /= sign;
 
@@ -491,6 +498,8 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
     }
   }
 
+  double n_meas = parameters_.get_measurements()[dca_iteration_];
+  // std::cout << "sign, n_meas" << sign << " , " << n_meas << "\n";
   return sign / static_cast<double>(n_meas);
 }
 
