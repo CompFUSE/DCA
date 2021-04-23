@@ -20,6 +20,16 @@ message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRA
 list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
+# Blas
+if (NOT DCA_HAVE_BLAS)
+  find_package(BLAS REQUIRED)
+endif()
+
+mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
+list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+
+################################################################################
 # HDF5
 # Find HDF5 by looking for a CMake configuration file (hdf5-1.10.x).
 find_package(HDF5 COMPONENTS C CXX NO_MODULE QUIET)

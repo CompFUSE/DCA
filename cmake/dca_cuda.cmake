@@ -30,12 +30,15 @@ if (CMAKE_CUDA_COMPILER)
   # set(CVD_LAUNCHER "test/cvd_launcher.sh" CACHE INTERNAL "")
 endif()
 
-# Find MAGMA.
-find_library(MAGMA_LIBRARY
-  NAMES libmagma.so magma
-  HINTS ${MAGMA_DIR}/lib)
-find_path(MAGMA_INCLUDE_DIR magma.h HINTS ${MAGMA_DIR}/include)
-mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
+find_package(MAGMA
+  REQUIRED)
+
+# # Find MAGMA.
+# find_library(MAGMA_LIBRARY
+#   NAMES libmagma.so magma
+#   HINTS ${MAGMA_DIR}/lib)
+# find_path(MAGMA_INCLUDE_DIR magma.h HINTS ${MAGMA_DIR}/include)
+# mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
 
 if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   set(DCA_HAVE_MAGMA TRUE CACHE INTERNAL "")
