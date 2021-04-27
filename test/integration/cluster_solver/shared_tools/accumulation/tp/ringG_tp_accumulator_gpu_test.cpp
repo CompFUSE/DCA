@@ -74,24 +74,24 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
 
   //auto& concurrency = parameters_.get_concurrency();
 
-  // if (concurrency_.get_id() == 0)
-  //   std::cout << "\nCollecting Data from G4 distributed over" << concurrency_.number_of_processors()
-  //             << "ranks\n";
+  if (concurrency_.get_id() == 0)
+    std::cout << "\nCollecting Data from G4 distributed over" << concurrency_.number_of_processors()
+              << "ranks\n";
 
-  // for (int channel = 0; channel < accumulatorDevice.get_G4().size(); ++channel) {
-  //   auto& G4_gpu = accumulatorDevice.get_G4()[channel];
-  //   auto& G4_cpu = accumulatorHost.get_G4()[channel];
-  //   concurrency_.localSum(G4_cpu, concurrency_.first());
-  //   concurrency_.localSum(G4_gpu, concurrency_.first());
+  for (int channel = 0; channel < accumulatorDevice.get_G4().size(); ++channel) {
+    DcaData<Parameters, dca::DistType::LINEAR>::TpGreensFunction& G4_gpu = accumulatorDevice.get_nonconst_G4()[channel];
+    DcaData<Parameters, dca::DistType::LINEAR>::TpGreensFunction& G4_cpu = accumulatorHost.get_nonconst_G4()[channel];
+    concurrency_.localSum(G4_cpu, concurrency_.first());
+    concurrency_.localSum(G4_gpu, concurrency_.first());
     
-  //   if (concurrency_.get_id() == 0 && channel == 0) {
-  //     //static_assert(G4_cpu.dist == G4_gpu.dist);
+    if (concurrency_.get_id() == 0 && channel == 0) {
+      //static_assert(G4_cpu.dist == G4_gpu.dist);
       
-  //     const auto diff = dca::func::util::difference(G4_cpu, G4_gpu);
-  //     EXPECT_GT(5e-7, diff.l_inf);
-  //     EXPECT_GT(5e-7, diff.l1);
-  //     EXPECT_GT(5e-7, diff.l2);
-  //   }
-  // }
+      const auto diff = dca::func::util::difference(G4_cpu, G4_gpu);
+      EXPECT_GT(5e-7, diff.l_inf);
+      EXPECT_GT(5e-7, diff.l1);
+      EXPECT_GT(5e-7, diff.l2);
+    }
+  }
 }
 
