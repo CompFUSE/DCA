@@ -33,7 +33,7 @@ option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." OFF)
 set(CUDA_TOOLKIT_ROOT_DIR $ENV{CUDA_DIR} CACHE PATH "path to CUDA toolkit")
 
 # Compile for Volta compute architecture.
-set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")
+set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)

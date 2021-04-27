@@ -1,1 +1,2 @@
-dca_add_perftest(random_access_map_perftest)
+# This is broken in clang 8
+#dca_add_perftest(random_access_map_perftest)

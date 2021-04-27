@@ -34,11 +34,11 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <class Parameters, typename Real>
-class CtintWalker<linalg::CPU, Parameters, Real> : public CtintWalkerBase<Parameters, Real> {
+template <class Parameters, typename Real, DistType DIST>
+class CtintWalker<linalg::CPU, Parameters, Real, DIST> : public CtintWalkerBase<Parameters, Real, DIST> {
 public:
-  using this_type = CtintWalker<linalg::CPU, Parameters, Real>;
-  using BaseClass = CtintWalkerBase<Parameters, Real>;
+  using this_type = CtintWalker<linalg::CPU, Parameters, Real, DIST>;
+  using BaseClass = CtintWalkerBase<Parameters, Real, DIST>;
   using typename BaseClass::Rng;
   using typename BaseClass::Data;
 
@@ -114,8 +114,8 @@ private:
   const unsigned n_removal_rngs_;
 };
 
-template <class Parameters, typename Real>
-CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parameters_ref,
+template <class Parameters, typename Real, DistType DIST>
+CtintWalker<linalg::CPU, Parameters, Real, DIST>::CtintWalker(const Parameters& parameters_ref,
                                                         const Data& /*data*/, Rng& rng_ref, int id)
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
@@ -124,8 +124,8 @@ CtintWalker<linalg::CPU, Parameters, Real>::CtintWalker(const Parameters& parame
       // needed.
       n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::doSweep() {
   int nb_of_steps;
   if (nb_steps_per_sweep_ < 0)  // Not thermalized or fixed.
     nb_of_steps = BaseClass::avgOrder() + 1;
@@ -140,8 +140,8 @@ void CtintWalker<linalg::CPU, Parameters, Real>::doSweep() {
   BaseClass::updateSweepAverages();
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::doStep() {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::doStep() {
   initializeStep();
 
   if (rng_() <= 0.5) {
@@ -161,8 +161,8 @@ void CtintWalker<linalg::CPU, Parameters, Real>::doStep() {
   assert(configuration_.checkConsistency());
 }
 
-template <class Parameters, typename Real>
-bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
+template <class Parameters, typename Real, DistType DIST>
+bool CtintWalker<linalg::CPU, Parameters, Real, DIST>::tryVertexInsert() {
   configuration_.insertRandom(rng_);
   const int delta_vertices = configuration_.lastInsertionSize();
 
@@ -191,8 +191,8 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexInsert() {
   return accept;
 }
 
-template <class Parameters, typename Real>
-bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
+template <class Parameters, typename Real, DistType DIST>
+bool CtintWalker<linalg::CPU, Parameters, Real, DIST>::tryVertexRemoval() {
   acceptance_prob_ = removalProbability();
   const bool accept = rng_() < std::min(std::abs(acceptance_prob_), Real(1.));
 
@@ -211,8 +211,8 @@ bool CtintWalker<linalg::CPU, Parameters, Real>::tryVertexRemoval() {
   return accept;
 }
 
-template <class Parameters, typename Real>
-Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int delta_vertices) {
+template <class Parameters, typename Real, DistType DIST>
+Real CtintWalker<linalg::CPU, Parameters, Real, DIST>::insertionProbability(const int delta_vertices) {
   const int old_size = configuration_.size() - delta_vertices;
 
   for (int s = 0; s < 2; ++s) {
@@ -254,8 +254,8 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::insertionProbability(const int 
   //      configuration_.getStrength(old_size), combinatorial_factor, details::VERTEX_INSERTION);
 }
 
-template <class Parameters, typename Real>
-Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
+template <class Parameters, typename Real, DistType DIST>
+Real CtintWalker<linalg::CPU, Parameters, Real, DIST>::removalProbability() {
   std::array<double, 3> removal_rngs;
   for (unsigned i = 0; i < n_removal_rngs_; ++i)
     removal_rngs[i] = rng_();
@@ -297,8 +297,8 @@ Real CtintWalker<linalg::CPU, Parameters, Real>::removalProbability() {
   return det_ratio * combinatorial_factor / strength_factor;
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair& Sp,
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::applyInsertion(const MatrixPair& Sp,
                                                                 const MatrixPair& Qp,
                                                                 const MatrixPair& Rp) {
   for (int s = 0; s < 2; ++s) {
@@ -346,8 +346,8 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyInsertion(const MatrixPair
     configuration_.commitInsertion(configuration_.size() - delta_vertices + i);
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::applyRemoval() {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::applyRemoval() {
   for (auto idx : removal_list_)
     configuration_.markForRemoval(idx);
 
@@ -388,8 +388,8 @@ void CtintWalker<linalg::CPU, Parameters, Real>::applyRemoval() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::popBack(int delta_vertices) {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::popBack(int delta_vertices) {
   for (int i = configuration_.size() - delta_vertices; i < configuration_.size(); ++i) {
     removal_list_.push_back(i);
   }
@@ -401,8 +401,8 @@ void CtintWalker<linalg::CPU, Parameters, Real>::popBack(int delta_vertices) {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::moveRemovalToEnd() {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::moveRemovalToEnd() {
   configuration_.moveAndShrink(matrix_source_list_, matrix_removal_list_, removal_list_);
 
   for (int s = 0; s < 2; ++s) {
@@ -411,18 +411,18 @@ void CtintWalker<linalg::CPU, Parameters, Real>::moveRemovalToEnd() {
   }
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::smallInverse(const ConstView& in, MatrixView& out,
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::smallInverse(const ConstView& in, MatrixView& out,
                                                               const int s) {
   details::smallInverse(in, out, det_ratio_[s], ipiv_, v_work_);
 }
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::smallInverse(MatrixView& in_out, const int s) {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::smallInverse(MatrixView& in_out, const int s) {
   details::smallInverse(in_out, det_ratio_[s], ipiv_, v_work_);
 }
 
-template <class Parameters, typename Real>
-void CtintWalker<linalg::CPU, Parameters, Real>::initializeStep() {
+template <class Parameters, typename Real, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, Real, DIST>::initializeStep() {
   removal_list_.clear();
   for (int s = 0; s < 2; ++s) {
     matrix_removal_list_[s].clear();

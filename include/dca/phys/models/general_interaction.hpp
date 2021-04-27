@@ -137,8 +137,8 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
   return correlated_orbitals;
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_GENERAL_INTERACTION_HPP

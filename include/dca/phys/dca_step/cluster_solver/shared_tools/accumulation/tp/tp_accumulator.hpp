@@ -48,6 +48,7 @@ class TpAccumulator;
 template <class Parameters, DistType DT>
 class TpAccumulator<Parameters, linalg::CPU, DT> {
 public:
+  static constexpr DistType dist = DT;
   using Real = typename Parameters::TP_measurement_scalar_type;
 
   using RDmn = typename Parameters::RClusterDmn;
@@ -64,7 +65,7 @@ public:
   using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
-  using Data = DcaData<Parameters>;
+  using Data = DcaData<Parameters, DT>;
   using TpGreensFunction = typename Data::TpGreensFunction;
 
 protected:
@@ -106,7 +107,7 @@ public:
   void ringG() {}
 
   // Returns the accumulated Green's function.
-  const auto& get_sign_times_G4() const;
+  const std::vector<TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& get_G4() const;
 
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(TpAccumulator& other_acc);
@@ -200,7 +201,7 @@ TpAccumulator<Parameters, linalg::CPU, DT>::TpAccumulator(
       G0_M_(n_bands_),
       G_a_(n_bands_),
       G_b_(n_bands_) {
-  if constexpr (DT == DistType::MPI) {
+  if constexpr (DT == DistType::BLOCKED) {
     std::cerr << "The MPI distribution of G4 on the CPU is not supported. Reverting to no "
                  "distribution.\n";
   }
@@ -666,7 +667,8 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4SpinDifference(
 }
 
 template <class Parameters, DistType DT>
-const auto& TpAccumulator<Parameters, linalg::CPU, DT>::get_sign_times_G4() const {
+const std::vector<typename TpAccumulator<Parameters, linalg::CPU, DT>::TpGreensFunction>& TpAccumulator<
+    Parameters, linalg::CPU, DT>::get_G4() const {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
 

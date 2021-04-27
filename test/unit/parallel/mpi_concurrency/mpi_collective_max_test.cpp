@@ -31,6 +31,7 @@ TEST_F(MPICollectiveMaxTest, FundamentalTypes) {
   // int
   int i = rank_;
   max_interface_.max(i);
+
   EXPECT_EQ(size_ - 1, i);
 
   // double

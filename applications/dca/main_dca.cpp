@@ -22,6 +22,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "dca/util/signal_handler.hpp"
+#include "dca/io/writer.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
-    dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
+    //dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
 
     std::string input_file(argv[1]);
 
@@ -71,26 +72,33 @@ int main(int argc, char** argv) {
     parameters.update_model();
     parameters.update_domains();
 
-    // Create and initialize the DCA data object.
-    DcaDataType dca_data(parameters);
-    dca_data.initialize();
-
     dca::DistType distribution = parameters.get_g4_distribution();
     switch (distribution) {
 #ifdef DCA_HAVE_MPI
-      case dca::DistType::MPI: {
-        DCALoopDispatch<dca::DistType::MPI> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, dca_data, concurrency);
+      case dca::DistType::BLOCKED: {
+        DCALoopDispatch<dca::DistType::BLOCKED> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, concurrency);
       } break;
 #else
-      case dca::DistType::MPI: {
+      case dca::DistType::BLOCKED: {
         throw std::runtime_error(
-            "Input calls for function MPI distribution but DCA is not built with MPI.");
+            "Input calls for function Blocked distribution but DCA is only supports this with MPI.");
+      } break;
+#endif
+#ifdef DCA_HAVE_MPI
+    case dca::DistType::LINEAR: {
+      DCALoopDispatch<dca::DistType::LINEAR> dca_loop_dispatch;
+        dca_loop_dispatch(parameters, concurrency);
+      } break;
+#else
+    case dca::DistType::LINEAR: {
+        throw std::runtime_error(
+            "Input calls for function Linear distribution but DCA is only supports this with MPI.");
       } break;
 #endif
       case dca::DistType::NONE: {
         DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, dca_data, concurrency);
+        dca_loop_dispatch(parameters, concurrency);
       } break;
     }
   }

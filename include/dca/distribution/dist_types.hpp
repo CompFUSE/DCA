@@ -16,10 +16,21 @@
 #include <string>
 
 namespace dca {
-enum class DistType { NONE, MPI };
+enum class DistType { NONE, LINEAR, BLOCKED };
 
 DistType stringToDistType(const std::string& name);
 std::string toString(DistType type);
+
+struct dist_NONE {
+  static constexpr DistType value = DistType::NONE;
+};
+struct dist_LINEAR {
+  static constexpr DistType value = DistType::LINEAR;
+};
+struct dist_BLOCKED {
+  static constexpr DistType value = DistType::BLOCKED;
+};
+
 }  // namespace dca
 
 #endif  // DCA_DIST_TYPE_HPP

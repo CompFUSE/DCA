@@ -42,20 +42,22 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
-  using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
-  using DcaPointGroupType = dca::phys::domains::D4;
-  using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
-  using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::parallel::NoThreading;
-  using ParametersType =
-      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, ModelType, RngType,
+  // These names collide with type aliases in dca.hpp and this is not clever but
+  // quite easy to break.
+  using RngType_test = dca::math::random::StdRandomWrapper<std::mt19937_64>;
+  using DcaPointGroupType_test = dca::phys::domains::D4;
+  using LatticeType_test = dca::phys::models::square_lattice<DcaPointGroupType_test>;
+  using ModelType_test = dca::phys::models::TightBindingModel<LatticeType_test>;
+  using Threading_test = dca::parallel::NoThreading;
+  using ParametersType_test =
+      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading_test,
+                                    dca::profiling::NullProfiler, ModelType_test, RngType_test,
                                     dca::phys::solver::CT_AUX>;
-  using DcaDataType = dca::phys::DcaData<ParametersType>;
-  using ClusterSolverType =
-      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
-  using DcaLoopType =
-      dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
+  using DcaDataType_test = dca::phys::DcaData<ParametersType_test, dca::DistType::NONE>;
+  using ClusterSolverType_test =
+      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType_test, DcaDataType_test>;
+  using DcaLoopType_test =
+      dca::phys::DcaLoop<ParametersType_test, DcaDataType_test, ClusterSolverType_test, dca::DistType::NONE>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     // Copy initial state from an aborted run.
@@ -84,15 +86,15 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
 
   dca::linalg::util::initializeMagma();
 
-  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType_test parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  DcaDataType dca_data(parameters);
+  DcaDataType_test dca_data(parameters);
   dca_data.initialize();
 
-  DcaLoopType dca_loop(parameters, dca_data, dca_test_env->concurrency);
+  DcaLoopType_test dca_loop(parameters, dca_data, dca_test_env->concurrency);
   dca_loop.initialize();
   dca_loop.execute();
   dca_loop.finalize();
@@ -102,7 +104,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
               << std::endl;
 
     // Read self-energy from check_data file.
-    DcaDataType::SpGreensFunction Sigma_check("Self_Energy");
+    DcaDataType_test::SpGreensFunction Sigma_check("Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");

@@ -63,7 +63,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   auto& concurrency = dca_test_env->concurrency;
-  dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
+  //dca::util::SignalHandler::init(concurrency.id() == concurrency.first());
 
   if (concurrency.id() == concurrency.first()) {
     // Copy initial state from an aborted run.

@@ -18,22 +18,24 @@
 # unset(CMAKE_REQUIRED_FLAGS)
 
 # Warnings
-set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-dangling-else)
+set(DCA_WARNINGS -Wall -Wextra  -Wno-sign-compare -Wno-dangling-else)
+# -Wpedantic
 
 # Languange standard
 set(DCA_STD_FLAG -std=c++17)
 
 # Set C and CXX flags.
-add_compile_options(${DCA_WARNINGS})
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_WARNINGS}>")
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
 # Add support for multithreading with the Pthread library.
-add_compile_options("-pthread")
+# add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-pthread")
 
+set(DCA_CUDA_OPTIONS "")
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
-  if (CUDA_VERSION VERSION_GREATER "8.1.0")
-    list(APPEND CUDA_NVCC_FLAGS
+  if (CUDA_VERSION VERSION_GREATER "11.0.0")
+    list(APPEND CMAKE_CUDA_FLAGS
       -arch=${CUDA_GPU_ARCH}
       -std=c++14
       -Xcompiler -Wall
@@ -41,8 +43,8 @@ if (DCA_HAVE_CUDA)
       -Xcompiler -Wno-unused-parameter
       -Xcompiler -Wno-switch
       -Xcompiler ${DCA_THREADING_FLAGS})
-  else (CUDA_VERSION VERSION_GREATER "8.1.0")
-    list(APPEND CUDA_NVCC_FLAGS
+  else (CUDA_VERSION VERSION_GREATER "11.0.0")
+    list(APPEND DCA_CUDA_OPTIONS
       -arch=${CUDA_GPU_ARCH}
       -std=c++11
       -Xcompiler -Wall
@@ -50,5 +52,5 @@ if (DCA_HAVE_CUDA)
       -Xcompiler -Wno-unused-parameter
       -Xcompiler -Wno-switch
       -Xcompiler ${DCA_THREADING_FLAGS})
-  endif (CUDA_VERSION VERSION_GREATER "8.1.0")
+  endif (CUDA_VERSION VERSION_GREATER "11.0.0")
 endif()

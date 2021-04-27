@@ -10,6 +10,7 @@
 // This file implements info_cuda functions.
 
 #include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/info_cuda.hpp"
 #include <cuda_runtime.h>
 #include <iostream>
 #include <string>

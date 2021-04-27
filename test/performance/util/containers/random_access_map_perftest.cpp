@@ -58,18 +58,21 @@ static void performInsertRemoveTest(benchmark::State& state) {
   }
 }
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_StdMapInsertErase(benchmark::State& state) {
-  performInsertRemoveTest<std::map>(state);
+  performInsertRemoveTest<std::map<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_StdMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_StdUnorderedMapInsertErase(benchmark::State& state) {
-  performInsertRemoveTest<std::unordered_map>(state);
+  performInsertRemoveTest<std::unordered_map<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_StdUnorderedMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_MyMapInsertErase(benchmark::State& state) {
-  performInsertRemoveTest<dca::util::RandomAccessMap>(state);
+  performInsertRemoveTest<dca::util::RandomAccessMap<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_MyMapInsertErase)->Arg(100)->Arg(1000)->Arg(n_init);
 
@@ -87,17 +90,20 @@ static void performFindTest(benchmark::State& state) {
   }
 }
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_StdMapFind(benchmark::State& state) {
-  performFindTest<std::map>(state);
+  performFindTest<std::map<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_StdMapFind)->Arg(100)->Arg(1000)->Arg(n_init);
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_StdUnorderedMapFind(benchmark::State& state) {
-  performFindTest<std::unordered_map>(state);
+  performFindTest<std::unordered_map<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_StdUnorderedMapFind)->Arg(100)->Arg(1000)->Arg(n_init);
 
+template <typename KEY = int, typename VALUE = int>
 static void BM_MyMapFind(benchmark::State& state) {
-  performFindTest<dca::util::RandomAccessMap>(state);
+  performFindTest<dca::util::RandomAccessMap<KEY, VALUE>>(state);
 }
 BENCHMARK(BM_MyMapFind)->Arg(100)->Arg(1000)->Arg(n_init);

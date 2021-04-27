@@ -43,22 +43,30 @@ TEST_F(TpEqualTimeAccumulatorTest, AccumulateAndSum) {
   using Accumulator =
       dca::phys::solver::ctaux::TpEqualTimeAccumulator<G0Setup::Parameters, G0Setup::Data, double>;
 
+  std::cout << "Configuration built\n";
+  
   Accumulator accumulator_sum(parameters_, *data_, 0);
   Accumulator accumulator1(parameters_, *data_, 1);
   Accumulator accumulator2(parameters_, *data_, 2);
   Accumulator accumulator3(parameters_, *data_, 3);
   const int sign = -1;
 
+  std::cout << "Accumulators constructed. \n";
+  
   accumulator1.accumulateAll(config1[0], M1[0], config1[1], M1[1], sign);
   accumulator2.accumulateAll(config2[0], M2[0], config2[1], M2[1], sign);
+  std::cout << "accumulateAll complete\n";
   accumulator1.sumTo(accumulator_sum);
   accumulator2.sumTo(accumulator_sum);
+  std::cout << "about to finalize to accumulator_sum\n";
   accumulator_sum.finalize();
 
   accumulator3.accumulateAll(config1[0], M1[0], config1[1], M1[1], sign);
   accumulator3.accumulateAll(config2[0], M2[0], config2[1], M2[1], sign);
   accumulator3.finalize();
 
+  std::cout << "Accumulation complete.\n";
+  
   auto expect_near = [](const auto& f1, const auto f2) {
     auto diff = dca::func::util::difference(f1, f2);
     EXPECT_GE(5e-7, diff.l_inf);

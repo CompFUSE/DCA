@@ -28,6 +28,42 @@ struct Difference {
 };
 
 // Returns the l1, l2, and l_inf relative (w.r.t. f1) differences of f1 and f2.
+template <typename Scalartype1, typename Scalartype2, class Dmn1, class Dmn2, DistType DT1, DistType DT2>
+Difference difference(const function<Scalartype1, Dmn1, DT1>& f1, const function<Scalartype2, Dmn2, DT2>& f2) {
+  if (f1.size() != f2.size())
+    throw(std::logic_error("The two functions have different size."));
+
+  double l1 = 0.;
+  double l2 = 0.;
+  double linf = 0.;
+
+  double l1_error = 0.;
+  double l2_error = 0.;
+  double linf_error = 0.;
+
+  using DiffType = std::common_type_t<Scalartype1, Scalartype2>;
+
+  for (int i = 0; i < f2.size(); ++i) {
+    const double f_abs = std::abs(f1(i));
+    l1 += f_abs;
+    l2 += f_abs * f_abs;
+    linf = std::max(linf, f_abs);
+
+    const auto diff = static_cast<DiffType>(f1(i)) - static_cast<DiffType>(f2(i));
+    const double err = std::abs(diff);
+    l1_error += err;
+    l2_error += err * err;
+    linf_error = std::max(linf_error, err);
+  }
+
+  l1_error /= l1;
+  l2_error = std::sqrt(l2_error / l2);
+  linf_error /= linf;
+
+  return Difference{l1_error, l2_error, linf_error};
+}
+
+// Returns the l1, l2, and l_inf relative (w.r.t. f1) differences of f1 and f2.
 template <typename Scalartype1, typename Scalartype2, class Dmn1, class Dmn2>
 Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scalartype2, Dmn2>& f2) {
   if (f1.size() != f2.size())

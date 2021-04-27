@@ -9,7 +9,7 @@
 //
 // This file implements a no-change test for the two point accumulation on a single band lattice.
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
 #include <map>
@@ -76,7 +76,7 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     accumulator.accumulate(M, config, sign);
     accumulator.finalize();
 
-    const auto& G4 = accumulator.get_sign_times_G4();
+    const auto& G4 = accumulator.get_G4();
 
     if (update_baseline) {
       writer.execute(func_names[type], G4[0]);
