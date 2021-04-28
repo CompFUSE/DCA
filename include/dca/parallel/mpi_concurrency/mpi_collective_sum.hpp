@@ -294,11 +294,7 @@ void MPICollectiveSum::localSum(func::function<scalar_type, domain, DIST>& f, in
     f = std::move(f_sum);
   }
   else if constexpr (DIST == DistType::LINEAR || DIST == DistType::LINEAR) {
-    if (id < 0 || id > get_size())
-      throw(std::out_of_range("id out of range."));
-    func::function<scalar_type, domain, DIST> f_sum(f);
-    sum(f.values(), f_sum.values(), f.size(), id);
-    f = std::move(f_sum);
+      throw std::runtime_error("you cannot do a local sum of a distributed function");
   }
 }
 
