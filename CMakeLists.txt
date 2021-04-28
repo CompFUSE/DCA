@@ -4,8 +4,8 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.3)
-project(DCA++ C CXX)
+cmake_minimum_required(VERSION 3.18)
+project(DCA++ LANGUAGES C CXX)
 
 ################################################################################
 # Disable in-source builds.
@@ -67,7 +67,7 @@ get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
 
 if (GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run 'git status' for details.")
+  message(STATUS "Working tree is dirty. Run 'git status' for details.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
@@ -94,6 +94,10 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
+
+include(dca_check_stdlib)
+
+
 ################################################################################
 # Include directories
 # For "dca/.../..." #includes.
@@ -105,7 +109,7 @@ set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
 if(DCA_HAVE_CUDA)
-  include_directories(${CUDA_TOOLKIT_INCLUDE})
+#  include_directories(${CUDA_TOOLKIT_INCLUDE})
 endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
@@ -148,8 +152,12 @@ set(DCA_LIBS
   lapack
   cuda_utils
 )
+  
+set(SYSTEM_GPU_COUNT 0)
 
 if (DCA_HAVE_CUDA)
+  EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                  OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   list(APPEND DCA_LIBS
     blas_kernels
     lapack_kernels
@@ -157,17 +165,31 @@ if (DCA_HAVE_CUDA)
     special_transform_kernels
     cuda_utils
     ${DCA_CUDA_LIBS})
+  set(DCA_KERNEL_LIBS
+    blas_kernels
+    lapack_kernels
+    mc_kernels
+    special_transform_kernels)  
+endif()
+
+if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
+  list(APPEND DCA_LIBS
+    dca_adios2 adios2::adios2
+    )
+  message("-- Add dca_adios2 to targets")
 endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
-list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
+list(APPEND DCA_LIBS lapack ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
 # Testing
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
-option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Results only meaningful in Release mode.)" OFF)
 option(DCA_WITH_TESTS_STOCHASTIC  "Build DCA++'s stochastic tests." OFF)
+
+set(DCA_TEST_GPU_COUNT "${SYSTEM_GPU_COUNT}" CACHE INTEGER "Number of GPUs available on one node for one test.")
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")

@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Weile Wei (wwei9@lsu.edu)
 //
 // Helper class for adding and subtracting momentum and frequency on the device.
 
@@ -16,7 +17,7 @@
 #include <vector>
 
 #include <cuda.h>
-
+#include "dca/distribution/dist_types.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 
 namespace dca {

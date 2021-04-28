@@ -30,13 +30,12 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
 
 # Compile for Volta compute architecture.
-set(CUDA_GPU_ARCH "sm_70" CACHE STRING "Name of the *real* architecture to build for.")
+set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
-# For the GPU support we also need MAGMA.
-set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
+set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 # FFTW paths.

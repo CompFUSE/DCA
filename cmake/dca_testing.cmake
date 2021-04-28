@@ -13,7 +13,7 @@ include(CMakeParseArguments)
 #               [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
-#               [CUDA]
+#               [CUDA | CUDA_MPI]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
 #               [SOURCES src1 [src2 ...]]
 #               [LIBS lib1 [lib2 ...]])
@@ -24,7 +24,7 @@ include(CMakeParseArguments)
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA CUDA_MPI)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -41,7 +41,7 @@ function(dca_add_gtest name)
                                        [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
-                                       [CUDA]\n
+                                       [CUDA | CUDA_MPI]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
                                        [SOURCES src1 [src2 ...]]\n
                                        [LIBS lib1 [lib2 ...]])")
@@ -53,9 +53,9 @@ function(dca_add_gtest name)
       return()
     endif()
     # Only build performance tests in Release mode.
-    if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-      return ()
-    endif()
+    # if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    #   return ()
+    # endif()
 
   elseif (DCA_ADD_GTEST_EXTENSIVE)
     if (NOT DCA_WITH_TESTS_EXTENSIVE)
@@ -82,6 +82,12 @@ function(dca_add_gtest name)
     return()
   endif()
 
+  # Right now we're only testing GPU distributed code on one node so its pointless
+  # without more than one GPU per node.
+  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_CUDA_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
+    return()
+  endif()
+
   add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
@@ -90,15 +96,23 @@ function(dca_add_gtest name)
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
-    target_link_libraries(${name} gtest_main ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE gtest_main ${DCA_ADD_GTEST_LIBS})
   else()
     # Test has its own main.
-    target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
+    target_link_libraries(${name} PRIVATE gtest ${DCA_ADD_GTEST_LIBS})
   endif()
 
+  if (DCA_HAVE_CUDA)
+    set_property(TARGET ${name} PROPERTY CMAKE_CUDA_ARCHITECTURES 70)
+    set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_link_libraries(${name} PRIVATE CUDA::cudart)
+  endif()
+  
   if (DCA_ADD_GTEST_CUDA)
-    target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-    target_link_libraries(${name} ${DCA_CUDA_LIBS})
+    target_include_directories(${name} PRIVATE ${CUDATookit_INCLUDE_DIRS})
+    target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
@@ -107,7 +121,11 @@ function(dca_add_gtest name)
     if(DCA_WITH_CUDA_AWARE_MPI)
       target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
     endif()
-    cuda_add_cublas_to_target(${name})
+    if (DCA_ADD_GTEST_CUDA_MPI)
+      #We need to document which cuda aware openmpi requires this and which doesn't.
+      set(THIS_CVD_LAUNCHER "${CMAKE_SOURCE_DIR}/${CVD_LAUNCHER}")
+    endif()
+    target_link_libraries(${name} PRIVATE CUDA::cublas)
   endif()
 
   target_include_directories(${name} PRIVATE
@@ -121,14 +139,13 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${THIS_CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI}
-                   ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>")
+	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
     else (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND "$<TARGET_FILE:${name}>")

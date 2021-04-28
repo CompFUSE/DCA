@@ -11,7 +11,7 @@
 
 #include "dca/config/haves_defines.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
 #include <vector>

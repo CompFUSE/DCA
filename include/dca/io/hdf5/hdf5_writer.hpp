@@ -83,11 +83,11 @@ public:
   template <typename domain_type>
   void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const func::function<Scalar, domain_type>& f);
+  template <typename Scalar, typename domain_type, DistType DT>
+  void execute(const func::function<Scalar, domain_type, DT>& f);
 
-  template <typename Scalar, typename domain_type>
-  void execute(const std::string& name, const func::function<Scalar, domain_type>& f);
+  template <typename Scalar, typename domain_type, DistType DT>
+  void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
 
   template <typename Scalar>
   void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
@@ -215,8 +215,8 @@ void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>
   close_group();
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
+template <typename Scalar, typename domain_type, DistType DT>
+void HDF5Writer::execute(const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
     return;
 
@@ -226,8 +226,10 @@ void HDF5Writer::execute(const func::function<Scalar, domain_type>& f) {
   execute(f.get_name(), f);
 }
 
-template <typename Scalar, typename domain_type>
-void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type>& f) {
+template <typename Scalar, typename domain_type, DistType DT>
+void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f) {
+
+
   if (f.size() == 0)
     return;
 

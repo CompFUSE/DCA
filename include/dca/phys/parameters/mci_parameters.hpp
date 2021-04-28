@@ -151,6 +151,7 @@ private:
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
+  bool distributed_g4_enabled_;
   bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
@@ -173,6 +174,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
+  buffer_size += concurrency.get_buffer_size(distributed_g4_enabled_);
   buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
@@ -196,6 +198,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.pack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
@@ -217,6 +220,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.unpack(buffer, buffer_size, position, distributed_g4_enabled_);
   concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
@@ -304,7 +308,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.close_group();
 
   // Check parameters consistency.
-  if (g4_distribution_ == DistType::MPI) {
+  if (g4_distribution_ == DistType::BLOCKED) {
 #ifdef DCA_HAVE_MPI
     // Check for number of accumulators and walkers consistency.
     if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {

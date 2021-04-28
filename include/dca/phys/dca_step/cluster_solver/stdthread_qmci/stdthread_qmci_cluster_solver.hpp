@@ -211,7 +211,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   }
 
   auto print_metadata = [&]() {
-    assert(walk_finished_ == parameters_.get_walkers());
+                          
+                          //assert(walk_finished_ == parameters_.get_walkers());
 
     dca::profiling::WallTime end_time;
 

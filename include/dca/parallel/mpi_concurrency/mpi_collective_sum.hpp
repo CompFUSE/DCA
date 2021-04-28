@@ -17,7 +17,7 @@
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
 
 #include <algorithm>  // std::min
-#include <numeric>  // std::partial_sum
+#include <numeric>    // std::partial_sum
 #include <map>
 #include <string>
 #include <utility>  // std::move, std::swap
@@ -25,6 +25,7 @@
 
 #include <mpi.h>
 
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/buffer.hpp"
@@ -49,21 +50,21 @@ public:
   void sum(std::vector<scalar_type>& m) const;
   template <typename scalartype>
   void sum(std::map<std::string, std::vector<scalartype>>& m);
-  template <typename scalar_type, class domain>
-  void sum(func::function<scalar_type, domain>& f) const;
-  template <typename scalar_type, class domain>
-  void sum(const func::function<scalar_type, domain>& f_in,
-           func::function<scalar_type, domain>& f_out) const;
-  template <typename scalar_type, class domain>
-  void sum(func::function<std::vector<scalar_type>, domain>& f) const;
+  template <typename scalar_type, class domain, DistType DIST>
+  void sum(func::function<scalar_type, domain, DIST>& f) const;
+  template <typename scalar_type, class domain, DistType DIST>
+  void sum(const func::function<scalar_type, domain, DIST>& f_in,
+           func::function<scalar_type, domain, DIST>& f_out) const;
+  template <typename scalar_type, class domain, DistType DIST>
+  void sum(func::function<std::vector<scalar_type>, domain, DIST>& f) const;
   template <typename scalar_type>
   void sum(linalg::Vector<scalar_type, linalg::CPU>& vec) const;
   template <typename scalar_type>
   void sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const;
 
   // Wrapper to MPI_Reduce.
-  template <typename Scalar, class Domain>
-  void localSum(func::function<Scalar, Domain>& f, int root_id) const;
+  template <typename Scalar, class Domain, DistType DIST>
+  void localSum(func::function<Scalar, Domain, DIST>& f, int root_id) const;
 
   // Delay the execution of sum (implemented with MPI_Allreduce) until 'resolveSums' is called,
   // or 'delayedSum' is called with an object of different Scalar type.
@@ -71,8 +72,8 @@ public:
   void delayedSum(Scalar& obj);
   template <typename Scalar>
   void delayedSum(std::vector<Scalar>& f);
-  template <typename Scalar, class domain>
-  void delayedSum(func::function<Scalar, domain>& f);
+  template <typename Scalar, class domain, DistType DIST>
+  void delayedSum(func::function<Scalar, domain, DIST>& f);
 
   // Execute all the reductions scheduled with 'delayedSum' or delayed leaveOneOutSum out calls.
   void resolveSums();
@@ -82,12 +83,12 @@ public:
   template <typename some_type>
   void sum_and_average(const some_type& in, some_type& out, int nr_meas_rank = 1) const;
 
-  template <typename scalar_type, class domain>
-  void average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
-                                  func::function<scalar_type, domain>& f_stddev) const;
-  template <typename scalar_type, class domain>
-  void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
-                                  func::function<std::complex<scalar_type>, domain>& f_stddev) const;
+  template <typename scalar_type, class domain, DistType DIST>
+  void average_and_compute_stddev(func::function<scalar_type, domain, DIST>& f_mean,
+                                  func::function<scalar_type, domain, DIST>& f_stddev) const;
+  template <typename scalar_type, class domain, DistType DIST>
+  void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain, DIST>& f_mean,
+                                  func::function<std::complex<scalar_type>, domain, DIST>& f_stddev) const;
 
   // Computes the sum of s over all ranks excluding the local value and stores the result back
   // in s.
@@ -100,8 +101,8 @@ public:
   // Element-wise implementations for dca::func::function.
   // In/Out: f
   // In: delay. If true delay the sum until 'resolveSums' is called.
-  template <typename Scalar, class Domain>
-  void leaveOneOutSum(func::function<Scalar, Domain>& f, bool delay = 0);
+  template <typename Scalar, class Domain, DistType DIST>
+  void leaveOneOutSum(func::function<Scalar, Domain, DIST>& f, bool delay = 0);
 
   // Computes the average of s over all ranks excluding the local value and stores the result back
   // in s.
@@ -119,47 +120,47 @@ public:
   // Preconditions: Each rank holds a unique precomputed jackknife estimate f_i.
   // Postconditions: If overwrite == true, the jackknife estimate f_i is overwritten with the
   //                 average f_avg; else f_i stays unchanged.
-  template <typename Scalar, class Domain>
-  func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>& f_i,
-                                                bool overwrite = true) const;
+  template <typename Scalar, class Domain, DistType DIST>
+  func::function<Scalar, Domain, DIST> jackknifeError(func::function<Scalar, Domain, DIST>& f_i,
+                                                      const bool overwrite = true) const;
   // Implementation for std::complex.
   // Real and imaginary parts are treated independently.
-  template <typename Scalar, class Domain>
-  func::function<std::complex<Scalar>, Domain> jackknifeError(
-      func::function<std::complex<Scalar>, Domain>& f_i, bool overwrite = true) const;
+  template <typename Scalar, class Domain, DistType DIST>
+  func::function<std::complex<Scalar>, Domain, DIST> jackknifeError(
+      func::function<std::complex<Scalar>, Domain, DIST>& f_i, bool overwrite = true) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
   // Out: cov
-  template <typename Scalar, class Domain>
-  void computeCovariance(const func::function<Scalar, Domain>& f,
-                         const func::function<Scalar, Domain>& f_estimated,
-                         func::function<Scalar, func::dmn_variadic<Domain, Domain>>& cov) const;
+  template <typename Scalar, class Domain, DistType DIST>
+  void computeCovariance(const func::function<Scalar, Domain, DIST>& f,
+                         const func::function<Scalar, Domain, DIST>& f_estimated,
+                         func::function<Scalar, func::dmn_variadic<Domain, Domain>, DIST>& cov) const;
 
   // Computes the covariance matrix of complex measurements of the different mpi ranks.
   // The real part and the imaginary part are treated independently, and cov represents
   // the covariance of the real vector [Re(f[0]), Re(f[1]), ..., Im(f[0]), Im(f[1]), ...].
   // In: f, f_estimated
   // Out: cov
-  template <typename Scalar, class Domain, class CovDomain>
-  void computeCovariance(const func::function<std::complex<Scalar>, Domain>& f,
-                         const func::function<std::complex<Scalar>, Domain>& f_estimated,
+  template <typename Scalar, class Domain, class CovDomain, DistType DIST>
+  void computeCovariance(const func::function<std::complex<Scalar>, Domain, DIST>& f,
+                         const func::function<std::complex<Scalar>, Domain, DIST>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
   // Computes the covariance of f with respect to its sample average. Then moves the average into f.
   // In/Out: f
   // Out: cov
-  template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
-  void computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
-                               func::function<Scalar, CovDomain>& cov) const;
+  template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain, DistType DIST>
+  void computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain, DIST>& f,
+                               func::function<Scalar, CovDomain, DIST>& cov) const;
 
   // Returns the normalized momenta of the desired orders. The momenta is the averaged across the
   // entries of f.
   // The normalized momenta of order i is defined as \lambda_i = <(f - <f>)^i> / \sigma^i
   // In: f, orders
   // Returns: momenta
-  template <typename Scalar, class Domain>
-  std::vector<Scalar> avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
+  template <typename Scalar, class Domain, DistType DIST>
+  std::vector<Scalar> avgNormalizedMomenta(const func::function<Scalar, Domain, DIST>& f,
                                            const std::vector<int>& orders) const;
 
 private:
@@ -212,9 +213,9 @@ void MPICollectiveSum::sum(std::map<std::string, std::vector<Scalar>>& m) {
   resolveSums();
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
-  func::function<scalar_type, domain> f_sum;
+template <typename scalar_type, class domain, DistType DIST>
+void MPICollectiveSum::sum(func::function<scalar_type, domain, DIST>& f) const {
+  func::function<scalar_type, domain, DIST> f_sum;
 
   sum(f, f_sum);
 
@@ -229,14 +230,14 @@ void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
 #endif  // NDEBUG
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::sum(const func::function<scalar_type, domain>& f_in,
-                           func::function<scalar_type, domain>& f_out) const {
+template <typename scalar_type, class domain, DistType DIST>
+void MPICollectiveSum::sum(const func::function<scalar_type, domain, DIST>& f_in,
+                           func::function<scalar_type, domain, DIST>& f_out) const {
   sum(f_in.values(), f_out.values(), f_in.size());
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::sum(func::function<std::vector<scalar_type>, domain>& f) const {
+template <typename scalar_type, class domain, DistType DIST>
+void MPICollectiveSum::sum(func::function<std::vector<scalar_type>, domain, DIST>& f) const {
   int Nr = f(0).size();
   int Nc = f.size();
 
@@ -283,16 +284,18 @@ void MPICollectiveSum::sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const {
   f = std::move(F);
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::localSum(func::function<scalar_type, domain>& f, int id) const {
-  if (id < 0 || id > get_size())
-    throw(std::out_of_range("id out of range."));
-
-  func::function<scalar_type, domain> f_sum;
-
-  sum(f.values(), f_sum.values(), f.size(), id);
-
-  f = std::move(f_sum);
+template <typename scalar_type, class domain, DistType DIST>
+void MPICollectiveSum::localSum(func::function<scalar_type, domain, DIST>& f, int id) const {
+  if constexpr (DIST == DistType::NONE) {
+    if (id < 0 || id > get_size())
+      throw(std::out_of_range("id out of range."));
+    func::function<scalar_type, domain, DistType::NONE> f_sum;
+    sum(f.values(), f_sum.values(), f.size(), id);
+    f = std::move(f_sum);
+  }
+  else if constexpr (DIST == DistType::LINEAR || DIST == DistType::LINEAR) {
+      throw std::runtime_error("you cannot do a local sum of a distributed function");
+  }
 }
 
 template <typename some_type>
@@ -330,13 +333,13 @@ void MPICollectiveSum::leaveOneOutSum(Scalar& s, bool delay) {
   }
 }
 
-template <typename Scalar, class Domain>
-void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain>& f, const bool delay) {
+template <typename Scalar, class Domain, DistType DIST>
+void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain, DIST>& f, const bool delay) {
   if (MPIProcessorGrouping::get_size() == 1)
     return;
 
   if (delay == false) {
-    const func::function<Scalar, Domain> f_local(f);
+    const func::function<Scalar, Domain, DIST> f_local(f);
     sum(f_local, f);
     for (int i = 0; i < f.size(); ++i)
       f(i) = f(i) - f_local(i);
@@ -356,17 +359,17 @@ void MPICollectiveSum::leaveOneOutAvg(T& x) {
   x /= MPIProcessorGrouping::get_size() - 1;
 }
 
-template <typename Scalar, class Domain>
-func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<Scalar, Domain>& f_i,
-                                                                const bool overwrite) const {
-  func::function<Scalar, Domain> err("jackknife-error");
+template <typename Scalar, class Domain, DistType DIST>
+func::function<Scalar, Domain, DIST> MPICollectiveSum::jackknifeError(
+    func::function<Scalar, Domain, DIST>& f_i, const bool overwrite) const {
+  func::function<Scalar, Domain, DIST> err("jackknife-error");
 
   const int n = MPIProcessorGrouping::get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
 
-  func::function<Scalar, Domain> f_avg("f_avg");
+  func::function<Scalar, Domain, DIST> f_avg("f_avg");
   sum_and_average(f_i, f_avg);
 
   for (int k = 0; k < f_avg.size(); ++k)
@@ -374,7 +377,7 @@ func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<S
 
   sum(err);
 
-  const double scale = double(n - 1) / double(n);
+  const double scale = double(1) / (double(n - 1) * double(n));
   for (int k = 0; k < err.size(); ++k)
     err(k) = std::sqrt(scale * err(k));
 
@@ -384,17 +387,17 @@ func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<S
   return err;
 }
 
-template <typename Scalar, class Domain>
-func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
-    func::function<std::complex<Scalar>, Domain>& f_i, const bool overwrite) const {
-  func::function<std::complex<Scalar>, Domain> err("jackknife-error");
+template <typename Scalar, class Domain, DistType DIST>
+func::function<std::complex<Scalar>, Domain, DIST> MPICollectiveSum::jackknifeError(
+    func::function<std::complex<Scalar>, Domain, DIST>& f_i, const bool overwrite) const {
+  func::function<std::complex<Scalar>, Domain, DIST> err("jackknife-error");
 
   const int n = MPIProcessorGrouping::get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
 
-  func::function<std::complex<Scalar>, Domain> f_avg("f_avg");
+  func::function<std::complex<Scalar>, Domain, DIST> f_avg("f_avg");
   sum_and_average(f_i, f_avg);
 
   for (int k = 0; k < f_avg.size(); ++k) {
@@ -405,7 +408,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
 
   sum(err);
 
-  const double scale = double(n - 1) / double(n);
+  const double scale = 1.0 / (double(n - 1) * double(n));
   for (int k = 0; k < err.size(); ++k) {
     err(k).real(std::sqrt(scale * err(k).real()));
     err(k).imag(std::sqrt(scale * err(k).imag()));
@@ -417,13 +420,14 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
   return err;
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
-                                                  func::function<scalar_type, domain>& f_stddev) const {
+template <typename scalar_type, class domain, DistType DIST>
+void MPICollectiveSum::average_and_compute_stddev(
+    func::function<scalar_type, domain, DIST>& f_mean,
+    func::function<scalar_type, domain, DIST>& f_stddev) const {
   scalar_type factor = 1. / MPIProcessorGrouping::get_size();
 
-  func::function<scalar_type, domain> f_sum("f-sum");
-  func::function<scalar_type, domain> f_diff("f-diff");
+  func::function<scalar_type, domain, DIST> f_sum("f-sum");
+  func::function<scalar_type, domain, DIST> f_diff("f-diff");
 
   sum(f_mean, f_sum);
 
@@ -445,14 +449,14 @@ void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, do
   f_stddev /= std::sqrt(MPIProcessorGrouping::get_size());
 }
 
-template <typename scalar_type, class domain>
+template <typename scalar_type, class domain, DistType DIST>
 void MPICollectiveSum::average_and_compute_stddev(
-    func::function<std::complex<scalar_type>, domain>& f_mean,
-    func::function<std::complex<scalar_type>, domain>& f_stddev) const {
+    func::function<std::complex<scalar_type>, domain, DIST>& f_mean,
+    func::function<std::complex<scalar_type>, domain, DIST>& f_stddev) const {
   scalar_type factor = 1. / MPIProcessorGrouping::get_size();
 
-  func::function<std::complex<scalar_type>, domain> f_sum("f-sum");
-  func::function<std::complex<scalar_type>, domain> f_diff("f-diff");
+  func::function<std::complex<scalar_type>, domain, DIST> f_sum("f-sum");
+  func::function<std::complex<scalar_type>, domain, DIST> f_diff("f-diff");
 
   sum(f_mean, f_sum);
 
@@ -478,10 +482,11 @@ void MPICollectiveSum::average_and_compute_stddev(
   f_stddev /= std::sqrt(MPIProcessorGrouping::get_size());
 }
 
-template <typename Scalar, class Domain>
+template <typename Scalar, class Domain, DistType DIST>
 void MPICollectiveSum::computeCovariance(
-    const func::function<Scalar, Domain>& f, const func::function<Scalar, Domain>& f_estimated,
-    func::function<Scalar, func::dmn_variadic<Domain, Domain>>& cov) const {
+    const func::function<Scalar, Domain, DIST>& f,
+    const func::function<Scalar, Domain, DIST>& f_estimated,
+    func::function<Scalar, func::dmn_variadic<Domain, Domain>, DIST>& cov) const {
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++)
       cov(i, j) = (f(i) - f_estimated(i)) * (f(j) - f_estimated(j));
@@ -489,10 +494,11 @@ void MPICollectiveSum::computeCovariance(
   sum_and_average(cov, 1);
 }
 
-template <typename Scalar, class Domain, class CovDomain>
-void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scalar>, Domain>& f,
-                                         const func::function<std::complex<Scalar>, Domain>& f_estimated,
-                                         func::function<Scalar, CovDomain>& cov) const {
+template <typename Scalar, class Domain, class CovDomain, DistType DIST>
+void MPICollectiveSum::computeCovariance(
+    const func::function<std::complex<Scalar>, Domain, DIST>& f,
+    const func::function<std::complex<Scalar>, Domain, DIST>& f_estimated,
+    func::function<Scalar, CovDomain>& cov) const {
   assert(4 * f.size() * f.size() == cov.size());
 
   // Treat real and imaginary parts as independent entries
@@ -516,19 +522,19 @@ void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scala
   sum_and_average(cov, 1);
 }
 
-template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
-void MPICollectiveSum::computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
-                                               func::function<Scalar, CovDomain>& cov) const {
+template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain, DistType DIST>
+void MPICollectiveSum::computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain, DIST>& f,
+                                               func::function<Scalar, CovDomain, DIST>& cov) const {
   auto f_avg = f;
   sum_and_average(f_avg);
   computeCovariance(f, f_avg, cov);
   f = std::move(f_avg);
 }
 
-template <typename Scalar, class Domain>
-std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
-                                                           const std::vector<int>& orders) const {
-  func::function<Scalar, Domain> avg(f);
+template <typename Scalar, class Domain, DistType DIST>
+std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(
+    const func::function<Scalar, Domain, DIST>& f, const std::vector<int>& orders) const {
+  func::function<Scalar, Domain, DIST> avg(f);
   sum_and_average(avg);
   linalg::Matrix<Scalar, linalg::CPU> momenta(std::make_pair(orders.size(), f.size()));
   std::vector<Scalar> var2(f.size());
@@ -588,8 +594,8 @@ void MPICollectiveSum::delayedSum(std::vector<Scalar>& v) {
   delayedSum(v.data(), v.size());
 }
 
-template <typename Scalar, class Domain>
-void MPICollectiveSum::delayedSum(func::function<Scalar, Domain>& f) {
+template <typename Scalar, class Domain, DistType DIST>
+void MPICollectiveSum::delayedSum(func::function<Scalar, Domain, DIST>& f) {
   delayedSum(f.values(), f.size());
 }
 

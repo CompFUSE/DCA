@@ -68,6 +68,9 @@ public:
     return distro_(engine_);
   }
 
+  void discard(unsigned long long num_discard) {
+    engine_.discard(num_discard);
+  }  
 private:
   static int counter_;
 

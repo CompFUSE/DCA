@@ -53,7 +53,7 @@
       "accumulators" : 3,
       "walkers" : 3,
       "shared-walk-and-accumulation-thread" : true,
-      "g4-distribution" : "MPI"
+      "g4-distribution" : "LINEAR"
     }
   },
 

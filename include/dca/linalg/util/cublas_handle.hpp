@@ -15,7 +15,7 @@
 #include <cublas_v2.h>
 
 #include "dca/linalg/util/error_cublas.hpp"
-
+#include "dca/linalg/util/cuda_stream.hpp"
 namespace dca {
 namespace linalg {
 namespace util {

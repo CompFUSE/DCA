@@ -53,14 +53,19 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/models/traits.hpp"
 #include "dca/util/timer.hpp"
-
+#include "dca/util/to_string.hpp"
+#include "dca/distribution/dist_types.hpp"
+#ifdef DCA_WITH_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#endif
 namespace dca {
 namespace phys {
 // dca::phys::
 
-template <class Parameters>
+template <class Parameters, DistType DIST = DistType::NONE>
 class DcaData {
 public:
+  static constexpr DistType DT = DIST;
   using profiler_type = typename Parameters::profiler_type;
 
   using Concurrency = typename Parameters::concurrency_type;
@@ -95,10 +100,12 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
   using SpRGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
+
   using TpGreensFunction =
       func::function<std::complex<TpAccumulatorScalar>,
                      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, WVertexDmn,
-                                        KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>>;
+                                        KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>,
+                     DT>;
 
   DcaData(Parameters& parameters_ref);
 
@@ -107,6 +114,10 @@ public:
 
   template <typename Writer>
   void write(Writer& writer);
+
+#ifdef DCA_WITH_ADIOS2
+  void writeAdios(adios2::ADIOS& adios);
+#endif
 
   void initialize();
   void initializeH0_and_H_i();
@@ -213,7 +224,7 @@ public:  // Optional members getters.
     assert(!G4_err_.empty());
     return G4_err_;
   }
-  auto& get_G4_stdv() {
+  std::vector<DcaData<Parameters, DIST>::TpGreensFunction>& get_G4_stdv() {
     assert(!G4_err_.empty());
     return G4_err_;
   }
@@ -248,8 +259,8 @@ private:  // Optional members.
       non_density_interactions_;
 };
 
-template <class Parameters>
-DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
+template <class Parameters, DistType DT>
+DcaData<Parameters, DT>::DcaData(/*const*/ Parameters& parameters_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -304,7 +315,7 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   // are expensive).
   for (auto channel : parameters_.get_four_point_channels()) {
     // Allocate memory for G4, eventually distributed among all processes.
-    if (parameters_.get_g4_distribution() == DistType::MPI) {
+    if (parameters_.get_g4_distribution() == DistType::BLOCKED) {
       G4_.emplace_back("G4_" + toString(channel), concurrency_);
       G4_err_.emplace_back("G4_" + toString(channel) + "_err", concurrency_);
     }
@@ -315,9 +326,9 @@ DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
   }
 }
 
-template <class Parameters>
-void DcaData<Parameters>::read(std::string filename) {
-  if (concurrency_.id() == concurrency_.first()) {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::read(std::string filename) {
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
     dca::io::Reader reader(parameters_.get_output_format());
@@ -338,8 +349,8 @@ void DcaData<Parameters>::read(std::string filename) {
   }
 }
 
-template <class Parameters>
-void DcaData<Parameters>::read(io::Reader& reader) {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::read(io::Reader& reader) {
   reader.open_group("parameters");
 
   reader.open_group("physics");
@@ -367,9 +378,43 @@ void DcaData<Parameters>::read(io::Reader& reader) {
   reader.close_group();
 }
 
-template <class Parameters>
+#ifdef DCA_WITH_ADIOS2
+
+template <class Parameters, DistType DIST>
+void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
+  if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
+    if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
+        parameters_.get_g4_distribution() != DistType::NONE) {
+      std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
+      auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
+      std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
+      adios2_writer.open_file(file_name, true);
+      // adios2_writer.open_group("functions");
+      for (const auto& G4_channel : G4_) {
+#ifndef NDEBUG
+        std::cerr << "Writing G4_channel:" << G4_channel.get_name()
+                  << "on rank: " << concurrency_.id() << '\n';
+        std::cerr << "start: " << G4_channel.get_start() << "   end: " << G4_channel.get_end()
+                  << '\n';
+        auto str_sub_ind_start = vectorToString(G4_channel.get_start_subindex());
+        auto str_sub_ind_end = vectorToString(G4_channel.get_end_subindex());
+        std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
+#endif
+        adios2_writer.execute(G4_channel);
+      }
+      // adios2_writer.close_group();
+      adios2_writer.close_file();
+    }
+  }
+  else  // DIST == DistType::NONE
+  {
+  }
+}
+#endif
+
+template <class Parameters, DistType DT>
 template <typename Writer>
-void DcaData<Parameters>::write(Writer& writer) {
+void DcaData<Parameters, DT>::write(Writer& writer) {
   writer.open_group("functions");
 
   writer.execute(band_structure);
@@ -430,36 +475,35 @@ void DcaData<Parameters>::write(Writer& writer) {
     writer.execute(G0_k_t_cluster_excluded);
     writer.execute(G0_r_t_cluster_excluded);
   }
+  else {
+    writer.execute(G_k_w);
+    writer.execute(G_k_w_err_);
+  }
 
   // When distributed_g4_enabled, one should assume G4 size is fairly large and then should not
   // accumulate G4 into one node and thus cannot write it out
-  // Until ADIOS2 is added
-  if (parameters_.isAccumulatingG4() && parameters_.get_g4_distribution() == DistType::NONE) {
-    if (!(parameters_.dump_cluster_Greens_functions())) {
-      writer.execute(G_k_w);
-      writer.execute(G_k_w_err_);
-    }
+  if (parameters_.isAccumulatingG4()) {
+    if constexpr (DT != DistType::BLOCKED) {
+      for (const auto& G4_channel : G4_)
+        writer.execute(G4_channel);
 
-    for (const auto& G4_channel : G4_)
-      writer.execute(G4_channel);
-
-    if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
-      for (const auto& G4_channel_err : G4_err_)
-        writer.execute(G4_channel_err);
+      if (parameters_.get_error_computation_type() != ErrorComputationType::NONE) {
+        for (const auto& G4_channel_err : G4_err_)
+          writer.execute(G4_channel_err);
+      }
     }
   }
-
   writer.close_group();
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initialize() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::initialize() {
   initializeH0_and_H_i();
   initialize_G0();
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initializeH0_and_H_i() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::initializeH0_and_H_i() {
   util::Timer("H_0 and H_int initialization", concurrency_.id() == concurrency_.first());
 
   Parameters::model_type::initializeH0(parameters_, H_DCA);
@@ -488,8 +532,8 @@ void DcaData<Parameters>::initializeH0_and_H_i() {
   compute_band_structure::execute(parameters_, band_structure);
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initialize_G0() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::initialize_G0() {
   profiler_type prof(__FUNCTION__, "DcaData", __LINE__);
 
   util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
@@ -519,8 +563,8 @@ void DcaData<Parameters>::initialize_G0() {
   G0_r_t_cluster_excluded = G0_r_t;
 }
 
-template <class Parameters>
-void DcaData<Parameters>::initializeSigma(const std::string& filename) {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     io::Reader reader(parameters_.get_output_format());
     reader.open_file(filename);
@@ -542,8 +586,8 @@ void DcaData<Parameters>::initializeSigma(const std::string& filename) {
   concurrency_.broadcast(Sigma);
 }
 
-template <class Parameters>
-void DcaData<Parameters>::compute_single_particle_properties() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::compute_single_particle_properties() {
   {
     std::memcpy(
         &S_k(0), &Sigma_lattice(0, 0, 0, WDmn::dmn_size() / 2),
@@ -584,8 +628,8 @@ void DcaData<Parameters>::compute_single_particle_properties() {
   }
 }
 
-template <class Parameters>
-void DcaData<Parameters>::compute_Sigma_bands() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::compute_Sigma_bands() {
   {
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
@@ -658,8 +702,8 @@ void DcaData<Parameters>::compute_Sigma_bands() {
   }
 }
 
-template <class Parameters>
-void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::print_Sigma_QMC_versus_Sigma_cg() {
   if (concurrency_.id() == concurrency_.first() /*and parameters_.do_dca_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";

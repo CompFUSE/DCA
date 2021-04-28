@@ -92,8 +92,8 @@ auto interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 auto interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialize()
     -> Matrices {
-  Profiler profiler(__FUNCTION__, "Interpolation matrices", __LINE__);
-
+  [[maybe_unused]] Profiler profiler(__FUNCTION__, "Interpolation matrices", __LINE__);
+ 
   Matrices matrices;
   r_centered_dmn::parameter_type::initialize();
 

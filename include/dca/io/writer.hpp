@@ -18,14 +18,19 @@
 
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
+#ifdef DCA_WITH_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#endif
 
 namespace dca::io {
 
+template <class Concurrency>
 class Writer {
 public:
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  Writer(const std::string& format, bool verbose = true) {
+  Writer(Concurrency& concurrency, const std::string& format, bool verbose = true)
+      : concurrency_(concurrency) {
     if (format == "HDF5") {
       writer_.emplace<io::HDF5Writer>(verbose);
     }
@@ -57,7 +62,19 @@ public:
 
   template <class... Args>
   void execute(const Args&... args) {
-    std::visit([&](auto& var) { var.execute(args...); }, writer_);
+    // currently only the ADIOS2Writer supports parallel writes
+#ifdef DCA_HAVE_ADIOS2
+    if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
+      std::visit([&](auto& var) { var.execute(args...); }, writer_);
+    }
+    else {
+#endif
+      if (concurrency_.id() == concurrency_.first()) {
+        std::visit([&](auto& var) { var.execute(args...); }, writer_);
+      }
+#ifdef DCA_HAVE_ADIOS2
+    }
+#endif
   }
 
   template <class... Args>
@@ -84,6 +101,7 @@ public:
 private:
   std::mutex mutex_;
   std::variant<io::HDF5Writer, io::JSONWriter> writer_;
+  Concurrency& concurrency_;
 };
 
 }  // namespace dca::io

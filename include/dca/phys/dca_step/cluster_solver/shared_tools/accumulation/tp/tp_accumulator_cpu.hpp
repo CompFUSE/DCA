@@ -1,16 +1,16 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2020 ETH Zurich
+// Copyright (C) 2020 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
-// This class computes the two particle Green's function from the walker's M matrix.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_HPP
+#ifndef DCA_TP_ACCUMULATOR_CPU_HPP
+#define DCA_TP_ACCUMULATOR_CPU_HPP
 
 #include <array>
 #include <cmath>
@@ -20,6 +20,7 @@
 
 #include "dca/config/config_defines.hpp"
 #include "dca/distribution/dist_types.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
@@ -27,7 +28,10 @@
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_base.hpp"
+
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_base.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -42,42 +46,41 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters, linalg::DeviceType device = linalg::CPU, DistType DT = DistType::NONE>
-class TpAccumulator;
-
 template <class Parameters, DistType DT>
-class TpAccumulator<Parameters, linalg::CPU, DT> {
+class TpAccumulator<Parameters, DT, linalg::CPU> : public TpAccumulatorBase<Parameters, DT> {
 public:
-  using Real = typename Parameters::TP_measurement_scalar_type;
+  using Base = TpAccumulatorBase<Parameters, DT>;
 
-  using RDmn = typename Parameters::RClusterDmn;
-  using KDmn = typename Parameters::KClusterDmn;
-  using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using NuDmn = func::dmn_variadic<BDmn, SDmn>;
-  using WDmn = func::dmn_0<domains::frequency_domain>;
-
-  using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
-  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
-  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
-
-  using Data = DcaData<Parameters>;
-  using TpGreensFunction = typename Data::TpGreensFunction;
-
+  using typename Base::NuDmn;
+  using typename Base::Real;
+  using typename Base::Complex;
+  using typename Base::RDmn;
+  using typename Base::KDmn;
+  using typename Base::WDmn;
+  using typename Base::WTpDmn;
+  using typename Base::WTpExtDmn;
+  using typename Base::WTpExtPosDmn;
+  using typename Base::WTpPosDmn;
+  using typename Base::BDmn;
+  using typename Base::SDmn;
+  using typename Base::TpGreensFunction;
+  
 protected:
+  using Base::non_density_density_;
+  using Base::n_bands_;
+  using Base::extension_index_offset_;
+  using Base::n_pos_frqs_;
+  using Base::G4_;
+  using Base::channels_;
+  using Base::G0_;
+  using Base::G0_ptr_;
+  using Base::G_;
+  using Base::beta_;
+  
   using Profiler = typename Parameters::profiler_type;
-
-  using Complex = std::complex<Real>;
+  using Base::thread_id_;
+  
   using Matrix = linalg::Matrix<Complex, linalg::CPU>;
-
-  using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
 
 public:
   // Constructor:
@@ -106,7 +109,10 @@ public:
   void ringG() {}
 
   // Returns the accumulated Green's function.
-  const auto& get_sign_times_G4() const;
+  const std::vector<TpGreensFunction>& get_G4() const;
+
+  // FOR TESTING: Returns the accumulated Green's function.
+  std::vector<TpGreensFunction>& get_nonconst_G4();
 
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(TpAccumulator& other_acc);
@@ -129,8 +135,6 @@ public:
   }
 
 protected:
-  void initializeG0();
-
   double computeG();
 
   void computeGMultiband(int s, int k1, int k2, int w1, int w2);
@@ -156,92 +160,40 @@ protected:
                                      bool cross_legs);
 
 protected:
-  const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
-      nullptr;
-
-  const int thread_id_;
-  const bool multiple_accumulators_;
-
-  const Real beta_ = -1;
-  constexpr static int n_bands_ = Parameters::model_type::BANDS;
-
-  constexpr static bool non_density_density_ =
-      models::has_non_density_interaction<typename Parameters::lattice_type>;
   CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  SpGreenFunction G_;
-
-  std::vector<TpGreensFunction> G4_;
-  std::vector<FourPointType> channels_;
-
-  func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
-
   int sign_;
-
-  const int extension_index_offset_ = -1;
-  const int n_pos_frqs_ = -1;
-
 private:
   // work spaces for computeGMultiband.
   Matrix G0_M_, G_a_, G_b_;
 };
 
 template <class Parameters, DistType DT>
-TpAccumulator<Parameters, linalg::CPU, DT>::TpAccumulator(
+TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : G0_ptr_(&G0),
-      thread_id_(thread_id),
-      multiple_accumulators_(pars.get_accumulators() > 1),
-      beta_(pars.get_beta()),
-      channels_(pars.get_four_point_channels()),
-      extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
-      n_pos_frqs_(WTpExtPosDmn::dmn_size()),
+    : Base(G0, pars, thread_id),
       G0_M_(n_bands_),
       G_a_(n_bands_),
       G_b_(n_bands_) {
-  if constexpr (DT == DistType::MPI) {
-    std::cerr << "The MPI distribution of G4 on the CPU is not supported. Reverting to no "
-                 "distribution.\n";
+  if constexpr (DT == DistType::BLOCKED) {
+    std::cerr << "Blocked distribution is not supported in the CPU accumulator. "
+              << "Reverting to no distribution.\n";
   }
 
-  if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
-    throw(std::logic_error("The number of single particle frequencies is too small."));
-  initializeG0();
-
-  // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
-  // We want to avoid copies because function's copy ctor does not copy the name (and because copies
-  // are expensive).
-  for (auto channel : channels_) {
-    G4_.emplace_back("G4_" + toString(channel));
-  }
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::resetAccumulation(unsigned int /*dca_loop*/) {
+void TpAccumulator<Parameters, DT, linalg::CPU>::resetAccumulation(unsigned int /*dca_loop*/) {
   for (auto& G4_channel : G4_)
     G4_channel = 0.;
 
-  initializeG0();
-}
-
-template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::initializeG0() {
-  const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
-
-  for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
-    assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
-    for (int k = 0; k < KDmn::dmn_size(); ++k)
-      for (int s = 0; s < 2; ++s)
-        for (int b2 = 0; b2 < n_bands_; ++b2)
-          for (int b1 = 0; b1 < n_bands_; ++b1)
-            G0_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
-  }
+  Base::initializeG0();
 }
 
 template <class Parameters, DistType DT>
 template <class Configuration, typename RealIn>
-double TpAccumulator<Parameters, linalg::CPU, DT>::accumulate(
+double TpAccumulator<Parameters, DT, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
@@ -261,7 +213,7 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::accumulate(
 
 template <class Parameters, DistType DT>
 template <class Configuration, typename RealIn>
-float TpAccumulator<Parameters, linalg::CPU, DT>::computeM(
+float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
     const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
@@ -283,7 +235,7 @@ float TpAccumulator<Parameters, linalg::CPU, DT>::computeM(
 }
 
 template <class Parameters, DistType DT>
-double TpAccumulator<Parameters, linalg::CPU, DT>::computeG() {
+double TpAccumulator<Parameters, DT, linalg::CPU>::computeG() {
   Profiler prf("ComputeG", "tp-accumulation", __LINE__, thread_id_);
   for (int w2 = 0; w2 < WTpExtDmn::dmn_size(); ++w2)
     for (int w1 = 0; w1 < WTpExtPosDmn::dmn_size(); ++w1)
@@ -304,7 +256,7 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::computeG() {
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::computeGSingleband(const int s, const int k1,
+void TpAccumulator<Parameters, DT, linalg::CPU>::computeGSingleband(const int s, const int k1,
                                                                     const int k2, const int w1,
                                                                     const int w2) {
   assert(w1 < WTpExtPosDmn::dmn_size());
@@ -321,16 +273,16 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::computeGSingleband(const int s,
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::computeGMultiband(const int s, const int k1,
+void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, const int k1,
                                                                    const int k2, const int w1,
                                                                    const int w2) {
   assert(w1 < WTpExtPosDmn::dmn_size());
   assert(w2 < WTpExtDmn::dmn_size());
 
-  const linalg::MatrixView<Complex, linalg::CPU> G0_w1(&G0_(0, 0, s, k1, w1 + n_pos_frqs_),
-                                                       n_bands_, n_bands_);
-  const linalg::MatrixView<Complex, linalg::CPU> G0_w2(&G0_(0, 0, s, k2, w2), n_bands_, n_bands_);
-  linalg::MatrixView<Complex, linalg::CPU> M_matrix(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
+  const linalg::MatrixView<Complex, linalg::CPU> G0_w1(&G0_(0, 0, s, k1, w1 + Base::n_pos_frqs_),
+                                                       Base::n_bands_, Base::n_bands_);
+  const linalg::MatrixView<Complex, linalg::CPU> G0_w2(&G0_(0, 0, s, k2, w2), Base::n_bands_, Base::n_bands_);
+  linalg::MatrixView<Complex, linalg::CPU> M_matrix(&G_(0, 0, s, k1, k2, w1, w2), Base::n_bands_);
 
   // G(w1, w2) <- -G0(w1) M(w1, w2) G0(w2)
   linalg::matrixop::gemm(G0_w1, M_matrix, G0_M_);
@@ -345,7 +297,7 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::computeGMultiband(const int s, 
 }
 
 template <class Parameters, DistType DT>
-auto TpAccumulator<Parameters, linalg::CPU, DT>::getGSingleband(const int s, const int k1,
+auto TpAccumulator<Parameters, DT, linalg::CPU>::getGSingleband(const int s, const int k1,
                                                                 const int k2, const int w1,
                                                                 const int w2) -> Complex const {
   const int w2_ext = w2 + extension_index_offset_;
@@ -358,14 +310,19 @@ auto TpAccumulator<Parameters, linalg::CPU, DT>::getGSingleband(const int s, con
     return KDmn::parameter_type::subtract(k, k0);
   };
 
-  if (w1_ext >= n_pos_frqs_)
-    return G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+  if (w1_ext >= n_pos_frqs_) {
+    // \todo This check can be probably be dropped it worked around another bug
+    if (w2_ext < 0)
+      return G_(0, 0, s, k1, k2, plus_w1(w1_ext), plus_w1(w2_ext));
+    else
+      return G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+  }
   else
     return std::conj(G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext)));
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::getGMultiband(int s, int k1, int k2, int w1, int w2,
+void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, int k2, int w1, int w2,
                                                                Matrix& G, const Complex beta) const {
   const int w2_ext = w2 + extension_index_offset_;
   const int w1_ext = w1 + extension_index_offset_;
@@ -379,10 +336,18 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::getGMultiband(int s, int k1, in
   };
 
   if (w1_ext >= n_pos_frqs_) {
-    const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
-    for (int b2 = 0; b2 < n_bands_; ++b2)
-      for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    if (w2_ext < 0) {
+      const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), plus_w1(w2_ext));
+      for (int b2 = 0; b2 < n_bands_; ++b2)
+        for (int b1 = 0; b1 < n_bands_; ++b1)
+          G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    }
+    else {
+      const Complex* const G_ptr = &G_(0, 0, s, k1, k2, plus_w1(w1_ext), w2_ext);
+      for (int b2 = 0; b2 < n_bands_; ++b2)
+        for (int b1 = 0; b1 < n_bands_; ++b1)
+          G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+    }
   }
   else {
     const Complex* const G_ptr =
@@ -394,7 +359,7 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::getGMultiband(int s, int k1, in
 }
 
 template <class Parameters, DistType DT>
-double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id) {
+double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -586,7 +551,7 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4Atomic(
+void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
     Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
     const int s_b, const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Real alpha,
     const bool cross_legs) {
@@ -623,7 +588,7 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4Atomic(
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4SpinDifference(
+void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
     Complex* G4_ptr, const int sign, const int k1_a, const int k2_a, const int w1_a, const int w2_a,
     const int k1_b, const int k2_b, const int w1_b, const int w2_b, const Real alpha,
     const bool cross_legs) {
@@ -666,15 +631,23 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::updateG4SpinDifference(
 }
 
 template <class Parameters, DistType DT>
-const auto& TpAccumulator<Parameters, linalg::CPU, DT>::get_sign_times_G4() const {
+const std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensFunction>& TpAccumulator<
+    Parameters, DT, linalg::CPU>::get_G4() const {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
-
   return G4_;
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, linalg::CPU, DT>::sumTo(TpAccumulator& other_one) {
+std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensFunction>& TpAccumulator<
+    Parameters, DT, linalg::CPU>::get_nonconst_G4() {
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+  return G4_;
+}
+
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::CPU>::sumTo(TpAccumulator& other_one) {
   if (other_one.G4_.size() != G4_.size())
     throw std::logic_error("Objects accumulate different number of channels.");
 

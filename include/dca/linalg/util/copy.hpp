@@ -67,14 +67,26 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
                 std::pair<int, int> size) {
   cudaError_t ret = cudaMemcpy2D(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                                  size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault);
-  checkRC(ret);
+  try {
+    checkRC(ret);
+  }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
 }
 
 // Asynchronous 1D memory copy.
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, const cudaStream_t stream) {
   cudaError_t ret = cudaMemcpyAsync(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault, stream);
-  checkRC(ret);
+  try {
+    checkRC(ret);
+  }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
 }
 
 // Asynchronous 1D memory copy (stream = getStream(thread_id, stream_id)).
@@ -94,7 +106,14 @@ void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int l
   cudaError_t ret =
       cudaMemcpy2DAsync(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                         size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault, stream);
+  try {
   checkRC(ret);
+    }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
+
 }
 
 // Asynchronous 2D memory copy (stream = getStream(thread_id, stream_id)).

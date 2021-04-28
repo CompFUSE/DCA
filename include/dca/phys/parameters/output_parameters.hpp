@@ -26,6 +26,8 @@ public:
   OutputParameters()
       : directory_("./"),
         output_format_("HDF5"),
+        g4_output_format_("ADIOS2"),
+        filename_g4_("dca_g4.bp"),
         filename_dca_("dca.hdf5"),
         directory_config_read_(""),
         directory_config_write_(""),
@@ -59,11 +61,17 @@ public:
   const std::string& get_output_format() const {
     return output_format_;
   }
+  const std::string& get_g4_output_format() const {
+    return g4_output_format_;
+  }
   const std::string& get_directory_config_read() const {
     return directory_config_read_;
   }
   const std::string& get_directory_config_write() const {
     return directory_config_write_;
+  }
+  const std::string& get_filename_g4() const {
+    return filename_g4_;
   }
   const std::string& get_filename_dca() const {
     return filename_dca_;
@@ -97,6 +105,8 @@ private:
   std::string directory_;
   bool autoresume_ = false;
   std::string output_format_;
+  std::string g4_output_format_;
+  std::string filename_g4_;
   std::string filename_dca_;
   std::string directory_config_read_;
   std::string directory_config_write_;
@@ -117,6 +127,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(directory_);
   buffer_size += concurrency.get_buffer_size(autoresume_);
   buffer_size += concurrency.get_buffer_size(output_format_);
+  buffer_size += concurrency.get_buffer_size(filename_g4_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
   buffer_size += concurrency.get_buffer_size(directory_config_read_);
   buffer_size += concurrency.get_buffer_size(directory_config_write_);
@@ -138,6 +149,7 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, directory_);
   concurrency.pack(buffer, buffer_size, position, autoresume_);
   concurrency.pack(buffer, buffer_size, position, output_format_);
+  concurrency.pack(buffer, buffer_size, position, filename_g4_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
   concurrency.pack(buffer, buffer_size, position, directory_config_read_);
   concurrency.pack(buffer, buffer_size, position, directory_config_write_);
@@ -157,6 +169,7 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, directory_);
   concurrency.unpack(buffer, buffer_size, position, autoresume_);
   concurrency.unpack(buffer, buffer_size, position, output_format_);
+  concurrency.unpack(buffer, buffer_size, position, filename_g4_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_read_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_write_);
@@ -186,6 +199,8 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("directory", directory_);
     try_to_read_or_write("autoresume", autoresume_);
     try_to_read_or_write("output-format", output_format_);
+    try_to_read_or_write("g4-output-format", g4_output_format_);
+    try_to_read_or_write("filename-g4-", filename_g4_);
     try_to_read_or_write("filename-dca", filename_dca_);
     try_to_read_or_write("directory-config-read", directory_config_read_);
     try_to_read_or_write("directory-config-write", directory_config_write_);

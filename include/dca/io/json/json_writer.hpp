@@ -57,8 +57,8 @@ public:
   // Commits to the internal data representation the value of "obj".
   template <class T>
   void execute(const std::string& name, const T& obj) noexcept;
-  template <class Scalar, class Domain>
-  void execute(const std::string& name, const func::function<Scalar, Domain>& f) noexcept;
+  template <class Scalar, class Domain, DistType DT>
+  void execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
   template <class Scalar>
   void execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
   template <class T>
@@ -95,8 +95,8 @@ void JSONWriter::execute(const std::string& name, const T& obj) noexcept {
   open_groups_.top()->addEntry(name, obj);
 }
 
-template <class Scalar, class Domain>
-void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain>& f) noexcept {
+template <class Scalar, class Domain, DistType DT>
+void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 

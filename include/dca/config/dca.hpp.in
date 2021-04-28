@@ -32,7 +32,8 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
                                                      RandomNumberGenerator, solver_name>;
 
 #include "dca/phys/dca_data/dca_data.hpp"
-using DcaDataType = dca::phys::DcaData<ParametersType>;
+template<dca::DistType DIST>
+using DcaDataType = dca::phys::DcaData<ParametersType, DIST>;
 
 // You know whats probably worse than using the C preprocessor,
 // generating code using cmake.
@@ -52,6 +53,6 @@ using ClusterSolver = ClusterSolverBaseType<DIST>;
 
 #include "dca/phys/dca_loop/dca_loop.hpp"
 template<dca::DistType DIST>
-using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver<DIST>, DIST>;
+using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType<DIST>, ClusterSolver<DIST>, DIST>;
 
 #endif  // DCA_CONFIG_DCA_HPP

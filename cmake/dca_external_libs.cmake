@@ -16,6 +16,17 @@ if (NOT DCA_HAVE_LAPACK)
 endif()
 
 mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
+list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+
+################################################################################
+# Blas
+if (NOT DCA_HAVE_BLAS)
+  find_package(BLAS REQUIRED)
+endif()
+
+mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
 list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
@@ -30,6 +41,20 @@ endif()
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 
+################################################################################
+# ADIOS2
+if (DCA_WITH_ADIOS2)
+set(DCA_HAVE_ADIOS2 FALSE CACHE INTERNAL "")
+find_package(ADIOS2)
+if (ADIOS2_FOUND)
+  list(APPEND DCA_EXTERNAL_LIBS ${ADIOS2_LIBRARIES})
+  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${ADIOS2_INCLUDE_DIRS})
+  set(DCA_HAVE_ADIOS2 TRUE CACHE INTERNAL "")
+  #message("ADIOS2: libraries ${ADIOS2_LIBRARIES}")
+endif()
+endif()
+
+################################################################################
 ################################################################################
 # FFTW
 set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")

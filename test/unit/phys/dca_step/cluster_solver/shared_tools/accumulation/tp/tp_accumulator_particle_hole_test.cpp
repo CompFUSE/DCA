@@ -12,7 +12,7 @@
 // channels based on the relation between the particle-hole longitudinal up-up and up-down channels,
 // and the particle-hole magnetic and charge channels.
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
 #include <algorithm>  // for std::find_if
@@ -56,7 +56,7 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
 
   accumulator_ph.finalize();
 
-  const auto& G4 = accumulator_ph.get_sign_times_G4();
+  const auto& G4 = accumulator_ph.get_G4();
 
   // Check which element of the G4 container corresponds to which channel.
   const auto& G4_ph_magnetic =

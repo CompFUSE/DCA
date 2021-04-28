@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "dca/config/mc_options.hpp"
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
@@ -45,12 +46,12 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false, DistType DIST = DistType::NONE>
 class CtintClusterSolver {
 public:
   using Real = typename config::McOptions::MCScalar;
 
-  using Data = DcaData<Parameters>;
+  using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
@@ -91,8 +92,8 @@ protected:  // thread jacket interface.
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
 
-  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real>;
-  using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real, DIST>;
+  using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real, DIST>;
 
 private:
   using BDmn = func::dmn_0<domains::electron_band_domain>;
@@ -149,9 +150,10 @@ private:
   Rng rng_;
 };
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
-    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::CtintClusterSolver(Parameters& parameters_ref,
+                                                                            Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
+
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
@@ -167,14 +169,14 @@ CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::~CtintClusterSolver() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::~CtintClusterSolver() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator has died \n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
 
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
@@ -186,8 +188,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
   accumulator_.initialize(dca_iteration_);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::integrate() {
   walker_ = std::make_unique<Walker>(parameters_, data_, rng_, 0);
   walker_->initialize(dca_iteration_);
 
@@ -215,8 +217,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   }
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize() {
   bool compute_error = false;
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     if (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE) {
@@ -283,8 +285,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   return avg_sign;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize(
     DcaLoopData<Parameters>& loop_data) {
   double avg_sign = finalize();
   // Compute and save into loop_data Sigma_zero_mom and std deviation
@@ -326,8 +328,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
   return loop_data.L2_Sigma_difference(dca_iteration_) = L2Difference();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::warmUp() {
   const int n_sweep = parameters_.get_warm_up_sweeps();
   for (int i = 0; i < n_sweep; i++) {
     walker_->doSweep();
@@ -338,8 +340,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
   walker_->markThermalized();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::measure() {
   const int n_meas = parallel::util::getWorkload(parameters_.get_measurements()[dca_iteration_], 1,
                                                  0, concurrency_);
 
@@ -358,8 +360,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
   accumulator_.finalize();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeG_k_w(
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeG_k_w(
     const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
   const int matrix_dim = Nu::dmn_size();
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M(matrix_dim, matrix_dim);
@@ -384,8 +386,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeG_k_w(
   }
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeSigma(
     const SpGreensFunction& G, const SpGreensFunction& G0, SpGreensFunction& Sigma) const {
   const int matrix_dim = Nu::dmn_size();
 
@@ -417,8 +419,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
   //    adjust_self_energy_for_double_counting();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::L2Difference() const {
   const double alpha = parameters_.get_self_energy_mixing_factor();
 
   for (int l = 0; l < data_.Sigma.size(); l++)
@@ -444,8 +446,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() c
   return L2_error;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeDensity() const {
   double result(0.);
   const int t0_minus = TDmn::dmn_size() / 2 - 1;
   for (int i = 0; i < Nu::dmn_size(); i++)
@@ -454,8 +456,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity()
   return result;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAndG4(SpGreensFunction& M,
                                                                              bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
@@ -492,8 +494,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpG
   return sign / double(n_meas);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::local_G_k_w() const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   SpGreensFunction M;
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);

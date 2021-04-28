@@ -35,7 +35,7 @@ public:
   ThreadPool(size_t n_threads = 0);
 
   ThreadPool(const ThreadPool& other) = delete;
-  ThreadPool(ThreadPool&& other) = default;
+  ThreadPool(ThreadPool&& other) = delete;
 
   // Enlarges the pool to the specified number of threads if it is larger than the current number of
   // threads.
