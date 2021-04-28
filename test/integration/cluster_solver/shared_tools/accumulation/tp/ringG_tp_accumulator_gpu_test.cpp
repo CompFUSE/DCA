@@ -43,12 +43,14 @@ uint loop_counter = 0;
 TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
-  const std::array<int, 2> n{6, 6};
+  const std::array<int, 2> n{24, 24};
   Sample M;
   Configuration config;
+  unsigned long long unique_rng_skip = (n[0] * n[0] + 3 * n[0] + n[1] * n[1] + 3 * n[1]) * concurrency_.get_id() * 100;
+  std::cout << "Rank " << concurrency_.get_id() << " is skipping " << unique_rng_skip << " random numbers\n";
   ConfigGenerator::prepareConfiguration(config, M, DistributedTpAccumulatorGpuTest::BDmn::dmn_size(),
                                         DistributedTpAccumulatorGpuTest::RDmn::dmn_size(),
-                                        parameters_.get_beta(), n);
+                                        parameters_.get_beta(), n, unique_rng_skip);
 
   using namespace dca::phys;
   parameters_.set_four_point_channels(
@@ -56,10 +58,10 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
                                  PARTICLE_HOLE_CHARGE, PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                                  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::LINEAR, dca::linalg::CPU> accumulatorHost(
-														     data_->G0_k_w_cluster_excluded, parameters_);
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU>
+      accumulatorHost(data_->G0_k_w_cluster_excluded, parameters_);
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::LINEAR, dca::linalg::GPU>
-    accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
+      accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
   const int sign = 1;
 
   accumulatorDevice.resetAccumulation(loop_counter);
@@ -72,26 +74,22 @@ TEST_F(DistributedTpAccumulatorGpuTest, Accumulate) {
 
   ++loop_counter;
 
-  //auto& concurrency = parameters_.get_concurrency();
+  // auto& concurrency = parameters_.get_concurrency();
 
-  // if (concurrency_.get_id() == 0)
-  //   std::cout << "\nCollecting Data from G4 distributed over" << concurrency_.number_of_processors()
-  //             << "ranks\n";
+  if (concurrency_.get_id() == 0)
+    std::cout << "\nCollecting Data from G4 distributed over " << concurrency_.number_of_processors()
+              << "ranks\n";
 
-  // for (int channel = 0; channel < accumulatorDevice.get_G4().size(); ++channel) {
-  //   auto& G4_gpu = accumulatorDevice.get_G4()[channel];
-  //   auto& G4_cpu = accumulatorHost.get_G4()[channel];
-  //   concurrency_.localSum(G4_cpu, concurrency_.first());
-  //   concurrency_.localSum(G4_gpu, concurrency_.first());
-    
-  //   if (concurrency_.get_id() == 0 && channel == 0) {
-  //     //static_assert(G4_cpu.dist == G4_gpu.dist);
-      
-  //     const auto diff = dca::func::util::difference(G4_cpu, G4_gpu);
-  //     EXPECT_GT(5e-7, diff.l_inf);
-  //     EXPECT_GT(5e-7, diff.l1);
-  //     EXPECT_GT(5e-7, diff.l2);
-  //   }
-  // }
+  for (int channel = 0; channel < accumulatorDevice.get_G4().size(); ++channel) {
+    DcaData<Parameters, dca::DistType::LINEAR>::TpGreensFunction& G4_gpu_dist =
+        accumulatorDevice.get_nonconst_G4()[channel];
+    DcaData<Parameters, dca::DistType::NONE>::TpGreensFunction& G4_gpu =
+        accumulatorHost.get_nonconst_G4()[channel];
+    concurrency_.sum(G4_gpu);
+    G4_gpu_dist *= concurrency_.number_of_processors();
+    const auto diff = dca::func::util::difference(G4_gpu, G4_gpu_dist);
+    EXPECT_GT(5e-7, diff.l_inf);
+    //EXPECT_GT(5e-7, diff.l1);
+    //EXPECT_GT(5e-7, diff.l2);
+  }
 }
-

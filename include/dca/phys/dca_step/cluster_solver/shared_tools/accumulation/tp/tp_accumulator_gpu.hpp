@@ -158,6 +158,9 @@ public:
   // Returns the accumulated Green's function.
   const std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpGreensFunction>& get_G4() const;
 
+  // FOR TESTING: Returns the accumulated Green's function.
+  std::vector<TpGreensFunction>& get_nonconst_G4();
+
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
   // Returns the accumulated Green's function.
   static inline std::vector<G4DevType>& get_G4Dev();
@@ -435,6 +438,15 @@ const std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpG
 
   return G4_;
 }
+
+template <class Parameters, DistType DT>
+std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::TpGreensFunction>& TpAccumulator<
+    Parameters, DT, linalg::GPU>::get_nonconst_G4() {
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+  return G4_;
+}
+
 
 #ifdef DCA_HAVE_MPI
 

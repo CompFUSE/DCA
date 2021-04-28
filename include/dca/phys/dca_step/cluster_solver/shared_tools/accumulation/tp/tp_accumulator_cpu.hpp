@@ -111,6 +111,9 @@ public:
   // Returns the accumulated Green's function.
   const std::vector<TpGreensFunction>& get_G4() const;
 
+  // FOR TESTING: Returns the accumulated Green's function.
+  std::vector<TpGreensFunction>& get_nonconst_G4();
+
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(TpAccumulator& other_acc);
 
@@ -630,6 +633,14 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
 template <class Parameters, DistType DT>
 const std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensFunction>& TpAccumulator<
     Parameters, DT, linalg::CPU>::get_G4() const {
+  if (G4_.empty())
+    throw std::logic_error("There is no G4 stored in this class.");
+  return G4_;
+}
+
+template <class Parameters, DistType DT>
+std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensFunction>& TpAccumulator<
+    Parameters, DT, linalg::CPU>::get_nonconst_G4() {
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
   return G4_;
