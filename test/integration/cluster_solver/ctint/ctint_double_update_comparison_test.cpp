@@ -74,8 +74,8 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   Data data(parameters);
   data.initialize();
 
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU, double> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0;
+  g0.initializeShrinked(data.G0_r_t);
 
   initializeWalkerStatic<Walker>(g0, parameters, data);
   initializeWalkerStatic<WalkerSubmatrix>(g0, parameters, data);
@@ -90,8 +90,6 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
 
   parameters.setMaxSubmatrixSize(16);
   WalkerSubmatrix walker2(parameters, rng2);
-
-  EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 

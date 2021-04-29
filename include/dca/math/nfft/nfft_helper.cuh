@@ -56,7 +56,7 @@ extern __device__ __constant__ NfftHelper nfft_helper;
 
 __device__ int inline NfftHelper::computeLinearIndex(const int b1, const int b2, const int r1,
                                                      const int r2) const {
-  const int delta_r = dca::phys::solver::details::cluster_real_helper.subtract(r2, r1);
+  const int delta_r = dca::phys::solver::cluster_real_helper.subtract(r2, r1);
   return b1 + nb_ * (b2 + nb_ * delta_r);
 }
 

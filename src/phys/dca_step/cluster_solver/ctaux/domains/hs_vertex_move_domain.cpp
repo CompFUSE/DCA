@@ -20,7 +20,13 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 std::vector<HS_vertex_move_type> HS_vertex_move_domain::initialize_elements() {
-  return std::vector<HS_vertex_move_type>{ANNIHILATION, STATIC, CREATION};
+  static std::vector<HS_vertex_move_type> v(0);
+
+  v.push_back(ANNIHILATION);
+  v.push_back(STATIC);
+  v.push_back(CREATION);
+
+  return v;
 }
 
 int HS_vertex_move_domain::to_coordinate(element_type vertex_move) {
@@ -42,7 +48,7 @@ int HS_vertex_move_domain::to_coordinate(element_type vertex_move) {
   }
 }
 
-}  // namespace ctaux
-}  // namespace solver
-}  // namespace phys
-}  // namespace dca
+}  // ctaux
+}  // solver
+}  // phys
+}  // dca

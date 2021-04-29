@@ -567,8 +567,8 @@ private:
   }
 };
 
-}  // namespace transform
-}  // namespace math
-}  // namespace dca
+}  // transform
+}  // math
+}  // dca
 
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_HPP

@@ -61,7 +61,8 @@ public:
   static constexpr linalg::DeviceType device = device_t;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref,
+                       const std::shared_ptr<io::Writer>& = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -84,6 +85,8 @@ public:
   // For testing purposes.
   // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
+
+  void setSampleConfiguration(const io::Buffer&) {}
 
 protected:  // Interface to the thread jacket.
   using DataType = Data;
@@ -120,9 +123,9 @@ protected:
   void computeErrorBars();
 
 protected:  // Interface to the thread jacket.
-  ParametersType& parameters_;
+  const ParametersType& parameters_;
   Data& data_;
-  Concurrency& concurrency_;
+  const Concurrency& concurrency_;
 
   Accumulator accumulator_;
   double total_time_;
@@ -144,7 +147,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
+    parameters_type& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
@@ -570,8 +573,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
   return GS_r_w;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP

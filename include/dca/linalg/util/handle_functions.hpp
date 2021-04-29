@@ -41,7 +41,7 @@ inline std::vector<CublasHandle>& getHandleContainer() {
 
 // Creates max_threads cublas handles and at least max_threads *
 // StreamContainer::streams_per_thread_ cuda streams.
-inline void resizeHandleContainer(const std::size_t max_threads) {
+inline void resizeHandleContainer(const int max_threads) {
   if (getStreamContainer().get_max_threads() < max_threads)
     resizeStreamContainer(max_threads);
 
@@ -77,8 +77,8 @@ inline void resizeHandleContainer(const std::size_t max_threads) {
 
 #endif  // DCA_HAVE_CUDA
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP

@@ -47,7 +47,7 @@ public:
   typedef vertex_singleton vertex_singleton_type;
 
   typedef typename Parameters::profiler_type profiler_type;
-  typedef typename Parameters::concurrency_type concurrency_type;
+  typedef typename Parameters::concurrency_type Concurrency;
 
   using t = func::dmn_0<domains::time_domain>;
   using t_VERTEX = func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
@@ -156,7 +156,7 @@ private:
 
 private:
   const Parameters& parameters;
-  const concurrency_type& concurrency;
+  const Concurrency& concurrency;
   Data& MOMS;
 
   int thread_id;
@@ -235,8 +235,8 @@ private:
 };
 
 template <class Parameters, class Data, typename Real>
-TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(const Parameters& parameters_ref,
-                                                                       Data& MOMS_ref, int id)
+TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(
+    const Parameters& parameters_ref, Data& MOMS_ref, int id)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

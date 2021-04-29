@@ -58,16 +58,16 @@ MPIProcessorGrouping::~MPIProcessorGrouping() {
 }
 
 bool MPIProcessorGrouping::defaultCheck() {
-#ifdef DCA_HAVE_CUDA
-  try {
-    return kernelTest();
-  }
-  catch (...) {
-    return false;
-  }
-#else
+  //#ifdef DCA_HAVE_CUDA
+  //  try {
+  //    return kernelTest();
+  //  }
+  //  catch (...) {
+  //    return false;
+  //  }
+  //#else
   return true;
-#endif  // DCA_HAVE_CUDA
+  //#endif  // DCA_HAVE_CUDA
 }
 
 void MPIProcessorGrouping::printRemovedProcesses() const {
@@ -117,5 +117,5 @@ void MPIProcessorGrouping::printRemovedProcesses() const {
   MPI_Comm_free(&print_communicator);
 }
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca

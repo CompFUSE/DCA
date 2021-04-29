@@ -11,6 +11,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/profiling/null_profiler.hpp"
+#include "dca/distribution/dist_types.hpp"
 
 using RngType = dca::testing::StubRng;
 using LatticeType = dca::phys::models::square_lattice<dca::phys::domains::D4>;
@@ -23,7 +24,7 @@ using Data = dca::phys::DcaData<Parameters>;
 
 struct SolverWrapper
     : public dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, false> {
-  using BaseClass = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
+  using BaseClass = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, false, dca::DistType::NONE>;
 
   SolverWrapper(Parameters& parameters_ref, typename BaseClass::Data& data_ref)
       : BaseClass(parameters_ref, data_ref) {}

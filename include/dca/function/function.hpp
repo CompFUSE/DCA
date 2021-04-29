@@ -149,7 +149,7 @@ public:
     fnc_values_.resize(nb_elements_new);
   }
 
-  void local_resize(std::size_t nb_elements) {}
+  //void local_resize(std::size_t nb_elements) {}
 
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!

@@ -39,12 +39,13 @@ struct CMakeOptions {
   static const std::string dca_profiler;
   static const std::string dca_with_autotuning;
   static const std::string dca_with_gnuplot;
-  static const std::string dca_with_single_precision_mc;
   static const std::string dca_with_single_precision_tp_measurements;
   static const std::string dca_with_memory_savings;
   static const std::string dca_with_managed_memory;
 
   static const std::string dca_with_qmc_bit;
+
+  static const std::string dca_symmetrize;
 
   static void print();
 };

@@ -56,6 +56,8 @@ public:
 
   std::string get_path();
 
+  void erase(const std::string& name);
+
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
@@ -106,6 +108,12 @@ public:
 
   void execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
+  }
+
+  template <class T>
+  void rewrite(const std::string& name, const T& obj) {
+    erase(name);
+    execute(name, obj);
   }
 
   operator bool() const noexcept {

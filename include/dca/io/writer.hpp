@@ -77,6 +77,11 @@ public:
 #endif
   }
 
+  template <class... Args>
+  void rewrite(const Args&... args) {
+    std::visit([&](auto& var) { var.rewrite(args...); }, writer_);
+  }
+
   operator bool() const noexcept {
     return std::visit([&](const auto& var) { return static_cast<bool>(var); }, writer_);
   }

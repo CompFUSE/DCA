@@ -88,8 +88,8 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
                      "/test/integration/cluster_solver/ctaux/square_lattice/Nc4_nn/data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
-    reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
-    reader.execute(dca_data_imag.G0_r_t_cluster_excluded);
+    EXPECT_TRUE(reader.execute(dca_data_imag.G0_k_w_cluster_excluded));
+    EXPECT_TRUE(reader.execute(dca_data_imag.G0_r_t_cluster_excluded));
     reader.close_file();
   }
 

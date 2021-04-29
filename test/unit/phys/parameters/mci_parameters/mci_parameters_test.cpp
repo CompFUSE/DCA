@@ -36,6 +36,9 @@ TEST(MciParametersTest, DefaultValues) {
   EXPECT_EQ(false, pars.shared_walk_and_accumulation_thread());
   EXPECT_EQ(false, pars.adjust_self_energy_for_double_counting());
   EXPECT_EQ(true, pars.store_configuration());
+  EXPECT_EQ(0, pars.get_time_correlation_window());
+  EXPECT_EQ(false, pars.compute_G_correlation());
+  EXPECT_EQ(0, pars.stamping_period());
 }
 
 TEST(MciParametersTest, ReadAll) {
@@ -57,6 +60,9 @@ TEST(MciParametersTest, ReadAll) {
   EXPECT_EQ(5, pars.get_accumulators());
   EXPECT_EQ(true, pars.shared_walk_and_accumulation_thread());
   EXPECT_EQ(false, pars.store_configuration());
+  EXPECT_EQ(100, pars.get_time_correlation_window());
+  EXPECT_EQ(true, pars.compute_G_correlation());
+  EXPECT_EQ(100, pars.stamping_period());
 }
 
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {

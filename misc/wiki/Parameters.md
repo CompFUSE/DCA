@@ -430,8 +430,20 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
-`"store-configuration"` : boolean (true)
-If true, the vertex configuration is stored between DCA iterations to initialize the walkers of the following iteration.
+`"time-correlation-window":` integer (0)  
+ Maximum distance (in MC time) considered when computing the correlation between configurations.
+ If 0, no auto-correlation is computed.
+ 
+`"compute-G-correlation":` boolean (false)
+If `time-correlation-window` is larger than 0, G(r = 0, t = 0) is included in the observables
+whose autocorrelation is computed. This measurements requires some device memory. 
+ 
+`"stamping-period"` integer (0)  
+If larger than 0, the master MPI rank logs the walker configuration every `stamping-period` sweeps. 
+ 
+`"store-configuration":` : boolean (true)
+If true, the vertex configuration is stored between DCA iterations to initialize the walkers of 
+the following iteration.
 
 <br></br>
 **subgroup** `"threaded-solver":`  
@@ -458,6 +470,10 @@ When used this mode, one should make sure other parameters are set correctly: 1)
             "sweeps-per-measurement": 4.,
             "measurements": 1000000,
             "error-computation-type": "JACK_KNIFE",
+            "time-correlation-window" : 100,
+            "compute-G-correlation" : true,
+            "stamping-period" : 0,
+            "store-configuration" : true,
 
             "threaded-solver": {
                 "walkers": 3,
@@ -687,11 +703,16 @@ Only required if the exact diagonalization solver is used, e.g. in the applicati
 `"eigenvalue-cut-off":` double (1.e-6)  
 Only keep energy eigenvalues *E* for which e<sup>-*&beta;E*</sup> > *eigenvalue-cut-off*.
 
+`"threads":` int (1)  
+Number of threads participating in the ED solver.
+
+
 #### Example
 
     {
         "ED": {
-            "eigenvalue-cut-off": 1.e-6
+            "eigenvalue-cut-off": 1.e-6,
+            "threads" : 8
         }
     }
 

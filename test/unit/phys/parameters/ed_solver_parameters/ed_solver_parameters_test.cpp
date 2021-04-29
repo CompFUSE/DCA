@@ -18,6 +18,7 @@
 TEST(EdSolverParametersTest, DefaultValues) {
   dca::phys::params::EdSolverParameters pars;
   EXPECT_EQ(1.e-6, pars.get_eigenvalue_cut_off());
+  EXPECT_EQ(1, pars.get_ed_threads());
 }
 
 TEST(EdSolverParametersTest, ReadAll) {
@@ -30,4 +31,5 @@ TEST(EdSolverParametersTest, ReadAll) {
   reader.close_file();
 
   EXPECT_EQ(1.e-4, pars.get_eigenvalue_cut_off());
+  EXPECT_EQ(4, pars.get_ed_threads());
 }

@@ -45,21 +45,21 @@ public:
   using nu_nu_r_centered_w = func::dmn_variadic<nu, nu, r_centered_dmn, w>;
 
 public:
-  interpolation_routines(parameters_type& parameters_ref);
+  interpolation_routines(const parameters_type& parameters_ref);
 
 private:
   void initialize();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   // MATH_LIBRARY::gaussian_fit<double, source_k_dmn, target_k_dmn> gaussian_fit_obj;
 };
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 interpolation_routines<parameters_type, source_k_dmn, target_k_dmn>::interpolation_routines(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
   initialize();
 }

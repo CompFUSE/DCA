@@ -29,8 +29,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/util/integer_division.hpp"
 
@@ -103,7 +102,7 @@ private:
 
   void recomputeGammaInv();
 
-  bool recentlyAdded(int move_idx, int s) const {
+  bool recentlyAdded(int move_idx, int s) {
     assert(move_idx < sector_indices_[s].size());
     return sector_indices_[s][move_idx] >= n_init_[s];
   }
@@ -248,7 +247,6 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::doSteps() {
   // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
   max_nbr_of_moves = parameters_.getMaxSubmatrixSize();
 
-  BaseClass::n_steps_ += nbr_of_steps_;
   while (nbr_of_steps_ > 0) {
     nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves);
     nbr_of_steps_ -= nbr_of_moves_to_delay_;
@@ -539,6 +537,8 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::mainSubmatrixProcess() {
         }
     }
   }
+
+  BaseClass::n_steps_ += delayed_moves_.size();
 }
 
 template <class Parameters, typename Real, DistType DIST>

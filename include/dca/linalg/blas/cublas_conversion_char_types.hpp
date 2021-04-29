@@ -31,7 +31,7 @@ inline cublasDiagType_t getCublasDiagValue(char diag) {
   }
 
   throw std::logic_error(__FUNCTION__);
-  return cublasDiagType_t();
+   return cublasDiagType_t();
 }
 
 // Returns the corresponding cublasSideMode_t value to side.
