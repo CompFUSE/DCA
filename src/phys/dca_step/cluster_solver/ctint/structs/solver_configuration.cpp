@@ -275,7 +275,8 @@ int SolverConfiguration::findTag(std::uint64_t tag) const {
   return anhilatable_indices_.findByKey(tag)->second;
 }
 
-void SolverConfiguration::write(io::Writer& writer, const std::string& stamp) const {
+template<class Concurrency>
+void SolverConfiguration::write(io::Writer<Concurrency>& writer, const std::string& stamp) const {
   std::vector<double> times;
   std::vector<std::uint8_t> spins;
   std::vector<std::array<unsigned short, 4>> sites;

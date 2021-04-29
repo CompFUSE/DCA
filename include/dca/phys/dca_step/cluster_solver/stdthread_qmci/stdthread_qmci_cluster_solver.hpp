@@ -52,11 +52,11 @@ public:
   using typename BaseClass::Rng;
 
   using typename BaseClass::Accumulator;
-  using Walker = stdthreadqmci::StdThreadQmciWalker<typename BaseClass::Walker>;
+  using Walker = stdthreadqmci::StdThreadQmciWalker<typename BaseClass::Walker, QmciSolver::Dist>;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
-                             const std::shared_ptr<io::Writer>& file = nullptr);
+                             const std::shared_ptr<io::Writer<Concurrency>>& file = nullptr);
 
   void initialize(int dca_iteration);
 
@@ -112,7 +112,7 @@ private:
   std::vector<dca::io::Buffer> config_dump_;
   stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
-  std::shared_ptr<io::Writer> writer_;
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
 
   bool last_iteration_ = false;
   bool read_configuration_ = false;
@@ -121,8 +121,8 @@ private:
 
 template <class QmciSolver>
 StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
-    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& writer)
-    : BaseClass(parameters_ref, data_ref),
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
+  : BaseClass(parameters_ref, data_ref, writer),
 
       nr_walkers_(parameters_.get_walkers()),
       nr_accumulators_(parameters_.get_accumulators()),
@@ -276,7 +276,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
 
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
 
-  auto walker_log = last_iteration_ ? writer_ : nullptr;
+  // This smells, who owns the walkers?
+  // the writer likely should  belong to that scope or above
+  // the walkers only need a reference not a shared pointer.
+  std::shared_ptr<io::Writer<Concurrency>> walker_log = last_iteration_ ? writer_ : nullptr;
   Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log);
 
   std::unique_ptr<std::exception> exception_ptr;

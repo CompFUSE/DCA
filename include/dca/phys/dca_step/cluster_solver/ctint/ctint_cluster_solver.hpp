@@ -27,6 +27,7 @@
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/accumulator/ctint_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
@@ -54,8 +55,9 @@ public:
   using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
+  template<class Concurrency = dca::parallel::NoConcurrency>
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
-                     const std::shared_ptr<io::Writer>& = nullptr);
+                     const std::shared_ptr<io::Writer<Concurrency>>& = nullptr);
 
   ~CtintClusterSolver();
 
@@ -151,8 +153,9 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
+template <class Concurrency>
 CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::CtintClusterSolver(Parameters& parameters_ref,
-                                                                            Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
+                                                                                  Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/)
 
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),

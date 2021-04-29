@@ -26,11 +26,11 @@ namespace solver {
 namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
-template <class QmciWalker>
+template <class QmciWalker, dca::DistType DIST>
 class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationData<QmciWalker> {
-  using ThisType = StdThreadQmciWalker<QmciWalker>;
+  using ThisType = StdThreadQmciWalker<QmciWalker, DIST>;
   using Parameters = typename QmciWalker::parameters_type;
-  using Data = DcaData<Parameters>;
+  using Data = dca::phys::DcaData<Parameters, DIST>;
   using Concurrency = typename Parameters::concurrency_type;
   using Rng = typename Parameters::random_number_generator;
   using Real = typename QmciWalker::Scalar;
@@ -40,7 +40,7 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
 
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::Writer>& writer);
+                      const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   void initialize(int iteration_);
   void doSweep();
@@ -56,7 +56,7 @@ private:
   const unsigned stamping_period_;
   int thread_id_;
 
-  std::shared_ptr<io::Writer> writer_;
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
   std::size_t meas_id_ = 0;
 
   const int total_iterations_;
@@ -64,10 +64,10 @@ private:
   bool last_iteration_ = false;
 };  // namespace stdthreadqmci
 
-template <class QmciWalker>
-StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameters,
+template <class QmciWalker, DistType DIST>
+StdThreadQmciWalker<QmciWalker, DIST>::StdThreadQmciWalker(const Parameters& parameters,
                                                      Data& data_ref, Rng& rng, const int id,
-                                                     const std::shared_ptr<io::Writer>& writer)
+                                                     const std::shared_ptr<io::Writer<Concurrency>>& writer)
     : QmciWalker(parameters, data_ref, rng, id),
       QmciAutocorrelationData<QmciWalker>(parameters, id),
       stamping_period_(parameters.stamping_period()),
@@ -75,16 +75,16 @@ StdThreadQmciWalker<QmciWalker>::StdThreadQmciWalker(const Parameters& parameter
       writer_(writer),
       total_iterations_(parameters.get_dca_iterations()) {}
 
-template <class QmciWalker>
-void StdThreadQmciWalker<QmciWalker>::initialize(int iteration) {
+  template <class QmciWalker, DistType DIST>
+  void StdThreadQmciWalker<QmciWalker, DIST>::initialize(int iteration) {
   QmciWalker::initialize(iteration);
 
   meas_id_ = 0;
   last_iteration_ = iteration == total_iterations_ - 1;
 }
 
-template <class QmciWalker>
-void StdThreadQmciWalker<QmciWalker>::doSweep() {
+template <class QmciWalker, DistType DIST>
+void StdThreadQmciWalker<QmciWalker, DIST>::doSweep() {
   QmciWalker::doSweep();
   QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
@@ -95,8 +95,8 @@ void StdThreadQmciWalker<QmciWalker>::doSweep() {
   }
 }
 
-template <class QmciWalker>
-void StdThreadQmciWalker<QmciWalker>::logConfiguration() const {
+template <class QmciWalker, DistType DIST>
+void StdThreadQmciWalker<QmciWalker, DIST>::logConfiguration() const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
   if (print_to_log && last_iteration_ && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     const std::string stamp_name =
@@ -114,22 +114,22 @@ void StdThreadQmciWalker<QmciWalker>::logConfiguration() const {
 }
 
 // No additional ops specialization for SS-HYB
-template <linalg::DeviceType device, class Parameters, class Data>
-class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>>
+  template <linalg::DeviceType device, class Parameters, class Data, DistType DIST>
+class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>, DIST>
     : public cthyb::SsCtHybWalker<device, Parameters, Data>,
       public QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>> {
   using QmciWalker = cthyb::SsCtHybWalker<device, Parameters, Data>;
-  using ThisType = StdThreadQmciWalker<QmciWalker>;
+    using ThisType = StdThreadQmciWalker<QmciWalker, DIST>;
   using Rng = typename Parameters::random_number_generator;
 
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::Writer>& /*writer*/)
+                      const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/)
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
   }
 
-  static void write(io::Writer& writer) {}
+  static void write(io::Writer<Concurrency>& writer) {}
 };
 
 }  // namespace stdthreadqmci

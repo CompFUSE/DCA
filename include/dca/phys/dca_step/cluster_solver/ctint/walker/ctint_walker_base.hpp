@@ -352,7 +352,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::printSummary() const {
 template <class Parameters, typename Real, DistType DIST>
 template <linalg::DeviceType device_type>
 void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixBuilder(
-    const dca::phys::solver::ctint::G0Interpolation<device_type, Real>& g0) {
+    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
   using RDmn = typename Parameters::RClusterDmn;
 
   if (d_builder_ptr_)

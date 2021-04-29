@@ -46,7 +46,7 @@ public:
   // Accumulate the data from the other object. This method is thread safe.
   QmciAutocorrelationData& operator+=(const QmciAutocorrelationData& other);
 
-  void write(dca::io::Writer& writer, int dca_loop);
+  void write(dca::io::Writer<Concurrency>& writer, int dca_loop);
 
   void reset();
 
@@ -79,7 +79,7 @@ QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& param
       weight_correlator_(autocorrelation_window_) {}
 
 template <class Walker>
-void QmciAutocorrelationData<Walker>::write(io::Writer& writer, int dca_loop) {
+void QmciAutocorrelationData<Walker>::write(io::Writer<Concurrency>& writer, int dca_loop) {
   // Write MC weights
   writer.open_group("Configurations");
   writer.open_group("MC-weight-samples");
@@ -228,7 +228,7 @@ public:
   QmciAutocorrelationData& operator+=(const QmciAutocorrelationData&) {
     return *this;
   }
-  static void write(io::Writer&, int) {}
+  static void write(io::Writer<Concurrency>&, int) {}
   void reset() {}
 };
 

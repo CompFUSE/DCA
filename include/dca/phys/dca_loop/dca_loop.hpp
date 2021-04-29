@@ -153,8 +153,10 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
   if (concurrency_.id() == concurrency_.first()) {
     file_name_ = parameters_.get_directory() + parameters_.get_filename_dca();
 
+    // There is a missed opportunity here to make a decision about the writers scope and lifetime.
+    // \todo should have clear scope and lifetime.
     output_file_ = std::make_shared<io::Writer<concurrency_type>>(
-        concurrency_ref, parameters.get_output_format(), false);
+        concurrency_ref, parameters_.get_output_format(), false);
 
     // dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
 
@@ -177,7 +179,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   data_.writeAdios(adios_);
 #endif
 
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
     output_file_->close_file();

@@ -116,7 +116,8 @@ public:
 
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
 
-  void write(io::Writer& file, const std::string& stamp) const;
+  template <class Concurrency>
+  void write(io::Writer<Concurrency>& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -807,7 +808,8 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
 }
 
 template <class parameters_type>
-void CT_AUX_HS_configuration<parameters_type>::write(io::Writer& file,
+template <class Concurrency>
+void CT_AUX_HS_configuration<parameters_type>::write(io::Writer<Concurrency>& file,
                                                      const std::string& stamp) const {
   file.open_group(stamp);
 

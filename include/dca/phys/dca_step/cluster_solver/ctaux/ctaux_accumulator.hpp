@@ -54,8 +54,10 @@ namespace dca {
 namespace phys {
 namespace solver {
 namespace ctaux {
+
 // dca::phys::solver::ctaux::
 
+// \todo remove this inheritance, this is clearly composed into the class.
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
@@ -251,7 +253,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dc
   //  profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__,
   //  thread_id);
 
-  dca_iteration_ = dca_iteration;
+  DCA_iteration = dca_iteration;
   MC_accumulator_data::initialize(dca_iteration);
 
   if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4())
@@ -287,7 +289,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(dca_iteration_) - 1);
+    Real factor = 1. / std::sqrt(parameters_.get_measurements().at(DCA_iteration) - 1);
 
     M_r_w_stddev *= factor;
   }

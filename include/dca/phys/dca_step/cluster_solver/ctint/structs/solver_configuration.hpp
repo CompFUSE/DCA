@@ -116,7 +116,8 @@ public:
     return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
-  void write(io::Writer& writer, const std::string& stamp) const;
+  template<class Concurrency>
+  void write(io::Writer<Concurrency>& writer, const std::string& stamp) const;
 
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);

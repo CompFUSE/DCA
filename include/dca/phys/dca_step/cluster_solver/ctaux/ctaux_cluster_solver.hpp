@@ -54,6 +54,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 class CtauxClusterSolver {
 public:
   using DataType = Data;
+  static constexpr DistType Dist = DIST;
   using ParametersType = Parameters;
   using Lattice = typename Parameters::lattice_type;
 
@@ -82,8 +83,8 @@ private:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
-                     const std::shared_ptr<io::Writer>& /*writer*/ = nullptr);
+  CtauxClusterSolver(Parameters& parameters_ref, Data& data_ref,
+                     const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/ = nullptr);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -166,7 +167,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, dca::DistType DIST>
 CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
-    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer>& /*writer*/)
+                                                                         Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
