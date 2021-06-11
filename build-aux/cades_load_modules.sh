@@ -3,7 +3,7 @@
 # If you aren't using the suggested CNMS environment you need to uncomment the following two lines.
 
 # module load env/cades-cnms
-#. $SOFTWARECNMS/spack/share/spack/setup-env.sh
+. $SOFTWARECNMS/spack/share/spack/setup-env.sh
 
 module load PE-gnu/3.0
 spack load emacs@26.3
