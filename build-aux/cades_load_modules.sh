@@ -1,8 +1,8 @@
 # Spack modules to get DCA build on Cades
 
-# If you aren't using the suggested CNMS environment you need to uncomment the following two lines.
-
+# If you aren't using the suggested CNMS environment you need to uncomment the following line.
 # module load env/cades-cnms
+
 . $SOFTWARECNMS/spack/share/spack/setup-env.sh
 
 module load PE-gnu/3.0
@@ -12,7 +12,6 @@ spack load gcc@8.2.0
 spack load openmpi/qnfab5m
 spack load fftw%gcc@8.2.0
 spack load ninja/v2bqky4
-spack load cmake/g4ybxxf
 spack load cmake@3.18.2%gcc@8.2.0
 spack load openblas@0.3.9
 module load cuda/11.0
