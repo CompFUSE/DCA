@@ -13,10 +13,12 @@ spack load openmpi/qnfab5m
 spack load fftw%gcc@8.2.0
 spack load ninja/v2bqky4
 spack load cmake/g4ybxxf
+spack load cmake@3.18.2%gcc@8.2.0
 spack load openblas@0.3.9
+module load cuda/11.0
 
 export HDF5_DIR=/software/user_tools/current/cades-cnms/for_nti/hdf5
-export MAGMA_DIR=/lustre/or-hydra/cades-cnms/epd/dev/magma
+export MAGMA_DIR=/software/user_tools/current/cades-cnms/for_nti/magma
 export CUDA_DIR=/software/dev_tools/swtree/cs400_centos7.2_pe2016-08/cuda/11.0/centos7.8_binary
 export CUDADIR=/software/dev_tools/swtree/cs400_centos7.2_pe2016-08/cuda/11.0/centos7.8_binary
 export CMAKE_PREFIX_PATH=${HDF5_DIR}:${MAGMA_DIR}:$CMAKE_PREFIX_PATH
