@@ -108,9 +108,6 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
-if(DCA_HAVE_CUDA)
-#  include_directories(${CUDA_TOOLKIT_INCLUDE})
-endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
 endif(DCA_HAVE_MAGMA)
