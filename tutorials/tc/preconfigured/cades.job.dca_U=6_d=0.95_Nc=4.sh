@@ -19,8 +19,8 @@ RUNNER_CADES="srun -n1 --cpus-per-task=32 --gpus-per-task=1 --accel-bind=gv"
 RUN_DCA="${RUNNER_CADES} ../../applications/dca/main_dca"
 date
 
-#$RUN_DCA ./T=1/input_sp.json
-#$RUN_DCA ./T=0.75/input_sp.json
+$RUN_DCA ./T=1/input_sp.json
+$RUN_DCA ./T=0.75/input_sp.json
 $RUN_DCA ./T=0.5/input_sp.json
 $RUN_DCA ./T=0.25/input_sp.json
 $RUN_DCA ./T=0.125/input_sp.json
