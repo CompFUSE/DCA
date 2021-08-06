@@ -49,6 +49,28 @@ else()
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 endif()
 
+################################################################################
+# Enable HIP.
+option(DCA_WITH_HIP "Enable AMD GPU support." OFF)
+
+if (DCA_WITH_HIP)
+  include(dca_hip)
+  if (NOT DCA_HAVE_HIP)
+    message(FATAL_ERROR "HIP or MAGMA not found but requested.")
+  endif()
+
+  dca_add_config_define(DCA_WITH_HIP)
+
+  # Copy walker device config file for GPU.
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
+    "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
+
+else()
+  # Copy walker device config file for CPU.
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_cpu.hpp"
+    "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
+endif()
+
 
 ################################################################################
 # Enable ADIOS2.
@@ -340,7 +362,7 @@ endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
-
+      
 
 ################################################################################
 # Symmetrization
