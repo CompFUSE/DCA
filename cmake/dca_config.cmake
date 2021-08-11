@@ -29,7 +29,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
 
 ################################################################################
 # Enable CUDA.
-option(DCA_WITH_CUDA "Enable GPU support." OFF)
+option(DCA_WITH_CUDA "Enable Nvidia GPU support." OFF)
 
 if (DCA_WITH_CUDA)
   include(dca_cuda)
@@ -50,19 +50,19 @@ else()
 endif()
 
 ################################################################################
-# Enable HIP.
+# Enable HIP
 option(DCA_WITH_HIP "Enable AMD GPU support." OFF)
 
 if (DCA_WITH_HIP)
   include(dca_hip)
   if (NOT DCA_HAVE_HIP)
-    message(FATAL_ERROR "HIP or MAGMA not found but requested.")
+    message(FATAL_ERROR "HIP and/or MAGMA not found but requested.")
   endif()
 
   dca_add_config_define(DCA_WITH_HIP)
 
   # Copy walker device config file for GPU.
-  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_hip_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 
 else()
@@ -362,7 +362,6 @@ endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
-      
 
 ################################################################################
 # Symmetrization
