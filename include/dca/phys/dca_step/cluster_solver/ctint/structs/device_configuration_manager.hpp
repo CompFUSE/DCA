@@ -12,8 +12,8 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_MANAGER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_MANAGER_HPP
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA support."
+#if !defined(DCA_HAVE_CUDA) || !defined(DCA_HAVE_HIP)
+#error "This file requires GPU support."
 #endif
 
 #include "dca/linalg/device_type.hpp"

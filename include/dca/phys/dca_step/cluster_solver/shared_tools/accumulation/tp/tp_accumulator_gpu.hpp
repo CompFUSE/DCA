@@ -10,17 +10,20 @@
 //
 // Implementation of the two particle Green's function computation on the GPU.
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA."
-#endif
-
 #ifndef DCA_TP_ACCUMULATOR_GPU_HPP
 #define DCA_TP_ACCUMULATOR_GPU_HPP
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu_base.hpp"
 
+#if defined(DCA_HAVE_CUDA)
 #include <cuda.h>
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#else
+#error "This file requires GPU."
+#endif
 #include <mutex>
 #include <vector>
 
@@ -30,7 +33,7 @@
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"

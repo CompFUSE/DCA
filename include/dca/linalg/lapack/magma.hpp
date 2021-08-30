@@ -14,11 +14,17 @@
 
 #include <cassert>
 #include <complex>
-#include <magma.h>
+#include <magma_v2.h>
 
 #include "dca/linalg/lapack/lapack.hpp"
-#include "dca/linalg/util/cast_cuda.hpp"
+
+#if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/error_cuda.hpp"
+#elif defined(DCA_HAVE_HIP)
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
+#endif
+#include "dca/linalg/util/cast_gpu.hpp"
 
 // C++ wrappers
 namespace dca {

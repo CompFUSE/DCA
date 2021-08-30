@@ -7,6 +7,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(DCA++ LANGUAGES C CXX)
 
+cmake_policy(VERSION 3.18)
+
 ################################################################################
 # Disable in-source builds.
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
@@ -96,7 +98,7 @@ include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DI
 
 
 include(dca_check_stdlib)
-
+message("std::filesystem resolved")
 
 ################################################################################
 # Include directories

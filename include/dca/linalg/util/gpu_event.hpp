@@ -12,20 +12,25 @@
 #ifndef DCA_LINALG_UTIL_CUDA_EVENT_HPP
 #define DCA_LINALG_UTIL_CUDA_EVENT_HPP
 
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA)
 #include <cuda.h>
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
 #endif  // DCA_HAVE_CUDA
+
+#include "dca/linalg/util/gpu_stream.hpp"
 
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
 class CudaEvent {
 public:
   CudaEvent() {
-    cudaEventCreate(&event_);
+    cudaError_t error = cudaEventCreate(&event_);
   }
 
   ~CudaEvent() {
@@ -36,7 +41,7 @@ public:
     return event_;
   }
 
-  void record(cudaStream_t stream) {
+  void record(const cudaStream_t stream) {
     cudaEventRecord(event_, stream);
   }
 

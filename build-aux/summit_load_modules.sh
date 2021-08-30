@@ -7,8 +7,7 @@
 
 module reset
 module load gcc/8.1.1
-module load cuda
-module load magma/2.5.1
+module load cuda/11.1.1
 module load hdf5
 module load fftw
 module load cmake

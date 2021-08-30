@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
       dca::util::Modules::print();
       dca::config::CMakeOptions::print();
 
-#ifdef DCA_WITH_CUDA
+#if defined(DCA_WITH_CUDA) || defined(DCA_WITH_HIP)
       dca::linalg::util::printInfoDevices();
 #endif  // DCA_WITH_CUDA
 
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
           << std::endl;
     }
 
-#ifdef DCA_WITH_CUDA
+#if defined(DCA_WITH_CUDA) || defined(DCA_WITH_HIP)
     dca::linalg::util::initializeMagma();
 #endif  // DCA_WITH_CUDA
 

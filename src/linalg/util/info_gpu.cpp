@@ -1,17 +1,23 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         PeterDoak (doakpw@ornl.gov)
 //
-// This file implements info_cuda functions.
+// This file implements gpu info functions.
 
+#if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/linalg/util/info_cuda.hpp"
-#include <cuda_runtime.h>
+#elif defined(DCA_HAVE_HIP)
+#include "dca/linalg/util/error_hip.hpp"
+#include "dca/linalg/util/info_hip.hpp"
+#include "dca/util/cuda2hip.h"
+#endif
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -24,8 +30,10 @@ namespace util {
 
 void printInfoDevices() {
   int nr_devices;
-  cudaGetDeviceCount(&nr_devices);
-
+  cudaError_t error = cudaGetDeviceCount(&nr_devices);
+  if ( error != cudaSuccess)
+    throw std::runtime_error("cudaGetDeviceCount failed!");
+  
   std::stringstream s;
   s << "\n"
     << "********************************************************************************\n"
@@ -41,7 +49,9 @@ void printInfoDevices() {
       << "\n";
 
     cudaDeviceProp dev_prop;
-    cudaGetDeviceProperties(&dev_prop, i);
+    error = cudaGetDeviceProperties(&dev_prop, i);
+    if ( error != cudaSuccess)
+      throw std::runtime_error("cudaGetDeviceProperties failed!");
 
     s << "  Name:                      " << dev_prop.name << "\n";
     s << "  Compute capability:        " << dev_prop.major << "." << dev_prop.minor << "\n";
@@ -66,7 +76,9 @@ void printInfoDevices() {
 
     s << "  Clock frequency:           " << dev_prop.clockRate << " KHz"
       << "\n";
+#ifdef DCA_HAVE_CUDA
     s << "  Async engine count:        " << dev_prop.asyncEngineCount << "\n";
+#endif
     s << "  Kernel execution timeout:  " << (dev_prop.kernelExecTimeoutEnabled ? "Yes" : "No")
       << "\n";
   }

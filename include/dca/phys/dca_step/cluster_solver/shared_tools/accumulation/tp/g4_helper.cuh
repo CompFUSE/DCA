@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Weile Wei (wwei9@lsu.edu)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // Helper class for adding and subtracting momentum and frequency on the device.
 
@@ -16,7 +17,12 @@
 #include <cassert>
 #include <vector>
 
+#if defined(DCA_HAVE_CUDA)
 #include <cuda.h>
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#endif
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 

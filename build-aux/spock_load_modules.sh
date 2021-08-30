@@ -7,12 +7,11 @@
 # Usage: source spock_load_modules.sh
 
 module reset
-module load gcc/10.3.1
-module load DefApps/alt
+module load gcc/10.3.0
 module load openblas
 module load hdf5
-module load rocm
-module load magma
+module load rocm/4.3.0
+module load fftw
 module load cmake
 module load ninja
 

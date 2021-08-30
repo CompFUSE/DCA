@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides a global container providing access to a CUBLAS handle per thread, and
 // utilities related to it.
@@ -14,17 +15,17 @@
 #ifndef DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP
 #define DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP
 
-#ifdef DCA_HAVE_CUDA
 #include <vector>
-
+#if defined(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
+#elif defined(DCA_HAVE_HIP)
+#include <vector>
+#include <hipblas.h>
+#endif
 
-#include "dca/linalg/util/cublas_handle.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-
-#endif  // DCA_HAVE_CUDA
-
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpuBLAS_handles.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 namespace dca {
 namespace linalg {
@@ -32,6 +33,7 @@ namespace util {
 // dca::linalg::util::
 
 #ifdef DCA_HAVE_CUDA
+
 
 // Global handle container.
 inline std::vector<CublasHandle>& getHandleContainer() {

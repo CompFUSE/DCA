@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides cublas related utilities to
 // - return code checking,
@@ -14,10 +15,19 @@
 #ifndef DCA_LINALG_UTIL_ERROR_CUBLAS_HPP
 #define DCA_LINALG_UTIL_ERROR_CUBLAS_HPP
 
+#if define(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
+#include "dca/linalg/util/error_cuda.hpp"
+#elif define(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include <hipblas.h>
+#include <hip/hip_complex.h>
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
+#endif
+
 #include <stdexcept>
 #include <string>
-#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace linalg {

@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides the castCudaComplex utility and the CudaComplex typedef.
 
@@ -14,7 +15,13 @@
 #define DCA_LINALG_UTIL_CAST_CUDA_HPP
 
 #include <complex>
+
+#if defined (DCA_HAVE_CUDA)
 #include <cuComplex.h>
+#elif defined (DCA_HAVE_HIP)
+#include <hip/hip_complex.h>
+#include "dca/util/cuda2hip.h"
+#endif
 
 namespace dca {
 namespace linalg {

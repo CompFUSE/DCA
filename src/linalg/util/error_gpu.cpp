@@ -9,8 +9,11 @@
 //
 // This file implements error_cuda functions.
 
+#ifdef DCA_HAVE_CUDA
 #include "dca/linalg/util/error_cuda.hpp"
-#include <cuda_runtime.h>
+#elif DCA_HAVE_HIP
+#include "dca/linalg/util/error_hip.hpp"
+#endif
 #include <iostream>
 #include <string>
 #include <sstream>

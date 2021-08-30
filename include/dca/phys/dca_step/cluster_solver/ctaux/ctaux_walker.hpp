@@ -25,7 +25,7 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
