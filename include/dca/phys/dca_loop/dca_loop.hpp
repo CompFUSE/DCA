@@ -165,7 +165,6 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
   }
-}
 
   // This should eventually just be a generic parallel write here.
 #ifdef DCA_WITH_ADIOS2

@@ -7,7 +7,6 @@
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch) 
 //         Weile Wei (wwei9@lsu.edu)
-// Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for parallelizing with HPX.
@@ -20,9 +19,13 @@
 #include <hpx/hpx.hpp>
 #include <hpx/synchronization/spinlock.hpp>
 #include <hpx/synchronization/condition_variable.hpp>
-#include <hpx/lcos/future.hpp>
+#include <hpx/future.hpp>
 #include <hpx/include/threads.hpp>
-#include <hpx/basic_execution/this_thread.hpp>
+#include <hpx/thread.hpp>
+#include <hpx/executors/limiting_executor.hpp>
+#include <hpx/debugging/demangle_helper.hpp>
+#include <hpx/include/parallel_executors.hpp>
+#include <hpx/modules/execution_base.hpp>
 
 #include <vector>
 #include <thread>
@@ -34,7 +37,7 @@ namespace parallel {
 
 struct thread_traits {
     template <typename T>
-    using promise_type              = hpx::lcos::promise<T>;
+    using promise_type              = hpx::lcos::local::promise<T>;
     template <typename T>
     using future_type               = hpx::lcos::future<T>;
     using mutex_type                = hpx::lcos::local::mutex;
@@ -42,7 +45,7 @@ struct thread_traits {
     using scoped_lock               = std::lock_guard<mutex_type>;
     using unique_lock               = std::unique_lock<mutex_type>;
     //
-    static void sleep_for(hpx::util::steady_duration const& rel_time) {
+    static void sleep_for(hpx::chrono::steady_duration const& rel_time) {
         hpx::this_thread::sleep_for(rel_time);
     }
     //
@@ -96,11 +99,11 @@ public:
 
   // Conclude all the pending work and destroy the threads spawned by this class.
   ~ThreadPool() {
+//      exec.wait_all();
       pool_size = 0;
   }
 
-//  void set_task_count_threshold(std::int64_t count)
-  void set_task_count_threshold()
+  void set_task_count_threshold(std::int64_t count)
   {
 //    exec.set_threshold(count, count+1);
   }
@@ -135,7 +138,7 @@ public:
 
   // We will not be using the pool for a while - put threads to sleep
   void suspend() {
-      //hpx::suspend();
+      hpx::this_thread::suspend();
   }
 
   // Returns the number of threads used by this class.

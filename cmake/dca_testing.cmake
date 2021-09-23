@@ -99,14 +99,15 @@ function(dca_add_gtest name)
     hpx_setup_target(${name})
     set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
     if (DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
+      if(DCA_ADD_GTEST_MPI_NUMPROC EQUAL 0)
+        set(DCA_ADD_GTEST_MPI_NUMPROC 1)
+      endif()
       math(EXPR NUMTHREADS "${CPUS} / ${DCA_ADD_GTEST_MPI_NUMPROC}")
       if ("${NUMTHREADS}" LESS "1")
         set(NUMTHREADS "1")
       endif()
       set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
     endif()
-  else()
-    add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
   endif()
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
@@ -160,7 +161,7 @@ function(dca_add_gtest name)
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
                      ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>"
                      ${DCA_TESTING_ARGS_HPX})
-                 target_link_libraries(${name}  PRIVATE ${MPI_C_LIBRARIES})
+                 target_link_libraries(${name} PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
