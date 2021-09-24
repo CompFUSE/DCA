@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 
+#include <hpx/hpx.hpp>
 #include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -118,7 +119,7 @@ int main(int argc, char** argv) {
     walkers.emplace_back(parameters, data, rngs.back(), i);
   }
 
-  std::vector<std::future<void>> fs;
+  std::vector<hpx::future<void>> fs;
   dca::parallel::ThreadPool pool(n_walkers);
   for (int i = 0; i < n_walkers; ++i) {
     fs.push_back(pool.enqueue([&do_sweeps, &walkers, i, n_warmup]() {
