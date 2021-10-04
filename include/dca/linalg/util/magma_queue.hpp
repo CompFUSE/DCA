@@ -11,11 +11,24 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_QUEUE_HPP
 #define DCA_LINALG_UTIL_MAGMA_QUEUE_HPP
-#ifdef DCA_HAVE_CUDA
-
+#if defined(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
 #include <cuda.h>
 #include <cusparse_v2.h>
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include <hipblas.h>
+#include <hipsparse.h>
+#include "dca/util/cuda2hip.h"
+#endif
+
+#if defined(DCA_HAVE_CUDA)
+#elif defined(DCA_HAVE_HIP)
+#else
+#pragma error "This file requires CUDA support."
+#endif
+
+
 #include <magma_v2.h>
 
 #include "dca/linalg/util/cuda_stream.hpp"
@@ -31,7 +44,7 @@ public:
     cublasCreate(&cublas_handle_);
     cusparseCreate(&cusparse_handle_);
     int device;
-    cudaGetDevice(&device);
+    checkRC(cudaGetDevice(&device));
     magma_queue_create_from_cuda(device, stream_, cublas_handle_, cusparse_handle_, &queue_);
   }
 
@@ -66,7 +79,7 @@ public:
     return static_cast<cudaStream_t>(stream_);
   }
 
-  const CudaStream& getStream() const {
+  const GpuStream& getStream() const {
     return stream_;
   }
 
@@ -78,7 +91,7 @@ public:
   }
 
 private:
-  CudaStream stream_;
+  GpuStream stream_;
   magma_queue_t queue_ = nullptr;
   cublasHandle_t cublas_handle_ = nullptr;
   cusparseHandle_t cusparse_handle_ = nullptr;
@@ -88,5 +101,4 @@ private:
 }  // namespace linalg
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_QUEUE_HPP

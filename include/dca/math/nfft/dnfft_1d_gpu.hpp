@@ -100,7 +100,7 @@ private:
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
-  linalg::util::CudaStream& stream_;
+  linalg::util::GpuStream& stream_;
   const bool accumulate_m_sqr_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
@@ -112,7 +112,7 @@ private:
   linalg::Vector<details::ConfigElem, linalg::GPU> config_right_dev_;
   linalg::Vector<ScalarType, linalg::GPU> times_dev_;
 
-  linalg::util::CudaEvent m_copied_event_;
+  linalg::util::GpuEvent m_copied_event_;
 };
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
@@ -200,7 +200,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
       accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
       config_right_dev_.ptr(), times_dev_.ptr(), get_device_cubic_coeff().ptr(), n, stream_);
 
-  m_copied_event_.record(static_cast<cudaStream_t>(stream_.streamActually()));
+  m_copied_event_.record(stream_.streamActually());
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
@@ -213,7 +213,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::finalize(
                       data.leadingDimension() * sizeof(ScalarType),
                       data.nrRows() * sizeof(ScalarType), data.nrCols(), cudaMemcpyDeviceToHost,
                       stream_);
-    cudaStreamSynchronize(stream_);
+    cudaStreamSynchronize(stream_.streamActually());
   };
 
   if (!get_square)

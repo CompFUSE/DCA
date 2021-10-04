@@ -17,6 +17,7 @@
 #include "dca/linalg/util/error_cuda.hpp"
 #elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"
 #else
 #error "This file requires CUDA support."

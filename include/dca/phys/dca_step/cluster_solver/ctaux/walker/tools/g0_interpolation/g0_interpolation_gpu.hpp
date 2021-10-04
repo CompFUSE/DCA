@@ -99,7 +99,7 @@ private:
 
   using Base::beta;
 
-  linalg::util::CudaEvent config_copied_;
+  linalg::util::GpuEvent config_copied_;
 };
 
 template <typename Parameters, typename Real>

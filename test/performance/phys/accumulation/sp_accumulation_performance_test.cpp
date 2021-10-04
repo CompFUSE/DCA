@@ -135,8 +135,8 @@ int main(int argc, char** argv) {
   std::cout << "\n\nSpAccumulation CPU time [sec]:\t " << time << "\n";
 
 #ifdef DCA_HAVE_CUDA
-  dca::linalg::util::CudaEvent start_event;
-  dca::linalg::util::CudaEvent stop_event;
+  dca::linalg::util::GpuEvent start_event;
+  dca::linalg::util::GpuEvent stop_event;
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Real> gpu_accumulator(
       parameters);

@@ -24,6 +24,7 @@
 #else
 #error "This file requires GPU."
 #endif
+
 #include <mutex>
 #include <vector>
 
@@ -132,7 +133,7 @@ public:
     ndft_objs_[1].synchronizeCopy();
   }
 
-  void syncStreams(const linalg::util::CudaEvent& event) {
+  void syncStreams(const linalg::util::GpuEvent& event) {
     for (const auto& stream : queues_)
       event.block(stream);
   }
@@ -519,8 +520,8 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
 
   for (int s = 0; s < 2; ++s) {
     sendbuffer_[s].resize(g_size);
-    cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
-               cudaMemcpyDeviceToHost);
+    checkRC(cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
+		       cudaMemcpyDeviceToHost));
 
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
@@ -551,8 +552,8 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
   for (int s = 0; s < 2; ++s) {
     MPI_Wait(&(messages[s].request), MPI_STATUSES_IGNORE);
     // Note: MPI can not access host memory allocated from CUDA, hence the usage of blocking communication.
-    cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
-               cudaMemcpyHostToDevice);
+    checkRC(cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
+		       cudaMemcpyHostToDevice));
   }
 #endif  // DCA_WITH_CUDA_AWARE_MPI
 }

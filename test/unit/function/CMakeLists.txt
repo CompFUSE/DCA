@@ -16,4 +16,4 @@ dca_add_gtest(set_to_zero_test GTEST_MAIN)
 
 dca_add_gtest(function_construction_test
   MPI MPI_NUMPROC 4
-  LIBS ${DCA_LIBS};parallel_mpi_concurrency;function;cuda_utils)
+  LIBS ${DCA_LIBS};parallel_mpi_concurrency;function;gpu_utils)

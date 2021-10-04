@@ -25,6 +25,10 @@
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
+#elseif DCA_HAVE_HIP
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
 #endif
 
 namespace dca {
@@ -50,12 +54,12 @@ struct Memory<CPU> {
     std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
   template <typename ScalarType>
-  static void setToZeroAsync(ScalarType* ptr, size_t size, const CudaStream& /*s*/) {
+  static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
   }
 };
 
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
 template <>
 struct Memory<GPU> {
   // Sets the elements to 0. Only defined for arithmetic types and
@@ -77,7 +81,7 @@ struct Memory<GPU> {
       ScalarType /*ptr*/, size_t /*size*/) {}
 
   template <typename ScalarType>
-  static void setToZeroAsync(ScalarType* ptr, size_t size, const CudaStream& stream) {
+  static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& stream) {
     cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
   }
 };

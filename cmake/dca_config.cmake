@@ -36,17 +36,7 @@ if (DCA_WITH_CUDA)
   if (NOT DCA_HAVE_CUDA)
     message(FATAL_ERROR "CUDA or MAGMA not found but requested.")
   endif()
-
   dca_add_config_define(DCA_WITH_CUDA)
-
-  # Copy walker device config file for GPU.
-  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
-    "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
-
-else()
-  # Copy walker device config file for CPU.
-  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_cpu.hpp"
-    "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 endif()
 
 ################################################################################
@@ -58,19 +48,18 @@ if (DCA_WITH_HIP)
   if (NOT DCA_HAVE_HIP)
     message(FATAL_ERROR "HIP and/or MAGMA not found but requested.")
   endif()
-
   dca_add_config_define(DCA_WITH_HIP)
+endif()
 
-  # Copy walker device config file for GPU.
-  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_hip_gpu.hpp"
+################################################################################
+# copy the appropriate walker_device header (defines device template parameter)
+if (DCA_WITH_CUDA OR DCA_WITH_HIP)
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
-
 else()
-  # Copy walker device config file for CPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_cpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 endif()
-
 
 ################################################################################
 # Enable ADIOS2.

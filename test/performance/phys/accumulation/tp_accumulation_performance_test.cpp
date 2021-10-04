@@ -136,8 +136,8 @@ int main(int argc, char** argv) {
 
 #ifdef DCA_HAVE_CUDA
   dca::linalg::util::initializeMagma();
-  dca::linalg::util::CudaEvent start_event;
-  dca::linalg::util::CudaEvent stop_event;
+  dca::linalg::util::GpuEvent start_event;
+  dca::linalg::util::GpuEvent stop_event;
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
       data.G0_k_w_cluster_excluded, parameters);

@@ -12,13 +12,19 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_DEVICE_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_DEVICE_ALLOCATOR_HPP
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA support."
+#include "dca/config/haves_defines.hpp"
+
+#if defined (DCA_HAVE_CUDA)
+#include <cuda_runtime.h>
+#include "dca/linalg/util/error_cuda.hpp"
+#elif defined (DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
+#else
+#pragma error "This file requires GPU support."
 #endif
 
-#include <cuda_runtime.h>
-
-#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace linalg {

@@ -18,7 +18,7 @@
 #include <functional>
 #include <vector>
 
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 namespace dca {
 namespace linalg {
@@ -47,7 +47,7 @@ public:
   // Returns the 'stream_id'-th stream associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < get_max_threads(),
   //                0 <= stream_id < streams_per_thread_.
-  CudaStream& operator()(int thread_id, int stream_id) {
+  GpuStream& operator()(int thread_id, int stream_id) {
     assert(thread_id >= 0 && thread_id < get_max_threads());
     assert(stream_id >= 0 && stream_id < streams_per_thread_);
     return streams_[thread_id][stream_id];
@@ -62,7 +62,7 @@ public:
 
 private:
   constexpr static std::size_t streams_per_thread_ = 2;
-  std::vector<std::array<CudaStream, streams_per_thread_>> streams_;
+  std::vector<std::array<GpuStream, streams_per_thread_>> streams_;
 };
 
 }  // namespace util

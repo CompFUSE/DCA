@@ -12,12 +12,11 @@
 
 #if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/error_cuda.hpp"
-#include "dca/linalg/util/info_cuda.hpp"
 #elif defined(DCA_HAVE_HIP)
 #include "dca/linalg/util/error_hip.hpp"
-#include "dca/linalg/util/info_hip.hpp"
 #include "dca/util/cuda2hip.h"
 #endif
+#include "dca/linalg/util/info_gpu.hpp"
 #include <iostream>
 #include <string>
 #include <sstream>

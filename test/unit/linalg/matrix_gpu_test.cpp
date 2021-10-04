@@ -617,7 +617,7 @@ TEST(MatrixGPUTest, setToZero) {
   auto func = [](int i, int j) { return 10 * i - j; };
   testing::setMatrixElements(mat, func);
 
-  dca::linalg::util::CudaStream stream;
+  dca::linalg::util::GpuStream stream;
   mat.setToZero(stream);
   stream.sync();
 

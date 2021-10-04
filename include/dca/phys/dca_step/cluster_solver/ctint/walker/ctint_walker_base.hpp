@@ -180,7 +180,7 @@ protected:  // Members.
   const Concurrency& concurrency_;
 
   const int thread_id_;
-  std::array<linalg::util::CudaStream*, 2> streams_;
+  std::array<linalg::util::GpuStream*, 2> streams_;
 
   Rng& rng_;
   SolverConfiguration configuration_;

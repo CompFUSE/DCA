@@ -101,7 +101,7 @@ private:
   int sign_ = 0;
 
   std::vector<const linalg::util::CudaStream*> streams_;
-  linalg::util::CudaEvent event_;
+  linalg::util::GpuEvent event_;
 
   util::Accumulator<int> accumulated_sign_;
   util::Accumulator<unsigned long> accumulated_order_;

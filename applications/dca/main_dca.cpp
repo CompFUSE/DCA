@@ -12,12 +12,14 @@
 // Usage: ./main_dca input_file.json
 
 #include <string>
+
 #include <iostream>
 
+
+#include "dca/config/dca.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
-#include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"

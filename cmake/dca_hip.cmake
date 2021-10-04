@@ -32,11 +32,6 @@
 if(DCA_WITH_HIP)
   set(ENABLE_HIP 1)
   message(STATUS "ROCM_ROOT: ${ROCM_ROOT}")
-  # add_library(ROCM::libraries INTERFACE IMPORTED)
-  # # temporarily put rocsolver rocrand here for convenience, should be moved to Platforms.
-  # set_target_properties(ROCM::libraries PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ROCM_ROOT}/include"
-  #                                                  INTERFACE_LINK_LIBRARIES "-L${ROCM_ROOT}/lib;-lrocsolver;-lrocrand"
-  # )
 
 #-------------------------------------------------------------------
 #  set up HIP compiler options
@@ -46,11 +41,6 @@ if(DCA_WITH_HIP)
   find_package(hipblas REQUIRED)
   find_package(rocsolver REQUIRED)
 
-  # add_library(HIP::HIP INTERFACE IMPORTED)
-  # # temporarily put hipsparse hipblas here for convenience, should be moved to Platforms.
-  # set_target_properties(
-  #   HIP::HIP PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ROCM_ROOT}/include" INTERFACE_COMPILE_DEFINITIONS "ENABLE_HIP"
-  #                       INTERFACE_LINK_LIBRARIES "-L${ROCM_ROOT}/lib;-lhipsparse;-lhipblas;-lamdhip64")
 endif(DCA_WITH_HIP)
 
 #set(CUDA_ARCHITECTURES "sm_60" CACHE STRING "Name of the real architecture to build for.")
@@ -71,7 +61,8 @@ if (CMAKE_HIP_COMPILER)
   set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx906,gfx908")
   set(CMAKE_HIP_STANDARD 17)
 
-#  list(APPEND HIP_HIPCC_FLAGS "-fPIC -ffast-math -O3")
+  list(APPEND HIP_HIPCC_FLAGS "-fPIC")
+# -ffast-math -O3")
 # list(APPEND HIP_HIPCC_FLAGS "--amdgpu-target=${HIP_ARCH}")
 # list(APPEND HIP_HIPCC_FLAGS "--gpu-max-threads-per-block=256")
 # # warning suppression
@@ -109,5 +100,6 @@ endif()
 # HIP and MAGMA have been found.
 if (HIP_FOUND AND DCA_HAVE_MAGMA)
   set(DCA_HAVE_HIP TRUE CACHE INTERNAL "")
+  MESSAGE("DCA_HAVE_HIP set with dca_add_haves_define")
   dca_add_haves_define(DCA_HAVE_HIP)
 endif()

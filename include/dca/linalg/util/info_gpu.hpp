@@ -12,7 +12,12 @@
 #ifndef DCA_LINALG_UTIL_INFO_CUDA_HPP
 #define DCA_LINALG_UTIL_INFO_CUDA_HPP
 
+#if defined(DCA_HAVE_CUDA)
 #include <cuda_runtime.h>
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#endif
 #include <string>
 #include <stdexcept>
 

@@ -350,7 +350,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::updateFrom(walker
 
   current_sign = walker.get_sign();
 
-  const linalg::util::CudaEvent* event = walker.computeM(M_);
+  const linalg::util::GpuEvent* event = walker.computeM(M_);
 
   single_particle_accumulator_obj.synchronizeCopy();
   two_particle_accumulator_.synchronizeCopy();

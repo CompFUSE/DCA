@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -22,7 +22,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/util/to_string.hpp"
 

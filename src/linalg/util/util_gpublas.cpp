@@ -12,12 +12,12 @@
 
 
 #if defined(DCA_HAVE_CUDA)
-#include "dca/linalg/util/util_cublas.hpp"
 #include "dca/linalg/util/error_cublas.hpp"
 #elif defined(DCA_HAVE_HIP)
-#include "dca/linalg/util/util_hipblas.hpp"
 #include "dca/linalg/util/error_hipblas.hpp"
+#include <hipblas-version.h>
 #endif
+#include "dca/linalg/util/util_gpublas.hpp"
 
 #include <mutex>
 #include <magma_v2.h>
@@ -29,18 +29,26 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-#ifdef DCA_HAVE_CUDA
-int getCublasVersion() {
+#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+void initializeMagma() {
+  static std::once_flag flag;
+  std::call_once(flag, []() { magma_init(); });
+}
+
+#if defined(DCA_HAVE_CUDA)
+int getGpuBLASVersion() {
   int version = 0;
   cublasStatus_t ret = cublasGetVersion(getHandle(0), &version);
   checkRC(ret);
   return version;
 }
-
-void initializeMagma() {
-  static std::once_flag flag;
-  std::call_once(flag, []() { magma_init(); });
-}
+#elseif defined(DCA_HAVE_HIP)
+int getGpuBLASVersion() {
+  int version = hiblasVersionMajor;
+  return version;
+} 
+#endif
+  
 #else
 void initializeMagma() {}
 #endif  // DCA_HAVE_CUDA

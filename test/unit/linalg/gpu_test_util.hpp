@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -12,9 +12,16 @@
 #ifndef DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 #define DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 
+#if defined(DCA_HAVE_CUDA)
 #include <cuda_runtime.h>
-#include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
+#elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
+#endif
+
+#include "dca/linalg/matrix.hpp"
 
 namespace testing {
 template <typename ScalarType>
@@ -25,7 +32,11 @@ cudaMemoryType PointerType(const ScalarType* ptr) {
   if (ret == cudaErrorInvalidValue)
     return cudaMemoryTypeHost;
   checkRC(ret);
+#if defined(DCA_HAVE_CUDA)
   return attributes.type;
+#elseif defined(DCA_HAVE_HIP)
+  return attributes.memoryType;
+#endif
 }
 
 template <typename ScalarType>

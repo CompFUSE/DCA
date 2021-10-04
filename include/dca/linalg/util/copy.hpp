@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -21,8 +21,12 @@
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
-#include "dca/linalg/util/stream_functions.hpp"
+#elseif DCA_HAVE_HIP
+#include <hip/hip_runtime.h>
+#include "dca/util/cuda2hip.h"
+#include "dca/linalg/util/error_hip.hpp"
 #endif
+#include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
 namespace linalg {
@@ -164,12 +168,12 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
 // Synchronous 1D memory copy fallback.
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size,
-                     const util::CudaStream& /*s*/) {
+                     const util::GpuStream& /*s*/) {
   memoryCopyCpu(dest, src, size);
 }
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
-                     std::pair<int, int> size, const util::CudaStream& /*s*/) {
+                     std::pair<int, int> size, const util::GpuStream& /*s*/) {
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 

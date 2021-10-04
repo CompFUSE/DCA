@@ -99,7 +99,7 @@ protected:
   const int n_pos_frqs_ = -1;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
-  linalg::util::CudaEvent event_;
+  linalg::util::GpuEvent event_;
 
   std::vector<std::shared_ptr<RMatrix>> workspaces_;
 
@@ -175,7 +175,7 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
 template <class Parameters, DistType DT>
 void TpAccumulatorGpuBase<Parameters, DT>::synchronizeStreams() {
   for (auto& stream : queues_)
-    cudaStreamSynchronize(stream);
+    checkRC(cudaStreamSynchronize(stream));
 }
 
 template <class Parameters, DistType DT>

@@ -148,7 +148,6 @@ set(DCA_LIBS
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
-  cuda_utils
 )
   
 set(SYSTEM_GPU_COUNT 0)
@@ -166,7 +165,8 @@ if (DCA_HAVE_CUDA)
     blas_kernels
     lapack_kernels
     mc_kernels
-    special_transform_kernels)  
+    special_transform_kernels
+)  
 endif()
 
 if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)

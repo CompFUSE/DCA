@@ -25,4 +25,4 @@ dca_add_gtest(mpi_concurrency_test
   LIBS parallel_mpi_concurrency)
 dca_add_gtest(mpi_gather_test
   MPI MPI_NUMPROC 6
-  LIBS ${DCA_LIBS} cuda_utils)
+  LIBS ${DCA_LIBS} gpu_utils)

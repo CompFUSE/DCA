@@ -23,6 +23,7 @@
 #include "dca/util/cuda2hip.h"
 #endif
 
+#include <magma_v2.h>
 namespace dca {
 namespace linalg {
 namespace util {
@@ -67,6 +68,50 @@ inline const cuDoubleComplex* castCudaComplex(const std::complex<double>* ptr) {
 inline const cuDoubleComplex* castCudaComplex(const std::complex<double>& el) {
   return castCudaComplex(&el);
 }
+
+
+inline magmaDoubleComplex** castMAGMAComplex(std::complex<double>** ptr) {
+  return reinterpret_cast<magmaDoubleComplex**>(ptr);
+}
+inline magmaDoubleComplex* castMAGMAComplex(std::complex<double>* ptr) {
+  return reinterpret_cast<magmaDoubleComplex*>(ptr);
+}
+inline magmaDoubleComplex* castMAGMAComplex(std::complex<double>& el) {
+  return castMAGMAComplex(&el);
+}
+inline const magmaDoubleComplex* const* castMAGMAComplex(const std::complex<double>* const* ptr) {
+  return reinterpret_cast<const magmaDoubleComplex* const*>(ptr);
+}
+inline const magmaDoubleComplex* castMAGMAComplex(const std::complex<double>* ptr) {
+  return reinterpret_cast<const magmaDoubleComplex*>(ptr);
+}
+inline const magmaDoubleComplex* castMAGMAComplex(const std::complex<double>& el) {
+  return castMAGMAComplex(&el);
+}
+
+inline magmaFloatComplex** castMAGMAComplex(std::complex<float>** ptr) {
+  return reinterpret_cast<magmaFloatComplex**>(ptr);
+}
+inline magmaFloatComplex* castMAGMAComplex(std::complex<float>* ptr) {
+  return reinterpret_cast<magmaFloatComplex*>(ptr);
+}
+inline magmaFloatComplex* castMAGMAComplex(std::complex<float>& el) {
+  return castMAGMAComplex(&el);
+}
+
+inline const magmaFloatComplex* const* castMAGMAComplex(const std::complex<float>* const* ptr) {
+  return reinterpret_cast<const magmaFloatComplex* const*>(ptr);
+}
+inline const magmaFloatComplex* castMAGMAComplex(const std::complex<float>* ptr) {
+  return reinterpret_cast<const magmaFloatComplex*>(ptr);
+}  
+inline const magmaFloatComplex* castMAGMAComplex(const std::complex<float>& el) {
+  return castMAGMAComplex(&el);
+}
+
+
+
+  
 
 // Provides a templated typedef.
 namespace details {

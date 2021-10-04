@@ -78,13 +78,13 @@ public:
     cached_nfft_obj_[1].synchronizeCopy();
   }
 
-  void syncStreams(const linalg::util::CudaEvent& event) {
+  void syncStreams(const linalg::util::GpuEvent& event) {
     for (const auto& stream : streams_)
       event.block(stream);
   }
 
   auto get_streams() {
-    return std::array<linalg::util::CudaStream*, 2>{&streams_[0], &streams_[1]};
+    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[1]};
   }
 
   // Returns the allocated device memory in bytes.
@@ -100,7 +100,7 @@ private:
   using BaseClass::oversampling;
   using BaseClass::parameters_;
 
-  std::array<linalg::util::CudaStream, 2> streams_;
+  std::array<linalg::util::GpuStream, 2> streams_;
   using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
   std::array<NfftType, 2> cached_nfft_obj_;
 };

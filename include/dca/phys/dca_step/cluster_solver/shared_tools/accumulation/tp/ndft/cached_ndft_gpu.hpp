@@ -104,7 +104,7 @@ private:
   linalg::Vector<Real, linalg::GPU> w_dev_;
   const linalg::util::MagmaQueue& magma_queue_;
 
-  linalg::util::CudaEvent copy_event_;
+  linalg::util::GpuEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
   std::shared_ptr<RMatrix> workspace_;

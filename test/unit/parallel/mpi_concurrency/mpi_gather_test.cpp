@@ -25,7 +25,7 @@
 #include "dca/function/domains/dmn_variadic.hpp"
 #include "dca/function/domains/local_domain.hpp"
 #include "dca/testing/minimalist_printer.hpp"
-#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 
 //See below, life cycle issue with MPI

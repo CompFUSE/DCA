@@ -10,6 +10,7 @@
 // This file provides a matrix with a more efficient reshaping between different rectangular shapes
 //  of similar total size.
 
+// Always a bad smell
 #pragma once
 
 #include <cassert>
@@ -146,7 +147,7 @@ public:
   // Releases the memory allocated by *this and sets size and capacity to zero.
   void clear();
 
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
   void setAsync(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);

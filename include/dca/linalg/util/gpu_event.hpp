@@ -27,14 +27,14 @@ namespace util {
 // dca::linalg::util::
 
 #if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
-class CudaEvent {
+class GpuEvent {
 public:
-  CudaEvent() {
-    cudaError_t error = cudaEventCreate(&event_);
+  GpuEvent() {
+    checkRC(cudaEventCreate(&event_));
   }
 
-  ~CudaEvent() {
-    cudaEventDestroy(event_);
+  ~GpuEvent() {
+    checkRC(cudaEventDestroy(event_));
   }
 
   inline operator cudaEvent_t() {
@@ -42,19 +42,23 @@ public:
   }
 
   void record(const cudaStream_t stream) {
-    cudaEventRecord(event_, stream);
+    checkRC(cudaEventRecord(event_, stream));
   }
 
   void block() const {
-    cudaEventSynchronize(event_);
+    checkRC(cudaEventSynchronize(event_));
   }
 
   void block(cudaStream_t stream) const {
-    cudaStreamWaitEvent(stream, event_, 0);
+    checkRC(cudaStreamWaitEvent(stream, event_, 0));
   }
 
   operator bool() const {
-    return cudaEventQuery(event_);
+    cudaError_t return_code = cudaEventQuery(event_);
+    if (return_code == cudaSuccess)
+      return true;
+    else
+      return false;
   }
 
 private:
@@ -63,16 +67,16 @@ private:
 
 // Returns the elapsed time in seconds between two recorded events. Blocks host.
 float elapsedTime(cudaEvent_t stop, cudaEvent_t start) {
-  cudaEventSynchronize(stop);
+  checkRC(cudaEventSynchronize(stop));
   float msec(0);
-  cudaEventElapsedTime(&msec, start, stop);
+  checkRC(cudaEventElapsedTime(&msec, start, stop));
   return 1e-3 * msec;
 }
 
 #else
 
 // Define a trivial, non-blocking event in case CUDA is not available.
-class CudaEvent {
+class GpuEvent {
 public:
   template <class T>
   void record(const T& /*stream*/) {}

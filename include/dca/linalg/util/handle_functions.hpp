@@ -21,6 +21,7 @@
 #elif defined(DCA_HAVE_HIP)
 #include <vector>
 #include <hipblas.h>
+#include "dca/util/cuda2hip.h"
 #endif
 
 #include "dca/linalg/util/stream_functions.hpp"

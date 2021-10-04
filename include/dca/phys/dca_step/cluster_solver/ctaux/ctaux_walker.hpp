@@ -86,7 +86,7 @@ public:
   // Out: Ms.
   // Returns: pointer to the event marking the end of the computation.
   template <typename AccumType>
-  const linalg::util::CudaEvent* computeM(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
+  const linalg::util::GpuEvent* computeM(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
 
   auto& get_configuration() {
     return configuration_;
@@ -313,13 +313,13 @@ private:
   //  std::array<linalg::Matrix<Real, device_t>, 2> M_;
   std::array<linalg::Vector<Real, linalg::CPU>, 2> exp_v_minus_one_;
   std::array<linalg::Vector<Real, device_t>, 2> exp_v_minus_one_dev_;
-  std::array<linalg::util::CudaEvent, 2> m_computed_events_;
+  std::array<linalg::util::GpuEvent, 2> m_computed_events_;
 
   bool config_initialized_;
 
   double sweeps_per_measurement_ = 1.;
 
-  linalg::util::CudaEvent sync_streams_event_;
+  linalg::util::GpuEvent sync_streams_event_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
@@ -1541,7 +1541,7 @@ void CtauxWalker<device_t, Parameters, Data, Real>::updateShell(const int done, 
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, typename Real>
 template <typename AccumType>
-const linalg::util::CudaEvent* CtauxWalker<device_t, Parameters, Data, Real>::computeM(
+const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data, Real>::computeM(
     std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
   // Stream 1 waits on stream 0.
   sync_streams_event_.record(linalg::util::getStream(thread_id, 0));

@@ -124,7 +124,7 @@ private:
   std::array<linalg::util::HostVector<std::pair<int, Real>>, 2> gamma_index_;
   std::array<linalg::Vector<std::pair<int, Real>, linalg::GPU>, 2> gamma_index_dev_;
 
-  std::array<linalg::util::CudaEvent, 2> config_copied_;
+  std::array<linalg::util::GpuEvent, 2> config_copied_;
 };
 
 template <class Parameters, typename Real, DistType DIST>
