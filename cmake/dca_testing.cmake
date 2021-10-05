@@ -116,7 +116,7 @@ function(dca_add_gtest name)
     set_target_properties(${name} PROPERTIES HIP_SEPARABLE_COMPILATION ON)
     set_target_properties(${name} PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON)
     set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    target_link_libraries(${name} PRIVATE hip::host hip::device)
+    target_link_libraries(${name} PRIVATE hip::host)
   endif()
 
   if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)
