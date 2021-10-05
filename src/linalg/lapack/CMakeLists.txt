@@ -1,12 +1,9 @@
 # LAPACK
 
-if(DCA_HAVE_CUDA)
+if(DCA_HAVE_GPU)
   add_library(lapack_kernels laset_gpu.cu multiply_diagonal_gpu.cu)
-  set_target_properties( lapack_kernels
-                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
-                     target_compile_definitions(lapack_kernels PRIVATE DCA_HAVE_CUDA)
-                     target_link_libraries(lapack_kernels PRIVATE CUDA::cublas)
+  dca_gpu_blas_link(lapack_kernels)
+  dca_gpu_device_link(lapack_kernels)
 endif()
 
 add_library(lapack silence_lapack.cpp)
