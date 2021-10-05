@@ -12,15 +12,7 @@
 #ifndef DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 #define DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
-#endif
-
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/matrix.hpp"
 
 namespace testing {

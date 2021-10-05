@@ -16,11 +16,11 @@
 
 #include "dca/linalg/lapack/lapack.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {

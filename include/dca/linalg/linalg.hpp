@@ -48,13 +48,12 @@
 #include "dca/linalg/util/lapack_exception.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
-#ifdef DCA_HAVE_CUDA
-#include "dca/linalg/util/cast_cuda.hpp"
-#include "dca/linalg/util/error_cublas.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
 #include "dca/linalg/util/handle_functions.hpp"
-#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
 #include "dca/linalg/util/stream_container.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-#include "dca/linalg/util/util_cublas.hpp"
-#endif  // DCA_HAVE_CUDA
+#include "dca/linalg/util/util_gpublas.hpp"
+#endif  // DCA_HAVE_GPU

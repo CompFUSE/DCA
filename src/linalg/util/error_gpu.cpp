@@ -8,10 +8,11 @@
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file implements error_cuda functions.
-
+#include "dca/config/haves_defines.hpp"
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/util/error_cuda.hpp"
-#elif DCA_HAVE_HIP
+#elif defined(DCA_HAVE_HIP)
+#include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"
 #endif
 #include <iostream>

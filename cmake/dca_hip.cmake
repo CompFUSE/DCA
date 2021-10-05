@@ -55,7 +55,11 @@ check_language(HIP)
 if (CMAKE_HIP_COMPILER)
   enable_language(HIP)
   set(DCA_HAVE_HIP TRUE CACHE INTERNAL "")
+  set(DCA_HAVE_GPU TRUE CACHE INTERNAL "")
+  # Probably probably these should be public properties of the hip targets
   dca_add_haves_define(DCA_HAVE_HIP)
+  dca_add_haves_define(DCA_HAVE_GPU)
+  dca_add_haves_define(__HIP_PLATFORM_AMD__)
   list(APPEND DCA_HIP_LIBS
     HIP::HIP ROCM::libraries)
   set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx906,gfx908")

@@ -15,6 +15,8 @@
 #ifndef DCA_LINALG_UTIL_ERROR_GPUBLAS_HPP
 #define DCA_LINALG_UTIL_ERROR_GPUBLAS_HPP
 
+#include "dca/config/haves_defines.hpp"
+
 #if defined(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
 #include "dca/linalg/util/error_cuda.hpp"

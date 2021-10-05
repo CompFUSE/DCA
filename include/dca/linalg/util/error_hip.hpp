@@ -61,7 +61,7 @@ inline void checkRCInternal(cudaError_t return_code, std::string function_name,
     throw std::logic_error(function_name);
   }
 }
-
+  
 }  // util
 }  // linalg
 }  // dca

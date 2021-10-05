@@ -10,18 +10,23 @@
 //
 // RAII wrapper for a gpu handle.
 
-#ifndef DCA_LINALG_UTIL_CUBLAS_HANDLE_HPP
-#define DCA_LINALG_UTIL_CUBLAS_HANDLE_HPP
+#ifndef DCA_LINALG_UTIL_GPUBLAS_HANDLE_HPP
+#define DCA_LINALG_UTIL_GPUBLAS_HANDLE_HPP
+
+#include "dca/config/haves_defines.hpp"
+
+
 
 #if defined(DCA_HAVE_CUDA)
-#include #include <cublas_v2.h>
-#include "dca/linalg/util/error_cublas.hpp"
+#include <cublas_v2.h>
 #elif defined(DCA_HAVE_HIP)
+#include <hip/hip_runtime.h>
 #include <hipblas.h>
+#include <hip/hip_complex.h>
 #include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hipblas.hpp"
 #endif
 
+#include "dca/linalg/util/error_gpuBLAS.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 
 namespace dca {

@@ -10,6 +10,7 @@
 //
 // This file implements gpu info functions.
 
+#include "dca/config/haves_defines.hpp"
 #if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/error_cuda.hpp"
 #elif defined(DCA_HAVE_HIP)

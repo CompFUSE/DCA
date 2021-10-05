@@ -113,6 +113,9 @@ set(DCA_INCLUDE_DIRS
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
 endif(DCA_HAVE_MAGMA)
+
+include(dca_linking)
+
 ################################################################################
 # Libraries
 add_subdirectory(src)

@@ -16,13 +16,8 @@
 #define DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP
 
 #include <vector>
-#if defined(DCA_HAVE_CUDA)
-#include <cublas_v2.h>
-#elif defined(DCA_HAVE_HIP)
-#include <vector>
-#include <hipblas.h>
-#include "dca/util/cuda2hip.h"
-#endif
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
 
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/linalg/util/gpuBLAS_handles.hpp"
@@ -33,12 +28,12 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
 
 // Global handle container.
-inline std::vector<CublasHandle>& getHandleContainer() {
-  static std::vector<CublasHandle> handle_container(1);
+inline std::vector<GpuBLASHandle>& getHandleContainer() {
+  static std::vector<GpuBLASHandle> handle_container(1);
   return handle_container;
 }
 
@@ -65,7 +60,7 @@ inline cublasHandle_t getHandle(const int thread_id) {
 //                0 <= stream_id < StreamContainer::get_streams_per_thread().
 inline cublasHandle_t getHandle(const int thread_id, const int stream_id) {
   assert(thread_id >= 0 && thread_id < getHandleContainer().size());
-  CudaStream& stream = getStream(thread_id, stream_id);
+  GpuStream& stream = getStream(thread_id, stream_id);
   getHandleContainer()[thread_id].setStream(stream.streamActually());
   return getHandleContainer()[thread_id];
 }
@@ -78,7 +73,7 @@ inline void resizeHandleContainer(const std::size_t max_threads) {
     resizeStreamContainer(max_threads);
 }
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // util
 }  // linalg

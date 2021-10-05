@@ -13,8 +13,7 @@
 #define DCA_LINALG_LAPACK_LASET_GPU_HPP
 
 #include <complex>
-#include <cuComplex.h>
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
 
 namespace dca {
 namespace linalg {

@@ -14,13 +14,8 @@
 
 #include "dca/config/haves_defines.hpp"
 
-#if defined (DCA_HAVE_CUDA)
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined (DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #else
 #pragma error "This file requires GPU support."
 #endif

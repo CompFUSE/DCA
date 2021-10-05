@@ -22,14 +22,7 @@
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/util/ignore.hpp"
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elseif DCA_HAVE_HIP
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
-#endif
+#include "dca/platform/dca_gpu.h"
 
 namespace dca {
 namespace linalg {

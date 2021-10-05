@@ -10,18 +10,11 @@
 //
 // This file implements cublas related utilities.
 
-
-#if defined(DCA_HAVE_CUDA)
-#include "dca/linalg/util/error_cublas.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include "dca/linalg/util/error_hipblas.hpp"
-#include <hipblas-version.h>
-#endif
+#include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/util_gpublas.hpp"
 
 #include <mutex>
 #include <magma_v2.h>
-#include "dca/linalg/util/handle_functions.hpp"
 
 
 namespace dca {
@@ -29,7 +22,7 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#if defined(DCA_HAVE_GPU)
 void initializeMagma() {
   static std::once_flag flag;
   std::call_once(flag, []() { magma_init(); });

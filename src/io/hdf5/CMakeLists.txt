@@ -6,6 +6,10 @@ target_link_libraries(dca_hdf5 PUBLIC ${HDF5_LIBRARIES})
 
 message("CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN : ${CMAKE_CXX_STANDARD_LIBRARIES}")
 
+if(DCA_HAVE_GPU)
+  target_link_libraries(dca_hdf5 PUBLIC gpu_utils)
+endif()
+
 # Only GCC < 9 needs to link to a separate filesystem library
 target_link_libraries(dca_hdf5 PRIVATE
   std::filesystem

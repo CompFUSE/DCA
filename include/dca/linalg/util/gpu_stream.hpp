@@ -14,6 +14,7 @@
 #define DCA_LINALG_UTIL_GPU_STREAM_HPP
 
 #include <iostream>
+#include "dca/config/haves_defines.hpp"
 #if defined(DCA_HAVE_CUDA)
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
@@ -21,14 +22,16 @@
 #include <hip/hip_runtime.h>
 #include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"
-#endif 
+#endif
+
 
 namespace dca {
 namespace linalg {
 namespace util {
-// dca::linalg::util::
 
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
+
+// dca::linalg::util::
 
 class GpuStream {
 public:
@@ -78,7 +81,7 @@ private:
   cudaStream_t stream_ = nullptr;
 };
 
-#else  // DCA_HAVE_CUDA
+#else  // DCA_HAVE_GPU
 
 // Mock object.
 class GpuStream {
@@ -93,7 +96,7 @@ public:
   }
 };
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace util
 }  // namespace linalg

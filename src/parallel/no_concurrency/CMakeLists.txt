@@ -1,2 +1,4 @@
 # parallel no_concurrency
-add_library(parallel_no_concurrency STATIC no_concurrency.cpp)
+set(this_target parallel_no_concurrency)
+add_library(${this_target} STATIC no_concurrency.cpp)
+dca_gpu_runtime_link(${this_target})

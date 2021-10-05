@@ -16,8 +16,8 @@
 
 #include "dca/parallel/mpi_concurrency/kernel_test.hpp"
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #endif
 
 namespace dca {
@@ -30,7 +30,7 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*check)()) {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   // This was set to world id but doesn't work with jsrun or on multiple nodes anywhere
   // This temporary fix requires a working cvdlaunch wrapper or jsrun -a 1 -g1
   cudaSetDevice(0);
@@ -58,7 +58,7 @@ MPIProcessorGrouping::~MPIProcessorGrouping() {
 }
 
 bool MPIProcessorGrouping::defaultCheck() {
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   try {
     return kernelTest();
   }

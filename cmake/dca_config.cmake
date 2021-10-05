@@ -27,6 +27,12 @@ endif()
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/concurrency.hpp" @ONLY)
 
+
+################################################################################
+# No GPU by default -- DCA_WITH_CUDA or DCA_WITH_HIP will set true if they
+#                      are found
+set(DCA_HAVE_GPU FALSE CACHE INTERNAL "")
+
 ################################################################################
 # Enable CUDA.
 option(DCA_WITH_CUDA "Enable Nvidia GPU support." OFF)
@@ -49,6 +55,7 @@ if (DCA_WITH_HIP)
     message(FATAL_ERROR "HIP and/or MAGMA not found but requested.")
   endif()
   dca_add_config_define(DCA_WITH_HIP)
+  dca_add_config_define(DCA_WITH_GPU)
 endif()
 
 ################################################################################

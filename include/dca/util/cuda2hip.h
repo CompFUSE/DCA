@@ -49,7 +49,6 @@
 #define cusparseHandle_t        hipsparseHandle_t
 #define cusparseCreate          hipsparseCreate
 #define cusparseDestroy         hipsparseDestroy
-// this is sketch
 #define magma_queue_create_from_cuda_internal  magma_queue_create_from_hip_internal
 
 #define cuComplex                       hipComplex
@@ -84,6 +83,7 @@
 #define cudaPeekAtLastError             hipPeekAtLastError
 #define cudaHostAlloc                   hipHostMalloc
 #define cudaHostAllocMapped             hipHostMallocMapped
+#define cudaHostAllocDefault            hipHostMallocDefault
 #define cudaIpcGetMemHandle             hipIpcGetMemHandle
 #define cudaIpcMemHandle_t              hipIpcMemHandle_t
 #define cudaIpcMemLazyEnablePeerAccess  hipIpcMemLazyEnablePeerAccess
