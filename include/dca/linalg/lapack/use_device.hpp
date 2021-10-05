@@ -96,7 +96,7 @@ struct UseDevice<CPU> {
   }
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <>
 struct UseDevice<GPU> {
   // Auxiliary routines
@@ -131,7 +131,7 @@ struct UseDevice<GPU> {
     lapack::multiplyDiagonalRight_gpu(m, n, a, lda, d, inc_d, b, ldb, thread_id, stream_id);
   }
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // lapack
 }  // linalg

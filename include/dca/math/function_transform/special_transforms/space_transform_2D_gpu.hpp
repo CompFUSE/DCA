@@ -13,10 +13,8 @@
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
 
-#if defined(DCA_HAVE_CUDA)
-#elif defined(DCA_HAVE_HIP)
-#else
-#pragma error "This file requires CUDA support."
+#ifndef DCA_HAVE_GPU
+#pragma error "This file requires GPU support."
 #endif
 
 //#include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"

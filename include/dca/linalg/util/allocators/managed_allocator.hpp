@@ -44,7 +44,7 @@ protected:
     }
 
     if (stream_)
-      cudaStreamAttachMemAsync(stream_, ptr_);
+      cudaStreamAttachMemAsync(stream_, reinterpret_cast<void**>(&ptr_));
 
     return ptr_;
   }

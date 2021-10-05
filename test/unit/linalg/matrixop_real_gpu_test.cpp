@@ -17,7 +17,9 @@
 #include <utility>
 #include "gtest/gtest.h"
 #include "dca/linalg/blas/blas3.hpp"
+#include "dca/config/walker_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
+#include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "cpu_test_util.hpp"

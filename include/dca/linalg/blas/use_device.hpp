@@ -18,11 +18,11 @@
 #include "dca/linalg/blas/blas2.hpp"
 #include "dca/linalg/blas/blas3.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {
@@ -76,7 +76,7 @@ struct UseDevice<CPU> {
   }
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
 template <>
 struct UseDevice<GPU> {
@@ -123,7 +123,7 @@ struct UseDevice<GPU> {
                  lda, b, ldb);
   }
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // blas
 }  // linalg

@@ -12,7 +12,8 @@
 #ifndef DCA_LINALG_BLAS_CUBLAS_CONVERSION_CHAR_TYPES_HPP
 #define DCA_LINALG_BLAS_CUBLAS_CONVERSION_CHAR_TYPES_HPP
 
-#include <cublas_v2.h>
+#include "dca/platform/dca_gpu_blas.h"
+
 #include <stdexcept>
 
 namespace dca {

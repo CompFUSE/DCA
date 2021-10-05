@@ -11,9 +11,9 @@
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
-#include <cuda.h>
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
@@ -43,5 +43,5 @@ Real interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Real>
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_KERNELS_INTERFACE_HPP

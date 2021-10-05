@@ -14,7 +14,15 @@
 #ifndef CUDA2HIP_H
 #define CUDA2HIP_H
 
+#define CUBLAS_DIAG_UNIT                HIPBLAS_DIAG_UNIT
+#define CUBLAS_DIAG_NON_UNIT            HIPBLAS_DIAG_NON_UNIT
+#define CUBLAS_FILL_MODE_LOWER          HIPBLAS_FILL_MODE_LOWER
+#define CUBLAS_FILL_MODE_UPPER          HIPBLAS_FILL_MODE_UPPER
+#define CUBLAS_SIDE_LEFT                HIPBLAS_SIDE_LEFT
+#define CUBLAS_SIDE_RIGHT               HIPBLAS_SIDE_RIGHT
 #define CUBLAS_OP_N                     HIPBLAS_OP_N
+#define CUBLAS_OP_T                     HIPBLAS_OP_T
+#define CUBLAS_OP_C                     HIPBLAS_OP_C
 #define CUBLAS_STATUS_ALLOC_FAILED      HIPBLAS_STATUS_ALLOC_FAILED
 #define CUBLAS_STATUS_ARCH_MISMATCH     HIPBLAS_STATUS_ARCH_MISMATCH
 #define CUBLAS_STATUS_EXECUTION_FAILED  HIPBLAS_STATUS_EXECUTION_FAILED
@@ -32,17 +40,45 @@
 #define cublasComplex           hipblasComplex
 #define cublasCreate            hipblasCreate
 #define cublasDestroy           hipblasDestroy
+#define cublasSaxpy             hipblasSaxpy
+#define cublasDaxpy             hipblasDaxpy
+#define cublasCaxpy             hipblasCaxpy
+#define cublasZaxpy             hipblasZaxpy
+#define cublasScopy             hipblasScopy
+#define cublasDcopy             hipblasDcopy
+#define cublasCcopy             hipblasCcopy
+#define cublasZcopy             hipblasZcopy
+#define cublasDiagType_t        hipblasDiagType_t
+#define cublasFillMode_t        hipblasFillMode_t
+#define cublasSgemm             hipblasSgemm
+#define cublasDgemm             hipblasDgemm
+#define cublasCgemm             hipblasCgemm
+#define cublasZgemm             hipblasZgemm
 #define cublasDgemmBatched      hipblasDgemmBatched
 #define cublasDgetrfBatched     hipblasDgetrfBatched
 #define cublasDgetriBatched     hipblasDgetriBatched
 #define cublasDoubleComplex     hipblasDoubleComplex
 #define cublasGetVersion        hipRuntimeGetVersion
 #define cublasHandle_t          hipblasHandle_t
+#define cublasOperation_t       hipblasOperation_t
 #define cublasSetStream         hipblasSetStream
 #define cublasSgemmBatched      hipblasSgemmBatched
 #define cublasSgetrfBatched     hipblasSgetrfBatched
 #define cublasSgetriBatched     hipblasSgetriBatched
 #define cublasStatus_t          hipblasStatus_t
+#define cublasSscal             hipblasSscal
+#define cublasDscal             hipblasDscal
+#define cublasCscal             hipblasCscal
+#define cublasZscal             hipblasZscal
+#define cublasStrsm            hipblasStrsm
+#define cublasDtrsm            hipblasDtrsm
+#define cublasCtrsm            hipblasCtrsm
+#define cublasZtrsm            hipblasZtrsm
+#define cublasSswap             hipblasSswap
+#define cublasDswap             hipblasDswap
+#define cublasCswap             hipblasCswap
+#define cublasZswap             hipblasZswap
+#define cublasSideMode_t        hipblasSideMode_t
 #define cublasZgemmBatched      hipblasZgemmBatched
 #define cublasZgetrfBatched     hipblasZgetrfBatched
 #define cublasZgetriBatched     hipblasZgetriBatched
@@ -51,6 +87,7 @@
 #define cusparseDestroy         hipsparseDestroy
 #define magma_queue_create_from_cuda_internal  magma_queue_create_from_hip_internal
 
+#define cudaStreamAttachMemAsync        hipStreamAttachMemAsync
 #define cuComplex                       hipComplex
 #define cudaAddressModeClamp            hipAddressModeClamp
 #define cudaArray                       hipArray

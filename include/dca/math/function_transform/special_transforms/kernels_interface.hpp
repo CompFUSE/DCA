@@ -11,15 +11,9 @@
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda.h>
-#endif
-#ifdef DCA_HAVE_HIP
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#endif
+#include "dca/platform/dca_gpu.h"
 
 #include <complex>
 

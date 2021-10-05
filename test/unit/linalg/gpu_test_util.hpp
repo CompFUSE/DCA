@@ -26,7 +26,7 @@ cudaMemoryType PointerType(const ScalarType* ptr) {
   checkRC(ret);
 #if defined(DCA_HAVE_CUDA)
   return attributes.type;
-#elseif defined(DCA_HAVE_HIP)
+#elif defined(DCA_HAVE_HIP)
   return attributes.memoryType;
 #endif
 }
@@ -35,6 +35,7 @@ template <typename ScalarType>
 bool isDevicePointer(const ScalarType* ptr) {
   return cudaMemoryTypeDevice == PointerType(ptr);
 }
+
 template <typename ScalarType>
 bool isHostPointer(const ScalarType* ptr) {
   return cudaMemoryTypeHost == PointerType(ptr);

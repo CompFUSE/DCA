@@ -21,7 +21,7 @@
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
-#elseif DCA_HAVE_HIP
+#elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
 #include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"

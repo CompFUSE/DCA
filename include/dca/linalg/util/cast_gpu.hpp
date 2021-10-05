@@ -16,9 +16,9 @@
 
 #include <complex>
 
-#if defined (DCA_HAVE_CUDA)
+#if defined(DCA_HAVE_CUDA)
 #include <cuComplex.h>
-#elif defined (DCA_HAVE_HIP)
+#elif defined(DCA_HAVE_HIP)
 #include <hip/hip_complex.h>
 #include "dca/util/cuda2hip.h"
 #endif
@@ -88,7 +88,6 @@ inline const magmaDoubleComplex* castMAGMAComplex(const std::complex<double>* pt
 inline const magmaDoubleComplex* castMAGMAComplex(const std::complex<double>& el) {
   return castMAGMAComplex(&el);
 }
-
 inline magmaFloatComplex** castMAGMAComplex(std::complex<float>** ptr) {
   return reinterpret_cast<magmaFloatComplex**>(ptr);
 }
@@ -98,7 +97,6 @@ inline magmaFloatComplex* castMAGMAComplex(std::complex<float>* ptr) {
 inline magmaFloatComplex* castMAGMAComplex(std::complex<float>& el) {
   return castMAGMAComplex(&el);
 }
-
 inline const magmaFloatComplex* const* castMAGMAComplex(const std::complex<float>* const* ptr) {
   return reinterpret_cast<const magmaFloatComplex* const*>(ptr);
 }
@@ -109,8 +107,42 @@ inline const magmaFloatComplex* castMAGMAComplex(const std::complex<float>& el) 
   return castMAGMAComplex(&el);
 }
 
-
-
+inline cublasDoubleComplex** castCUBLASComplex(std::complex<double>** ptr) {
+  return reinterpret_cast<cublasDoubleComplex**>(ptr);
+}
+inline cublasDoubleComplex* castCUBLASComplex(std::complex<double>* ptr) {
+  return reinterpret_cast<cublasDoubleComplex*>(ptr);
+}
+inline cublasDoubleComplex* castCUBLASComplex(std::complex<double>& el) {
+  return castCUBLASComplex(&el);
+}
+inline const cublasDoubleComplex* const* castCUBLASComplex(const std::complex<double>* const* ptr) {
+  return reinterpret_cast<const cublasDoubleComplex* const*>(ptr);
+}
+inline const cublasDoubleComplex* castCUBLASComplex(const std::complex<double>* ptr) {
+  return reinterpret_cast<const cublasDoubleComplex*>(ptr);
+}
+inline const cublasDoubleComplex* castCUBLASComplex(const std::complex<double>& el) {
+  return castCUBLASComplex(&el);
+}
+inline cublasComplex** castCUBLASComplex(std::complex<float>** ptr) {
+  return reinterpret_cast<cublasComplex**>(ptr);
+}
+inline cublasComplex* castCUBLASComplex(std::complex<float>* ptr) {
+  return reinterpret_cast<cublasComplex*>(ptr);
+}
+inline cublasComplex* castCUBLASComplex(std::complex<float>& el) {
+  return castCUBLASComplex(&el);
+}
+inline const cublasComplex* const* castCUBLASComplex(const std::complex<float>* const* ptr) {
+  return reinterpret_cast<const cublasComplex* const*>(ptr);
+}
+inline const cublasComplex* castCUBLASComplex(const std::complex<float>* ptr) {
+  return reinterpret_cast<const cublasComplex*>(ptr);
+}  
+inline const cublasComplex* castCUBLASComplex(const std::complex<float>& el) {
+  return castCUBLASComplex(&el);
+}
   
 
 // Provides a templated typedef.

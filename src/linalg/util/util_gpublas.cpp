@@ -35,9 +35,9 @@ int getGpuBLASVersion() {
   checkRC(ret);
   return version;
 }
-#elseif defined(DCA_HAVE_HIP)
+#elif defined(DCA_HAVE_HIP)
 int getGpuBLASVersion() {
-  int version = hiblasVersionMajor;
+  int version = hipblasVersionMajor;
   return version;
 } 
 #endif

@@ -14,6 +14,7 @@
 #ifndef DCA_GPU_BLAS_H
 #define DCA_GPU_BLAS_H
 
+#include "dca/config/haves_defines.hpp"
 #if defined(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
 #include "dca/linalg/util/error_cuda.hpp"

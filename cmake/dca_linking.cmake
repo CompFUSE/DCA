@@ -25,7 +25,7 @@ function(dca_gpu_device_link target_name)
     set_target_properties( ${target_name} PROPERTIES LINKER_LANGUAGE "HIP")
     set_target_properties( ${target_name}
       PROPERTIES HIP_SEPARABLE_COMPILATION ON)
-    target_link_libraries(${target_name} PUBLIC hip::device)
+    target_link_libraries(${target_name} PRIVATE hip::device)
   elseif(DCA_HAVE_CUDA)
     set_target_properties( ${target_name}
       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

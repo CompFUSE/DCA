@@ -13,8 +13,8 @@
 #define DCA_LINALG_BLAS_KERNELS_GPU_HPP
 
 #include <complex>
-#include <cuComplex.h>
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/platform/dca_gpu_complex.h"
+#include "dca/linalg/util/cast_gpu.hpp"
 
 namespace dca {
 namespace linalg {
