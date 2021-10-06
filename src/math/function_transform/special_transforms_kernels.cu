@@ -14,7 +14,7 @@
 #include <array>
 
 #include "dca/util/integer_division.hpp"
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {

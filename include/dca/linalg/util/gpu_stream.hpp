@@ -15,14 +15,7 @@
 
 #include <iostream>
 #include "dca/config/haves_defines.hpp"
-#if defined(DCA_HAVE_CUDA)
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
-#endif
+#include "dca/platform/dca_gpu.h"
 
 
 namespace dca {

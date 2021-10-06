@@ -12,6 +12,7 @@
 #ifndef DCA_LINALG_LAPACK_USE_DEVICE_HPP
 #define DCA_LINALG_LAPACK_USE_DEVICE_HPP
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/linalg/device_type.hpp"
 
 #include "dca/linalg/lapack/lapack.hpp"

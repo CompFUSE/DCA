@@ -16,6 +16,8 @@
 
 #include <complex>
 
+#include "dca/config/haves_defines.hpp"
+
 #if defined(DCA_HAVE_CUDA)
 #include <cuComplex.h>
 #elif defined(DCA_HAVE_HIP)
@@ -156,7 +158,7 @@ struct ComplexContainer<double> {
 };
 template <>
 struct ComplexContainer<float> {
-  using type = cuFloatComplex;
+  using type = cuComplex;
 };
 }  // namespace details
 // dca::linalg::util::
