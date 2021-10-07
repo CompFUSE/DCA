@@ -12,7 +12,7 @@
 #ifndef DCA_LINALG_UTIL_ATOMIC_ADD_CUDA_CU_HPP
 #define DCA_LINALG_UTIL_ATOMIC_ADD_CUDA_CU_HPP
 
-#include <cuComplex.h>
+#include "dca/platform/dca_gpu_complex.h"
 
 namespace dca {
 namespace linalg {

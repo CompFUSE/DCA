@@ -34,6 +34,12 @@ inline void laset_gpu(int m, int n, std::complex<Type> offdiag, std::complex<Typ
   laset_gpu(m, n, *cu_offdiag, *cu_diag, cu_a, lda, thread_id, stream_id);
 }
 
+extern template void laset_gpu(int m, int n, cuComplex offdiag, cuComplex diag, cuComplex* a, int lda,
+                        int thread_id, int stream_id);
+extern template void laset_gpu(int m, int n, cuDoubleComplex offdiag, cuDoubleComplex diag,
+                        cuDoubleComplex* a, int lda, int thread_id, int stream_id);
+
+  
 }  // lapack
 }  // linalg
 }  // dca

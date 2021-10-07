@@ -13,6 +13,8 @@
 #define DCA_LINALG_BLAS_KERNELS_GPU_HPP
 
 #include <complex>
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/cast_gpu.hpp"
 

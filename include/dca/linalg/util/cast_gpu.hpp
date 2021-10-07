@@ -17,13 +17,7 @@
 #include <complex>
 
 #include "dca/config/haves_defines.hpp"
-
-#if defined(DCA_HAVE_CUDA)
-#include <cuComplex.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_complex.h>
-#include "dca/util/cuda2hip.h"
-#endif
+#include "dca/platform/dca_gpu_complex.h"
 
 #include <magma_v2.h>
 namespace dca {
@@ -31,6 +25,7 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
+#if defined(DCA_HAVE_CUDA) 
 // returns a cuComplex pointer.
 inline cuComplex** castCudaComplex(std::complex<float>** ptr) {
   return reinterpret_cast<cuComplex**>(ptr);
@@ -70,7 +65,47 @@ inline const cuDoubleComplex* castCudaComplex(const std::complex<double>* ptr) {
 inline const cuDoubleComplex* castCudaComplex(const std::complex<double>& el) {
   return castCudaComplex(&el);
 }
+#elif defined(DCA_HAVE_HIP)
+// returns a magmaFloatComplex pointer.
+inline magmaFloatComplex** castCudaComplex(std::complex<float>** ptr) {
+  return reinterpret_cast<magmaFloatComplex**>(ptr);
+}
+inline magmaFloatComplex* castCudaComplex(std::complex<float>* ptr) {
+  return reinterpret_cast<magmaFloatComplex*>(ptr);
+}
+inline magmaFloatComplex* castCudaComplex(std::complex<float>& el) {
+  return castCudaComplex(&el);
+}
+inline const magmaFloatComplex* const* castCudaComplex(const std::complex<float>* const* ptr) {
+  return reinterpret_cast<const magmaFloatComplex* const*>(ptr);
+}
+inline const magmaFloatComplex* castCudaComplex(const std::complex<float>* ptr) {
+  return reinterpret_cast<const magmaFloatComplex*>(ptr);
+}
+inline const magmaFloatComplex* castCudaComplex(const std::complex<float>& el) {
+  return castCudaComplex(&el);
+}
 
+// returns a hipDoubleComplex pointer.
+inline magmaDoubleComplex** castCudaComplex(std::complex<double>** ptr) {
+  return reinterpret_cast<magmaDoubleComplex**>(ptr);
+}
+inline magmaDoubleComplex* castCudaComplex(std::complex<double>* ptr) {
+  return reinterpret_cast<magmaDoubleComplex*>(ptr);
+}
+inline magmaDoubleComplex* castCudaComplex(std::complex<double>& el) {
+  return castCudaComplex(&el);
+}
+inline const magmaDoubleComplex* const* castCudaComplex(const std::complex<double>* const* ptr) {
+  return reinterpret_cast<const magmaDoubleComplex* const*>(ptr);
+}
+inline const magmaDoubleComplex* castCudaComplex(const std::complex<double>* ptr) {
+  return reinterpret_cast<const magmaDoubleComplex*>(ptr);
+}
+inline const magmaDoubleComplex* castCudaComplex(const std::complex<double>& el) {
+  return castCudaComplex(&el);
+}
+#endif
 
 inline magmaDoubleComplex** castMAGMAComplex(std::complex<double>** ptr) {
   return reinterpret_cast<magmaDoubleComplex**>(ptr);

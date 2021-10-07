@@ -13,10 +13,7 @@
 
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #include <cassert>
-#include <cuComplex.h>
-#include <cuda_runtime.h>
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 

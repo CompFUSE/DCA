@@ -11,9 +11,8 @@
 
 #include "dca/linalg/lapack/laset_gpu.hpp"
 #include <cassert>
-#include <cuComplex.h>
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu_complex.h"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 
@@ -102,7 +101,6 @@ template void laset_gpu(int m, int n, cuComplex offdiag, cuComplex diag, cuCompl
                         int thread_id, int stream_id);
 template void laset_gpu(int m, int n, cuDoubleComplex offdiag, cuDoubleComplex diag,
                         cuDoubleComplex* a, int lda, int thread_id, int stream_id);
-
 }  // lapack
 }  // linalg
 }  // dca

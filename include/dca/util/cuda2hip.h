@@ -88,7 +88,8 @@
 #define magma_queue_create_from_cuda_internal  magma_queue_create_from_hip_internal
 
 #define cudaStreamAttachMemAsync        hipStreamAttachMemAsync
-#define cuComplex                       hipComplex
+// hipComplex types are broken with respect to operator overloads
+#define cuComplex                       magmaFloatComplex
 #define cudaAddressModeClamp            hipAddressModeClamp
 #define cudaArray                       hipArray
 #define cudaBindTextureToArray          hipBindTextureToArray
@@ -158,11 +159,20 @@
 #define cudaStreamSynchronize           hipStreamSynchronize
 #define cudaStreamWaitEvent             hipStreamWaitEvent
 #define cudaSuccess                     hipSuccess
-#define cuFloatComplex                  hipFloatComplex
-#define cuDoubleComplex                 hipDoubleComplex
+#define cuFloatComplex                  magmaFloatComplex
+#define cuDoubleComplex                 magmaDoubleComplex
 #define make_cuComplex                  make_hipComplex
 #define make_cuDoubleComplex            make_hipDoubleComplex
 
+#define cuCaddf                         hipCaddf
+#define cuCsubf                         hipCsubf
+#define cuCmulf                         hipCmulf
+#define cuCdivf                         hipCdivf
+#define cuCadd                          hipCadd
+#define cuCsub                          hipCsub
+#define cuCmul                          hipCmul
+#define cuCdiv                          hipCdiv
+#define make_cuComplex                  make_hipComplex
 #define cudaDeviceSetLimit(limit, falue) ;
 
 #endif /* CUDA2HIP_H */

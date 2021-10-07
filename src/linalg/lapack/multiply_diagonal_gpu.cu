@@ -12,9 +12,8 @@
 
 #include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
 #include <cassert>
-#include "dca/platform/dca_gpu.h"
 #include "dca/platform/dca_gpu_complex.h"
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 
