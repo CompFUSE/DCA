@@ -82,8 +82,8 @@ public:
     return 0;
   }
 
-  std::vector<linalg::util::CudaStream*> get_streams() const {
-    return std::vector<linalg::util::CudaStream*>();
+  std::vector<linalg::util::GpuStream*> get_streams() const {
+    return std::vector<linalg::util::GpuStream*>();
   }
 
 protected:

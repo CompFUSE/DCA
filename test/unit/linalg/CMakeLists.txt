@@ -42,12 +42,12 @@ dca_add_gtest(matrixop_cpu_gpu_test
 dca_add_gtest(matrixop_real_gpu_test
               GTEST_MAIN
               CUDA
-              LIBS ${DCA_LIBS} lapack lapack_kernels gpu_utils ${MAGMA_LIBARY})
+              LIBS ${DCA_LIBS} lapack lapack_kernels blas_kernels gpu_utils ${MAGMA_LIBARY} lapack_kernels)
 
 dca_add_gtest(matrixop_complex_gpu_test
               GTEST_MAIN
               CUDA
-              LIBS ${DCA_LIBS} lapack ${MAGMA_LIBARY} ${DCA_KERNEL_LIBS} cuda_utils lapack ${DCA_EXTERNAL_LIBS})
+              LIBS ${DCA_LIBS} lapack lapack_kernels blas_kernels gpu_utils ${MAGMA_LIBARY} lapack_kernels)
 
 dca_add_gtest(reshapable_matrix_cpu_test GTEST_MAIN)
 
@@ -55,4 +55,5 @@ dca_add_gtest(reshapable_matrix_gpu_test CUDA GTEST_MAIN LIBS gpu_utils)
 
 dca_add_gtest(multi_vector_test GTEST_MAIN)
 
+add_subdirectory(blas)
 add_subdirectory(util)

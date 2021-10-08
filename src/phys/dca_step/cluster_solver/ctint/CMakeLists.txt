@@ -1,6 +1,6 @@
 # CT-INT
 
-if (DCA_HAVE_CUDA)
+if (DCA_HAVE_GPU)
   set(CTINT_CUDA_CPP_FILES walker/tools/d_matrix_builder_gpu.cpp)
 endif ()
 

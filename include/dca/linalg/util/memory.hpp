@@ -19,7 +19,7 @@
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/ignore.hpp"
 
 #include "dca/platform/dca_gpu.h"

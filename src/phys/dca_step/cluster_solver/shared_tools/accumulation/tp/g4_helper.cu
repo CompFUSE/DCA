@@ -16,6 +16,8 @@
 #include <mutex>
 #include <stdexcept>
 
+#include "dca/platform/dca_gpu.h"
+
 namespace dca {
 namespace phys {
 namespace solver {

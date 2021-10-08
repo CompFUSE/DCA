@@ -11,9 +11,9 @@
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_HPP
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
-#include "dca/util/cuda_definitions.hpp"
+#include "dca/platform/gpu_definitions.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/sector_entry.hpp"
 
 namespace dca {
@@ -75,5 +75,5 @@ short DeviceConfiguration::getAuxFieldType(int matrix_index) const {
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_HPP

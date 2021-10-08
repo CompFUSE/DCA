@@ -12,10 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation_kernels.hpp"
 
 #include <cassert>
-
-#include "cuda_runtime.h"
-
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 

@@ -15,9 +15,9 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace phys {
@@ -38,7 +38,7 @@ struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false, Real, DIST> {
   using type = CtintWalker<linalg::CPU, Parameters, Real, DIST>;
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <class Parameters, typename Real, DistType DIST>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real, DIST> {
   using type = CtintWalkerSubmatrixGpu<Parameters, Real, DIST>;
@@ -48,7 +48,7 @@ template <class Parameters, typename Real, DistType DIST>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real, DIST> {
   // There is only a submatrix implementation of the GPU walker.
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace
 

@@ -19,7 +19,7 @@
 #include <stdexcept>
 
 #include "dca/linalg/device_type.hpp"
-#include "dca/util/cuda_definitions.hpp"
+#include "dca/platform/gpu_definitions.h"
 
 namespace dca {
 namespace linalg {

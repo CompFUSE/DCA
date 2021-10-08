@@ -8,8 +8,11 @@
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Peter Doak (doakpw@ornl.gov)
 //
-// This file provides operators (+,-,*,/) for cuComplex and cuDoubleComplex.
 
+/** \file
+ *  This file provides operators (+,-,*,/) for cuComplex and cuDoubleComplex.
+ *  For HIP we just use the magma_operators and magmaComplex types
+ */
 #ifndef DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP
 #define DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP
 
@@ -46,7 +49,6 @@ __device__ __host__ static __inline__ cuComplex operator-=(cuComplex& a, const c
   a = a - b;
   return a;
 }
-#endif
 
 __device__ __host__ static __inline__ cuComplex operator-(cuComplex a) {
   a.x = -a.x;
@@ -63,6 +65,7 @@ __device__ __host__ static __inline__ cuComplex conj(cuComplex a) {
   a.y = -a.y;
   return a;
 }
+#endif
 
 // magma_operators.h defines these operators
 #ifdef DCA_HAVE_CUDA
@@ -97,7 +100,6 @@ __device__ __host__ static __inline__ cuDoubleComplex operator-=(cuDoubleComplex
   a = a - b;
   return a;
 }
-#endif
   
 __device__ __host__ static __inline__ cuDoubleComplex operator-(cuDoubleComplex a) {
   a.x = -a.x;
@@ -116,6 +118,8 @@ __device__ __host__ static __inline__ cuDoubleComplex conj(cuDoubleComplex a) {
   a.y = -a.y;
   return a;
 }
+#endif
+
 
 }  // linalg
 }  // dca

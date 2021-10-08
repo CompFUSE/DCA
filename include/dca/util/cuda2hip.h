@@ -61,6 +61,7 @@
 #define cublasGetVersion        hipRuntimeGetVersion
 #define cublasHandle_t          hipblasHandle_t
 #define cublasOperation_t       hipblasOperation_t
+#define cublasGetStream         hipblasGetStream
 #define cublasSetStream         hipblasSetStream
 #define cublasSgemmBatched      hipblasSgemmBatched
 #define cublasSgetrfBatched     hipblasSgetrfBatched
@@ -101,6 +102,16 @@
 #define cudaDeviceSynchronize           hipDeviceSynchronize
 #define cudaError_t                     hipError_t
 #define cudaErrorInvalidValue           hipErrorInvalidValue
+#define cudaErrorDeviceAlreadyInUse     hipErrorContextAlreadyInUse
+#define cudaErrorIllegalAddress		hipErrorIllegalAddress    
+// This error is missing from the hip API
+#define cudaErrorIllegalInstruction	hipErrorIllegalAddress
+#define cudaErrorInvalidDevice		hipErrorInvalidDevice     
+#define cudaErrorInvalidPitchValue	hipErrorInvalidPitchValue 
+#define cudaErrorLaunchFailure		hipErrorLaunchFailure     
+#define cudaErrorMemoryAllocation	hipErrorMemoryAllocation  
+#define cudaErrorNoDevice		hipErrorNoDevice          
+#define cudaErrorUnknown		hipErrorUnknown           
 #define cudaEvent_t                     hipEvent_t
 #define cudaEventCreate                 hipEventCreate
 #define cudaEventCreateWithFlags        hipEventCreateWithFlags
@@ -135,6 +146,7 @@
 #define cudaMemAttachGlobal             hipMemAttachGlobal
 #define cudaMemcpy                      hipMemcpy
 #define cudaMemcpyAsync                 hipMemcpyAsync
+#define cudaMemcpy2DAsync               hipMemcpy2DAsync
 #define cudaMemcpyDeviceToDevice        hipMemcpyDeviceToDevice
 #define cudaMemcpyDeviceToHost          hipMemcpyDeviceToHost
 #define cudaMemcpyHostToDevice          hipMemcpyHostToDevice

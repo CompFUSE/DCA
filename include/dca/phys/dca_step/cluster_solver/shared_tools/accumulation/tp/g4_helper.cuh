@@ -17,11 +17,8 @@
 #include <cassert>
 #include <vector>
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
 #endif
 #include "dca/distribution/dist_types.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"

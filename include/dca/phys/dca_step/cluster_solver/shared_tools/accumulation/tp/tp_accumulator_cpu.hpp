@@ -24,7 +24,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
@@ -129,8 +129,8 @@ public:
     return 0;
   }
 
-  const linalg::util::CudaStream* get_stream() const {
-    static const dca::linalg::util::CudaStream mock_stream;
+  const linalg::util::GpuStream* get_stream() const {
+    static const dca::linalg::util::GpuStream mock_stream;
     return &mock_stream;
   }
 

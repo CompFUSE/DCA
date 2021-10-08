@@ -13,8 +13,8 @@
 
 #include <array>
 #include <cassert>
-#include <cuda.h>
-#include <cuda_runtime.h>
+
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/util/cuda_blocks.hpp"
 

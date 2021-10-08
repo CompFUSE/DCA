@@ -754,7 +754,7 @@ TYPED_TEST(MatrixopRealGPUTest, SwapCol) {
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)
-        EXPECT_EQ(a(i, j), c(i, j));
+        EXPECT_EQ(a(i, j), c(i, j)) << "i: " << i << " j: " << j;
   }
 }
 

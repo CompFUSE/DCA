@@ -15,7 +15,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_MPI_GPU_HPP
 
 #include "dca/config/dca.hpp"
-#ifndef DCA_HAVE_CUDA
+#ifndef DCA_HAVE_GPU
 #error "This file requires CUDA."
 #endif
 

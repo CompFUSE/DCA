@@ -11,9 +11,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
 
-#include "cuda_runtime.h"
-
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 

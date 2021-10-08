@@ -11,7 +11,9 @@
 #include <complex>
 #include "gtest/gtest.h"
 #include "complex_op_test_kernels.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
 
+template<typename Type>
 class ComplexOpGPUTest: public::testing::Test {
 public:
   double blah;
@@ -25,5 +27,5 @@ TYPED_TEST(ComplexOpGPUTest, opmult) {
   using Scalar = TypeParam;
   Scalar a{1,1};
   Scalar b{1, -2};
-  gpu_oprator_opmult(a, b);
+  gpu_operator_opmult(&a, &b, 1, 0);
 }

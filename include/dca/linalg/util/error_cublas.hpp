@@ -15,10 +15,10 @@
 #ifndef DCA_LINALG_UTIL_ERROR_CUBLAS_HPP
 #define DCA_LINALG_UTIL_ERROR_CUBLAS_HPP
 
-#if define(DCA_HAVE_CUDA)
+#if defined(DCA_HAVE_CUDA)
 #include <cublas_v2.h>
 #include "dca/linalg/util/error_cuda.hpp"
-#elif define(DCA_HAVE_HIP)
+#elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
 #include <hipblas.h>
 #include <hip/hip_complex.h>

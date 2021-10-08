@@ -15,11 +15,9 @@
 
 #include <vector>
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
+#include "dca/config/haves_defines.hpp"
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
 #endif
 
 namespace dca {

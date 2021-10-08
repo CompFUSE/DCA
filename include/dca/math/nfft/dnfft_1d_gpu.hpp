@@ -14,11 +14,9 @@
 #ifndef DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
 #define DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda_runtime.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #else
 #error "This file requires GPU."
 #endif
@@ -100,7 +98,7 @@ private:
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
-  linalg::util::GpuStream& stream_;
+  const linalg::util::GpuStream& stream_;
   const bool accumulate_m_sqr_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;

@@ -1,10 +1,22 @@
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
+//
+
+#include "dca/config/haves_defines.hpp"
 #include <dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
 #include "gtest/gtest.h"
 
 #include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
@@ -55,8 +67,8 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
 
   Matrix<Real, CPU> G0;
   Matrix<Real, GPU> G0_dev;
-  dca::linalg::util::CudaStream stream;
-
+  dca::linalg::util::GpuStream stream;
+  
   const std::vector<int> sizes{1, 3, 8};
   const std::vector<int> deltas{1, 2, 3};
   int s(0);
@@ -84,8 +96,8 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
       G0_dev.resizeNoCopy(matrix_size);
 
       builder_cpu.computeG0(G0, configuration.getSector(s), n_init, size, right_sector);
-      builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream);
-      cudaStreamSynchronize(stream);
+      builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream.streamActually());
+      cudaStreamSynchronize(stream.streamActually());
 
       Matrix<Real, CPU> G0_dev_copy(G0_dev);
       constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();

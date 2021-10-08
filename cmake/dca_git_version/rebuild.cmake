@@ -9,6 +9,8 @@
 # SCRIPT_SRC_DIR is passed in from the custom rule as the PROJECT_SOURCE_DIR is not valid when run
 # as a rule.
 
+if(SANE_DEV_BUILD)
+
 # Check git log
 execute_process(
   COMMAND git --git-dir ${SCRIPT_SRC_DIR}/.git --work-tree ${SCRIPT_SRC_DIR} log -1
@@ -74,4 +76,6 @@ endif()
 if (LOG_CHANGED OR STATUS_CHANGED)
   configure_file("${SCRIPT_SRC_DIR}/src/util/git_version.cpp.in"
     "${SCRIPT_BIN_DIR}/src/util/git_version.cpp" @ONLY)
+endif()
+
 endif()

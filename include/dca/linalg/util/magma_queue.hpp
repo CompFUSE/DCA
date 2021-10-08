@@ -11,19 +11,9 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_QUEUE_HPP
 #define DCA_LINALG_UTIL_MAGMA_QUEUE_HPP
-#if defined(DCA_HAVE_CUDA)
-#include <cublas_v2.h>
-#include <cuda.h>
-#include <cusparse_v2.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include <hipblas.h>
-#include <hipsparse.h>
-#include "dca/util/cuda2hip.h"
-#endif
-
-#if defined(DCA_HAVE_CUDA)
-#elif defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
 #else
 #pragma error "This file requires CUDA support."
 #endif
@@ -31,7 +21,7 @@
 
 #include <magma_v2.h>
 
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 namespace dca {
 namespace linalg {

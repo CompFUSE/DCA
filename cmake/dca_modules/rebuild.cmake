@@ -9,6 +9,7 @@
 # The param SCRIPT_BIN_DIR is passed with the correct binary path because when this script runs,
 # PROJECT_BINARY_DIR is not set as expected.
 
+if(SANE_DEV_BUILD)
 execute_process(
   COMMAND modulecmd bash list
   WORKING_DIRECTORY "${SCRIPT_SRC_DIR}"
@@ -38,4 +39,5 @@ else()
   execute_process(
     COMMAND make clean
     WORKING_DIRECTORY "${SCRIPT_BIN_DIR}")
+endif()
 endif()

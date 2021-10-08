@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -9,15 +9,13 @@
 //
 // RAII wrapper for cuda events.
 
-#ifndef DCA_LINALG_UTIL_CUDA_EVENT_HPP
-#define DCA_LINALG_UTIL_CUDA_EVENT_HPP
+#ifndef DCA_LINALG_UTIL_GPU_EVENT_HPP
+#define DCA_LINALG_UTIL_GPU_EVENT_HPP
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#endif  // DCA_HAVE_CUDA
+#include "dca/config/haves_defines.hpp"
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
+#endif  // DCA_HAVE_GPU
 
 #include "dca/linalg/util/gpu_stream.hpp"
 
@@ -26,7 +24,7 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#if defined(DCA_HAVE_GPU)
 class GpuEvent {
 public:
   GpuEvent() {
@@ -75,7 +73,7 @@ float elapsedTime(cudaEvent_t stop, cudaEvent_t start) {
 
 #else
 
-// Define a trivial, non-blocking event in case CUDA is not available.
+// Define a trivial, non-blocking event in case GPU is not available.
 class GpuEvent {
 public:
   template <class T>
@@ -91,10 +89,10 @@ public:
   }
 };
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // util
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_UTIL_CUDA_EVENT_HPP
+#endif  // DCA_LINALG_UTIL_GPU_EVENT_HPP

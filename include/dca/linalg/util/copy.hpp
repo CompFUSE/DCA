@@ -16,15 +16,10 @@
 #include <complex>
 #include <cstring>
 #include "dca/linalg/device_type.hpp"
-#include "cuda_stream.hpp"
+#include "gpu_stream.hpp"
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #endif
 #include "dca/linalg/util/stream_functions.hpp"
 

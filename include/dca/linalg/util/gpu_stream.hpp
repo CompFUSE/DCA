@@ -40,7 +40,7 @@ public:
   }
 
   // clang at least can't do the GpuStream_t() conversion
-  cudaStream_t streamActually(){
+  cudaStream_t streamActually() const {
     return stream_;
   }
 

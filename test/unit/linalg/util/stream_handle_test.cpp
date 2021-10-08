@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -13,8 +13,8 @@
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include <stdexcept>
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
 #include "gtest/gtest.h"
 
 TEST(StreamHandelsTest, Streams) {

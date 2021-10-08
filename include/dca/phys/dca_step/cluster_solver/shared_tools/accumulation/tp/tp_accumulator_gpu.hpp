@@ -16,11 +16,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu_base.hpp"
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda.h>
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
 #else
 #error "This file requires GPU."
 #endif
@@ -124,7 +121,7 @@ public:
   // other_acc.
   void sumTo(ThisType& other_acc);
 
-  const linalg::util::CudaStream* get_stream() {
+  const linalg::util::GpuStream* get_stream() {
     return &queues_[0].getStream();
   }
 

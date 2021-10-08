@@ -12,13 +12,8 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_MANAGED_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_MANAGED_ALLOCATOR_HPP
 
-#if defined(DCA_HAVE_CUDA)
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include <hip/hip_runtime.h>
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #else
 #error "This file requires CUDA support."
 #endif

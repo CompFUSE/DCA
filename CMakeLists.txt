@@ -18,6 +18,8 @@ if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
                        rm -rf CMakeCache.txt CMakeFiles")
 endif()
 
+set(SANE_DEV_BUILD true)
+
 ################################################################################
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)

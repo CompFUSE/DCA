@@ -22,11 +22,8 @@
 #include <stdexcept>
 #include <vector>
 
-#if defined(DCA_HAVE_CUDA)
-#include "dca/linalg/util/gpu_event.hpp"
-#include "dca/linalg/util/gpu_stream.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include "dca/util/cuda2hip.h"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #else

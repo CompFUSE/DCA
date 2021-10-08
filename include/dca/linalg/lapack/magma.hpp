@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -18,11 +18,8 @@
 
 #include "dca/linalg/lapack/lapack.hpp"
 
-#if defined(DCA_HAVE_CUDA)
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
 #endif
 #include "dca/linalg/util/cast_gpu.hpp"
 

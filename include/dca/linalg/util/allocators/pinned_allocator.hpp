@@ -12,6 +12,7 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_PINNED_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_PINNED_ALLOCATOR_HPP
 
+#include "dca/config/haves_defines.hpp"
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
 #else

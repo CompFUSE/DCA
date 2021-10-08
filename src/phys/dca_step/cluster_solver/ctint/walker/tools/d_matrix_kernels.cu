@@ -9,11 +9,10 @@
 //
 // This file implements the device methods of DMatrixBuilder.
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
-
-#include <cuda.h>
-
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/gpu_definitions.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
 #include "dca/util/cuda_blocks.hpp"
 

@@ -15,15 +15,14 @@
 #include <array>
 #include <cassert>
 #include <complex>
-#include <cuda.h>
-#include <cuda_runtime.h>
+
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/four_point_type.hpp"
 
@@ -453,9 +452,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
   CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
   if (atomic)
-    dca::linalg::atomicAdd(result_ptr, contribution * 0.5 * sign);
+    dca::linalg::atomicAdd(result_ptr, contribution * 0.5f * static_cast<Real>(sign));
   else
-    *result_ptr += contribution * 0.5 * sign;
+    *result_ptr += contribution * 0.5f * static_cast<Real>(sign);
 }
 
 template <typename Real, FourPointType type>

@@ -25,5 +25,6 @@
 #include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"
 #endif
+#include "dca/linalg/util/error_gpuBLAS.hpp"
 
 #endif

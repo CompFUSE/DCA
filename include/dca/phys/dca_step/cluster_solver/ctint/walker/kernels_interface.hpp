@@ -10,7 +10,7 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_KERNELS_INTERFACE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_KERNELS_INTERFACE_HPP
 
-#include <cuda.h>
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/linalg/matrix_view.hpp"
 
