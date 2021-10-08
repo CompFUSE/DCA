@@ -24,6 +24,9 @@
   #define __HOST__ __host__
   #define __DEVICE__ __device__
   #define IS_CUDA_COMPILER
+  #else
+    #define __HOST__
+    #define __DEVICE__
   #endif
 #elif defined(DCA_HAVE_HIP)
   #define __HOST__ __host__

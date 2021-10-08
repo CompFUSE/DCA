@@ -16,7 +16,7 @@
 
 #if defined(DCA_HAVE_CUDA)
 #include <cuComplex.h>
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+//#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #elif defined(DCA_HAVE_HIP)
 // hipComplex types are faulty so we use the magma complex types and operators
 #include <magma_operators.h>

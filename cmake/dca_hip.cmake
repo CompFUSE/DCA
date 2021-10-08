@@ -101,6 +101,7 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
   list(APPEND DCA_HIP_LIBS ${MAGMA_LIBRARY} HIP::sparse)
+  target_link_libraries(magma::magma INTERFACE LAPACK::LAPACK BLAS::BLAS)
 endif()
 
 # At the moment the GPU code requires MAGMA. Therefore we set DCA_HAVE_HIP to true, only if both

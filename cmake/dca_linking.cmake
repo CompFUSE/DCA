@@ -1,5 +1,4 @@
 
-
 #link the correct gpu runtime library
 function(dca_gpu_runtime_link target_name)
   if(DCA_HAVE_HIP)
@@ -29,6 +28,8 @@ function(dca_gpu_device_link target_name)
   elseif(DCA_HAVE_CUDA)
     set_target_properties( ${target_name}
       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties( ${target_name}
+      PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
    # target_compile_definitions(lapack_kernels PRIVATE DCA_HAVE_CUDA)
   endif()
 endfunction()

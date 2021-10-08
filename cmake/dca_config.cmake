@@ -60,7 +60,7 @@ endif()
 
 ################################################################################
 # copy the appropriate walker_device header (defines device template parameter)
-if (DCA_WITH_CUDA OR DCA_WITH_HIP)
+if (DCA_WITH_GPU)
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 else()

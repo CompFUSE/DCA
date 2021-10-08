@@ -17,6 +17,10 @@
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#endif
+
 namespace dca {
 namespace linalg {
 namespace lapack {

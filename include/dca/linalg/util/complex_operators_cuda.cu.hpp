@@ -16,6 +16,8 @@
 #ifndef DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP
 #define DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 

@@ -144,6 +144,11 @@ inline const magmaFloatComplex* castMAGMAComplex(const std::complex<float>& el) 
   return castMAGMAComplex(&el);
 }
 
+#ifdef DCA_HAVE_CUDA
+  #define cublasDoubleComplex  cuDoubleComplex
+  #define cublasComplex        cuComplex
+#endif
+  
 inline cublasDoubleComplex** castCUBLASComplex(std::complex<double>** ptr) {
   return reinterpret_cast<cublasDoubleComplex**>(ptr);
 }

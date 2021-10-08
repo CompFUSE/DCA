@@ -13,6 +13,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_HPP
 #ifdef DCA_HAVE_GPU
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/platform/gpu_definitions.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/sector_entry.hpp"
 

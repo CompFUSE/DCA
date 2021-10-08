@@ -5,6 +5,5 @@ add_library(function_transform STATIC
 
 if (DCA_HAVE_GPU)
   add_library(special_transform_kernels special_transforms_kernels.cu)
-  set_source_files_properties(special_transforms_kernels.cu PROPERTIES LANGUAGE HIP)
   dca_gpu_device_link(special_transform_kernels)
 endif()
