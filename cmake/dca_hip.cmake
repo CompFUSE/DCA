@@ -100,8 +100,8 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # I have built magma without openmp for
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
-  list(APPEND DCA_HIP_LIBS ${MAGMA_LIBRARY} HIP::sparse)
-  target_link_libraries(magma::magma INTERFACE LAPACK::LAPACK BLAS::BLAS)
+  target_link_libraries(magma::sparse INTERFACE roc::hipblas)
+  target_link_libraries(magma::sparse INTERFACE roc::hipsparse)
 endif()
 
 # At the moment the GPU code requires MAGMA. Therefore we set DCA_HAVE_HIP to true, only if both

@@ -12,6 +12,7 @@
  *  This file tests the ReshapableMatrix<CPU> class.
  */
 #include "dca/linalg/reshapable_matrix.hpp"
+
 #include <complex>
 #include <string>
 #include "gtest/gtest.h"

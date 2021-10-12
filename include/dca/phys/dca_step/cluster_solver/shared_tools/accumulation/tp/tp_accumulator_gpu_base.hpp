@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/config/mc_options.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/matrix.hpp"

@@ -122,6 +122,8 @@ include(dca_linking)
 # Libraries
 add_subdirectory(src)
 
+# We are trying to move away from this abdication targeting try to explicitly link
+# without using this mess.
 set(DCA_LIBS
   git_version
   modules

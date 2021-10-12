@@ -87,6 +87,8 @@
 #define cusparseCreate          hipsparseCreate
 #define cusparseDestroy         hipsparseDestroy
 #define magma_queue_create_from_cuda_internal  magma_queue_create_from_hip_internal
+#define magma_queue_get_cuda_stream  magma_queue_get_hip_stream
+
 
 #define cudaStreamAttachMemAsync        hipStreamAttachMemAsync
 // hipComplex types are broken with respect to operator overloads
@@ -145,6 +147,7 @@
 #define cudaMemAdviseSetReadMostly      hipMemAdviseSetReadMostly
 #define cudaMemAttachGlobal             hipMemAttachGlobal
 #define cudaMemcpy                      hipMemcpy
+#define cudaMemcpy2D                    hipMemcpy2D
 #define cudaMemcpyAsync                 hipMemcpyAsync
 #define cudaMemcpy2DAsync               hipMemcpy2DAsync
 #define cudaMemcpyDeviceToDevice        hipMemcpyDeviceToDevice

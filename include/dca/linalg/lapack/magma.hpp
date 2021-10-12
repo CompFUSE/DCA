@@ -18,6 +18,7 @@
 
 #include "dca/linalg/lapack/lapack.hpp"
 
+#include "dca/config/haves_defines.hpp"
 #if defined(DCA_HAVE_GPU)
 #include "dca/platform/dca_gpu.h"
 #endif

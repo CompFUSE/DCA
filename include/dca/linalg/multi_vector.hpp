@@ -13,6 +13,7 @@
 #define DCA_LINALG_MULTI_VECTOR_HPP
 
 #include "dca/linalg/vector.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/type_list.hpp"
 #include "dca/util/pack_operations.hpp"

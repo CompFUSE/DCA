@@ -22,6 +22,10 @@
 #include <type_traits>
 #include <utility>
 
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#endif
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
@@ -147,7 +151,7 @@ public:
   // Releases the memory allocated by *this and sets size and capacity to zero.
   void clear();
 
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
   void setAsync(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
@@ -164,7 +168,7 @@ public:
   void setAsync(const ReshapableMatrix<ScalarType, rhs_device_name>& rhs, int /*thread_id*/,
                 int /*stream_id*/);
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
   // Returns the allocated device memory in bytes.
   std::size_t deviceFingerprint() const;
@@ -308,7 +312,7 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::clear() {
   capacity_ = 0;
 }
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name>
@@ -331,7 +335,7 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::setToZero(cudaStream_
   cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
 }
 
-#else  // DCA_HAVE_CUDA
+#else  // DCA_HAVE_GPU
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name>
@@ -340,7 +344,7 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
   *this = rhs;
 }
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::nextCapacity(const std::size_t size) {

@@ -47,7 +47,7 @@ void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_
   }
 }
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // Fully synchronous 1D memory copy, i.e. all operations in the GPU queue are executed before the
 // execution of this copy.
 // The host continues the execution of the program when the copy is terminated.
@@ -172,7 +172,7 @@ void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int l
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace util
 }  // namespace linalg

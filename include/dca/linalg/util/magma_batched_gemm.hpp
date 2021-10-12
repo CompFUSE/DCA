@@ -11,8 +11,6 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
 #define DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
-
 #if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/error_cuda.hpp"
 #elif defined(DCA_HAVE_HIP)
@@ -124,5 +122,4 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
 }  // namespace linalg
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP

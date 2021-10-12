@@ -15,8 +15,9 @@
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 
+#include "dca/config/haves_defines.hpp"
 #ifndef DCA_HAVE_GPU
-#pragma error "GPU algorithm requested but DCA_HAVE_GPU is not defined."
+#error "GPU algorithm requested but DCA_HAVE_GPU is not defined."
 #endif
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
