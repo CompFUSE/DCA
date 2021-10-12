@@ -29,7 +29,7 @@ namespace lapack {
 // dca::linalg::lapack::
 
 template <DeviceType DeviceName>
-struct UseDevice;
+struct UseDevice {};
 
 template <>
 struct UseDevice<CPU> {

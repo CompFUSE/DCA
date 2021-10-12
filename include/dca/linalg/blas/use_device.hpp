@@ -31,7 +31,7 @@ namespace blas {
 // dca::linalg::blas::
 
 template <DeviceType DeviceName>
-struct UseDevice;
+struct UseDevice {};
 
 template <>
 struct UseDevice<CPU> {

@@ -30,6 +30,9 @@
 # #  set up ROCM compiler options and libraries
 # #-------------------------------------------------------------------
 if(DCA_WITH_HIP)
+  if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
+    message(FATAL_ERROR "Compilation for HIP requires CMake 3.21.0 or later.")
+  endif()
   set(ENABLE_HIP 1)
   message(STATUS "ROCM_ROOT: ${ROCM_ROOT}")
 
