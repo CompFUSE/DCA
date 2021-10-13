@@ -13,7 +13,7 @@
 #define DCA_LINALG_UTIL_VECTORS_TYPEDEFS_HPP
 
 #include <vector>
-
+#include "dca/config/haves_defines.hpp"
 #ifdef DCA_HAVE_CUDA
 #include "managed_allocator.hpp"
 #include "pinned_allocator.hpp"
