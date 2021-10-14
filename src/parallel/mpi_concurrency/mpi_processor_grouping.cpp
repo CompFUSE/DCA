@@ -67,7 +67,7 @@ bool MPIProcessorGrouping::defaultCheck() {
   }
 #else
   return true;
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 }
 
 void MPIProcessorGrouping::printRemovedProcesses() const {

@@ -14,16 +14,16 @@
 
 #include <vector>
 #include "dca/config/haves_defines.hpp"
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "managed_allocator.hpp"
 #include "pinned_allocator.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {
 namespace util {
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <typename T>
 using HostVector = std::vector<T, PinnedAllocator<T>>;
 template <typename T>
@@ -32,7 +32,7 @@ using ManagedVector = std::vector<T, ManagedAllocator<T>>;
 #else
 template <typename T>
 using HostVector = std::vector<T>;
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // util
 }  // linalg

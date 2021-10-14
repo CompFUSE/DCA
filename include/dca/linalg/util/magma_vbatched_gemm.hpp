@@ -11,7 +11,7 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_VBATCHED_GEMM_HPP
 #define DCA_LINALG_UTIL_MAGMA_VBATCHED_GEMM_HPP
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
 
 #include <cassert>
 #include <vector>
@@ -156,5 +156,5 @@ void MagmaVBatchedGemm<ScalarType>::synchronizeCopy() {
 }  // namespace linalg
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA || DCA_HAVE_HIP
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_LINALG_UTIL_MAGMA_VBATCHED_GEMM_HPP

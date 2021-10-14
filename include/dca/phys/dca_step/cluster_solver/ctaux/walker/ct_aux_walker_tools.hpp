@@ -28,7 +28,7 @@
 #include "dca/linalg/lapack/lapack.hpp"
 #include "dca/linalg/lapack/solve.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // CUBLAS
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
@@ -104,7 +104,7 @@ private:
   dca::linalg::Vector<Real, dca::linalg::CPU> d;
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 //
 // Specialization for GPU
 //
@@ -129,7 +129,7 @@ public:
   }
 };
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace ctaux
 }  // namespace solver

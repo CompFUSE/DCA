@@ -6,8 +6,12 @@ target_include_directories(ctaux_walker_performance_test  PRIVATE
 target_compile_definitions(ctaux_walker_performance_test PRIVATE DCA_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 
-if (DCA_HAVE_CUDA)
-  target_compile_definitions(ctaux_walker_performance_test PRIVATE DCA_HAVE_CUDA)
-  target_link_directories(ctaux_walker_performance_test PRIVATE ${CUDA_TOOLKIT_ROOT_DIR}/lib64/)
-  target_link_libraries(ctaux_walker_performance_test PRIVATE nvToolsExt ${DCA_LIBS})
+if (DCA_HAVE_GPU)
+  #target_compile_definitions(ctaux_walker_performance_test PRIVATE DCA_HAVE_CUDA)
+  #target_link_directories(ctaux_walker_performance_test PRIVATE ${CUDA_TOOLKIT_ROOT_DIR}/lib64/)
+  target_link_libraries(ctaux_walker_performance_test PRIVATE ${DCA_LIBS})
+  dca_gpu_runtime_link(ctaux_walker_performance_test)
+  if (DCA_HAVE_CUDA)
+    target_link_libraries(ctaux_walker_performance_test PRIVATE nvToolsExt)
+  endif()
 endif ()

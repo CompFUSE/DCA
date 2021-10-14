@@ -18,7 +18,7 @@
 
 #include "dca/linalg/linalg.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_matrix_tools/n_matrix_tools_kernels.hpp"
 #endif
 
@@ -35,7 +35,7 @@ class N_MATRIX_TOOLS {};
 // Specialization for CPU
 #include "n_matrix_tools_cpu.inc"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // Specialization for GPU
 #include "n_matrix_tools_gpu.inc"
 #endif
