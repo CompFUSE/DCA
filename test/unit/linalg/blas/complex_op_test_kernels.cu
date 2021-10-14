@@ -12,7 +12,6 @@
 #include <cassert>
 #include "complex_op_test_kernels.hpp"
 #include <magma_operators.h>
-#include "dca/util/cuda2hip.h"
 
 template<typename T>
 __global__ void gpu_operator_opmult_kernel(T* a, const T* b) {
