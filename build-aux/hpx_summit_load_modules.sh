@@ -8,9 +8,11 @@
 module reset
 module load gcc/9.3.0
 module load magma/2.6.1
+module load hpx
 module load hdf5
 module load fftw
 module load cmake
 module load netlib-lapack
 module load essl
+module load cuda
 

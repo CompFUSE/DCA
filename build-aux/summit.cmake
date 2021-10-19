@@ -5,16 +5,15 @@
 # Prevent CMake from searching for BLAS and LAPACK libraries.
 # Paths to IBM's ESSL (preferred) and NETLIB-LAPACK will be set manually.
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "If set to TRUE, prevents CMake from searching for LAPACK.")
-
-if(NOT DCA_WITH_HPX)
 # To give ESSL precedence it needs to be specified before NETLIB.
 set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
+
+if(DCA_WITH_HPX)
+set(LAPACK_LIBRARIES $ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
+else()
 # Set the include directory for the ESSL library.
 set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL include directory.")
 mark_as_advanced(DCA_ESSL_INCLUDES)
-else()
-#HPX threading support should not interact with essl
-set(LAPACK_LIBRARIES $ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
 endif()
 
 # Use jsrun for executing the tests.
@@ -40,15 +39,14 @@ set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
-set(MAGMA_DIR "/gpfs/alpine/proj-shared/cph102/epd/magma_cuda11" CACHE PATH
+set(MAGMA_DIR "/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.3.0/magma-2.6.1-v52v5xuz6viygha3zvzkbmhhhdhqy5r6" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 # FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
-# Enable the threaded support.
-option(DCA_WITH_THREADED_SOLVER "Enable threaded support." ON)
+#compilers
+#set(CMAKE_C_COMPILER mpicc)
+#set(CMAKE_CXX_COMPILER mpicxx)
 
-# HPX paths.
-#set(HPX_DIR $ENV{OLCF_HPX_ROOT}/lib64/cmake/HPX CACHE PATH "Path to HPX library.")
