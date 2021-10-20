@@ -91,35 +91,41 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
-  if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
-    set(oldname ${name})
-    set(name ${name}_hpx)
-    add_executable(${name} ${oldname}.cpp ${DCA_ADD_GTEST_SOURCES})
-    hpx_setup_target(${name})
-    set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
-    if (DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
-      if(DCA_ADD_GTEST_MPI_NUMPROC EQUAL 0)
-        set(DCA_ADD_GTEST_MPI_NUMPROC 1)
-      endif()
-      math(EXPR NUMTHREADS "${CPUS} / ${DCA_ADD_GTEST_MPI_NUMPROC}")
-      if ("${NUMTHREADS}" LESS "1")
-        set(NUMTHREADS "1")
-      endif()
-      set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
-    endif()
+  if (DCA_ADD_GTEST_GTEST_MAIN)
+    set(DCA_ADD_GTEST_SOURCES ${PROJECT_SOURCE_DIR}/test/dca_gtest_main.cpp ${DCA_ADD_GTEST_SOURCES})
   endif()
+
+  add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+
+  target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+
+  # if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
+  #   set(oldname ${name})
+  #   set(name ${name}_hpx)
+  #   add_executable(${name} ${oldname}.cpp ${DCA_ADD_GTEST_SOURCES})
+  #   hpx_setup_target(${name})
+  #   set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
+  #   if (DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
+  #     if(DCA_ADD_GTEST_MPI_NUMPROC EQUAL 0)
+  #       set(DCA_ADD_GTEST_MPI_NUMPROC 1)
+  #     endif()
+  #     math(EXPR NUMTHREADS "${CPUS} / ${DCA_ADD_GTEST_MPI_NUMPROC}")
+  #     if ("${NUMTHREADS}" LESS "1")
+  #       set(NUMTHREADS "1")
+  #     endif()
+  #     set(DCA_TESTING_ARGS_HPX "--hpx:threads=5")
+  #   endif()
+  # endif()
 
   # Create a macro with the project source dir. We use this as the root path for reading files in
   # tests.
-  target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
-    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest_main)
+    target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
   else()
     # Test has its own main.
-    target_link_libraries(${name} PRIVATE ${DCA_ADD_GTEST_LIBS} gtest)
+    target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
   endif()
 
   if (DCA_HAVE_CUDA)
@@ -148,6 +154,12 @@ function(dca_add_gtest name)
     target_link_libraries(${name} PRIVATE CUDA::cublas)
   endif()
 
+  if (DCA_HAVE_HPX)
+    target_link_libraries(${name} PUBLIC HPX::hpx HPX::wrap_main)
+  endif()
+
+
+  
   target_include_directories(${name} PRIVATE
     ${gtest_SOURCE_DIR}/include
     ${DCA_ADD_GTEST_INCLUDE_DIRS})

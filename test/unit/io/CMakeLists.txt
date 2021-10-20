@@ -16,7 +16,6 @@ dca_add_gtest(json_reader_test
         LIBS json)
 
 dca_add_gtest(reader_writer_test
-  GTEST_MAIN
   LIBS dca_hdf5;${HDF5_LIBRARIES};json;function)
 
 if (DCA_HAVE_ADIOS2)

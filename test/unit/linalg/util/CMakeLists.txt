@@ -6,7 +6,7 @@ dca_add_gtest(check_RC_test
               LIBS ${DCA_LIBS} ${DCA_CUDA_LIBS})
 
 dca_add_gtest(magma_batched_gemm_test
-              GTEST_MAIN
+	      GTEST_MAIN
               CUDA
               LIBS lapack cuda_utils ${MAGMA_LIBRARY} ${DCA_EXTERNAL_LIBS})
 
