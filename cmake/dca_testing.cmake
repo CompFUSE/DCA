@@ -99,6 +99,9 @@ function(dca_add_gtest name)
 
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
+  if (DCA_ADD_GTEST_HPX AND DCA_HAVE_HPX)
+    set(DCA_TESTING_FLAGS "--hpx:threads=5")
+  endif()
   # if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
   #   set(oldname ${name})
   #   set(name ${name}_hpx)
@@ -120,13 +123,7 @@ function(dca_add_gtest name)
   # Create a macro with the project source dir. We use this as the root path for reading files in
   # tests.
 
-  if (DCA_ADD_GTEST_GTEST_MAIN)
-    # Use gtest main.
-    target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
-  else()
-    # Test has its own main.
-    target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
-  endif()
+  target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
 
   if (DCA_HAVE_CUDA)
     set_property(TARGET ${name} PROPERTY CMAKE_CUDA_ARCHITECTURES 70)
@@ -172,18 +169,18 @@ function(dca_add_gtest name)
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
                      ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>"
-                     ${DCA_TESTING_ARGS_HPX})
+                     ${DCA_TESTING_FLAGS})
                  target_link_libraries(${name} PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
                    ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>"
-                   ${DCA_TESTING_ARGS_HPX})
+                   ${DCA_TESTING_FLAGS})
     else (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND "$<TARGET_FILE:${name}>"
-               ${DCA_TESTING_ARGS_HPX})
+               ${DCA_TESTING_FLAGS})
     endif (TEST_RUNNER)
   endif()
 

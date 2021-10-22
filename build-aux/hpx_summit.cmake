@@ -46,10 +46,10 @@ set(MAGMA_DIR "/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.3.0/magm
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
-option(DCA_WITH_HPX "Enable HPX support" ON)
+option(DCA_WITH_HPX "Enable HPX for multi-threading" ON)
 set(HPX_IGNORE_COMPILER_COMPATIBILITY ON)
 
 #compilers
-#set(CMAKE_C_COMPILER mpicc)
-#set(CMAKE_CXX_COMPILER mpicxx)
+set(CMAKE_C_COMPILER /sw/summit/gcc/9.3.0-2/bin/gcc)
+set(CMAKE_CXX_COMPILER /sw/summit/gcc/9.3.0-2/bin/g++)
 

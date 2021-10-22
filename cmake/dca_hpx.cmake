@@ -2,7 +2,7 @@
 # Find HPX
 ################################################################################
 
-set(DCA_HAVE_HPX FALSE)
+set(DCA_HAVE_HPX FALSE CACHE INTERNAL "")
 
 find_package(HPX)
 if (HPX_FOUND)

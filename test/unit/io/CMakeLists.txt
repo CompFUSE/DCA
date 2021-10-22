@@ -5,18 +5,18 @@ dca_add_gtest(buffer_test
 
 dca_add_gtest(reader_test
   GTEST_MAIN
-  LIBS function dca_hdf5 json ${HDF5_LIBRARIES})
+  LIBS function dca_hdf5 json hdf5::hdf5_cpp)
 
 dca_add_gtest(writer_test
   GTEST_MAIN
-  LIBS function dca_hdf5 json ${HDF5_LIBRARIES})
+  LIBS function dca_hdf5 json hdf5::hdf5_cpp)
 
 dca_add_gtest(json_reader_test
         GTEST_MAIN
         LIBS json)
 
 dca_add_gtest(reader_writer_test
-  LIBS dca_hdf5;${HDF5_LIBRARIES};json;function)
+  LIBS dca_hdf5 hdf5::hdf5_cpp json function)
 
 if (DCA_HAVE_ADIOS2)
   dca_add_gtest(adios2_reader_writer_test
