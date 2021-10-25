@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Wrapper to an instance of HDF5Reader of JSONReader.
+// Wrapper to an instance of HDF5Reader or JSONReader.
 
 #ifndef DCA_IO_READER_HPP
 #define DCA_IO_READER_HPP

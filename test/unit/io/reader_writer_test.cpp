@@ -276,7 +276,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     present = 1;
 
     dca::io::Writer writer(*concurrency_ptr, type);
-    writer.open_file("hdf5_missing_func" + toLower(type));
+    writer.open_file("hdf5_missing_func." + toLower(type));
     writer.execute(present);
     writer.close_file();
 
@@ -284,7 +284,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     present = 0;
 
     dca::io::Reader reader(type);
-    reader.open_file("hdf5_missing_func" + toLower(type));
+    reader.open_file("hdf5_missing_func." + toLower(type));
     EXPECT_FALSE(reader.execute(not_present));
     EXPECT_TRUE(reader.execute(present));
 

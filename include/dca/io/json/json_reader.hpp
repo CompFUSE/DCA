@@ -130,7 +130,7 @@ bool JSONReader::execute(const std::string& name,
     return false;
   }
 
-  m.resize(size);
+  m.resizeNoCopy(size);
 
   for (int i = 0; i < size.first; ++i)
     for (int j = 0; j < size.second; ++j) {

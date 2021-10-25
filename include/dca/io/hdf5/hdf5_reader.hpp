@@ -192,13 +192,13 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar,
   return true;
 }
 
-  template <typename Scalartype, typename domain_type, DistType DT>
-  bool HDF5Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
+template <typename Scalartype, typename domain_type, DistType DT>
+bool HDF5Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
   return execute(f.get_name(), f);
 }
 
-  template <typename Scalartype, typename domain_type, DistType DT>
-  bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
+template <typename Scalartype, typename domain_type, DistType DT>
+bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
   std::string full_name = get_path() + "/" + name;
 
   if (!exists(full_name)) {
