@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
       Profiler::stop(concurrency, "profile_cpu.txt");
   }
 
-#ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_CUDA
   if (test_gpu) {
     std::cout << "\n\n  *********** GPU integration  ***************\n\n";
     std::cout.flush();

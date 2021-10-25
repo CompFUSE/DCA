@@ -11,12 +11,7 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
 #define DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
-#if defined(DCA_HAVE_GPU)
-#include "dca/linalg/util/error_cuda.hpp"
-#elif defined(DCA_HAVE_HIP)
-#include "dca/util/cuda2hip.h"
-#include "dca/linalg/util/error_hip.hpp"
-#endif
+#include "dca/platform/dca_gpu.h"
 
 
 #include <cassert>
