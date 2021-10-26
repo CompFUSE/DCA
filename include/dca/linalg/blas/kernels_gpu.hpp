@@ -107,8 +107,17 @@ extern template void copyCols(int col_size, int n_cols, const int* j_x, const cu
                        const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
 extern template void copyCols(int col_size, int n_cols, const int* j_x, const cuDoubleComplex* x, int ldx,
                        const int* j_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
+                       const int* j_y, double* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const float* x, int ldx,
+                       const int* j_y, float* y, int ldy, int thread_id, int stream_id);
+
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const cuComplex* x, int ldx,
+                       const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
+
 extern template void copyCols(int, int, const int*, const float*, int, float*, int, int, int);
 extern template void copyCols(int, int, const int*, const double*, int, double*, int, int, int);
+
 extern template void copyRows(int row_size, int n_rows, const int* i_x, const float* x, int ldx,
                        const int* i_y, float* y, int ldy, int thread_id, int stream_id);
 extern template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
@@ -117,10 +126,6 @@ extern template void copyRows(int row_size, int n_rows, const int* i_x, const cu
                        const int* i_y, cuComplex* y, int ldy, int thread_id, int stream_id);
 extern template void copyRows(int row_size, int n_rows, const int* i_x, const cuDoubleComplex* x, int ldx,
                        const int* i_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
-extern template void copyRows(int row_size, int n_rows, const int* i_x, const float* x, int ldx, float* y,
-                       int ldy, int thread_id, int stream_id);
-extern template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
-                       double* y, int ldy, int thread_id, int stream_id);
 extern template void moveLeft(int m, int n, float* a, int lda);
 extern template void moveLeft(int m, int n, double* a, int lda);
 extern template void moveLeft(int m, int n, cuComplex* a, int lda);
