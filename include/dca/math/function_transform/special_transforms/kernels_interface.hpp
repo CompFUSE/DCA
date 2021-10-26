@@ -45,5 +45,5 @@ extern template void phaseFactorsAndRearrange<float>(const std::complex<float>* 
 }  // namespace math
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE

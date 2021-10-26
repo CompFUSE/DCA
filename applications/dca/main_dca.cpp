@@ -47,9 +47,9 @@ int main(int argc, char** argv) {
       dca::util::Modules::print();
       dca::config::CMakeOptions::print();
 
-#if defined(DCA_WITH_CUDA) || defined(DCA_WITH_HIP)
+#ifdef DCA_HAVE_GPU
       dca::linalg::util::printInfoDevices();
-#endif  // DCA_WITH_CUDA
+#endif  // DCA_HAVE_GPU
 
       std::cout
           << "\n"
@@ -64,9 +64,9 @@ int main(int argc, char** argv) {
           << std::endl;
     }
 
-#if defined(DCA_WITH_CUDA) || defined(DCA_WITH_HIP)
+#ifdef DCA_HAVE_GPU
     dca::linalg::util::initializeMagma();
-#endif  // DCA_WITH_CUDA
+#endif  // DCA_HAVE_GPU
 
     // Create the parameters object from the input file.
     ParametersType parameters(dca::util::GitVersion::string(), concurrency);

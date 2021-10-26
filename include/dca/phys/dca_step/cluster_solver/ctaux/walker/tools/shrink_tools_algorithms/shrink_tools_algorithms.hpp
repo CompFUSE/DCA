@@ -34,7 +34,7 @@ class SHRINK_TOOLS_ALGORITHMS {};
 // Specialization for CPU
 #include "shrink_tools_algorithms_cpu.inc"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // Specialization for GPU
 // Uses SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU> and therefore needs to be included after
 // shrink_tools_algorithms_cpu.inc.

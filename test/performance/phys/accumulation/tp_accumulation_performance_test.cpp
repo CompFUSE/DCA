@@ -16,10 +16,14 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA)
 #include <cuda_profiler_api.h>
+#elif defined(DCA_HAVE_HIP)
+// \todo add hip profiler
+#endif
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -134,7 +138,7 @@ int main(int argc, char** argv) {
     std::cout << "\n\nTpAccumulation CPU time [sec]:\t " << time << "\n";
   }
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   dca::linalg::util::initializeMagma();
   dca::linalg::util::GpuEvent start_event;
   dca::linalg::util::GpuEvent stop_event;
@@ -178,7 +182,7 @@ int main(int argc, char** argv) {
 
   cudaProfilerStop();
   Profiler::stop("tp_gpu_accumulation_profile.txt");
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 }
 
 void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, const int n) {

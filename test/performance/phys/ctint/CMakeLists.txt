@@ -7,7 +7,8 @@ target_include_directories(ctint_walker_performance_test  PRIVATE
 target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 
-if (DCA_HAVE_CUDA)
-  target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_HAVE_CUDA)
-  target_link_libraries(ctint_walker_performance_test PRIVATE ${MAGMA_LIBRARY};${CUDA_cublas_LIBRARY})
+if (DCA_HAVE_GPU)
+  # target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_HAVE_CUDA)
+  dca_gpu_blas_link(ctint_walker_performance_test)
+  target_link_libraries(ctint_walker_performance_test PRIVATE magma::magma mc_kernels)
 endif ()

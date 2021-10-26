@@ -52,7 +52,7 @@ struct Memory<CPU> {
   }
 };
 
-#if defined(DCA_HAVE_CUDA) || defined(DCA_HAVE_HIP)
+#ifdef DCA_HAVE_GPU
 template <>
 struct Memory<GPU> {
   // Sets the elements to 0. Only defined for arithmetic types and
@@ -78,7 +78,7 @@ struct Memory<GPU> {
     cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
   }
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace util
 }  // namespace linalg

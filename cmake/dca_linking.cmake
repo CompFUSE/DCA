@@ -18,14 +18,14 @@ function(dca_gpu_blas_link target_name)
     target_link_libraries(${target_name} PUBLIC CUDA::cublas)
   endif()
 endfunction()
-
+	
 function(dca_gpu_device_link target_name)
   if(DCA_HAVE_HIP)
     set_target_properties( ${target_name} PROPERTIES LINKER_LANGUAGE "HIP")
     set_target_properties( ${target_name}
       PROPERTIES HIP_SEPARABLE_COMPILATION ON)
     set_target_properties( ${target_name}
-      PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+      PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON)
     target_link_libraries(${target_name} PRIVATE hip::device)
     get_target_property(_srcs ${target_name} SOURCES)
     get_target_property(_src_dir ${target_name} SOURCE_DIR)

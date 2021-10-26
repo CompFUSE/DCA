@@ -16,7 +16,7 @@
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
 #else
-#error "This file requires CUDA support."
+#error "This file requires GPU support."
 #endif
 
 

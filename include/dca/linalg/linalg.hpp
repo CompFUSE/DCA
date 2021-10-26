@@ -14,6 +14,16 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
+#include "dca/linalg/util/handle_functions.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
+#include "dca/linalg/util/stream_container.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/linalg/util/util_gpublas.hpp"
+#endif  // DCA_HAVE_GPU
+
 // BLAS
 #include "dca/linalg/blas/blas1.hpp"
 #include "dca/linalg/blas/blas2.hpp"
@@ -25,7 +35,7 @@
 #include "dca/linalg/lapack/silence_lapack.hpp"
 #include "dca/linalg/lapack/solve.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // CUBLAS
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
@@ -35,7 +45,7 @@
 #include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 // Device selector struct
 #include "dca/linalg/device_type.hpp"
@@ -48,12 +58,3 @@
 #include "dca/linalg/util/lapack_exception.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
-#ifdef DCA_HAVE_GPU
-#include "dca/platform/dca_gpu.h"
-#include "dca/platform/dca_gpu_blas.h"
-#include "dca/linalg/util/handle_functions.hpp"
-#include "dca/linalg/util/info_gpu.hpp"
-#include "dca/linalg/util/stream_container.hpp"
-#include "dca/linalg/util/stream_functions.hpp"
-#include "dca/linalg/util/util_gpublas.hpp"
-#endif  // DCA_HAVE_GPU
