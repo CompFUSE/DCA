@@ -12,11 +12,6 @@
 
 #include <iostream>
 #include <string>
-#if defined(DCA_HAVE_CUDA)
-#include <cuda_profiler_api.h>
-#elif defined(DCA_HAVE_HIP)
-// \todo add hip profiler
-#endif
 
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -36,6 +31,11 @@
 #include "dca/profiling/counting_profiler.hpp"
 #include "dca/profiling/events/time_event.hpp"
 #include "dca/util/ignore.hpp"
+#if defined(DCA_HAVE_CUDA)
+#include <cuda_profiler_api.h>
+#elif defined(DCA_HAVE_HIP)
+// \todo add hip profiler
+#endif
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
 

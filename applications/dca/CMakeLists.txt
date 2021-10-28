@@ -5,12 +5,7 @@ if (DCA_BUILD_DCA)
   target_include_directories(main_dca PRIVATE ${DCA_INCLUDE_DIRS})
 
   if (DCA_HAVE_GPU)
-    if (DCA_HAVE_CUDA)
-      target_link_libraries(main_dca PRIVATE CUDA::cublas)
-    elseif (DCA_HAVE_HIP)
-      target_link_libraries(main_dca PRIVATE hip::host roc::hipblas)
-    endif()
-    target_link_libraries(main_dca PRIVATE blas_kernels mc_kernels magma::magma)
+    target_link_libraries(main_dca PRIVATE ${DCA_GPU_LIBS})
   endif()
 
   target_link_libraries(main_dca PRIVATE signals ${DCA_LIBS})

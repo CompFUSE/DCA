@@ -7,6 +7,7 @@ if(DCA_HAVE_GPU)
   dca_gpu_runtime_link(kernel_test)
   dca_gpu_blas_link(kernel_test)
   dca_gpu_device_link(kernel_test)
+  target_link_libraries(kernel_test PUBLIC gpu_utils)
   target_link_libraries(parallel_mpi_concurrency PUBLIC kernel_test)
 endif()
 
