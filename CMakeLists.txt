@@ -167,7 +167,7 @@ if (DCA_HAVE_CUDA)
     lapack_kernels
     mc_kernels
     special_transform_kernels
-    ${DCA_CUDA_LIBS})
+    ${DCA_GPU_LIBS})
   set(DCA_KERNEL_LIBS
     blas_kernels
     lapack_kernels

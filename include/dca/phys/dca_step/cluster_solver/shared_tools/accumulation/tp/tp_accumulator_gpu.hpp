@@ -223,10 +223,10 @@ RingMessage{-1, -1, MPI_REQUEST_NULL}};
   std::array<RMatrix, 2> sendbuff_G_;
 #endif
 
-#ifndef DCA_WITH_CUDA_AWARE_MPI
+#ifndef DCA_HAVE_GPU_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 };
 
 template <class Parameters, DistType DT>
@@ -508,7 +508,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
 
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
@@ -524,7 +524,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
 
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 }
 
 template <class Parameters, DistType DT>
@@ -534,7 +534,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].source,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
@@ -552,7 +552,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
     checkRC(cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
 		       cudaMemcpyHostToDevice));
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 }
 #endif  // DCA_WITH_MPI
 

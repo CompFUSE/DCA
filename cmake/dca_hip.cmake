@@ -2,7 +2,7 @@
 # Author: Peter Doak, doakpw@ornl.gov, Oak Ridge National Lab
 #
 # Checks for HIP and MAGMA and accordingly sets DCA_HAVE_HIP and DCA_HAVE_MAGMA.
-# In addition, set DCA_HIP_LIBS.
+# In addition, set DCA_GPU_LIBS.
 
 # set(ROCM_ROOT
 #   "/opt/rocm-4.2.0"
@@ -30,8 +30,8 @@
 # #  set up ROCM compiler options and libraries
 # #-------------------------------------------------------------------
 if(DCA_WITH_HIP)
-  if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
-    message(FATAL_ERROR "Compilation for HIP requires CMake 3.21.0 or later.")
+  if(${CMAKE_VERSION} VERSION_LESS "3.21.3")
+    message(FATAL_ERROR "Compilation for HIP requires CMake 3.21.3 or later.")
   endif()
   set(ENABLE_HIP 1)
   message(STATUS "ROCM_ROOT: ${ROCM_ROOT}")
@@ -52,7 +52,7 @@ set(MAGMA_ROOT "" CACHE PATH "Path to the MAGMA installation directory. Hint for
 
 set(DCA_HAVE_HIP FALSE CACHE INTERNAL "")
 set(DCA_HAVE_MAGMA FALSE CACHE INTERNAL "")
-set(DCA_HIP_LIBS "" CACHE INTERNAL "")
+set(DCA_GPU_LIBS "" CACHE INTERNAL "")
 
 include(CheckLanguage)
 check_language(HIP)
@@ -65,8 +65,7 @@ if (CMAKE_HIP_COMPILER)
   dca_add_haves_define(DCA_HAVE_HIP)
   dca_add_haves_define(DCA_HAVE_GPU)
   dca_add_haves_define(__HIP_PLATFORM_AMD__)
-  list(APPEND DCA_HIP_LIBS
-    HIP::HIP ROCM::libraries)
+  list(APPEND DCA_GPU_LIBS hip::host roc::hipblas)
   set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx906,gfx908")
   set(CMAKE_HIP_STANDARD 17)
   list(APPEND HIP_HIPCC_FLAGS "-fPIC")
@@ -108,12 +107,5 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
   target_link_libraries(magma::sparse INTERFACE magma::magma roc::hipblas roc::hipsparse)
-endif()
-
-# At the moment the GPU code requires MAGMA. Therefore we set DCA_HAVE_HIP to true, only if both
-# HIP and MAGMA have been found.
-if (HIP_FOUND AND DCA_HAVE_MAGMA)
-  set(DCA_HAVE_HIP TRUE CACHE INTERNAL "")
-  MESSAGE("DCA_HAVE_HIP set with dca_add_haves_define")
-  dca_add_haves_define(DCA_HAVE_HIP)
+  list(APPEND DCA_GPU_LIBS ${MAGMA_LIBRARY} roc::hipsparse)
 endif()

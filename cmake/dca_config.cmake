@@ -7,6 +7,7 @@
 ################################################################################
 # Enable MPI.
 option(DCA_WITH_MPI "Enable MPI." ON)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." OFF)
 
 if (DCA_WITH_MPI)
   include(dca_mpi)
@@ -40,9 +41,10 @@ option(DCA_WITH_CUDA "Enable Nvidia GPU support." OFF)
 if (DCA_WITH_CUDA)
   include(dca_cuda)
   if (NOT DCA_HAVE_CUDA)
-    message(FATAL_ERROR "CUDA or MAGMA not found but requested.")
+    message(FATAL_ERROR "CUDA and/or MAGMA not found but requested.")
   endif()
   dca_add_config_define(DCA_WITH_CUDA)
+  dca_add_config_define(DCA_WITH_GPU)
 endif()
 
 ################################################################################
@@ -59,8 +61,16 @@ if (DCA_WITH_HIP)
 endif()
 
 ################################################################################
-# copy the appropriate walker_device header (defines device template parameter)
+# Extra parameters common to all GPU setups.
 if (DCA_WITH_GPU)
+  if (NOT DCA_HAVE_MAGMA)
+    message(FATAL_ERROR "At the moment the GPU code requires MAGMA.")
+  endif()
+  if (DCA_WITH_GPU_AWARE_MPI)
+    # Don't have a good way to test for this at the moment.
+    dca_add_haves_define(DCA_HAVE_GPU_AWARE_MPI)
+  endif()
+  # copy the appropriate walker_device header (defines device template parameter)
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 else()

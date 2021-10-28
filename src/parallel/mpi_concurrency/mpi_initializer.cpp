@@ -20,7 +20,7 @@ namespace parallel {
 
 MPIInitializer::MPIInitializer(int argc, char** argv) {
   int provided = 0;
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_WITH_GPU_AWARE_MPI
   constexpr int required = MPI_THREAD_MULTIPLE;
 #else
   constexpr int required = MPI_THREAD_FUNNELED;
