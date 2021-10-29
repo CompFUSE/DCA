@@ -1,5 +1,5 @@
 dca_add_gtest(ringG_tp_accumulator_gpu_test
- FAST
+ EXTENSIVE
  CUDA_MPI
  MPI MPI_NUMPROC ${DCA_TEST_GPU_COUNT}
  GTEST_MAIN
