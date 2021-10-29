@@ -17,4 +17,4 @@ dca_add_gtest(cached_ndft_gpu_test
   CUDA
   FAST
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS ${DCA_CUDA_LIBS} magma::magma magma::sparse ${THIS_TEST_LIBS})
+  LIBS ${DCA_GPU_LIBS} magma::magma magma::sparse ${THIS_TEST_LIBS})

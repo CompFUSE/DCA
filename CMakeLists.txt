@@ -159,15 +159,21 @@ set(DCA_LIBS
   
 set(SYSTEM_GPU_COUNT 0)
 
-if (DCA_HAVE_CUDA)
-  EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
-                  OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+if (DCA_HAVE_GPU)
+  if (DCA_HAVE_CUDA)
+    EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                    OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+  endif()
+  if (DCA_HAVE_HIP)
+    EXECUTE_PROCESS(COMMAND bash -c "rocm-smi -i | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                    OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+  endif()
   list(APPEND DCA_LIBS
     blas_kernels
     lapack_kernels
     mc_kernels
     special_transform_kernels
-    ${DCA_CUDA_LIBS})
+    ${DCA_GPU_LIBS})
   set(DCA_KERNEL_LIBS
     blas_kernels
     lapack_kernels

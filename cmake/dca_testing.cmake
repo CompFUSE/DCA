@@ -85,7 +85,7 @@ function(dca_add_gtest name)
 
   # Right now we're only testing GPU distributed code on one node so its pointless
   # without more than one GPU per node.
-  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_CUDA_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
+  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_GPU_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
     return()
   endif()
 
@@ -120,15 +120,15 @@ function(dca_add_gtest name)
     IF(DCA_HAVE_CUDA)
       target_include_directories(${name} PRIVATE ${CUDATookit_INCLUDE_DIRS})
       target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
-      target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
+      target_link_libraries(${name} PRIVATE ${DCA_GPU_LIBS})
       target_link_libraries(${name} PRIVATE CUDA::cublas)
     ENDIF()
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
       target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
     endif()
-    if(DCA_WITH_CUDA_AWARE_MPI)
-      target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
+    if(DCA_WITH_GPU_AWARE_MPI)
+      target_compile_definitions(${name} PRIVATE DCA_HAVE_GPU_AWARE_MPI)
     endif()
     if (DCA_ADD_GTEST_CUDA_MPI)
       #We need to document which cuda aware openmpi requires this and which doesn't.

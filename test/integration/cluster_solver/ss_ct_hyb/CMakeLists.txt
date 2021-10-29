@@ -1,5 +1,5 @@
 set(TEST_INCLUDES )
-set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_CUDA_LIBS})
+set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_GPU_LIBS})
 
 dca_add_gtest(NiO_no_change_test
     EXTENSIVE

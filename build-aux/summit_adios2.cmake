@@ -30,7 +30,7 @@ set(SMPIARGS_FLAG_MPI "--smpiargs=\"-gpu\"" CACHE STRING "Spectrum MPI argument 
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
-option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." ON)
 set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
