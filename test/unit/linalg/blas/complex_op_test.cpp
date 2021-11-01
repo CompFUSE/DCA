@@ -13,6 +13,8 @@
 #include "dca/linalg/vector.hpp"
 #include "complex_op_test_kernels.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 template<typename Type>
 class ComplexOpGPUTest: public::testing::Test {
@@ -33,6 +35,5 @@ TYPED_TEST(ComplexOpGPUTest, opmult) {
   Scalar b{1, -2};
   cpu_vec[0] = {1,1};
   cpu_vec[1] = {1, -2};
-  GpuStream& stream = dca::linal::util::getStream(0, 0);
-  gpu_operator_opmult(&a, &b, 0, stream);
+  gpu_operator_opmult(&a, &b, 0, 0);
 }

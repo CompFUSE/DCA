@@ -28,5 +28,5 @@ void gpu_operator_opmult(Type* a, const Type* b, int thread_id, int stream_id) {
   gpu_operator_opmult_kernel<<<dim3(blocks), dim3(threads), 0, 0>>> (a, b);
 }
 
-template void gpu_operator_opmult(magmaFloatComplex* a, const magmaFloatComplex* b, int thread_id , int stream_id);
+template void gpu_operator_opmult<magmaFloatComplex>(magmaFloatComplex* a, const magmaFloatComplex* b, int thread_id , int stream_id);
 template void gpu_operator_opmult(magmaDoubleComplex* a, const magmaDoubleComplex* b, int thread_id , int stream_id);
