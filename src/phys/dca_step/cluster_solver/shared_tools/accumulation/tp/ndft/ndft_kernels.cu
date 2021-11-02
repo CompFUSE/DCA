@@ -13,11 +13,10 @@
 
 #include <array>
 #include <cassert>
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/util/integer_division.hpp"
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
 
 namespace dca {
 namespace phys {

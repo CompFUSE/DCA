@@ -12,17 +12,18 @@
 #ifndef DCA_LINALG_BLAS_USE_DEVICE_HPP
 #define DCA_LINALG_BLAS_USE_DEVICE_HPP
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/linalg/device_type.hpp"
 
 #include "dca/linalg/blas/blas1.hpp"
 #include "dca/linalg/blas/blas2.hpp"
 #include "dca/linalg/blas/blas3.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {
@@ -30,7 +31,7 @@ namespace blas {
 // dca::linalg::blas::
 
 template <DeviceType DeviceName>
-struct UseDevice;
+struct UseDevice {};
 
 template <>
 struct UseDevice<CPU> {
@@ -76,7 +77,7 @@ struct UseDevice<CPU> {
   }
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
 template <>
 struct UseDevice<GPU> {
@@ -123,7 +124,7 @@ struct UseDevice<GPU> {
                  lda, b, ldb);
   }
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // blas
 }  // linalg

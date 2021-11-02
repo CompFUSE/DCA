@@ -6,3 +6,4 @@ dca_add_gtest(sp_accumulator_gpu_test
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS     ${DCA_LIBS}
   )
+  #;mc_kernels

@@ -8,9 +8,8 @@
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file implements error_cuda functions.
-
-#include "dca/linalg/util/error_cuda.hpp"
-#include <cuda_runtime.h>
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
 #include <iostream>
 #include <string>
 #include <sstream>

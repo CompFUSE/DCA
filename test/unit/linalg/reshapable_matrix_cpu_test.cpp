@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,9 +7,12 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file tests the ReshapableMatrix<CPU> class.
 
+/** \file
+ *  This file tests the ReshapableMatrix<CPU> class.
+ */
 #include "dca/linalg/reshapable_matrix.hpp"
+
 #include <complex>
 #include <string>
 #include "gtest/gtest.h"

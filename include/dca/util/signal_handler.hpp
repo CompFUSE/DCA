@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "dca/io/writer.hpp"
+#include "dca/config/concurrency.hpp"
 
 namespace dca {
 namespace util {

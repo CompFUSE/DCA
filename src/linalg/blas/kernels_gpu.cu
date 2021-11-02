@@ -13,12 +13,13 @@
 
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #include <cassert>
-#include <cuComplex.h>
-#include <cuda_runtime.h>
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
+
+#ifdef DCA_HAVE_CUDA
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#endif
 
 namespace dca {
 namespace linalg {
@@ -26,12 +27,17 @@ namespace blas {
 namespace kernels {
 // dca::linalg::blas::kernels::
 
+#if defined(DCA_HAVE_CUDA)
+constexpr int warp_size = 32;
+#elif defined(DCA_HAVE_HIP)
+constexpr int warp_size = 64;
+#endif
 constexpr int copy_col_block_size = 128;
-constexpr int move_block_size_x = 32;
+constexpr int move_block_size_x = warp_size;
 constexpr int move_block_size_y = 8;
-constexpr int scale_block_size_x = 32;
-constexpr int swap_block_size_x = 32;
-constexpr int swap_block_size_y = 32;
+constexpr int scale_block_size_x = warp_size;
+constexpr int swap_block_size_x = warp_size;
+constexpr int swap_block_size_y = warp_size;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,

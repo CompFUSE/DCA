@@ -17,7 +17,9 @@
 #include <utility>
 #include "gtest/gtest.h"
 #include "dca/linalg/blas/blas3.hpp"
+#include "dca/config/walker_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
+#include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "cpu_test_util.hpp"
@@ -752,7 +754,7 @@ TYPED_TEST(MatrixopRealGPUTest, SwapCol) {
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)
-        EXPECT_EQ(a(i, j), c(i, j));
+        EXPECT_EQ(a(i, j), c(i, j)) << "i: " << i << " j: " << j;
   }
 }
 

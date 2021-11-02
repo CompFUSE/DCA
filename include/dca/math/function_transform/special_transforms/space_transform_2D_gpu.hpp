@@ -13,15 +13,10 @@
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
 
-#ifndef DCA_HAVE_CUDA
-#pragma error "This file requires CUDA support."
-#endif
-
-#include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
-
 #include <array>
 #include <memory>
-
+#include <complex>
+#include "dca/config/haves_defines.hpp"
 #include "dca/config/mc_options.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
@@ -42,7 +37,7 @@ private:
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+    linalg::ReshapableMatrix<Complex, linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>;
 
 public:
   // Constructor

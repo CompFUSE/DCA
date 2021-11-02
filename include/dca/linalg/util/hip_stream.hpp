@@ -1,22 +1,22 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Peter Doak (doakpw@ornl.gov)
 //
-// RAII wrapper for cuda stream.
+// RAII wrapper for hip stream.
 
-#ifndef DCA_LINALG_UTIL_CUDA_STREAM_HPP
-#define DCA_LINALG_UTIL_CUDA_STREAM_HPP
+#ifndef DCA_LINALG_UTIL_HIP_STREAM_HPP
+#define DCA_LINALG_UTIL_HIP_STREAM_HPP
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_HIP
 #include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/error_hip.hpp"
 #include <iostream>
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_HIP
 
 namespace dca {
 namespace linalg {
@@ -25,16 +25,16 @@ namespace util {
 
 #ifdef DCA_HAVE_CUDA
 
-class CudaStream {
+class HipStream {
 public:
-  CudaStream() {
-    cudaStreamCreate(&stream_);
+  HipStream() {
+    hipStreamCreate(&stream_);
   }
 
-  CudaStream(const CudaStream& other) = delete;
-  CudaStream& operator=(const CudaStream& other) = delete;
+  HipStream(const HipStream& other) = delete;
+  HipStream& operator=(const HipStream& other) = delete;
 
-  CudaStream(CudaStream&& other) noexcept {
+  HipStream(HipStream&& other) noexcept {
     swap(other);
   }
 

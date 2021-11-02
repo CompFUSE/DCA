@@ -12,8 +12,8 @@
 #include "dca/math/nfft/kernels_interface.hpp"
 
 #include <array>
-#include <cuda_runtime.h>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/math/nfft/nfft_helper.cuh"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/util/integer_division.hpp"

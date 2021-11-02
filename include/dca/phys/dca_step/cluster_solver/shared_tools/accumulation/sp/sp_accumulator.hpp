@@ -24,7 +24,7 @@
 #include "dca/math/nfft/dnfft_1d.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/error_computation_type.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -82,8 +82,8 @@ public:
     return 0;
   }
 
-  std::vector<linalg::util::CudaStream*> get_streams() const {
-    return std::vector<linalg::util::CudaStream*>();
+  std::vector<linalg::util::GpuStream*> get_streams() const {
+    return std::vector<linalg::util::GpuStream*>();
   }
 
 protected:

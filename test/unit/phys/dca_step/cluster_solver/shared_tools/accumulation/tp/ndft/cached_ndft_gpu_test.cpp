@@ -16,12 +16,14 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/linalg/lapack/magma.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
+#include "dca/platform/dca_gpu.h"
 
 constexpr int n_bands = 2;
 constexpr int n_sites = 3;

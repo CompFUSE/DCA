@@ -12,13 +12,14 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_HPP
 
+#include "dca/config/haves_defines.hpp"
 #include "aligned_allocator.hpp"
 #include "dca/linalg/device_type.hpp"
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "device_allocator.hpp"
 #include "managed_allocator.hpp"
 #include "pinned_allocator.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {
@@ -28,7 +29,7 @@ namespace selector {
 template <typename T, DeviceType device>
 struct DefaultAllocator;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <typename T>
 struct DefaultAllocator<T, CPU> {
   using type = PinnedAllocator<T>;
@@ -56,7 +57,7 @@ struct DefaultAllocator<T, GPU> {
   using type = UnusedAllocator;
 };
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // selector
 // dca::linalg::util:

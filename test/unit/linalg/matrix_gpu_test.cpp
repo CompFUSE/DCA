@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -617,7 +617,7 @@ TEST(MatrixGPUTest, setToZero) {
   auto func = [](int i, int j) { return 10 * i - j; };
   testing::setMatrixElements(mat, func);
 
-  dca::linalg::util::CudaStream stream;
+  dca::linalg::util::GpuStream stream;
   mat.setToZero(stream);
   stream.sync();
 

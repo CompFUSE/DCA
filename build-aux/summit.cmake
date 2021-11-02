@@ -6,7 +6,11 @@
 # Paths to IBM's ESSL (preferred) and NETLIB-LAPACK will be set manually.
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "If set to TRUE, prevents CMake from searching for LAPACK.")
 # To give ESSL precedence it needs to be specified before NETLIB.
+set(LAPACK_INCLUDE_DIRS $ENV{OLCF_NETLIB_LAPACK_ROOT}/include CACHE FILEPATH "Lapack include directory")
 set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
+set(LAPACK_LIBRARY ${LAPACK_LIBRARIES} CACHE FILEPATH "target based location")
+
+
 
 # Set the include directory for the ESSL library.
 set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL include directory.")
@@ -27,7 +31,7 @@ set(SMPIARGS_FLAG_MPI "--smpiargs=\"-gpu\"" CACHE STRING "Spectrum MPI argument 
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
-option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." ON)
 
 # Compile for Volta compute architecture.
 set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")

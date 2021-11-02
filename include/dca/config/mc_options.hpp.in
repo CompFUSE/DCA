@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -12,10 +12,11 @@
 #ifndef DCA_CONFIG_MC_OPTIONS_HPP
 #define DCA_CONFIG_MC_OPTIONS_HPP
 
-#ifdef DCA_HAVE_CUDA
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/util/allocators/device_allocator.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace config {
@@ -28,10 +29,10 @@ struct McOptions {
 
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   template <typename T>
   using TpAllocator = @TWO_PARTICLE_ALLOCATOR@;
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 };
 
 }  // namespace config

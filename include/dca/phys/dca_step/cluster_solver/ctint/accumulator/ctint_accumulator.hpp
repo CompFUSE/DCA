@@ -15,18 +15,18 @@
 #include <memory>
 #include <stdexcept>
 
-#include "dca/linalg/util/cuda_event.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace phys {
@@ -100,8 +100,8 @@ private:
   MatrixConfiguration configuration_;
   int sign_ = 0;
 
-  std::vector<const linalg::util::CudaStream*> streams_;
-  linalg::util::CudaEvent event_;
+  std::vector<const linalg::util::GpuStream*> streams_;
+  linalg::util::GpuEvent event_;
 
   util::Accumulator<int> accumulated_sign_;
   util::Accumulator<unsigned long> accumulated_order_;

@@ -13,7 +13,9 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_D_MATRIX_BUILDER_GPU_HPP
 
-#ifndef DCA_HAVE_CUDA
+#include "dca/config/haves_defines.hpp"
+
+#ifndef DCA_HAVE_GPU
 #error "This file needs GPU support."
 #endif
 

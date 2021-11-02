@@ -7,9 +7,5 @@ add_library(ctaux STATIC
   domains/hs_vertex_move_domain.cpp
   structs/vertex_singleton.cpp
   walker/ct_aux_walker_tools.cpp)
-target_include_directories(ctaux PUBLIC ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
-if (DCA_HAVE_CUDA)
-  set_property(TARGET ctaux
-               APPEND PROPERTY COMPILE_DEFINITIONS DCA_HAVE_CUDA)
-endif ()
+dca_gpu_runtime_link(ctaux)

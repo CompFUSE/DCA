@@ -33,7 +33,7 @@ inline void resizeStreamContainer(const int max_threads) {
 
 // Preconditions: 0 <= thread_id < max_threads,
 //                0 <= stream_id < StreamContainer::streams_per_thread_.
-inline CudaStream& getStream(int thread_id, int stream_id) {
+inline GpuStream& getStream(int thread_id, int stream_id) {
   return getStreamContainer()(thread_id, stream_id);
 }
 

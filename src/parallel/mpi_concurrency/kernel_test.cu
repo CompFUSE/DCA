@@ -12,10 +12,7 @@
 #include "dca/parallel/mpi_concurrency/kernel_test.hpp"
 
 #include <array>
-#include <cuda.h>
-#include <cuda_runtime.h>
-
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
 
 __global__ void kernel(int* out) {
   out[threadIdx.x] = threadIdx.x;

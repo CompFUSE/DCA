@@ -11,8 +11,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g_matrix_tools/g_matrix_tools_kernels.hpp"
 #include <cassert>
-#include "cuda_runtime.h"
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
 
 namespace dca {
 namespace phys {

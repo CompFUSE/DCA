@@ -13,9 +13,9 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DEVICE_HELPER_CTINT_HELPER_CUH
 
 #include <vector>
-
-#include <cuda.h>
-
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/gpu_definitions.h"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 
 namespace dca {

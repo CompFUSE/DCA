@@ -123,7 +123,7 @@ TEST(MatrixCPUTest, SetAsync) {
 
   testing::setMatrixElements(mat_cpu, [](int i, int j) { return 3 * i * i - j; });
 
-  dca::linalg::util::CudaStream stream;
+  dca::linalg::util::GpuStream stream;
 
   mat_gpu.setAsync(mat_cpu, stream);
   mat_cpu_out.setAsync(mat_gpu, stream);

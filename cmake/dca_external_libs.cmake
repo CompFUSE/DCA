@@ -13,9 +13,17 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
   find_package(LAPACK REQUIRED)
+else()
+  add_library(LAPACK::LAPACK INTERFACE IMPORTED)
+  set_target_properties(LAPACK::LAPACK PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${LAPACK_INCLUDE_DIRS}"
+  INTERFACE_COMPILE_DEFINITION "${LAPACK_DEFINITIONS}"
+  IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
+  IMPORTED_LOCATION "${LAPACK_LIBRARY}")
 endif()
 
 mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_INCLUDE_DIRS: ${LAPACK_INCLUDE_DIRS}")
 message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
 list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
@@ -31,15 +39,10 @@ list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
 # HDF5
-# Find HDF5 by looking for a CMake configuration file (hdf5-1.10.x).
-find_package(HDF5 COMPONENTS C CXX NO_MODULE QUIET)
-if (NOT HDF5_FOUND)
-  # Fall back to a search for a FindHDF5.cmake file and execute it.
-  find_package(HDF5 REQUIRED COMPONENTS C CXX)
-endif()
+find_package(HDF5 COMPONENTS C CXX)
 
-list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_LIBS ${HDF5_CXX_LIBRARIES})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${HDF5_INCLUDE_DIR})
 
 ################################################################################
 # ADIOS2

@@ -10,6 +10,7 @@
 // This file tests the matrix operations with the Matrix<CPU> class with complex element type.
 
 #undef DCA_HAVE_CUDA
+#undef DCA_HAVE_GPU
 
 #include "dca/linalg/matrixop.hpp"
 

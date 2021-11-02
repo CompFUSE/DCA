@@ -17,7 +17,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include <cuda_profiler_api.h>
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
@@ -134,9 +134,9 @@ int main(int argc, char** argv) {
   std::cout << "\nN cluster sites:\t" << RDmn::dmn_size();
   std::cout << "\n\nSpAccumulation CPU time [sec]:\t " << time << "\n";
 
-#ifdef DCA_HAVE_CUDA
-  dca::linalg::util::CudaEvent start_event;
-  dca::linalg::util::CudaEvent stop_event;
+#ifdef DCA_HAVE_GPU
+  dca::linalg::util::GpuEvent start_event;
+  dca::linalg::util::GpuEvent stop_event;
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Real> gpu_accumulator(
       parameters);
@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
 
   cudaProfilerStop();
   Profiler::stop("sp_gpu_accumulation_profile.txt");
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 }
 
 void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, const int n) {

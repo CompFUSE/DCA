@@ -28,9 +28,11 @@
 #include "dca/profiling/events/time.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#if defined(DCA_HAVE_CUDA)
 #include <cuda_profiler_api.h>
 #include "dca/profiling/cuda_profiler.hpp"
+#elif defined(DCA_HAVE_HIP)
+// \todo add hip profiling
 #endif
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctaux/";

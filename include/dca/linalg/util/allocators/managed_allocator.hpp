@@ -12,13 +12,13 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_MANAGED_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_MANAGED_ALLOCATOR_HPP
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA support."
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#else
+#error "This file requires GPU support."
 #endif
 
-#include <cuda_runtime.h>
-
-#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace linalg {
@@ -40,7 +40,7 @@ protected:
     }
 
     if (stream_)
-      cudaStreamAttachMemAsync(stream_, ptr_);
+      cudaStreamAttachMemAsync(stream_, reinterpret_cast<void**>(&ptr_));
 
     return ptr_;
   }

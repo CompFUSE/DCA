@@ -12,9 +12,9 @@
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
-#include "dca/util/cuda_definitions.hpp"
+#include "dca/platform/gpu_definitions.h"
 
 namespace dca {
 namespace phys {
@@ -67,5 +67,5 @@ protected:
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_DEVICE_INTERPOLATION_DATA_HPP

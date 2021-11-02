@@ -13,7 +13,8 @@
 #define DCA_LINALG_MULTI_VECTOR_HPP
 
 #include "dca/linalg/vector.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/type_list.hpp"
 #include "dca/util/pack_operations.hpp"
 
@@ -36,7 +37,7 @@ public:
 
   // Copy the values of rhs asynchronously.
   template <DeviceType other_device>
-  void setAsync(const MultiVector<other_device, Ts...>& rhs, const linalg::util::CudaStream& stream) {
+  void setAsync(const MultiVector<other_device, Ts...>& rhs, const linalg::util::GpuStream& stream) {
     size_ = rhs.size_;
     data_.setAsync(rhs.data_, stream);
   }

@@ -12,15 +12,17 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_MANAGER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_STRUCTS_DEVICE_CONFIGURATION_MANAGER_HPP
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA support."
+#include "dca/config/haves_defines.hpp"
+
+#ifndef DCA_HAVE_GPU
+#error "This file requires GPU support."
 #endif
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/sector_entry.hpp"
-#include "dca/util/cuda_definitions.hpp"
+#include "dca/platform/gpu_definitions.h"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {

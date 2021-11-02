@@ -1,29 +1,31 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class implements the 1D delayed-NFFT (d-NFFT) algorithm on the GPU.
 // See dnfft_1d.hpp for references and CPU implementation.
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA."
-#endif
-
 #ifndef DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
 #define DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
 
-#include "dca/math/nfft/dnfft_1d.hpp"
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#else
+#error "This file requires GPU."
+#endif
 
-#include <cuda_runtime.h>
+#include "dca/math/nfft/dnfft_1d.hpp"
 
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/math/nfft/kernels_interface.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -51,7 +53,7 @@ public:
   using ElementType = ScalarType;
   using BaseClass = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, CUBIC>;
 
-  Dnfft1DGpu(double beta, const linalg::util::CudaStream& stream, bool accumulate_m_sqr = false);
+  Dnfft1DGpu(double beta, const linalg::util::GpuStream& stream, bool accumulate_m_sqr = false);
 
   // Resets the accumulated quantities. To be called before each DCA iteration.
   void resetAccumulation();
@@ -96,7 +98,7 @@ private:
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
-  const linalg::util::CudaStream& stream_;
+  const linalg::util::GpuStream& stream_;
   const bool accumulate_m_sqr_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
@@ -108,12 +110,12 @@ private:
   linalg::Vector<details::ConfigElem, linalg::GPU> config_right_dev_;
   linalg::Vector<ScalarType, linalg::GPU> times_dev_;
 
-  linalg::util::CudaEvent m_copied_event_;
+  linalg::util::GpuEvent m_copied_event_;
 };
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(
-    const double beta, const linalg::util::CudaStream& stream, const bool accumulate_m_sqr)
+    const double beta, const linalg::util::GpuStream& stream, const bool accumulate_m_sqr)
     : BaseClass(), beta_(beta), stream_(stream), accumulate_m_sqr_(accumulate_m_sqr) {
   initializeDeviceCoefficients();
   assert(cudaPeekAtLastError() == cudaSuccess);
@@ -196,7 +198,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
       accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
       config_right_dev_.ptr(), times_dev_.ptr(), get_device_cubic_coeff().ptr(), n, stream_);
 
-  m_copied_event_.record(stream_);
+  m_copied_event_.record(stream_.streamActually());
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
@@ -209,7 +211,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::finalize(
                       data.leadingDimension() * sizeof(ScalarType),
                       data.nrRows() * sizeof(ScalarType), data.nrCols(), cudaMemcpyDeviceToHost,
                       stream_);
-    cudaStreamSynchronize(stream_);
+    cudaStreamSynchronize(stream_.streamActually());
   };
 
   if (!get_square)

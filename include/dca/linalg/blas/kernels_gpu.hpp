@@ -13,8 +13,10 @@
 #define DCA_LINALG_BLAS_KERNELS_GPU_HPP
 
 #include <complex>
-#include <cuComplex.h>
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_complex.h"
+#include "dca/linalg/util/cast_gpu.hpp"
 
 namespace dca {
 namespace linalg {
@@ -97,6 +99,69 @@ inline void swapCols(int col_size, int n_cols, const int* j_1, const int* j_2,
   swapCols(col_size, n_cols, j_1, j_2, cu_a, lda, thread_id, stream_id);
 }
 
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const float* x, int ldx,
+                       const int* j_y, float* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
+                       const int* j_y, double* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const cuComplex* x, int ldx,
+                       const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const cuDoubleComplex* x, int ldx,
+                       const int* j_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const double* x, int ldx,
+                       const int* j_y, double* y, int ldy, int thread_id, int stream_id);
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const float* x, int ldx,
+                       const int* j_y, float* y, int ldy, int thread_id, int stream_id);
+
+extern template void copyCols(int col_size, int n_cols, const int* j_x, const cuComplex* x, int ldx,
+                       const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
+
+extern template void copyCols(int, int, const int*, const float*, int, float*, int, int, int);
+extern template void copyCols(int, int, const int*, const double*, int, double*, int, int, int);
+
+extern template void copyRows(int row_size, int n_rows, const int* i_x, const float* x, int ldx,
+                       const int* i_y, float* y, int ldy, int thread_id, int stream_id);
+extern template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
+                       const int* i_y, double* y, int ldy, int thread_id, int stream_id);
+extern template void copyRows(int row_size, int n_rows, const int* i_x, const cuComplex* x, int ldx,
+                       const int* i_y, cuComplex* y, int ldy, int thread_id, int stream_id);
+extern template void copyRows(int row_size, int n_rows, const int* i_x, const cuDoubleComplex* x, int ldx,
+                       const int* i_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+extern template void moveLeft(int m, int n, float* a, int lda);
+extern template void moveLeft(int m, int n, double* a, int lda);
+extern template void moveLeft(int m, int n, cuComplex* a, int lda);
+extern template void moveLeft(int m, int n, cuDoubleComplex* a, int lda);
+extern template void moveUp(int m, int n, float* a, int lda);
+extern template void moveUp(int m, int n, double* a, int lda);
+extern template void moveUp(int m, int n, cuComplex* a, int lda);
+extern template void moveUp(int m, int n, cuDoubleComplex* a, int lda);
+extern template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, float* a, int lda,
+                       int thread_id, int stream_id);
+extern template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, double* a, int lda,
+                       int thread_id, int stream_id);
+extern template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, cuComplex* a,
+                       int lda, int thread_id, int stream_id);
+extern template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, cuDoubleComplex* a,
+                       int lda, int thread_id, int stream_id);
+extern template void scaleRows(int row_size, int n_rows, const int* i, const float* alpha, float* a,
+                        int lda, int thread_id, int stream_id);
+extern template void scaleRows(int row_size, int n_rows, const int* i, const double* alpha, double* a,
+                        int lda, int thread_id, int stream_id);
+extern template void scaleRows(int row_size, int n_rows, const int* i, const cuComplex* alpha,
+                        cuComplex* a, int lda, int thread_id, int stream_id);
+extern template void scaleRows(int row_size, int n_rows, const int* i, const cuDoubleComplex* alpha,
+                        cuDoubleComplex* a, int lda, int thread_id, int stream_id);
+extern template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, float* a, int lda,
+                       int thread_id, int stream_id);
+extern template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, double* a, int lda,
+                       int thread_id, int stream_id);
+extern template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, cuComplex* a,
+                       int lda, int thread_id, int stream_id);
+extern template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, cuDoubleComplex* a,
+                       int lda, int thread_id, int stream_id);
+
+
+
+  
 }  // namespace blas
 }  // namespace linalg
 }  // namespace dca
