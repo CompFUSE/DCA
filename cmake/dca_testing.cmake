@@ -43,6 +43,7 @@ function(dca_add_gtest name)
                          dca_add_gtest(name\n
                                        [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
+                                       [THREADED]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [CUDA | CUDA_MPI]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
@@ -100,9 +101,11 @@ function(dca_add_gtest name)
 
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
-  if (DCA_ADD_GTEST_HPX AND DCA_HAVE_HPX)
+  if (DCA_ADD_GTEST_THREADED AND DCA_HAVE_HPX)
     set(DCA_TESTING_FLAGS "--hpx:threads=5")
   endif()
+
+  # this is hacky but allows continued use of DCA_THREADING_LIBS
   # if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
   #   set(oldname ${name})
   #   set(name ${name}_hpx)

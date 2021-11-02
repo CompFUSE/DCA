@@ -136,6 +136,8 @@ include(dca_linking)
 # Libraries
 add_subdirectory(src)
 
+message(Threading Libs: "${DCA_THREADING_LIBS}")
+
 # We are trying to move away from this abdication targeting try to explicitly link
 # without using this mess.
 set(DCA_LIBS

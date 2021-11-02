@@ -17,6 +17,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/hpx_defines.hpp.in"
 add_library(parallel_hpx STATIC hpxthread.cpp)
 target_link_libraries(parallel_hpx PRIVATE HPX::wrap_main)
 target_compile_definitions(parallel_hpx INTERFACE DCA_HPX_MAIN)
+target_link_libraries(parallel_hpx PUBLIC HPX::hpx)
 hpx_setup_target(parallel_hpx)
 
 #target_link_options(parallel_hpx INTERFACE "-Wl,-e,_initialize_main")

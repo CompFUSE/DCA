@@ -12,6 +12,7 @@
 
 #include "dca/parallel/util/get_bounds.hpp"
 #include <cassert>
+#include <utility>
 
 namespace dca {
 namespace parallel {

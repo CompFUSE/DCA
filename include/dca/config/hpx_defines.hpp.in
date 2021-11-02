@@ -19,7 +19,7 @@
 #include "dca/config/config_defines.hpp"
 
 #if defined(DCA_HAVE_HPX)
-# include <hpx/config/defines.hpp>
+#include <hpx/config/defines.hpp>
 #endif
 
 #endif  // DCA_CONFIG_CONFIG_DEFINES_HPP

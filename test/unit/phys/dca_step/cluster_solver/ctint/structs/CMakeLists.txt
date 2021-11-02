@@ -23,6 +23,6 @@ dca_add_gtest(read_write_ctint_config_test
   LIBS random;time_and_frequency_domains;function;ctint
   )
 
-if (DCA_HAVE_CUDA)
-  target_link_libraries(read_write_ctint_config_test  PRIVATE cuda_utils)
+if (DCA_HAVE_GPU)
+  target_link_libraries(read_write_ctint_config_test  PRIVATE gpu_utils)
 endif()
