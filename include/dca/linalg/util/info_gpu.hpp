@@ -12,7 +12,9 @@
 #ifndef DCA_LINALG_UTIL_INFO_CUDA_HPP
 #define DCA_LINALG_UTIL_INFO_CUDA_HPP
 
-#include <cuda_runtime.h>
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#endif
 #include <string>
 #include <stdexcept>
 

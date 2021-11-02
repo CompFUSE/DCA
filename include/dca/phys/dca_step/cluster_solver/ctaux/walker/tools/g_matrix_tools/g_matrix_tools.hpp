@@ -19,7 +19,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g_matrix_tools/g_matrix_tools_kernels.hpp"
 #endif
 
@@ -36,7 +36,7 @@ class G_MATRIX_TOOLS {};
 // Specialization for CPU
 #include "g_matrix_tools_cpu.inc"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // Specialization for GPU
 #include "g_matrix_tools_gpu.inc"
 #endif

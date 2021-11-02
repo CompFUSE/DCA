@@ -13,5 +13,5 @@ dca_add_gtest(space_transform_2D_test
 dca_add_gtest(space_transform_2D_gpu_test
     GTEST_MAIN
     CUDA
-    INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
-    LIBS ${DCA_LIBS})
+    INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR}
+    LIBS ${DCA_LIBS})# magma::magma magma::sparse)

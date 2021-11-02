@@ -13,8 +13,7 @@
 #define DCA_LINALG_LAPACK_MULTIPLY_DIAGONAL_GPU_HPP
 
 #include <complex>
-#include <cuComplex.h>
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
 
 namespace dca {
 namespace linalg {
@@ -56,6 +55,30 @@ inline void multiplyDiagonalRight_gpu(int m, int n, const std::complex<Type>* a,
   auto cu_b = linalg::util::castCudaComplex(b);
   multiplyDiagonalRight_gpu(m, n, cu_a, lda, cu_d, inc_d, cu_b, ldb, thread_id, stream_id);
 }
+
+extern template void multiplyDiagonalLeft_gpu<float, float>(int m, int n, const float* d, int inc_d,
+                                                     const float* a, int lda, float* b, int ldb,
+                                                     int thread_id, int stream_id);
+extern template void multiplyDiagonalLeft_gpu<double, double>(int m, int n, const double* d, int inc_d,
+                                                       const double* a, int lda, double* b, int ldb,
+                                                       int thread_id, int stream_id);
+extern template void multiplyDiagonalLeft_gpu<double, float>(int m, int n, const double* d, int inc_d,
+                                                      const double* a, int lda, float* b, int ldb,
+                                                      int thread_id, int stream_id);
+extern template void multiplyDiagonalLeft_gpu<cuComplex, cuComplex>(int m, int n, const cuComplex* d,
+                                                             int inc_d, const cuComplex* a, int lda,
+                                                             cuComplex* b, int ldb, int thread_id,
+                                                             int stream_id);
+extern template void multiplyDiagonalRight_gpu(int m, int n, const float* a, int lda, const float* d,
+                                        int inc_d, float* b, int ldb, int thread_id, int stream_id);
+extern template void multiplyDiagonalRight_gpu(int m, int n, const double* a, int lda, const double* d,
+                                        int inc_d, double* b, int ldb, int thread_id, int stream_id);
+extern template void multiplyDiagonalRight_gpu(int m, int n, const cuComplex* a, int lda,
+                                        const cuComplex* d, int inc_d, cuComplex* b, int ldb,
+                                        int thread_id, int stream_id);
+extern template void multiplyDiagonalRight_gpu(int m, int n, const cuDoubleComplex* a, int lda,
+                                        const cuDoubleComplex* d, int inc_d, cuDoubleComplex* b,
+                                        int ldb, int thread_id, int stream_id);
 
 }  // lapack
 }  // linalg

@@ -1,5 +1,5 @@
-// Copyright (C) 2019 ETH Zurich
-// Copyright (C) 2019 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -12,7 +12,7 @@
 #include "dca/linalg/util/allocators/pinned_allocator.hpp"
 #include "dca/testing/type_testing.hpp"
 #include <stdexcept>
-#include <cuda_runtime.h>
+#include "dca/platform/dca_gpu.h"
 #include "gtest/gtest.h"
 
 TEST(PinnedAllocatorTest, Allocator) {

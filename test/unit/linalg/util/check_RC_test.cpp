@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,13 +7,13 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the return code checking of Cuda and Cublas.
 
-#include "dca/linalg/util/error_cublas.hpp"
-#include "dca/linalg/util/error_cuda.hpp"
+/** \file
+ *  This file tests the return code checking of Hip or Cuda and HipBLAS or CuBLAS.
+ */
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_blas.h"
 #include <stdexcept>
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
 #include "gtest/gtest.h"
 
 TEST(CheckRCTest, Cuda) {

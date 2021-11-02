@@ -19,7 +19,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/threading.hpp"
-#include "dca/linalg/util/util_cublas.hpp"
+#include "dca/linalg/util/util_gpublas.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -47,7 +47,7 @@ using dca::linalg::DeviceType;
 using dca::linalg::GPU;
 using dca::linalg::CPU;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 constexpr DeviceType default_device = GPU;
 #else
 constexpr DeviceType default_device = CPU;

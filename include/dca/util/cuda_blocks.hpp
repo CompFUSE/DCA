@@ -14,7 +14,7 @@
 #include <array>
 #include <cassert>
 
-#include <cuda.h>
+#include "dca/platform/dca_gpu.h"
 
 #include "dca/util/integer_division.hpp"
 

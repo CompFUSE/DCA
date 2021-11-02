@@ -22,10 +22,10 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda.h>
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace phys {
@@ -80,13 +80,13 @@ public:
   void computeG0(Matrix& G0, const Sector& configuration, const int n_init, const int n_max,
                  const int which_section) const;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   virtual void computeG0(linalg::Matrix<Real, linalg::GPU>& /*G0*/,
                          const details::DeviceConfiguration& /*configuration*/, int /*n_init*/,
                          bool /*right_section*/, cudaStream_t /*stream*/) const {
     throw(std::runtime_error("Not implemented."));
   }
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 private:
   int label(const int nu1, const int nu2, const int r) const;

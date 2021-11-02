@@ -21,7 +21,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/lapack/magma.hpp"
 #endif
 
@@ -41,14 +41,14 @@ int getInverseWorkSize(MatrixType<ScalarType, CPU>& mat) {
   lapack::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, &tmp, -1);
   return lapack::util::getWorkSize(tmp);
 }
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <typename ScalarType,  template <typename, DeviceType> class MatrixType>
 int getInverseWorkSize(const MatrixType<ScalarType, GPU>& mat) {
   assert(mat.is_square());
 
   return mat.nrRows() * magma::get_getri_nb<ScalarType>(mat.nrRows());
 }
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 // Returns optimal lwork for the eigensolver.
 // In: mat

@@ -12,11 +12,12 @@
 #ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP
 #define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_WALKER_WRAPPER_SUBMATRIX_HPP
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
 #endif
 
@@ -41,12 +42,12 @@ struct WalkerSelector<Parameters, CPU, Real, DIST> {
   using type = CtintWalkerSubmatrixCpu<Parameters, Real, DIST>;
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <class Parameters, typename Real, DistType DIST>
 struct WalkerSelector<Parameters, GPU, Real, DIST> {
   using type = CtintWalkerSubmatrixGpu<Parameters, Real, DIST>;
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 using namespace dca::phys::solver::ctint;
 template <class Parameters, DeviceType device_t = CPU, typename Real = double, DistType DIST = DistType::NONE>
@@ -72,7 +73,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
     std::array<dca::linalg::Matrix<Real, device_t>, 2> M;
 
     BaseClass::computeM(M);
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
     cudaDeviceSynchronize();
 #endif
 
@@ -91,7 +92,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
   }
 
 private:
-  std::vector<dca::linalg::util::CudaStream> streams_;
+  std::vector<dca::linalg::util::GpuStream> streams_;
 };
 
 }  // namespace ctint

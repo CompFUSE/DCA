@@ -23,7 +23,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
@@ -41,14 +41,14 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #ifdef DCA_HAVE_MPI
 //#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
 //#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 #endif // DCA_HAVE_MPI
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace phys {
@@ -350,7 +350,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::updateFrom(walker
 
   current_sign = walker.get_sign();
 
-  const linalg::util::CudaEvent* event = walker.computeM(M_);
+  const linalg::util::GpuEvent* event = walker.computeM(M_);
 
   single_particle_accumulator_obj.synchronizeCopy();
   two_particle_accumulator_.synchronizeCopy();

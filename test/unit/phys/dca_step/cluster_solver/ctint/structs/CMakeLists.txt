@@ -5,6 +5,7 @@ dca_add_gtest(ct_int_interaction_vertices_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
+    CUDA
     LIBS ${DCA_LIBS}
     )
 

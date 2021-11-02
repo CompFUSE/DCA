@@ -7,6 +7,7 @@
 
 module reset
 module load gcc/9.3.0
+module load cuda/11.4.0
 module load magma/2.6.1
 module load hdf5
 module load fftw

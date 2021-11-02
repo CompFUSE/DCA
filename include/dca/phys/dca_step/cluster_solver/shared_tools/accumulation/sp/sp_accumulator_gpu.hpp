@@ -1,18 +1,15 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class measures the single-particle functions with delayed NFFT scheme. The convolution is
 // performed on the GPU.
-
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA."
-#endif
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
@@ -25,8 +22,14 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/cuda_event.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_event.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
+#else
+#error "This file requires GPU."
+#endif
+
 #include "dca/math/nfft/dnfft_1d_gpu.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
@@ -72,13 +75,13 @@ public:
     cached_nfft_obj_[1].synchronizeCopy();
   }
 
-  void syncStreams(const linalg::util::CudaEvent& event) {
+  void syncStreams(const linalg::util::GpuEvent& event) {
     for (const auto& stream : streams_)
       event.block(stream);
   }
 
   auto get_streams() {
-    return std::array<linalg::util::CudaStream*, 2>{&streams_[0], &streams_[1]};
+    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[1]};
   }
 
   // Returns the allocated device memory in bytes.
@@ -94,7 +97,7 @@ private:
   using BaseClass::oversampling;
   using BaseClass::parameters_;
 
-  std::array<linalg::util::CudaStream, 2> streams_;
+  std::array<linalg::util::GpuStream, 2> streams_;
   using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
   std::array<NfftType, 2> cached_nfft_obj_;
 };

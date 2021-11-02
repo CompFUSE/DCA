@@ -12,8 +12,10 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_GPU_SUBMATRIX_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_GPU_SUBMATRIX_HPP
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA support."
+#include "dca/config/haves_defines.hpp"
+
+#ifndef DCA_HAVE_GPU
+#error "This file requires GPU support."
 #endif
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
@@ -22,7 +24,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/kernels_interface.hpp"
@@ -42,7 +44,7 @@ public:
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
-  using typename BaseClass::CudaStream;
+  using typename BaseClass::GpuStream;
 
   template <linalg::DeviceType dev>
   using MatrixView = linalg::MatrixView<Real, dev>;
@@ -124,7 +126,7 @@ private:
   std::array<linalg::util::HostVector<std::pair<int, Real>>, 2> gamma_index_;
   std::array<linalg::Vector<std::pair<int, Real>, linalg::GPU>, 2> gamma_index_dev_;
 
-  std::array<linalg::util::CudaEvent, 2> config_copied_;
+  std::array<linalg::util::GpuEvent, 2> config_copied_;
 };
 
 template <class Parameters, typename Real, DistType DIST>

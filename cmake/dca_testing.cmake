@@ -81,13 +81,14 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  if (DCA_ADD_GTEST_CUDA AND NOT DCA_HAVE_CUDA)
+  # If we don't have GPU these tests aren't added.
+  if (DCA_ADD_GTEST_CUDA AND NOT DCA_HAVE_GPU)
     return()
   endif()
 
   # Right now we're only testing GPU distributed code on one node so its pointless
   # without more than one GPU per node.
-  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_CUDA_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
+  if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_GPU_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
     return()
   endif()
 
@@ -126,29 +127,36 @@ function(dca_add_gtest name)
   target_link_libraries(${name} PUBLIC ${DCA_ADD_GTEST_LIBS} gtest)
 
   if (DCA_HAVE_CUDA)
+    message("test has cuda!")
     set_property(TARGET ${name} PROPERTY CMAKE_CUDA_ARCHITECTURES 70)
     set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     set_target_properties(${name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_link_libraries(${name} PRIVATE CUDA::cudart)
   endif()
-  
-  if (DCA_ADD_GTEST_CUDA)
-    target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-    target_link_libraries(${name} PRIVATE ${DCA_CUDA_LIBS})
-    target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
+
+  if (DCA_HAVE_HIP)
+    target_link_libraries(${name} PUBLIC hip::host)
+  endif()
+
+  if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)
+    IF(DCA_HAVE_CUDA)
+      target_include_directories(${name} PRIVATE ${CUDATookit_INCLUDE_DIRS})
+      target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
+      target_link_libraries(${name} PRIVATE ${DCA_GPU_LIBS})
+      target_link_libraries(${name} PRIVATE CUDA::cublas)
+    ENDIF()
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})
       target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
     endif()
-    if(DCA_WITH_CUDA_AWARE_MPI)
-      target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
+    if(DCA_WITH_GPU_AWARE_MPI)
+      target_compile_definitions(${name} PRIVATE DCA_HAVE_GPU_AWARE_MPI)
     endif()
     if (DCA_ADD_GTEST_CUDA_MPI)
       #We need to document which cuda aware openmpi requires this and which doesn't.
       set(THIS_CVD_LAUNCHER "${CMAKE_SOURCE_DIR}/${CVD_LAUNCHER}")
     endif()
-    target_link_libraries(${name} PRIVATE CUDA::cublas)
   endif()
 
   if (DCA_HAVE_HPX)

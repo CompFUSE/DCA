@@ -204,7 +204,7 @@ TEST(VectorCPUTest, setAsync) {
   dca::linalg::Vector<int, dca::linalg::GPU> vec_copy;
   dca::linalg::Vector<int, dca::linalg::CPU> vec_copy_copy;
 
-  dca::linalg::util::CudaStream stream;
+  dca::linalg::util::GpuStream stream;
 
   vec_copy.setAsync(vec, stream);
   vec_copy_copy.setAsync(vec_copy, stream);

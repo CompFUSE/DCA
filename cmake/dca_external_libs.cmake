@@ -12,18 +12,29 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 ################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
-  mark_as_advanced(LAPACK_LIBRARIES)
-  find_package(MKL QUIET)
-  if (MKL_FOUND)
-     set(LAPACK_INCLUDE_DIRS ${MKL_INCLUDE_DIRS})
-     set(LAPACK_LIBRARIES mkl::mkl)
-  else()
-    find_package(LAPACK REQUIRED)
-  endif()
-  list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+  find_package(LAPACK REQUIRED)
+else()
+  add_library(LAPACK::LAPACK INTERFACE IMPORTED)
+  set_target_properties(LAPACK::LAPACK PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${LAPACK_INCLUDE_DIRS}"
+  INTERFACE_COMPILE_DEFINITION "${LAPACK_DEFINITIONS}"
+  IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
+  IMPORTED_LOCATION "${LAPACK_LIBRARY}")
 endif()
 
 mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_INCLUDE_DIRS: ${LAPACK_INCLUDE_DIRS}")
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
+list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+
+################################################################################
+# Blas
+if (NOT DCA_HAVE_BLAS)
+  find_package(BLAS REQUIRED)
+endif()
+
+mark_as_advanced(LAPACK_LIBRARIES)
+message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
 list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################

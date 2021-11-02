@@ -13,9 +13,7 @@
 
 #include <cassert>
 
-#include "cuda_runtime.h"
-
-#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 

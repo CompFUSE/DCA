@@ -1,5 +1,12 @@
 # Tests
 
+# Deal with the gpu allocators needing gpu utils.  This causes many cpu tests to need them
+# when DCA_HAVE_GPU=true
+set(UTIL_LIBS)
+if(DCA_HAVE_GPU)
+set(UTIL_LIBS gpu_utils)
+endif()
+
 # Unit tests
 add_subdirectory(unit)
 

@@ -7,6 +7,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(DCA++ LANGUAGES C CXX)
 
+cmake_policy(VERSION 3.18)
+
 ################################################################################
 # Always use <PackageName>_ROOT vars to search first
 if(POLICY CMP0074)
@@ -27,6 +29,8 @@ if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
                        Before that, remove the files that have already been created:\n
                        rm -rf CMakeCache.txt CMakeFiles")
 endif()
+
+set(SANE_DEV_BUILD true)
 
 ################################################################################
 # Include CMake scripts from cmake directory.
@@ -110,7 +114,7 @@ include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DI
 
 
 include(dca_check_stdlib)
-
+message("std::filesystem resolved")
 
 ################################################################################
 # Include directories
@@ -125,10 +129,15 @@ set(DCA_INCLUDE_DIRS
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
 endif(DCA_HAVE_MAGMA)
+
+include(dca_linking)
+
 ################################################################################
 # Libraries
 add_subdirectory(src)
 
+# We are trying to move away from this abdication targeting try to explicitly link
+# without using this mess.
 set(DCA_LIBS
   git_version
   modules
@@ -159,25 +168,31 @@ set(DCA_LIBS
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
-  cuda_utils
 )
   
 set(SYSTEM_GPU_COUNT 0)
 
-if (DCA_HAVE_CUDA)
-  EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
-                  OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+if (DCA_HAVE_GPU)
+  if (DCA_HAVE_CUDA)
+    EXECUTE_PROCESS(COMMAND bash -c "nvidia-smi -L | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                    OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+  endif()
+  if (DCA_HAVE_HIP)
+    EXECUTE_PROCESS(COMMAND bash -c "rocm-smi -i | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
+                    OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
+  endif()
   list(APPEND DCA_LIBS
     blas_kernels
     lapack_kernels
     mc_kernels
     special_transform_kernels
-    ${DCA_CUDA_LIBS})
+    ${DCA_GPU_LIBS})
   set(DCA_KERNEL_LIBS
     blas_kernels
     lapack_kernels
     mc_kernels
-    special_transform_kernels)  
+    special_transform_kernels
+)  
 endif()
 
 if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)

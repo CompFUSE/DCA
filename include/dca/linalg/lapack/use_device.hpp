@@ -12,15 +12,16 @@
 #ifndef DCA_LINALG_LAPACK_USE_DEVICE_HPP
 #define DCA_LINALG_LAPACK_USE_DEVICE_HPP
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/linalg/device_type.hpp"
 
 #include "dca/linalg/lapack/lapack.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 namespace dca {
 namespace linalg {
@@ -28,7 +29,7 @@ namespace lapack {
 // dca::linalg::lapack::
 
 template <DeviceType DeviceName>
-struct UseDevice;
+struct UseDevice {};
 
 template <>
 struct UseDevice<CPU> {
@@ -96,7 +97,7 @@ struct UseDevice<CPU> {
   }
 };
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 template <>
 struct UseDevice<GPU> {
   // Auxiliary routines
@@ -131,7 +132,7 @@ struct UseDevice<GPU> {
     lapack::multiplyDiagonalRight_gpu(m, n, a, lda, d, inc_d, b, ldb, thread_id, stream_id);
   }
 };
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // lapack
 }  // linalg

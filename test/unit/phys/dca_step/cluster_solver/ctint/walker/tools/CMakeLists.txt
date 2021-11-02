@@ -18,7 +18,8 @@ dca_add_gtest(ct_int_interpolation_test
 #     LIBS     ${TEST_LIBS}
 #     )
 
-set(THIS_TEST_LIBS ${DCA_LIBS} mc_kernels; ctint)
+#set(THIS_TEST_LIBS ${DCA_LIBS} mc_kernels; ctint)
+set(THIS_TEST_LIBS ${DCA_LIBS} ctint)
 if (DCA_HAVE_ADIOS2)
   set(THIS_TEST_LIBS ${THIS_TEST_LIBS} dca_adios2)
 endif()

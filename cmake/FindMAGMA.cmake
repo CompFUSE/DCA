@@ -13,7 +13,6 @@ message("MAGMA_LIBRARY: ${MAGMA_LIBRARY}")
 
 find_library(MAGMA_sparse_LIBRARY
   NAMES magma_sparse libmagma_sparse)
-
 message("MAGMA_sparse_LIBRARY: ${MAGMA_sparse_LIBRARY}")
 
 mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
@@ -29,9 +28,18 @@ if(MAGMA_FOUND)
     set_target_properties(magma::magma PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES "${MAGMA_INCLUDE_DIRS}"
       INTERFACE_COMPILE_DEFINITION "${MAGMA_DEFINITIONS}"
-      IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX;CUDA"
-      IMPORTED_LOCATION "${MAGMA_LIBRARIES}")
+      IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
+      IMPORTED_LOCATION "${MAGMA_LIBRARY}")
     target_link_libraries(magma::magma INTERFACE BLAS::BLAS LAPACK::LAPACK)
     message("Added magma::magma target")
   endif()
+  if(NOT TARGET magma::sparse)
+    add_library(magma::sparse UNKNOWN IMPORTED)
+    set_target_properties(magma::sparse PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${MAGMA_INCLUDE_DIRS}"
+      INTERFACE_COMPILE_DEFINITION "${MAGMA_DEFINITIONS}"
+      IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
+      IMPORTED_LOCATION "${MAGMA_sparse_LIBRARY}")
+    message("Added magma::sparse target")
+  endif()  
 endif()

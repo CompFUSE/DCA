@@ -156,7 +156,7 @@ TEST(MatrixCPUGPUTest, SetAsync) {
   auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
   testing::setMatrixElements(mat, el_value);
 
-  dca::linalg::util::CudaStream stream;
+  dca::linalg::util::GpuStream stream;
 
   mat_copy.setAsync(mat, stream);
   mat_copy_copy.setAsync(mat_copy, stream);

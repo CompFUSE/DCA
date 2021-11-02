@@ -44,11 +44,11 @@ namespace testing {
 
 constexpr int n_frequencies = 10;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
 #else
 constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
-#endif // DCA_HAVE_CUDA
+#endif // DCA_HAVE_GPU
 
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/square_lattice/";

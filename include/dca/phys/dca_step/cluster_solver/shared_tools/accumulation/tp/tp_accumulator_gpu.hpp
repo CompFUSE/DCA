@@ -10,17 +10,18 @@
 //
 // Implementation of the two particle Green's function computation on the GPU.
 
-#ifndef DCA_HAVE_CUDA
-#error "This file requires CUDA."
-#endif
-
 #ifndef DCA_TP_ACCUMULATOR_GPU_HPP
 #define DCA_TP_ACCUMULATOR_GPU_HPP
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu_base.hpp"
 
-#include <cuda.h>
+#if defined(DCA_HAVE_GPU)
+#include "dca/platform/dca_gpu.h"
+#else
+#error "This file requires GPU."
+#endif
+
 #include <mutex>
 #include <vector>
 
@@ -30,7 +31,7 @@
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
@@ -121,7 +122,7 @@ public:
   // other_acc.
   void sumTo(ThisType& other_acc);
 
-  const linalg::util::CudaStream* get_stream() {
+  const linalg::util::GpuStream* get_stream() {
     return &queues_[0].getStream();
   }
 
@@ -130,7 +131,7 @@ public:
     ndft_objs_[1].synchronizeCopy();
   }
 
-  void syncStreams(const linalg::util::CudaEvent& event) {
+  void syncStreams(const linalg::util::GpuEvent& event) {
     for (const auto& stream : queues_)
       event.block(stream);
   }
@@ -223,10 +224,10 @@ RingMessage{-1, -1, MPI_REQUEST_NULL}};
   std::array<RMatrix, 2> sendbuff_G_;
 #endif
 
-#ifndef DCA_WITH_CUDA_AWARE_MPI
+#ifndef DCA_HAVE_GPU_AWARE_MPI
   std::array<std::vector<Complex>, 2> sendbuffer_;
   std::array<std::vector<Complex>, 2> recvbuffer_;
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 };
 
 template <class Parameters, DistType DT>
@@ -508,7 +509,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
 
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
@@ -517,14 +518,14 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
 
   for (int s = 0; s < 2; ++s) {
     sendbuffer_[s].resize(g_size);
-    cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
-               cudaMemcpyDeviceToHost);
+    checkRC(cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
+		       cudaMemcpyDeviceToHost));
 
     MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
 
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 }
 
 template <class Parameters, DistType DT>
@@ -534,7 +535,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
-#ifdef DCA_WITH_CUDA_AWARE_MPI
+#ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
     MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].source,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
@@ -549,10 +550,10 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
   for (int s = 0; s < 2; ++s) {
     MPI_Wait(&(messages[s].request), MPI_STATUSES_IGNORE);
     // Note: MPI can not access host memory allocated from CUDA, hence the usage of blocking communication.
-    cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
-               cudaMemcpyHostToDevice);
+    checkRC(cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
+		       cudaMemcpyHostToDevice));
   }
-#endif  // DCA_WITH_CUDA_AWARE_MPI
+#endif  // DCA_HAVE_GPU_AWARE_MPI
 }
 #endif  // DCA_WITH_MPI
 

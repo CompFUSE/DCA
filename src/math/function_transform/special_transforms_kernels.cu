@@ -14,7 +14,8 @@
 #include <array>
 
 #include "dca/util/integer_division.hpp"
-#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/cast_gpu.hpp"
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {
@@ -67,7 +68,7 @@ __global__ void phaseFactorsAndRearrangeKernel(const CudaComplex<Real>* in, cons
 
   using namespace dca::linalg;
   if (phase_factors)
-    value *= phase_factors[b1 + nb * k1] * linalg::conj(phase_factors[b2 + nb * k2]);
+    value *= phase_factors[b1 + nb * k1] * conj(phase_factors[b2 + nb * k2]);
 
   out[out_i + ldo * out_j] = value;
 }

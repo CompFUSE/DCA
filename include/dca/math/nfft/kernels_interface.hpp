@@ -1,22 +1,25 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides the interface to the kernels for the Dnfft1DGpu accumulator
 
 #ifndef DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
 #define DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
 
-#ifndef DCA_HAVE_CUDA
-#pragma error "This file requires CUDA."
+#include "dca/config/haves_defines.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
+#else
+#pragma error "This file requires GPU."
 #endif
 
-#include <cuda.h>
 
 namespace dca {
 namespace math {

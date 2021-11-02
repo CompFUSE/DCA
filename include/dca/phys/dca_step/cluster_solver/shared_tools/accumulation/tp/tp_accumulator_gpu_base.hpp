@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
@@ -18,16 +18,16 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/config/mc_options.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/allocators/managed_allocator.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
@@ -100,7 +100,7 @@ protected:
   const int n_pos_frqs_ = -1;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
-  linalg::util::CudaEvent event_;
+  linalg::util::GpuEvent event_;
 
   std::vector<std::shared_ptr<RMatrix>> workspaces_;
 
@@ -176,7 +176,7 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
 template <class Parameters, DistType DT>
 void TpAccumulatorGpuBase<Parameters, DT>::synchronizeStreams() {
   for (auto& stream : queues_)
-    cudaStreamSynchronize(stream);
+    checkRC(cudaStreamSynchronize(stream));
 }
 
 template <class Parameters, DistType DT>

@@ -19,6 +19,10 @@
 #include <string>
 #include <vector>
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/gpu_definitions.h"
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"

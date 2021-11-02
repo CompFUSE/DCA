@@ -28,7 +28,7 @@ set(SMPIARGS_FLAG_MPI "" CACHE STRING "Spectrum MPI argument list flag for MPI t
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
-option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." OFF)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." OFF)
 
 set(CUDA_TOOLKIT_ROOT_DIR $ENV{CUDA_DIR} CACHE PATH "path to CUDA toolkit")
 

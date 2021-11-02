@@ -201,13 +201,13 @@ public:
 
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
-  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, const util::CudaStream& stream);
+  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, const util::GpuStream& stream);
 
   // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   template <DeviceType rhs_device_name>
   void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
-  void setToZero(const util::CudaStream& stream);
+  void setToZero(const util::GpuStream& stream);
 
   // Prints the values of the matrix elements.
   void print() const;
@@ -423,7 +423,7 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                               const util::CudaStream& stream) {
+                                               const util::GpuStream& stream) {
   resizeNoCopy(rhs.size_);
   util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
 }
@@ -436,7 +436,7 @@ void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_devi
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Matrix<ScalarType, device_name>::setToZero(const util::CudaStream& stream) {
+void Matrix<ScalarType, device_name>::setToZero(const util::GpuStream& stream) {
   util::Memory<device_name>::setToZeroAsync(data_, leadingDimension() * nrCols(), stream);
 }
 

@@ -16,6 +16,8 @@
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/triple.hpp"
 
+#include "dca/platform/dca_gpu.h"
+
 namespace dca {
 namespace phys {
 namespace solver {

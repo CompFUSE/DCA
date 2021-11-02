@@ -46,11 +46,11 @@ using dca::linalg::DeviceType;
 using dca::linalg::GPU;
 using dca::linalg::CPU;
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 constexpr DeviceType default_device = GPU;
 #else
 constexpr DeviceType default_device = CPU;
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 const std::string test_directory = DCA_SOURCE_DIR "/test/integration/statistical_tests/FeAs/";
 

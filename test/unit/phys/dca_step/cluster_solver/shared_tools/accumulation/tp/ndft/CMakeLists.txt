@@ -7,7 +7,7 @@
 #   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
 #   LIBS ${LAPACK_LIBRARIES} time_and_frequency_domains random function dca_adios2)
 
-set(THIS_TEST_LIBS time_and_frequency_domains random function mc_kernels cuda_utils)
+set(THIS_TEST_LIBS time_and_frequency_domains random function mc_kernels gpu_utils)
 if (DCA_HAVE_ADIOS2)
   set(THIS_TEST_LIBS ${THIS_TEST_LIBS} dca_adios2)
 endif()
@@ -17,5 +17,4 @@ dca_add_gtest(cached_ndft_gpu_test
   CUDA
   FAST
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS ${DCA_CUDA_LIBS} time_and_frequency_domains random function mc_kernels cuda_utils)
-# ${LAPACK_LIBRARIES}
+  LIBS ${DCA_GPU_LIBS} magma::magma magma::sparse ${THIS_TEST_LIBS})

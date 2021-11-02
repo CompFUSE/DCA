@@ -12,9 +12,6 @@
 
 #include <iostream>
 #include <string>
-#ifdef DCA_HAVE_CUDA
-#include <cuda_profiler_api.h>
-#endif
 
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -34,6 +31,11 @@
 #include "dca/profiling/counting_profiler.hpp"
 #include "dca/profiling/events/time_event.hpp"
 #include "dca/util/ignore.hpp"
+#if defined(DCA_HAVE_CUDA)
+#include <cuda_profiler_api.h>
+#elif defined(DCA_HAVE_HIP)
+// \todo add hip profiler
+#endif
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
 
@@ -89,11 +91,11 @@ int main(int argc, char** argv) {
   Data data(parameters);
   data.initialize();
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
   constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
 #else
   constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
   dca::phys::solver::ctint::G0Interpolation<device, Real> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
@@ -167,5 +169,5 @@ int main(int argc, char** argv) {
     std::cout << std::endl;
     printTime("Integration GPU", start_t, integration_t);
   }
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 }

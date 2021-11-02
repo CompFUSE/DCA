@@ -11,14 +11,15 @@
 
 #ifndef DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
 #define DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
-#ifdef DCA_HAVE_CUDA
+#include "dca/platform/dca_gpu.h"
+
 
 #include <cassert>
 #include <vector>
 
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/linalg/vector.hpp"
 
@@ -54,7 +55,7 @@ public:
 
 private:
   const linalg::util::MagmaQueue& queue_;
-  CudaEvent copied_;
+  GpuEvent copied_;
 
   linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
   linalg::util::HostVector<ScalarType*> c_ptr_;
@@ -116,5 +117,4 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
 }  // namespace linalg
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP

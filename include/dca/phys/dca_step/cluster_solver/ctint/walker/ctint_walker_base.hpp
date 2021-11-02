@@ -21,7 +21,7 @@
 #include "dca/distribution/dist_types.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/linalg/linalg.hpp"
-#include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/linalg/util/stream_container.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
@@ -36,7 +36,7 @@
 #include "dca/util/integer_division.hpp"
 #include "dca/util/print_time.hpp"
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #endif
 
@@ -60,7 +60,7 @@ public:
 
   using Matrix = linalg::Matrix<Real, linalg::CPU>;
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
-  using CudaStream = linalg::util::CudaStream;
+  using GpuStream = linalg::util::GpuStream;
 
   using Scalar = Real;
   constexpr static linalg::DeviceType device = linalg::CPU;
@@ -180,7 +180,7 @@ protected:  // Members.
   const Concurrency& concurrency_;
 
   const int thread_id_;
-  std::array<linalg::util::CudaStream*, 2> streams_;
+  std::array<linalg::util::GpuStream*, 2> streams_;
 
   Rng& rng_;
   SolverConfiguration configuration_;

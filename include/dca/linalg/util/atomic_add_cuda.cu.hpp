@@ -12,21 +12,14 @@
 #ifndef DCA_LINALG_UTIL_ATOMIC_ADD_CUDA_CU_HPP
 #define DCA_LINALG_UTIL_ATOMIC_ADD_CUDA_CU_HPP
 
-#include <cuComplex.h>
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/gpu_definitions.h"
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_complex.h"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
-
-__device__ void inline atomicAdd(cuComplex* address, const cuComplex val) {
-  float* a_f = reinterpret_cast<float*>(address);
-  ::atomicAdd(a_f, val.x);
-  ::atomicAdd(a_f + 1, val.y);
-}
-
-__device__ void inline atomicAdd(float* address, const float val) {
-  ::atomicAdd(address, val);
-}
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600
 // Older devices do not have an hardware atomicAdd for double.
@@ -53,6 +46,16 @@ __device__ void inline atomicAdd(double* address, const double val) {
   ::atomicAdd(address, val);
 }
 #endif  // __CUDA_ARCH__
+
+__device__ void inline atomicAdd(cuComplex* address, const cuComplex val) {
+  float* a_f = reinterpret_cast<float*>(address);
+  ::atomicAdd(a_f, val.x);
+  ::atomicAdd(a_f + 1, val.y);
+}
+
+__device__ void inline atomicAdd(float* address, const float val) {
+  ::atomicAdd(address, val);
+}
 
 __device__ void inline atomicAdd(cuDoubleComplex* address, const cuDoubleComplex val) {
   double* a_d = reinterpret_cast<double*>(address);

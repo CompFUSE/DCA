@@ -105,9 +105,9 @@ public:
 
   // Asynchronous assignment.
   template <class Container>
-  void setAsync(const Container& rhs, const util::CudaStream& stream);
+  void setAsync(const Container& rhs, const util::GpuStream& stream);
 
-  void setToZeroAsync(const util::CudaStream& stream);
+  void setToZeroAsync(const util::GpuStream& stream);
 
   template <class Container>
   void setAsync(const Container& rhs, int thred_id, int stream_id = 0);
@@ -308,17 +308,17 @@ void Vector<ScalarType, device_name, Allocator>::copyTo(Container& rhs) const {
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <class Container>
 void Vector<ScalarType, device_name, Allocator>::setAsync(const Container& rhs,
-                                                          const util::CudaStream& stream) {
+                                                          const util::GpuStream& stream) {
   resizeNoCopy(rhs.size());
   util::memoryCopyAsync(data_, rhs.data(), size_, stream);
   //  cudaDeviceSynchronize();
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::CudaStream& stream) {
+void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuStream& stream) {
   // TODO: implement in copy.hpp.
-#ifdef DCA_HAVE_CUDA
-  cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream);
+#ifdef DCA_HAVE_GPU
+  checkRC(cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream));
 #else
   std::memset(data_, 0, size_ * sizeof(ScalarType));
 #endif

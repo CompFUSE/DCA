@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -16,13 +16,12 @@
 #include <complex>
 #include <cstring>
 #include "dca/linalg/device_type.hpp"
-#include "cuda_stream.hpp"
+#include "gpu_stream.hpp"
 
-#ifdef DCA_HAVE_CUDA
-#include <cuda_runtime.h>
-#include "dca/linalg/util/error_cuda.hpp"
-#include "dca/linalg/util/stream_functions.hpp"
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu.h"
 #endif
+#include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
 namespace linalg {
@@ -48,7 +47,7 @@ void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_
   }
 }
 
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 // Fully synchronous 1D memory copy, i.e. all operations in the GPU queue are executed before the
 // execution of this copy.
 // The host continues the execution of the program when the copy is terminated.
@@ -164,16 +163,16 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
 // Synchronous 1D memory copy fallback.
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size,
-                     const util::CudaStream& /*s*/) {
+                     const util::GpuStream& /*s*/) {
   memoryCopyCpu(dest, src, size);
 }
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
-                     std::pair<int, int> size, const util::CudaStream& /*s*/) {
+                     std::pair<int, int> size, const util::GpuStream& /*s*/) {
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 }  // namespace util
 }  // namespace linalg

@@ -12,12 +12,14 @@
 // Usage: ./main_dca input_file.json
 
 #include <string>
+
 #include <iostream>
 
+
+#include "dca/config/dca.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
-#include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
@@ -45,9 +47,9 @@ int main(int argc, char** argv) {
       dca::util::Modules::print();
       dca::config::CMakeOptions::print();
 
-#ifdef DCA_WITH_CUDA
+#ifdef DCA_HAVE_GPU
       dca::linalg::util::printInfoDevices();
-#endif  // DCA_WITH_CUDA
+#endif  // DCA_HAVE_GPU
 
       std::cout
           << "\n"
@@ -62,9 +64,9 @@ int main(int argc, char** argv) {
           << std::endl;
     }
 
-#ifdef DCA_WITH_CUDA
+#ifdef DCA_HAVE_GPU
     dca::linalg::util::initializeMagma();
-#endif  // DCA_WITH_CUDA
+#endif  // DCA_HAVE_GPU
 
     // Create the parameters object from the input file.
     ParametersType parameters(dca::util::GitVersion::string(), concurrency);

@@ -11,12 +11,14 @@
 // independently to each pair of orbitals, where an orbital is a combination of cluster site and
 // band.
 
-#ifndef DCA_HAVE_CUDA
-#pragma error "GPU algorithm requested but DCA_HAVE_CUDA is not defined."
-#endif  // DCA_HAVE_CUDA
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
+
+#include "dca/config/haves_defines.hpp"
+#ifndef DCA_HAVE_GPU
+#error "GPU algorithm requested but DCA_HAVE_GPU is not defined."
+#endif
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
 
@@ -28,7 +30,7 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
+#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_template.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/kernels_interface.hpp"
@@ -101,7 +103,7 @@ private:
   linalg::Vector<Real, linalg::GPU> w_dev_;
   const linalg::util::MagmaQueue& magma_queue_;
 
-  linalg::util::CudaEvent copy_event_;
+  linalg::util::GpuEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
   std::shared_ptr<RMatrix> workspace_;

@@ -12,7 +12,7 @@
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP
-#ifdef DCA_HAVE_CUDA
+#ifdef DCA_HAVE_GPU
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
@@ -119,5 +119,5 @@ Real G0Interpolation<linalg::GPU, Real>::operator()(Real tau, int lindex) const 
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_GPU_HPP

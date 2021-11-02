@@ -14,7 +14,7 @@
 
 #include <complex>
 #include <vector>
-
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/four_point_type.hpp"
 
 // This amount of namespace nesting is really uncalled for

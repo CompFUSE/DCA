@@ -20,6 +20,7 @@
 #include "dca/function/function.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
+#include "dca/linalg/util/util_gpublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"

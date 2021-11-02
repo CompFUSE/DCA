@@ -9,6 +9,8 @@
 # SCRIPT_SRC_DIR is passed in from the custom rule as the PROJECT_SOURCE_DIR is not valid when run
 # as a rule.
 
+if(SANE_DEV_BUILD)
+
 # Check git log
 execute_process(
   COMMAND git --git-dir ${SCRIPT_SRC_DIR}/.git --work-tree ${SCRIPT_SRC_DIR} log -1
@@ -24,18 +26,18 @@ string(REPLACE "\"" "\\\"" GIT_LOG "${GIT_LOG}")
 
 set(LOG_CHANGED FALSE)
 
-if (EXISTS "${SCRIPT_BIN_DIR}/src/util/git_log.txt")
-  file(READ "${SCRIPT_BIN_DIR}/src/util/git_log.txt" git_log_txt)
+# if (EXISTS "${SCRIPT_BIN_DIR}/src/util/git_log.txt")
+#   file(READ "${SCRIPT_BIN_DIR}/src/util/git_log.txt" git_log_txt)
 
-  if (NOT (out STREQUAL git_log_txt))
-    file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_log.txt" "${out}")
-    set(LOG_CHANGED TRUE)
-  endif()
+#   if (NOT (out STREQUAL git_log_txt))
+#     file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_log.txt" "${out}")
+#     set(LOG_CHANGED TRUE)
+#   endif()
 
-else()
-    file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_log.txt" "${out}")
-    set(LOG_CHANGED TRUE)
-endif()
+# else()
+#     file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_log.txt" "${out}")
+#     set(LOG_CHANGED TRUE)
+# endif()
 
 
 # Check git status
@@ -56,22 +58,24 @@ endif()
 
 set(STATUS_CHANGED FALSE)
 
-if (EXISTS "${SCRIPT_BIN_DIR}/src/util/git_status.txt")
-  file(READ "${SCRIPT_BIN_DIR}/src/util/git_status.txt" git_status_txt)
+# if (EXISTS "${SCRIPT_BIN_DIR}/src/util/git_status.txt")
+#   file(READ "${SCRIPT_BIN_DIR}/src/util/git_status.txt" git_status_txt)
 
-  if (NOT (out STREQUAL git_status_txt))
-    file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_status.txt" "${out}")
-    set(STATUS_CHANGED TRUE)
-  endif()
+#   if (NOT (out STREQUAL git_status_txt))
+#     file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_status.txt" "${out}")
+#     set(STATUS_CHANGED TRUE)
+#   endif()
 
-else()
-    file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_status.txt" "${out}")
-    set(STATUS_CHANGED TRUE)
+# else()
+#     file(WRITE "${SCRIPT_BIN_DIR}/src/util/git_status.txt" "${out}")
+#     set(STATUS_CHANGED TRUE)
 
-endif()
+# endif()
 
 # Reconfigure git_version.cpp if something has changed.
 if (LOG_CHANGED OR STATUS_CHANGED)
   configure_file("${SCRIPT_SRC_DIR}/src/util/git_version.cpp.in"
     "${SCRIPT_BIN_DIR}/src/util/git_version.cpp" @ONLY)
+endif()
+
 endif()
