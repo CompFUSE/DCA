@@ -35,5 +35,8 @@ TYPED_TEST(ComplexOpGPUTest, opmult) {
   Scalar b{1, -2};
   cpu_vec[0] = {1,1};
   cpu_vec[1] = {1, -2};
-  gpu_operator_opmult(&a, &b, 0, 0);
+  gpu_vec.setAsync(cpu_vec, 0);
+  auto dev_ptr = gpu_vec.ptr();
+  
+  gpu_operator_opmult_cast(dev_ptr, dev_ptr+1, 0, 0);
 }
