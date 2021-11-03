@@ -104,7 +104,6 @@ function(dca_add_gtest name)
   endif()
 
   if (DCA_HAVE_CUDA)
-    message("test has cuda!")
     set_property(TARGET ${name} PROPERTY CMAKE_CUDA_ARCHITECTURES 70)
     set_target_properties(${name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
     set_target_properties(${name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
