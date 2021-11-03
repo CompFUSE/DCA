@@ -313,18 +313,19 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
   assert(new_size.first >= 0 && new_size.second >= 0);
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
-
-    ValueType* new_data = nullptr;
-    new_data = Allocator::allocate(nrElements(new_capacity));
-    const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
-                                        std::min(new_size.second, size_.second));
-    util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
-    Allocator::deallocate(data_);
-
-    data_ = new_data;
-    capacity_ = new_capacity;
-    size_ = new_size;
-  }
+	ValueType* new_data = nullptr;
+	new_data = Allocator::allocate(nrElements(new_capacity));
+	// hip memorycpy2D routines don't tolerate leadingDimension = 0
+	if(capacity_.first > 0) {
+	  const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
+					    std::min(new_size.second, size_.second));
+	  util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
+	}
+	Allocator::deallocate(data_);
+	data_ = new_data;
+	capacity_ = new_capacity;
+	size_ = new_size;
+      }
   else {
     size_ = new_size;
   }
