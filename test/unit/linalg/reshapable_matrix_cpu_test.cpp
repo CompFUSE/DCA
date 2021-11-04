@@ -207,7 +207,7 @@ TEST(MatrixCPUTest, SetAsync) {
   testing::setMatrixElements(mat, [](int i, int j) { return 3 * i * i - j; });
 
   mat2.setAsync(mat, 0, 0);
-
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(mat, mat2);
 }
 
