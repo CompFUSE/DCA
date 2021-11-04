@@ -37,7 +37,7 @@ constexpr int move_block_size_x = warp_size;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = warp_size;
 constexpr int swap_block_size_x = warp_size;
-constexpr int swap_block_size_y = warp_size;
+constexpr int swap_block_size_y = 8;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
