@@ -8,7 +8,7 @@
 
 module reset
 module load PrgEnv-cray
-module load cmake/3.21
+module load cmake/3.21 # at least 3.21 is required for ROCM
 module load ninja
 module load magma/2.6.1
 module load fftw

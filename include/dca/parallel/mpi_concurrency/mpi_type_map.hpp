@@ -19,7 +19,7 @@
 #include <complex>
 #include <cstdlib>
 #include <type_traits>
-#include <mpi.h>
+#include "dca_mpi.h"
 
 namespace dca {
 namespace parallel {

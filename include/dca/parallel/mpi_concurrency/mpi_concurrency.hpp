@@ -19,7 +19,7 @@
 #include <utility>
 #include <stdexcept>
 
-#include <mpi.h>
+#include "dca_mpi.h"
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_max.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_min.hpp"

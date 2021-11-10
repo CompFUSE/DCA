@@ -13,7 +13,7 @@
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_MAX_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_MAX_HPP
 
-#include <mpi.h>
+#include "dca_mpi.h"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
 
