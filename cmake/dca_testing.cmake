@@ -10,11 +10,16 @@ include(CMakeParseArguments)
 include(ProcessorCount)
 ProcessorCount(CPUS)
 
+if(DCA_HAVE_HPX)
+  set(test_thread_option HPX)
+endif()
+
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
 #               [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]
 #               [GTEST_MAIN]
+#               [THREADED]
 #               [MPI [MPI_NUMPROC procs]]
 #               [CUDA | CUDA_MPI]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
@@ -27,7 +32,7 @@ ProcessorCount(CPUS)
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA CUDA_MPI)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN THREADED MPI CUDA CUDA_MPI)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -101,10 +106,6 @@ function(dca_add_gtest name)
 
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 
-  if (DCA_ADD_GTEST_THREADED AND DCA_HAVE_HPX)
-    set(DCA_TESTING_FLAGS "--hpx:threads=5")
-  endif()
-
   # this is hacky but allows continued use of DCA_THREADING_LIBS
   # if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
   #   set(oldname ${name})
@@ -162,11 +163,12 @@ function(dca_add_gtest name)
     endif()
   endif()
 
-  if (DCA_HAVE_HPX)
+  if (DCA_ADD_GTEST_THREADED AND DCA_HAVE_HPX)
+    message("adding HPX link")
+    set(DCA_TESTING_FLAGS "--hpx:threads=5")
+    target_compile_definitions(${name} PUBLIC DCA_HAVE_HPX)
     target_link_libraries(${name} PUBLIC HPX::hpx HPX::wrap_main)
   endif()
-
-
   
   target_include_directories(${name} PRIVATE
     ${gtest_SOURCE_DIR}/include

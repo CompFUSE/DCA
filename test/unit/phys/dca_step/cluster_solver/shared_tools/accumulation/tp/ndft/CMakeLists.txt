@@ -13,6 +13,7 @@ if (DCA_HAVE_ADIOS2)
 endif()
 
 dca_add_gtest(cached_ndft_gpu_test
+  THREADED
   GTEST_MAIN
   CUDA
   FAST

@@ -49,6 +49,8 @@ set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(
 option(DCA_WITH_HPX "Enable HPX for multi-threading" ON)
 set(HPX_IGNORE_COMPILER_COMPATIBILITY ON)
 
+option(HPX_HAVE_MAX_CPU 176)
+
 #compilers
 set(CMAKE_C_COMPILER /sw/summit/gcc/9.3.0-2/bin/gcc)
 set(CMAKE_CXX_COMPILER /sw/summit/gcc/9.3.0-2/bin/g++)
