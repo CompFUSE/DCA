@@ -304,7 +304,7 @@ endif()
 
 ################################################################################
 # Enable HPX threading support if desired
-option(DCA_WITH_HPX "Enable HPX for multi-threading" ON)
+option(DCA_WITH_HPX "Enable HPX for multi-threading" OFF)
 if (DCA_WITH_HPX)
   # if HPX is not found then DCA_HAVE_HPX will not be set
   include(dca_hpx)
