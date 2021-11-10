@@ -207,7 +207,8 @@ TEST(MatrixCPUTest, SetAsync) {
   testing::setMatrixElements(mat, [](int i, int j) { return 3 * i * i - j; });
 
   mat2.setAsync(mat, 0, 0);
-
+  auto& gpu_stream = dca::linalg::util::getStream(0,0);
+  gpu_stream.sync();
   EXPECT_EQ(mat, mat2);
 }
 

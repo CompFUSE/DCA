@@ -40,7 +40,6 @@ void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_
   assert(size.first <= ld_src);
   assert(size.first >= 0);
   assert(size.second >= 0);
-
   size_t ncols = size.second;
   for (size_t i = 0; i < ncols; ++i) {
     memoryCopyCpu(dest + i * ld_dest, src + i * ld_src, size.first);
@@ -53,6 +52,8 @@ void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_
 // The host continues the execution of the program when the copy is terminated.
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, const ScalarType* src, size_t size) {
+  if (size == 0)
+    return;
   cudaError_t ret = cudaMemcpy(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault);
   checkRC(ret);
 }
@@ -64,6 +65,8 @@ void memoryCopy(ScalarType* dest, const ScalarType* src, size_t size) {
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                 std::pair<int, int> size) {
+  if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
+    return;
   cudaError_t ret = cudaMemcpy2D(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                                  size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault);
   try {
@@ -78,6 +81,8 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
 // Asynchronous 1D memory copy.
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, const cudaStream_t stream) {
+  if (size == 0)
+    return;
   cudaError_t ret = cudaMemcpyAsync(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault, stream);
   try {
     checkRC(ret);
@@ -102,6 +107,8 @@ void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, int t
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                      std::pair<int, int> size, const cudaStream_t stream) {
+  if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
+    return;
   cudaError_t ret =
       cudaMemcpy2DAsync(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                         size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault, stream);

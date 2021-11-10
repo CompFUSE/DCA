@@ -348,7 +348,6 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::nextCapacity(const std::size_t size) {
-  assert(size >= 0);
   constexpr std::size_t block_size = 512;
 
   auto next_power_of_two = [](std::size_t x) {
