@@ -15,7 +15,6 @@
 #include <iostream>
 #include <string>
 
-#include <hpx/hpx.hpp>
 #include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -58,6 +57,9 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profile
 using Data = dca::phys::DcaData<Parameters>;
 using Real = dca::config::McOptions::MCScalar;
 using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;
+
+template <typename T>
+using future = dca::parallel::thread_traits::future_type<T>;
 
 int main(int argc, char** argv) {
   int submatrix_size = -1;
@@ -121,7 +123,7 @@ int main(int argc, char** argv) {
     walkers.emplace_back(parameters, data, rngs.back(), i);
   }
 
-  std::vector<hpx::future<void>> fs;
+  std::vector<future<void>> fs;
   dca::parallel::ThreadPool pool(n_walkers);
   for (int i = 0; i < n_walkers; ++i) {
     fs.push_back(pool.enqueue([&do_sweeps, &walkers, i, n_warmup]() {
