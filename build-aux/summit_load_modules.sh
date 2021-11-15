@@ -15,3 +15,5 @@ module load cmake
 module load netlib-lapack
 module load essl
 
+export CC=mpicc
+export CXX=mpic++
