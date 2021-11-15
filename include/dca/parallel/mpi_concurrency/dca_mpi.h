@@ -1,0 +1,19 @@
+#include <mpi.h>
+
+#ifdef MPICH_NUMVERSION
+#ifdef DCA_FIX_BROKEN_MPICH
+/* Fix broken MPI-3 C++ types due to bad compiles of mpich */
+#undef MPI_CXX_BOOL
+#define MPI_CXX_BOOL                MPI_C_BOOL
+
+#undef MPI_CXX_FLOAT_COMPLEX
+#define MPI_CXX_FLOAT_COMPLEX       MPI_C_FLOAT_COMPLEX
+
+#undef MPI_CXX_DOUBLE_COMPLEX
+#define MPI_CXX_DOUBLE_COMPLEX      MPI_C_DOUBLE_COMPLEX
+
+#undef MPI_CXX_LONG_DOUBLE_COMPLEX
+#define MPI_CXX_LONG_DOUBLE_COMPLEX MPI_C_LONG_DOUBLE_COMPLEX
+
+#endif // DCA_FIX_BROKEN_MPICH
+#endif // MPICH_NUMVERSION

@@ -23,7 +23,7 @@
 #include <utility>  // std::move, std::swap
 #include <vector>
 
-#include <mpi.h>
+#include "dca_mpi.h"
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"

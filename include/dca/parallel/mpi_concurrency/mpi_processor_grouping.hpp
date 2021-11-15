@@ -17,7 +17,7 @@
 #include <cassert>
 #include <vector>
 
-#include <mpi.h>
+#include "dca_mpi.h"
 
 namespace dca {
 namespace parallel {

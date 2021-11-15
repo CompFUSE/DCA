@@ -25,6 +25,13 @@ void checkErrorsCudaDebugInternal(std::string function_name, std::string file_na
 
   cudaError_t ret = cudaGetLastError();
 
+#ifdef DCA_HAVE_HIP
+  // hip reports this whenever you call getLastError and the stream is not empty of calls
+  // To us this is not an error we're in an Async regime it's expected
+  if(ret == hipErrorNotReady)
+    return;
+#endif
+
   if (ret != cudaSuccess) {
     std::stringstream s;
 

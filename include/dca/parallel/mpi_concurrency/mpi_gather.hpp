@@ -14,7 +14,7 @@
 
 #include <vector>
 
-#include <mpi.h>
+#include "dca_mpi.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
