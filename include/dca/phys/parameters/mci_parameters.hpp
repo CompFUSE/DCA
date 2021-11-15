@@ -24,7 +24,7 @@
 #include "dca/phys/error_computation_type.hpp"
 
 #ifdef DCA_HAVE_MPI
-#include <mpi.h>
+#include "dca/parallel/mpi_concurrency/dca_mpi.h"
 #endif
 
 namespace dca {

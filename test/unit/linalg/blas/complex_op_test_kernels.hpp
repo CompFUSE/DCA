@@ -21,17 +21,18 @@
 template <typename Type>
 void gpu_operator_opmult(Type* a, const Type* b, int thread_id, int stream_id);
 
-extern template void gpu_operator_opmult(magmaFloatComplex* a, const magmaFloatComplex* b, int thread_id , int stream_id);
-extern template void gpu_operator_opmult(magmaDoubleComplex* a, const magmaDoubleComplex* b, int thread_id , int stream_id);
-
-template <typename Type>
-void gpu_operator_opmult(std::complex<Type>* a, const std::complex<Type>* b, int thread_id, int stream_id)
+template <typename T>
+void gpu_operator_opmult_cast(T* a, T* b, int thread_id, int stream_id)
 {
   using namespace dca::linalg::util;
   auto* cu_a = castCudaComplex(a);
   auto* cu_b = castCudaComplex(b);
   gpu_operator_opmult(cu_a,cu_b, thread_id, stream_id);
 }
+
+extern template void gpu_operator_opmult(magmaFloatComplex* a, const magmaFloatComplex* b, int thread_id , int stream_id);
+extern template void gpu_operator_opmult(magmaDoubleComplex* a, const magmaDoubleComplex* b, int thread_id , int stream_id);
+
 
 
 #endif

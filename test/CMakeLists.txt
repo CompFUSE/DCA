@@ -4,6 +4,7 @@
 # when DCA_HAVE_GPU=true
 set(UTIL_LIBS)
 if(DCA_HAVE_GPU)
+add_compile_definitions(DEBUG_CUDA)
 set(UTIL_LIBS gpu_utils)
 endif()
 

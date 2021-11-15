@@ -400,6 +400,14 @@ if(DCA_SYMMETRIZE)
 endif()
 
 ################################################################################
+# Workarounds
+option(DCA_FIX_BROKEN_MPICH "Re-define MPI_CXX_* datatypes as the corresponding MPI_C_* datatypes when mpich is the mpi provider."
+       OFF)
+if(DCA_FIX_BROKEN_MPICH)
+  add_compile_definitions(DCA_FIX_BROKEN_MPICH)
+endif()
+
+################################################################################
 # Generate applications' config files.
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/analysis.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/analysis.hpp" @ONLY)

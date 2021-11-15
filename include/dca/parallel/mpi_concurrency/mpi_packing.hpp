@@ -15,7 +15,7 @@
 
 #include <string>
 #include <vector>
-#include <mpi.h>
+#include "dca_mpi.h"
 #include "dca/function/function.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"

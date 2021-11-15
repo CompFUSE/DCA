@@ -106,6 +106,7 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
 
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  j_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 
 // Copies the j_x columns of mat_x into the  mat_y, for 0 <= i < j_x.size().
@@ -119,6 +120,8 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
 
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+  checkErrorsCudaDebug();
+
 }
 #endif  // DCA_HAVE_GPU
 
@@ -163,6 +166,7 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  i_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 
 // Copies the i_x rows of mat_x into  mat_y, for 0 <= i < i_x.size().
@@ -176,6 +180,7 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
@@ -402,6 +407,7 @@ void removeCol(Matrix<Scalar, GPU>& mat, int j) {
     blas::moveLeft(mat.nrRows(), mat.nrCols() - j, mat.ptr(0, j), mat.leadingDimension());
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
@@ -445,6 +451,7 @@ void removeRow(Matrix<Scalar, GPU>& mat, int i) {
     blas::moveUp(mat.nrRows() - i, mat.nrCols(), mat.ptr(i, 0), mat.leadingDimension());
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
@@ -532,6 +539,7 @@ inline void scaleRows(Matrix<Scalar, GPU>& mat, const Vector<int, GPU>& i,
 
   blas::scaleRows(mat.nrCols(), i.size(), i.ptr(), val.ptr(), mat.ptr(), mat.leadingDimension(),
                   thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
@@ -561,6 +569,7 @@ inline void swapCols(Matrix<Scalar, GPU>& mat, const Vector<int, GPU>& j_1,
   assert(j_1.size() <= j_2.size());
   blas::swapCols(mat.nrRows(), j_1.size(), j_1.ptr(), j_2.ptr(), mat.ptr(), mat.leadingDimension(),
                  thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
@@ -590,6 +599,7 @@ inline void swapRows(Matrix<Scalar, GPU>& mat, const Vector<int, GPU>& i_1,
   assert(i_1.size() == i_2.size());
   blas::swapRows(mat.nrCols(), i_1.size(), i_1.ptr(), i_2.ptr(), mat.ptr(), mat.leadingDimension(),
                  thread_id, stream_id);
+  checkErrorsCudaDebug();
 }
 #endif  // DCA_HAVE_GPU
 
