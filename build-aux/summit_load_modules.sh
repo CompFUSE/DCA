@@ -15,3 +15,5 @@ module load cmake/3.20.2 # at least 3.20 is required
 module load netlib-lapack
 module load essl
 
+export CC=mpicc
+export CXX=mpic++

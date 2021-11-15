@@ -50,13 +50,16 @@ using Profiler = dca::profiling::NullProfiler;
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::NoThreading;
+using NoThreading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using Real = dca::config::McOptions::MCScalar;
 using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;
+
+template <typename T>
+using future = dca::parallel::thread_traits::future_type<T>;
 
 int main(int argc, char** argv) {
   int submatrix_size = -1;
@@ -120,7 +123,7 @@ int main(int argc, char** argv) {
     walkers.emplace_back(parameters, data, rngs.back(), i);
   }
 
-  std::vector<std::future<void>> fs;
+  std::vector<future<void>> fs;
   dca::parallel::ThreadPool pool(n_walkers);
   for (int i = 0; i < n_walkers; ++i) {
     fs.push_back(pool.enqueue([&do_sweeps, &walkers, i, n_warmup]() {

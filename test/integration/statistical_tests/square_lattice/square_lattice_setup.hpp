@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -28,7 +29,6 @@
 #include "dca/math/random/random.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -64,8 +64,8 @@ using dca::phys::solver::CT_INT;
 template <ClusterSolverName name = CT_AUX>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, name>;
+                                  Threading, dca::profiling::NullProfiler, Model,
+                                  RandomNumberGenerator, dca::phys::solver::CT_AUX>;
 
 template <ClusterSolverName name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
@@ -86,13 +86,14 @@ using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
 
 template <ClusterSolverName name = CT_AUX>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
+>>>>>>> f4e0ed1d... merging dca latest commit
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
 using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
 using dca::math::util::cutFrequency;
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // DCA_TEST_INTEGRATION_STATISTICAL_TESTS_SQUARE_LATTICE_SQUARE_LATTICE_SETUP_HPP

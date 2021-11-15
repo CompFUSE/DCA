@@ -13,10 +13,10 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/threading.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -29,7 +29,6 @@ const std::string input_dir = DCA_SOURCE_DIR "/test/unit/phys/dca_step/symmetriz
 using Concurrency = dca::parallel::NoConcurrency;
 using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
-using Threading = dca::parallel::stdthread;
 
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, void, dca::phys::solver::CT_AUX>;

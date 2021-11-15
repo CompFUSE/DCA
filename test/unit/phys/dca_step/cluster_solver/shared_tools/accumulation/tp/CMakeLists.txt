@@ -42,7 +42,8 @@ dca_add_gtest(tp_accumulator_particle_hole_test
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${PROJECT_SOURCE_DIR} ${FFTW_INCLUDE_DIR} ${HDF5_INCLUDE_DIR}
-  LIBS function ${TPACC_PARTICLE_HOLE_LIBS})
+  LIBS function cluster_domains time_and_frequency_domains quantum_domains timer json random
+       enumerations dca_algorithms ${DCA_THREADING_LIBS} parallel_util ${LAPACK_LIBRARIES} gpu_utils)
 
 dca_add_gtest(tp_accumulator_gpu_test
   FAST

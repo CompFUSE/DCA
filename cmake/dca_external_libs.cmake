@@ -60,8 +60,7 @@ endif()
 ################################################################################
 ################################################################################
 # FFTW
-set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY "" CACHE FILEPATH "The FFTW3(-compatible) library.")
+find_package(FFTW REQUIRED)
 
 list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})

@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/config/threading.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/linalg/matrixop.hpp"

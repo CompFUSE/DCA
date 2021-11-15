@@ -38,6 +38,7 @@
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/util/integer_division.hpp"
 
 #ifdef DCA_HAVE_MPI
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"

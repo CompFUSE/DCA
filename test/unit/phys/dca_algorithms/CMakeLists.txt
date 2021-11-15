@@ -11,9 +11,9 @@ dca_add_gtest(compute_free_greens_function_test
   GTEST_MAIN
   INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
   CUDA
-  LIBS function parallel_stdthread parallel_util ${LAPACK_LIBRARIES} ${UTIL_LIBS} ${DCA_GPU_LIBS})
+  LIBS function ${DCA_THREADING_LIBS} ${LAPACK_LIBRARIES} ${UTIL_LIBS} ${DCA_GPU_LIBS} parallel_util)
 
 dca_add_gtest(compute_greens_function_test
   GTEST_MAIN
   INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
-  LIBS function parallel_stdthread parallel_util ${LAPACK_LIBRARIES} ${UTIL_LIBS} ${DCA_GPU_LIBS})
+  LIBS function ${DCA_THREADING_LIBS} ${LAPACK_LIBRARIES} ${UTIL_LIBS} ${DCA_GPU_LIBS} parallel_util)

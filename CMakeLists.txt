@@ -10,6 +10,18 @@ project(DCA++ LANGUAGES C CXX)
 cmake_policy(VERSION 3.18)
 
 ################################################################################
+# Always use <PackageName>_ROOT vars to search first
+if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+endif()
+
+################################################################################
+# Always use <PackageName>_ROOT vars to search first
+if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+endif()
+
+################################################################################
 # Disable in-source builds.
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted. Make a separate folder for building:\n
@@ -24,8 +36,10 @@ set(SANE_DEV_BUILD true)
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-  enable_testing()
-  include(CTest)
+################################################################################
+# Enable CTest/CDash dashboard testing
+enable_testing()
+include(CTest)
 
 ################################################################################
 # Load global variables to store preprocessor definitions.
@@ -122,6 +136,8 @@ include(dca_linking)
 # Libraries
 add_subdirectory(src)
 
+message(Threading Libs: "${DCA_THREADING_LIBS}")
+
 # We are trying to move away from this abdication targeting try to explicitly link
 # without using this mess.
 set(DCA_LIBS
@@ -137,7 +153,6 @@ set(DCA_LIBS
   nfft
   tetrahedron_mesh
   ${DCA_RNG_LIBRARY}
-  parallel_stdthread
   parallel_util
   dca_algorithms
   json

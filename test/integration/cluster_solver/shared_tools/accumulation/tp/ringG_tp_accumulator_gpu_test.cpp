@@ -28,7 +28,8 @@
 
 constexpr bool update_baseline = false;
 
-#define INPUT_DIR DCA_SOURCE_DIR "/test/integration/cluster_solver/shared_tools/accumulation/tp/"
+#define INPUT_DIR \
+  DCA_SOURCE_DIR "/test/integration/cluster_solver/shared_tools/accumulation/tp/"
 
 constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer.json";
 
