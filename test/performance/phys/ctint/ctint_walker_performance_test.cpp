@@ -97,8 +97,8 @@ int main(int argc, char** argv) {
   constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
 #endif  // DCA_HAVE_GPU
 
-  dca::phys::solver::ctint::G0Interpolation<device, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::G0Interpolation<device, Real> g0(
+      dca::phys::solver::details::shrinkG0(data.G0_r_t));
 
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0);

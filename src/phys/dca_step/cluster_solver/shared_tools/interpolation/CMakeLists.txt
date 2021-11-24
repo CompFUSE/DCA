@@ -1,0 +1,3 @@
+add_library(g0_interpolation g0_interpolation.cpp interpolation_domains.cpp)
+target_link_libraries(g0_interpolation PUBLIC time_and_frequency_domains function)
+dca_gpu_runtime_link(g0_interpolation)

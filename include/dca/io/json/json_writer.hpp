@@ -54,6 +54,8 @@ public:
   // Returns true if a file is open.
   operator bool() const noexcept;
 
+  void erase(const std::string& name);
+
   // Commits to the internal data representation the value of "obj".
   template <class T>
   void execute(const std::string& name, const T& obj) noexcept;

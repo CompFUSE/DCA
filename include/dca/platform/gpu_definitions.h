@@ -17,24 +17,31 @@
 
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
-#endif
 
+// clang-format off
 #if defined(DCA_HAVE_CUDA)
   #ifdef __CUDACC__
-  #define __HOST__ __host__
-  #define __DEVICE__ __device__
-  #define IS_CUDA_COMPILER
-  #else
+    #define __HOST__ __host__
+    #define __DEVICE__ __device__
+    #define __CONSTANT__ __constant__
+    #define IS_GPU_COMPILER
+  #else // the compiler is an cpu compiler
     #define __HOST__
     #define __DEVICE__
+    #define __CONSTANT__
   #endif
 #elif defined(DCA_HAVE_HIP)
-  #define __HOST__ __host__
-  #define __DEVICE__ __device__
-#else // the compiler is an gpu compiler
-  #define __HOST__
-  #define __DEVICE__
+  #ifdef __CUDA_CC__
+    #define __HOST__ __host__
+    #define __DEVICE__ __device__
+    #define __CONSTANT__ __constant__
+  #else // the compiler is an cpu compiler
+    #define __HOST__
+    #define __DEVICE__
+    #define __CONSTANT__
+  #endif
 #endif
-
+// clang-format on
+#endif
 
 #endif  // DCA_UTIL_CUDA_DEFINITIONS_HPP

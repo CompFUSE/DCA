@@ -296,7 +296,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
-  util::Plot::plotBandsLinesPoints(F_r_t);
+  dca::util::Plot::plotBandsLinesPoints(F_r_t);
 
   {
     double beta = parameters.get_beta();
@@ -326,7 +326,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
           y.push_back(F_val);
         }
 
-        util::Plot::plotPoints(x, y);
+        dca::util::Plot::plotPoints(x, y);
       }
     }
   }

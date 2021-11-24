@@ -63,14 +63,27 @@ public:
 
   // physics-information
   std::pair<int, int>& get_bands();
+  const std::pair<int, int>& get_bands() const{
+      return bands;
+  }
   std::pair<e_spin_states_type, e_spin_states_type>& get_e_spins();
+  const std::pair<e_spin_states_type, e_spin_states_type>& get_e_spins() const {
+    return e_spins;
+  }
   std::pair<int, int>& get_r_sites();
+  const std::pair<int, int>& get_r_sites() const {
+    return r_sites;
+  }
   std::pair<int, int>& get_spin_orbitals();
+  const std::pair<int, int>& get_spin_orbitals() const;
 
   HS_spin_states_type& get_HS_spin();
   HS_spin_states_type get_HS_spin() const;
   int& get_delta_r();
   double& get_tau();
+  const double& get_tau() const {
+    return tau;
+  }
 
   // algorithm-information
 

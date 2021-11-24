@@ -12,10 +12,10 @@
 #ifndef DCA_IO_WRITER_HPP
 #define DCA_IO_WRITER_HPP
 
-#include <mutex>
 #include <string>
 #include <variant>
 
+#include "dca/config/threading.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #ifdef DCA_WITH_ADIOS2
@@ -77,6 +77,32 @@ public:
 #endif
   }
 
+  template <class... Args>
+  void rewrite(const std::string& name, const Args&... args) {
+#ifdef DCA_HAVE_ADIOS2
+    if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
+      std::visit(
+          [&](auto& var) {
+            var.erase(name);
+            var.execute(name, args...);
+          },
+          writer_);
+    }
+    else {
+#endif
+      if (concurrency_.id() == concurrency_.first()) {
+        std::visit(
+            [&](auto& var) {
+              var.erase(name);
+              var.execute(name, args...);
+            },
+            writer_);
+      }
+#ifdef DCA_HAVE_ADIOS2
+    }
+#endif
+  }
+
   operator bool() const noexcept {
     return std::visit([&](const auto& var) { return static_cast<bool>(var); }, writer_);
   }
@@ -94,7 +120,7 @@ public:
   }
 
 private:
-  std::mutex mutex_;
+  dca::parallel::thread_traits::mutex_type mutex_;
   std::variant<io::HDF5Writer, io::JSONWriter> writer_;
   Concurrency& concurrency_;
 };

@@ -142,7 +142,7 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  ctint::G0Interpolation<device_t, Real> g0_;
+  G0Interpolation<device_t, Real> g0_;
   Rng rng_;
 };
 

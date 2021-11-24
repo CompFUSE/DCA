@@ -10,12 +10,11 @@
 
 #include <algorithm>
 
-#include "dca/phys/dca_step/cluster_solver/ctint/domains/ct_int_domains.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/interpolation_domains.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
 
 void PositiveTimeDomain::initialize() {
   if (not TimeDomain::is_initialized())
@@ -42,7 +41,6 @@ std::vector<typename PositiveTimeDomain::ElementType> PositiveTimeDomain::elemen
 
 int G0ParametersDomain::size_ = -1;
 
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca

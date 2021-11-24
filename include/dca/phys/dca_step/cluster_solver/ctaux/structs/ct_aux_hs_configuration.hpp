@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
@@ -37,7 +38,8 @@ template <class parameters_type>
 class CT_AUX_HS_configuration {
 public:
   using rng_type = typename parameters_type::random_number_generator;
-
+  using Concurrency = typename parameters_type::concurrency_type;
+  
   typedef HS_spin_states_type spin_state_type;
 
   typedef vertex_singleton vertex_singleton_type;
@@ -110,7 +112,13 @@ public:
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
 
+  auto get_matrix_configuration() const {
+    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+  }
+
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  void write(io::Writer<Concurrency>& file, const std::string& stamp) const;
 
   template <class Pars>
   friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
@@ -798,6 +806,32 @@ bool CT_AUX_HS_configuration<parameters_type>::operator==(
   // assert(assert_counters());
   return configuration == rhs.configuration && configuration_e_UP == rhs.configuration_e_UP &&
          configuration_e_DN == rhs.configuration_e_DN;
+}
+
+template <class parameters_type>
+void CT_AUX_HS_configuration<parameters_type>::write(io::Writer<Concurrency>& file,
+                                                     const std::string& stamp) const {
+  file.open_group(stamp);
+
+  std::vector<std::array<float, 3>> compact;
+  compact.reserve(configuration.size());
+
+  for (const auto& vertex : configuration) {
+    if (vertex.get_HS_spin() == HS_ZERO)
+      continue;
+
+    const float t = vertex.get_tau();
+    const float r = vertex.get_r_sites().first;
+    const float spin = vertex.get_HS_spin() == HS_UP ? 1. : -1.;
+
+    compact.push_back(std::array<float, 3>{t, r, spin});
+  }
+
+  std::sort(compact.begin(), compact.end(), [](auto& a, auto& b) { return a[0] < b[0]; });
+
+  file.execute("configuration", compact);
+
+  file.close_group();
 }
 
 }  // namespace ctaux
