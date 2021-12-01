@@ -112,8 +112,6 @@ private:
   std::vector<dca::io::Buffer> config_dump_;
   stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
-  std::shared_ptr<io::Writer<Concurrency>> writer_;
-
   bool last_iteration_ = false;
   bool read_configuration_ = false;
   unsigned measurements_ = 0;
@@ -122,7 +120,7 @@ private:
 template <class QmciSolver>
 StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
     Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
-    : BaseClass(parameters_ref, data_ref),
+    : BaseClass(parameters_ref, data_ref, writer),
 
       nr_walkers_(parameters_.get_walkers()),
       nr_accumulators_(parameters_.get_accumulators()),
@@ -136,9 +134,7 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
       accumulators_queue_(),
 
       config_dump_(nr_walkers_),
-      autocorrelation_data_(parameters_, 0),
-
-      writer_(writer) {
+      autocorrelation_data_(parameters_, 0) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -232,10 +228,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   print_metadata();
 
   if (parameters_.store_configuration()) {
-    if (writer_) {  // write one sample configuration.
-      writer_->open_group("Configurations");
-      writer_->rewrite("sample", config_dump_[0]);
-      writer_->close_group();
+    if (BaseClass::writer_) {  // write one sample configuration.
+      BaseClass::writer_->open_group("Configurations");
+      BaseClass::writer_->rewrite("sample", config_dump_[0]);
+      BaseClass::writer_->close_group();
     }
     read_configuration_ = true;
   }
@@ -257,8 +253,8 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
   // Write and reset autocorrelation.
   autocorrelation_data_.sumConcurrency(concurrency_);
-  if (writer_ && *writer_)  // Writer exists and it is open.
-    autocorrelation_data_.write(*writer_, dca_iteration_);
+  if (BaseClass::writer_ && *BaseClass::writer_)  // Writer exists and it is open.
+    autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
   autocorrelation_data_.reset();
 
   return L2_Sigma_difference;
@@ -274,7 +270,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
 
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
 
-  auto walker_log = last_iteration_ ? writer_ : nullptr;
+  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
   Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log);
 
   std::unique_ptr<std::exception> exception_ptr;
@@ -445,7 +441,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   Profiler::start_threading(id);
 
   // Create and warm a walker.
-  auto walker_log = last_iteration_ ? writer_ : nullptr;
+  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
   Walker walker(parameters_, data_, rng_vector_[id], id, walker_log);
   initializeAndWarmUp(walker, id, id);
 

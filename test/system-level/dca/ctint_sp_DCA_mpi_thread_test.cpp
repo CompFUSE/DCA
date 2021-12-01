@@ -14,6 +14,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -21,7 +23,6 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"

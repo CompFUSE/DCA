@@ -68,6 +68,9 @@ public:
 
   static constexpr linalg::DeviceType device = device_t;
 
+protected:
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
+
 private:
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -82,7 +85,8 @@ private:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref);
+  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
+                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -164,8 +168,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, dca::DistType DIST>
-CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(Parameters& parameters_ref,
-                                                                         Data& data_ref)
+CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -187,7 +191,8 @@ CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(Paramet
       M_r_w_("M_r_w"),
       M_r_w_squared_("M_r_w_squared"),
 
-      averaged_(false) {
+      averaged_(false),
+      writer_(writer) {
   TimeCorrelator<Parameters, typename Walker::Scalar, device>::setG0(g0_);
 
   if (concurrency_.id() == concurrency_.first())
@@ -271,7 +276,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::integrate() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 template <typename dca_info_struct_t>
-double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(dca_info_struct_t& dca_info_struct) {
+double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
+    dca_info_struct_t& dca_info_struct) {
   collect_measurements();
   symmetrize_measurements();
 
@@ -296,7 +302,8 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(dca_info_s
     }
   }
 
-  if (compute_jack_knife_ && parameters_.isAccumulatingG4() && parameters_.get_g4_distribution() == DistType::NONE) {
+  if (compute_jack_knife_ && parameters_.isAccumulatingG4() &&
+      parameters_.get_g4_distribution() == DistType::NONE) {
     for (std::size_t channel = 0; channel < data_.get_G4_error().size(); ++channel)
       data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel], true);
   }
@@ -382,7 +389,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::measure(Walker& walke
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
-  static_assert(std::is_same<Data, dca::phys::DcaData<ParametersType, DIST>>::value); //::DcaDataType<DIST>>::value);
+  static_assert(
+      std::is_same<Data, dca::phys::DcaData<ParametersType, DIST>>::value);  //::DcaDataType<DIST>>::value);
 
   if (!accumulator_.compute_std_deviation())
     return;
@@ -470,8 +478,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
         auto& G4 = data_.get_G4()[channel];
         // function operator = will reset this G4 size to other G4 size if they are not equal
         G4 = accumulator_.get_sign_times_G4()[channel];
-        if(parameters_.get_g4_distribution() != DistType::NONE)
-        {
+        if (parameters_.get_g4_distribution() != DistType::NONE) {
           // do nothing, no accumulation should be performed as G4 size cannot fit into one GPU
           // reserve this function for testing purpose only
           // concurrency_.gatherv(G4, concurrency_.first());

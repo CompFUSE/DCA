@@ -15,9 +15,9 @@
 using RngType = dca::testing::StubRng;
 using LatticeType = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters =
-    dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
+    dca::phys::params::Parameters<TestConcurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
                                   ModelType, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 
@@ -26,7 +26,7 @@ struct SolverWrapper
   using BaseClass = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 
   SolverWrapper(Parameters& parameters_ref, typename BaseClass::Data& data_ref)
-      : BaseClass(parameters_ref, data_ref) {}
+    : BaseClass(parameters_ref, data_ref, nullptr) {}
 
   using BaseClass::computeSigma;
   using BaseClass::computeG_k_w;
@@ -42,7 +42,7 @@ struct SolverWrapper
 };
 
 TEST(CtintClusterSolvertest, ComputeSigma) {
-  Concurrency concurrency(1, NULL);
+  TestConcurrency concurrency(1, NULL);
   Parameters parameters("", concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
       DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/inputs/input_single_site.json");

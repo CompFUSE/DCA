@@ -275,6 +275,36 @@ int SolverConfiguration::findTag(std::uint64_t tag) const {
   return anhilatable_indices_.findByKey(tag)->second;
 }
 
+template <class CONCUR>
+void SolverConfiguration::write(io::Writer<CONCUR>& writer, const std::string& stamp) const {
+  std::vector<double> times;
+  std::vector<std::uint8_t> spins;
+  std::vector<std::array<unsigned short, 4>> sites;
+  std::vector<std::array<unsigned short, 4>> orbitals;
+
+  for (const auto& v : vertices_) {
+    times.push_back(v.tau);
+    spins.push_back(v.aux_spin);
+    const auto& element = (*H_int_)[v.interaction_id];
+    sites.push_back(element.r);
+    orbitals.push_back(element.nu);
+  }
+
+  writer.open_group(stamp);
+
+  writer.execute("times", times);
+  writer.execute("spins", spins);
+  writer.execute("sites", sites);
+  writer.execute("orbitals", orbitals);
+
+  writer.close_group();
+}
+
+template void SolverConfiguration::write<Concurrency>(io::Writer<Concurrency>& writer,
+                                                      const std::string& stamp) const;
+template void SolverConfiguration::write<dca::parallel::NoConcurrency>(
+    io::Writer<dca::parallel::NoConcurrency>& writer, const std::string& stamp) const;
+
 }  // namespace ctint
 }  // namespace solver
 }  // namespace phys

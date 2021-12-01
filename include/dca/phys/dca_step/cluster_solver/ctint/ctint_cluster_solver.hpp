@@ -45,15 +45,18 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false, DistType DIST = DistType::NONE>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false,
+          DistType DIST = DistType::NONE>
 class CtintClusterSolver {
 public:
   using Real = typename config::McOptions::MCScalar;
+  using Concurrency = typename Parameters::concurrency_type;
 
   using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
-  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref);
+  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
+                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   ~CtintClusterSolver();
 
@@ -87,7 +90,7 @@ protected:  // thread jacket interface.
   using DataType = Data;
   using Rng = typename Parameters::random_number_generator;
   using Profiler = typename Parameters::profiler_type;
-  using Concurrency = typename Parameters::concurrency_type;
+  //  using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, Real, DIST>;
@@ -136,6 +139,7 @@ protected:
   double total_time_ = 0;
   double warm_up_time_ = 0;
   int dca_iteration_ = 0;
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
 
 private:
   bool perform_tp_accumulation_;
@@ -146,17 +150,17 @@ private:
   Rng rng_;
 };
 
-
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::CtintClusterSolver(Parameters& parameters_ref,
-                                                                            Data& data_ref)
+template <dca::linalg::DeviceType DEV, class PARAM, bool use_submatrix, DistType DIST>
+CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
+    PARAM& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
 
       accumulator_(parameters_, data_),
-
-      rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
+      writer_(writer),
+      rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed())
+{
   Walker::setDMatrixBuilder(g0_);
   //  TimeCorrelator<Parameters, Real, device_t>::setG0(g0_);
   Walker::setInteractionVertices(data_, parameters_);
@@ -453,8 +457,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeDen
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAndG4(SpGreensFunction& M,
-                                                                             bool compute_error) const {
+double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAndG4(
+    SpGreensFunction& M, bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
 
