@@ -64,7 +64,7 @@ public:
   typedef typename parameters_type::concurrency_type concurrency_type;
 
 public:
-  ss_hybridization_walker_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref,
+  ss_hybridization_walker_routines(const parameters_t& parameters_ref, MOMS_t& MOMS_ref,
                                    configuration_t& configuration_ref, rng_t& rng_ref);
 
   void initialize() {}
@@ -215,7 +215,7 @@ private:
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::ss_hybridization_walker_routines(
-    parameters_t& parameters_ref, MOMS_t& MOMS_ref, configuration_t& configuration_ref, rng_t& rng_ref)
+    const parameters_t& parameters_ref, MOMS_t& MOMS_ref, configuration_t& configuration_ref, rng_t& rng_ref)
     : ss_hybridization_solver_routines<parameters_t, MOMS_t>(parameters_ref, MOMS_ref),
 
       parameters(parameters_ref),

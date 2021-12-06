@@ -123,11 +123,13 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>, Data>
       public QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>> {
   using QmciWalker = cthyb::SsCtHybWalker<device, Parameters, Data>;
   using ThisType = StdThreadQmciWalker<QmciWalker, Data>;
+  using Concurrency = typename Parameters::concurrency_type;
+
   using Rng = typename Parameters::random_number_generator;
 
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::HDF5Writer>& /*writer*/)
+                      const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/)
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
   }

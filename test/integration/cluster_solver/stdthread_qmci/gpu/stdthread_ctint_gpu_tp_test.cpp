@@ -39,12 +39,12 @@ constexpr bool UPDATE_RESULTS = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/gpu/";
 
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::stdthread;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+using StdThreading = dca::parallel::stdthread;
+using Parameters = dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device>
@@ -53,7 +53,7 @@ template <dca::linalg::DeviceType device>
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver<device>>;
 
 TEST(StdthreadCtintGpuTest, GpuVsCpu) {
-  Concurrency concurrency(0, nullptr);
+  TestConcurrency concurrency(0, nullptr);
   dca::linalg::util::initializeMagma();
 
   Parameters parameters("", concurrency);
@@ -74,11 +74,11 @@ TEST(StdthreadCtintGpuTest, GpuVsCpu) {
     solver.finalize(loop_data);
   };
 
-  QmcSolver<dca::linalg::GPU> qmc_solver_gpu(parameters, data_gpu);
+  QmcSolver<dca::linalg::GPU> qmc_solver_gpu(parameters, data_gpu, nullptr);
   perform_integration(qmc_solver_gpu);
 
   RngType::resetCounter();  // Use the same seed for both solvers.
-  QmcSolver<dca::linalg::CPU> qmc_solver_cpu(parameters, data_cpu);
+  QmcSolver<dca::linalg::CPU> qmc_solver_cpu(parameters, data_cpu, nullptr);
   perform_integration(qmc_solver_cpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);

@@ -86,7 +86,7 @@ private:
 
 public:
   CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
-                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
+                     const std::shared_ptr<io::Writer<Concurrency>>& writer = nullptr);
 
   template <typename Writer>
   void write(Writer& writer);

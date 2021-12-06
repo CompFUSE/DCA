@@ -74,7 +74,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   Data data(parameters);
   data.initialize();
 
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU, double> g0(
+  dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
   initializeWalkerStatic<Walker>(g0, parameters, data);

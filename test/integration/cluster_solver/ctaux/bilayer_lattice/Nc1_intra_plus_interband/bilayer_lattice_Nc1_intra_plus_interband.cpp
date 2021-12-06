@@ -102,7 +102,7 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
   //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
-  QmcSolverType qmc_solver(parameters, dca_data_imag);
+  QmcSolverType qmc_solver(parameters, dca_data_imag, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);

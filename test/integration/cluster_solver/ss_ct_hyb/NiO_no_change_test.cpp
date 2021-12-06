@@ -81,7 +81,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
   concurrency.broadcast(data.G_k_w);
   concurrency.broadcast(data.Sigma_cluster);
 
-  ImpuritySolver solver(parameters, data);
+  ImpuritySolver solver(parameters, data, nullptr);
   solver.initialize(0);
   solver.integrate();
 

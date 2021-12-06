@@ -41,11 +41,11 @@
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/gpu/";
 
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+using Parameters = dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
@@ -57,7 +57,7 @@ using QmcSolverCpu = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverCpu
 
 TEST(PosixCtauxClusterSolverTest, G_k_w) {
   dca::linalg::util::initializeMagma();
-  Concurrency concurrency(0, nullptr);
+  TestConcurrency concurrency(0, nullptr);
   if (concurrency.id() == concurrency.first()) {
     dca::util::GitVersion::print();
     dca::util::Modules::print();
@@ -81,11 +81,11 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
     dca::phys::DcaLoopData<Parameters> loop_data;
     solver.finalize(loop_data);
   };
-  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
+  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu, nullptr);
   perform_integration(qmc_solver_cpu);
 
   RngType::resetCounter();  // Use the same seed for both solvers.
-  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
+  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu, nullptr);
   perform_integration(qmc_solver_gpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);

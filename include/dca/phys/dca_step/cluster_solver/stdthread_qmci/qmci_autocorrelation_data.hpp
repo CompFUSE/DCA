@@ -228,7 +228,7 @@ public:
   QmciAutocorrelationData& operator+=(const QmciAutocorrelationData&) {
     return *this;
   }
-  static void write(io::HDF5Writer&, int) {}
+  static void write(io::Writer<Concurrency>& writer, int) {}
   void reset() {}
 };
 

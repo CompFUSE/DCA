@@ -105,7 +105,7 @@ TEST(Ni0, GS) {
   dca_test_env->concurrency.broadcast(data.G_k_w);
   dca_test_env->concurrency.broadcast(data.Sigma_cluster);
 
-  ImpuritySolver solver(parameters, data);
+  ImpuritySolver solver(parameters, data, nullptr);
   solver.initialize(0);
   solver.integrate();
 

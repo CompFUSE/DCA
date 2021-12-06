@@ -51,8 +51,8 @@ using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
-using Concurrency = dca::parallel::NoConcurrency;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
+using TestConcurrency = dca::parallel::NoConcurrency;
+using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using Real = dca::config::McOptions::MCScalar;
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
       n_walkers = std::atoi(argv[i + 1]);
   }
 
-  Concurrency concurrency(argc, argv);
+  TestConcurrency concurrency(argc, argv);
   Parameters parameters("", concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "square_lattice_input.json");
 

@@ -33,13 +33,17 @@ namespace solver {
 template <typename Real>
 class G0Interpolation<dca::linalg::GPU, Real> final : public DeviceInterpolationData<Real>,
                                                  public G0Interpolation<linalg::CPU, Real> {
-private:
+public:
   using PDmn = G0ParametersDomain;
   using PDmn0 = func::dmn_0<G0ParametersDomain>;
   using TDmn = func::dmn_0<domains::time_domain>;
   using HostInterpolation = G0Interpolation<linalg::CPU, Real>;
 
-public:
+  using typename HostInterpolation::CoeffDmn;
+  using typename HostInterpolation::PTime0;
+  using typename HostInterpolation::PTdmn;
+  using typename HostInterpolation::InterpolationDmn;
+
   G0Interpolation() = default;
   G0Interpolation(const G0Interpolation& other) = delete;
 
@@ -48,6 +52,8 @@ public:
     HostInterpolation::initialize(G0_func);
   }
 
+  void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) override;
+
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   // Call from the CPU only for testing purposes.
   Real operator()(Real tau, int lindex) const;
@@ -55,13 +61,6 @@ public:
   using HostInterpolation::COEFF_SIZE;
 
 private:
-  using typename HostInterpolation::CoeffDmn;
-  using typename HostInterpolation::PTime0;
-  using typename HostInterpolation::PTdmn;
-  using typename HostInterpolation::InterpolationDmn;
-
-  void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) override;
-
   linalg::Vector<Real, linalg::GPU> G0_coeff_;
   linalg::Vector<Real, linalg::GPU> g0_minus_dev_;
   int time_slices_ = -1;

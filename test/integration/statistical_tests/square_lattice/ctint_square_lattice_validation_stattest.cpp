@@ -20,7 +20,7 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
+TEST(CtintSquareLatticeValidationTest, GreensFunction) {
   dca::linalg::util::initializeMagma();
 
   using namespace dca::testing;
@@ -45,7 +45,7 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_INT> qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_INT> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

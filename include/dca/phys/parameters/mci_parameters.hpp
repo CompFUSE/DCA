@@ -346,6 +346,11 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
   solve_confilct(sweeps_per_measurement_);
 }
 
+void MciParameters::solveConfigReadConflict(bool read) {
+  if(read)
+    store_configuration_ = true;
+}
+
 }  // namespace params
 }  // namespace phys
 }  // namespace dca
