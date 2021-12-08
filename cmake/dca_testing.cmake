@@ -53,9 +53,9 @@ function(dca_add_gtest name)
       return()
     endif()
     # Only build performance tests in Release mode.
-    if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-      return ()
-    endif()
+    # if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    #   return ()
+    # endif()
 
   elseif (DCA_ADD_GTEST_EXTENSIVE)
     if (NOT DCA_WITH_TESTS_EXTENSIVE)
@@ -107,7 +107,6 @@ function(dca_add_gtest name)
     if(DCA_WITH_CUDA_AWARE_MPI)
       target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA_AWARE_MPI)
     endif()
-    cuda_add_cublas_to_target(${name})
   endif()
 
   target_include_directories(${name} PRIVATE

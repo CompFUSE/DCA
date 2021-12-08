@@ -32,8 +32,11 @@ if (DCA_HAVE_CUDA)
             ../../../math/nfft/dnfft_1d_kernels.cu
             ../../../math/nfft/nfft_helper.cu
             )
+    add_library(mc_kernels ${MC_KERNEL_FILES})
+    target_compile_definitions(mc_kernels PUBLIC DCA_HAVE_CUDA)
+    dca_gpu_runtime_link(mc_kernels)
+    dca_gpu_blas_link(mc_kernels)
+    dca_gpu_device_link(mc_kernels)
 
-    cuda_add_library(mc_kernels ${MC_KERNEL_FILES})
-    target_compile_definitions(mc_kernels PUBLIC  "-DDCA_HAVE_CUDA")
-    target_link_libraries(mc_kernels ctint)
+    target_link_libraries(mc_kernels PUBLIC ctint)
 endif()

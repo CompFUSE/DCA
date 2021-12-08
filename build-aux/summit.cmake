@@ -6,11 +6,19 @@
 # Paths to IBM's ESSL (preferred) and NETLIB-LAPACK will be set manually.
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "If set to TRUE, prevents CMake from searching for LAPACK.")
 # To give ESSL precedence it needs to be specified before NETLIB.
+set(LAPACK_INCLUDE_DIRS $ENV{OLCF_NETLIB_LAPACK_ROOT}/include CACHE FILEPATH "Lapack include directory")
 set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
+set(LAPACK_LIBRARY ${LAPACK_LIBRARIES} CACHE FILEPATH "target based location")
 
+
+
+if(DCA_WITH_HPX)
+set(LAPACK_LIBRARIES $ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/libblas.so CACHE FILEPATH "Libraries to link against to use LAPACK.")
+else()
 # Set the include directory for the ESSL library.
 set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL include directory.")
 mark_as_advanced(DCA_ESSL_INCLUDES)
+endif()
 
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
@@ -27,21 +35,22 @@ set(SMPIARGS_FLAG_MPI "--smpiargs=\"-gpu\"" CACHE STRING "Spectrum MPI argument 
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
-option(DCA_WITH_CUDA_AWARE_MPI "Enable CUDA aware MPI." ON)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." ON)
 
 # Compile for Volta compute architecture.
-set(CUDA_GPU_ARCH "sm_70" CACHE STRING "Name of the *real* architecture to build for.")
+set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
-# For the GPU support we also need MAGMA.
-set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
+set(MAGMA_DIR "/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.3.0/magma-2.6.1-v52v5xuz6viygha3zvzkbmhhhdhqy5r6" CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 # FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
-# Flags for summit.
-set(CMAKE_CXX_FLAGS -march=power9)
+#compilers
+set(CMAKE_C_COMPILER mpicc)
+set(CMAKE_CXX_COMPILER mpicxx)
+

@@ -7,6 +7,7 @@
 ################################################################################
 # Enable MPI.
 option(DCA_WITH_MPI "Enable MPI." ON)
+option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." OFF)
 
 if (DCA_WITH_MPI)
   include(dca_mpi)
@@ -28,27 +29,60 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/concurrency.hpp" @ONLY)
 
 ################################################################################
+# No GPU by default -- DCA_WITH_CUDA or DCA_WITH_HIP will set true if they
+#                      are found
+set(DCA_HAVE_GPU FALSE CACHE INTERNAL "")
+
+################################################################################
 # Enable CUDA.
-option(DCA_WITH_CUDA "Enable GPU support." OFF)
+option(DCA_WITH_CUDA "Enable Nvidia GPU support." OFF)
 
 if (DCA_WITH_CUDA)
   include(dca_cuda)
   if (NOT DCA_HAVE_CUDA)
-    message(FATAL_ERROR "CUDA or MAGMA not found but requested.")
+    message(FATAL_ERROR "CUDA and/or MAGMA not found but requested.")
   endif()
-
   dca_add_config_define(DCA_WITH_CUDA)
+  dca_add_config_define(DCA_WITH_GPU)
+endif()
 
-  # Copy walker device config file for GPU.
+################################################################################
+# Enable HIP
+option(DCA_WITH_HIP "Enable AMD GPU support." OFF)
+
+if (DCA_WITH_HIP)
+  include(dca_hip)
+  if (NOT DCA_HAVE_HIP)
+    message(FATAL_ERROR "HIP and/or MAGMA not found but requested.")
+  endif()
+  dca_add_config_define(DCA_WITH_HIP)
+  dca_add_config_define(DCA_WITH_GPU)
+endif()
+
+################################################################################
+# Extra parameters common to all GPU setups.
+if (DCA_WITH_GPU)
+  if (NOT DCA_HAVE_MAGMA)
+    message(FATAL_ERROR "At the moment the GPU code requires MAGMA.")
+  endif()
+  if (DCA_WITH_GPU_AWARE_MPI)
+    # Don't have a good way to test for this at the moment.
+    dca_add_haves_define(DCA_HAVE_GPU_AWARE_MPI)
+  endif()
+  # copy the appropriate walker_device header (defines device template parameter)
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
-
 else()
-  # Copy walker device config file for CPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_cpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
 endif()
 
+################################################################################
+# Enable ADIOS2.
+option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." OFF)
+if (DCA_WITH_ADIOS2)
+  dca_add_config_define(DCA_WITH_ADIOS2)
+endif()
 ################################################################################
 # Select the point group, the lattice type, and the model type.
 # TODO: Add more point groups and lattices.
@@ -73,9 +107,9 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | threeband | FeAs | Rashba.")
+    hund | twoband_Cu | threeband | FeAs.")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
-             FeAs Rashba)
+             FeAs)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -99,24 +133,22 @@ elseif (DCA_LATTICE STREQUAL "threeband")
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp")
 
+elseif (DCA_LATTICE STREQUAL "twoband_chain")
+  set(DCA_LATTICE_TYPE dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<1>>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "FeAs")
   set(DCA_LATTICE_TYPE dca::phys::models::FeAsLattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
-
 elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 
-elseif (DCA_LATTICE STREQUAL "Rashba")
-  set(DCA_LATTICE_TYPE dca::phys::models::RashbaHubbard<PointGroup>)
-  set(DCA_LATTICE_INCLUDE
-          "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp")
-
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | threeband | FeAs | Rashba.")
+          hund | twoband_Cu | threeband | FeAs.")
 endif()
 
 # Model type
@@ -229,14 +261,14 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
 
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType, DIST>")
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
         "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
@@ -251,9 +283,9 @@ else()
 endif()
 
 ################################################################################
-# Threading options/settings
+# Threading options/settings with gtest this is nonoptional
 if (UNIX)
-  set(DCA_THREADING_LIBS "pthread")
+  set(DCA_THREADING_LIBS pthread)
 endif()
 
 ################################################################################
@@ -264,8 +296,27 @@ if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
   set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType<DIST>>)
   set(DCA_THREADED_SOLVER_INCLUDE
-      "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
+    "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
 endif()
+
+################################################################################
+# Enable HPX threading support if desired
+option(DCA_WITH_HPX "Enable HPX for multi-threading" OFF)
+if (DCA_WITH_HPX)
+  # if HPX is not found then DCA_HAVE_HPX will not be set
+  include(dca_hpx)
+  if (NOT DCA_HAVE_HPX)
+    message(FATAL_ERROR "HPX library not found but requested.")
+  endif()
+  if (DCA_WITH_THREADED_SOLVER)
+    set(DCA_THREADING_LIBS ${DCA_THREADING_LIBS} parallel_hpx)
+  endif()
+else()
+  if (DCA_WITH_THREADED_SOLVER)
+    set(DCA_THREADING_LIBS ${DCA_THREADING_LIBS} parallel_stdthread)
+  endif()
+endif()
+
 
 ################################################################################
 # Enable the QMC solver built-in tests.
@@ -328,6 +379,22 @@ endif()
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
+################################################################################
+# Symmetrization
+option(DCA_SYMMETRIZE "Apply cluster, time and frequency symmetries to single particle functions."
+       ON)
+
+if(DCA_SYMMETRIZE)
+  add_compile_definitions(DCA_WITH_SYMMETRIZATION)
+endif()
+
+################################################################################
+# Workarounds
+option(DCA_FIX_BROKEN_MPICH "Re-define MPI_CXX_* datatypes as the corresponding MPI_C_* datatypes when mpich is the mpi provider."
+       OFF)
+if(DCA_FIX_BROKEN_MPICH)
+  add_compile_definitions(DCA_FIX_BROKEN_MPICH)
+endif()
 
 ################################################################################
 # Generate applications' config files.

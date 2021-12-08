@@ -4,8 +4,22 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.3)
-project(DCA++ C CXX)
+cmake_minimum_required(VERSION 3.18)
+project(DCA++ LANGUAGES C CXX)
+
+cmake_policy(VERSION 3.18)
+
+################################################################################
+# Always use <PackageName>_ROOT vars to search first
+if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+endif()
+
+################################################################################
+# Always use <PackageName>_ROOT vars to search first
+if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+endif()
 
 ################################################################################
 # Disable in-source builds.
@@ -20,8 +34,10 @@ endif()
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-  enable_testing()
-  include(CTest)
+################################################################################
+# Enable CTest/CDash dashboard testing
+enable_testing()
+include(CTest)
 
 ################################################################################
 # Load global variables to store preprocessor definitions.
@@ -67,7 +83,7 @@ get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
 
 if (GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run 'git status' for details.")
+  message(STATUS "Working tree is dirty. Run 'git status' for details.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
@@ -94,6 +110,10 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
+
+include(dca_check_stdlib)
+message("std::filesystem resolved")
+
 ################################################################################
 # Include directories
 # For "dca/.../..." #includes.
@@ -104,16 +124,20 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
-if(DCA_HAVE_CUDA)
-  include_directories(${CUDA_TOOLKIT_INCLUDE})
-endif(DCA_HAVE_CUDA)
 if(DCA_HAVE_MAGMA)
   include_directories(${MAGMA_INCLUDE_DIR})
 endif(DCA_HAVE_MAGMA)
+
+include(dca_linking)
+
 ################################################################################
 # Libraries
 add_subdirectory(src)
 
+message(Threading Libs: "${DCA_THREADING_LIBS}")
+
+# We are trying to move away from this abdication targeting try to explicitly link
+# without using this mess.
 set(DCA_LIBS
   git_version
   modules

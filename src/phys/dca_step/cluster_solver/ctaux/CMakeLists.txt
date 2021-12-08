@@ -9,6 +9,7 @@ add_library(ctaux STATIC
   walker/ct_aux_walker_tools.cpp)
 
 if (DCA_HAVE_CUDA)
+  dca_gpu_runtime_link(ctaux)
   set_property(TARGET ctaux
                APPEND PROPERTY COMPILE_DEFINITIONS DCA_HAVE_CUDA)
 endif ()

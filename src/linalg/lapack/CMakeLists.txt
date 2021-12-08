@@ -1,9 +1,13 @@
 # LAPACK
 
-if(DCA_HAVE_CUDA)
-  CUDA_ADD_LIBRARY(lapack_kernels laset_gpu.cu multiply_diagonal_gpu.cu)
-  target_compile_definitions(lapack_kernels PRIVATE DCA_HAVE_CUDA)
+if(DCA_HAVE_GPU)
+  add_library(lapack_kernels laset_gpu.cu multiply_diagonal_gpu.cu)
+  dca_gpu_device_link(lapack_kernels)
+  dca_gpu_blas_link(lapack_kernels)
+  dca_gpu_runtime_link(lapack_kernels)
+  target_compile_definitions(lapack_kernels PUBLIC DCA_HAVE_CUDA)
 endif()
+
 
 add_library(lapack silence_lapack.cpp)
 target_include_directories(lapack PRIVATE ${DCA_ESSL_INCLUDE})
