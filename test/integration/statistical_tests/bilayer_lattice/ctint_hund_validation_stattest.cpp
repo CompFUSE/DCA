@@ -77,7 +77,7 @@ TEST(CtintHundValidationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  Solver qmc_solver(parameters, data);
+  Solver qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

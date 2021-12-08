@@ -65,7 +65,7 @@ template <ClusterSolverName name = CT_AUX>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                   Threading, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, dca::phys::solver::CT_AUX>;
+                                  RandomNumberGenerator, name>;
 
 template <ClusterSolverName name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
@@ -86,7 +86,6 @@ using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
 
 template <ClusterSolverName name = CT_AUX>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
->>>>>>> f4e0ed1d... merging dca latest commit
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;

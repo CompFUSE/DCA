@@ -126,8 +126,8 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>, Data>
   using Rng = typename Parameters::random_number_generator;
 
 public:
-  StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::HDF5Writer>& /*writer*/)
+  StdThreadQmciWalker(Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
+                      const std::shared_ptr<io::Writer<Concurrency>>& writer)
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
   }

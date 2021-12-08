@@ -41,7 +41,7 @@ TEST(CtauxBilayerLatticeVerificationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration.
-  ThreadedSolver<CT_AUX, default_device> qmc_solver(parameters, data);
+  ThreadedSolver<CT_AUX, default_device> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

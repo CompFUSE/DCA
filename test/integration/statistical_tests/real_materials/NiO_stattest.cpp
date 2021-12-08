@@ -18,8 +18,8 @@
 #include "dca/math/statistical_testing/statistical_testing.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
@@ -63,9 +63,8 @@ TEST(Ni0, GS) {
       dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
-      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                    Threading, dca::profiling::NullProfiler, Model,
-                                    Rng, dca::phys::solver::SS_CT_HYB>;
+      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
+                                    dca::profiling::NullProfiler, Model, Rng, dca::phys::solver::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
       dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data>>;
@@ -105,7 +104,7 @@ TEST(Ni0, GS) {
   dca_test_env->concurrency.broadcast(data.G_k_w);
   dca_test_env->concurrency.broadcast(data.Sigma_cluster);
 
-  ImpuritySolver solver(parameters, data);
+  ImpuritySolver solver(parameters, data, nullptr);
   solver.initialize(0);
   solver.integrate();
 
