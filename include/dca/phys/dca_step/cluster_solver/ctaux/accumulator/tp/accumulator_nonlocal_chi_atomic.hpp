@@ -36,7 +36,7 @@ class accumulator_nonlocal_chi_atomic {};
 // Specialization for particle-hole-magnetic channel.
 //
 template <class model_type>
-class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_MAGNETIC> {
+class accumulator_nonlocal_chi_atomic<model_type, FourPointType::PARTICLE_HOLE_MAGNETIC> {
 public:
   using b = func::dmn_0<domains::electron_band_domain>;
 
@@ -95,7 +95,7 @@ public:
 //
 template <class lattice_t>
 class accumulator_nonlocal_chi_atomic<dca::phys::models::TightBindingModel<lattice_t>,
-                                      PARTICLE_HOLE_MAGNETIC> {
+                                      FourPointType::PARTICLE_HOLE_MAGNETIC> {
   const static int BANDS = lattice_t::BANDS;
 
 public:
@@ -151,7 +151,7 @@ public:
 // Specialization for particle-hole-charge channel.
 //
 template <class model_type>
-class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_CHARGE> {
+class accumulator_nonlocal_chi_atomic<model_type, FourPointType::PARTICLE_HOLE_CHARGE> {
   inline void execute() {
     throw std::logic_error(__FUNCTION__);
   }
@@ -161,7 +161,7 @@ class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_CHARGE> {
 // Specialization for particle-hole-superconducting channel.
 //
 template <class model_type>
-class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_UP_DOWN> {
+class accumulator_nonlocal_chi_atomic<model_type, FourPointType::PARTICLE_PARTICLE_UP_DOWN> {
   inline void execute() {
     throw std::logic_error(__FUNCTION__);
   }

@@ -51,9 +51,9 @@ TEST_F(G4FileIoTest, ReadWrite) {
   dca::io::HDF5Reader reader;
 
   std::map<dca::phys::FourPointType, std::string> func_names;
-  func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
+  func_names[dca::phys::FourPointType::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
 
-  const dca::phys::FourPointType g4_channel = dca::phys::PARTICLE_HOLE_CHARGE;
+  const dca::phys::FourPointType g4_channel = dca::phys::FourPointType::PARTICLE_HOLE_CHARGE;
 
   Data::TpGreensFunction g4_work("G4");
   fillG4(g4_work);

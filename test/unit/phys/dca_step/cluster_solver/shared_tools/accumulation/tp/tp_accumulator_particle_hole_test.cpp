@@ -48,8 +48,8 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
                                         n);
 
   parameters_.set_four_point_channels(std::vector<dca::phys::FourPointType>{
-      dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
-      dca::phys::PARTICLE_HOLE_MAGNETIC, dca::phys::PARTICLE_HOLE_CHARGE});
+      dca::phys::FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+      dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC, dca::phys::FourPointType::PARTICLE_HOLE_CHARGE});
 
   TpAccumulatorType accumulator_ph(data_->G0_k_w_cluster_excluded, parameters_);
 

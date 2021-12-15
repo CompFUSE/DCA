@@ -220,20 +220,20 @@ namespace DCA
 
                 switch(parameters.get_vertex_measurement_type())
                   {
-                  case PARTICLE_HOLE_TRANSVERSE:
+                  case FourPointType::PARTICLE_HOLE_TRANSVERSE:
                     {
                       G_II_0(n1,n2,k,w_vertex,
                              m1,m2,k,w_vertex) = -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w+w_nu);
                       break;
                     }
 
-                  case PARTICLE_HOLE_MAGNETIC:
+                  case FourPointType::PARTICLE_HOLE_MAGNETIC:
                     {
                       G_II_0(n1,n2,k,w_vertex,
                              m1,m2,k,w_vertex) = -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w+w_nu);
                       break;
                     }
-                  case PARTICLE_HOLE_CHARGE:
+                  case FourPointType::PARTICLE_HOLE_CHARGE:
                     {
                       G_II_0(n1,n2,k,w_vertex,
                              m1,m2,k,w_vertex) = -2.*MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w+w_nu);

@@ -365,33 +365,33 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t cha
   uint64_t end =
       Base::G4_[0].get_end() + 1;  // because the kernel expects this to be one past the end index
   switch (channel) {
-    case PARTICLE_HOLE_TRANSVERSE:
-      return details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
+    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
+      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
-    case PARTICLE_HOLE_MAGNETIC:
-      return details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
+      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_MAGNETIC>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
-    case PARTICLE_HOLE_CHARGE:
-      return details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
+    case FourPointType::PARTICLE_HOLE_CHARGE:
+      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_CHARGE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
-    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-      return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
-    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
-      return details::updateG4<Real, PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
-    case PARTICLE_PARTICLE_UP_DOWN:
-      return details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
+    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
+      return details::updateG4<Real, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 

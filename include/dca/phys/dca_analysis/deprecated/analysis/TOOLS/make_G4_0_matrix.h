@@ -80,7 +80,7 @@ namespace dca {
 
 		switch(parameters.get_vertex_measurement_type()) 
 		  {
-		  case PARTICLE_HOLE_TRANSVERSE:
+		  case FourPointType::PARTICLE_HOLE_TRANSVERSE:
 		  
 		    {
 		      double wn           = w::get_elements()[w];
@@ -96,19 +96,19 @@ namespace dca {
 		    }
 		    break;
 
-		  case PARTICLE_HOLE_MAGNETIC:
+		  case FourPointType::PARTICLE_HOLE_MAGNETIC:
 		  
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
 						   m1,m2,k,w_vertex) = -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w+w_nu);
 		    break;
 		      
-		  case PARTICLE_HOLE_CHARGE:
+		  case FourPointType::PARTICLE_HOLE_CHARGE:
 	
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
 						   m1,m2,k,w_vertex) = -2.*MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w+w_nu);
 		    break;
 		
-		  case PARTICLE_PARTICLE_UP_DOWN:
+		  case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
 		    assert(std::fabs(w::get_elements()[w]+w::get_elements()[2*W-1-w]) < 1.e-6);
 
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
@@ -165,27 +165,27 @@ namespace dca {
 
 		switch(parameters.get_vertex_measurement_type()) 
 		  {
-		  case PARTICLE_HOLE_TRANSVERSE:
+		  case FourPointType::PARTICLE_HOLE_TRANSVERSE:
 		    {
 		      P0(n1,n2,k,w_vertex,
 			 m1,m2,k,w_vertex) = -G(n1, e_UP, m2, e_UP, k, w)*G(n2, e_UP, m1, e_UP, k_plus_q, w+w_nu);
 		      break;
 		    }
 
-		  case PARTICLE_HOLE_MAGNETIC:
+		  case FourPointType::PARTICLE_HOLE_MAGNETIC:
 		    {		  
 		      P0(n1,n2,k,w_vertex,
 			 m1,m2,k,w_vertex) = -G(n1, e_UP, m2, e_UP, k, w)*G(n2, e_UP, m1, e_UP, k_plus_q, w+w_nu);
 		      break;
 		    }
-		  case PARTICLE_HOLE_CHARGE:
+		  case FourPointType::PARTICLE_HOLE_CHARGE:
 		    {
 		      P0(n1,n2,k,w_vertex,
 			 m1,m2,k,w_vertex) = -2.*G(n1, e_UP, m1, e_UP, k, w)*G(n2, e_UP, m2, e_UP, k_plus_q, w+w_nu);
 		      break;
 		    }
 
-		  case PARTICLE_PARTICLE_UP_DOWN:
+		  case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
 		    {	
 		      double wn          = w::get_elements()[w];
 		      double w_nu_min_wn = w::get_elements()[w_nu+(2*W-1-w)];

@@ -254,19 +254,19 @@ void diagrammatic_symmetries<parameters_type>::execute(
 
     // TODO: allow multiple channels.
     switch (parameters.get_four_point_channels()[0]) {
-      case PARTICLE_HOLE_TRANSVERSE:
+      case FourPointType::PARTICLE_HOLE_TRANSVERSE:
         symmetrize_over_pi_rotations_ph(G);
         break;
 
-      case PARTICLE_HOLE_MAGNETIC:
+      case FourPointType::PARTICLE_HOLE_MAGNETIC:
         symmetrize_over_pi_rotations_ph(G);
         break;
 
-      case PARTICLE_HOLE_CHARGE:
+      case FourPointType::PARTICLE_HOLE_CHARGE:
         symmetrize_over_pi_rotations_ph(G);
         break;
 
-      case PARTICLE_PARTICLE_UP_DOWN:
+      case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
         set_real(G);
         symmetrize_over_pi_rotations_pp(G);
         break;
@@ -285,19 +285,19 @@ void diagrammatic_symmetries<parameters_type>::execute(
   symmetrize_over_matsubara_frequencies(G);
 
   switch (parameters.get_four_point_type()) {
-    case PARTICLE_HOLE_TRANSVERSE:
+    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
       symmetrize_over_pi_rotations_ph(G);
       break;
 
-    case PARTICLE_HOLE_MAGNETIC:
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
       symmetrize_over_pi_rotations_ph(G);
       break;
 
-    case PARTICLE_HOLE_CHARGE:
+    case FourPointType::PARTICLE_HOLE_CHARGE:
       symmetrize_over_pi_rotations_ph(G);
       break;
 
-    case PARTICLE_PARTICLE_UP_DOWN:
+    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
       // set_real(G);
       symmetrize_over_pi_rotations_pp(G);
       break;

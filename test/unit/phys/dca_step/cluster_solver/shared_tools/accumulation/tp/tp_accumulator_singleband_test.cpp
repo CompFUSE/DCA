@@ -59,14 +59,14 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     reader.open_file(baseline);
 
   std::map<dca::phys::FourPointType, std::string> func_names;
-  func_names[dca::phys::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
-  func_names[dca::phys::PARTICLE_HOLE_MAGNETIC] = "G4_ph_magnetic";
-  func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
-  func_names[dca::phys::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
+  func_names[dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
+  func_names[dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC] = "G4_ph_magnetic";
+  func_names[dca::phys::FourPointType::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
+  func_names[dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
   for (const dca::phys::FourPointType type :
-       {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
-        dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
+       {dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE, dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC,
+        dca::phys::FourPointType::PARTICLE_HOLE_CHARGE, dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN}) {
     parameters_.set_four_point_channel(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(

@@ -390,7 +390,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   auto channel = channels_[channel_id];
 
   switch (channel) {
-    case PARTICLE_HOLE_TRANSVERSE:
+    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, -s) c^+(k2, -s) c(k2+k_ex, s)>
       //                  = -1/2 sum_s G(k2+k_ex, k1+k_ex, s) G(k1, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
@@ -412,7 +412,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
       flops += n_loops * 2 * flops_update_atomic;
       break;
 
-    case PARTICLE_HOLE_MAGNETIC:
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
       // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2} (s1 * s2)
       //                      <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
       //                  = 1/2 sum_{s1, s2} (s1 * s2)
@@ -440,7 +440,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
 
-    case PARTICLE_HOLE_CHARGE:
+    case FourPointType::PARTICLE_HOLE_CHARGE:
       // G4(k1, k2, k_ex) = 1/2 sum_{s1, s2}
       //                    <c^+(k1+k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2+k_ex, s2)>
       //                  = 1/2 sum_{s1, s2}
@@ -469,7 +469,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
 
-    case PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, s) c(k2+k_ex, s)>
       //                  = 1/2 sum_s [G(k1, k1+k_ex, s) G(k2+k_ex, k2, s)
       //                               - G(k2+k_ex, k1+k_ex, s) G(k1, k2, s)]
@@ -498,7 +498,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
       flops += n_loops * 4 * flops_update_atomic;
       break;
 
-    case PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k1+k_ex, s) c(k1, s) c^+(k2, -s) c(k2+k_ex, -s)>
       //                  = 1/2 sum_s G(k1, k1+k_ex, s) G(k2+k_ex, k2, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
@@ -520,7 +520,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
       flops += n_loops * 4 * flops_update_atomic;
       break;
 
-    case PARTICLE_PARTICLE_UP_DOWN:
+    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
       // G4(k1, k2, k_ex) = 1/2 sum_s <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
       //                  = 1/2 sum_s G(k_ex-k2, k_ex-k1, s) G(k2, k1, -s)
       for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {

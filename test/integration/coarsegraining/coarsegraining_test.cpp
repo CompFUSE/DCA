@@ -155,7 +155,11 @@ void performTest(const bool test_dca_plus) {
     for (int w = 0; w < WDmn::dmn_size(); ++w)
       for (int r = 0; r < RDmn::dmn_size(); ++r)
         for (int s = 0; s < SDmn::dmn_size(); ++s) {
-          EXPECT_LE(std::abs(data.G_r_w(r % 2, s, 0, s, r / 2, w) - G_check(0, s, 0, s, r, w)), 1e-7);
+          auto real_grw = data.G_r_w(r % 2, s, 0, s, r / 2, w);
+          auto test_grw = G_check(0, s, 0, s, r, w);
+          double thresh = 1e-7;
+          EXPECT_LE(std::abs(real_grw - test_grw), thresh) << data.G_r_w(r % 2, s, 0, s, r / 2, w) << " - "
+                                               << G_check(0, s, 0, s, r, w) << " > " << thresh;
         }
 #endif  // UPDATE_BASELINE
   }

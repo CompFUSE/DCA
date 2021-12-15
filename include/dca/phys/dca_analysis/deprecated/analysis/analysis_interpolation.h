@@ -658,7 +658,7 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_INTERPOLATION>::diagonolize_Gamma_times_chi_0()
   {
-    if(parameters.get_vertex_measurement_type() == PARTICLE_PARTICLE_UP_DOWN)
+    if(parameters.get_vertex_measurement_type() == FourPointType::PARTICLE_PARTICLE_UP_DOWN)
       {
 	int start = clock();
 	diagonolize_Gamma_times_chi_0_symmetric_1();
