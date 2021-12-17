@@ -47,15 +47,17 @@ public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using Concurrency = typename parameters_type::concurrency_type;
 
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
+  using Concurrency = typename parameters_type::concurrency_type;
 
   using Lattice = typename parameters_type::lattice_type;
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
+
+  using DataType = Data;
 
   const static int MC_TYPE = SS_CT_HYB;
 
@@ -88,7 +90,6 @@ public:
   auto local_GS_r_w() const;
 
 protected:  // Interface to the thread jacket.
-  using DataType = Data;
   using ParametersType = parameters_type;
 
   using Rng = typename ParametersType::random_number_generator;
