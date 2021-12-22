@@ -173,6 +173,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
 #endif
 
   if (concurrency.id() == concurrency.first()) {
+    parameters.write(*output_file_);
+    MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
     output_file_->close_file();
