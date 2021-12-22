@@ -45,9 +45,9 @@ using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
-using Parameters = dca::phys::params::Parameters<Concurrency, NoThreading, Profiler, Model, RngType,
+using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
                                                  dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
       n_sweeps = std::atoi(argv[i + 1]);
   }
 
-  Concurrency concurrency(1, NULL);
+  TestConcurrency concurrency(1, NULL);
   Parameters parameters("", concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
                                                            "bilayer_lattice_input.json");
@@ -97,8 +97,8 @@ int main(int argc, char** argv) {
   constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
 #endif  // DCA_HAVE_GPU
 
-  dca::phys::solver::ctint::G0Interpolation<device, Real> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::G0Interpolation<device, Real> g0(
+      dca::phys::solver::details::shrinkG0(data.G0_r_t));
 
   BBRDmn bbr_dmn;
   Walker<device>::setDMatrixBuilder(g0);

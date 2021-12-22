@@ -15,7 +15,6 @@
 
 #include <iostream>
 
-
 #include "dca/config/dca.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
@@ -26,16 +25,11 @@
 #include "dca/util/signal_handler.hpp"
 #include "dca/io/writer.hpp"
 
-int main(int argc, char** argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
-    return -1;
-  }
-
+int dca_main(int argc, char** argv) {
   Concurrency concurrency(argc, argv);
 
   try {
-    //dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
+    // dca::util::SignalHandler<Concurrency>::init(concurrency.id() == concurrency.first());
 
     std::string input_file(argv[1]);
 
@@ -75,33 +69,37 @@ int main(int argc, char** argv) {
     parameters.update_domains();
 
     dca::DistType distribution = parameters.get_g4_distribution();
-    switch (distribution) {
+    {
+      switch (distribution) {
 #ifdef DCA_HAVE_MPI
-      case dca::DistType::BLOCKED: {
-        DCALoopDispatch<dca::DistType::BLOCKED> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, concurrency);
-      } break;
+        case dca::DistType::BLOCKED: {
+          DCALoopDispatch<dca::DistType::BLOCKED> dca_loop_dispatch;
+          dca_loop_dispatch(parameters, concurrency);
+        } break;
 #else
-      case dca::DistType::BLOCKED: {
-        throw std::runtime_error(
-            "Input calls for function Blocked distribution but DCA is only supports this with MPI.");
-      } break;
+        case dca::DistType::BLOCKED: {
+          throw std::runtime_error(
+              "Input calls for function Blocked distribution but DCA is only supports this with "
+              "MPI.");
+        } break;
 #endif
 #ifdef DCA_HAVE_MPI
-    case dca::DistType::LINEAR: {
-      DCALoopDispatch<dca::DistType::LINEAR> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, concurrency);
-      } break;
+        case dca::DistType::LINEAR: {
+          DCALoopDispatch<dca::DistType::LINEAR> dca_loop_dispatch;
+          dca_loop_dispatch(parameters, concurrency);
+        } break;
 #else
-    case dca::DistType::LINEAR: {
-        throw std::runtime_error(
-            "Input calls for function Linear distribution but DCA is only supports this with MPI.");
-      } break;
+        case dca::DistType::LINEAR: {
+          throw std::runtime_error(
+              "Input calls for function Linear distribution but DCA is only supports this with "
+              "MPI.");
+        } break;
 #endif
-      case dca::DistType::NONE: {
-        DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
-        dca_loop_dispatch(parameters, concurrency);
-      } break;
+        case dca::DistType::NONE: {
+          DCALoopDispatch<dca::DistType::NONE> dca_loop_dispatch;
+          dca_loop_dispatch(parameters, concurrency);
+        } break;
+      }
     }
   }
   catch (const std::exception& err) {
@@ -110,4 +108,15 @@ int main(int argc, char** argv) {
   }
 
   return 0;
+
 }
+
+int main(int argc, char** argv) {
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
+    return -1;
+  }
+
+  return dca_main(argc, argv);
+}
+

@@ -8,8 +8,8 @@
 //
 // This file provides the POsitiveTimeDomains and ParametersDomain used by the g0 interpolator.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DOMAINS_POSITIVE_TIME_DOMAIN_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DOMAINS_POSITIVE_TIME_DOMAIN_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_INTERPOLATION_DOMAINS_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_INTERPOLATION_DOMAINS_HPP
 
 #include <stdexcept>
 
@@ -18,8 +18,7 @@
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
 class PositiveTimeDomain {
 private:
@@ -76,11 +75,8 @@ private:
   static int size_;
 };
 
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
-
-}  // dca
-}  // phys
-}  // solver
-}  // ctint
-
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_DOMAINS_POSITIVE_TIME_DOMAIN_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_INTERPOLATION_DOMAINS_HPP

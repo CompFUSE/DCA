@@ -59,7 +59,8 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
 
-  const static dca::linalg::DeviceType walker_device_type = device_t;
+  using Scalar = Real;
+  constexpr static dca::linalg::DeviceType device = device_t;
 
 public:
   CtauxWalker(/*const*/ Parameters& parameters, Data& MOMS_ref, Rng& rng_ref, int id);
@@ -98,6 +99,10 @@ public:
 
   auto get_matrix_configuration() const {
     return configuration_.get_matrix_configuration();
+  }
+
+  unsigned long get_steps() const {
+    return n_steps_;
   }
 
   int get_sign();
@@ -319,7 +324,7 @@ private:
   bool config_initialized_;
 
   double sweeps_per_measurement_ = 1.;
-
+  unsigned long n_steps_ = 0;
   linalg::util::GpuEvent sync_streams_event_;
 };
 
@@ -656,7 +661,8 @@ void CtauxWalker<device_t, Parameters, Data, Real>::generate_delayed_spins(
           ? generateDelayedSpinsNeglectBennett(single_spin_updates_todo)
           : generateDelayedSpinsAbortAtBennett(single_spin_updates_todo);
 
-  //  assert(single_spin_updates_proposed > 0);
+  n_steps_ += single_spin_updates_proposed;
+
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
 

@@ -51,7 +51,7 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   const auto& data = *TestFixture::data_;
 
   // Setup interpolation and matrix builder class.
-  ctint::G0Interpolation<dca::linalg::GPU, Real> g0(
+  G0Interpolation<dca::linalg::GPU, Real> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
   const int nb = BDmn::dmn_size();

@@ -39,12 +39,12 @@ constexpr bool update_results = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::stdthread;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+using StdThreading = dca::parallel::stdthread;
+using Parameters = dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
@@ -53,7 +53,7 @@ using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 void performTest(const std::string& input, const std::string& baseline) {
   static bool update_model = true;
 
-  Concurrency concurrency(0, nullptr);
+  TestConcurrency concurrency(0, nullptr);
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input);
@@ -68,7 +68,7 @@ void performTest(const std::string& input, const std::string& baseline) {
   data.initialize();
 
   // Do one integration step.
-  QmcSolver qmc_solver(parameters, data);
+  QmcSolver qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

@@ -78,6 +78,7 @@ public:
     std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
 
+  
   int get_walkers() const {
     return walkers_;
   }
@@ -86,6 +87,20 @@ public:
   }
   bool shared_walk_and_accumulation_thread() const {
     return shared_walk_and_accumulation_thread_;
+  }
+
+    // Maximum distance (in MC time) considered when computing the correlation between configurations.
+  int get_time_correlation_window() const {
+    return time_correlation_window_;
+  }
+
+  // True if the autocorrelation of G(r = 0, t = 0) is computed.
+  bool compute_G_correlation() const {
+    return compute_G_correlation_;
+  }
+
+  void set_time_correlation_window(int window) {
+    time_correlation_window_ = window;
   }
 
   DistType get_g4_distribution() const {
@@ -109,10 +124,14 @@ public:
   bool store_configuration() const {
     return store_configuration_;
   }
+  int stamping_period() const {
+    return stamping_period_;
+  }
 
 protected:
   // Resize vector arguments to have the same size as the number of iterations.
   void inline solveDcaIterationConflict(int iterations);
+  void inline solveConfigReadConflict(bool read);
 
 private:
   void generateRandomSeed() {
@@ -127,6 +146,9 @@ private:
   int warm_up_sweeps_;
   std::vector<double> sweeps_per_measurement_;
   std::vector<int> measurements_;
+  int measurements_final_iter_ = -1;
+  int time_correlation_window_ = 0;
+  bool compute_G_correlation_ = false;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -136,6 +158,7 @@ private:
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
   DistType g4_distribution_;
+  int stamping_period_ = 0;
 };
 
 template <typename Concurrency>
@@ -146,6 +169,9 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
   buffer_size += concurrency.get_buffer_size(measurements_);
+  buffer_size += concurrency.get_buffer_size(measurements_final_iter_);
+  buffer_size += concurrency.get_buffer_size(time_correlation_window_);
+  buffer_size += concurrency.get_buffer_size(compute_G_correlation_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
@@ -155,6 +181,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
   buffer_size += concurrency.get_buffer_size(store_configuration_);
   buffer_size += concurrency.get_buffer_size(g4_distribution_);
+  buffer_size += concurrency.get_buffer_size(stamping_period_);
 
   return buffer_size;
 }
@@ -166,6 +193,9 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.pack(buffer, buffer_size, position, measurements_);
+  concurrency.pack(buffer, buffer_size, position, measurements_final_iter_);
+  concurrency.pack(buffer, buffer_size, position, time_correlation_window_);
+  concurrency.pack(buffer, buffer_size, position, compute_G_correlation_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -175,6 +205,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
   concurrency.pack(buffer, buffer_size, position, g4_distribution_);
+  concurrency.pack(buffer, buffer_size, position, stamping_period_);
 }
 
 template <typename Concurrency>
@@ -184,6 +215,9 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
   concurrency.unpack(buffer, buffer_size, position, measurements_);
+  concurrency.unpack(buffer, buffer_size, position, measurements_final_iter_);
+  concurrency.unpack(buffer, buffer_size, position, time_correlation_window_);
+  concurrency.unpack(buffer, buffer_size, position, compute_G_correlation_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -193,6 +227,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
   concurrency.unpack(buffer, buffer_size, position, g4_distribution_);
+  concurrency.unpack(buffer, buffer_size, position, stamping_period_);
 }
 
 template <typename ReaderOrWriter>
@@ -245,6 +280,9 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   read_legacy_vector("sweeps-per-measurement", sweeps_per_measurement_);
   read_legacy_vector("measurements", measurements_);
 
+  reader_or_writer.execute("time-correlation-window", time_correlation_window_);
+  reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
+  reader_or_writer.execute("stamping-period", stamping_period_);
   reader_or_writer.execute("store-configuration", store_configuration_);
 
   // Read arguments for threaded solver.
@@ -293,6 +331,10 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 #else
     throw(std::logic_error("MPI distribution requested with no MPI available."));
 #endif  // DCA_HAVE_MPI
+
+    // Solve conflicts
+    if(!time_correlation_window_)
+      compute_G_correlation_ = false;
   }
 }  // namespace params
 
@@ -302,6 +344,11 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
 
   solve_confilct(measurements_);
   solve_confilct(sweeps_per_measurement_);
+}
+
+void MciParameters::solveConfigReadConflict(bool read) {
+  if(read)
+    store_configuration_ = true;
 }
 
 }  // namespace params

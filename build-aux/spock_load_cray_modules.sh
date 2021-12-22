@@ -12,7 +12,7 @@ module load cmake/3.21 # at least 3.21 is required for ROCM
 module load ninja
 module load magma/2.6.1
 module load fftw
-module load cray-hdf5/1.12.0.6
+module load cray-hdf5/1.12.0.7
 module load cray-fftw/3.3.8.10
 module load cray-libsci/21.06.1.1
 module load cray-mpich/8.1.7

@@ -56,6 +56,8 @@ public:
 
   std::string get_path();
 
+  void erase(const std::string& name);
+
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 

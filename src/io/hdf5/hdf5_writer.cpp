@@ -75,6 +75,12 @@ std::string HDF5Writer::get_path() {
   return path;
 }
 
+void HDF5Writer::erase(const std::string& name) {
+  const std::string full_name = get_path() + "/" + name;
+  if (exists(full_name))
+    H5Ldelete(file_id_, full_name.c_str(), H5P_DEFAULT);
+}
+
 void HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {

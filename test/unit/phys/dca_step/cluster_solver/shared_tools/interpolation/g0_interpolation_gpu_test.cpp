@@ -1,11 +1,10 @@
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
 
 #include <cmath>
 #include <mutex>
 #include "gtest/gtest.h"
 
-#include "dca/phys/dca_step/cluster_solver/ctint/device_helper/ctint_helper.cuh"
-#include "test/unit/phys/dca_step/cluster_solver/ctint/walker/mock_parameters.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/interpolation/mock_parameters.hpp"
 
 using std::cout;
 using std::endl;
@@ -25,12 +24,12 @@ TYPED_TEST(G0InterpolationGpuTest, G0Interpolation) {
   using dca::func::dmn_variadic;
   using LabelDmn = dmn_0<dca::func::dmn<2>>;
 
-  dca::ctint::testing::MockParameters pars(M_PI, 20);
+  dca::testing::MockParameters pars(M_PI, 20);
 
   // Initialize the domains.
   std::call_once(flag, [&] {
     time_domain::initialize(pars);
-    // dca::phys::solver::ctint::PositiveTimeDomain::initialize();
+    // dca::phys::solver::PositiveTimeDomain::initialize();
   });
 
   using TestDomain = dmn_variadic<LabelDmn, dmn_0<time_domain>>;
@@ -42,9 +41,9 @@ TYPED_TEST(G0InterpolationGpuTest, G0Interpolation) {
     f(0, i) = std::exp(t);
     f(1, i) = std::sin(t);
   }
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::CPU, Real> g0_cpu(f);
+  dca::phys::solver::G0Interpolation<dca::linalg::CPU, Real> g0_cpu(f);
 
-  dca::phys::solver::ctint::G0Interpolation<dca::linalg::GPU, Real> g0_gpu(f);
+  dca::phys::solver::G0Interpolation<dca::linalg::GPU, Real> g0_gpu(f);
 
   constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
   for (Real x : {0., 0.5, 3., M_PI - 1e-3}) {

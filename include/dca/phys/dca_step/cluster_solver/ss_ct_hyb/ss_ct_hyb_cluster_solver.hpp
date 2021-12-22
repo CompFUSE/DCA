@@ -51,17 +51,21 @@ public:
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
+  using Concurrency = typename parameters_type::concurrency_type;
 
   using Lattice = typename parameters_type::lattice_type;
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
+
+  using DataType = Data;
 
   const static int MC_TYPE = SS_CT_HYB;
 
   static constexpr linalg::DeviceType device = device_t;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref,
+                       const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   void initialize(int dca_iteration);
 
@@ -86,12 +90,10 @@ public:
   auto local_GS_r_w() const;
 
 protected:  // Interface to the thread jacket.
-  using DataType = Data;
   using ParametersType = parameters_type;
 
   using Rng = typename ParametersType::random_number_generator;
   using Profiler = typename ParametersType::profiler_type;
-  using Concurrency = typename ParametersType::concurrency_type;
 
   using Accumulator = cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data>;
   using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data>;
@@ -128,6 +130,7 @@ protected:  // Interface to the thread jacket.
   double total_time_;
   int dca_iteration_;
 
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
 private:
   Rng rng;
 
@@ -142,10 +145,11 @@ private:
   bool averaged_;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
-    : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
+template <dca::linalg::DeviceType DEV, class PARAM, class Data>
+SsCtHybClusterSolver<DEV, PARAM, Data>::SsCtHybClusterSolver(
+    PARAM& parameters_ref, Data& data_ref,
+    const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    : cthyb::ss_hybridization_solver_routines<PARAM, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
       data_(data_ref),
@@ -157,6 +161,7 @@ SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
 
       rng(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
 
+      writer_(writer),
       thermalization_time(0),
       MC_integration_time(0),
 
@@ -570,8 +575,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
   return GS_r_w;
 }
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP

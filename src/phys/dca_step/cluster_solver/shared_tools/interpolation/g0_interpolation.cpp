@@ -9,13 +9,12 @@
 //
 // CPU implementation of g0_interpolation.hpp.
 
-#include <dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp>
+#include <dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp>
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
 template <typename Real>
 void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
@@ -82,7 +81,6 @@ Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const 
 template class G0Interpolation<linalg::CPU, float>;
 template class G0Interpolation<linalg::CPU, double>;
 
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca

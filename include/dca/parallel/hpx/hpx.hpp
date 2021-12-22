@@ -68,21 +68,21 @@ struct thread_traits {
 static std::vector<int> affinity_;
 
 // Returns a list of cores id for which the calling thread has affinity.
-std::vector<int> get_affinity()
+inline std::vector<int> get_affinity()
 {
     // do nothing, hpx handles this internally
     return affinity_;
 }
 
 // Set a list of cores id for which the calling thread has affinity.
-void set_affinity(const std::vector<int>& cores)
+inline void set_affinity(const std::vector<int>& cores)
 {
     // do nothing, hpx handles this internally
     affinity_ = cores;
 }
 
 // Number of cores used by this process.
-int get_core_count() {
+inline int get_core_count() {
     return std::thread::hardware_concurrency(); // hpx::get_num_worker_threads();
 }
 

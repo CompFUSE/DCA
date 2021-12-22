@@ -148,6 +148,7 @@ set(DCA_LIBS
   ctaux
   ctint
   ss_ct_hyb
+  g0_interpolation
   function_transform
   gaussian_quadrature
   nfft
@@ -230,12 +231,12 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTI
     DCA_WITH_TESTS_PERFORMANCE)
   include(dca_testing)
 
-  if (((CMAKE_BUILD_TYPE STREQUAL "Release") OR
-       (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
-       (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")) AND
-       (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE))
-    message(WARNING "Tests are built with NDEBUG defined!")
-  endif()
+  # if (((CMAKE_BUILD_TYPE STREQUAL "Release") OR
+  #      (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
+  #      (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")) AND
+  #      (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE))
+  #   message(WARNING "Tests are built with NDEBUG defined!")
+  # endif()
 
   set(BENCHMARK_ENABLE_TESTING OFF)
   add_subdirectory(${gtest_dir})

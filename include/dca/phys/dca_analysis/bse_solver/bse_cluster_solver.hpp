@@ -237,27 +237,27 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
             // TODO: allow more than one channel.
             switch (parameters.get_four_point_channels()[0]) {
-              case PARTICLE_HOLE_TRANSVERSE: {
+              case FourPointType::PARTICLE_HOLE_TRANSVERSE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *
                     data_.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
                 break;
               }
 
-              case PARTICLE_HOLE_MAGNETIC: {
+              case FourPointType::PARTICLE_HOLE_MAGNETIC: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *
                     data_.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
                 break;
               }
-              case PARTICLE_HOLE_CHARGE: {
+              case FourPointType::PARTICLE_HOLE_CHARGE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -2. * data_.G_k_w(n1, e_UP, m1, e_UP, k, w) *
                     data_.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w + w_nu);
                 break;
               }
 
-              case PARTICLE_PARTICLE_UP_DOWN: {
+              case FourPointType::PARTICLE_PARTICLE_UP_DOWN: {
                 double wn = w::get_elements()[w];
                 double w_nu_min_wn = w::get_elements()[w_nu + (2 * W - 1 - w)];
                 double beta = parameters.get_beta();

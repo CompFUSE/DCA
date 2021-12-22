@@ -36,7 +36,7 @@ TEST(CtintVerificationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  ThreadedSolver<dca::testing::CT_INT> qmc_solver(parameters, data);
+  ThreadedSolver<dca::testing::CT_INT> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

@@ -143,14 +143,15 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
+      output_file_(concurrency.id() == concurrency.first()
+                       ? std::make_shared<io::Writer<concurrency_type>>(
+                             concurrency_ref, parameters.get_output_format(), false)
+                       : nullptr),
+      monte_carlo_integrator_(parameters_ref, MOMS_ref, output_file_) {
   if (concurrency.id() == concurrency.first()) {
     file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
-    output_file_ = std::make_shared<io::Writer<concurrency_type>>(
-        concurrency_ref, parameters.get_output_format(), false);
-
-    //dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
+    // dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
@@ -215,8 +216,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
-  //static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
-  //static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
+  // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
+  // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     adjust_chemical_potential();
 

@@ -18,6 +18,9 @@
 #include <vector>
 
 #include "dca/io/buffer.hpp"
+#include "dca/io/writer.hpp"
+#include "dca/config/concurrency.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/utils.hpp"
@@ -115,6 +118,9 @@ public:
     return H_int_->possiblePartners(vertices_[idx].interaction_id);
   }
 
+  template <class CONC = Concurrency>
+  void write(io::Writer<CONC>& writer, const std::string& stamp) const;
+
   friend io::Buffer& operator<<(io::Buffer& buff, const SolverConfiguration& config);
   friend io::Buffer& operator>>(io::Buffer& buff, SolverConfiguration& config);
 
@@ -200,6 +206,12 @@ inline double SolverConfiguration::getStrength(int vertex_index) const {
   assert(vertex_index >= 0 && vertex_index < (int)size());
   return (*H_int_)[vertices_[vertex_index].interaction_id].w;
 }
+
+extern template void SolverConfiguration::write<Concurrency>(io::Writer<Concurrency>& writer,
+                                                             const std::string& stamp) const;
+
+extern template void SolverConfiguration::write<dca::parallel::NoConcurrency>(
+    io::Writer<dca::parallel::NoConcurrency>& writer, const std::string& stamp) const;
 
 }  // namespace ctint
 }  // namespace solver

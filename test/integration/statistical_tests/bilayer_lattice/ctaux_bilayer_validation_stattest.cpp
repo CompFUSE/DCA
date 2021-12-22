@@ -45,7 +45,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_AUX, CPU> qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_AUX, CPU> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

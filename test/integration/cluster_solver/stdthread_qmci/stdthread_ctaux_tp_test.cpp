@@ -1,11 +1,12 @@
 // Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // No-change test for the stdthread solver wrapper. The base solver is CT-AUX and the model is
 // a square lattice with nearest neighbours hopping. Two and single particles Green's function are
@@ -44,18 +45,18 @@ constexpr bool update_baseline = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
-using Concurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+using Parameters = dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
 void performTest(const std::string& input, const std::string& baseline) {
-  Concurrency concurrency(0, nullptr);
+  TestConcurrency concurrency(0, nullptr);
   if (concurrency.id() == concurrency.first()) {
     dca::util::GitVersion::print();
     dca::util::Modules::print();
@@ -82,7 +83,7 @@ void performTest(const std::string& input, const std::string& baseline) {
   data.initialize();
 
   // Do one integration step.
-  QmcSolver qmc_solver(parameters, data);
+  QmcSolver qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
   dca::phys::DcaLoopData<Parameters> loop_data;

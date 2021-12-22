@@ -39,9 +39,9 @@ const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/c
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::NoThreading;
-using Concurrency = dca::parallel::NoConcurrency;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+using NoThreading = dca::parallel::NoThreading;
+using TestConcurrency = dca::parallel::NoConcurrency;
+using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 
@@ -49,7 +49,7 @@ TEST(SquareLatticeTest, GpuSolver) {
   dca::util::GitVersion::print();
   dca::util::Modules::print();
 
-  Concurrency concurrency(1, NULL);
+  TestConcurrency concurrency(1, NULL);
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
                                                            "square_lattice_gpu_input.json");
@@ -59,7 +59,7 @@ TEST(SquareLatticeTest, GpuSolver) {
   Data data_gpu(parameters);
   data_gpu.initialize();
   dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters, true> qmc_solver_gpu(
-      parameters, data_gpu);
+                                                                                           parameters, data_gpu, nullptr);
   qmc_solver_gpu.initialize(0);
   cudaProfilerStart();
   qmc_solver_gpu.integrate();
@@ -72,7 +72,7 @@ TEST(SquareLatticeTest, GpuSolver) {
   data_cpu.initialize();
   RngType::resetCounter();  // Use the same random numbers.
   using GpuSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true>;
-  GpuSolver qmc_solver_cpu(parameters, data_cpu);
+  GpuSolver qmc_solver_cpu(parameters, data_cpu, nullptr);
   qmc_solver_cpu.initialize();
   qmc_solver_cpu.integrate();
   qmc_solver_cpu.finalize();

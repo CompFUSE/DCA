@@ -27,6 +27,8 @@
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_walker.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/qmci_autocorrelation_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
@@ -50,10 +52,11 @@ public:
   using typename BaseClass::Rng;
 
   using typename BaseClass::Accumulator;
-  using typename BaseClass::Walker;
+  using Walker = stdthreadqmci::StdThreadQmciWalker<typename BaseClass::Walker, Data>;
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
-  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
+  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
+                             const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   void initialize(int dca_iteration);
 
@@ -61,6 +64,8 @@ public:
 
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
+
+  void setSampleConfiguration(const io::Buffer& buff);
 
 private:
   void startWalker(int id);
@@ -75,6 +80,8 @@ private:
   void iterateOverLocalMeasurements(int walker_id, std::function<void(int, int, bool)>&& f);
 
   void printIntegrationMetadata() const;
+
+  void finalizeWalker(Walker& walker, int walker_id);
 
 private:
   using BaseClass::accumulator_;
@@ -103,14 +110,17 @@ private:
   dca::parallel::thread_traits::condition_variable_type queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
+  stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
+  bool last_iteration_ = false;
+  bool read_configuration_ = false;
   unsigned measurements_ = 0;
 };
 
 template <class QmciSolver>
-StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& parameters_ref,
-                                                                   Data& data_ref)
-    : BaseClass(parameters_ref, data_ref),
+StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
+    Parameters& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    : BaseClass(parameters_ref, data_ref, writer),
 
       nr_walkers_(parameters_.get_walkers()),
       nr_accumulators_(parameters_.get_accumulators()),
@@ -123,7 +133,8 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
 
       accumulators_queue_(),
 
-      config_dump_(nr_walkers_) {
+      config_dump_(nr_walkers_),
+      autocorrelation_data_(parameters_, 0) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -142,12 +153,27 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
 }
 
 template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::setSampleConfiguration(const io::Buffer& buff) {
+  if (!parameters_.store_configuration())
+    return;
+
+  config_dump_.resize(nr_walkers_);
+  for (auto& x : config_dump_)
+    x = buff;
+
+  read_configuration_ = true;
+}
+
+template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
   Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
-  BaseClass::initialize(dca_iteration);
+  last_iteration_ = dca_iteration == parameters_.get_dca_iterations() - 1;
 
   measurements_ = parameters_.get_measurements()[dca_iteration];
+
+  BaseClass::initialize(dca_iteration);
+
   walk_finished_ = 0;
   measurements_done_ = 0;
 }
@@ -180,8 +206,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       throw std::logic_error("Thread task is undefined.");
   }
   auto print_metadata = [&]() {
-                          
-                          //assert(walk_finished_ == parameters_.get_walkers());
+    assert(walk_finished_ == parameters_.get_walkers());
 
     dca::profiling::WallTime end_time;
 
@@ -202,6 +227,15 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
 
   print_metadata();
 
+  if (parameters_.store_configuration()) {
+    if (BaseClass::writer_) {  // write one sample configuration.
+      BaseClass::writer_->open_group("Configurations");
+      BaseClass::writer_->rewrite("sample", config_dump_[0]);
+      BaseClass::writer_->close_group();
+    }
+    read_configuration_ = true;
+  }
+
   QmciSolver::accumulator_.finalize();
 }
 
@@ -217,6 +251,12 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
+  // Write and reset autocorrelation.
+  autocorrelation_data_.sumConcurrency(concurrency_);
+  if (BaseClass::writer_ && *BaseClass::writer_)  // Writer exists and it is open.
+    autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+  autocorrelation_data_.reset();
+
   return L2_Sigma_difference;
 }
 
@@ -229,7 +269,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   }
 
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
-  Walker walker(parameters_, data_, rng_vector_[walker_index], id);
+
+  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
+  Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log);
 
   std::unique_ptr<std::exception> exception_ptr;
 
@@ -280,16 +322,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     }
   }
 
-  if (id == 0 && concurrency_.id() == concurrency_.first()) {
-    std::cout << "\n\t\t QMCI ends\n" << std::endl;
-    walker.printSummary();
-  }
-
-  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
-                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
-    config_dump_[walker_index] = walker.dumpConfig();
-
-  walker_fingerprints_[walker_index] = walker.deviceFingerprint();
+  finalizeWalker(walker, walker_index);
 
   Profiler::stop_threading(id);
 
@@ -408,7 +441,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   Profiler::start_threading(id);
 
   // Create and warm a walker.
-  Walker walker(parameters_, data_, rng_vector_[id], id);
+  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
+  Walker walker(parameters_, data_, rng_vector_[id], id, walker_log);
   initializeAndWarmUp(walker, id, id);
 
   Accumulator accumulator_obj(parameters_, data_, id);
@@ -449,17 +483,24 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
 
-  if (parameters_.store_configuration() || (parameters_.get_directory_config_write() != "" &&
-                                            dca_iteration_ == parameters_.get_dca_iterations() - 1))
-    config_dump_[id] = walker.dumpConfig();
-
-  walker_fingerprints_[id] = walker.deviceFingerprint();
-  accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
+  finalizeWalker(walker, id);
 
   Profiler::stop_threading(id);
 
   if (current_exception)
     throw(*current_exception);
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::finalizeWalker(Walker& walker, int walker_id) {
+  config_dump_[walker_id] = walker.dumpConfig();
+  walker_fingerprints_[walker_id] = walker.deviceFingerprint();
+  autocorrelation_data_ += walker;
+
+  if (walker_id == 0 && concurrency_.id() == concurrency_.first()) {
+    std::cout << "\n\t\t QMCI ends\n" << std::endl;
+    walker.printSummary();
+  }
 }
 
 template <class QmciSolver>
@@ -494,6 +535,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
     reader.open_file(inp_name);
     for (int id = 0; id < config_dump_.size(); ++id)
       reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
+
+    read_configuration_ = true;
   }
   catch (std::exception& err) {
     std::cerr << err.what() << "\nCould not read the configuration.\n";

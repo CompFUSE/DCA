@@ -76,7 +76,7 @@ public:
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
 public:
-  SsCtHybWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
+  SsCtHybWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 
   /*!
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
@@ -166,7 +166,7 @@ private:
   void swap_random_orbitals();
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   MOMS_type& MOMS;
   const concurrency_type& concurrency;
 
@@ -210,7 +210,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(parameters_type& parameters_ref,
+SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(const parameters_type& parameters_ref,
                                                                    MOMS_type& MOMS_ref,
                                                                    rng_type& rng_ref, int id)
     : parameters(parameters_ref),
@@ -296,7 +296,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
-  util::Plot::plotBandsLinesPoints(F_r_t);
+  dca::util::Plot::plotBandsLinesPoints(F_r_t);
 
   {
     double beta = parameters.get_beta();
@@ -326,7 +326,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
           y.push_back(F_val);
         }
 
-        util::Plot::plotPoints(x, y);
+        dca::util::Plot::plotPoints(x, y);
       }
     }
   }

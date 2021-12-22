@@ -20,37 +20,39 @@ template <dca::DistType DT>
 class DCALoopDispatch {
 public:
   void operator()(ParametersType& parameters, Concurrency& concurrency) {
+    // Create and initialize the DCA data object.
     DcaDataType<DT> dca_data(parameters);
     dca_data.initialize();
     DcaLoopType<DT> dca_loop(parameters, dca_data, concurrency);
     {
       Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
 
-      // Create and initialize the DCA data object.
-    
       try {
-	dca_loop.initialize();
-      } catch (const std::exception& exc) {
-	std::cout << "unhandled exception in dca_loop.initialize(): " << exc.what() << std::endl;
-	throw exc;
+        dca_loop.initialize();
+      }
+      catch (const std::exception& exc) {
+        std::cout << "unhandled exception in dca_loop.initialize(): " << exc.what() << std::endl;
+        throw exc;
       }
       try {
-	dca_loop.execute();
-      } catch (const std::exception& exc) {
-	std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
-	throw exc;
+        dca_loop.execute();
+      }
+      catch (const std::exception& exc) {
+        std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
+        throw exc;
       }
       try {
-      dca_loop.finalize();
-      Profiler::stop(concurrency, parameters.get_filename_profiling());
-      } catch (const std::exception& exc) {
-	std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
-	throw exc;
+        dca_loop.finalize();
+        Profiler::stop(concurrency, parameters.get_filename_profiling());
       }
- 
+      catch (const std::exception& exc) {
+        std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
+        throw exc;
+      }
+
       // Whether writing is on all ranks or not is now controlled at the writer level.
       //      if (concurrency.id() == concurrency.first()) {
-      //std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+      // std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
       dca_loop.write();
 
       std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;

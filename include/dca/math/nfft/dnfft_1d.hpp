@@ -184,7 +184,9 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initializeStaticFuncti
     get_cubic_convolution_matrices().reset();
 
   if (mode == LINEAR || mode == CUBIC) {
+#ifndef NDEBUG
     int index = 0;
+#endif
     auto& convolution_time_values = get_convolution_time_values();
     ScalarType delta = convolution_time_values(0, 1) - convolution_time_values(0, 0);
 
@@ -216,7 +218,9 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initializeStaticFuncti
           get_cubic_convolution_matrices()(2, i, j) = c;
           get_cubic_convolution_matrices()(3, i, j) = d;
         }
+#ifndef NDEBUG
         index += 1;
+#endif
       }
     }
   }

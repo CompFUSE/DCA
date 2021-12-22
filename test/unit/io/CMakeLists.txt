@@ -16,7 +16,7 @@ dca_add_gtest(json_reader_test
         LIBS json)
 
 dca_add_gtest(reader_writer_test
-  LIBS dca_hdf5 hdf5::hdf5_cpp json function)
+  LIBS dca_hdf5 hdf5::hdf5_cpp json function ${DCA_THREADING_LIBS})
 
 if (DCA_HAVE_ADIOS2)
   dca_add_gtest(adios2_reader_writer_test

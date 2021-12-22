@@ -22,7 +22,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation_gpu.hpp"
 
 namespace dca {
 namespace phys {

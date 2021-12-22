@@ -10,8 +10,8 @@
 // This class organizes the interpolation G0(tau) for tau in [0, beta]
 // specialization for CPU.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_CPU_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_CPU_HPP
 
 #include <assert.h>
 #include <vector>
@@ -22,14 +22,15 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/domains/ct_int_domains.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/interpolation_domains.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/function_proxy.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/shrink_G0.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
-// dca::phys::solver::ctint::
+// dca::phys::solver::
 
 // void template
 template <linalg::DeviceType device_t, typename Real>
@@ -37,8 +38,8 @@ class G0Interpolation {};
 
 // ParametersDomain is a collection of discrete labels not involving the time.
 template <typename Real>
-class G0Interpolation<linalg::CPU, Real> {
-private:
+class G0Interpolation<dca::linalg::CPU, Real> {
+protected:
   using Pdmn = G0ParametersDomain;
   using Pdmn0 = func::dmn_0<G0ParametersDomain>;
   using Tdmn = func::dmn_0<domains::time_domain>;
@@ -46,18 +47,24 @@ private:
 
 public:
   G0Interpolation() = default;
-  // See this->initialize(G0_pars_t).
-  template <class InputDmn>
-  G0Interpolation(const func::function<double, InputDmn>& G0_pars_t);
 
-  virtual ~G0Interpolation() {}
+  template <class InputDmn>
+  G0Interpolation(const func::function<double, InputDmn>& G0_func) {
+    initialize(G0_func);
+  }
+
+  virtual ~G0Interpolation() = default;
 
   // In: G0_pars_t. Assumed to be a function of discrete labels and time (in this order) and to
   //             be antiperiodic in time.
   template <class InputDmn>
-  void initialize(const func::function<double, InputDmn>& G0_pars_t);
-  // Constructor. Reshape the G0Dmn and calls the first constructor.
-  // In: G0_r_t: function of dmn_variadic<D1, D2, ..., Tdmn>
+  void initialize(const func::function<double, InputDmn>& G0_func);
+
+  // Initialize with only one spin sector.
+  template <int dim>
+  void initializeShrinked(const details::SpGreensFunction<dim>& g0_r_t) {
+    initialize(details::shrinkG0(g0_r_t));
+  }
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
   Real operator()(Real tau, int lindex) const;
@@ -92,21 +99,14 @@ private:
 
 template <typename Real>
 template <class InputDmn>
-G0Interpolation<linalg::CPU, Real>::G0Interpolation(const func::function<double, InputDmn>& G0_pars_t) {
-  initialize(G0_pars_t);
-}
-
-template <typename Real>
-template <class InputDmn>
-void G0Interpolation<linalg::CPU, Real>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
+void G0Interpolation<linalg::CPU, Real>::initialize(const func::function<double, InputDmn>& G0_func) {
   PositiveTimeDomain::initialize();
   Pdmn::initialize(InputDmn::dmn_size() / Tdmn::dmn_size());
-  initialize(FunctionProxy<double, PTdmn>(G0_pars_t));
+  initialize(FunctionProxy<double, PTdmn>(G0_func));
 }
 
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_TOOLS_G0_INTERPOLATION_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_INTERPOLATION_G0_INTERPOLATION_CPU_HPP

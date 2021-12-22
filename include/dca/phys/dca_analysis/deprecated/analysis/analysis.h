@@ -289,7 +289,7 @@ namespace dca {
 //     cout << "symmetrize MOMS.G4_k_k_w_w" << endl;
 //     symmetrize::execute(MOMS.G4_k_k_w_w, MOMS.H_symmetry, parameters.get_q_vector(), false);
 
-//     if(parameters.get_vertex_measurement_type() == PARTICLE_PARTICLE_UP_DOWN)
+//     if(parameters.get_vertex_measurement_type() == FourPointType::PARTICLE_PARTICLE_UP_DOWN)
 //       apply_particle_particle_symmetry_on_G4_k_k_w_w();
   }
     

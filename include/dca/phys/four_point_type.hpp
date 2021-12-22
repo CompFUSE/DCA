@@ -19,7 +19,12 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-enum FourPointType : int {
+/** Possible Flavors for G4
+ *  dummy at 0 debug automatic initialization of int to 0
+ *  causes a bug. That is not a good code smell.
+ */
+enum class FourPointType : int {
+                                PARTICLE_HOLE_NONE = 0,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
   PARTICLE_HOLE_CHARGE,

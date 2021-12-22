@@ -17,7 +17,7 @@
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
 
 namespace dca {
 namespace phys {
@@ -30,12 +30,6 @@ template <typename Real>
 void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
                    DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
-
-// For testing purposes only: computes on the GPU a single value of the interpolated G0 at the
-// desired imaginary time "tau" and sector "linindex". Returns the result.
-// This method is dominated by latency in a kernel launch and CPU-GPU communication.
-template <typename Real>
-Real interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Real>& g0);
 
 }  // namespace details
 }  // namespace ctint

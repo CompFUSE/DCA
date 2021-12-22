@@ -14,14 +14,14 @@
 #include "dca/platform/dca_gpu.h"
 
 #include "dca/util/cuda_blocks.hpp"
-#include "../../../../../../../include/dca/phys/dca_step/cluster_solver/ctint/walker/tools/device_interpolation_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
-namespace ctint {
 namespace details {
-// dca::phys::solver::ctint::details
+
+// dca::phys::solver::ctint::details::
 
 template <typename Real>
 __global__ void interpolateSlowKernel(Real tau, const int lindex, DeviceInterpolationData<Real> g0,
@@ -47,7 +47,6 @@ template float interpolateSlow(float, int, const DeviceInterpolationData<float>&
 template double interpolateSlow(double, int, const DeviceInterpolationData<double>&);
 
 }  // namespace details
-}  // namespace ctint
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca
