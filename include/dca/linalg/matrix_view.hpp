@@ -68,7 +68,6 @@ public:
   __DEVICE__ __HOST__ inline int ld() const {
     return leadingDimension();
   }
-
   __DEVICE__ __HOST__ std::pair<int, int> size() const {
     return size_;
   }

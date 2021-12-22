@@ -31,7 +31,7 @@
     #define __CONSTANT__
   #endif
 #elif defined(DCA_HAVE_HIP)
-  #ifdef __CUDA_CC__
+  #ifdef __HIP_PLATFORM_AMD__
     #define __HOST__ __host__
     #define __DEVICE__ __device__
     #define __CONSTANT__ __constant__

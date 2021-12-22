@@ -11,9 +11,8 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 
-#include <cuda_runtime.h>
+#include "dca/platform/dca_gpu.h"
 
-#include "dca/linalg/util/error_cuda.hpp"
 #include "dca/util/cuda_blocks.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
 
