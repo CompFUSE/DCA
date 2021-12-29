@@ -1,3 +1,13 @@
+// Copyright (C) 2019 ETH Zurich
+// Copyright (C) 2019 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
+//
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 
 #include "gtest/gtest.h"
