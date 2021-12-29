@@ -47,9 +47,7 @@ set(FFTW_INCLUDE_DIR $ENV{FFTW_DIR}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{FFTW_DIR}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
 
 # HDF5 paths
-set(HDF5_ROOT $ENV{HD5_DIR})
-set(HDF5_INCLUDE_DIRS $ENV{HDF5_DIR}/include CACHE PATH "Path to hdf5 includes")
-set(HDF5_LIBRARIES "$ENV{HDF5_DIR}/lib/libhdf5_cpp.a;$ENV{HDF5_DIR}/lib/libhdf5.a" CACHE FILEPATH "The hdf5 libraries")
+set(HDF5_ROOT $ENV{HDF5_DIR})
 
 option(DCA_WITH_TESTS_FAST "Fast minimal tests" ON)
 

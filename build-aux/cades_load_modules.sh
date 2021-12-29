@@ -12,7 +12,7 @@ spack load gcc@8.2.0
 spack load openmpi/qnfab5m
 spack load fftw%gcc@8.2.0
 spack load ninja/v2bqky4
-spack load cmake@3.18.2%gcc@8.2.0
+module load cmake/3.20.3
 spack load openblas@0.3.9
 module load cuda/11.0
 
