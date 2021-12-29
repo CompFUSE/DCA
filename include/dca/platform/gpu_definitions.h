@@ -17,6 +17,7 @@
 
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
+#endif
 
 // clang-format off
 #if defined(DCA_HAVE_CUDA)
@@ -40,8 +41,12 @@
     #define __DEVICE__
     #define __CONSTANT__
   #endif
+#else // no GPU type defined
+    #define __HOST__
+    #define __DEVICE__
+    #define __CONSTANT__
 #endif
 // clang-format on
-#endif
+
 
 #endif  // DCA_UTIL_CUDA_DEFINITIONS_HPP

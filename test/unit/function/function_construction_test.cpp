@@ -164,10 +164,11 @@ TYPED_TEST(BlockDistributedFunctionTest, CheckSplitIndexBlocking) {
 int main(int argc, char** argv) {
   int result = 0;
 
+#ifdef DCA_HAVE_GPU
   dca::linalg::util::printInfoDevices();
 
   dca::linalg::util::initializeMagma();
-
+#endif
   concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
 
   ::testing::InitGoogleTest(&argc, argv);
