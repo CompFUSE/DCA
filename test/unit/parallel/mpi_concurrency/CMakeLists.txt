@@ -4,7 +4,7 @@
 
 set(MPI_TEST_LIBS parallel_mpi_concurrency)
 if(DCA_HAVE_GPU)
-  set(MPI_TEST_LIBS "${MPI_TEST_LIBS} gpu_utils")
+  set(MPI_TEST_LIBS "${MPI_TEST_LIBS};gpu_utils")
 endif(DCA_HAVE_GPU)
 
 dca_add_gtest(mpi_collective_max_test

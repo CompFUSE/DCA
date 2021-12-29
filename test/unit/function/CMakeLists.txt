@@ -14,9 +14,9 @@ endif()
 
 dca_add_gtest(set_to_zero_test GTEST_MAIN)
 
-set(FUNCTION_CONSTRUCTION_TEST_LIBS ${DCA_LIBS};parallel_mpi_concurrency;function)
+set(FUNCTION_CONSTRUCTION_TEST_LIBS "parallel_mpi_concurrency;function")
 if(DCA_HAVE_GPU)
-  set(FUNCTION_CONSTRUCTION_TEST_LIBS "${FUNCTION_CONSTRUCTION_TEST_LIBS} gpu_utils")
+  set(FUNCTION_CONSTRUCTION_TEST_LIBS "gpu_utils;${FUNCTION_CONSTRUCTION_TEST_LIBS}")
 endif(DCA_HAVE_GPU)
 
 dca_add_gtest(function_construction_test
