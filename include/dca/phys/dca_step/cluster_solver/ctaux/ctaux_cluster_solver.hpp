@@ -193,8 +193,6 @@ CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
 
       averaged_(false),
       writer_(writer) {
-  TimeCorrelator<Parameters, typename Walker::Scalar, device>::setG0(g0_);
-
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
