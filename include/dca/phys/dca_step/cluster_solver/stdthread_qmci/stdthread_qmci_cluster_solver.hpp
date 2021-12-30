@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // An MC integrator that implements a threaded MC integration independent of the MC
 // method.
@@ -44,7 +45,7 @@ class StdThreadQmciClusterSolver : public QmciSolver {
 public:
   using BaseClass = QmciSolver;
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
-
+  static constexpr linalg::DeviceType device = QmciSolver::device;
   using Data = typename BaseClass::DataType;
   using Parameters = typename BaseClass::ParametersType;
   using typename BaseClass::Concurrency;
@@ -134,7 +135,7 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
       accumulators_queue_(),
 
       config_dump_(nr_walkers_),
-      autocorrelation_data_(parameters_, 0) {
+      autocorrelation_data_(parameters_, 0, BaseClass::g0_) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -271,7 +272,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
 
   auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
-  Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log);
+  Walker walker(parameters_, data_, rng_vector_[walker_index], id, walker_log, BaseClass::g0_);
 
   std::unique_ptr<std::exception> exception_ptr;
 
@@ -442,7 +443,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
 
   // Create and warm a walker.
   auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
-  Walker walker(parameters_, data_, rng_vector_[id], id, walker_log);
+  Walker walker(parameters_, data_, rng_vector_[id], id, walker_log, BaseClass::g0_);
   initializeAndWarmUp(walker, id, id);
 
   Accumulator accumulator_obj(parameters_, data_, id);

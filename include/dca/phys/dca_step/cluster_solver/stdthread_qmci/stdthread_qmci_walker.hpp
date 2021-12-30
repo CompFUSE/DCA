@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // A std::thread jacket that measures correlations in the MC walker independent of the MC method.
 
@@ -39,7 +40,8 @@ class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationD
 
 public:
   StdThreadQmciWalker(Parameters& parameters_ref, DATA& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::Writer<Concurrency>>& writer);
+                      const std::shared_ptr<io::Writer<Concurrency>>& writer,
+                      G0Interpolation<device, Real>& g0);
 
   void initialize(int iteration_);
   void doSweep();
@@ -64,26 +66,26 @@ private:
 };  // namespace stdthreadqmci
 
 template <class QmciWalker, class DATA>
-StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(Parameters& parameters, DATA& data_ref,
-                                                     Rng& rng, int id,
-                                                     const std::shared_ptr<io::Writer<Concurrency>>& writer)
+StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(
+    Parameters& parameters, DATA& data_ref, Rng& rng, int id,
+    const std::shared_ptr<io::Writer<Concurrency>>& writer, G0Interpolation<device, Real>& g0)
     : QmciWalker(parameters, data_ref, rng, id),
-      QmciAutocorrelationData<QmciWalker>(parameters, id),
+      QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
       stamping_period_(parameters.stamping_period()),
       thread_id_(id),
       writer_(writer),
       total_iterations_(parameters.get_dca_iterations()) {}
 
-  template <class QmciWalker, class DATA>
-  void StdThreadQmciWalker<QmciWalker, DATA>::initialize(int iteration) {
+template <class QmciWalker, class DATA>
+void StdThreadQmciWalker<QmciWalker, DATA>::initialize(int iteration) {
   QmciWalker::initialize(iteration);
 
   meas_id_ = 0;
   last_iteration_ = iteration == total_iterations_ - 1;
 }
 
-  template <class QmciWalker, class DATA>
-  void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
+template <class QmciWalker, class DATA>
+void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
   QmciWalker::doSweep();
   QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
@@ -94,8 +96,8 @@ StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(Parameters& parameter
   }
 }
 
-  template <class QmciWalker, class DATA>
-  void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
+template <class QmciWalker, class DATA>
+void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
   if (print_to_log && last_iteration_ && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     const std::string stamp_name =
@@ -126,15 +128,17 @@ class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>, Data>
   using Concurrency = typename Parameters::concurrency_type;
 
   using Rng = typename Parameters::random_number_generator;
+  using Real = typename QmciWalker::Scalar;
 
 public:
   StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/)
+                      const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/,
+                      G0Interpolation<device, Real>& g0)
       : QmciWalker(parameters_ref, data_ref, rng, id),
-        QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id) {
-  }
+        QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id,
+                                                                                g0) {}
 
-  static void write(io::Writer<Concurrency>& writer) {}
+  static void write([[maybe_unused]] io::Writer<Concurrency>& writer) {}
 };
 
 }  // namespace stdthreadqmci

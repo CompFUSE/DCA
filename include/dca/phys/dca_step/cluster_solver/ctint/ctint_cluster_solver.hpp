@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 //  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi(gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak(doakpw@ornl.gov)
 //
 // Cluster Monte Carlo integrator based on a CT-INT algorithm.
 
@@ -142,12 +143,12 @@ protected:
   int dca_iteration_ = 0;
   std::shared_ptr<io::Writer<Concurrency>> writer_;
 
+  G0Interpolation<device_t, typename Walker::Scalar> g0_;
 private:
   bool perform_tp_accumulation_;
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  G0Interpolation<device_t, Real> g0_;
   Rng rng_;
 };
 

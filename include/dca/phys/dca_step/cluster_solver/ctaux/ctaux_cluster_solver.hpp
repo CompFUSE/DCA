@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // Cluster Monte Carlo integrator based on a continuous-time auxilary field (CT-AUX) expansion.
 //
@@ -68,9 +69,6 @@ public:
 
   static constexpr linalg::DeviceType device = device_t;
 
-protected:
-  std::shared_ptr<io::Writer<Concurrency>> writer_;
-
 private:
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -86,7 +84,7 @@ private:
 
 public:
   CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
-                     const std::shared_ptr<io::Writer<Concurrency>>& writer = nullptr);
+                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -148,6 +146,8 @@ protected:
 
   int dca_iteration_;
 
+  G0Interpolation<device, typename Walker::Scalar> g0_;
+
 private:
   Rng rng_;
 
@@ -157,14 +157,15 @@ private:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
 
-  G0Interpolation<device, typename Walker::Scalar> g0_;
-
   double accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
   bool averaged_;
   bool compute_jack_knife_;
+
+protected:
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, dca::DistType DIST>
@@ -190,7 +191,6 @@ CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
 
       M_r_w_("M_r_w"),
       M_r_w_squared_("M_r_w_squared"),
-
       averaged_(false),
       writer_(writer) {
   if (concurrency_.id() == concurrency_.first())

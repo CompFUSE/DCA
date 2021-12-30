@@ -1,7 +1,14 @@
 // Copyright (C) 2010 Philipp Werner
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 // Modified by Andrei Plamada (plamada@itp.phys.ethz.ch).
+//             Peter Doak (doakpw@ornl.gov)
 //
 // This class organizes the MC walker in the SS CT-HYB QMC.
 
@@ -16,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/config/mc_options.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -75,6 +83,8 @@ public:
   typedef shift_segment_tools<ss_hybridization_walker_routines_type> shift_segment_tools_t;
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
+  constexpr static dca::linalg::DeviceType device = device_t;
+  using Scalar = typename dca::config::McOptions::MCScalar;
 public:
   SsCtHybWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 

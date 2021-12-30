@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class measures the correlation of G(r = 0, t = 0).
 
@@ -53,18 +54,11 @@ public:
   template <DeviceType conf_device>
   using Config = linalg::MultiVector<conf_device, Real, int, int>;
 
-  TimeCorrelator(const Parameters& parameters_, int id);
+  TimeCorrelator(const Parameters& parameters_, int id, G0Interpolation<device, Real>& g0);
 
   template <class WalkerConfig, typename RealInp>
   void compute_G_r_t(const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
                      const std::array<WalkerConfig, 2>& configs, int sign);
-
-  // TODO: use a shared pointer.
-  static void setG0(const G0Interpolation<device, Real>& g0) {
-    if constexpr (device == linalg::GPU)
-      details::SolverHelper::set<RDmn, BDmn>();
-    g0_ = &g0;
-  }
 
   auto& getCorrelators() {
     return autocorrelations_;
@@ -100,7 +94,7 @@ private:
   constexpr static int n_correlators_ =
       n_bands_ * (n_bands_ + 1) / 2;  // Number of independent entries in a band-band matrix.
 
-  static const inline G0Interpolation<device, Real>* g0_ = nullptr;
+  G0Interpolation<device, Real>& g0_;
 
   const linalg::util::GpuStream& stream_;
 
@@ -121,11 +115,11 @@ private:
 };
 
 template <class Parameters, typename Real, DeviceType device>
-TimeCorrelator<Parameters, Real, device>::TimeCorrelator(const Parameters& parameters_ref, int id)
+TimeCorrelator<Parameters, Real, device>::TimeCorrelator(const Parameters& parameters_ref, int id, G0Interpolation<device, Real>& g0)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
-
       thread_id_(id),
+      g0_(g0),
       stream_(linalg::util::getStream(thread_id_, 0)) {
   // We're going to make one of these per walker
   // @gbalduzz solution of making this static creates a race with cuda driver shutting down.
@@ -160,10 +154,6 @@ template <class WalkerConfig, typename RealInp>
 void TimeCorrelator<Parameters, Real, device>::compute_G_r_t(
     const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
     const std::array<WalkerConfig, 2>& configs, int sign) {
-  if (!g0_) {
-    throw(std::runtime_error("G0 is not set."));
-  }
-
   // Upload state
   constexpr int n_electron_spins = 1;  // Compute only on up-up sector.
 
@@ -270,7 +260,7 @@ void TimeCorrelator<Parameters, Real, device>::computeG0(linalg::Matrix<Real, GP
   G0_mat.resizeNoCopy(std::make_pair(config_l.size(), config_r.size()));
 
   linalg::MatrixView<Real, device> G0_view(G0_mat);
-  details::computeG0(G0_view, *g0_, config_l.template get<0>(), config_l.template get<1>(),
+  details::computeG0(G0_view, g0_, config_l.template get<0>(), config_l.template get<1>(),
                      config_l.template get<2>(), config_r.template get<0>(),
                      config_r.template get<1>(), config_r.template get<2>(), stream_);
 }
@@ -299,7 +289,7 @@ void TimeCorrelator<Parameters, Real, device>::computeG0(linalg::Matrix<Real, CP
       const int r = RDmn::parameter_type::subtract(r_r[j], r_l[i]);
       const int label = labels(b_l[i], b_r[j], r);
 
-      G0_mat(i, j) = (*g0_)(tau, label);
+      G0_mat(i, j) = g0_(tau, label);
     }
 }
 

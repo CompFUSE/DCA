@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -50,7 +50,8 @@ public:
               uint64_t id);
 
   this_type& operator=(const this_type& other_vertex_pair);
-
+  vertex_pair(const this_type& other_vertex_pair) = default;
+  
   uint64_t get_id() const {
     return id_;
   }
@@ -188,6 +189,7 @@ vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_t
       Bennett(false),
       shuffled(false) {}
 
+// \todo replace this sematic changing operator overload 
 template <class parameters_type>
 vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
     const vertex_pair<parameters_type>& other_vertex_pair)  // --> necessary for push_back
