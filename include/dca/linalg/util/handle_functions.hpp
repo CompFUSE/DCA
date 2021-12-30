@@ -16,12 +16,18 @@
 #define DCA_LINALG_UTIL_HANDLE_FUNCTIONS_HPP
 
 #include <vector>
+
+#ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
 #include "dca/platform/dca_gpu_blas.h"
+#endif
 
 #include "dca/linalg/util/stream_functions.hpp"
+
+#ifdef DCA_HAVE_GPU
 #include "dca/linalg/util/gpuBLAS_handles.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
+#endif
 
 namespace dca {
 namespace linalg {
@@ -29,6 +35,7 @@ namespace util {
 // dca::linalg::util::
 
 #ifdef DCA_HAVE_GPU
+
 
 
 // Global handle container.
