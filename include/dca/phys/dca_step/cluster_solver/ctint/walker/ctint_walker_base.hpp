@@ -246,8 +246,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::initialize(int iteration) {
   sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
 
   sign_ = 1;
-  // in some DCA-develop code Giovanni has this set to 0
-  mc_log_weight_ = 1.;
+  mc_log_weight_ = 0.;
 
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {

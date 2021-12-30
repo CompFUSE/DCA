@@ -1,6 +1,13 @@
 // Copyright (C) 2010 Philipp Werner
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
+// Modified by Peter Doak (doakpw@ornl.gov)
 //
 // Single-site Monte Carlo integrator based on a hybridization expansion.
 
@@ -52,7 +59,6 @@ public:
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
   using Concurrency = typename parameters_type::concurrency_type;
-
   using Lattice = typename parameters_type::lattice_type;
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
@@ -129,8 +135,6 @@ protected:  // Interface to the thread jacket.
   Accumulator accumulator_;
   double total_time_;
   int dca_iteration_;
-
-  std::shared_ptr<io::Writer<Concurrency>> writer_;
 private:
   Rng rng;
 
@@ -143,12 +147,15 @@ private:
   func::function<double, nu> mu_DC;
 
   bool averaged_;
+
+protected:
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
+  G0Interpolation<device_t, typename Walker::Scalar> g0_;
 };
 
 template <dca::linalg::DeviceType DEV, class PARAM, class Data>
 SsCtHybClusterSolver<DEV, PARAM, Data>::SsCtHybClusterSolver(
-    PARAM& parameters_ref, Data& data_ref,
-    const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    PARAM& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
     : cthyb::ss_hybridization_solver_routines<PARAM, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
@@ -160,15 +167,15 @@ SsCtHybClusterSolver<DEV, PARAM, Data>::SsCtHybClusterSolver(
       dca_iteration_(-1),
 
       rng(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
-
-      writer_(writer),
       thermalization_time(0),
       MC_integration_time(0),
 
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
-      averaged_(false) {
+      averaged_(false),
+      writer_(writer)
+{
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }

@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // A std::thread jacket that measures correlations in the MC walker independent of the MC method.
 
@@ -25,6 +26,10 @@ namespace solver {
 namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
+/** provides autocorrelation data functionality to walkers as base class
+ *  unfortunately does other things as well and causes unclear code involving walkers.
+ *  \todo rethink this poor design.
+ */
 template <class Walker>
 class QmciAutocorrelationData {
   using Parameters = typename Walker::parameters_type;
@@ -36,7 +41,8 @@ class QmciAutocorrelationData {
   constexpr static int bands = Parameters::bands;
 
 public:
-  QmciAutocorrelationData(const Parameters& parameters, int thread_id);
+  QmciAutocorrelationData(const Parameters& parameters, int thread_id,
+                          G0Interpolation<device, Real>& g0);
   virtual ~QmciAutocorrelationData() = default;
 
   void accumulateAutocorrelation(Walker& walker);
@@ -71,10 +77,11 @@ private:
 
 template <class Walker>
 QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& parameters,
-                                                         const int thread_id)
+                                                         const int thread_id,
+                                                         G0Interpolation<device, Real>& g0)
     : autocorrelation_window_(parameters.get_time_correlation_window()),
       accumulate_G_(parameters.compute_G_correlation()),
-      time_correlator_(parameters, thread_id),
+      time_correlator_(parameters, thread_id, g0),
       order_correlator_(autocorrelation_window_),
       weight_correlator_(autocorrelation_window_) {}
 
@@ -221,15 +228,19 @@ void QmciAutocorrelationData<Walker>::reset() {
 template <linalg::DeviceType device, class Parameters, class Data>
 class QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>> {
   using Concurrency = typename Parameters::concurrency_type;
-
+  using Walker = cthyb::SsCtHybWalker<device, Parameters, Data>;
 public:
-  QmciAutocorrelationData(const Parameters&, int) {}
+  using Real = typename Walker::Scalar;
+
+  QmciAutocorrelationData(const Parameters&, int, G0Interpolation<device, Real>& g0) : g0_(g0) {}
   void sumConcurrency(const Concurrency&) {}
   QmciAutocorrelationData& operator+=(const QmciAutocorrelationData&) {
     return *this;
   }
-  static void write(io::Writer<Concurrency>& writer, int) {}
+  static void write([[maybe_unused]] io::Writer<Concurrency>& writer, int) {}
   void reset() {}
+protected:
+  G0Interpolation<device, Real>& g0_;
 };
 
 }  // namespace stdthreadqmci

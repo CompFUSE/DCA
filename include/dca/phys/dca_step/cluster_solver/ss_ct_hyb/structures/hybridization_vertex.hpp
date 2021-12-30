@@ -1,6 +1,13 @@
 // Copyright (C) 2010 Philipp Werner
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
+// Modified by Peter Doak (doakpw@ornl.gov)
 //
 // This class organizes a vertex, i.e. it stores the time points of a \f$c\f$ and \f$c^{\dagger}\f$.
 
@@ -34,6 +41,8 @@ public:
     t_end_val = t_end;
   }
 
+  Hybridization_vertex(const Hybridization_vertex& other) = default; 
+  
   this_type& operator=(this_type& other_vertex) {
     t_start_val = other_vertex.t_start();
     t_end_val = other_vertex.t_end();
