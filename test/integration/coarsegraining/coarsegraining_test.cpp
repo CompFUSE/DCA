@@ -195,6 +195,8 @@ void computeMockSigma(SigmaType& Sigma) {
 int main(int argc, char** argv) {
   int result = 0;
 
+  std::cout << "This Test is not portable.  Currently passes on summit with build-aux std version\nFails almost everywherer else.";
+  
   ::testing::InitGoogleTest(&argc, argv);
 
   dca::parallel::MPIConcurrency concurrency(argc, argv);
