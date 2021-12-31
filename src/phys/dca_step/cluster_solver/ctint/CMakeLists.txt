@@ -14,12 +14,10 @@ add_library(ctint
     ${CTINT_CUDA_CPP_FILES}
     )
 
-target_link_libraries(ctint PUBLIC time_and_frequency_domains dca_hdf5 json)
+target_link_libraries(ctint PUBLIC time_and_frequency_domains dca_io json)
 
 if (DCA_HAVE_GPU)
   target_include_directories(ctint PRIVATE ${MAGMA_INCLUDE_DIR})  
   target_link_libraries(ctint PUBLIC gpu_utils)
   dca_gpu_runtime_link(ctint)
 endif()
-
-

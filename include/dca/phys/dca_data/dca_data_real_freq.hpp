@@ -190,14 +190,20 @@ void DcaDataRealFreq<parameters_type>::write(std::string filename) {
       this->write(writer);
       writer.close_file();
     }
-
     else if (output_format == "HDF5") {
       dca::io::HDF5Writer writer;
       writer.open_file(filename);
       this->write(writer);
       writer.close_file();
     }
-
+#ifdef DCA_HAVE_ADIOS2
+    else if (output_format == "ADIOS2") {
+      dca::io::ADIOS2Writer writer;
+      writer.open_file(filename);
+      this->write(writer);
+      writer.close_file();
+    }
+#endif
     else
       throw std::logic_error(__FUNCTION__);
   }

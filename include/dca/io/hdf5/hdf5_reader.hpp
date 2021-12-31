@@ -64,6 +64,7 @@ public:
   template <typename Scalar>
   bool execute(const std::string& name, std::vector<Scalar>& value);
 
+  /** we only consider the case where the enclosed vector has constant size */
   template <typename Scalar>
   bool execute(const std::string& name, std::vector<std::vector<Scalar>>& value);
 
@@ -154,18 +155,21 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
     return false;
   }
 
-  auto size = readSize(full_name)[0];
-  const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
+  auto size = readSize(full_name);
+  
+  const auto type = HDF5_TYPE<Scalar>::get_PredType();
 
-  std::vector<hvl_t> data(size);
+  std::vector<Scalar> data(size[0] * size[1]);
 
   H5::DataSet dataset = file_->openDataSet(name.c_str());
   dataset.read(data.data(), type);
 
-  value.resize(size);
-  for (int i = 0; i < size; ++i) {
-    value[i].resize(data[i].len);
-    std::copy_n(static_cast<Scalar*>(data[i].p), data[i].len, value[i].data());
+  value.resize(size[0]);
+  auto data_it = data.begin();
+  for (int i = 0; i < size[0]; ++i) {
+    value[i].resize(size[1]);
+    std::copy_n(data_it, size[1], value[i].begin());
+    data_it += size[1];
   }
 
   dataset.vlenReclaim(data.data(), type, dataset.getSpace());

@@ -9,9 +9,6 @@
 set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
 set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
-set(DCA_EXTERNAL_IO_LIBS "" CACHE INTERNAL "")
-set(DCA_EXTERNAL_IO_INCLUDE_DIRS "" CACHE INTERNAL "")
-
 ################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
@@ -44,9 +41,6 @@ list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 # HDF5
 
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
-# append the library target not HDF_LIBRARIES, in modern cmake you need the target.
-# on spock this is all that will work with cray's hdf5
-list(APPEND DCA_EXTERNAL_IO_LIBS hdf5::hdf5_cpp)
 
 ################################################################################
 # ADIOS2
@@ -54,8 +48,6 @@ if (DCA_WITH_ADIOS2)
 set(DCA_HAVE_ADIOS2 FALSE CACHE INTERNAL "")
 find_package(ADIOS2)
 if (ADIOS2_FOUND)
-  list(APPEND DCA_EXTERNAL_IO_LIBS ${ADIOS2_LIBRARIES})
-  list(APPEND DCA_EXTERNAL_IO_INCLUDE_DIRS ${ADIOS2_INCLUDE_DIRS})
   set(DCA_HAVE_ADIOS2 TRUE CACHE INTERNAL "")
   #message("ADIOS2: libraries ${ADIOS2_LIBRARIES}")
 endif()
@@ -79,9 +71,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/libs/simplex_gm_rule)
 # Gnuplot
 list(APPEND DCA_EXTERNAL_LIBS ${GNUPLOT_INTERFACE_LIBRARY})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${GNUPLOT_INTERFACE_INCLUDE_DIR})
-
-list(APPEND DCA_EXTERNAL_LIBS ${DCA_EXTERNAL_IO_LIBS})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${DCA_EXTERNAL_IO_INCLUDE_DIRS})
 
 message("DCA_EXTERNAL_LIBS = ${DCA_EXTERNAL_LIBS}")
 message("DCA_EXTERNAL_INCLUDE_DIRS = ${DCA_EXTERNAL_INCLUDE_DIRS}")

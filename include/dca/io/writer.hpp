@@ -121,7 +121,11 @@ public:
 
 private:
   dca::parallel::thread_traits::mutex_type mutex_;
-  std::variant<io::HDF5Writer, io::JSONWriter> writer_;
+  std::variant<io::HDF5Writer, io::JSONWriter
+#ifdef DCA_HAVE_ADIOS2
+               ,io::ADIOS2Writer
+#endif
+               > writer_;
   Concurrency& concurrency_;
 };
 

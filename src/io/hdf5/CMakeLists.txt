@@ -2,7 +2,7 @@
 
 add_library(dca_hdf5 STATIC hdf5_reader.cpp hdf5_writer.cpp)
 target_include_directories(dca_hdf5 PUBLIC ${HDF5_INCLUDE_DIRS})
-target_link_libraries(dca_hdf5 PUBLIC ${DCA_LIBS} ${HDF5_CXX_LIBRARIES})
+target_link_libraries(dca_hdf5 PUBLIC ${DCA_LIBS} hdf5::hdf5 hdf5::hdf5_cpp)
 
 message("CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN : ${CMAKE_CXX_STANDARD_LIBRARIES}")
 

@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // For the moment this file just tests the construction of the different types of writers.
 
@@ -24,7 +25,11 @@ template <typename T>
 class WriterTest : public ::testing::Test {};
 
 using WriterTypes =
-    ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter>;  //, dca::io::CSVWriter>;
+  ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter
+#ifdef DCA_HAVE_ADIOS2
+                   ,dca::io::ADIOS2Writer
+#endif
+                   >;  //, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
 
 TYPED_TEST(WriterTest, Constructor) {
