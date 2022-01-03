@@ -61,9 +61,9 @@ TEST(HDF5ReaderTest, Vector) {
   reader.execute("simple-vector", vec_1);
   EXPECT_EQ(vec_1_check, vec_1);
 
-  // Vector of two 2D vectors
+  // Vector of 3 2D vectors variable length
   std::vector<std::vector<float>> vec_2;
-  std::vector<std::vector<float>> vec_2_check{{1.2, 3.4}, {5.6, 7.8}};
+  std::vector<std::vector<float>> vec_2_check{{1.2, 3.4}, {5.6, 7.8, 4.4}, {1.0}};
   reader.execute("vector-of-vectors", vec_2);
   EXPECT_EQ(vec_2_check, vec_2);
 
