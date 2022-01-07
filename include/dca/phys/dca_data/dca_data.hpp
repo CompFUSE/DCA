@@ -564,8 +564,8 @@ void DcaData<Parameters, DT>::initialize_G0() {
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
-  io::Reader reader(concurrency_, parameters_.get_output_format());
   if (concurrency_.id() == concurrency_.first()) {
+    io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
 
     if (parameters_.adjust_chemical_potential()) {

@@ -63,6 +63,9 @@ public:
   void open_group(const std::string& new_path);
   void close_group();
 
+  void begin_step();
+  void end_step();
+
   std::string get_path(const std::string& name = "");
 
   template <typename arbitrary_struct_t>
@@ -139,7 +142,7 @@ public:
   void execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
-    
+
   operator bool() const {
     return (file_ ? true : false);
     // return static_cast<bool>(file_);
@@ -156,7 +159,7 @@ public:
   void set_verbose(bool verbose) {
     verbose_ = verbose;
   }
-  
+
 private:
   adios2::ADIOS& adios_;
   bool verbose_;
@@ -172,12 +175,15 @@ private:
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
              const std::vector<size_t>& start, const std::vector<size_t>& count);
 
+  template <typename T, typename... Args>
+  void getVariable(const std::string& name, adios2::Variable<T>& var, const Args&... args);
+
   template <typename Scalar>
   void addAttribute(const std::string& set, const std::string& name,
                     const std::vector<size_t>& size, const Scalar* data);
 
   void addAttribute(const std::string& set, const std::string& name, const std::string& value);
-  
+
   template <class T>
   std::string VectorToString(const std::vector<T>& v);
 
@@ -192,6 +198,17 @@ private:
 
   std::vector<size_t> size_check_;
 };
+
+template <class CT>
+template <typename T, typename... Args>
+void ADIOS2Writer<CT>::getVariable(const std::string& name, adios2::Variable<T>& var,
+                                   const Args&... args) {
+  adios2::Variable<T> var_temp = io_.InquireVariable<T>(name);
+  if (static_cast<bool>(var_temp) == false)
+    var = io_.DefineVariable<T>(name, args...);
+  else
+    var = var_temp;
+}
 
 template <class CT>
 template <typename arbitrary_struct_t>
@@ -220,7 +237,6 @@ void ADIOS2Writer<CT>::execute(const std::string& name, bool value) {
   write<int>(full_name, dims, &int_value);
 }
 
-  
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
@@ -270,7 +286,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   adios2::Dims dims{nTotal};
   adios2::Variable<Scalar> vVecs;
   adios2::Dims start{0};
-  vVecs = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+  getVariable<Scalar>(full_name, vVecs, dims, start, dims);
 
   typename adios2::Variable<Scalar>::Span span = file_.Put(vVecs);
   size_t pos = 0;
@@ -296,7 +312,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   adios2::Dims dims{value.size(), n};
   adios2::Variable<Scalar> v;
   adios2::Dims start{0, 0};
-  v = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+  getVariable(full_name, v, dims, start, dims);
 
   typename adios2::Variable<Scalar>::Span span = file_.Put(v);
 
@@ -535,11 +551,11 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
-    v = io_.DefineVariable<Scalar>(name);
+    getVariable<Scalar>(name, v);
   }
   else {
     std::vector<size_t> start(ndim, 0);
-    v = io_.DefineVariable<Scalar>(name, size, start, size);
+    getVariable<Scalar>(name, v, size, start, size);
   }
   file_.Put(v, data, adios2::Mode::Sync);
 }
@@ -552,10 +568,10 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
-    v = io_.DefineVariable<Scalar>(name);
+    getVariable<Scalar>(name, v);
   }
   else {
-    v = io_.DefineVariable<Scalar>(name, size, start, count);
+    getVariable<Scalar>(name, v, size, start, count);
   }
   file_.Put(v, data, adios2::Mode::Sync);
 }

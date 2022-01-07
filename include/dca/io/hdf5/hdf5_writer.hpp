@@ -56,6 +56,9 @@ public:
 
   std::string get_path();
 
+  void begin_step() {};
+  void end_step() {};
+  
   void erase(const std::string& name);
 
   template <typename arbitrary_struct_t>

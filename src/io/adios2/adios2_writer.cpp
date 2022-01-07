@@ -49,6 +49,15 @@ ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
 }
 
 template <class Concurrency>
+void ADIOS2Writer<Concurrency>::begin_step() {
+  file_.BeginStep();
+    };
+template <class Concurrency>
+void ADIOS2Writer<Concurrency>::end_step() {
+  file_.EndStep();
+    };
+  
+template <class Concurrency>
 void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool overwrite) {
   adios2::Mode mode = (overwrite ? adios2::Mode::Write : adios2::Mode::Append);
   if (verbose_) {
@@ -109,7 +118,9 @@ std::string ADIOS2Writer<Concurrency>::get_path(const std::string& name) {
 
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::erase(const std::string& name) {
-  io_.RemoveVariable(name);
+  std::cout << "erase name: " << name << '\n';
+  // infact we never erase since adios can just write another block for the variable.
+  //io_.RemoveVariable(name);
 }
 
 template <class Concurrency>
