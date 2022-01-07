@@ -21,17 +21,17 @@ namespace dca {
 namespace util {
 // dca::util::
 
-template<class Concurrency>
-class SignalHandler{
+template <class Concurrency>
+class SignalHandler {
 public:
-    static void init(bool verbose = false);
+  static void init(bool verbose = false);
 
   static void registerFile(const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
 private:
-    static void handle(int signum);
+  static void handle(int signum);
 
-    static inline bool verbose_;
+  static inline bool verbose_;
   static inline std::vector<std::weak_ptr<io::Writer<Concurrency>>> file_ptrs_;
 };
 

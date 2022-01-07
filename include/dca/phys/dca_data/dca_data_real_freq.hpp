@@ -198,7 +198,7 @@ void DcaDataRealFreq<parameters_type>::write(std::string filename) {
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (output_format == "ADIOS2") {
-      dca::io::ADIOS2Writer writer;
+      dca::io::ADIOS2Writer writer(concurrency);
       writer.open_file(filename);
       this->write(writer);
       writer.close_file();

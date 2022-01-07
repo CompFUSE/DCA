@@ -25,6 +25,12 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#endif
+
 namespace dca {
 namespace io {
 // dca::io::
@@ -119,6 +125,7 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
   reader_obj.close_file();
 }
 
+
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, Scalar& value) {
   std::string full_name = get_path() + "/" + name;
@@ -130,6 +137,7 @@ bool HDF5Reader::execute(const std::string& name, Scalar& value) {
   read(full_name, HDF5_TYPE<Scalar>::get_PredType(), &value);
   return true;
 }
+
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
@@ -146,6 +154,7 @@ bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
   read(full_name, HDF5_TYPE<Scalar>::get_PredType(), value.data());
   return true;
 }
+
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
@@ -173,6 +182,7 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
   return true;
 }
 
+
 template <typename Scalar, std::size_t n>
 bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
   std::string full_name = get_path() + "/" + name;
@@ -192,10 +202,12 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar,
   return true;
 }
 
+
 template <typename Scalartype, typename domain_type, DistType DT>
 bool HDF5Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
   return execute(f.get_name(), f);
 }
+
 
 template <typename Scalartype, typename domain_type, DistType DT>
 bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
@@ -237,6 +249,7 @@ bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, dom
   return true;
 }
 
+
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
@@ -252,6 +265,7 @@ bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dc
 
   return true;
 }
+
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
@@ -277,6 +291,7 @@ bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dc
 
   return true;
 }
+
 
 template <typename Scalar>
 bool HDF5Reader::execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {

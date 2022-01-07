@@ -4,11 +4,9 @@ dca_add_gtest(buffer_test
   GTEST_MAIN)
 
 dca_add_gtest(reader_test
-  GTEST_MAIN
   LIBS function dca_io)
 
 dca_add_gtest(writer_test
-  GTEST_MAIN
   LIBS function dca_io)
 
 dca_add_gtest(json_reader_test

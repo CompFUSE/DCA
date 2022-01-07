@@ -46,6 +46,10 @@ public:
   ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency,
                bool verbose = false);
 
+  /** maybe this one uses a singleton adios2::ADIOS accessor */
+  ADIOS2Reader(const CT* concurrency,
+               bool verbose = false);
+
   ~ADIOS2Reader();
 
   constexpr bool is_reader() {
@@ -171,8 +175,9 @@ template <class CT>
 template <typename Scalar>
 bool ADIOS2Reader<CT>::execute(const std::string& name, std::vector<Scalar>& value) {
   std::string full_name = get_path(name);
-
   if (!exists(full_name)) {
+    if(verbose_)
+      std::cout << "ADIOS2Reader variable: " << full_name << " not found\n";
     return false;
   }
 

@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -45,6 +45,7 @@ public:
 
 public:
   ADIOS2Writer() = delete;
+  ADIOS2Writer(const CT* concurrency, bool verbose = false);
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
   ADIOS2Writer(adios2::ADIOS& adios, const CT* concurrency, bool verbose = false);
   ~ADIOS2Writer();
@@ -68,6 +69,9 @@ public:
   static void to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct,
                       const std::string& file_name);
 
+  void erase(const std::string& name);
+
+  void execute(const std::string& name, bool value);
   template <typename Scalar>
   void execute(const std::string& name, Scalar value);
 
@@ -135,7 +139,7 @@ public:
   void execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
-
+    
   operator bool() const {
     return (file_ ? true : false);
     // return static_cast<bool>(file_);
@@ -149,9 +153,13 @@ public:
     mutex_.unlock();
   }
 
+  void set_verbose(bool verbose) {
+    verbose_ = verbose;
+  }
+  
 private:
   adios2::ADIOS& adios_;
-  const bool verbose_;
+  bool verbose_;
   const CT* concurrency_;
 
   template <typename Scalar>
@@ -169,7 +177,7 @@ private:
                     const std::vector<size_t>& size, const Scalar* data);
 
   void addAttribute(const std::string& set, const std::string& name, const std::string& value);
-
+  
   template <class T>
   std::string VectorToString(const std::vector<T>& v);
 
@@ -204,6 +212,15 @@ void ADIOS2Writer<CT>::execute(const std::string& name, Scalar value) {
   write<Scalar>(full_name, dims, &value);
 }
 
+template <class CT>
+void ADIOS2Writer<CT>::execute(const std::string& name, bool value) {
+  const std::string full_name = get_path(name);
+  std::vector<size_t> dims{1};
+  int int_value = value;
+  write<int>(full_name, dims, &int_value);
+}
+
+  
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
@@ -575,8 +592,9 @@ std::string ADIOS2Writer<CT>::VectorToString(const std::vector<T>& v) {
 }
 
 extern template class ADIOS2Writer<dca::parallel::NoConcurrency>;
+#ifdef DCA_HAVE_MPI
 extern template class ADIOS2Writer<dca::parallel::MPIConcurrency>;
-
+#endif
 }  // namespace io
 }  // namespace dca
 

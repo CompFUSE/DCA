@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -11,6 +11,7 @@
 // For the moment this file just tests the construction of the different types of writers.
 
 #include "gtest/gtest.h"
+#include <memory>
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/domains/dmn_0.hpp"
@@ -18,27 +19,42 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/util/ignore.hpp"
-
-#include <memory>
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+adios2::ADIOS* adios_ptr;
+#endif
+dca::parallel::NoConcurrency* concurrency_ptr;
 
 template <typename T>
 class WriterTest : public ::testing::Test {};
 
-using WriterTypes =
-  ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter
+using Concurrency = dca::parallel::NoConcurrency;
+
+using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter
 #ifdef DCA_HAVE_ADIOS2
-                   ,dca::io::ADIOS2Writer
+                                     ,
+                                     dca::io::ADIOS2Writer<Concurrency>
 #endif
-                   >;  //, dca::io::CSVWriter>;
+                                     >;  //, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
 
 TYPED_TEST(WriterTest, Constructor) {
-  TypeParam writer;
-  dca::util::ignoreUnused(writer);
+  std::unique_ptr<TypeParam> writer_ptr;
+  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
+    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, concurrency_ptr);
+  else
+    writer_ptr = std::make_unique<TypeParam>();
+  dca::util::ignoreUnused(writer_ptr);
 }
 
 TYPED_TEST(WriterTest, Unique_Ptr) {
-  TypeParam writer;
+  std::unique_ptr<TypeParam> writer_ptr;
+  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
+    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, concurrency_ptr);
+  else
+    writer_ptr = std::make_unique<TypeParam>();
+
+        TypeParam& writer = *writer_ptr;
   std::string test_name(::testing::UnitTest::GetInstance()->current_test_info()->name());
   std::string type_string(::testing::UnitTest::GetInstance()->current_test_info()->type_param());
 
@@ -62,4 +78,40 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
 
   writer.close_group();
   writer.close_file();
+}
+
+#ifdef DCA_HAVE_ADIOS2
+TEST(ADIOS2ReaderTest, Vector) {
+  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+  writer.open_file("vector.bp");
+
+  // Simple 3D vector
+  std::vector<double> vec_1{1., 2., 3.};
+  writer.execute("simple-vector", vec_1);
+
+  std::vector<std::vector<float>> vec_2{{1.2, 3.4}, {5.6, 7.8, 4.4}, {1.0}};
+  writer.execute("vector-of-vectors", vec_2);
+
+  writer.close_file();
+}
+#endif
+
+int main(int argc, char** argv) {
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+
+#ifdef DCA_HAVE_ADIOS2
+  //ADIOS expects MPI_COMM pointer or nullptr
+  adios2::ADIOS adios("", false);
+  adios_ptr = &adios;
+#endif
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

@@ -18,7 +18,7 @@
 #include "dca/config/threading.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
-#ifdef DCA_WITH_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
 #endif
 
@@ -27,16 +27,22 @@ namespace dca::io {
 template <class Concurrency>
 class Writer {
 public:
+  using CT = Concurrency;
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
   Writer(Concurrency& concurrency, const std::string& format, bool verbose = true)
       : concurrency_(concurrency) {
     if (format == "HDF5") {
-      writer_.emplace<io::HDF5Writer>(verbose);
+      writer_.template emplace<io::HDF5Writer>(verbose);
     }
     else if (format == "JSON") {
-      writer_.emplace<io::JSONWriter>(verbose);
+      writer_.template emplace<io::JSONWriter>(verbose);
     }
+#ifdef DCA_HAVE_ADIOS2
+    else if (format == "ADIOS2") {
+      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(&concurrency, verbose);
+    }
+#endif
     else {
       throw(std::logic_error("Invalid output format"));
     }
@@ -123,9 +129,11 @@ private:
   dca::parallel::thread_traits::mutex_type mutex_;
   std::variant<io::HDF5Writer, io::JSONWriter
 #ifdef DCA_HAVE_ADIOS2
-               ,io::ADIOS2Writer
+               ,
+               io::ADIOS2Writer<Concurrency>
 #endif
-               > writer_;
+               >
+      writer_;
   Concurrency& concurrency_;
 };
 

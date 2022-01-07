@@ -143,8 +143,8 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
+  io::Reader reader(concurrency, format);
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-    io::Reader reader(format);
 
     reader.open_file(filename);
     reader.open_group("DCA-loop-functions");

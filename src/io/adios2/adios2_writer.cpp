@@ -15,6 +15,8 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "dca/io/adios2/adios2_global.hpp"
+
 namespace dca {
 namespace io {
 // dca::io::
@@ -32,6 +34,14 @@ ADIOS2Writer<Concurrency>::ADIOS2Writer(adios2::ADIOS& adios, const Concurrency*
   
 }
 
+template <class CT>
+ADIOS2Writer<CT>::ADIOS2Writer(const CT* concurrency,
+                           bool verbose)
+  : adios_(GlobalAdios::getAdios()),
+      verbose_(verbose),
+      concurrency_(concurrency) {}
+
+  
 template <class Concurrency>
 ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
   if (file_)
@@ -98,6 +108,11 @@ std::string ADIOS2Writer<Concurrency>::get_path(const std::string& name) {
 }
 
 template <class Concurrency>
+void ADIOS2Writer<Concurrency>::erase(const std::string& name) {
+  io_.RemoveVariable(name);
+}
+
+template <class Concurrency>
 void ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::string& value) {
   std::string full_name = get_path(name);
   if (value.size() == 0) {
@@ -138,6 +153,7 @@ void ADIOS2Writer<Concurrency>::addAttribute(const std::string& set, const std::
 }
 
 template class ADIOS2Writer<dca::parallel::NoConcurrency>;
+
 template class ADIOS2Writer<dca::parallel::MPIConcurrency>;
 
 }  // namespace io
