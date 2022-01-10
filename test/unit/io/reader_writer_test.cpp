@@ -48,7 +48,7 @@ TEST(ReaderWriterTest, ReaderDestructorCleanUp) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     int j;
 
     reader.open_file(test_file_name);
@@ -98,7 +98,7 @@ TEST(ReaderWriterTest, VectorReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     std::vector<std::complex<double>> vector_read;
     reader.open_file(file_name);
     EXPECT_TRUE(reader.execute(object_name, vector_read));
@@ -126,7 +126,7 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     std::vector<std::vector<double>> data_read;
     reader.open_file(file_name);
     EXPECT_TRUE(reader.execute(object_name, data_read));
@@ -150,7 +150,7 @@ TEST(ReaderWriterTest, VectorOfArraysReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     std::vector<std::array<int, 3>> data_read;
     reader.open_file(file_name);
     EXPECT_TRUE(reader.execute(object_name, data_read));
@@ -175,7 +175,7 @@ TEST(ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file(filename);
     //
     std::vector<std::string> s_vec2;
@@ -213,7 +213,7 @@ TYPED_TEST(ReaderWriterTest, FunctionReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file("test_func" + toLower(type));
 
     dca::func::function<Scalar, Dmn> f2("myfunc");
@@ -245,7 +245,7 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
     writer.close_file();
 
     // Read test file.
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file(filename);
 
     dca::linalg::Matrix<Scalar, dca::linalg::CPU> m2;
@@ -263,7 +263,7 @@ TEST(ReaderWriterTest, NonAccessibleFile) {
     H5::Exception::dontPrint();
     EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
 
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
   }
 }
@@ -283,7 +283,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     dca::func::function<int, Dmn> not_present("not_present");
     present = 0;
 
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file("hdf5_missing_func." + toLower(type));
     EXPECT_FALSE(reader.execute(not_present));
     EXPECT_TRUE(reader.execute(present));
@@ -314,7 +314,7 @@ TEST(ReaderWriterTest, GroupOpenclose) {
 
     writer.close_file();
 
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file("group_open_close" + toLower(type));
 
     int i_val;
@@ -348,7 +348,7 @@ TEST(ReaderWriterTest, Overwrite) {
 
     writer.close_file();
 
-    dca::io::Reader reader(type);
+    dca::io::Reader reader(*concurrency_ptr, type);
     reader.open_file("test" + toLower(type));
 
     int i_val;

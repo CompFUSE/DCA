@@ -44,6 +44,9 @@ public:
   // Precondition: the current group is not the root.
   void close_group();
 
+  void begin_step() {};
+  void end_step() {};
+
   constexpr static bool is_reader = false;
   constexpr static bool is_writer = true;
 

@@ -104,7 +104,7 @@ void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
         "w_" + std::to_string(thread_id_) + "_step_" + std::to_string(meas_id_);
 
     writer_->lock();
-    writer_->open_group("Configurations");
+    writer_->open_group("STQW_Configurations");
 
     const auto& config = QmciWalker::get_configuration();
     config.write(*writer_, stamp_name);

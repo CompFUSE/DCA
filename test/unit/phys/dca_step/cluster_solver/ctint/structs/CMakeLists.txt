@@ -13,14 +13,14 @@ dca_add_gtest(solver_configuration_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS random;ctint;time_and_frequency_domains;function;json;${DCA_THREADING_LIBS};${DCA_EXTERNAL_IO_LIBS}
+    LIBS random;ctint;time_and_frequency_domains;function;json;${DCA_THREADING_LIBS};dca_io
     )
 
 dca_add_gtest(read_write_ctint_config_test
   FAST
   GTEST_MAIN
   INCLUDE_DIRS ${TEST_INCLUDES}
-  LIBS random;time_and_frequency_domains;function;ctint;${DCA_THREADING_LIBS};${DCA_EXTERNAL_IO_LIBS}
+  LIBS random;time_and_frequency_domains;function;ctint;${DCA_THREADING_LIBS};dca_io
   )
 
 if (DCA_HAVE_GPU)

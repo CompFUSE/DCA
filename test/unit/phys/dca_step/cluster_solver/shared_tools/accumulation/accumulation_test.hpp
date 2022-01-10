@@ -53,14 +53,14 @@ protected:
 
   void SetUp() {}
 
-  void prepareConfiguration(Configuration& config, Sample& M, const std::array<int, 2> n, unsigned long long num_discard = 0) {
+  void prepareConfiguration(Configuration& config, Sample& M, const std::array<int, 2> n, [[maybe_unused]] unsigned long long num_discard = 0) {
     for (int s = 0; s < 2; ++s)
       BaseClass::prepareConfiguration(config[s], M[s], n[s]);
   }
 
 public:
   static void prepareConfiguration(Configuration& config, Sample& M, const int nb, const int nr,
-                                   const double beta, const std::array<int, 2> n, unsigned long long num_discard = 0) {
+                                   const double beta, const std::array<int, 2> n, [[maybe_unused]] unsigned long long num_discard = 0) {
     for (int s = 0; s < 2; ++s)
       BaseClass::prepareConfiguration(config[s], M[s], nb, nr, beta, n[s]);
   }

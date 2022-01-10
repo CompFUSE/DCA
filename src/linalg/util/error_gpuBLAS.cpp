@@ -48,6 +48,7 @@ void printErrorMessage(cublasStatus_t error, std::string function_name, std::str
                        int line, std::string extra_error_string) {
   auto cuda_error = cudaGetLastError();
   std::string cuda_error_str(cudaGetErrorString(cuda_error));
+  cuda_error_str += extra_error_string;
   printErrorMessage(errorStringCublas(error) + " (" + std::to_string(error) + ")", function_name,
                     file_name, line, cuda_error_str);
 }

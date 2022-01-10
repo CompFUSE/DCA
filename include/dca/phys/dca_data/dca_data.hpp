@@ -110,7 +110,7 @@ public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
-  void read(io::Reader& reader);
+  void read(dca::io::Reader<Concurrency>& reader);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -331,7 +331,7 @@ void DcaData<Parameters, DT>::read(std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
-  dca::io::Reader reader(parameters_.get_output_format());
+  dca::io::Reader reader(concurrency_, parameters_.get_output_format());
 
   reader.open_file(filename);
   read(reader);
@@ -349,7 +349,7 @@ void DcaData<Parameters, DT>::read(std::string filename) {
 }
 
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::read(io::Reader& reader) {
+void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurrency_type>& reader) {
   reader.open_group("parameters");
 
   reader.open_group("physics");
@@ -565,7 +565,7 @@ void DcaData<Parameters, DT>::initialize_G0() {
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
-    io::Reader reader(parameters_.get_output_format());
+    io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
 
     if (parameters_.adjust_chemical_potential()) {

@@ -314,27 +314,29 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
   EXPECT_EQ(1.5, d_val);
 }
 
-TEST(ADIOS2ReaderWriterTest, Overwrite) {
-  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
-  writer.open_file("test.bp", true);
+/** Semantics of adios_writer have changed to allow overwrite
+ */
+// TEST(ADIOS2ReaderWriterTest, Overwrite) {
+//   dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
+//   writer.open_file("test.bp", true);
 
-  writer.open_group("foo");
-  writer.execute("a", 1);
-  EXPECT_THROW(writer.execute("a", 2), std::invalid_argument);
+//   writer.open_group("foo");
+//   writer.execute("a", 1);
+//   EXPECT_THROW(writer.execute("a", 2), std::invalid_argument);
 
-  // Try to write with different size.
-  EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::invalid_argument);
+//   // Try to write with different size.
+//   EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::invalid_argument);
 
-  writer.close_file();
+//   writer.close_file();
 
-  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
-  reader.open_file("test.bp");
+//   dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
+//   reader.open_file("test.bp");
 
-  int i_val;
-  reader.open_group("foo");
-  reader.execute("a", i_val);
-  EXPECT_EQ(1, i_val);
-}
+//   int i_val;
+//   reader.open_group("foo");
+//   reader.execute("a", i_val);
+//   EXPECT_EQ(1, i_val);
+// }
 
 int main(int argc, char** argv) {
   dca::parallel::NoConcurrency concurrency(argc, argv);

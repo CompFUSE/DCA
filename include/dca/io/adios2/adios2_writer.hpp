@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2021 ETH Zurich
+// Copyright (C) 2021 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -45,6 +45,7 @@ public:
 
 public:
   ADIOS2Writer() = delete;
+  ADIOS2Writer(const CT* concurrency, bool verbose = false);
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
   ADIOS2Writer(adios2::ADIOS& adios, const CT* concurrency, bool verbose = false);
   ~ADIOS2Writer();
@@ -62,12 +63,18 @@ public:
   void open_group(const std::string& new_path);
   void close_group();
 
+  void begin_step();
+  void end_step();
+
   std::string get_path(const std::string& name = "");
 
   template <typename arbitrary_struct_t>
   static void to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct,
                       const std::string& file_name);
 
+  void erase(const std::string& name);
+
+  void execute(const std::string& name, bool value);
   template <typename Scalar>
   void execute(const std::string& name, Scalar value);
 
@@ -149,9 +156,13 @@ public:
     mutex_.unlock();
   }
 
+  void set_verbose(bool verbose) {
+    verbose_ = verbose;
+  }
+
 private:
   adios2::ADIOS& adios_;
-  const bool verbose_;
+  bool verbose_;
   const CT* concurrency_;
 
   template <typename Scalar>
@@ -163,6 +174,9 @@ private:
   template <typename Scalar>
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
              const std::vector<size_t>& start, const std::vector<size_t>& count);
+
+  template <typename T, typename... Args>
+  void getVariable(const std::string& name, adios2::Variable<T>& var, const Args&... args);
 
   template <typename Scalar>
   void addAttribute(const std::string& set, const std::string& name,
@@ -186,6 +200,17 @@ private:
 };
 
 template <class CT>
+template <typename T, typename... Args>
+void ADIOS2Writer<CT>::getVariable(const std::string& name, adios2::Variable<T>& var,
+                                   const Args&... args) {
+  adios2::Variable<T> var_temp = io_.InquireVariable<T>(name);
+  if (static_cast<bool>(var_temp) == false)
+    var = io_.DefineVariable<T>(name, args...);
+  else
+    var = var_temp;
+}
+
+template <class CT>
 template <typename arbitrary_struct_t>
 void ADIOS2Writer<CT>::to_file(adios2::ADIOS& adios, const arbitrary_struct_t& arbitrary_struct,
                                const std::string& file_name) {
@@ -202,6 +227,14 @@ void ADIOS2Writer<CT>::execute(const std::string& name, Scalar value) {
   std::vector<size_t> dims{1};
 
   write<Scalar>(full_name, dims, &value);
+}
+
+template <class CT>
+void ADIOS2Writer<CT>::execute(const std::string& name, bool value) {
+  const std::string full_name = get_path(name);
+  std::vector<size_t> dims{1};
+  int int_value = value;
+  write<int>(full_name, dims, &int_value);
 }
 
 template <class CT>
@@ -253,7 +286,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   adios2::Dims dims{nTotal};
   adios2::Variable<Scalar> vVecs;
   adios2::Dims start{0};
-  vVecs = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+  getVariable<Scalar>(full_name, vVecs, dims, start, dims);
 
   typename adios2::Variable<Scalar>::Span span = file_.Put(vVecs);
   size_t pos = 0;
@@ -279,7 +312,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   adios2::Dims dims{value.size(), n};
   adios2::Variable<Scalar> v;
   adios2::Dims start{0, 0};
-  v = io_.DefineVariable<Scalar>(full_name, dims, start, dims);
+  getVariable(full_name, v, dims, start, dims);
 
   typename adios2::Variable<Scalar>::Span span = file_.Put(v);
 
@@ -518,11 +551,11 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
-    v = io_.DefineVariable<Scalar>(name);
+    getVariable<Scalar>(name, v);
   }
   else {
     std::vector<size_t> start(ndim, 0);
-    v = io_.DefineVariable<Scalar>(name, size, start, size);
+    getVariable<Scalar>(name, v, size, start, size);
   }
   file_.Put(v, data, adios2::Mode::Sync);
 }
@@ -535,10 +568,10 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
   size_t ndim = size.size();
   adios2::Variable<Scalar> v;
   if (ndim == 0) {
-    v = io_.DefineVariable<Scalar>(name);
+    getVariable<Scalar>(name, v);
   }
   else {
-    v = io_.DefineVariable<Scalar>(name, size, start, count);
+    getVariable<Scalar>(name, v, size, start, count);
   }
   file_.Put(v, data, adios2::Mode::Sync);
 }
@@ -575,8 +608,9 @@ std::string ADIOS2Writer<CT>::VectorToString(const std::vector<T>& v) {
 }
 
 extern template class ADIOS2Writer<dca::parallel::NoConcurrency>;
+#ifdef DCA_HAVE_MPI
 extern template class ADIOS2Writer<dca::parallel::MPIConcurrency>;
-
+#endif
 }  // namespace io
 }  // namespace dca
 

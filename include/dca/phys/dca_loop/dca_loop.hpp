@@ -127,6 +127,9 @@ protected:
 };
 
 /** setup objects with loop scope lifetime
+ *
+ *  \todo The way output_file_ is handled needs to be changed to support
+ *  generalized parellel io
  */
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
@@ -160,25 +163,19 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\n\n\t\t start writing " << file_name_ << "\t" << dca::util::print_time() << "\n\n";
-
-    output_file_->set_verbose(true);
-    parameters.write(*output_file_);
-    MOMS.write(*output_file_);
-  }
-
-  // This should eventually just be a generic parallel write here.
-#ifdef DCA_WITH_ADIOS2
-  MOMS.writeAdios(adios_);
-#endif
-
-  if (concurrency.id() == concurrency.first()) {
+    output_file_->begin_step();
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
+    output_file_->end_step();
     output_file_->close_file();
     output_file_.reset();
+
+    // This should eventually just be a generic parallel write here.
+#ifdef DCA_WITH_ADIOS2
+    //MOMS.writeAdios(adios_);
+#endif
 
     std::error_code code;
     filesystem::rename(file_name_ + ".tmp", file_name_, code);
