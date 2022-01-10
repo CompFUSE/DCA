@@ -10,7 +10,7 @@ dca_add_gtest(vector_cpu_gpu_test
 dca_add_gtest(vector_gpu_test
               GTEST_MAIN
               CUDA
-              LIBS ${DCA_LIBS})
+              LIBS ${DCA_LIBS} gpu_utils)
 
 dca_add_gtest(matrix_cpu_test GTEST_MAIN LIBS ${DCA_LIBS})
 
