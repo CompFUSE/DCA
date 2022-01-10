@@ -15,6 +15,7 @@
 #include "dca/io/json/json_reader.hpp"
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_reader.hpp"
+adios2::ADIOS* adios_ptr;
 #endif
 #include <vector>
 #include "gtest/gtest.h"
@@ -35,7 +36,6 @@ using ReaderTypes = ::testing::Types<dca::io::CSVReader, dca::io::HDF5Reader, dc
 
 TYPED_TEST_CASE(ReaderTest, ReaderTypes);
 
-adios2::ADIOS* adios_ptr;
 dca::parallel::NoConcurrency* concurrency_ptr;
 
 TEST(JSONReaderTest, Vector) {
