@@ -51,6 +51,8 @@ public:
     QmciWalker::markThermalized();
   }
 
+  int get_thread_id() const { return thread_id_; }
+  bool get_last_iteration() const { return last_iteration_; }
 private:
   void logConfiguration() const;
 
@@ -99,7 +101,7 @@ void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
 template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
-  if (print_to_log && last_iteration_ && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+ if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     const std::string stamp_name =
         "w_" + std::to_string(thread_id_) + "_step_" + std::to_string(meas_id_);
 
@@ -108,7 +110,6 @@ void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
 
     const auto& config = QmciWalker::get_configuration();
     config.write(*writer_, stamp_name);
-
     writer_->open_group(stamp_name);
     writer_->execute("log-weight", QmciWalker::get_MC_log_weight());
     writer_->close_group();
