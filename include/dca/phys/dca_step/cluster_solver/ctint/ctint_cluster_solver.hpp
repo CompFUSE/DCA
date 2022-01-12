@@ -54,6 +54,16 @@ public:
   using Real = typename config::McOptions::MCScalar;
   using Concurrency = typename Parameters::concurrency_type;
 
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
+  using KDmn = typename CDA::KClusterDmn;
+  using RDmn = typename CDA::RClusterDmn;
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using Nu = func::dmn_variadic<BDmn, SDmn>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
+
   using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
@@ -99,18 +109,8 @@ protected:  // thread jacket interface.
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real, DIST>;
 
 private:
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
-  using KDmn = typename CDA::KClusterDmn;
-  using RDmn = typename CDA::RClusterDmn;
-  using Nu = func::dmn_variadic<BDmn, SDmn>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using WDmn = func::dmn_0<domains::frequency_domain>;
   using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
-
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
 
 protected:  // Protected for testing purposes.
   void warmUp();

@@ -43,8 +43,9 @@ class SpAccumulator;
 template <class Parameters, typename Real>
 class SpAccumulator<Parameters, linalg::CPU, Real> {
 public:
-    using Profiler = typename Parameters::profiler_type;
-    using Scalar = Real;
+  using Profiler = typename Parameters::profiler_type;
+  using Scalar = Real;
+
 protected:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -74,6 +75,8 @@ public:
 
   const auto& get_sign_times_M_r_w_sqr() const;
 
+  const auto& get_single_measurement_sign_times_M_r_w();
+
   template <class T>
   void syncStreams(const T&) {}
 
@@ -98,11 +101,16 @@ protected:
   using MFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
   std::unique_ptr<MFunction> M_r_w_, M_r_w_sqr_;
+  std::unique_ptr<MFunction> single_measurement_M_r_w_;
 
 private:
   using NfftType = math::nfft::Dnfft1D<Real, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_obj_;
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_sqr_obj_;
+
+  std::unique_ptr<std::array<NfftType, 2>> single_measurement_M_r_t_;
+
+  void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function);
 };
 
 template <class Parameters, typename Real>
@@ -116,8 +124,11 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
   if (accumulate_m_sqr_)
     cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
 
+  single_measurement_M_r_t_ = std::make_unique<std::array<NfftType, 2>>();
+
   M_r_w_.release();
   M_r_w_sqr_.release();
+  single_measurement_M_r_w_.release();
   finalized_ = false;
   initialized_ = true;
 }
@@ -133,6 +144,9 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
   const func::dmn_variadic<PDmn> bbr_dmn;
   const Real one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr Real epsilon = std::is_same<Real, double>::value ? 1e-16 : 1e-7;
+
+  (*single_measurement_M_r_t_)[0].resetAccumulation();
+  (*single_measurement_M_r_t_)[1].resetAccumulation();
 
   for (int s = 0; s < 2; ++s) {
     const auto& config = configs[s];
@@ -153,8 +167,27 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
         (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
         if (accumulate_m_sqr_)
           (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
+
+        (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
       }
     }
+  }
+}
+
+template <class Parameters, typename Real>
+void SpAccumulator<Parameters, linalg::CPU, Real>::finalizeFunction(std::array<NfftType, 2>& ft_objs,
+                                                                    MFunction& function) {
+  func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
+  const Real normalization = 1. / RDmn::dmn_size();
+
+  for (int s = 0; s < 2; ++s) {
+    ft_objs[s].finalize(tmp);
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++)
+      for (int r_ind = 0; r_ind < RDmn::dmn_size(); r_ind++)
+        for (int b2_ind = 0; b2_ind < BDmn::dmn_size(); b2_ind++)
+          for (int b1_ind = 0; b1_ind < BDmn::dmn_size(); b1_ind++)
+            function(b1_ind, s, b2_ind, s, r_ind, w_ind) +=
+                tmp(w_ind, b1_ind, b2_ind, r_ind) * normalization;
   }
 }
 
@@ -162,27 +195,13 @@ template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
   if (finalized_)
     return;
-  func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
-  const Real normalization = 1. / RDmn::dmn_size();
-
-  auto finalize_function = [&](std::array<NfftType, 2>& ft_objs, MFunction& function) {
-    for (int s = 0; s < 2; ++s) {
-      ft_objs[s].finalize(tmp);
-      for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++)
-        for (int r_ind = 0; r_ind < RDmn::dmn_size(); r_ind++)
-          for (int b2_ind = 0; b2_ind < BDmn::dmn_size(); b2_ind++)
-            for (int b1_ind = 0; b1_ind < BDmn::dmn_size(); b1_ind++)
-              function(b1_ind, s, b2_ind, s, r_ind, w_ind) +=
-                  tmp(w_ind, b1_ind, b2_ind, r_ind) * normalization;
-    }
-  };
 
   M_r_w_.reset(new MFunction("M_r_w"));
-  finalize_function(*cached_nfft_obj_, *M_r_w_);
+  finalizeFunction(*cached_nfft_obj_, *M_r_w_);
 
   if (accumulate_m_sqr_) {
     M_r_w_sqr_.reset(new MFunction("M_r_w_sqr"));
-    finalize_function(*cached_nfft_sqr_obj_, *M_r_w_sqr_);
+    finalizeFunction(*cached_nfft_sqr_obj_, *M_r_w_sqr_);
   }
 
   finalized_ = true;
@@ -218,6 +237,14 @@ const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w_s
   if (!accumulate_m_sqr_)
     throw(std::logic_error("M squared was not accumulated."));
   return *M_r_w_sqr_;
+}
+
+template <class Parameters, typename Real>
+const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_M_r_w() {
+  single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
+  finalizeFunction(*single_measurement_M_r_t_, *single_measurement_M_r_w_);
+
+  return *single_measurement_M_r_w_;
 }
 
 }  // namespace accumulator

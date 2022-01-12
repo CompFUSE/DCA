@@ -17,7 +17,9 @@
 #include <queue>
 #include <stdexcept>
 
+#include "dca/io/writer.hpp"
 #include "dca/config/threading.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 
 namespace dca {
 namespace phys {
@@ -25,14 +27,18 @@ namespace solver {
 namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
-template <class QmciAccumulator>
+template <class QmciAccumulator, class SpGreensFunction>
 class StdThreadQmciAccumulator : public QmciAccumulator {
-  using ThisType = StdThreadQmciAccumulator<QmciAccumulator>;
+  using ThisType = StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>;
   using Parameters = typename QmciAccumulator::ParametersType;
   using Data = typename QmciAccumulator::DataType;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
+  using KDmn = typename CDA::KClusterDmn;
+  using RDmn = typename CDA::RClusterDmn;
 
 public:
-  StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
+  StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id,
+                           const std::shared_ptr<io::Writer<Concurrency>>& writer);
 
   ~StdThreadQmciAccumulator();
 
@@ -40,9 +46,11 @@ public:
   using QmciAccumulator::initialize;
 
   template <typename Walker>
-  void updateFrom(Walker& walker);
+  void updateFrom(Walker& walker, int walker_thread_id, std::size_t meas_id, bool last_iteration);
 
   void waitForQmciWalker();
+
+  void logPerConfigurationGreensFunction(const SpGreensFunction&) const;
 
   void measure();
 
@@ -50,6 +58,7 @@ public:
   // accumulator.
   void sumTo(QmciAccumulator& other);
 
+  const auto& get_single_measurment_sign_times_M_r_w() { return QmciAccumulator::get_single_measurment_sign_times_M_r_w(); };
   // Signals that this object will not need to perform any more accumulation.
   void notifyDone();
 
@@ -60,22 +69,38 @@ public:
 private:
   int thread_id_;
   bool measuring_;
+  int walker_thread_id_;
+  std::size_t meas_id_;
+  bool last_iteration_;
   std::atomic<bool> done_;
   dca::parallel::thread_traits::condition_variable_type start_measuring_;
   dca::parallel::thread_traits::mutex_type mutex_accumulator_;
+  const unsigned stamping_period_;
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
+  const Data& data_ref_;
 };
 
-template <class QmciAccumulator>
-StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(const Parameters& parameters_ref,
-                                                                    Data& data_ref, const int id)
-    : QmciAccumulator(parameters_ref, data_ref, id), thread_id_(id), measuring_(false), done_(false) {}
+template <class QmciAccumulator, class SpGreensFunction>
+StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::StdThreadQmciAccumulator(
+    const Parameters& parameters_ref, Data& data_ref, const int id,
+    const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    : QmciAccumulator(parameters_ref, data_ref, id),
+      thread_id_(id),
+      measuring_(false),
+      done_(false),
+      stamping_period_(parameters_ref.stamping_period()),
+      writer_(writer),
+      data_ref_(data_ref) {}
 
-template <class QmciAccumulator>
-StdThreadQmciAccumulator<QmciAccumulator>::~StdThreadQmciAccumulator() {}
+template <class QmciAccumulator, class SpGreensFunction>
+StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::~StdThreadQmciAccumulator() {}
 
-template <class QmciAccumulator>
+template <class QmciAccumulator, class SpGreensFunction>
 template <typename Walker>
-void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(Walker& walker) {
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::updateFrom(Walker& walker,
+                                                                             int walker_thread_id,
+                                                                             std::size_t meas_id,
+                                                                             bool last_iteration) {
   {
     // take a lock and keep it until it goes out of scope
     dca::parallel::thread_traits::unique_lock lock(mutex_accumulator_);
@@ -84,19 +109,22 @@ void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(Walker& walker) {
 
     QmciAccumulator::updateFrom(walker);
     measuring_ = true;
+    walker_thread_id_ = walker_thread_id;
+    meas_id_ = meas_id;
+    last_iteration_ = last_iteration;
   }
 
   start_measuring_.notify_one();
 }
 
-template <class QmciAccumulator>
-void StdThreadQmciAccumulator<QmciAccumulator>::waitForQmciWalker() {
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::waitForQmciWalker() {
   dca::parallel::thread_traits::unique_lock lock(mutex_accumulator_);
   start_measuring_.wait(lock, [this]() { return measuring_ || done_; });
 }
 
-template <class QmciAccumulator>
-void StdThreadQmciAccumulator<QmciAccumulator>::measure() {
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
   dca::parallel::thread_traits::scoped_lock lock(mutex_accumulator_);
 
   if (done_)
@@ -104,17 +132,34 @@ void StdThreadQmciAccumulator<QmciAccumulator>::measure() {
   assert(measuring_);
 
   QmciAccumulator::measure();
+
   measuring_ = false;
 }
 
-template <class QmciAccumulator>
-void StdThreadQmciAccumulator<QmciAccumulator>::sumTo(QmciAccumulator& other) {
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationGreensFunction(
+    const SpGreensFunction& spf) const {
+  if (stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+    const std::string stamp_name =
+        "w_" + std::to_string(walker_thread_id_) + "_step_" + std::to_string(meas_id_);
+    writer_->lock();
+    writer_->open_group("STQW_Configurations");
+    writer_->open_group(stamp_name);
+    writer_->execute("G_k_w", spf);
+    writer_->close_group();
+    writer_->close_group();
+    writer_->unlock();
+  }
+}
+
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::sumTo(QmciAccumulator& other) {
   dca::parallel::thread_traits::scoped_lock lock(mutex_accumulator_);
   QmciAccumulator::sumTo(other);
 }
 
-template <class QmciAccumulator>
-void StdThreadQmciAccumulator<QmciAccumulator>::notifyDone() {
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::notifyDone() {
   done_ = true;
   start_measuring_.notify_one();
 }
