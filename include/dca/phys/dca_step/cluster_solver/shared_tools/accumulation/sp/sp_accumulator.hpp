@@ -91,6 +91,12 @@ public:
 
 protected:
   constexpr static int oversampling = 8;
+  using MFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
+  using NfftType = math::nfft::Dnfft1D<Real, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
+
+  void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function);
+
   const Parameters& parameters_;
 
   bool initialized_ = false;
@@ -98,19 +104,16 @@ protected:
 
   const bool accumulate_m_sqr_ = true;
 
-  using MFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
   std::unique_ptr<MFunction> M_r_w_, M_r_w_sqr_;
   std::unique_ptr<MFunction> single_measurement_M_r_w_;
 
 private:
-  using NfftType = math::nfft::Dnfft1D<Real, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
+  /** the accumulated cpu M_r_t */
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_obj_;
+  /** the accumulated cpu squared M_r_t */
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_sqr_obj_;
-
   std::unique_ptr<std::array<NfftType, 2>> single_measurement_M_r_t_;
 
-  void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function);
 };
 
 template <class Parameters, typename Real>
@@ -145,6 +148,7 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
   const Real one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr Real epsilon = std::is_same<Real, double>::value ? 1e-16 : 1e-7;
 
+  // Why here?  If stamping_period > 1 we still want M_r_t_ for only one configuration
   (*single_measurement_M_r_t_)[0].resetAccumulation();
   (*single_measurement_M_r_t_)[1].resetAccumulation();
 
