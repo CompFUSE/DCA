@@ -83,6 +83,11 @@ public:
     return WDmn::dmn_size() / 2;
   }
 
+  friend constexpr bool operator==(const Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& dfft_a,
+                                   const Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& dfft_b) {
+    return dfft_a.f_tau_ == dfft_b.f_tau_;
+  }
+
 protected:
   static constexpr int window_sampling_ = 32;
   static constexpr double window_function_sigma_ = 2.;
@@ -132,6 +137,7 @@ private:
   }
 
   static inline auto& get_phi_wn();
+
 };
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>

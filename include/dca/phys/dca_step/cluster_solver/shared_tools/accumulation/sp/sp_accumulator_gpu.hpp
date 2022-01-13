@@ -89,17 +89,26 @@ public:
     return cached_nfft_obj_[0].deviceFingerprint() + cached_nfft_obj_[1].deviceFingerprint();
   }
 
+  const auto& get_single_measurement_sign_times_M_r_w();
+
 private:
   using BaseClass::accumulate_m_sqr_;
   using BaseClass::finalized_;
   using BaseClass::M_r_w_;
   using BaseClass::M_r_w_sqr_;
+  using BaseClass::single_measurement_M_r_w_;
   using BaseClass::oversampling;
   using BaseClass::parameters_;
+  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
+  using MFunction = typename BaseClass::MFunction;
+
+  void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function);
 
   std::array<linalg::util::GpuStream, 2> streams_;
-  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
+  /** gpu M_r_t */
   std::array<NfftType, 2> cached_nfft_obj_;
+  /** \todo Don't always pay the memory cost even when not collect single measurement G's */
+  std::array<NfftType, 2> single_measurement_M_r_t_;
 };
 
 template <class Parameters, typename Real>
@@ -108,12 +117,16 @@ SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(const Parameters& pa
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
-                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {}
+                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)},
+      single_measurement_M_r_t_{NfftType(parameters_.get_beta(), streams_[0], false),
+                                NfftType(parameters_.get_beta(), streams_[1], false)} {}
 
 template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::GPU, Real>::resetAccumulation() {
-  for (int s = 0; s < 2; ++s)
+  for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].resetAccumulation();
+    single_measurement_M_r_t_[s].resetAccumulation();
+  }
 
   finalized_ = false;
 }
@@ -126,10 +139,16 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
   if (finalized_)
     throw(std::logic_error("The accumulator is already finalized."));
 
-  for (int s = 0; s < 2; ++s)
+  for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].reserve(configs[s].size());
-  for (int s = 0; s < 2; ++s)
+    single_measurement_M_r_t_[s].resetAccumulation();
+    single_measurement_M_r_t_[s].reserve(configs[s].size());
+  }
+
+  for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
+    single_measurement_M_r_t_[s].accumulate(Ms[s], configs[s], sign);
+  }
 }
 
 template <class Parameters, typename Real>
@@ -151,7 +170,6 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalize() {
   func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
   const Real normalization = 1. / RDmn::dmn_size();
 
-  using MFunction = typename BaseClass::MFunction;
   // TODO: reuse base class.
   auto finalize_function = [&](std::array<NfftType, 2>& ft_objs, MFunction& function, bool m_sqr) {
     for (int s = 0; s < 2; ++s) {
@@ -181,6 +199,31 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(
     SpAccumulator<Parameters, linalg::GPU, Real>& other) {
   for (int s = 0; s < 2; ++s)
     other.cached_nfft_obj_[s] += cached_nfft_obj_[s];
+}
+
+template <class Parameters, typename Real>
+void SpAccumulator<Parameters, linalg::GPU, Real>::finalizeFunction(std::array<NfftType, 2>& ft_objs,
+                                                                    MFunction& function) {
+  func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
+  const Real normalization = 1. / RDmn::dmn_size();
+
+  for (int s = 0; s < 2; ++s) {
+    ft_objs[s].finalize(tmp);
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++)
+      for (int r_ind = 0; r_ind < RDmn::dmn_size(); r_ind++)
+        for (int b2_ind = 0; b2_ind < BDmn::dmn_size(); b2_ind++)
+          for (int b1_ind = 0; b1_ind < BDmn::dmn_size(); b1_ind++)
+            function(b1_ind, s, b2_ind, s, r_ind, w_ind) +=
+                tmp(w_ind, b1_ind, b2_ind, r_ind) * normalization;
+  }
+}
+
+template <class Parameters, typename Real>
+const auto& SpAccumulator<Parameters, linalg::GPU, Real>::get_single_measurement_sign_times_M_r_w() {
+  single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
+  finalizeFunction(single_measurement_M_r_t_, *single_measurement_M_r_w_);
+
+  return *single_measurement_M_r_w_;
 }
 
 }  // namespace accumulator
