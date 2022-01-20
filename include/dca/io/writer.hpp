@@ -57,8 +57,7 @@ public:
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
-      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(adios_,
-                                                              &concurrency_, verbose);
+      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(adios_, &concurrency_, verbose);
     }
 #endif
     else {
@@ -72,6 +71,16 @@ public:
   DCAWriterVariant& getUnderlying() {
     return writer_;
   }
+
+#ifdef DCA_HAVE_ADIOS2
+  bool isADIOS2() {
+    return std::holds_alternative<io::ADIOS2Writer<Concurrency>>(writer_);
+  }
+#else
+  bool isADIOS2() {
+    return false;
+  }
+#endif
 
   void begin_step() {
     std::visit([&](auto& var) { var.begin_step(); }, writer_);
