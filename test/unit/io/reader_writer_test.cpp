@@ -14,6 +14,10 @@
 #include "dca/io/reader.hpp"
 #include "dca/io/writer.hpp"
 
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_global.hpp"
+#endif
+
 #include <array>
 #include <cctype>
 #include <complex>
@@ -24,75 +28,59 @@
 
 dca::parallel::NoConcurrency* concurrency_ptr;
 
-const std::vector<std::string> types{"JSON", "HDF5"};
+const std::vector<std::string> types{"JSON", "HDF5", "ADIOS2"};
 
 std::string toLower(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](char c) { return std::tolower(c); });
   return s;
 }
 
-TEST(ReaderWriterTest, ReaderDestructorCleanUp) {
+TEST(ReaderWriterTest, RAIIDestructor) {
   for (auto type : types) {
-    std::string test_file_name = type + "_reader_test.hdf5";
-    std::string group_name = "magic-numbers";
-    std::string object_name = "forty-two";
-
-    // Create test file.
-    dca::io::Writer writer(*concurrency_ptr, type);
-    const int i = 42;
-
-    writer.open_file(test_file_name);
-    writer.open_group(group_name);
-    writer.execute(object_name, i);
-    writer.close_group();
-    writer.close_file();
-
-    // Read test file.
-    dca::io::Reader reader(*concurrency_ptr, type);
-    int j;
-
-    reader.open_file(test_file_name);
-    reader.open_group(group_name);
-    EXPECT_TRUE(reader.execute(object_name, j));
-
-    EXPECT_EQ(i, j);
-
-    // Destructor closes file.
-    // reader.close_file();
-  }
-}
-
-TEST(ReaderWriterTest, WriterDestructorCleanUp) {
-  for (auto type : types) {
-    std::string test_file_name = "reader_test" + toLower(type);
+    std::string test_file_name = "reader_test." + toLower(type);
     std::string group_name_1 = "integers";
     std::string group_name_2 = "magic-numbers";
     std::string object_name = "forty-two";
 
-    dca::io::Writer writer(*concurrency_ptr, type);
     const int i = 42;
+    {
+#ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
 
-    writer.open_file(test_file_name);
-    writer.open_group(group_name_1);
-    writer.open_group(group_name_2);
-    writer.execute(object_name, i);
+      writer.open_file(test_file_name);
+      writer.open_group(group_name_1);
+      writer.open_group(group_name_2);
+      writer.execute(object_name, i);
+    }
 
-    // Destructor closes groups and file.
-    // writer.close_group();
-    // writer.close_group();
-    // writer.close_file();
+    dca::io::Reader reader(*concurrency_ptr, type);
+    int j;
+
+    reader.open_file(test_file_name);
+    reader.open_group(group_name_1);
+    reader.open_group(group_name_2);
+    EXPECT_TRUE(reader.execute(object_name, j));
+
+    EXPECT_EQ(i, j);
   }
 }
 
 TEST(ReaderWriterTest, VectorReadWrite) {
   for (auto type : types) {
     const std::string object_name = "a_vector";
-    std::string file_name = type + "reader_test" + toLower(type);
+    std::string file_name = type + "reader_test." + toLower(type);
     const std::vector<std::complex<double>> a_vector{
         std::complex<double>(1., 0.), std::complex<double>(0., 1.), std::complex<double>(23.4, -1.5)};
 
     // Create test file.
-    dca::io::Writer writer(*concurrency_ptr, type);
+#ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file(file_name);
     writer.execute(object_name, a_vector);
     writer.close_file();
@@ -120,7 +108,11 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
     const std::vector<std::vector<double>> data_unequal_size{{0, 0, 2}, {1}, {1, 0}, {}, {0, 0}};
 
     // Create test file.
-    dca::io::Writer writer(*concurrency_ptr, type);
+#ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file(file_name);
     writer.execute(object_name, data_unequal_size);
     writer.close_file();
@@ -144,7 +136,11 @@ TEST(ReaderWriterTest, VectorOfArraysReadWrite) {
     std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}};
 
     // Create test file.
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file(file_name);
     writer.execute(object_name, data);
     writer.close_file();
@@ -168,7 +164,11 @@ TEST(ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
     const std::string filename = "test_vec_of_strings" + toLower(type);
 
     // Create test file.
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file(filename);
     writer.execute("single-string", s1);
     writer.execute("strings", s_vec1);
@@ -205,7 +205,11 @@ TYPED_TEST(ReaderWriterTest, FunctionReadWrite) {
     for (auto& x : f1)
       x = ++val;
 
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file("test_func" + toLower(type), true);
 
     writer.execute(f1);
@@ -239,7 +243,11 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
       for (int i = 0; i < m1.nrRows(); ++i)
         m1(i, j) = ++val;
 
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file(filename, true);
     writer.execute(m1);
     writer.close_file();
@@ -259,9 +267,14 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
 
 TEST(ReaderWriterTest, NonAccessibleFile) {
   for (auto type : types) {
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     H5::Exception::dontPrint();
-    EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
+    if ( type != "ADIOS2" )
+      EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
 
     dca::io::Reader reader(*concurrency_ptr, type);
     EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
@@ -275,7 +288,11 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     dca::func::function<int, Dmn> present("present");
     present = 1;
 
-    dca::io::Writer writer(*concurrency_ptr, type);
+    #ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file("hdf5_missing_func." + toLower(type));
     writer.execute(present);
     writer.close_file();
@@ -297,7 +314,11 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
 
 TEST(ReaderWriterTest, GroupOpenclose) {
   for (auto type : types) {
-    dca::io::Writer writer(*concurrency_ptr, type);
+#ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file("group_open_close" + toLower(type));
 
     writer.open_group("foo");
@@ -336,7 +357,11 @@ TEST(ReaderWriterTest, GroupOpenclose) {
 
 TEST(ReaderWriterTest, Overwrite) {
   for (auto type : types) {
-    dca::io::Writer writer(*concurrency_ptr, type);
+#ifdef DCA_HAVE_ADIOS2
+    dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
+#else
+    dca::io::Writer writer({*concurrency_ptr}, type);
+#endif
     writer.open_file("test" + toLower(type), true);
 
     writer.open_group("foo");
@@ -361,7 +386,7 @@ TEST(ReaderWriterTest, Overwrite) {
 int main(int argc, char** argv) {
   dca::parallel::NoConcurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
-  
+
   ::testing::InitGoogleTest(&argc, argv);
 
   // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

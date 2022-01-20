@@ -45,7 +45,7 @@ public:
 
 public:
   ADIOS2Writer() = delete;
-  ADIOS2Writer(const CT* concurrency, bool verbose = false);
+  //ADIOS2Writer(const CT* concurrency, bool verbose = false);
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
   ADIOS2Writer(adios2::ADIOS& adios, const CT* concurrency, bool verbose = false);
   ~ADIOS2Writer();
