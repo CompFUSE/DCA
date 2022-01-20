@@ -113,6 +113,8 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
+  void flush() {}
+
   operator bool() const noexcept {
     return static_cast<bool>(file_);
   }

@@ -46,7 +46,8 @@ public:
   using QmciAccumulator::initialize;
 
   template <typename Walker>
-  void updateFrom(Walker& walker, int walker_thread_id, std::size_t meas_id, bool last_iteration);
+  void updateFrom(Walker& walker, int concurrency_id, int walker_thread_id, std::size_t meas_id,
+                  bool last_iteration);
 
   void waitForQmciWalker();
 
@@ -58,7 +59,9 @@ public:
   // accumulator.
   void sumTo(QmciAccumulator& other);
 
-  const auto& get_single_measurment_sign_times_M_r_w() { return QmciAccumulator::get_single_measurment_sign_times_M_r_w(); };
+  const auto& get_single_measurment_sign_times_M_r_w() {
+    return QmciAccumulator::get_single_measurment_sign_times_M_r_w();
+  };
   // Signals that this object will not need to perform any more accumulation.
   void notifyDone();
 
@@ -69,6 +72,7 @@ public:
 private:
   int thread_id_;
   bool measuring_;
+  int concurrency_id_;
   int walker_thread_id_;
   std::size_t meas_id_;
   bool last_iteration_;
@@ -98,6 +102,7 @@ StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::~StdThreadQmciAccum
 template <class QmciAccumulator, class SpGreensFunction>
 template <typename Walker>
 void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::updateFrom(Walker& walker,
+                                                                             int concurrency_id,
                                                                              int walker_thread_id,
                                                                              std::size_t meas_id,
                                                                              bool last_iteration) {
@@ -109,6 +114,7 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::updateFrom(Wal
 
     QmciAccumulator::updateFrom(walker);
     measuring_ = true;
+    concurrency_id_ = concurrency_id;
     walker_thread_id_ = walker_thread_id;
     meas_id_ = meas_id;
     last_iteration_ = last_iteration;
@@ -140,8 +146,8 @@ template <class QmciAccumulator, class SpGreensFunction>
 void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationGreensFunction(
     const SpGreensFunction& spf) const {
   if (stamping_period_ && (meas_id_ % stamping_period_) == 0) {
-    const std::string stamp_name =
-        "w_" + std::to_string(walker_thread_id_) + "_step_" + std::to_string(meas_id_);
+    const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" + std::to_string(meas_id_) + "_w_" +
+                                   std::to_string(thread_id_);
     writer_->lock();
     writer_->open_group("STQW_Configurations");
     writer_->open_group(stamp_name);

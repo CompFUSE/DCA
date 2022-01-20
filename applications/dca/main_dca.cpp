@@ -12,7 +12,6 @@
 // Usage: ./main_dca input_file.json
 
 #include <string>
-
 #include <iostream>
 
 #include "dca/config/dca.hpp"

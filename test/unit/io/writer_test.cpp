@@ -85,7 +85,7 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
 }
 
 #ifdef DCA_HAVE_ADIOS2
-TEST(ADIOS2ReaderTest, Vector) {
+TEST(ADIOS2WriterTest, VectorOfVector) {
   dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
   writer.open_file("vector.bp");
 
