@@ -55,14 +55,14 @@ public:
   void open_file(const std::string& file_name) {
     std::visit([&](auto& var) { var.open_file(file_name); }, reader_);
   }
-
   void close_file() {
     std::visit([&](auto& var) { var.close_file(); }, reader_);
   }
 
-  void open_group(const std::string& new_path) {
-    std::visit([&](auto& var) { var.open_group(new_path); }, reader_);
+  bool open_group(const std::string& new_path) {
+    return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, reader_);
   }
+  
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, reader_);
   }

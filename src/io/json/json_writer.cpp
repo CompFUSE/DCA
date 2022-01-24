@@ -48,11 +48,12 @@ void JSONWriter::erase(const std::string& name) {
   throw std::runtime_error("JSONWriter not capable of erase");
 }
 
-void JSONWriter::open_group(const std::string& name) {
+bool JSONWriter::open_group(const std::string& name) {
   auto new_group = open_groups_.top()->addGroup(name);
   if (!new_group)
     throw(std::logic_error("Could not open group " + name));
   open_groups_.push(new_group);
+  return true;
 }
 
 void JSONWriter::close_group() {

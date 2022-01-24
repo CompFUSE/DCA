@@ -145,16 +145,19 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
 template <class QmciAccumulator, class SpGreensFunction>
 void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationGreensFunction(
     const SpGreensFunction& spf) const {
-  if (stamping_period_ && (meas_id_ % stamping_period_) == 0) {
-    const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" + std::to_string(meas_id_) + "_w_" +
-                                   std::to_string(thread_id_);
-    writer_->lock();
-    writer_->open_group("STQW_Configurations");
-    writer_->open_group(stamp_name);
-    writer_->execute("G_k_w", spf);
-    writer_->close_group();
-    writer_->close_group();
-    writer_->unlock();
+  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
+  if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+    if (writer_ && (writer_->isADIOS2() || concurrency_id_ == 0)) {
+      const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
+                                     std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);
+      writer_->lock();
+      writer_->open_group("STQW_Configurations");
+      writer_->open_group(stamp_name);
+      writer_->execute("G_k_w", spf);
+      writer_->close_group();
+      writer_->close_group();
+      writer_->unlock();
+    }
   }
 }
 

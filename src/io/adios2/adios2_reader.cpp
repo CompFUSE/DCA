@@ -62,13 +62,14 @@ void ADIOS2Reader<CT>::close_file() {
 }
 
 template <class CT>
-void ADIOS2Reader<CT>::open_group(const std::string& name) {
+bool ADIOS2Reader<CT>::open_group(const std::string& name) {
   size_t len = name.size();
   // remove trailing / from name
   for (; name[len - 1] == '/'; --len)
     ;
 
   my_paths_.push_back(std::string(name, 0, len));
+  return true;
 }
 
 template <class CT>
