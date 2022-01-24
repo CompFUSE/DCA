@@ -73,7 +73,6 @@ bool JSONReader::execute(const std::string& name, T& obj) noexcept {
   if (!open_groups_.top()) {
     return false;
   }
-
   return open_groups_.top()->readEntry(name, obj);
 }
 
