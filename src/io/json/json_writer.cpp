@@ -44,7 +44,7 @@ void JSONWriter::close_file() {
   }
 }
 
-void JSONWriter::erase(const std::string& name) {
+void JSONWriter::erase([[maybe_unused]] const std::string& name) {
   throw std::runtime_error("JSONWriter not capable of erase");
 }
 

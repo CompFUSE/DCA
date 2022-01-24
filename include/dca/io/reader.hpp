@@ -59,10 +59,13 @@ public:
     std::visit([&](auto& var) { var.close_file(); }, reader_);
   }
 
+  /** For reading input there is great utility in knowing if a group is present.
+   *  It isn't an exceptional circumstance if a group is not present.
+   */
   bool open_group(const std::string& new_path) {
     return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, reader_);
   }
-  
+
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, reader_);
   }

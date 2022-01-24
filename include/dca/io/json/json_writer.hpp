@@ -44,8 +44,8 @@ public:
   // Precondition: the current group is not the root.
   void close_group();
 
-  void begin_step() {};
-  void end_step() {};
+  void begin_step(){};
+  void end_step(){};
 
   constexpr static bool is_reader = false;
   constexpr static bool is_writer = true;
@@ -61,9 +61,7 @@ public:
 
   // Commits to the internal data representation the value of "obj".
   template <class T>
-  void execute(const std::string& name, const T& obj) noexcept;
-  template <class T>
-  void execute(const std::string& name, const T& obj, const bool) noexcept;
+  void execute(const std::string& name, const T& obj, [[maybe_unused]] const bool = false) noexcept;
   template <class Scalar, class Domain, DistType DT>
   void execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
   template <class Scalar>
@@ -82,7 +80,7 @@ public:
     if (f)
       execute(f->get_name(), *f);
   }
-  
+
 private:
   bool verbose_;
   std::stack<details::JSONGroup*> open_groups_;
@@ -92,17 +90,13 @@ private:
 };
 
 template <class T>
-void JSONWriter::execute(const std::string& name, const T& obj) noexcept {
+void JSONWriter::execute(const std::string& name, const T& obj, [[maybe_unused]] const bool local) noexcept {
   open_groups_.top()->addEntry(name, obj);
 }
 
-template <class T>
-void JSONWriter::execute(const std::string& name, const T& obj, const bool local) noexcept {
-  open_groups_.top()->addEntry(name, obj);
-}
-  
 template <class Scalar, class Domain, DistType DT>
-void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept {
+void JSONWriter::execute(const std::string& name,
+                         const func::function<Scalar, Domain, DT>& f) noexcept {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 

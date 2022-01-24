@@ -179,6 +179,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
 
+    // None of this kludgy file shuffling with ADIOS2 each iteration is a step in the ADIOS2 output
     if (output_file_ && !(output_file_->isADIOS2())) {
       output_file_->close_file();
       output_file_.reset();
@@ -190,6 +191,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     }
   }
 
+  // For ADIOS2 every rank has an output_file_ so close them
+  // data.
   if (output_file_ != nullptr && output_file_->isADIOS2()) {
     concurrency.barrier();
     output_file_->close_file();
@@ -219,6 +222,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     perform_lattice_mapping();
   }
 
+  // In ADIOS2 every rank has an output_file_ for the purposes of writing per rank
+  // or per configuration data.
   if (output_file_ && output_file_->isADIOS2()) {
     output_file_->open_file(file_name_, parameters.autoresume() ? false : true);
   }
@@ -356,8 +361,7 @@ double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_clust
     profiler_type profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
     monte_carlo_integrator_.integrate();
   }
-  if (concurrency.id() == concurrency.first())
-    std::cout << "Monte Carlo integrator integrated" << std::endl;
+
   if (output_file_ && output_file_->isADIOS2())
     output_file_->flush();
 

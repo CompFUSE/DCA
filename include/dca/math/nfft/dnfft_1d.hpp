@@ -83,6 +83,7 @@ public:
     return WDmn::dmn_size() / 2;
   }
 
+  /** Added for debugging */
   friend constexpr bool operator==(const Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& dfft_a,
                                    const Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& dfft_b) {
     return dfft_a.f_tau_ == dfft_b.f_tau_;

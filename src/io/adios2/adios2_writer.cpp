@@ -59,11 +59,10 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
               << " file : " << file_name_ref << "\n";
     std::cout << "On world";
   }
-
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
-  io_.SetParameters({"MaxBufferSize", 1024});
+
   file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
   if (!file_) {

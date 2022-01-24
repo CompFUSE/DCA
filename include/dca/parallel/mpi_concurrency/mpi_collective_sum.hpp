@@ -39,7 +39,7 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-  class MPICollectiveSum : public virtual MPIProcessorGrouping {
+class MPICollectiveSum : public virtual MPIProcessorGrouping {
 public:
   MPICollectiveSum() = default;
 
@@ -189,7 +189,8 @@ template <typename scalar_type>
 void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
-  std::cout << "Rank: " << MPIProcessorGrouping::get_id() << " MPIProcessorGrouping :" << MPIProcessorGrouping::get() << std::endl;
+  std::cout << "Rank: " << MPIProcessorGrouping::get_id()
+            << " MPIProcessorGrouping :" << MPIProcessorGrouping::get() << std::endl;
   MPI_Allreduce(&value, &result, 1, MPITypeMap<scalar_type>::value(), MPI_SUM,
                 MPIProcessorGrouping::get());
 
@@ -295,7 +296,7 @@ void MPICollectiveSum::localSum(func::function<scalar_type, domain, DIST>& f, in
     f = std::move(f_sum);
   }
   else if constexpr (DIST == DistType::LINEAR || DIST == DistType::LINEAR) {
-      throw std::runtime_error("you cannot do a local sum of a distributed function");
+    throw std::runtime_error("you cannot do a local sum of a distributed function");
   }
 }
 

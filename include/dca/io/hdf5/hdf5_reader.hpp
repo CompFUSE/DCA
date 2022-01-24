@@ -54,7 +54,7 @@ public:
     paths_.push_back(name);
     return true;
   }
-  
+
   void close_group() {
     paths_.pop_back();
   }

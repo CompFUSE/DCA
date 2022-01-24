@@ -513,7 +513,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
         accumulator_obj.updateFrom(walker, concurrency_.get_id(), walker.get_thread_id(), meas_id,
                                    last_iteration_);
         accumulator_obj.measure();
-        if (last_iteration_ && concurrency_.id() == concurrency_.first()) {
+        if (last_iteration_) {
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(accumulator_obj);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
         }

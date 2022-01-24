@@ -98,9 +98,12 @@ public:
     std::visit([&](auto& var) { var.close_file(); }, writer_);
   }
 
+  /** For writing open_group is expected to always return true
+   */
   bool open_group(const std::string& new_path) {
     return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, writer_);
   }
+
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, writer_);
   }
@@ -111,32 +114,11 @@ public:
 
   template <class... Args>
   void execute(const Args&... args) {
-    // currently only the ADIOS2Writer supports parallel writes
-    // #ifdef DCA_HAVE_ADIOS2
-    //     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
-    //       std::visit([&](auto& var) { var.execute(args...); }, writer_);
-    //     }
-    //     else {
-    // #endif
     std::visit([&](auto& var) { var.execute(args...); }, writer_);
-    // #ifdef DCA_HAVE_ADIOS2
-    //     }
-    // #endif
   }
 
   template <class... Args>
   void rewrite(const std::string& name, const Args&... args) {
-    // #ifdef DCA_HAVE_ADIOS2
-    //     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
-    //       std::visit(
-    //           [&](auto& var) {
-    //             var.erase(name);
-    //             var.execute(name, args...);
-    //           },
-    //           writer_);
-    //     }
-    //     else {
-    // #endif
     if (concurrency_.id() == concurrency_.first()) {
       std::visit(
           [&](auto& var) {
@@ -145,9 +127,6 @@ public:
           },
           writer_);
     }
-    // #ifdef DCA_HAVE_ADIOS2
-    //     }
-    // #endif
   }
 
   operator bool() const noexcept {

@@ -71,10 +71,7 @@ public:
   void execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::vector<Scalar>& value);
-
-  template <typename Scalar>
-  void execute(const std::string& name, const std::vector<Scalar>& value, const bool local);
+  void execute(const std::string& name, const std::vector<Scalar>& value, const bool local = false);
 
   void execute(const std::string& name, const std::string& value);
 
@@ -172,7 +169,8 @@ void HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar
 
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name,
-                         const std::vector<Scalar>& value)  //, H5File& file, std::string path)
+                         const std::vector<Scalar>& value,
+                         [[maybe_unused]] const bool local)
 {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
@@ -181,15 +179,6 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
-template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
-                         const std::vector<Scalar>& value,
-                         const bool local)  //, H5File& file, std::string path)
-{
-  execute(name, value);
-}
-
-  
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
