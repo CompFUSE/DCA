@@ -51,7 +51,7 @@ public:
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
 
-  void open_group(std::string new_path);
+  bool open_group(std::string new_path);
   void close_group();
 
   std::string get_path();
@@ -72,6 +72,9 @@ public:
 
   template <typename Scalar>
   void execute(const std::string& name, const std::vector<Scalar>& value);
+
+  template <typename Scalar>
+  void execute(const std::string& name, const std::vector<Scalar>& value, const bool local);
 
   void execute(const std::string& name, const std::string& value);
 
@@ -178,6 +181,15 @@ void HDF5Writer::execute(const std::string& name,
   }
 }
 
+template <typename Scalar>
+void HDF5Writer::execute(const std::string& name,
+                         const std::vector<Scalar>& value,
+                         const bool local)  //, H5File& file, std::string path)
+{
+  execute(name, value);
+}
+
+  
 template <typename Scalar>
 void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;

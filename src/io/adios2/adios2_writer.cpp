@@ -63,7 +63,8 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
-  file_ = io_.Open(file_name_, mode);
+  io_.SetParameters({"MaxBufferSize", 1024});
+  file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
   if (!file_) {
     std::ostringstream error_message;
@@ -75,19 +76,21 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
   if (file_) {
-    file_.Close();
+    file_.EndStep();
+    //file_.Close();
     // This combined with overwrite seems to create issues.
-    adios_.RemoveIO(io_name_);
+    // adios_.RemoveIO(io_name_);
   }
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::open_group(const std::string& name) {
+bool ADIOS2Writer<Concurrency>::open_group(const std::string& name) {
   size_t len = name.size();
   // remove trailing / from name
   for (; name[len - 1] == '/'; --len)
     ;
   my_paths_.push_back(std::string(name, 0, len));
+  return true;
 }
 
 template <class Concurrency>

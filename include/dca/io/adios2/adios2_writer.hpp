@@ -60,7 +60,7 @@ public:
   void open_file(const std::string& file_name_ref, bool overwrite = true);
   void close_file();
 
-  void open_group(const std::string& new_path);
+  bool open_group(const std::string& new_path);
   void close_group();
 
   void begin_step();
@@ -83,6 +83,9 @@ public:
 
   template <typename Scalar>
   void execute(const std::string& name, const std::vector<Scalar>& value);
+
+  template <typename Scalar>
+  void execute(const std::string& name, const std::vector<Scalar>& value, bool local);
 
   void execute(const std::string& name, const std::string& value);
 
@@ -143,6 +146,10 @@ public:
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
+  void flush() {
+    file_.PerformPuts();
+  };
+  
   operator bool() const {
     return (file_ ? true : false);
     // return static_cast<bool>(file_);
@@ -167,6 +174,9 @@ private:
 
   template <typename Scalar>
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data);
+
+  template <typename Scalar>
+  void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data, bool local);
 
   void write(const std::string& name, const std::string& data);
 
@@ -258,6 +268,23 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   }
 }
 
+template <class CT>
+template <typename Scalar>
+void ADIOS2Writer<CT>::execute(const std::string& name,
+                               const std::vector<Scalar>& value,
+                               const bool local)  //, H5File& file, std::string path)
+{
+  if (value.size() > 0) {
+    std::string full_name = get_path(name);
+    std::vector<size_t> dims{value.size()};
+    if (local)
+      write<Scalar>(full_name, dims, value.data(), local);
+    else
+      write<Scalar>(full_name, dims, value.data());
+  }
+}
+
+  
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name,
@@ -510,7 +537,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   write<Scalar>(full_name, std::vector<size_t>{V.size()}, V.ptr());
   addAttribute(full_name, "name", V.get_name());
 }
-
+  
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::execute(const std::string& name,
@@ -560,6 +587,25 @@ void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>&
   file_.Put(v, data, adios2::Mode::Sync);
 }
 
+template <class CT>
+template <typename Scalar>
+void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>& size,
+                             const Scalar* data, const bool local) {
+  size_t ndim = size.size();
+  adios2::Variable<Scalar> v;
+  if (ndim == 0) {
+    std::vector<size_t> local{adios2::LocalValueDim};
+    getVariable<Scalar>(name, v, local);
+  }
+  else {
+    std::vector<size_t>  empty;
+    std::vector<size_t> start(ndim, 0);
+    getVariable<Scalar>(name, v, empty, empty, size);
+  }
+  file_.Put(v, data, adios2::Mode::Sync);
+}
+
+  
 template <class CT>
 template <typename Scalar>
 void ADIOS2Writer<CT>::write(const std::string& name, const std::vector<size_t>& size,

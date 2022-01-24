@@ -213,8 +213,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       throw std::logic_error("Thread task is undefined.");
   }
   auto print_metadata = [&]() {
-                          std::cout << "walk_finished_: " << walk_finished_ << " params: " << parameters_.get_walkers() << std::endl; 
-  //assert(walk_finished_ == parameters_.get_walkers());
+    std::cout << "walk_finished_: " << walk_finished_ << " params: " << parameters_.get_walkers()
+              << std::endl;
+    // assert(walk_finished_ == parameters_.get_walkers());
 
     dca::profiling::WallTime end_time;
 
@@ -236,23 +237,33 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   print_metadata();
 
   if (parameters_.store_configuration()) {
-    if (BaseClass::writer_) {  // write one sample configuration.
+    if (BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {  // write one sample configuration.
       BaseClass::writer_->open_group("Configurations");
-      BaseClass::writer_->rewrite("sample", config_dump_[0]);
+      if (BaseClass::writer_->isADIOS2())
+        BaseClass::writer_->execute("sample", config_dump_[0], true);
+      else
+        BaseClass::writer_->rewrite("sample", config_dump_[0]);
       BaseClass::writer_->close_group();
     }
     read_configuration_ = true;
   }
 
   QmciSolver::accumulator_.finalize();
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "accumulator finalized!" << std::endl;;
+    
 }
 
 template <class QmciSolver>
 template <typename dca_info_struct_t>
 double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_info_struct) {
   Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+        if(concurrency_.id() == concurrency_.first())
+          std::cout << "Computing Error Bars." << std::endl;
+
     BaseClass::computeErrorBars();
+  }
 
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
 
@@ -261,10 +272,13 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
   // Write and reset autocorrelation.
   autocorrelation_data_.sumConcurrency(concurrency_);
-  if (BaseClass::writer_ && *BaseClass::writer_)  // Writer exists and it is open.
+  if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
+    std::cout << "Writing autocorrelation data\n";
     autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+  }
   autocorrelation_data_.reset();
 
+  
   return L2_Sigma_difference;
 }
 
@@ -311,8 +325,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
               accumulators_queue_.pop();
             }
           }
-          acc_ptr->updateFrom(walker, concurrency_.id(), id, meas_id,
-                              walker.get_last_iteration());
+          acc_ptr->updateFrom(walker, concurrency_.id(), id, meas_id, walker.get_last_iteration());
         });
   }
   catch (std::bad_alloc& err) {
@@ -500,7 +513,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
         accumulator_obj.updateFrom(walker, concurrency_.get_id(), walker.get_thread_id(), meas_id,
                                    last_iteration_);
         accumulator_obj.measure();
-        if (last_iteration_) {
+        if (last_iteration_ && concurrency_.id() == concurrency_.first()) {
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(accumulator_obj);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
         }
@@ -522,11 +535,18 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   }
 
   ++walk_finished_;
+  if(BaseClass::writer_ && BaseClass::writer_->isADIOS2())
+    BaseClass::writer_->flush();
+  
   {
     dca::parallel::thread_traits::scoped_lock lock(mutex_merge_);
+    if(concurrency_.id() == concurrency_.first())
+      std::cout << "Summing to accumulator --->";
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
-
+  if(concurrency_.id() == concurrency_.first())
+    std::cout << " Done\n";
+  
   finalizeWalker(walker, id);
 
   Profiler::stop_threading(id);

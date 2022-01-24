@@ -179,7 +179,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
 
-    if(output_file_ && ! output_file_->isADIOS2() ) {
+    if (output_file_ && !(output_file_->isADIOS2())) {
       output_file_->close_file();
       output_file_.reset();
       std::error_code code;
@@ -190,9 +190,10 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     }
   }
 
-  if(output_file_ && output_file_->isADIOS2())
+  if (output_file_ != nullptr && output_file_->isADIOS2()) {
+    concurrency.barrier();
     output_file_->close_file();
-
+  }
 }
 
 template <typename ParametersType, typename DDT, typename MCIntegratorType, DistType DIST>
@@ -222,8 +223,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     output_file_->open_file(file_name_, parameters.autoresume() ? false : true);
   }
   else {
-  if (concurrency.id() == concurrency.first())
-    output_file_->open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
+    if (concurrency.id() == concurrency.first())
+      output_file_->open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
   }
 }
 
@@ -232,7 +233,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
   // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
-    if(output_file_ && output_file_->isADIOS2())
+    if (output_file_ && output_file_->isADIOS2())
       output_file_->begin_step();
 
     adjust_chemical_potential();
@@ -253,7 +254,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
     update_DCA_loop_data_functions(dca_iteration_);
     logSelfEnergy(dca_iteration_);  // Write a check point.
 
-    if(output_file_ && output_file_->isADIOS2())
+    if (output_file_ && output_file_->isADIOS2())
       output_file_->end_step();
 
     if (L2_Sigma_difference <
@@ -355,10 +356,19 @@ double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_clust
     profiler_type profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
     monte_carlo_integrator_.integrate();
   }
+  if (concurrency.id() == concurrency.first())
+    std::cout << "Monte Carlo integrator integrated" << std::endl;
+  if (output_file_ && output_file_->isADIOS2())
+    output_file_->flush();
 
   {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "start Monte Carlo integration finalize.\n";
+
     profiler_type profiler("finalize cluster-solver", "DCA", __LINE__);
     double L2_Sigma_difference = monte_carlo_integrator_.finalize(DCA_info_struct);
+    if (concurrency.id() == concurrency.first())
+      std::cout << "Monte Carlo integration finalized.\n";
 
     return L2_Sigma_difference;
   }
@@ -420,7 +430,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
-  if (output_file_) {
+  if (output_file_ && concurrency.id() == concurrency.first()) {
     output_file_->open_group("functions");
     output_file_->execute(MOMS.Sigma);
     output_file_->close_group();

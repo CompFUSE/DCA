@@ -39,7 +39,7 @@ public:
 
   // Creates or opens a pre-existing group.
   // Throws if there is a data entry with the same name in the current group.
-  void open_group(const std::string& name);
+  bool open_group(const std::string& name);
   // Closes the topmost open group.
   // Precondition: the current group is not the root.
   void close_group();
@@ -62,6 +62,8 @@ public:
   // Commits to the internal data representation the value of "obj".
   template <class T>
   void execute(const std::string& name, const T& obj) noexcept;
+  template <class T>
+  void execute(const std::string& name, const T& obj, const bool) noexcept;
   template <class Scalar, class Domain, DistType DT>
   void execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
   template <class Scalar>
@@ -80,7 +82,7 @@ public:
     if (f)
       execute(f->get_name(), *f);
   }
-
+  
 private:
   bool verbose_;
   std::stack<details::JSONGroup*> open_groups_;
@@ -94,6 +96,11 @@ void JSONWriter::execute(const std::string& name, const T& obj) noexcept {
   open_groups_.top()->addEntry(name, obj);
 }
 
+template <class T>
+void JSONWriter::execute(const std::string& name, const T& obj, const bool local) noexcept {
+  open_groups_.top()->addEntry(name, obj);
+}
+  
 template <class Scalar, class Domain, DistType DT>
 void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept {
   if (verbose_)

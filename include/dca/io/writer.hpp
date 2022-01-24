@@ -98,11 +98,15 @@ public:
     std::visit([&](auto& var) { var.close_file(); }, writer_);
   }
 
-  void open_group(const std::string& new_path) {
-    std::visit([&](auto& var) { var.open_group(new_path); }, writer_);
+  bool open_group(const std::string& new_path) {
+    return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, writer_);
   }
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, writer_);
+  }
+
+  void flush() {
+    std::visit([&](auto& var) { var.flush(); }, writer_);
   }
 
   template <class... Args>
@@ -114,9 +118,7 @@ public:
     //     }
     //     else {
     // #endif
-    if (concurrency_.id() == concurrency_.first()) {
-      std::visit([&](auto& var) { var.execute(args...); }, writer_);
-    }
+    std::visit([&](auto& var) { var.execute(args...); }, writer_);
     // #ifdef DCA_HAVE_ADIOS2
     //     }
     // #endif

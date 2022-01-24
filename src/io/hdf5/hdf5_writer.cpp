@@ -49,13 +49,14 @@ void HDF5Writer::close_file() {
   }
 }
 
-void HDF5Writer::open_group(std::string name) {
+bool HDF5Writer::open_group(std::string name) {
   my_paths_.push_back(name);
   const std::string path = get_path();
 
   if (!exists(path)) {
     file_->createGroup(path.c_str());
   }
+  return true;
 }
 
 void HDF5Writer::close_group() {

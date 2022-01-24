@@ -62,6 +62,11 @@ public:
     return id_ >= 0;
   }
 
+  void barrier() const {
+    MPI_Barrier(MPI_communication_);
+  }
+
+  
 private:
   // Checks if the processor is able to run a simple CUDA kernel.
   static bool defaultCheck();

@@ -62,7 +62,7 @@ public:
   void open_file(const std::string& file_name);
   void close_file();
 
-  void open_group(const std::string& name);
+  bool open_group(const std::string& name);
   void close_group();
 
   std::string get_path(const std::string& name = "");

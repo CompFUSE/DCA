@@ -266,13 +266,15 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   math::transform::FunctionTransform<WDmn, TDmn>::execute(G_k_w_copy, data_.G_k_t);
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
-
+  
   auto local_time = total_time_;
+  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_ << std::endl;
   concurrency_.sum(total_time_);
   auto gflop = accumulator_.getFLOPs() * 1e-9;
+  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_ << std::endl;
   concurrency_.sum(gflop);
 
-  if (concurrency_.id() == 0) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t Collected measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-local-time : " << local_time << " [sec]"
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
@@ -308,6 +310,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize(
   loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_;  // This is already averaged.
   loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_;
 
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "About to do final iteration CtInt Finalize" << std::endl;
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     concurrency_.delayedSum(loop_data.Sigma_zero_moment);
     concurrency_.delayedSum(loop_data.standard_deviation);
