@@ -150,7 +150,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 #ifdef DCA_HAVE_ADIOS2
       output_file_(parameters.get_output_format() == "ADIOS2"
                        ? std::make_shared<io::Writer<concurrency_type>>(
-                             adios_, concurrency_ref, parameters.get_output_format(), true)
+                             adios_, concurrency_ref, parameters.get_output_format(), false)
                        : (concurrency.id() == concurrency.first()
                               ? std::make_shared<io::Writer<concurrency_type>>(
                                     adios_, concurrency_ref, parameters.get_output_format(), false)

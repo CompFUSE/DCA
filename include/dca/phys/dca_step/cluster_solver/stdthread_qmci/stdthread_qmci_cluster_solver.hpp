@@ -237,21 +237,23 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   print_metadata();
 
   if (parameters_.store_configuration()) {
-    if (BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {  // write one sample configuration.
-      BaseClass::writer_->open_group("Configurations");
-      if (BaseClass::writer_->isADIOS2())
+    if (BaseClass::writer_) {
+      if (BaseClass::writer_->isADIOS2()) {
+        BaseClass::writer_->open_group("Configurations");
         BaseClass::writer_->execute("sample", config_dump_[0], true);
-      else
+        BaseClass::writer_->close_group();
+      }
+      else if (concurrency_.id() == concurrency_.first()) {  // write one sample configuration.
+        BaseClass::writer_->open_group("Configurations");
         BaseClass::writer_->rewrite("sample", config_dump_[0]);
-      BaseClass::writer_->close_group();
+        BaseClass::writer_->close_group();
+      }
+      read_configuration_ = true;
     }
-    read_configuration_ = true;
   }
-
   QmciSolver::accumulator_.finalize();
   if (concurrency_.id() == concurrency_.first())
-    std::cout << "accumulator finalized!" << std::endl;;
-    
+    std::cout << "accumulator finalized!" << std::endl;
 }
 
 template <class QmciSolver>
@@ -259,8 +261,8 @@ template <typename dca_info_struct_t>
 double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_info_struct) {
   Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
-        if(concurrency_.id() == concurrency_.first())
-          std::cout << "Computing Error Bars." << std::endl;
+    if (concurrency_.id() == concurrency_.first())
+      std::cout << "Computing Error Bars." << std::endl;
 
     BaseClass::computeErrorBars();
   }
@@ -278,7 +280,6 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   }
   autocorrelation_data_.reset();
 
-  
   return L2_Sigma_difference;
 }
 
@@ -535,18 +536,18 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   }
 
   ++walk_finished_;
-  if(BaseClass::writer_ && BaseClass::writer_->isADIOS2())
+  if (BaseClass::writer_ && BaseClass::writer_->isADIOS2())
     BaseClass::writer_->flush();
-  
+
   {
     dca::parallel::thread_traits::scoped_lock lock(mutex_merge_);
-    if(concurrency_.id() == concurrency_.first())
+    if (concurrency_.id() == concurrency_.first())
       std::cout << "Summing to accumulator --->";
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
-  if(concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << " Done\n";
-  
+
   finalizeWalker(walker, id);
 
   Profiler::stop_threading(id);
