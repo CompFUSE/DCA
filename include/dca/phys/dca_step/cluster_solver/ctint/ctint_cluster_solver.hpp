@@ -61,6 +61,7 @@ public:
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using Nu = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
+  // There are too many independent definitions of this.
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
 
@@ -369,7 +370,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeG_k_w(
     const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
   const int matrix_dim = Nu::dmn_size();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M(matrix_dim, matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M("GO_M_matrix", matrix_dim, matrix_dim);
 
   const char op = 'N';
   const double one_over_beta = 1. / parameters_.get_beta();
