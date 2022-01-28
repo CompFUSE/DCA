@@ -404,6 +404,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
   }
 }
 
+// This repeated code is caused by the finalization of each single measurement M r w in the
+// accumulators causing diversion from the normal algorithm. a way to merge this code should be
+// found.
 template <class QmciSolver>
 auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(
     StdThreadAccumulatorType& accumulator) {

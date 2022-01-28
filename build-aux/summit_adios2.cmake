@@ -13,7 +13,8 @@ set(DCA_ESSL_INCLUDES $ENV{OLCF_ESSL_ROOT}/include CACHE PATH "Path to ESSL incl
 mark_as_advanced(DCA_ESSL_INCLUDES)
 
 option(DCA_WITH_ADIOS2 "Enable ADIOS2 support." ON)
-set(ADIOS2_DIR "/gpfs/alpine/world-shared/cph102/epd/ADIOS2/build" CACHE PATH "Directory for ADIOS2")
+#use -DCMAKE_PREFIX_PATH=${OLCF_ADIOS2_ROOT}
+#set(ADIOS2_ROOT $ENV{OLCF_ADIOS2_ROOT} CACHE PATH "Directory for ADIOS2")
 
 # Use jsrun for executing the tests.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
