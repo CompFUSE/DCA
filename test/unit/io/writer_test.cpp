@@ -58,7 +58,7 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
 #endif
     writer_ptr = std::make_unique<TypeParam>();
 
-        TypeParam& writer = *writer_ptr;
+  TypeParam& writer = *writer_ptr;
   std::string test_name(::testing::UnitTest::GetInstance()->current_test_info()->name());
   std::string type_string(::testing::UnitTest::GetInstance()->current_test_info()->type_param());
 
@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
 
 #ifdef DCA_HAVE_ADIOS2
   //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", false);
+  adios2::ADIOS adios("", MPI_COMM_SELF);
   adios_ptr = &adios;
 #endif
 
