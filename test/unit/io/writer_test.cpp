@@ -21,7 +21,6 @@
 #include "dca/util/ignore.hpp"
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
-adios2::ADIOS* adios_ptr;
 #endif
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 dca::parallel::NoConcurrency* concurrency_ptr;
@@ -33,7 +32,8 @@ using Concurrency = dca::parallel::NoConcurrency;
 
 using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter
 #ifdef DCA_HAVE_ADIOS2
-                                     ,dca::io::ADIOS2Writer<Concurrency>
+                                     ,
+                                     dca::io::ADIOS2Writer<Concurrency>
 #endif
                                      >;  //, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
@@ -42,7 +42,7 @@ TYPED_TEST(WriterTest, Constructor) {
   std::unique_ptr<TypeParam> writer_ptr;
 #ifdef DCA_HAVE_ADIOS2
   if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
-    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, concurrency_ptr);
+    writer_ptr = std::make_unique<TypeParam>("ADIOS2", false);
   else
 #endif
     writer_ptr = std::make_unique<TypeParam>();
@@ -53,7 +53,7 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
   std::unique_ptr<TypeParam> writer_ptr;
 #ifdef DCA_HAVE_ADIOS2
   if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
-    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, concurrency_ptr);
+		 writer_ptr = std::make_unique<TypeParam>("ADIOS2", false);
   else
 #endif
     writer_ptr = std::make_unique<TypeParam>();
@@ -103,12 +103,6 @@ TEST(ADIOS2WriterTest, VectorOfVector) {
 int main(int argc, char** argv) {
   dca::parallel::NoConcurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
-
-#ifdef DCA_HAVE_ADIOS2
-  //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", MPI_COMM_SELF);
-  adios_ptr = &adios;
-#endif
 
   ::testing::InitGoogleTest(&argc, argv);
 
