@@ -76,13 +76,14 @@ TEST(FourPointParametersTest, AccumulateG4) {
 }
 
 TEST(FourPointParametersTest, ReadLegacy) {
-    dca::io::JSONReader reader;
-    dca::phys::params::FourPointParameters<2> pars;
+  dca::io::JSONReader reader;
+  dca::phys::params::FourPointParameters<2> pars;
 
-    reader.open_file(DCA_SOURCE_DIR
-                     "/test/unit/phys/parameters/four_point_parameters/input_read_legacy.json");
-    pars.readWrite(reader);
-    reader.close_file();
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/four_point_parameters/input_read_legacy.json");
+  pars.readWrite(reader);
+  reader.close_file();
 
-    EXPECT_EQ(std::vector<FourPointType>{FourPointType::PARTICLE_HOLE_MAGNETIC}, pars.get_four_point_channels());
+  EXPECT_EQ(std::vector<FourPointType>{FourPointType::PARTICLE_HOLE_MAGNETIC},
+            pars.get_four_point_channels());
 }

@@ -40,11 +40,7 @@ public:
   }
 
   auto get() const {
-    #ifdef DCA_HAVE_MPI
-    return MPI_COMM_SELF;
-    #else
     return nullptr;
-    #endif
   }
 
 private:

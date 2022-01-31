@@ -73,7 +73,8 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
   if (file_) {
-    file_.EndStep();
+    file_.Close();
+    adios_.RemoveIO(io_name_);
     //file_.Close();
     // This combined with overwrite seems to create issues.
     // adios_.RemoveIO(io_name_);
@@ -118,7 +119,7 @@ void ADIOS2Writer<Concurrency>::erase(const std::string& name) {
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::string& value) {
+bool ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::string& value) {
   std::string full_name = get_path(name);
   if (value.size() == 0) {
     write(full_name, "");
@@ -126,10 +127,11 @@ void ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::stri
   else {
     write(full_name, value);
   }
+  return true;
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::execute(const std::string& name,
+bool ADIOS2Writer<Concurrency>::execute(const std::string& name,
                                         const std::vector<std::string>& value) {
   std::string full_name = get_path(name);
   if (value.size() == 0) {
@@ -142,6 +144,7 @@ void ADIOS2Writer<Concurrency>::execute(const std::string& name,
     // Store vector of string as attribute since it is not supported as variable
     io_.DefineAttribute(full_name, value.data(), value.size());
   }
+  return true;
 }
 
 template <class Concurrency>

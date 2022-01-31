@@ -59,8 +59,12 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
+  #ifdef DCA_HAVE_ADIOS2
+  adios2::ADIOS adios;
+  dca_data.read(adios, parameters.get_directory() + parameters.get_filename_dca());
+#else
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
-
+  #endif
   BseSolverType bse_solver(parameters, dca_data);
   bse_solver.calculateSusceptibilities();
 
