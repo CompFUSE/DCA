@@ -20,7 +20,6 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 
-
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_reader.hpp"
 #endif
@@ -32,18 +31,27 @@ class Reader {
 public:
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true) {
+  Reader(
+#ifdef DCA_HAVE_ADIOS2
+      const adios2::ADIOS& adios,
+#endif
+      const Concurrency& concurrency, const std::string& format, bool verbose = true)
+      :
+#ifdef DCA_HAVE_ADIOS2
+        adios_(adios),
+#endif
+        concurrency_(concurrency) {
     if (format == "HDF5") {
       reader_.template emplace<io::HDF5Reader>(verbose);
     }
     else if (format == "JSON") {
       reader_.template emplace<io::JSONReader>(verbose);
     }
-    #ifdef DCA_HAVE_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
       reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
     }
-    #endif
+#endif
     else {
       throw(std::logic_error("Invalid input format"));
     }
@@ -79,9 +87,15 @@ public:
 private:
   std::variant<io::HDF5Reader, io::JSONReader
 #ifdef DCA_HAVE_ADIOS2
-               ,io::ADIOS2Reader<Concurrency>
+               ,
+               io::ADIOS2Reader<Concurrency>
 #endif
-    > reader_;
+               >
+      reader_;
+#ifdef DCA_HAVE_ADIOS2
+  const adios2::ADIOS& adios_;
+#endif
+  const Concurrency& concurrency_;
 };
 
 extern template class Reader<dca::parallel::NoConcurrency>;
@@ -89,7 +103,6 @@ extern template class Reader<dca::parallel::NoConcurrency>;
 extern template class Reader<dca::parallel::MPIConcurrency>;
 #endif
 
-  
 }  // namespace dca::io
 
 #endif  // DCA_IO_READER_HPP

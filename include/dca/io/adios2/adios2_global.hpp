@@ -19,7 +19,7 @@ private:
 public:
   static adios2::ADIOS& getAdios()
   {
-    static adios2::ADIOS adios_;
+    static adios2::ADIOS adios_("", MPI_COMM_SELF);
     return adios_;
   }
 };

@@ -109,7 +109,13 @@ public:
 
   DcaData(Parameters& parameters_ref);
 
-  void read(std::string filename);
+  void read(const std::string& filename);
+#ifdef DCA_HAVE_ADIOS2
+  void read(const adios2::ADIOS& adios, std::string filename);
+#endif
+
+  /** prefer this as it allows for more sensible handling of appendable files like bp4.
+   */
   void read(dca::io::Reader<Concurrency>& reader);
 
   template <typename Writer>
@@ -122,7 +128,13 @@ public:
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
+#ifdef DCA_HAVE_ADIOS2
+  /** read initializeSigma from adios file, it is probably already open.
+   */
+  void initializeSigma(const adios2::ADIOS& adios, const std::string& filename);
+#endif
   void initializeSigma(const std::string& filename);
+  void readSigmaFile(io::Reader<Concurrency>& reader);
 
   void compute_single_particle_properties();
   void compute_Sigma_bands();
@@ -327,12 +339,11 @@ DcaData<Parameters, DT>::DcaData(/*const*/ Parameters& parameters_ref)
 }
 
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::read(std::string filename) {
+void DcaData<Parameters, DT>::read(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
-
-  dca::io::Reader reader(concurrency_, parameters_.get_output_format());
-
+  dca::io::Reader<typename Parameters::concurrency_type> reader(concurrency_,
+                                                                parameters_.get_output_format());
   reader.open_file(filename);
   read(reader);
   reader.close_file();
@@ -347,6 +358,30 @@ void DcaData<Parameters, DT>::read(std::string filename) {
       concurrency_.broadcast_object(G4_channel);
   }
 }
+
+#ifdef DCA_HAVE_ADIOS2
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::read(const adios2::ADIOS& adios, std::string filename) {
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "\n\n\t starts reading \n\n";
+
+  dca::io::Reader<typename Parameters::concurrency_type> reader(adios, concurrency_,
+                                                                parameters_.get_output_format());
+  reader.open_file(filename);
+  read(reader);
+  reader.close_file();
+
+  concurrency_.broadcast(parameters_.get_chemical_potential());
+  concurrency_.broadcast_object(Sigma);
+
+  if (parameters_.isAccumulatingG4()) {
+    concurrency_.broadcast_object(G_k_w);
+
+    for (auto& G4_channel : G4_)
+      concurrency_.broadcast_object(G4_channel);
+  }
+}
+#endif
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurrency_type>& reader) {
@@ -562,24 +597,40 @@ void DcaData<Parameters, DT>::initialize_G0() {
   G0_r_t_cluster_excluded = G0_r_t;
 }
 
+#ifdef DCA_HAVE_ADIOS2
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::initializeSigma(const adios2::ADIOS& adios,
+                                              const std::string& filename) {
+  if (concurrency_.id() == concurrency_.first()) {
+    io::Reader reader(adios, concurrency_, parameters_.get_output_format());
+    reader.open_file(filename);
+    readSigmaFile(reader);
+  }
+}
+#endif
+
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
+    readSigmaFile(reader);
+  }
+}
 
-    if (parameters_.adjust_chemical_potential()) {
-      reader.open_group("parameters");
-      reader.open_group("physics");
-      reader.execute("chemical-potential", parameters_.get_chemical_potential());
-      reader.close_group();
-      reader.close_group();
-    }
-
-    reader.open_group("functions");
-    reader.execute(Sigma);
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
+  if (parameters_.adjust_chemical_potential()) {
+    reader.open_group("parameters");
+    reader.open_group("physics");
+    reader.execute("chemical-potential", parameters_.get_chemical_potential());
+    reader.close_group();
     reader.close_group();
   }
+
+  reader.open_group("functions");
+  reader.execute(Sigma);
+  reader.close_group();
 
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(Sigma);

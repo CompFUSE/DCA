@@ -22,6 +22,9 @@
 #include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#endif
 
 namespace dca {
 namespace phys {
@@ -42,8 +45,11 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
+#ifdef DCA_HAVE_ADIOS2
+  DcaLoopData(adios2::ADIOS& adios);
+#else
   DcaLoopData();
-
+#endif
   template <typename Writer>
   void write(Writer& writer);
 
@@ -51,6 +57,8 @@ public:
   // the last completed iteration from the input file, otherwise it returns -1.
   int tryToRead(const std::string& filename, const std::string& format,
                 const Concurrency& concurrency);
+
+  const adios2::ADIOS& adios_;
 
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
@@ -83,8 +91,16 @@ public:
 };
 
 template <typename ParametersType>
+#ifdef DCA_HAVE_ADIOS2
+DcaLoopData<ParametersType>::DcaLoopData(adios2::ADIOS& adios)
+#else
 DcaLoopData<ParametersType>::DcaLoopData()
-    : Gflop_per_mpi_task("Gflop_per_mpi_task"),
+#endif
+    :
+#ifdef DCA_HAVE_ADIOS2
+      adios_(adios),
+#endif
+      Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),
 
       thermalization_per_mpi_task("thermalization_per_mpi_task"),
@@ -107,7 +123,8 @@ DcaLoopData<ParametersType>::DcaLoopData()
 
       density("density"),
       chemical_potential("chemical-potential"),
-      average_expansion_order("expansion_order") {}
+      average_expansion_order("expansion_order") {
+}
 
 template <typename ParametersType>
 template <typename Writer>
@@ -144,7 +161,11 @@ template <typename ParametersType>
 int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
                                            const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-    io::Reader reader(concurrency, format);
+#ifdef DCA_HAVE_ADIOS2
+    io::Reader reader(adios_, concurrency, format, false);
+#else
+    io::Reader reader(concurrency, format, false);
+#endif
     reader.open_file(filename);
     reader.open_group("DCA-loop-functions");
 

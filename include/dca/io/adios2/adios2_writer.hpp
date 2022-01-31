@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -73,74 +73,74 @@ public:
 
   void erase(const std::string& name);
 
-  void execute(const std::string& name, bool value);
+  bool execute(const std::string& name, bool value);
   template <typename Scalar>
-  void execute(const std::string& name, Scalar value);
+  bool execute(const std::string& name, Scalar value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
+  bool execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
 
   /** Adios has the concept of a rank local variable we can use this for sample.
    */
   template <typename Scalar>
-  void execute(const std::string& name, const std::vector<Scalar>& value, bool local = false);
+  bool execute(const std::string& name, const std::vector<Scalar>& value, bool local = false);
 
-  void execute(const std::string& name, const std::string& value);
+  bool execute(const std::string& name, const std::string& value);
 
-  void execute(const std::string& name, const std::vector<std::string>& value);
+  bool execute(const std::string& name, const std::vector<std::string>& value);
 
   template <typename Scalar, std::size_t n>
-  void execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
+  bool execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
+  bool execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
 
   template <typename domain_type>
-  void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
+  bool execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const func::function<Scalar, domain_type, DT>& f);
+  bool execute(const func::function<Scalar, domain_type, DT>& f);
 
   /** experimental distributed function interface
    */
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start, uint64_t end);
+  bool execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start, uint64_t end);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const func::function<Scalar, domain_type, DT>& f, const std::vector<size_t>& start,
+  bool execute(const func::function<Scalar, domain_type, DT>& f, const std::vector<size_t>& start,
                const std::vector<size_t>& end);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
+  bool execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
 
   /** experimental distributed function interface
    */
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
+  bool execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
                uint64_t start, uint64_t end);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
+  bool execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f,
                const std::vector<size_t>& start, const std::vector<size_t>& end);
 
   template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  void execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
-    execute(A.get_name(), A);
+  bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+    return execute(A.get_name(), A);
   }
 
   template <class T>
-  void execute(const std::string& name, const std::unique_ptr<T>& obj);
+  bool execute(const std::string& name, const std::unique_ptr<T>& obj);
 
   template <class T>
-  void execute(const std::unique_ptr<T>& obj);
+  bool execute(const std::unique_ptr<T>& obj);
 
-  void execute(const std::string& name, const io::Buffer& buffer) {
+  bool execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
 
@@ -203,9 +203,7 @@ private:
   adios2::Engine file_;
 
   std::vector<std::string> my_paths_;
-
   std::mutex mutex_;
-
   std::vector<size_t> size_check_;
 };
 
@@ -232,44 +230,46 @@ void ADIOS2Writer<CT>::to_file(adios2::ADIOS& adios, const arbitrary_struct_t& a
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name, Scalar value) {
+bool ADIOS2Writer<CT>::execute(const std::string& name, Scalar value) {
   const std::string full_name = get_path(name);
   std::vector<size_t> dims{1};
-
   write<Scalar>(full_name, dims, &value);
+  return true;
 }
 
 template <class CT>
-void ADIOS2Writer<CT>::execute(const std::string& name, bool value) {
+bool ADIOS2Writer<CT>::execute(const std::string& name, bool value) {
   const std::string full_name = get_path(name);
   std::vector<size_t> dims{1};
   int int_value = value;
   write<int>(full_name, dims, &int_value);
+  return true;
 }
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
+bool ADIOS2Writer<CT>::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
   std::string full_name = get_path(name);
   std::vector<size_t> dims{2};
-
   write<Scalar>(full_name, dims, &value.first);
+  return true;
 }
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name, const std::vector<Scalar>& value,
+bool ADIOS2Writer<CT>::execute(const std::string& name, const std::vector<Scalar>& value,
                                const bool local) {
   if (value.size() > 0) {
     std::string full_name = get_path(name);
     std::vector<size_t> dims{value.size()};
     write<Scalar>(full_name, dims, value.data(), local);
   }
+  return true;
 }
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path(name);
   const size_t n = value.size();
@@ -305,11 +305,12 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   }
 
   io_.DefineAttribute<size_t>("_vector_sizes", sizes.data(), n, full_name);
+  return true;
 }
 
 template <class CT>
 template <typename Scalar, std::size_t n>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const std::vector<std::array<Scalar, n>>& value) {
   std::string full_name = get_path(name);
 
@@ -336,52 +337,52 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
     std::memcpy(span.data() + pos, a.data(), a.size() * sizeof(Scalar));
     pos += a.size();
   }
+  return true;
 }
 
 template <class CT>
 template <typename domain_type>
-void ADIOS2Writer<CT>::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
-  open_group(name);
-
-  execute("name", dmn.get_name());
-  execute("elements", dmn.get_elements());
-
-  close_group();
+bool ADIOS2Writer<CT>::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
+  if (open_group(name)) {
+    bool result = (execute("name", dmn.get_name()) && execute("elements", dmn.get_elements()));
+    close_group();
+    return result;
+  }
+  return false;
 }
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f) {
+bool ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
-    return;
-  execute(f.get_name(), f);
+    return false;
+  return execute(f.get_name(), f);
 }
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start,
+bool ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f, uint64_t start,
                                uint64_t end) {
   if (f.size() == 0)
-    return;
-  execute(f.get_name(), f, start, end);
+    return false;
+  return execute(f.get_name(), f, start, end);
 }
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f,
+bool ADIOS2Writer<CT>::execute(const func::function<Scalar, domain_type, DT>& f,
                                const std::vector<size_t>& start, const std::vector<size_t>& end) {
   if (f.size() == 0)
-    return;
-  execute(f.get_name(), f, start, end);
-
-}  // namespace io
+    return false;
+  return execute(f.get_name(), f, start, end);
+}
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
-    return;
+    return false;
 
   const std::string full_name = get_path(name);
 
@@ -402,15 +403,16 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
     addAttribute(full_name, "name", f.get_name());
     addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
   }
+  return true;
 }
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const func::function<Scalar, domain_type, DT>& f, uint64_t start,
                                uint64_t end) {
   if (f.size() == 0)
-    return;
+    return true;
 
   const std::string full_name = get_path(name);
 
@@ -447,15 +449,16 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   std::reverse(dims.begin(), dims.end());
   addAttribute(full_name, "name", f.get_name());
   addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+  return true;
 }
 
 template <class CT>
 template <typename Scalar, typename domain_type, DistType DT>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const func::function<Scalar, domain_type, DT>& f,
                                const std::vector<size_t>& start, const std::vector<size_t>& end) {
   if (f.size() == 0)
-    return;
+    return true;
 
   const std::string full_name = get_path(name);
 
@@ -480,7 +483,7 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
               << " start size = " << std::to_string(start.size())
               << " end size = " << std::to_string(end.size()) << std::endl;
     // \todo we should be able to throw an exception now with the LINEAR and BLOCKED dist templates.
-    return;
+    return false;
   }
 
   // ADIOS2 takes size_t vector of start and count
@@ -509,20 +512,22 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   std::reverse(dims.begin(), dims.end());
   addAttribute(full_name, "name", f.get_name());
   addAttribute<size_t>(full_name, "domain-sizes", std::vector<size_t>{dims.size()}, dims.data());
+  return true;
 }
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path(name);
   write<Scalar>(full_name, std::vector<size_t>{V.size()}, V.ptr());
   addAttribute(full_name, "name", V.get_name());
+  return true;
 }
 
 template <class CT>
 template <typename Scalar>
-void ADIOS2Writer<CT>::execute(const std::string& name,
+bool ADIOS2Writer<CT>::execute(const std::string& name,
                                const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<size_t> dims{size_t(A.nrRows()), size_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
@@ -537,20 +542,23 @@ void ADIOS2Writer<CT>::execute(const std::string& name,
   write<Scalar>(full_name, dims, linearized.data());
 
   addAttribute(full_name, "name", A.get_name());
+  return true;
 }
 
 template <class CT>
 template <class T>
-void ADIOS2Writer<CT>::execute(const std::string& name, const std::unique_ptr<T>& obj) {
+bool ADIOS2Writer<CT>::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)
-    execute(name, *obj);
+    return execute(name, *obj);
+  return true;
 }
 
 template <class CT>
 template <class T>
-void ADIOS2Writer<CT>::execute(const std::unique_ptr<T>& obj) {
+bool ADIOS2Writer<CT>::execute(const std::unique_ptr<T>& obj) {
   if (obj)
-    execute(*obj);
+    return execute(*obj);
+  return true;
 }
 
 template <class CT>

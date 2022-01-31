@@ -105,6 +105,7 @@ protected:
   concurrency_type& concurrency;
 #ifdef DCA_WITH_ADIOS2
   adios2::ADIOS adios_;
+  ;
 #endif
 
 private:
@@ -140,8 +141,10 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
       concurrency(concurrency_ref),
 #ifdef DCA_HAVE_ADIOS2
       adios_("", concurrency_ref.get()),
-#endif
+      DCA_info_struct(adios_),
+#else
       DCA_info_struct(),
+#endif
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
@@ -195,7 +198,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   // data.
   if (output_file_ != nullptr && output_file_->isADIOS2()) {
     concurrency.barrier();
-    output_file_->close_file();
+    output_file_->end_step();
   }
 }
 
@@ -214,11 +217,19 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
                 << std::endl;
 
     dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
+    #ifdef DCA_HAVE_ADIOS2
+    MOMS.initializeSigma(adios_, file_name_ + ".tmp");
+    #else
     MOMS.initializeSigma(file_name_ + ".tmp");
+    #endif
     perform_lattice_mapping();
   }
   else if (parameters.get_initial_self_energy() != "zero") {
+    #ifdef DCA_HAVE_ADIOS2
+    MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
+    #else
     MOMS.initializeSigma(parameters.get_initial_self_energy());
+    #endif 
     perform_lattice_mapping();
   }
 

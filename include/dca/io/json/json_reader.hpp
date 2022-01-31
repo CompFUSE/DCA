@@ -35,7 +35,7 @@ public:
   void close_file() noexcept;
 
   // Opens a new group from the currently topmost open group. Returns false if the group does not
-  // exists, but still pushes a null group to the stack of open groups.
+  // exists, does not push a null group to the stack of groups!
   bool open_group(const std::string& name) noexcept;
 
   // Closes the topmost open griup, irreardless of its validity. Returns false if trying to close

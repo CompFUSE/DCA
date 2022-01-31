@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -9,9 +9,9 @@
 //
 // This file provides specific tests for the ADIOS2 reader and writer.
 
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/io/adios2/adios2_reader.hpp"
 #include "dca/io/adios2/adios2_writer.hpp"
+#include "dca/io/adios2/adios2_global.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
 #include <array>
@@ -21,9 +21,15 @@
 
 #include "gtest/gtest.h"
 
-
 adios2::ADIOS* adios_ptr;
+
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+dca::parallel::MPIConcurrency* concurrency_ptr;
+#else
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 dca::parallel::NoConcurrency* concurrency_ptr;
+#endif
 
 class ADIOS2ReaderWriterTest : public ::testing::Test {};
 
@@ -314,6 +320,20 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
   EXPECT_EQ(1.5, d_val);
 }
 
+TEST(ADIOS2ReaderWriterTest, VectorOfVector) {
+  dca::io::ADIOS2Writer writer(GlobalAdios::getAdios(), concurrency_ptr, true);
+  writer.open_file("vector.bp");
+
+  // Simple 3D vector
+  std::vector<double> vec_1{1., 2., 3.};
+  writer.execute("simple-vector", vec_1);
+
+  std::vector<std::vector<float>> vec_2{{1.2, 3.4}, {5.6, 7.8, 4.4}, {1.0}};
+  writer.execute("vector-of-vectors", vec_2);
+
+  writer.close_file();
+}
+
 /** Semantics of adios_writer have changed to allow overwrite
  */
 // TEST(ADIOS2ReaderWriterTest, Overwrite) {
@@ -339,10 +359,16 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
 // }
 
 int main(int argc, char** argv) {
+#ifdef DCA_HAVE_MPI
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+#else
   dca::parallel::NoConcurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
+#endif
+  
   //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", false);
+  adios2::ADIOS adios("", concurrency_ptr->get(), false);
   adios_ptr = &adios;
 
   ::testing::InitGoogleTest(&argc, argv);
