@@ -58,7 +58,9 @@ public:
   int tryToRead(const std::string& filename, const std::string& format,
                 const Concurrency& concurrency);
 
+#ifdef DCA_HAVE_ADIOS2
   const adios2::ADIOS& adios_;
+#endif
 
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;

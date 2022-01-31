@@ -53,7 +53,7 @@ TEST(ReaderWriterTest, RAIIDestructor) {
 #ifdef DCA_HAVE_ADIOS2
       dca::io::Writer writer(*adios2_ptr, *mpi_concurrency_ptr, type);
 #else
-    dca::io::Writer writer(*concurrency_ptr, type);
+      dca::io::Writer writer(*concurrency_ptr, type);
 #endif
 
       writer.open_file(test_file_name);
@@ -437,10 +437,11 @@ int main(int argc, char** argv) {
 #ifdef DCA_HAVE_MPI
   dca::parallel::MPIConcurrency mpi_concurrency(argc, argv);
   mpi_concurrency_ptr = &mpi_concurrency;
-#endif
-
+#ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS adios("", mpi_concurrency_ptr->get());
   adios2_ptr = &adios;
+#endif
+#endif
 
   ::testing::InitGoogleTest(&argc, argv);
 
