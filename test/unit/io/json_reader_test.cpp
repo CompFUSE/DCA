@@ -23,11 +23,13 @@ TEST(ReadTest, All) {
   reader.open_group("group 1");
 
   // TODO: throw
-  EXPECT_NO_THROW(reader.open_group("not a group"));
-  reader.close_group();
+  bool group_opened = reader.open_group("not a group");
+  EXPECT_EQ(group_opened, false);
 
-  reader.open_group("group 11");
-  reader.execute("scalar", d);
+  group_opened = reader.open_group("group 11");
+  EXPECT_EQ(group_opened, true);
+  group_opened = reader.execute("scalar", d);
+  EXPECT_EQ(group_opened, true);
   EXPECT_DOUBLE_EQ(d, 3.1456);
   reader.execute("int", i);
   EXPECT_EQ(i, 42);

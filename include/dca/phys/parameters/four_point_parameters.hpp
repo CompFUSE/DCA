@@ -159,14 +159,18 @@ template <int lattice_dimension>
 template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
   if (reader_or_writer.open_group("four-point")) {
-    const std::string channel_par_name = "channels";
-
+    
     std::vector<std::string> channel_names;
+    const std::string channel_par_name = "channels";
     if (ReaderOrWriter::is_reader) {
       // Support legacy input files specifying a single channel name.
       reader_or_writer.execute(channel_par_name, channel_names);
       for (auto name : channel_names)
         four_point_channels_.push_back(stringToFourPointType(name));
+      std::string legacy_channel_name; 
+      reader_or_writer.execute("type", legacy_channel_name);
+      if(!legacy_channel_name.empty())
+        four_point_channels_.push_back(stringToFourPointType(legacy_channel_name));
 
       // Remove duplicates
       std::sort(four_point_channels_.begin(), four_point_channels_.end());

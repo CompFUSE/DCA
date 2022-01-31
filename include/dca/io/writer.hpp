@@ -113,8 +113,13 @@ public:
   }
 
   template <class... Args>
-  void execute(const Args&... args) {
-    std::visit([&](auto& var) { var.execute(args...); }, writer_);
+  bool execute(const Args&... args) {
+    return std::visit([&](auto& var) ->bool { return var.execute(args...); }, writer_);
+  }
+
+  template <class... Args>
+  void executePartial(const Args&... args) {
+    std::visit([&](auto& var) { var.executePartial(args...); }, writer_);
   }
 
   template <class... Args>
