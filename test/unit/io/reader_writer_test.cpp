@@ -47,7 +47,7 @@ TEST(ReaderWriterTest, RAIIDestructor) {
 #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
 
       writer.open_file(test_file_name);
@@ -79,7 +79,7 @@ TEST(ReaderWriterTest, VectorReadWrite) {
 #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file(file_name);
     writer.execute(object_name, a_vector);
@@ -111,7 +111,7 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
 #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file(file_name);
     writer.execute(object_name, data_unequal_size);
@@ -139,7 +139,7 @@ TEST(ReaderWriterTest, VectorOfArraysReadWrite) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file(file_name);
     writer.execute(object_name, data);
@@ -167,7 +167,7 @@ TEST(ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file(filename);
     writer.execute("single-string", s1);
@@ -208,7 +208,7 @@ TYPED_TEST(ReaderWriterTest, FunctionReadWrite) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file("test_func" + toLower(type), true);
 
@@ -246,7 +246,7 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file(filename, true);
     writer.execute(m1);
@@ -270,7 +270,7 @@ TEST(ReaderWriterTest, NonAccessibleFile) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     H5::Exception::dontPrint();
     if ( type != "ADIOS2" )
@@ -291,7 +291,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file("hdf5_missing_func." + toLower(type));
     writer.execute(present);
@@ -317,7 +317,7 @@ TEST(ReaderWriterTest, GroupOpenclose) {
 #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file("group_open_close" + toLower(type));
 
@@ -360,7 +360,7 @@ TEST(ReaderWriterTest, Overwrite) {
 #ifdef DCA_HAVE_ADIOS2
     dca::io::Writer writer(GlobalAdios::getAdios(), *concurrency_ptr, type);
 #else
-    dca::io::Writer writer({*concurrency_ptr}, type);
+    dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     writer.open_file("test" + toLower(type), true);
 

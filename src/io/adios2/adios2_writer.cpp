@@ -15,8 +15,6 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "dca/io/adios2/adios2_global.hpp"
-
 namespace dca {
 namespace io {
 // dca::io::
