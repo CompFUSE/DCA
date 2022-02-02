@@ -18,9 +18,7 @@ namespace phys {
 // dca::phys::
 
 FourPointType stringToFourPointType(const std::string& name) {
-  if (name == "PARTICLE_HOLE_NONE")
-    return FourPointType::PARTICLE_HOLE_NONE;
-  else if (name == "PARTICLE_PARTICLE_UP_DOWN")
+  if (name == "PARTICLE_PARTICLE_UP_DOWN")
     return FourPointType::PARTICLE_PARTICLE_UP_DOWN;
   else if (name == "PARTICLE_HOLE_TRANSVERSE")
     return FourPointType::PARTICLE_HOLE_TRANSVERSE;
@@ -33,7 +31,7 @@ FourPointType stringToFourPointType(const std::string& name) {
   else if (name == "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN")
     return FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN;
   else
-    throw std::logic_error("Invalid four point mode: " + name);
+    return FourPointType::PARTICLE_HOLE_NONE;
 }
 
 std::string toString(const FourPointType type) {

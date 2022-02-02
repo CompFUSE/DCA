@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides specific tests for the  reader and writer.
 
@@ -34,7 +35,11 @@ adios2::ADIOS* adios2_ptr = nullptr;
 
 dca::parallel::NoConcurrency* concurrency_ptr;
 
-const std::vector<std::string> types{"JSON", "HDF5", "ADIOS2"};
+const std::vector<std::string> types{"JSON",
+#ifdef DCA_HAVE_ADIOS2
+                                     "ADIOS2",
+#endif
+                                     "HDF5"};
 
 std::string toLower(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](char c) { return std::tolower(c); });
