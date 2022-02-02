@@ -74,8 +74,11 @@ struct G0Setup : public ::testing::Test {
     try {
       parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
     }
+    catch (const std::exception& r_w) {
+      throw std::runtime_error(r_w.what());
+    }
     catch (...) {
-      std::cout << "Attempting to read: " << input_name << std::endl;
+      throw std::runtime_error("Input parsing failed!");
     }
     parameters_.update_model();
     static bool domain_initialized = false;
