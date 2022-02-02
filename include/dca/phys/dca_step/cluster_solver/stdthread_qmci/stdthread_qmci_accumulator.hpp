@@ -69,6 +69,14 @@ public:
     return done_;
   }
 
+  bool isMeasuring() const {
+    return measuring_;
+  }
+
+  void finishMeasuring() {
+    measuring_ = false;
+  }
+
 private:
   int thread_id_;
   bool measuring_;
@@ -138,8 +146,6 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
   assert(measuring_);
 
   QmciAccumulator::measure();
-
-  measuring_ = false;
 }
 
 template <class QmciAccumulator, class SpGreensFunction>
@@ -149,7 +155,8 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigur
   if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     if (writer_ && (writer_->isADIOS2() || concurrency_id_ == 0)) {
       const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
-                                     std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);
+                                     std::to_string(meas_id_) + "_w_" +
+                                     std::to_string(walker_thread_id_);
       writer_->lock();
       writer_->open_group("STQW_Configurations");
       writer_->open_group(stamp_name);

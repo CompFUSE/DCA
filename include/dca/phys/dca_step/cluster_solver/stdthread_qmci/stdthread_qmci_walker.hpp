@@ -99,9 +99,10 @@ void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
   QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
   if (QmciWalker::is_thermalized()) {
+    // This must be before or the G_k_w and configuration meas_id will not match
+    ++meas_id_;
     if (last_iteration_)
       logConfiguration();
-    ++meas_id_;
   }
 }
 

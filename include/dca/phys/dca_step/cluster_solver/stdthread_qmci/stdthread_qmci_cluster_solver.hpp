@@ -326,7 +326,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
               accumulators_queue_.pop();
             }
           }
-          acc_ptr->updateFrom(walker, concurrency_.id(), id, meas_id, walker.get_last_iteration());
+          acc_ptr->updateFrom(walker, concurrency_.id(), walker.get_thread_id(), meas_id, last_iteration_);
         });
   }
   catch (std::bad_alloc& err) {
@@ -398,9 +398,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
       f(meas_id, n_local_meas, print);
   }
   else {
+    throw std::runtime_error("Non fixed_meas_per_walker accumulation is suspect and disabled at this time.");
     // Perform the total number of loop with a shared atomic counter.
-    for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
-      f(meas_id, n_local_meas, print);
+    // for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
+    //   f(meas_id, n_local_meas, print);
   }
 }
 
@@ -458,6 +459,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(accumulator_obj);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
         }
+        accumulator_obj.finishMeasuring();
       }
     }
   }
@@ -470,6 +472,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
       exception_ptr = std::make_unique<std::bad_alloc>(err);
   }
 
+  assert(accumulator_obj.isMeasuring() == false);
+  
   {
     dca::parallel::thread_traits::scoped_lock lock(mutex_merge_);
     accumulator_obj.sumTo(QmciSolver::accumulator_);
@@ -521,6 +525,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(accumulator_obj);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
         }
+        accumulator_obj.finishMeasuring();
       }
       if (print)
         walker.updateShell(meas_id, n_meas);
