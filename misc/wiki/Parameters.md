@@ -454,7 +454,7 @@ Number of Monte Carlo walkers.
 Number of Monte Carlo accumulators.  
 `"shared-walk-and-accumulation-thread":` boolean (false)\
 When this mode is activated, each thread will run an instance of a walker and an accumulator. This parameter is ignored if the numbers of walkers and accumulators are different.\
-`"fix-meas-per-walker":` boolean(false)\
+`"fix-meas-per-walker":` boolean(true)\
 The number of sweeps performed by each walker is fixed a priori, avoiding possible bias in the sampling of faster walkers.\
 `"distributed-g4-enabled":` boolean(false)\
 When this mode is activated, ringG pipeline algorithm will be performed. Each locally generated G2 will travel across all ranks to update G4 in all ranks. Meanwhile, each rank only allocates 1/p size of original G4 size, where p is total number of ranks. For example, rank 0 keeps 1st portion of G4, rank 1 keeps 2nd portion of G4, etc. \
