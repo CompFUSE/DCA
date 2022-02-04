@@ -38,7 +38,7 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
 
 public:
   StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id,
-                           const std::shared_ptr<io::Writer<Concurrency>>& writer);
+                           std::shared_ptr<io::Writer<Concurrency>> writer);
 
   ~StdThreadQmciAccumulator();
 
@@ -95,7 +95,7 @@ private:
 template <class QmciAccumulator, class SpGreensFunction>
 StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::StdThreadQmciAccumulator(
     const Parameters& parameters_ref, Data& data_ref, const int id,
-    const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    std::shared_ptr<io::Writer<Concurrency>> writer)
     : QmciAccumulator(parameters_ref, data_ref, id),
       thread_id_(id),
       measuring_(false),
