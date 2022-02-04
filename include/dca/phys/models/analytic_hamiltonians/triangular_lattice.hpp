@@ -42,6 +42,13 @@ public:
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
 
+  constexpr static int transformationSignOfR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignOfK(int, int, int) {
+    return 1;
+  }
+
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
   static void initializeHInteraction(
