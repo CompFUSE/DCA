@@ -69,7 +69,7 @@ public:
   static constexpr linalg::DeviceType device = device_t;
 
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
-                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
+                     std::shared_ptr<io::Writer<Concurrency>> writer);
 
   ~CtintClusterSolver();
 
@@ -155,7 +155,7 @@ private:
 
 template <dca::linalg::DeviceType DEV, class PARAM, bool use_submatrix, DistType DIST>
 CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
-    PARAM& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    PARAM& parameters_ref, Data& data_ref, std::shared_ptr<io::Writer<Concurrency>> writer)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
