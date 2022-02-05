@@ -20,6 +20,63 @@
 #include "dca/function/function.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
+enum class TestEnumClass : int {
+                                TEST_NONE = 0,
+                                TEST_ONE,
+                                TEST_TWO};
+
+TEST(MPIPackingTest, PackAndUnpackEnum) {
+  dca::parallel::MPIPacking packing;
+
+  TestEnumClass enum_value = TestEnumClass::TEST_ONE;
+
+  auto buffer_size_non_const = packing.get_buffer_size(enum_value);
+  char* buffer_non_const = new char[buffer_size_non_const];
+  int offset_non_const = 0;
+  
+  packing.pack(buffer_non_const, buffer_size_non_const, offset_non_const, enum_value);
+
+  TestEnumClass enum_out;
+  
+  // Use a copy of the buffer in unpack to detect if pack has written out of bounds.
+  char* buffer_non_const_copy = new char[buffer_size_non_const];
+  std::memcpy(buffer_non_const_copy, buffer_non_const, buffer_size_non_const);
+
+  int offset_unpack = 0;
+  packing.unpack(buffer_non_const_copy, buffer_size_non_const, offset_unpack, enum_out);
+
+  EXPECT_EQ(enum_value, enum_out);
+  delete[] buffer_non_const;
+  delete[] buffer_non_const_copy;
+}
+
+TEST(MPIPackingTest, PackAndUnpackEnumVector) {
+  dca::parallel::MPIPacking packing;
+
+  std::vector<TestEnumClass> enum_values{TestEnumClass::TEST_ONE, TestEnumClass::TEST_NONE, TestEnumClass::TEST_TWO};
+
+  auto buffer_size_non_const = packing.get_buffer_size(enum_values);
+  char* buffer_non_const = new char[buffer_size_non_const];
+  int offset_non_const = 0;
+  
+  packing.pack(buffer_non_const, buffer_size_non_const, offset_non_const, enum_values);
+
+  std::vector<TestEnumClass> enum_outs;
+  
+  // Use a copy of the buffer in unpack to detect if pack has written out of bounds.
+  char* buffer_non_const_copy = new char[buffer_size_non_const];
+  std::memcpy(buffer_non_const_copy, buffer_non_const, buffer_size_non_const);
+
+  int offset_unpack = 0;
+  packing.unpack(buffer_non_const_copy, buffer_size_non_const, offset_unpack, enum_outs);
+
+  EXPECT_EQ(enum_outs.size(), 3);
+  for(int i = 0; i < enum_values.size(); ++i)
+    EXPECT_EQ(enum_values[i], enum_outs[i]);
+  delete[] buffer_non_const;
+  delete[] buffer_non_const_copy;
+}
+
 TEST(MPIPackingTest, PackAndUnpackFunction) {
   dca::parallel::MPIPacking packing;
 
