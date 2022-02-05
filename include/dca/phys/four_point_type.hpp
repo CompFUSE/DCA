@@ -24,7 +24,7 @@ namespace phys {
  *  causes a bug. That is not a good code smell.
  */
 enum class FourPointType : int {
-                                PARTICLE_HOLE_NONE = 0,
+  PARTICLE_HOLE_NONE = 0,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
   PARTICLE_HOLE_CHARGE,
