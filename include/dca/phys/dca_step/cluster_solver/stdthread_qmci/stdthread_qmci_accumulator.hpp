@@ -31,6 +31,7 @@ template <class QmciAccumulator, class SpGreensFunction>
 class StdThreadQmciAccumulator : public QmciAccumulator {
   using ThisType = StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>;
   using Parameters = typename QmciAccumulator::ParametersType;
+  using Concurrency = typename Parameters::concurrency_type;
   using Data = typename QmciAccumulator::DataType;
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using KDmn = typename CDA::KClusterDmn;

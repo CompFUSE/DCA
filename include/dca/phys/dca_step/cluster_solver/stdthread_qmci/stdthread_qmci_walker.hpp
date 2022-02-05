@@ -110,8 +110,8 @@ template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
   if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
-    const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" + std::to_string(meas_id_) + "_w_" +
-                                   std::to_string(thread_id_);
+    const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
+                                   std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);
 
     writer_->lock();
     writer_->open_group("STQW_Configurations");
@@ -127,26 +127,39 @@ void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
 }
 
 // No additional ops specialization for SS-HYB
-template <linalg::DeviceType device, class Parameters, class Data>
-class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, Data>, Data>
-    : public cthyb::SsCtHybWalker<device, Parameters, Data>,
-      public QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>> {
-  using QmciWalker = cthyb::SsCtHybWalker<device, Parameters, Data>;
-  using ThisType = StdThreadQmciWalker<QmciWalker, Data>;
+template <linalg::DeviceType device, class Parameters, class DATA>
+class StdThreadQmciWalker<cthyb::SsCtHybWalker<device, Parameters, DATA>, DATA>
+    : public cthyb::SsCtHybWalker<device, Parameters, DATA>,
+      public QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, DATA>> {
+  using QmciWalker = cthyb::SsCtHybWalker<device, Parameters, DATA>;
+  using ThisType = StdThreadQmciWalker<QmciWalker, DATA>;
   using Concurrency = typename Parameters::concurrency_type;
 
   using Rng = typename Parameters::random_number_generator;
   using Real = typename QmciWalker::Scalar;
 
 public:
-  StdThreadQmciWalker(const Parameters& parameters_ref, Data& data_ref, Rng& rng, int id,
-                      const std::shared_ptr<io::Writer<Concurrency>>& /*writer*/,
+  StdThreadQmciWalker(Parameters& parameters_ref, DATA& data_ref, Rng& rng, int concurrency_id,
+                      int id, const std::shared_ptr<io::Writer<Concurrency>>& writer,
                       G0Interpolation<device, Real>& g0)
       : QmciWalker(parameters_ref, data_ref, rng, id),
-        QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, Data>>(parameters_ref, id,
-                                                                                g0) {}
+        QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, DATA>>(parameters_ref, id,
+                                                                                g0),
+        concurrency_id_(concurrency_id),
+        thread_id_(id),
+        writer_(writer)
+  {}
 
   static void write([[maybe_unused]] io::Writer<Concurrency>& writer) {}
+
+  int get_thread_id() const {
+    return thread_id_;
+  }
+
+private:
+  int thread_id_;
+  int concurrency_id_;
+  std::shared_ptr<io::Writer<Concurrency>> writer_;
 };
 
 }  // namespace stdthreadqmci
