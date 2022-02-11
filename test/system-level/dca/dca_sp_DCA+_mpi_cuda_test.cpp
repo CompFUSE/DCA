@@ -18,6 +18,7 @@
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/util/difference.hpp"
+#include "dca/io/io_types.hpp"
 #include "dca/io/filesystem.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"

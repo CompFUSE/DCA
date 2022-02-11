@@ -25,10 +25,15 @@ class OutputParameters {
 public:
   OutputParameters()
       : directory_("./"),
-        output_format_("HDF5"),
+#ifdef DCA_HAVE_ADIOS2
+        output_format_("ADIOS2"),
         g4_output_format_("ADIOS2"),
         filename_g4_("dca_g4.bp"),
+        filename_dca_("dca.bp"),
+#else
+        output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
+#endif
         directory_config_read_(""),
         directory_config_write_(""),
         filename_analysis_("analysis.hdf5"),
@@ -38,7 +43,8 @@ public:
         dump_lattice_self_energy_(false),
         dump_cluster_Greens_functions_(false),
         dump_Gamma_lattice_(false),
-        dump_chi_0_lattice_(false) {}
+        dump_chi_0_lattice_(false) {
+  }
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;

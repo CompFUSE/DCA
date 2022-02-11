@@ -9,5 +9,5 @@ if (DCA_HAVE_ADIOS2)
   set(DCA_IO_LIBS "${DCA_IO_LIBS};dca_adios2")
 endif()
 
-add_library(dca_io reader.cpp)
+add_library(dca_io reader.cpp io_types.cpp)
 target_link_libraries(dca_io PUBLIC ${DCA_IO_LIBS})

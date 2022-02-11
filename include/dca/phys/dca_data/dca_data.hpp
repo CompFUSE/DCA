@@ -111,7 +111,7 @@ public:
 
   void read(const std::string& filename);
 #ifdef DCA_HAVE_ADIOS2
-  void read(const adios2::ADIOS& adios, std::string filename);
+  void read(adios2::ADIOS& adios, std::string filename);
 #endif
 
   /** prefer this as it allows for more sensible handling of appendable files like bp4.
@@ -128,11 +128,6 @@ public:
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
-#ifdef DCA_HAVE_ADIOS2
-  /** read initializeSigma from adios file, it is probably already open.
-   */
-  void initializeSigma(const adios2::ADIOS& adios, const std::string& filename);
-#endif
   void initializeSigma(const std::string& filename);
   void readSigmaFile(io::Reader<Concurrency>& reader);
 
@@ -361,7 +356,7 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
 
 #ifdef DCA_HAVE_ADIOS2
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::read(const adios2::ADIOS& adios, std::string filename) {
+void DcaData<Parameters, DT>::read(adios2::ADIOS& adios, std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
@@ -596,18 +591,6 @@ void DcaData<Parameters, DT>::initialize_G0() {
   G0_r_w_cluster_excluded = G0_r_w;
   G0_r_t_cluster_excluded = G0_r_t;
 }
-
-#ifdef DCA_HAVE_ADIOS2
-template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::initializeSigma(const adios2::ADIOS& adios,
-                                              const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {
-    io::Reader reader(adios, concurrency_, parameters_.get_output_format());
-    reader.open_file(filename);
-    readSigmaFile(reader);
-  }
-}
-#endif
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {

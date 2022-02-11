@@ -31,16 +31,8 @@ class Reader {
 public:
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  Reader(
-#ifdef DCA_HAVE_ADIOS2
-      const adios2::ADIOS& adios,
-#endif
-      const Concurrency& concurrency, const std::string& format, bool verbose = true)
-      :
-#ifdef DCA_HAVE_ADIOS2
-        adios_(adios),
-#endif
-        concurrency_(concurrency) {
+  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
+      : concurrency_(concurrency) {
     if (format == "HDF5") {
       reader_.template emplace<io::HDF5Reader>(verbose);
     }
@@ -49,7 +41,25 @@ public:
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
-      reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
+      throw(std::logic_error("ADIOS2 reader requires an adios reference"));
+    }
+#endif
+    else {
+      throw(std::logic_error("Invalid input format"));
+    }
+  }
+  
+  Reader(adios2::ADIOS& adios, const Concurrency& concurrency, const std::string& format, bool verbose = true)
+      : concurrency_(concurrency) {
+    if (format == "HDF5") {
+      throw(std::logic_error("ADIOS2 reference not an argument for hdf5 reader"));
+    }
+    else if (format == "JSON") {
+      throw(std::logic_error("ADIOS2 reference not an argument for json reader"));
+    }
+#ifdef DCA_HAVE_ADIOS2
+    else if (format == "ADIOS2") {
+      reader_.template emplace<io::ADIOS2Reader<Concurrency>>(adios, &concurrency, verbose);
     }
 #endif
     else {
@@ -92,9 +102,6 @@ private:
 #endif
                >
       reader_;
-#ifdef DCA_HAVE_ADIOS2
-  const adios2::ADIOS& adios_;
-#endif
   const Concurrency& concurrency_;
 };
 
