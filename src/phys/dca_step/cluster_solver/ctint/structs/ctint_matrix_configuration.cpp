@@ -62,6 +62,7 @@ void MatrixConfiguration::addVertex(Vertex& v, unsigned config_id,
     Sector& sector = sectors_[s];
 
     indices[leg] = sector.size();
+    // SectorEntry list intialization {b_left_,r_left_,b_right_,r_right_, tau_, aux_field_type_}
     sector.entries_.emplace_back(details::SectorEntry{band(nu[0 + 2 * leg]), r[0 + 2 * leg],
                                                       band(nu[1 + 2 * leg]), r[1 + 2 * leg], v.tau,
                                                       field_type(v, leg)});

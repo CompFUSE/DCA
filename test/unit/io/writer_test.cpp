@@ -24,7 +24,8 @@
 dca::parallel::MPIConcurrency* mpi_concurrency_ptr = nullptr;
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
-adios2::ADIOS& adios_ptr = nullptr;
+adios2::ADIOS* adios_ptr = nullptr;
+#endif
 #endif
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 dca::parallel::NoConcurrency* concurrency_ptr = nullptr;
