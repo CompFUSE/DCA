@@ -131,7 +131,7 @@ public:
 #ifdef DCA_HAVE_ADIOS2
   /** read initializeSigma from adios file, it is probably already open.
    */
-  void initializeSigma(const adios2::ADIOS& adios, const std::string& filename);
+  void initializeSigma(adios2::ADIOS& adios, const std::string& filename);
 #endif
   void initializeSigma(const std::string& filename);
   void readSigmaFile(io::Reader<Concurrency>& reader);
@@ -598,10 +598,10 @@ void DcaData<Parameters, DT>::initialize_G0() {
 
 #ifdef DCA_HAVE_ADIOS2
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::initializeSigma(const adios2::ADIOS& adios,
+void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios,
                                               const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {
-    io::Reader reader(adios, concurrency_, parameters_.get_output_format());
+  if (concurrency_.id() == concurrency_.first()) {    
+    io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
     readSigmaFile(reader);
   }

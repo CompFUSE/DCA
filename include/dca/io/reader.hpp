@@ -40,7 +40,7 @@ public:
       reader_.template emplace<io::JSONReader>(verbose);
     }
     else if (format == "ADIOS2") {
-      throw(std::logic_error("ADIOS2 reader requires an adios reference"));
+      reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
     }
     else {
       throw(std::logic_error("Invalid input format"));

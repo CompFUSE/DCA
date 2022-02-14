@@ -67,7 +67,7 @@ public:
   using BaseClass::order;
   using RootClass::get_stream;
 
-  std::size_t deviceFingerprint() const;
+  std::size_t deviceFingerprint() const override;
 
 protected:
   // For testing purposes:

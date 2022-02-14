@@ -90,11 +90,7 @@ public:
 };
 
 template <typename ParametersType>
-#ifdef DCA_HAVE_ADIOS2
-DcaLoopData<ParametersType>::DcaLoopData(adios2::ADIOS& adios)
-#else
 DcaLoopData<ParametersType>::DcaLoopData()
-#endif
     :
       Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),

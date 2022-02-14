@@ -40,13 +40,11 @@ ADIOS2Reader<CT>::~ADIOS2Reader() {
     close_file();
 }
 
-
 template <class CT>
 void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
   if (verbose_) {
     std::cout << "\t ADIOS2Reader: Open for Read file : " << file_name << "\n";
   }
-
   io_name_ = file_name;
   file_name_ = file_name;
   io_ = adios_.DeclareIO(io_name_);
