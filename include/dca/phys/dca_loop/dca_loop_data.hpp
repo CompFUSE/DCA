@@ -44,24 +44,21 @@ public:
   using k_DCA =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-
-#ifdef DCA_HAVE_ADIOS2
-  DcaLoopData(adios2::ADIOS& adios);
-#else
   DcaLoopData();
-#endif
-  template <typename Writer>
-  void write(Writer& writer);
+
+  template <typename WRITER>
+  void write(WRITER& writer);
 
   // Attempts to read the loop functions from 'filename'. If successful returns
   // the last completed iteration from the input file, otherwise it returns -1.
-  int tryToRead(const std::string& filename, const std::string& format,
+  int readData(const std::string& filename, const std::string& format,
                 const Concurrency& concurrency);
-
 #ifdef DCA_HAVE_ADIOS2
-  const adios2::ADIOS& adios_;
+  int readData(const std::string& filename, const std::string& format,
+	       const Concurrency& concurrency, adios2::ADIOS& adios);
 #endif
-
+  template<class READER>
+  void readLoopDataCommon(READER& reader, const std::string& filename, const std::string& format);
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
 
@@ -99,9 +96,6 @@ DcaLoopData<ParametersType>::DcaLoopData(adios2::ADIOS& adios)
 DcaLoopData<ParametersType>::DcaLoopData()
 #endif
     :
-#ifdef DCA_HAVE_ADIOS2
-      adios_(adios),
-#endif
       Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),
 
@@ -160,44 +154,61 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 }
 
 template <typename ParametersType>
-int DcaLoopData<ParametersType>::tryToRead(const std::string& filename, const std::string& format,
-                                           const Concurrency& concurrency) {
+int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
+                                              const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-#ifdef DCA_HAVE_ADIOS2
-    io::Reader reader(adios_, concurrency, format, false);
-#else
     io::Reader reader(concurrency, format, false);
-#endif
-    reader.open_file(filename);
-    reader.open_group("DCA-loop-functions");
-
-    reader.execute("completed-iteration", last_completed_iteration);
-
-    reader.execute(Gflop_per_mpi_task);
-    reader.execute(times_per_mpi_task);
-    reader.execute(Gflops_per_mpi_task);
-
-    reader.execute(sign);
-
-    reader.execute(L2_Sigma_difference);
-    reader.execute(standard_deviation);
-
-    reader.execute(chemical_potential);
-    reader.execute(density);
-    reader.execute(average_expansion_order);
-
-    reader.execute(Sigma_zero_moment);
-
-    reader.execute(n_k);
-    reader.execute(A_k);
-    reader.execute(orbital_occupancies);
-
-    reader.open_group("DCA-loop-functions");
-    reader.close_file();
-  }
-
+    readLoopDataCommon(reader, filename, format);
+  }  
   concurrency.broadcast(last_completed_iteration);
   return last_completed_iteration;
+}
+
+#ifdef DCA_HAVE_ADIOS2
+template <typename ParametersType>
+int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
+                                              const Concurrency& concurrency,
+                                              adios2::ADIOS& adios) {
+  if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
+    io::Reader reader(adios, concurrency, format, false);
+    readLoopDataCommon(reader, filename, format);
+  }
+  concurrency.broadcast(last_completed_iteration);
+  return last_completed_iteration;
+}
+#endif
+
+template <typename ParametersType>
+template <class READER>
+void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader,
+						     const std::string& filename,
+						     const std::string& format) {
+  reader.open_file(filename);
+  reader.open_group("DCA-loop-functions");
+
+  reader.execute("completed-iteration", last_completed_iteration);
+
+  reader.execute(Gflop_per_mpi_task);
+  reader.execute(times_per_mpi_task);
+  reader.execute(Gflops_per_mpi_task);
+
+  reader.execute(sign);
+
+  reader.execute(L2_Sigma_difference);
+  reader.execute(standard_deviation);
+
+  reader.execute(chemical_potential);
+  reader.execute(density);
+  reader.execute(average_expansion_order);
+
+  reader.execute(Sigma_zero_moment);
+
+  reader.execute(n_k);
+  reader.execute(A_k);
+  reader.execute(orbital_occupancies);
+
+  reader.open_group("DCA-loop-functions");
+  reader.close_file();
 }
 
 }  // namespace phys

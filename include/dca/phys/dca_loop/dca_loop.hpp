@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class executes the DCA(+) loop.
 
@@ -23,6 +24,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/io/filesystem.hpp"
 #include "dca/io/writer.hpp"
+#include "dca/io/io_types.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -141,9 +143,6 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
       concurrency(concurrency_ref),
 #ifdef DCA_HAVE_ADIOS2
       adios_("", concurrency_ref.get()),
-      DCA_info_struct(adios_),
-#else
-      DCA_info_struct(),
 #endif
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
@@ -208,8 +207,19 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
 
   if (parameters.autoresume()) {  // Try to read state of previous run.
-    last_completed =
-        DCA_info_struct.tryToRead(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
+    auto& dca_filename = parameters.get_filename_dca();
+    std::size_t extension_start = dca_filename.rfind('.');
+    std::string extension{dca_filename.substr(extension_start, dca_filename.size())};
+    std::cout << extension << '\n';
+    // This is not complete, how do we want to decide what format we are reading?  Just from output format?
+#ifdef DCA_HAVE_ADIOS2
+    if (io::stringToIOType(parameters.get_output_format()) == io::IOType::ADIOS2)
+      last_completed =
+          DCA_info_struct.readData(file_name_, parameters.get_output_format(), concurrency, adios_);
+    else
+#endif
+      last_completed =
+          DCA_info_struct.readData(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
   }
   if (last_completed >= 0) {
     if (concurrency.id() == concurrency.first())

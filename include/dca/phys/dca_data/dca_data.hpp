@@ -111,7 +111,7 @@ public:
 
   void read(const std::string& filename);
 #ifdef DCA_HAVE_ADIOS2
-  void read(const adios2::ADIOS& adios, std::string filename);
+  void read(adios2::ADIOS& adios, std::string filename);
 #endif
 
   /** prefer this as it allows for more sensible handling of appendable files like bp4.
@@ -361,7 +361,7 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
 
 #ifdef DCA_HAVE_ADIOS2
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::read(const adios2::ADIOS& adios, std::string filename) {
+void DcaData<Parameters, DT>::read(adios2::ADIOS& adios, std::string filename) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
@@ -413,7 +413,6 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
 }
 
 #ifdef DCA_WITH_ADIOS2
-
 template <class Parameters, DistType DIST>
 void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
   if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {

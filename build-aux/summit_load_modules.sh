@@ -11,9 +11,11 @@ module load cuda/11.1.1 # ldd shows magma is built with this cuda
 module load magma/2.6.1
 module load hdf5
 module load fftw
-module load cmake/3.20.2 # at least 3.20 is required
+module load cmake/3.21.3
 module load netlib-lapack
 module load essl
+module load adios2
+module load ninja
 
 export CC=mpicc
 export CXX=mpic++
