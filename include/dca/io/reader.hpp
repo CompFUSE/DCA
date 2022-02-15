@@ -39,9 +39,11 @@ public:
     else if (format == "JSON") {
       reader_.template emplace<io::JSONReader>(verbose);
     }
+#ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
       reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
     }
+#endif
     else {
       throw(std::logic_error("Invalid input format"));
     }
