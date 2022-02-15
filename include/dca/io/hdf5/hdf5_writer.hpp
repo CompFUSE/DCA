@@ -51,67 +51,69 @@ public:
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
 
-  void open_group(std::string new_path);
+  bool open_group(std::string new_path);
   void close_group();
 
   std::string get_path();
 
-  void begin_step() {};
-  void end_step() {};
-  
+  void begin_step(){};
+  void end_step(){};
+
   void erase(const std::string& name);
 
   template <typename arbitrary_struct_t>
   static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
   template <typename Scalar>
-  void execute(const std::string& name, Scalar value);
+  bool execute(const std::string& name, Scalar value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
+  bool execute(const std::string& name, const std::pair<Scalar, Scalar>& value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::vector<Scalar>& value);
+  bool execute(const std::string& name, const std::vector<Scalar>& value, const bool local = false);
 
-  void execute(const std::string& name, const std::string& value);
+  bool execute(const std::string& name, const std::string& value);
 
-  void execute(const std::string& name, const std::vector<std::string>& value);
+  bool execute(const std::string& name, const std::vector<std::string>& value);
 
   template <typename Scalar, std::size_t n>
-  void execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
+  bool execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value);
 
   template <typename Scalar>
-  void execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
+  bool execute(const std::string& name, const std::vector<std::vector<Scalar>>& value);
 
   template <typename domain_type>
-  void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
+  bool execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const func::function<Scalar, domain_type, DT>& f);
+  bool execute(const func::function<Scalar, domain_type, DT>& f);
 
   template <typename Scalar, typename domain_type, DistType DT>
-  void execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
+  bool execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f);
 
   template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, const dca::linalg::Vector<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  void execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
+  bool execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
   template <typename Scalar>
-  void execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
-    execute(A.get_name(), A);
+  bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
+    return execute(A.get_name(), A);
   }
 
   template <class T>
-  void execute(const std::string& name, const std::unique_ptr<T>& obj);
+  bool execute(const std::string& name, const std::unique_ptr<T>& obj);
 
   template <class T>
-  void execute(const std::unique_ptr<T>& obj);
+  bool execute(const std::unique_ptr<T>& obj);
 
-  void execute(const std::string& name, const io::Buffer& buffer) {
+  bool execute(const std::string& name, const io::Buffer& buffer) {
     return execute(name, static_cast<io::Buffer::Container>(buffer));
   }
+
+  void flush() {}
 
   operator bool() const noexcept {
     return static_cast<bool>(file_);
@@ -150,34 +152,37 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, Scalar value) {
+bool HDF5Writer::execute(const std::string& name, Scalar value) {
   const std::string full_name = get_path() + "/" + name;
   std::vector<hsize_t> dims{1};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value);
+  return true;
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
+bool HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
   std::string full_name = get_path() + "/" + name;
   std::vector<hsize_t> dims{2};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value.first);
+  return true;
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
-                         const std::vector<Scalar>& value)  //, H5File& file, std::string path)
-{
+bool HDF5Writer::execute(const std::string& name, const std::vector<Scalar>& value,
+                         [[maybe_unused]] const bool local) {
   if (value.size() > 0) {
     std::string full_name = get_path() + "/" + name;
     std::vector<hsize_t> dims{value.size()};
     write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+    return true;
   }
+  return false;
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
+bool HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
   std::string full_name = get_path() + "/" + name;
 
   std::vector<hvl_t> data(value.size());
@@ -189,46 +194,47 @@ void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<
   const auto type = H5::VarLenType(HDF5_TYPE<Scalar>::get_PredType());
 
   write(full_name, std::vector<hsize_t>{data.size()}, type, data.data());
+  return true;
 }
 
 template <typename Scalar, std::size_t n>
-void HDF5Writer::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
+bool HDF5Writer::execute(const std::string& name, const std::vector<std::array<Scalar, n>>& value) {
   if (value.size() == 0)
-    return;
+    return true;
 
   std::vector<hsize_t> dims{value.size(), n};
   std::string full_name = get_path() + "/" + name;
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
+  return true;
 }
 
 template <typename domain_type>
-void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
+bool HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
   execute("elements", dmn.get_elements());
 
   close_group();
+  return true;
 }
 
 template <typename Scalar, typename domain_type, DistType DT>
-void HDF5Writer::execute(const func::function<Scalar, domain_type, DT>& f) {
+bool HDF5Writer::execute(const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
-    return;
+    return true;
 
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
-  execute(f.get_name(), f);
+  return execute(f.get_name(), f);
 }
 
 template <typename Scalar, typename domain_type, DistType DT>
-void HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f) {
-
-
+bool HDF5Writer::execute(const std::string& name, const func::function<Scalar, domain_type, DT>& f) {
   if (f.size() == 0)
-    return;
+    return true;
 
   const std::string full_name = get_path() + "/" + name;
 
@@ -246,20 +252,22 @@ void HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   std::reverse(dims.begin(), dims.end());
   auto type = HDF5_TYPE<hsize_t>::get_PredType();
   addAttribute(dataset, "domain-sizes", std::vector<hsize_t>{dims.size()}, type, dims.data());
+  return true;
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
+bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
   std::string full_name = get_path() + "/" + name;
   auto dataset =
       write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
 
   addAttribute(dataset, "name", V.get_name());
+  return true;
 }
 
 template <typename Scalar>
-void HDF5Writer::execute(const std::string& name,
+bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
@@ -274,18 +282,21 @@ void HDF5Writer::execute(const std::string& name,
   auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 
   addAttribute(dataset, "name", A.get_name());
+  return true;
 }
 
 template <class T>
-void HDF5Writer::execute(const std::string& name, const std::unique_ptr<T>& obj) {
+bool HDF5Writer::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)
     execute(name, *obj);
+  return true;
 }
 
 template <class T>
-void HDF5Writer::execute(const std::unique_ptr<T>& obj) {
+bool HDF5Writer::execute(const std::unique_ptr<T>& obj) {
   if (obj)
     execute(*obj);
+  return true;
 }
 
 }  // namespace io

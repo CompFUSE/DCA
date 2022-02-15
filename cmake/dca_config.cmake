@@ -64,7 +64,7 @@ endif()
 
 ################################################################################
 # Extra parameters common to all GPU setups.
-if (DCA_WITH_GPU)
+if (DCA_HAVE_GPU)
   if (NOT DCA_HAVE_MAGMA)
     message(FATAL_ERROR "At the moment the GPU code requires MAGMA.")
   endif()

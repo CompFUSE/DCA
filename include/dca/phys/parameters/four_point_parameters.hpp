@@ -49,7 +49,6 @@ public:
   void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
   void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
-
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
@@ -57,12 +56,24 @@ public:
     return four_point_channels_;
   }
 
+  /** somehow ranks other than the head rank get four_point_channels == FourPointType::PARTICLE_HOLE_NONE
+   *  when the head node has no four point channels. This works around this bug.  \todo fix this.
+   */
   bool isAccumulatingG4() const {
-    return four_point_channels_.size();
+    if (four_point_channels_.size() > 0 && four_point_channels_[0] != FourPointType::PARTICLE_HOLE_NONE)
+      return true;
+    else
+      return false;
   }
 
+  /** problematic set function.
+   *  elsewhere in the code the size of FourPointTypes in four_point_channels_ is used to
+   *  determinine if tp_accumulation should be done. This creates a special case where
+   * PARTICLE_HOLE_NONE should never be added.
+   */
   void set_four_point_channel(FourPointType type) {
-    four_point_channels_ = std::vector<FourPointType>{type};
+    if (type != FourPointType::PARTICLE_HOLE_NONE)
+      four_point_channels_ = std::vector<FourPointType>{type};
   }
   void set_four_point_channels(const std::vector<FourPointType>& channels) {
     four_point_channels_ = channels;
@@ -107,8 +118,8 @@ public:
 private:
   std::vector<FourPointType> four_point_channels_;
   std::vector<double> four_point_momentum_transfer_input_;
-  int four_point_frequency_transfer_;
-  bool compute_all_transfers_;
+  int four_point_frequency_transfer_ = 0;
+  bool compute_all_transfers_ = false;;
 };
 
 template <int lattice_dimension>
@@ -147,44 +158,42 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
 template <int lattice_dimension>
 template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
-  reader_or_writer.open_group("four-point");
+  if (reader_or_writer.open_group("four-point")) {
+    
+    std::vector<std::string> channel_names;
+    const std::string channel_par_name = "channels";
+    if (ReaderOrWriter::is_reader) {
+      // Support legacy input files specifying a single channel name.
+      reader_or_writer.execute(channel_par_name, channel_names);
+      for (auto name : channel_names)
+        four_point_channels_.push_back(stringToFourPointType(name));
+      std::string legacy_channel_name; 
+      reader_or_writer.execute("type", legacy_channel_name);
+      if(!legacy_channel_name.empty())
+        four_point_channels_.push_back(stringToFourPointType(legacy_channel_name));
 
-  const std::string channel_par_name = "channels";
+      // Remove duplicates
+      std::sort(four_point_channels_.begin(), four_point_channels_.end());
+      four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()),
+                                 four_point_channels_.end());
+    }
 
-  std::vector<std::string> channel_names;
-  if (ReaderOrWriter::is_reader) {
-    // Support legacy input files specifying a single channel name.
-    std::string four_point_name = "NONE";
-    reader_or_writer.execute("type", four_point_name);
-    if (four_point_name != "NONE")
-      four_point_channels_.push_back(stringToFourPointType(four_point_name));
+    else {  // is writer.
+      for (auto channel : four_point_channels_)
+        channel_names.push_back(toString(channel));
+      reader_or_writer.execute(channel_par_name, channel_names);
+    }
 
-    reader_or_writer.execute(channel_par_name, channel_names);
-    for (auto name : channel_names)
-      four_point_channels_.push_back(stringToFourPointType(name));
+    reader_or_writer.execute("momentum-transfer", four_point_momentum_transfer_input_);
+    reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
+    reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
 
-    // Remove duplicates
-    std::sort(four_point_channels_.begin(), four_point_channels_.end());
-    four_point_channels_.erase(std::unique(four_point_channels_.begin(), four_point_channels_.end()),
-                               four_point_channels_.end());
-  }
-
-  else {  // is writer.
-    for (auto channel : four_point_channels_)
-      channel_names.push_back(toString(channel));
-
-    reader_or_writer.execute(channel_par_name, channel_names);
-  }
-
-  reader_or_writer.execute("momentum-transfer", four_point_momentum_transfer_input_);
-  reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
-  reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
-
-  reader_or_writer.close_group();
-
-  if (compute_all_transfers_ && four_point_frequency_transfer_ < 0)
+    if (compute_all_transfers_ && four_point_frequency_transfer_ < 0)
     throw(std::logic_error(
         "When compute-all-transfers is set, a greater than 0 frequency-transfer must be chosen."));
+
+  }
+  reader_or_writer.close_group();
 }
 
 }  // namespace params

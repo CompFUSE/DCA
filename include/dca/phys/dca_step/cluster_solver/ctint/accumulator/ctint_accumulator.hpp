@@ -58,7 +58,11 @@ public:
 
   void sumTo(this_type& other_acc);
 
+  const auto& get_sign() const { return sign_; }
+
   const auto& get_sign_times_M_r_w() const;
+
+  const auto& get_single_measurement_sign_times_M_r_w();
 
   const auto& get_sign_times_G4() const;
 
@@ -134,7 +138,7 @@ CtintAccumulator<Parameters, device, Real, DIST>::CtintAccumulator(const Paramet
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 void CtintAccumulator<Parameters, device, Real, DIST>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
-      parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
+    parameters_.isAccumulatingG4() && (dca_iteration == parameters_.get_dca_iterations() - 1);
   accumulated_order_.reset();
   accumulated_sign_.reset();
 
@@ -218,6 +222,11 @@ void CtintAccumulator<Parameters, device, Real, DIST>::finalize() {
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_M_r_w() const {
   return sp_accumulator_.get_sign_times_M_r_w();
+}
+
+template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
+const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_single_measurement_sign_times_M_r_w() {
+  return sp_accumulator_.get_single_measurement_sign_times_M_r_w();
 }
 
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>

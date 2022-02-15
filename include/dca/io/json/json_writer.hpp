@@ -39,13 +39,13 @@ public:
 
   // Creates or opens a pre-existing group.
   // Throws if there is a data entry with the same name in the current group.
-  void open_group(const std::string& name);
+  bool open_group(const std::string& name);
   // Closes the topmost open group.
   // Precondition: the current group is not the root.
   void close_group();
 
-  void begin_step() {};
-  void end_step() {};
+  void begin_step(){};
+  void end_step(){};
 
   constexpr static bool is_reader = false;
   constexpr static bool is_writer = true;
@@ -61,24 +61,26 @@ public:
 
   // Commits to the internal data representation the value of "obj".
   template <class T>
-  void execute(const std::string& name, const T& obj) noexcept;
+  bool execute(const std::string& name, const T& obj, [[maybe_unused]] const bool = false) noexcept;
   template <class Scalar, class Domain, DistType DT>
-  void execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
+  bool execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
   template <class Scalar>
-  void execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
+  bool execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
   template <class T>
-  void execute(const std::string& name, const std::unique_ptr<T>& ptr) noexcept {
+  bool execute(const std::string& name, const std::unique_ptr<T>& ptr) noexcept {
     if (ptr)
       execute(name, *ptr);
+    return true;
   }
   template <class T>
-  void execute(const T& f) noexcept {
-    execute(f.get_name(), f);
+  bool execute(const T& f) noexcept {
+    return execute(f.get_name(), f);
   }
   template <class T>
-  void execute(const std::unique_ptr<T>& f) noexcept {
+  bool execute(const std::unique_ptr<T>& f) noexcept {
     if (f)
       execute(f->get_name(), *f);
+    return true;
   }
 
 private:
@@ -90,12 +92,14 @@ private:
 };
 
 template <class T>
-void JSONWriter::execute(const std::string& name, const T& obj) noexcept {
+bool JSONWriter::execute(const std::string& name, const T& obj, [[maybe_unused]] const bool local) noexcept {
   open_groups_.top()->addEntry(name, obj);
+  return true;
 }
 
 template <class Scalar, class Domain, DistType DT>
-void JSONWriter::execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept {
+bool JSONWriter::execute(const std::string& name,
+                         const func::function<Scalar, Domain, DT>& f) noexcept {
   if (verbose_)
     std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
@@ -106,10 +110,11 @@ void JSONWriter::execute(const std::string& name, const func::function<Scalar, D
   execute("data", f.getValues());
 
   close_group();
+  return true;
 }
 
 template <class Scalar>
-void JSONWriter::execute(const std::string& name,
+bool JSONWriter::execute(const std::string& name,
                          const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept {
   open_group(name);
 
@@ -126,6 +131,7 @@ void JSONWriter::execute(const std::string& name,
   execute("data", data);
 
   close_group();
+  return true;
 }
 
 }  // namespace dca::io

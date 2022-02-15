@@ -15,7 +15,7 @@
 
 #include <mutex>
 
-#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/writer.hpp"
 #include "dca/math/statistics/autocorrelation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"

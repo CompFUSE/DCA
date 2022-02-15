@@ -57,6 +57,9 @@ public:
 
   typedef RClusterDmn r_dmn_t;
 
+  using MFunction =
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>;
+
   typedef func::dmn_variadic<nu, nu, r_dmn_t> p_dmn_t;
 
   typedef typename parameters_type::profiler_type profiler_type;
@@ -110,6 +113,10 @@ public:
     return GS_r_w;
   }
 
+  const auto& get_sign() const { return current_sign; }
+
+  const MFunction& get_single_measurement_sign_times_M_r_w();
+  
   void accumulate_length(walker_type& walker);
   void accumulate_overlap(walker_type& walker);
 
@@ -298,6 +305,11 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other
   other.get_visited_expansion_order_k() += visited_expansion_order_k;
 
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+const typename SsCtHybAccumulator<device_t, parameters_type, Data>::MFunction& SsCtHybAccumulator<device_t, parameters_type, Data>::get_single_measurement_sign_times_M_r_w() {
+  throw std::logic_error("SsCtHyb method doesn't traffic in M_r_w() developer error!");
 }
 
 }  // cthyb

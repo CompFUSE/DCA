@@ -54,11 +54,22 @@ public:
   using Real = typename config::McOptions::MCScalar;
   using Concurrency = typename Parameters::concurrency_type;
 
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
+  using KDmn = typename CDA::KClusterDmn;
+  using RDmn = typename CDA::RClusterDmn;
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using Nu = func::dmn_variadic<BDmn, SDmn>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
+  // There are too many independent definitions of this.
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
+
   using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
-                     const std::shared_ptr<io::Writer<Concurrency>>& writer);
+                     std::shared_ptr<io::Writer<Concurrency>> writer);
 
   ~CtintClusterSolver();
 
@@ -99,18 +110,8 @@ protected:  // thread jacket interface.
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t, Real, DIST>;
 
 private:
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
-  using KDmn = typename CDA::KClusterDmn;
-  using RDmn = typename CDA::RClusterDmn;
-  using Nu = func::dmn_variadic<BDmn, SDmn>;
   using TDmn = func::dmn_0<domains::time_domain>;
-  using WDmn = func::dmn_0<domains::frequency_domain>;
   using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
-
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<Nu, Nu, KDmn, WDmn>>;
 
 protected:  // Protected for testing purposes.
   void warmUp();
@@ -154,7 +155,7 @@ private:
 
 template <dca::linalg::DeviceType DEV, class PARAM, bool use_submatrix, DistType DIST>
 CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
-    PARAM& parameters_ref, Data& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
+    PARAM& parameters_ref, Data& data_ref, std::shared_ptr<io::Writer<Concurrency>> writer)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
@@ -266,13 +267,15 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   math::transform::FunctionTransform<WDmn, TDmn>::execute(G_k_w_copy, data_.G_k_t);
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
-
+  
   auto local_time = total_time_;
+  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_ << std::endl;
   concurrency_.sum(total_time_);
   auto gflop = accumulator_.getFLOPs() * 1e-9;
+  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_ << std::endl;
   concurrency_.sum(gflop);
 
-  if (concurrency_.id() == 0) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t Collected measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-local-time : " << local_time << " [sec]"
               << "\n\t\t\t QMC-total-time : " << total_time_ << " [sec]"
@@ -308,6 +311,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize(
   loop_data.MC_integration_per_mpi_task(dca_iteration_) = total_time_;  // This is already averaged.
   loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_;
 
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "About to do final iteration CtInt Finalize" << std::endl;
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     concurrency_.delayedSum(loop_data.Sigma_zero_moment);
     concurrency_.delayedSum(loop_data.standard_deviation);
@@ -365,7 +370,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeG_k_w(
     const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
   const int matrix_dim = Nu::dmn_size();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M(matrix_dim, matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M("GO_M_matrix", matrix_dim, matrix_dim);
 
   const char op = 'N';
   const double one_over_beta = 1. / parameters_.get_beta();

@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class executes the DCA(+) loop.
 
@@ -17,11 +18,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <variant>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/io/filesystem.hpp"
 #include "dca/io/writer.hpp"
+#include "dca/io/io_types.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -104,6 +107,7 @@ protected:
   concurrency_type& concurrency;
 #ifdef DCA_WITH_ADIOS2
   adios2::ADIOS adios_;
+  ;
 #endif
 
 private:
@@ -137,23 +141,32 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
-#ifdef DCA_WITH_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
       adios_("", concurrency_ref.get()),
 #endif
-      DCA_info_struct(),
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
+#ifdef DCA_HAVE_ADIOS2
+      output_file_(parameters.get_output_format() == "ADIOS2"
+                       ? std::make_shared<io::Writer<concurrency_type>>(
+                             adios_, concurrency_ref, parameters.get_output_format(), false)
+                       : (concurrency.id() == concurrency.first()
+                              ? std::make_shared<io::Writer<concurrency_type>>(
+                                    adios_, concurrency_ref, parameters.get_output_format(), false)
+                              : nullptr)),
+#else
       output_file_(concurrency.id() == concurrency.first()
                        ? std::make_shared<io::Writer<concurrency_type>>(
                              concurrency_ref, parameters.get_output_format(), false)
                        : nullptr),
+#endif
       monte_carlo_integrator_(parameters_ref, MOMS_ref, output_file_) {
-  if (concurrency.id() == concurrency.first()) {
-    file_name_ = parameters.get_directory() + parameters.get_filename_dca();
+  file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
+  if (concurrency.id() == concurrency.first()) {
     // dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
 
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
@@ -163,25 +176,28 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   if (concurrency.id() == concurrency.first()) {
-    output_file_->begin_step();
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_);
-    output_file_->end_step();
-    output_file_->close_file();
-    output_file_.reset();
 
-    // This should eventually just be a generic parallel write here.
-#ifdef DCA_WITH_ADIOS2
-    //MOMS.writeAdios(adios_);
-#endif
-
-    std::error_code code;
-    filesystem::rename(file_name_ + ".tmp", file_name_, code);
-    if (code) {
-      std::cerr << "Failed to rename file." << std::endl;
+    // None of this kludgy file shuffling with ADIOS2 each iteration is a step in the ADIOS2 output
+    if (output_file_ && !(output_file_->isADIOS2())) {
+      output_file_->close_file();
+      output_file_.reset();
+      std::error_code code;
+      filesystem::rename(file_name_ + ".tmp", file_name_, code);
+      if (code) {
+        std::cerr << "Failed to rename file." << std::endl;
+      }
     }
+  }
+
+  // For ADIOS2 every rank has an output_file_ so close them
+  // data.
+  if (output_file_ != nullptr && output_file_->isADIOS2()) {
+    concurrency.barrier();
+    output_file_->end_step();
   }
 }
 
@@ -191,8 +207,19 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
 
   if (parameters.autoresume()) {  // Try to read state of previous run.
-    last_completed =
-        DCA_info_struct.tryToRead(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
+    auto& dca_filename = parameters.get_filename_dca();
+    std::size_t extension_start = dca_filename.rfind('.');
+    std::string extension{dca_filename.substr(extension_start, dca_filename.size())};
+    std::cout << extension << '\n';
+    // This is not complete, how do we want to decide what format we are reading?  Just from output format?
+#ifdef DCA_HAVE_ADIOS2
+    if (io::stringToIOType(parameters.get_output_format()) == io::IOType::ADIOS2)
+      last_completed =
+          DCA_info_struct.readData(file_name_, parameters.get_output_format(), concurrency, adios_);
+    else
+#endif
+      last_completed =
+          DCA_info_struct.readData(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
   }
   if (last_completed >= 0) {
     if (concurrency.id() == concurrency.first())
@@ -200,16 +227,30 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
                 << std::endl;
 
     dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
+    #ifdef DCA_HAVE_ADIOS2
+    MOMS.initializeSigma(adios_, file_name_ + ".tmp");
+    #else
     MOMS.initializeSigma(file_name_ + ".tmp");
+    #endif
     perform_lattice_mapping();
   }
   else if (parameters.get_initial_self_energy() != "zero") {
+    #ifdef DCA_HAVE_ADIOS2
+    MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
+    #else
     MOMS.initializeSigma(parameters.get_initial_self_energy());
+    #endif 
     perform_lattice_mapping();
   }
 
-  if (concurrency.id() == concurrency.first()) {
-    output_file_->open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
+  // In ADIOS2 every rank has an output_file_ for the purposes of writing per rank
+  // or per configuration data.
+  if (output_file_ && output_file_->isADIOS2()) {
+    output_file_->open_file(file_name_, parameters.autoresume() ? false : true);
+  }
+  else {
+    if (concurrency.id() == concurrency.first())
+      output_file_->open_file(file_name_ + ".tmp", parameters.autoresume() ? false : true);
   }
 }
 
@@ -218,6 +259,9 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
   // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
+    if (output_file_ && output_file_->isADIOS2())
+      output_file_->begin_step();
+
     adjust_chemical_potential();
 
     perform_cluster_mapping();
@@ -235,6 +279,9 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     update_DCA_loop_data_functions(dca_iteration_);
     logSelfEnergy(dca_iteration_);  // Write a check point.
+
+    if (output_file_ && output_file_->isADIOS2())
+      output_file_->end_step();
 
     if (L2_Sigma_difference <
         parameters.get_dca_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
@@ -336,9 +383,17 @@ double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::solve_clust
     monte_carlo_integrator_.integrate();
   }
 
+  if (output_file_ && output_file_->isADIOS2())
+    output_file_->flush();
+
   {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "start Monte Carlo integration finalize.\n";
+
     profiler_type profiler("finalize cluster-solver", "DCA", __LINE__);
     double L2_Sigma_difference = monte_carlo_integrator_.finalize(DCA_info_struct);
+    if (concurrency.id() == concurrency.first())
+      std::cout << "Monte Carlo integration finalized.\n";
 
     return L2_Sigma_difference;
   }
@@ -400,7 +455,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy(int i) {
   DCA_info_struct.last_completed_iteration = i;
 
-  if (output_file_) {
+  if (output_file_ && concurrency.id() == concurrency.first()) {
     output_file_->open_group("functions");
     output_file_->execute(MOMS.Sigma);
     output_file_->close_group();

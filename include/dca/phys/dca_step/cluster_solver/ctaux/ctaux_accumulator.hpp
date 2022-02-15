@@ -47,7 +47,7 @@
 #ifdef DCA_HAVE_MPI
 //#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
 //#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
-#endif // DCA_HAVE_MPI
+#endif  // DCA_HAVE_MPI
 #endif  // DCA_HAVE_GPU
 
 namespace dca {
@@ -56,7 +56,8 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real = double>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST,
+          typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
@@ -135,8 +136,16 @@ public:
   }
 
   // sp-measurements
+  const auto& get_sign() const {
+    return current_sign;
+  }
+
   const auto& get_sign_times_M_r_w() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w();
+  }
+
+  const auto& get_single_measurement_sign_times_M_r_w() {
+    return single_particle_accumulator_obj.get_single_measurement_sign_times_M_r_w();
   }
 
   const auto& get_sign_times_M_r_w_sqr() const {
@@ -216,13 +225,13 @@ protected:
 
 /** This constructor takes a number of references for later convenience.
  *
- *  There is good possibility of initialization order issues here.  
- *  So its better the use the passed in parameters_ref and data_ref than their local references 
+ *  There is good possibility of initialization order issues here.
+ *  So its better the use the passed in parameters_ref and data_ref than their local references
  *  in the initializers.
  */
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
-CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(const Parameters& parameters_ref,
-                                                                     Data& data_ref, int id)
+CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::CtauxAccumulator(
+    const Parameters& parameters_ref, Data& data_ref, int id)
     : MC_accumulator_data(),
 
       parameters_(parameters_ref),

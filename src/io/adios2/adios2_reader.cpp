@@ -40,13 +40,11 @@ ADIOS2Reader<CT>::~ADIOS2Reader() {
     close_file();
 }
 
-
 template <class CT>
 void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
   if (verbose_) {
     std::cout << "\t ADIOS2Reader: Open for Read file : " << file_name << "\n";
   }
-
   io_name_ = file_name;
   file_name_ = file_name;
   io_ = adios_.DeclareIO(io_name_);
@@ -62,13 +60,14 @@ void ADIOS2Reader<CT>::close_file() {
 }
 
 template <class CT>
-void ADIOS2Reader<CT>::open_group(const std::string& name) {
+bool ADIOS2Reader<CT>::open_group(const std::string& name) {
   size_t len = name.size();
   // remove trailing / from name
   for (; name[len - 1] == '/'; --len)
     ;
 
   my_paths_.push_back(std::string(name, 0, len));
+  return true;
 }
 
 template <class CT>

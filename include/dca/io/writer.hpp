@@ -28,10 +28,27 @@ template <class Concurrency>
 class Writer {
 public:
   using CT = Concurrency;
-  // In: format. output format, HDF5 or JSON.
-  // In: verbose. If true, the writer outputs a short log whenever it is executed.
-  Writer(Concurrency& concurrency, const std::string& format, bool verbose = true)
-      : concurrency_(concurrency) {
+  using DCAWriterVariant = std::variant<io::HDF5Writer, io::JSONWriter
+#ifdef DCA_HAVE_ADIOS2
+                                        ,
+                                        io::ADIOS2Writer<Concurrency>
+#endif
+                                        >;
+  /** Constructor for writer, pretty tortured due to optional Adios2.
+   *  \param [in] format     output format: ADIOS2, HDF5 or JSON.
+   *  \param [in] verbose    If true, the writer outputs a short log whenever it is executed.
+   *  \param [in] adios      Global adios2 env.
+   */
+  Writer(
+#ifdef DCA_HAVE_ADIOS2
+      adios2::ADIOS& adios,
+#endif
+      Concurrency& concurrency, const std::string& format, bool verbose = true)
+      :
+#ifdef DCA_HAVE_ADIOS2
+        adios_(adios),
+#endif
+        concurrency_(concurrency) {
     if (format == "HDF5") {
       writer_.template emplace<io::HDF5Writer>(verbose);
     }
@@ -40,7 +57,7 @@ public:
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
-      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(&concurrency, verbose);
+      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(adios_, &concurrency_, verbose);
     }
 #endif
     else {
@@ -51,12 +68,26 @@ public:
   constexpr static bool is_reader = false;
   constexpr static bool is_writer = true;
 
+  DCAWriterVariant& getUnderlying() {
+    return writer_;
+  }
+
+#ifdef DCA_HAVE_ADIOS2
+  bool isADIOS2() {
+    return std::holds_alternative<io::ADIOS2Writer<Concurrency>>(writer_);
+  }
+#else
+  bool isADIOS2() {
+    return false;
+  }
+#endif
+
   void begin_step() {
-    std::visit([&](auto& var) { var.begin_step();}, writer_);
+    std::visit([&](auto& var) { var.begin_step(); }, writer_);
   }
 
   void end_step() {
-    std::visit([&](auto& var) { var.end_step();}, writer_);
+    std::visit([&](auto& var) { var.end_step(); }, writer_);
   }
 
   void open_file(const std::string& file_name, bool overwrite = true) {
@@ -67,54 +98,40 @@ public:
     std::visit([&](auto& var) { var.close_file(); }, writer_);
   }
 
-  void open_group(const std::string& new_path) {
-    std::visit([&](auto& var) { var.open_group(new_path); }, writer_);
+  /** For writing open_group is expected to always return true
+   */
+  bool open_group(const std::string& new_path) {
+    return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, writer_);
   }
+
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, writer_);
   }
 
+  void flush() {
+    std::visit([&](auto& var) { var.flush(); }, writer_);
+  }
+
   template <class... Args>
-  void execute(const Args&... args) {
-    // currently only the ADIOS2Writer supports parallel writes
-// #ifdef DCA_HAVE_ADIOS2
-//     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
-//       std::visit([&](auto& var) { var.execute(args...); }, writer_);
-//     }
-//     else {
-// #endif
-      if (concurrency_.id() == concurrency_.first()) {
-        std::visit([&](auto& var) { var.execute(args...); }, writer_);
-      }
-// #ifdef DCA_HAVE_ADIOS2
-//     }
-// #endif
+  bool execute(const Args&... args) {
+    return std::visit([&](auto& var) ->bool { return var.execute(args...); }, writer_);
+  }
+
+  template <class... Args>
+  void executePartial(const Args&... args) {
+    std::visit([&](auto& var) { var.executePartial(args...); }, writer_);
   }
 
   template <class... Args>
   void rewrite(const std::string& name, const Args&... args) {
-// #ifdef DCA_HAVE_ADIOS2
-//     if constexpr (std::is_same<decltype(writer_), ADIOS2Writer<Concurrency>>::value) {
-//       std::visit(
-//           [&](auto& var) {
-//             var.erase(name);
-//             var.execute(name, args...);
-//           },
-//           writer_);
-//     }
-//     else {
-// #endif
-      if (concurrency_.id() == concurrency_.first()) {
-        std::visit(
-            [&](auto& var) {
-              var.erase(name);
-              var.execute(name, args...);
-            },
-            writer_);
-      }
-// #ifdef DCA_HAVE_ADIOS2
-//     }
-// #endif
+    if (concurrency_.id() == concurrency_.first()) {
+      std::visit(
+          [&](auto& var) {
+            var.erase(name);
+            var.execute(name, args...);
+          },
+          writer_);
+    }
   }
 
   operator bool() const noexcept {
@@ -135,13 +152,10 @@ public:
 
 private:
   dca::parallel::thread_traits::mutex_type mutex_;
-  std::variant<io::HDF5Writer, io::JSONWriter
+  DCAWriterVariant writer_;
 #ifdef DCA_HAVE_ADIOS2
-               ,
-               io::ADIOS2Writer<Concurrency>
+  adios2::ADIOS& adios_;
 #endif
-               >
-      writer_;
   Concurrency& concurrency_;
 };
 

@@ -13,6 +13,10 @@
 #ifndef DCA_PARALLEL_NO_CONCURRENCY_SERIAL_PROCESSOR_GROUPING_HPP
 #define DCA_PARALLEL_NO_CONCURRENCY_SERIAL_PROCESSOR_GROUPING_HPP
 
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/dca_mpi.h"
+#endif
+
 namespace dca {
 namespace parallel {
 // dca::parallel::
@@ -35,7 +39,7 @@ public:
     return nr_threads_ - 1;
   }
 
-  auto get() {
+  auto get() const {
     return nullptr;
   }
 

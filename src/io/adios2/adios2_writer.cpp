@@ -15,12 +15,9 @@
 #include <fstream>
 #include <stdexcept>
 
-#include "dca/io/adios2/adios2_global.hpp"
-
 namespace dca {
 namespace io {
 // dca::io::
-
 
 template <class Concurrency>
 ADIOS2Writer<Concurrency>::ADIOS2Writer(adios2::ADIOS& adios, const Concurrency* concurrency,
@@ -28,20 +25,15 @@ ADIOS2Writer<Concurrency>::ADIOS2Writer(adios2::ADIOS& adios, const Concurrency*
     : adios_(adios), verbose_(verbose), concurrency_(concurrency) {
   if constexpr (std::is_same<decltype(concurrency_), dca::parallel::MPIConcurrency>::value) {
     std::cout << "AdiosWriter on MPI world:" << concurrency_->get_world_id()
-       << " of size: " << concurrency_->get_world_size() << '\n';
+              << " of size: " << concurrency_->get_world_size() << '\n';
     std::cout << "comm size: " << concurrency_->size() << " id: " << concurrency_->id() << '\n';
   }
-  
 }
 
-template <class CT>
-ADIOS2Writer<CT>::ADIOS2Writer(const CT* concurrency,
-                           bool verbose)
-  : adios_(GlobalAdios::getAdios()),
-      verbose_(verbose),
-      concurrency_(concurrency) {}
+// template <class CT>
+// ADIOS2Writer<CT>::ADIOS2Writer(const CT* concurrency, bool verbose)
+//     : adios_(GlobalAdios::getAdios()), verbose_(verbose), concurrency_(concurrency) {}
 
-  
 template <class Concurrency>
 ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
   if (file_)
@@ -51,12 +43,12 @@ ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::begin_step() {
   file_.BeginStep();
-    };
+};
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::end_step() {
   file_.EndStep();
-    };
-  
+};
+
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool overwrite) {
   adios2::Mode mode = (overwrite ? adios2::Mode::Write : adios2::Mode::Append);
@@ -65,11 +57,11 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
               << " file : " << file_name_ref << "\n";
     std::cout << "On world";
   }
-
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
-  file_ = io_.Open(file_name_, mode);
+
+  file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
   if (!file_) {
     std::ostringstream error_message;
@@ -82,18 +74,21 @@ template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
   if (file_) {
     file_.Close();
-    //This combined with overwrite seems to create issues.
     adios_.RemoveIO(io_name_);
+    //file_.Close();
+    // This combined with overwrite seems to create issues.
+    // adios_.RemoveIO(io_name_);
   }
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::open_group(const std::string& name) {
+bool ADIOS2Writer<Concurrency>::open_group(const std::string& name) {
   size_t len = name.size();
   // remove trailing / from name
   for (; name[len - 1] == '/'; --len)
     ;
   my_paths_.push_back(std::string(name, 0, len));
+  return true;
 }
 
 template <class Concurrency>
@@ -120,11 +115,11 @@ template <class Concurrency>
 void ADIOS2Writer<Concurrency>::erase(const std::string& name) {
   std::cout << "erase name: " << name << '\n';
   // infact we never erase since adios can just write another block for the variable.
-  //io_.RemoveVariable(name);
+  // io_.RemoveVariable(name);
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::string& value) {
+bool ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::string& value) {
   std::string full_name = get_path(name);
   if (value.size() == 0) {
     write(full_name, "");
@@ -132,10 +127,11 @@ void ADIOS2Writer<Concurrency>::execute(const std::string& name, const std::stri
   else {
     write(full_name, value);
   }
+  return true;
 }
 
 template <class Concurrency>
-void ADIOS2Writer<Concurrency>::execute(const std::string& name,
+bool ADIOS2Writer<Concurrency>::execute(const std::string& name,
                                         const std::vector<std::string>& value) {
   std::string full_name = get_path(name);
   if (value.size() == 0) {
@@ -148,6 +144,7 @@ void ADIOS2Writer<Concurrency>::execute(const std::string& name,
     // Store vector of string as attribute since it is not supported as variable
     io_.DefineAttribute(full_name, value.data(), value.size());
   }
+  return true;
 }
 
 template <class Concurrency>

@@ -31,7 +31,7 @@ FourPointType stringToFourPointType(const std::string& name) {
   else if (name == "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN")
     return FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN;
   else
-    throw std::logic_error("Invalid four point mode: " + name);
+    return FourPointType::PARTICLE_HOLE_NONE;
 }
 
 std::string toString(const FourPointType type) {
