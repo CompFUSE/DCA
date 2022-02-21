@@ -49,7 +49,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
   using Threading = dca::parallel::stdthread;
   using Parameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                    RngType, dca::phys::solver::CT_INT>;
+                                    RngType, dca::ClusterSolverId::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
   using BaseSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
   using QmcSolverType = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverType>;

@@ -51,7 +51,7 @@ TEST(HamiltonianTest, ConstructHamiltonian) {
   using Lattice = phys::models::square_lattice<phys::domains::D4>;
   using Model = phys::models::TightBindingModel<Lattice>;
   using Parameters = phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void,
-                                              phys::solver::CT_AUX>;  // CT_AUX is a placeholder.
+                                              ClusterSolverId::CT_AUX>;  // CT_AUX is a placeholder.
   using EdOptions = phys::solver::ed::Options<Parameters>;
 
   using OrbitalSpinDmn = func::dmn_variadic<func::dmn_0<phys::domains::electron_band_domain>,

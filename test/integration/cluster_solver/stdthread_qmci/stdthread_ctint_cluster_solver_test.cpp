@@ -45,7 +45,7 @@ using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using StdThreading = dca::parallel::stdthread;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::phys::solver::CT_INT>;
+                                                 Model, RngType, dca::ClusterSolverId::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;

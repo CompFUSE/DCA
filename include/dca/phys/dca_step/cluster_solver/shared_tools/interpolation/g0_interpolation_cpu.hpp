@@ -36,7 +36,9 @@ namespace solver {
 template <linalg::DeviceType device_t, typename Real>
 class G0Interpolation {};
 
-// ParametersDomain is a collection of discrete labels not involving the time.
+/** Does an akima spline based interpolation of G0
+ *  G0ParametersDomain is a collection of discrete labels not involving the time.
+ */
 template <typename Real>
 class G0Interpolation<dca::linalg::CPU, Real> {
 protected:

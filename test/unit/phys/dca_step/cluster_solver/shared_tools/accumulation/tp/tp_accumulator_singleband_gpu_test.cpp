@@ -35,7 +35,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuSinglebandTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 unsigned int loop_id = 0;
 

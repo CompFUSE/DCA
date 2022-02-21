@@ -598,7 +598,7 @@ void DcaData<Parameters, DT>::initialize_G0() {
 
 #ifdef DCA_HAVE_ADIOS2
 template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios,
+void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unused]],
                                               const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {    
     io::Reader reader(concurrency_, parameters_.get_output_format());

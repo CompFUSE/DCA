@@ -264,7 +264,7 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
   endif()
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
-  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
+  set(DCA_CLUSTER_SOLVER_NAME dca::ClusterSolverId::CT_AUX)
   set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType<DIST>, DIST>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")

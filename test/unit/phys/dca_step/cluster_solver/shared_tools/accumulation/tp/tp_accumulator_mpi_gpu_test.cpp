@@ -37,7 +37,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
+    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
 uint loop_counter = 0;
 

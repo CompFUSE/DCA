@@ -37,10 +37,14 @@ namespace ctint {
 template <class Parameters, linalg::DeviceType device, typename Real = double, DistType DIST = dca::DistType::NONE>
 class CtintAccumulator {
 public:
+  constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
   using this_type = CtintAccumulator<Parameters, device, Real, DIST>;
   using ParametersType = Parameters;
   using DataType = phys::DcaData<Parameters, DIST>;
-
+  using SpAccumulator = accumulator::SpAccumulator<Parameters, device, Real>;
+  // Same form as SpGreensFunction
+  using MFunction = typename SpAccumulator::MFunction;
+  
   template <class Data>
   CtintAccumulator(const Parameters& pars, const Data& data, int id = 0);
   CtintAccumulator(this_type&& other_one) = default;
@@ -62,8 +66,12 @@ public:
 
   const auto& get_sign_times_M_r_w() const;
 
-  const auto& get_single_measurement_sign_times_M_r_w();
+  const MFunction& get_single_measurement_sign_times_MFunction() {
+    return sp_accumulator_.get_single_measurement_sign_times_MFunction();
+  }
 
+  void clearSingleMeasurement();
+  
   const auto& get_sign_times_G4() const;
 
   double avgSign() const {
@@ -112,7 +120,7 @@ private:
 
   const int thread_id_;
 
-  accumulator::SpAccumulator<Parameters, device, Real> sp_accumulator_;
+  SpAccumulator sp_accumulator_;
   accumulator::TpAccumulator<Parameters, DIST, device> tp_accumulator_;
 
   bool perform_tp_accumulation_ = false;
@@ -143,6 +151,7 @@ void CtintAccumulator<Parameters, device, Real, DIST>::initialize(const int dca_
   accumulated_sign_.reset();
 
   sp_accumulator_.resetAccumulation();
+  sp_accumulator_.clearSingleMeasurement();
   if (perform_tp_accumulation_)
     tp_accumulator_.resetAccumulation(dca_iteration);
 
@@ -225,10 +234,10 @@ const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_M_r
 }
 
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
-const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_single_measurement_sign_times_M_r_w() {
-  return sp_accumulator_.get_single_measurement_sign_times_M_r_w();
+  void CtintAccumulator<Parameters, device, Real, DIST>::clearSingleMeasurement() {
+  sp_accumulator_.clearSingleMeasurement();
 }
-
+  
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_G4() const {
   if (!perform_tp_accumulation_)

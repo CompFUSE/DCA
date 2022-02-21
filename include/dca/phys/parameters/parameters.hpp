@@ -58,7 +58,7 @@ namespace params {
 // dca::phys::params::
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 class Parameters : public AnalysisParameters,
                    public DcaParameters,
                    public DomainsParameters,
@@ -144,7 +144,7 @@ private:
 };
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(),
@@ -176,7 +176,7 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 template <typename Writer>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::write(
     Writer& writer) {
@@ -223,7 +223,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 template <typename Reader>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::read_input_and_broadcast(const std::string& filename) {
@@ -238,14 +238,14 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_model() {
   Model::initialize(*this);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_domains() {
   domains::DCA_iteration_domain::initialize(*this);
@@ -311,7 +311,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                solver_name>::get_buffer_size(const Concurrency& concurrency) const {
   int buffer_size = 0;
@@ -332,7 +332,7 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::pack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   AnalysisParameters::pack(concurrency, buffer, buffer_size, position);
@@ -349,7 +349,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::unpack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   AnalysisParameters::unpack(concurrency, buffer, buffer_size, position);
@@ -366,7 +366,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 template <typename ReaderOrWriter>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::readWrite(
     ReaderOrWriter& reader_or_writer) {
@@ -398,7 +398,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
+          typename RandomNumberGenerator, ClusterSolverId solver_name>
 std::string Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                        solver_name>::make_python_readable(std::string str) {
   {

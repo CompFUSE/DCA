@@ -79,8 +79,11 @@ public:
   // Reset the counters and recompute the configuration sign and weight.
   void markThermalized();
 
-  // Recompute the matrix M from the configuration in O(expansion_order^3) time.
-  // Postcondition: sign_ and mc_log_weight_ are recomputed.
+  /** Recompute the matrix M from the configuration in O(expansion_order^3) time.
+   *  Postcondition: sign_ and mc_log_weight_ are recomputed.
+   *  mc_log_weight is the negative sum of the log det of both sectors of M
+   *  + log of the abs of each vertices interaction strength.
+   */
   virtual void setMFromConfig();
 
   bool is_thermalized() const {
@@ -167,6 +170,12 @@ public:
 
   static void sumConcurrency(const Concurrency&) {}
 
+  const auto& get_dmatrix_builder() const {
+    return *d_builder_ptr_;
+  }
+
+  void writeAlphas() const;
+
 protected:
   // typedefs
   using RDmn = typename Parameters::RClusterDmn;
@@ -221,8 +230,8 @@ private:
 };
 
 template <class Parameters, typename Real, DistType DIST>
-CtintWalkerBase<Parameters, Real, DIST>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
-                                                   int id)
+CtintWalkerBase<Parameters, Real, DIST>::CtintWalkerBase(const Parameters& parameters_ref,
+                                                         Rng& rng_ref, int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -279,12 +288,14 @@ void CtintWalkerBase<Parameters, Real, DIST>::setMFromConfig() {
 
     if (M.nrRows()) {
       const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
-      mc_log_weight_ -= log_det; // Weight proportional to det(M^{-1})
+      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
       sign_ *= sign;
     }
   }
 
+  // So what is going on here.
   for (int i = 0; i < configuration_.size(); ++i) {
+    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
     const Real term = -configuration_.getStrength(i);
     mc_log_weight_ += std::log(std::abs(term));
     if (term < 0)
@@ -302,6 +313,22 @@ void CtintWalkerBase<Parameters, Real, DIST>::updateSweepAverages() {
 }
 
 template <class Parameters, typename Real, DistType DIST>
+void CtintWalkerBase<Parameters, Real, DIST>::writeAlphas() const {
+  std::cout << "For initial configuration integration:\n";
+  for (int isec = 0; isec < 2; ++isec) {
+    std::cout << "Sector: " << isec << '\n';
+    for (int ic = 0; ic < order(); ++ic) {
+      auto aux_spin = configuration_.getSector(isec).getAuxFieldType(ic);
+      auto left_b = configuration_.getSector(isec).getLeftB(ic);
+      auto alpha_left = get_dmatrix_builder().computeAlpha(aux_spin, left_b);
+      std::cout << "vertex: " << std::setw(6) << ic;
+      std::cout << " | aux spin: " << aux_spin << " | left B: " << left_b
+                << " | alpha left = " << alpha_left << '\n';
+    }
+  }
+}
+
+template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::markThermalized() {
   thermalized_ = true;
 
@@ -314,6 +341,9 @@ void CtintWalkerBase<Parameters, Real, DIST>::markThermalized() {
 
   // Recompute the Monte Carlo weight.
   setMFromConfig();
+#ifndef NDEBUG
+  writeAlphas();
+#endif
 }
 
 template <class Parameters, typename Real, DistType DIST>
@@ -364,14 +394,14 @@ void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixBuilder(
 
 template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixAlpha(const std::array<double, 3>& alphas,
-                                                        bool adjust_dd) {
+                                                              bool adjust_dd) {
   assert(d_builder_ptr_);
   d_builder_ptr_->setAlphas(alphas, adjust_dd);
 }
 
 template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::setInteractionVertices(const Data& data,
-                                                               const Parameters& parameters) {
+                                                                     const Parameters& parameters) {
   vertices_.reset();
   vertices_.initialize(parameters.getDoubleUpdateProbability(), parameters.getAllSitesPartnership());
   vertices_.initializeFromHamiltonian(data.H_interactions);

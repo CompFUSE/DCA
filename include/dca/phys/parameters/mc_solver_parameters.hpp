@@ -19,7 +19,7 @@
 #include <array>
 #include <iostream>
 #include <stdexcept>
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 
 namespace dca {
 namespace phys {
@@ -27,12 +27,12 @@ namespace params {
 // dca::phys::params::
 
 // Empty class template
-template <solver::ClusterSolverName solver_name>
+template <ClusterSolverId solver_name>
 class McSolverParameters {};
 
 // Specialization for CT-AUX
 template <>
-class McSolverParameters<solver::CT_AUX> {
+class McSolverParameters<ClusterSolverId::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
@@ -84,7 +84,7 @@ private:
 };
 
 template <typename Concurrency>
-int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurrency) const {
+int McSolverParameters<ClusterSolverId::CT_AUX>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(expansion_parameter_K_);
@@ -98,7 +98,7 @@ int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurr
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::CT_AUX>::pack(const Concurrency& concurrency, char* buffer,
                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
@@ -109,7 +109,7 @@ void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, ch
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::CT_AUX>::unpack(const Concurrency& concurrency, char* buffer,
                                                 int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
@@ -121,7 +121,7 @@ void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, 
 
 // TODO: None of the open_group methods seem to throw.
 template <typename ReaderOrWriter>
-void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_writer) {
+void McSolverParameters<ClusterSolverId::CT_AUX>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("CT-AUX");
 
@@ -164,7 +164,7 @@ void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_wri
 
 // Specialization for SS-CT-HYB
 template <>
-class McSolverParameters<solver::SS_CT_HYB> {
+class McSolverParameters<ClusterSolverId::SS_CT_HYB> {
 public:
   McSolverParameters()
       : self_energy_tail_cutoff_(0), steps_per_sweep_(0.5), shifts_per_sweep_(0.5) {}
@@ -196,7 +196,7 @@ private:
 };
 
 template <typename Concurrency>
-int McSolverParameters<solver::SS_CT_HYB>::getBufferSize(const Concurrency& concurrency) const {
+int McSolverParameters<ClusterSolverId::SS_CT_HYB>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(self_energy_tail_cutoff_);
@@ -207,7 +207,7 @@ int McSolverParameters<solver::SS_CT_HYB>::getBufferSize(const Concurrency& conc
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::SS_CT_HYB>::pack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::SS_CT_HYB>::pack(const Concurrency& concurrency, char* buffer,
                                                  int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.pack(buffer, buffer_size, position, steps_per_sweep_);
@@ -215,7 +215,7 @@ void McSolverParameters<solver::SS_CT_HYB>::pack(const Concurrency& concurrency,
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::SS_CT_HYB>::unpack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::SS_CT_HYB>::unpack(const Concurrency& concurrency, char* buffer,
                                                    int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.unpack(buffer, buffer_size, position, steps_per_sweep_);
@@ -223,7 +223,7 @@ void McSolverParameters<solver::SS_CT_HYB>::unpack(const Concurrency& concurrenc
 }
 
 template <typename ReaderOrWriter>
-void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_writer) {
+void McSolverParameters<ClusterSolverId::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("SS-CT-HYB");
 
@@ -251,7 +251,7 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
 
 // Specialization for CT-INT
 template <>
-class McSolverParameters<solver::CT_INT> {
+class McSolverParameters<ClusterSolverId::CT_INT> {
 public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -311,7 +311,7 @@ private:
 };
 
 template <typename Concurrency>
-int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurrency) const {
+int McSolverParameters<ClusterSolverId::CT_INT>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
   buffer_size += concurrency.get_buffer_size(initial_configuration_size_);
   buffer_size += concurrency.get_buffer_size(alpha_dd_pos_);
@@ -326,7 +326,7 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::CT_INT>::pack(const Concurrency& concurrency, char* buffer,
                                               const int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.pack(buffer, buffer_size, position, alpha_dd_pos_);
@@ -339,7 +339,7 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, char* buffer,
+void McSolverParameters<ClusterSolverId::CT_INT>::unpack(const Concurrency& concurrency, char* buffer,
                                                 const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_pos_);
@@ -352,7 +352,7 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
 }
 
 template <typename ReaderOrWriter>
-void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_writer) {
+void McSolverParameters<ClusterSolverId::CT_INT>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     // TODO: None of the open_group methods seem to throw.
     reader_or_writer.open_group("CT-INT");

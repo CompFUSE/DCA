@@ -24,6 +24,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/gpu_event.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
@@ -60,6 +61,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
           typename Real = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
+  static constexpr  ClusterSolverId solver_id{ClusterSolverId::CT_AUX};
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
   using TpAccumulator = accumulator::TpAccumulator<Parameters, DIST, device_t>;
   using ParametersType = Parameters;
@@ -85,6 +87,8 @@ public:
 
   typedef typename Parameters::profiler_type profiler_type;
   typedef typename Parameters::concurrency_type concurrency_type;
+
+  using MFunction = typename accumulator::SpAccumulator<Parameters, device_t, Real>::MFunction;
 
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
@@ -144,10 +148,12 @@ public:
     return single_particle_accumulator_obj.get_sign_times_M_r_w();
   }
 
-  const auto& get_single_measurement_sign_times_M_r_w() {
-    return single_particle_accumulator_obj.get_single_measurement_sign_times_M_r_w();
+  const MFunction& get_single_measurement_sign_times_MFunction() {
+    return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction();
   }
 
+  void clearSingleMeasurement();
+  
   const auto& get_sign_times_M_r_w_sqr() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w_sqr();
   }
@@ -271,6 +277,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dc
     visited_expansion_order_k(i) = 0;
 
   single_particle_accumulator_obj.resetAccumulation();
+  single_particle_accumulator_obj.clearSingleMeasurement();
 
   if (perform_tp_accumulation_)
     two_particle_accumulator_.resetAccumulation(dca_iteration);
@@ -446,6 +453,11 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::accumulate_single
   GFLOP += 2. * 8. * M_[0].size().first * M_[0].size().first * (1.e-9);
 }
 
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
+void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::clearSingleMeasurement() {
+  single_particle_accumulator_obj.clearSingleMeasurement();
+}
+  
 /*************************************************************
  **                                                         **
  **                 equal-time - MEASUREMENTS               **

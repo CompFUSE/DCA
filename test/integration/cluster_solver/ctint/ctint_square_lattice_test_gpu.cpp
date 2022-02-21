@@ -42,7 +42,7 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::phys::solver::CT_INT>;
+                                                 Model, RngType, dca::ClusterSolverId::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 
 TEST(SquareLatticeTest, GpuSolver) {

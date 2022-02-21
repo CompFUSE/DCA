@@ -58,6 +58,7 @@ public:
     return last_iteration_;
   }
 
+  std::size_t get_meas_id() const { return meas_id_; }
 private:
   void logConfiguration() const;
 
@@ -145,8 +146,8 @@ public:
       : QmciWalker(parameters_ref, data_ref, rng, id),
         QmciAutocorrelationData<cthyb::SsCtHybWalker<device, Parameters, DATA>>(parameters_ref, id,
                                                                                 g0),
-        concurrency_id_(concurrency_id),
         thread_id_(id),
+        concurrency_id_(concurrency_id),
         writer_(writer)
   {}
 
@@ -156,6 +157,9 @@ public:
     return thread_id_;
   }
 
+  std::size_t get_meas_id() const {
+    return 0;
+  }
 private:
   int thread_id_;
   int concurrency_id_;

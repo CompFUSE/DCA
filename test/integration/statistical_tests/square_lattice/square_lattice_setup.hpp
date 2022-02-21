@@ -58,8 +58,8 @@ using Model =
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
 using dca::phys::solver::ClusterSolverName;
-using dca::phys::solver::CT_AUX;
-using dca::phys::solver::CT_INT;
+using dca::ClusterSolverId::CT_AUX;
+using dca::ClusterSolverId::CT_INT;
 
 template <ClusterSolverName CS_NAME = CT_AUX>
 using ParametersType =

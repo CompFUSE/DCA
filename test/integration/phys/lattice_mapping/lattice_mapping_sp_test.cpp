@@ -28,7 +28,7 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -54,7 +54,7 @@ protected:
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, Threading, profiling::NullProfiler, Model,
-                               void /*RandomNumberGenerator*/, phys::solver::CT_AUX>;
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
   using KClusterDmn = func::dmn_0<
       phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
                                     phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;

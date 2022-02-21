@@ -28,6 +28,7 @@
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/accumulator/ctint_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
@@ -51,6 +52,8 @@ template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = fa
           DistType DIST = DistType::NONE>
 class CtintClusterSolver {
 public:
+  static constexpr ClusterSolverId solver_type{ClusterSolverId::CT_INT};
+
   using Real = typename config::McOptions::MCScalar;
   using Concurrency = typename Parameters::concurrency_type;
 
@@ -76,7 +79,7 @@ public:
   // Initialize g0_interpolation and reset internal state. Must be called before integrate.
   void initialize(int dca_iteration = 0);
 
-  // Monte Carlo walk and accumulation.
+  // Not actually called if stdthread_qmci is used! Monte Carlo walk and accumulation.
   void integrate();
 
   // gather the walker's measurements and average them across the processes.
@@ -145,6 +148,7 @@ protected:
   std::shared_ptr<io::Writer<Concurrency>> writer_;
 
   G0Interpolation<device_t, typename Walker::Scalar> g0_;
+
 private:
   bool perform_tp_accumulation_;
   const LabelDomain label_dmn_;
@@ -162,8 +166,7 @@ CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
 
       accumulator_(parameters_, data_),
       writer_(writer),
-      rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed())
-{
+      rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
   Walker::setDMatrixBuilder(g0_);
   Walker::setInteractionVertices(data_, parameters_);
 
@@ -267,12 +270,14 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   math::transform::FunctionTransform<WDmn, TDmn>::execute(G_k_w_copy, data_.G_k_t);
   data_.G_k_t += data_.G0_k_t_cluster_excluded;
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
-  
+
   auto local_time = total_time_;
-  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_ << std::endl;
+  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_
+            << std::endl;
   concurrency_.sum(total_time_);
   auto gflop = accumulator_.getFLOPs() * 1e-9;
-  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_ << std::endl;
+  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_
+            << std::endl;
   concurrency_.sum(gflop);
 
   if (concurrency_.id() == concurrency_.first()) {
@@ -370,7 +375,8 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeG_k_w(
     const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
   const int matrix_dim = Nu::dmn_size();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M("GO_M_matrix", matrix_dim, matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M("GO_M_matrix", matrix_dim,
+                                                                   matrix_dim);
 
   const char op = 'N';
   const double one_over_beta = 1. / parameters_.get_beta();

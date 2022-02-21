@@ -42,7 +42,7 @@ namespace accumulator {
 template <class Parameters, typename Real>
 class SpAccumulator<Parameters, linalg::GPU, Real>
     : public SpAccumulator<Parameters, linalg::CPU, Real> {
-private:
+public:
   using BaseClass = SpAccumulator<Parameters, linalg::CPU, Real>;
 
   using typename BaseClass::BDmn;
@@ -51,6 +51,16 @@ private:
   using typename BaseClass::WDmn;
 
   using typename BaseClass::Profiler;
+
+  using BaseClass::accumulate_m_sqr_;
+  using BaseClass::finalized_;
+  using BaseClass::M_r_w_;
+  using BaseClass::M_r_w_sqr_;
+  using BaseClass::single_measurement_M_r_w_;
+  using BaseClass::oversampling;
+  using BaseClass::parameters_;
+  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
+  using MFunction = typename BaseClass::MFunction;
 
 public:
   SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
@@ -92,16 +102,6 @@ public:
   const auto& get_single_measurement_sign_times_M_r_w();
 
 private:
-  using BaseClass::accumulate_m_sqr_;
-  using BaseClass::finalized_;
-  using BaseClass::M_r_w_;
-  using BaseClass::M_r_w_sqr_;
-  using BaseClass::single_measurement_M_r_w_;
-  using BaseClass::oversampling;
-  using BaseClass::parameters_;
-  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
-  using MFunction = typename BaseClass::MFunction;
-
   void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function);
 
   std::array<linalg::util::GpuStream, 2> streams_;
@@ -218,6 +218,9 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalizeFunction(std::array<N
   }
 }
 
+/** get M_r_w_ for a single configuration.
+ *  This is quite unoptimized, a heap allocation in incurred every time.
+ */
 template <class Parameters, typename Real>
 const auto& SpAccumulator<Parameters, linalg::GPU, Real>::get_single_measurement_sign_times_M_r_w() {
   single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));

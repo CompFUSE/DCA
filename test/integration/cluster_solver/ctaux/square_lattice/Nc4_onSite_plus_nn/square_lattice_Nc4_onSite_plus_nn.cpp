@@ -53,7 +53,7 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::phys::solver::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;

@@ -35,7 +35,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using G4FileIoTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
+    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
 // Since we are not going to put a 1.6G file in the repo this has different logic from tp_accumulator_test.cpp
 

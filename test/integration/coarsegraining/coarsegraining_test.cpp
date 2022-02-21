@@ -59,11 +59,11 @@ using Model2 = dca::phys::models::TightBindingModel<
 
 #ifdef UPDATE_BASELINE
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model1, void, dca::phys::solver::CT_AUX>;
+                                                 Model1, void, dca::ClusterSolverId::CT_AUX>;
 const std::string input = input_dir + "input_singleband.json";
 #else
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model2, void, dca::phys::solver::CT_AUX>;
+                                                 Model2, void, dca::ClusterSolverId::CT_AUX>;
 const std::string input = input_dir + "input_bilayer.json";
 #endif  // UPDATE_BASELINE
 

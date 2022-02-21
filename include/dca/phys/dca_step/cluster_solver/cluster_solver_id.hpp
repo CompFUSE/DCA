@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file defines the different types of cluster solvers.
 
@@ -13,14 +14,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_NAME_HPP
 
 namespace dca {
-namespace phys {
-namespace solver {
-// dca::phys::solver::
-
-enum ClusterSolverName { CT_AUX, SS_CT_HYB, CT_INT, ED_ADVANCED, HIGH_TEMPERATURE_SERIES };
-
-}  // solver
-}  // phys
+enum class ClusterSolverId { CT_AUX, SS_CT_HYB, CT_INT, ED_ADVANCED, HIGH_TEMPERATURE_SERIES };
 }  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_NAME_HPP

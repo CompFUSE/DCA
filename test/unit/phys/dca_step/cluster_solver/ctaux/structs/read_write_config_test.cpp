@@ -9,7 +9,7 @@
 //
 // This file tests the reading and writing of the CT-AUX configuration to a buffer.
 
-#include <dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp>
+#include <dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/read_write_config.hpp"
 
 #include "gtest/gtest.h"
@@ -22,7 +22,7 @@ constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctaux/structs/input.json";
 
 using ReadWriteConfigTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_name>;
+    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_name>;
 
 TEST_F(ReadWriteConfigTest, All) {
   std::vector<double> random(100);

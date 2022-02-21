@@ -46,7 +46,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   using Concurrency = dca::parallel::NoConcurrency;
   using Parameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                    RngType, dca::phys::solver::CT_INT>;
+                                    RngType, dca::ClusterSolverId::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, dca::linalg::CPU, double>;
   using WalkerSub =

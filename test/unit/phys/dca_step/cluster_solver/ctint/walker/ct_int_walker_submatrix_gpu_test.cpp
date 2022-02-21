@@ -29,7 +29,7 @@ constexpr char input_name[] =
 
 template <typename Real>
 using CtintWalkerSubmatrixGpuTest =
-    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT, input_name>;
+    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
 
 using namespace dca::phys::solver;
 

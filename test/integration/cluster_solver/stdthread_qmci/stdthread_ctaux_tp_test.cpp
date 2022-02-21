@@ -50,7 +50,7 @@ using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::phys::solver::CT_AUX>;
+                                                 Model, RngType, dca::ClusterSolverId::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;

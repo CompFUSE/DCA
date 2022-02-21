@@ -31,7 +31,7 @@
 constexpr char input_file[] = INPUT_DIR "input_tp_accumulator_particle_hole_test.json";
 
 using TpAccumulatorTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;

@@ -29,6 +29,7 @@ namespace stdthreadqmci {
 
 template <class QmciAccumulator, class SpGreensFunction>
 class StdThreadQmciAccumulator : public QmciAccumulator {
+public:
   using ThisType = StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>;
   using Parameters = typename QmciAccumulator::ParametersType;
   using Concurrency = typename Parameters::concurrency_type;
@@ -36,8 +37,8 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using KDmn = typename CDA::KClusterDmn;
   using RDmn = typename CDA::RClusterDmn;
+  using MFunction = typename QmciAccumulator::MFunction;
 
-public:
   StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id,
                            std::shared_ptr<io::Writer<Concurrency>> writer);
 
@@ -60,9 +61,9 @@ public:
   // accumulator.
   void sumTo(QmciAccumulator& other);
 
-  const auto& get_single_measurment_sign_times_M_r_w() {
-    return QmciAccumulator::get_single_measurment_sign_times_M_r_w();
-  };
+  void clearSingleMeasurementM_r_t() {
+    QmciAccumulator::clearSingleMeasurement();
+  }
   // Signals that this object will not need to perform any more accumulation.
   void notifyDone();
 
@@ -91,6 +92,8 @@ private:
   const unsigned stamping_period_;
   std::shared_ptr<io::Writer<Concurrency>> writer_;
   const Data& data_ref_;
+  // Temp hack to deal with vexing ss_ct_hyb build issue
+  MFunction dummy_mfunc;
 };
 
 template <class QmciAccumulator, class SpGreensFunction>
