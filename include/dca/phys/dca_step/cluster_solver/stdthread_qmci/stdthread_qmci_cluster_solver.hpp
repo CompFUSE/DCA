@@ -398,7 +398,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
       f(meas_id, n_local_meas, print);
   }
   else {
-    throw std::runtime_error("Non fixed_meas_per_walker accumulation is suspect and disabled at this time.");
+    throw std::runtime_error("Non fix-meas-per-walker accumulation is suspect and disabled at this time.");
     // Perform the total number of loop with a shared atomic counter.
     // for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
     //   f(meas_id, n_local_meas, print);

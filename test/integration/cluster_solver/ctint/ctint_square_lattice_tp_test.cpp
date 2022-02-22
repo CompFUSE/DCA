@@ -9,6 +9,9 @@
 //
 // No-change test for CT-INT.
 // Square lattice with single band and double occupancy repulsion U.
+
+// This test has been known to hang when exceptions are thrown.
+
 #include <iostream>
 #include <string>
 
