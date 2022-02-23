@@ -125,9 +125,9 @@ TEST_P(LatticeMappingSpTest, Execute) {
   // Compate with baseline.
   for (int i = 0; i < sigma_lattice_.size(); ++i) {
     EXPECT_NEAR(sigma_lattice_baseline_(i).real(), sigma_lattice_(i).real(),
-                500 * std::numeric_limits<double>::epsilon());
+                1000 * std::numeric_limits<double>::epsilon());
     EXPECT_NEAR(sigma_lattice_baseline_(i).imag(), sigma_lattice_(i).imag(),
-                500 * std::numeric_limits<double>::epsilon());
+                1000 * std::numeric_limits<double>::epsilon());
   }
 
   for (int i = 0; i < sigma_lattice_interpolated_.size(); ++i) {
