@@ -18,6 +18,7 @@
 #define DCA_MATH_RANDOM_STD_RANDOM_WRAPPER_HPP
 
 #include <cstdint>  // for uint64_t
+#include <iostream>
 #include <random>
 #include "dca/math/random/random_utils.hpp"
 
@@ -35,7 +36,11 @@ public:
         initial_seed_(seed),
         seed_(detail::generateSeed(global_id_, seed)),
         engine_(seed_),
-        distro_(0., 1.) {}
+        distro_(0., 1.) {
+#ifndef NDEBUG
+    std::cout << "Generated Rng with global id: " << global_id_ << " and seed: " << seed_ << '\n';
+#endif
+  }
 
   // Make the random number generator object non-copyable, but move-constructible.
   // The implicit move assignment operator is deleted since with we have non-static const members.
@@ -70,7 +75,8 @@ public:
 
   void discard(unsigned long long num_discard) {
     engine_.discard(num_discard);
-  }  
+  }
+
 private:
   static int counter_;
 
@@ -90,8 +96,8 @@ int StdRandomWrapper<Engine>::counter_ = 0;
 template <typename UIntType, UIntType a, UIntType c, UIntType m>
 class StdRandomWrapper<std::linear_congruential_engine<UIntType, a, c, m>>;
 
-}  // random
-}  // math
-}  // dca
+}  // namespace random
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_RANDOM_STD_RANDOM_WRAPPER_HPP
