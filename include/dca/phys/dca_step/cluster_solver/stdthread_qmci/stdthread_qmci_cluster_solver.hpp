@@ -86,8 +86,8 @@ public:
 
 private:
   void startWalker(int id);
-  void startAccumulator(int id);
-  void startWalkerAndAccumulator(int id);
+  void startAccumulator(int id, const Parameters& parameters);
+  void startWalkerAndAccumulator(int id, const Parameters& parameters);
 
   void initializeAndWarmUp(Walker& walker, int id, int walker_id);
 
@@ -216,9 +216,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
     if (thread_task_handler_.getTask(i) == "walker")
       futures.emplace_back(pool.enqueue(&ThisType::startWalker, this, i));
     else if (thread_task_handler_.getTask(i) == "accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::startAccumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::startAccumulator, this, i, parameters_));
     else if (thread_task_handler_.getTask(i) == "walker and accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::startWalkerAndAccumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::startWalkerAndAccumulator, this, i, parameters_));
     else
       throw std::logic_error("Thread task is undefined.");
   }
@@ -434,7 +434,7 @@ auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(cons
 }
 
 template <class QmciSolver>
-void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
+void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Parameters& parameters) {
   Profiler::start_threading(id);
 
   auto accumulator_log = last_iteration_ ? BaseClass::writer_ : nullptr;
@@ -465,6 +465,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
         if (last_iteration_) {
           auto [M_r_w, sign] = getSingleMFunc(accumulator_obj);
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_r_w, sign);
+          if(parameters.per_measurement_MFunction())
+            accumulator_obj.logPerConfigurationMFunction(M_r_w);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }
@@ -499,7 +501,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
 }
 
 template <class QmciSolver>
-void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
+void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, const Parameters& parameters) {
   Profiler::start_threading(id);
 
   // Create and warm a walker.
@@ -533,6 +535,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
         if (last_iteration_) {
           auto [M_r_w, sign] = getSingleMFunc(accumulator_obj);
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_r_w, sign);
+          if(parameters.per_measurement_MFunction())
+            accumulator_obj.logPerConfigurationMFunction(M_r_w);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }

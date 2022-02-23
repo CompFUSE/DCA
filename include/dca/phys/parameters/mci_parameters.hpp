@@ -78,7 +78,6 @@ public:
     std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
 
-  
   int get_walkers() const {
     return walkers_;
   }
@@ -89,7 +88,7 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
-    // Maximum distance (in MC time) considered when computing the correlation between configurations.
+  // Maximum distance (in MC time) considered when computing the correlation between configurations.
   int get_time_correlation_window() const {
     return time_correlation_window_;
   }
@@ -127,6 +126,9 @@ public:
   int stamping_period() const {
     return stamping_period_;
   }
+  bool per_measurement_MFunction() const {
+    return per_measurement_MFunction_;
+  }
 
 protected:
   // Resize vector arguments to have the same size as the number of iterations.
@@ -159,6 +161,7 @@ private:
   bool store_configuration_;
   DistType g4_distribution_;
   int stamping_period_ = 0;
+  bool per_measurement_MFunction_ = false;
 };
 
 template <typename Concurrency>
@@ -182,7 +185,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(store_configuration_);
   buffer_size += concurrency.get_buffer_size(g4_distribution_);
   buffer_size += concurrency.get_buffer_size(stamping_period_);
-
+  buffer_size += concurrency.get_buffer_size(per_measurement_MFunction_);
   return buffer_size;
 }
 
@@ -206,6 +209,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, store_configuration_);
   concurrency.pack(buffer, buffer_size, position, g4_distribution_);
   concurrency.pack(buffer, buffer_size, position, stamping_period_);
+  concurrency.pack(buffer, buffer_size, position, per_measurement_MFunction_);
 }
 
 template <typename Concurrency>
@@ -228,6 +232,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, store_configuration_);
   concurrency.unpack(buffer, buffer_size, position, g4_distribution_);
   concurrency.unpack(buffer, buffer_size, position, stamping_period_);
+  concurrency.unpack(buffer, buffer_size, position, per_measurement_MFunction_);
 }
 
 template <typename ReaderOrWriter>
@@ -283,6 +288,9 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.execute("time-correlation-window", time_correlation_window_);
   reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
   reader_or_writer.execute("stamping-period", stamping_period_);
+  reader_or_writer.execute("per-measurement-MFunction", per_measurement_MFunction_);
+  reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
+
   reader_or_writer.execute("store-configuration", store_configuration_);
 
   // Read arguments for threaded solver.
@@ -333,7 +341,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 #endif  // DCA_HAVE_MPI
 
     // Solve conflicts
-    if(!time_correlation_window_)
+    if (!time_correlation_window_)
       compute_G_correlation_ = false;
   }
 }  // namespace params
@@ -347,7 +355,7 @@ void MciParameters::solveDcaIterationConflict(int iterations) {
 }
 
 void MciParameters::solveConfigReadConflict(bool read) {
-  if(read)
+  if (read)
     store_configuration_ = true;
 }
 

@@ -224,8 +224,8 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalizeFunction(std::array<N
 template <class Parameters, typename Real>
 const auto& SpAccumulator<Parameters, linalg::GPU, Real>::get_single_measurement_sign_times_M_r_w() {
   single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
+  single_measurement_M_r_t_.synchronizeCopy();
   finalizeFunction(single_measurement_M_r_t_, *single_measurement_M_r_w_);
-
   return *single_measurement_M_r_w_;
 }
 
