@@ -63,6 +63,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
 
   }
 
+  // This purposefully shadows
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);
   }
