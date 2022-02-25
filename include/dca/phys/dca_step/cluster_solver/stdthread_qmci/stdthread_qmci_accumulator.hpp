@@ -54,7 +54,8 @@ public:
   void waitForQmciWalker();
 
   void logPerConfigurationGreensFunction(const SpGreensFunction&) const;
-  void logPerConfigurationMFunction(const MFunction&) const;
+
+  void logPerConfigurationMFunction(const SpGreensFunction&) const;
 
   void measure();
 
@@ -153,13 +154,12 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
   QmciAccumulator::measure();
 }
 
-template <class QmciAccumulator, class MFunction>
-void StdThreadQmciAccumulator<QmciAccumulator, MFunction>::logPerConfigurationMFunction(
-    const MFunction& mfunc) const {
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationMFunction(
+    const SpGreensFunction& mfunc) const {
   const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
   if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     if (writer_ && (writer_->isADIOS2() || concurrency_id_ == 0)) {
-      // Induce copy for GPU MFunction
       const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
                                      std::to_string(meas_id_) + "_w_" +
                                      std::to_string(walker_thread_id_);

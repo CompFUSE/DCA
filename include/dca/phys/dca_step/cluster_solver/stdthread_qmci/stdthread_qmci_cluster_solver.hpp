@@ -82,7 +82,8 @@ public:
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
       return {mfunc, accumulator.get_sign()};
   };
-  auto computeSingleMeasurement_G_k_w(const MFunction& M_r_w, const double sign);
+  auto transformMFunction(const MFuncAndSign& mfs) const;
+  auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w);
 
 private:
   void startWalker(int id);
@@ -416,19 +417,22 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
   }
 }
 
+template <class QmciSolver>
+auto StdThreadQmciClusterSolver<QmciSolver>::transformMFunction(const MFuncAndSign& mfs) const {
+  SpGreensFunction M;
+  math::transform::FunctionTransform<typename QmciSolver::RDmn, typename QmciSolver::KDmn>::execute(
+      mfs.m_r_w, M);
+  M /= mfs.sign;
+  return M;
+}
 // This repeated code is caused by the finalization of each single measurement M r w in the
 // accumulators causing diversion from the normal algorithm. a way to merge this code should be
 // found.
 template <class QmciSolver>
-auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(const MFunction& M_r_w,
-                                                                            const double sign) {
-  SpGreensFunction M;
-  math::transform::FunctionTransform<typename QmciSolver::RDmn, typename QmciSolver::KDmn>::execute(
-      M_r_w, M);
-
-  M /= sign;
+auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w)
+{
   SpGreensFunction G_k_w("G_k_w");
-  QmciSolver::computeG_k_w(data_.G0_k_w_cluster_excluded, M, G_k_w);
+  QmciSolver::computeG_k_w(data_.G0_k_w_cluster_excluded, M_k_w, G_k_w);
 
   return G_k_w;
 }
@@ -463,10 +467,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
         Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
         accumulator_obj.measure();
         if (last_iteration_) {
-          auto [M_r_w, sign] = getSingleMFunc(accumulator_obj);
-          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_r_w, sign);
+          auto mfs =  getSingleMFunc(accumulator_obj);
+          auto M_k_w = transformMFunction(mfs);
+          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
           if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_r_w);
+            accumulator_obj.logPerConfigurationMFunction(M_k_w);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }
@@ -533,10 +538,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, c
                                    walker.get_meas_id(), last_iteration_);
         accumulator_obj.measure();
         if (last_iteration_) {
-          auto [M_r_w, sign] = getSingleMFunc(accumulator_obj);
-          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_r_w, sign);
+          auto mfs = getSingleMFunc(accumulator_obj);
+          auto M_k_w = transformMFunction(mfs);
+          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
           if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_r_w);
+            accumulator_obj.logPerConfigurationMFunction(M_k_w);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }
