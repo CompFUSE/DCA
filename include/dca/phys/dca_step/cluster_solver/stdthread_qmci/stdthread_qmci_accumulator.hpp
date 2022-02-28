@@ -81,6 +81,8 @@ public:
     measuring_ = false;
   }
 
+  std::size_t get_meas_id() const { return meas_id_; }
+
 private:
   int thread_id_;
   bool measuring_;

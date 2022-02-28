@@ -104,7 +104,7 @@ public:
   auto local_G_k_w() const;
 
   void computeG_k_w(const SpGreensFunction& G0, const SpGreensFunction& M_k_w,
-                    SpGreensFunction& G_k_w);
+                    SpGreensFunction& G_k_w) const;
 
   void setSampleConfiguration(const io::Buffer&) {}
 
@@ -538,7 +538,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::symmetrize_measuremen
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeG_k_w(const SpGreensFunction& G0,
                                                                         const SpGreensFunction& M_k_w,
-                                                                        SpGreensFunction& G_k_w) {
+                                                                        SpGreensFunction& G_k_w) const {
   const int matrix_dim = nu::dmn_size();
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_times_M_matrix(
       "GO_M_matrix", matrix_dim, matrix_dim);

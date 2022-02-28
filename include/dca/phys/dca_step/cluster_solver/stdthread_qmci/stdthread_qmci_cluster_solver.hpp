@@ -84,11 +84,12 @@ public:
    */
   MFuncAndSign getSingleMFunc(StdThreadAccumulatorType& accumulator) const {
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
-      return {mfunc, accumulator.get_sign()};
+    return {mfunc, accumulator.get_sign()};
   };
 
   auto transformMFunction(const MFuncAndSign& mfs) const;
-  auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w);
+  auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w) const ;
+  void logSingleMeasurement(StdThreadAccumulatorType& accumulator, int stamping_period, bool log_MFunction) const;
 
 private:
   void startWalker(int id);
@@ -415,7 +416,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
       f(meas_id, n_local_meas, print);
   }
   else {
-    throw std::runtime_error("Non fix-meas-per-walker accumulation is suspect and disabled at this time.");
+    throw std::runtime_error(
+        "Non fix-meas-per-walker accumulation is suspect and disabled at this time.");
     // Perform the total number of loop with a shared atomic counter.
     // for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
     //   f(meas_id, n_local_meas, print);
@@ -434,12 +436,25 @@ auto StdThreadQmciClusterSolver<QmciSolver>::transformMFunction(const MFuncAndSi
 // accumulators causing diversion from the normal algorithm. a way to merge this code should be
 // found.
 template <class QmciSolver>
-auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w)
-{
+auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(
+    const SpGreensFunction& M_k_w) const {
   SpGreensFunction G_k_w("G_k_w");
   QmciSolver::computeG_k_w(data_.G0_k_w_cluster_excluded, M_k_w, G_k_w);
 
   return G_k_w;
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::logSingleMeasurement(StdThreadAccumulatorType& accumulator_obj, int stamping_period, bool log_MFunction) const {
+  if (accumulator_obj.get_meas_id() % stamping_period == 0) {
+    auto mfs = ThisType::getSingleMFunc(accumulator_obj);
+    auto M_k_w = ThisType::transformMFunction(mfs);
+    auto single_meas_G_k_w = ThisType::computeSingleMeasurement_G_k_w(M_k_w);
+    if (log_MFunction)
+      accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
+    accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
+    accumulator_obj.clearSingleMeasurement();
+  }
 }
 
 template <class QmciSolver>
@@ -452,7 +467,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
   accumulator_obj.initialize(dca_iteration_);
 
   std::unique_ptr<std::exception> exception_ptr;
-
+  bool log_MFunction = parameters.per_measurement_MFunction();
+  auto stamping_period = parameters.stamping_period();
   try {
     while (true) {
       {
@@ -471,15 +487,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
       {
         Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
         accumulator_obj.measure();
-        if (last_iteration_) {
-          auto mfs =  getSingleMFunc(accumulator_obj);
-          auto M_k_w = transformMFunction(mfs);
-          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
-          if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
-          accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
-          accumulator_obj.clearSingleMeasurement();
-        }
+        if (accumulator_log && stamping_period)
+          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction);
         accumulator_obj.finishMeasuring();
       }
     }
@@ -511,7 +520,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
 }
 
 template <class QmciSolver>
-void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, const Parameters& parameters) {
+void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
+                                                                       const Parameters& parameters) {
   Profiler::start_threading(id);
 
   // Create and warm a walker.
@@ -531,6 +541,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, c
 
   std::unique_ptr<std::exception> current_exception;
 
+  bool log_MFunction = parameters.per_measurement_MFunction();
+  auto stamping_period = parameters.stamping_period();
+
   try {
     iterateOverLocalMeasurements(id, [&](const int meas_id, const int n_meas, const bool print) {
       {
@@ -542,15 +555,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, c
         accumulator_obj.updateFrom(walker, concurrency_.get_id(), walker.get_thread_id(),
                                    walker.get_meas_id(), last_iteration_);
         accumulator_obj.measure();
-        if (last_iteration_) {
-          auto mfs = getSingleMFunc(accumulator_obj);
-          auto M_k_w = transformMFunction(mfs);
-          auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
-          if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
-          accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
-          accumulator_obj.clearSingleMeasurement();
-        }
+        if (accumulator_log && stamping_period)
+          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction);
         accumulator_obj.finishMeasuring();
       }
       if (print)
