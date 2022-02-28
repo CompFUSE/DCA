@@ -44,13 +44,14 @@ using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using StdThreading = dca::parallel::stdthread;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::ClusterSolverId::CT_INT>;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
+                                  Model, RngType, dca::ClusterSolverId::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-void performTest(const std::string& input, const std::string& baseline) {
+void performBaselineTest(const std::string& input, const std::string& baseline) {
   static bool update_model = true;
 
   TestConcurrency concurrency(0, nullptr);
@@ -105,11 +106,35 @@ void performTest(const std::string& input, const std::string& baseline) {
 }
 
 TEST(PosixCtintClusterSolverTest, NonShared) {
-  performTest("stdthread_ctint_test_nonshared_input.json",
-              "stdthread_ctint_test_nonshared_baseline.hdf5");
+  performBaselineTest("stdthread_ctint_test_nonshared_input.json",
+                      "stdthread_ctint_test_nonshared_baseline.hdf5");
 }
 
 TEST(PosixCtintClusterSolverTest, Shared) {
-  performTest("stdthread_ctint_test_shared_input.json",
-              "stdthread_ctint_test_shared_baseline.hdf5");
+  performBaselineTest("stdthread_ctint_test_shared_input.json",
+                      "stdthread_ctint_test_shared_baseline.hdf5");
+}
+
+TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
+  static bool update_model = true;
+
+  TestConcurrency concurrency(0, nullptr);
+
+  Parameters parameters(dca::util::GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(
+      input_dir + "stdthread_ctint_test_per_sample_output.json");
+  if (update_model) {
+    parameters.update_model();
+    parameters.update_domains();
+  }
+  update_model = false;
+
+  // Initialize data with G0 computation.
+  Data data(parameters);
+  data.initialize();
+
+  // Do one integration step.
+  QmcSolver qmc_solver(parameters, data, nullptr);
+  qmc_solver.initialize(0);
+  qmc_solver.integrate();
 }

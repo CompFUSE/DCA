@@ -78,10 +78,15 @@ public:
     const int sign;
   };
 
+  /** gets the MFunction which for CT-INT and CT-AUX is M_r_w
+   *  we also need the sign since the MFunction is accumulated
+   *  with as a product of fval and sign
+   */
   MFuncAndSign getSingleMFunc(StdThreadAccumulatorType& accumulator) const {
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
       return {mfunc, accumulator.get_sign()};
   };
+
   auto transformMFunction(const MFuncAndSign& mfs) const;
   auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w);
 
@@ -471,7 +476,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
           auto M_k_w = transformMFunction(mfs);
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
           if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_k_w);
+            accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }
@@ -542,7 +547,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id, c
           auto M_k_w = transformMFunction(mfs);
           auto single_meas_G_k_w = computeSingleMeasurement_G_k_w(M_k_w);
           if(parameters.per_measurement_MFunction())
-            accumulator_obj.logPerConfigurationMFunction(M_k_w);
+            accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
           accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
           accumulator_obj.clearSingleMeasurement();
         }
