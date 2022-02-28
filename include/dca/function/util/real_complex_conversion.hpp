@@ -42,10 +42,9 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_ima
   function<Scalartype, Dmn> f_real;
 
   for (int i = 0; i < f_real.size(); ++i) {
-    if (check_imaginary && std::abs(f(i).imag()) > 500 * std::numeric_limits<Scalartype>::epsilon()) {
+    if (check_imaginary && std::abs(f(i).imag()) > 1000 * std::numeric_limits<Scalartype>::epsilon()) {
       std::ostringstream err_msg;
-      std::cerr << "Element: " << i << "  of the function has value " << f(i) << "which is not purely real.";
-      //throw(std::logic_error(err_msg.str()));
+      throw(std::logic_error(err_msg.str()));
     }
     f_real(i) = f(i).real();
   }
