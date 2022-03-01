@@ -45,7 +45,7 @@ TEST(CtintHundLatticeTest, Self_Energy) {
   using Threading = dca::parallel::NoThreading;
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, RngType, dca::phys::solver::CT_INT>;
+                                    dca::profiling::NullProfiler, Model, RngType, dca::ClusterSolverId::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 

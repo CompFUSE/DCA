@@ -19,7 +19,7 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -38,7 +38,7 @@ TEST(ComputeBandStructureTest, Execute) {
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
-                               Model, void /*RandomNumberGenerator*/, phys::solver::CT_AUX>;
+                               Model, void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
 
   using b = func::dmn_0<phys::domains::electron_band_domain>;
   using s = func::dmn_0<phys::domains::electron_spin_domain>;

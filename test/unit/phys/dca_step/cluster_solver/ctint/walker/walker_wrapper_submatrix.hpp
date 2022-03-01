@@ -60,8 +60,10 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
         streams_(3) {
     BaseClass::initialize(0);
+
   }
 
+  // This purposefully shadows
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);
   }

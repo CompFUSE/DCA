@@ -28,7 +28,7 @@ using Model =
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::phys::solver::CT_AUX>;
+                                  Model, void, dca::ClusterSolverId::CT_AUX>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 

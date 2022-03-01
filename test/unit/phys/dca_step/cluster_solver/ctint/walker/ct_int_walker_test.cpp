@@ -19,7 +19,7 @@
 
 template <typename Real>
 using CtintWalkerTest =
-    typename dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
+    typename dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
 
 using namespace dca::phys::solver;
 template <typename Real>

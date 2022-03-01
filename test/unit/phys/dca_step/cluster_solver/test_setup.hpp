@@ -44,7 +44,7 @@ using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 
-template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX,
+template <class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
           const char* input_name = default_input, DistType DT = DistType::NONE>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;

@@ -30,6 +30,9 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
+/** Class that instantiates for GPU G0Interpolation.
+ *  Be careful with the multiple inheritance and non virtual operator()
+ */
 template <typename Real>
 class G0Interpolation<dca::linalg::GPU, Real> final : public DeviceInterpolationData<Real>,
                                                  public G0Interpolation<linalg::CPU, Real> {
@@ -54,8 +57,12 @@ public:
 
   void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) override;
 
-  // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
-  // Call from the CPU only for testing purposes.
+  /** Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
+   *  Shadows call in G0Interpolation<linalg::CPU, Real> and in DeviceInterpolationData<Real>
+   *
+   *  Call from the CPU only for testing purposes.
+   *  This is not what gets called by the application to do interpolation.
+   */
   Real operator()(Real tau, int lindex) const;
 
   using HostInterpolation::COEFF_SIZE;

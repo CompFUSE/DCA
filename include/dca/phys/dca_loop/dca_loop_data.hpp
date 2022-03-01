@@ -52,12 +52,12 @@ public:
   // Attempts to read the loop functions from 'filename'. If successful returns
   // the last completed iteration from the input file, otherwise it returns -1.
   int readData(const std::string& filename, const std::string& format,
-                const Concurrency& concurrency);
+               const Concurrency& concurrency);
 #ifdef DCA_HAVE_ADIOS2
   int readData(const std::string& filename, const std::string& format,
-	       const Concurrency& concurrency, adios2::ADIOS& adios);
+               const Concurrency& concurrency, adios2::ADIOS& adios);
 #endif
-  template<class READER>
+  template <class READER>
   void readLoopDataCommon(READER& reader, const std::string& filename, const std::string& format);
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
@@ -91,8 +91,7 @@ public:
 
 template <typename ParametersType>
 DcaLoopData<ParametersType>::DcaLoopData()
-    :
-      Gflop_per_mpi_task("Gflop_per_mpi_task"),
+    : Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),
 
       thermalization_per_mpi_task("thermalization_per_mpi_task"),
@@ -115,8 +114,7 @@ DcaLoopData<ParametersType>::DcaLoopData()
 
       density("density"),
       chemical_potential("chemical-potential"),
-      average_expansion_order("expansion_order") {
-}
+      average_expansion_order("expansion_order") {}
 
 template <typename ParametersType>
 template <typename Writer>
@@ -151,11 +149,11 @@ void DcaLoopData<ParametersType>::write(Writer& writer) {
 
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
-                                              const Concurrency& concurrency) {
+                                          const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     io::Reader reader(concurrency, format, false);
     readLoopDataCommon(reader, filename, format);
-  }  
+  }
   concurrency.broadcast(last_completed_iteration);
   return last_completed_iteration;
 }
@@ -163,8 +161,7 @@ int DcaLoopData<ParametersType>::readData(const std::string& filename, const std
 #ifdef DCA_HAVE_ADIOS2
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
-                                              const Concurrency& concurrency,
-                                              adios2::ADIOS& adios) {
+                                          const Concurrency& concurrency, adios2::ADIOS& adios) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     io::Reader reader(adios, concurrency, format, false);
     readLoopDataCommon(reader, filename, format);
@@ -176,9 +173,8 @@ int DcaLoopData<ParametersType>::readData(const std::string& filename, const std
 
 template <typename ParametersType>
 template <class READER>
-void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader,
-						     const std::string& filename,
-						     const std::string& format) {
+void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader, const std::string& filename,
+                                                     const std::string& format [[maybe_unused]]) {
   reader.open_file(filename);
   reader.open_group("DCA-loop-functions");
 

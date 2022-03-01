@@ -66,6 +66,20 @@ protected:
 
   void generateDelayedMoves(int nbr_of_movesto_delay);
 
+  /** This does a bunch of things, this is the majority of a step
+   *  For each delayed_move it:
+   *  * computes the acceptance prob
+   *  * compares std::abs(acceptance prob) and random value
+   *    * Does an update of the log_weight for a configuration
+   *        mc_weight_ratio = acceptance_probability;
+   *      For a new vertex
+   *        mc_weight ratio *= weight_term
+   *      For a removed vertes
+   *        mc_weight_ratio /= weight_term
+   *      with
+   *        weight_term = prob_const_[field_type][b] * the vertex interaction strength;
+   *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
+   */
   void mainSubmatrixProcess();
 
   void updateM();
@@ -80,6 +94,8 @@ private:
 
   void doSubmatrixUpdate();
 
+  /** returns [acceptance_probability , mc_weight_ratio ]
+   */
   auto computeAcceptanceProbability();
 
   void updateGammaInv(int s);
@@ -368,6 +384,8 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::mainSubmatrixProcess() {
         index_.push_back(idx);
     }
 
+    // This leads to a bunch of complex branchy and premature looking optimization
+    // The branch predictor must be weeping
     bool at_least_one_recently_added = false;
     bool all_recently_added = false;
     if (move_type == REMOVAL) {
@@ -437,7 +455,7 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::mainSubmatrixProcess() {
       continue;
 
     // Compute acceptance probability.
-    auto [acceptance_prob, mc_weigth_ratio] = computeAcceptanceProbability();
+    auto [acceptance_prob, mc_weight_ratio] = computeAcceptanceProbability();
     acceptance_prob_ = acceptance_prob;
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
@@ -452,8 +470,9 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::mainSubmatrixProcess() {
     if (accepted) {
       ++BaseClass::n_accepted_;
 
-      BaseClass::mc_log_weight_ += std::log(std::abs(mc_weigth_ratio));
+      BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
 
+      // Are we capturing the avg sign properly wrt multiple delayed moves
       if (acceptance_prob_ < 0)
         sign_ *= -1;
 
@@ -539,7 +558,9 @@ void CtintWalkerSubmatrixCpu<Parameters, Real, DIST>::mainSubmatrixProcess() {
         }
     }
   }
-  // Dev code included this \todo was this correct?
+
+  // This seems correct in that we count all steps
+  // just as is done for the non submatrix cpu version
   BaseClass::n_steps_ += delayed_moves_.size();
 }
 

@@ -53,6 +53,9 @@ public:
 
 protected:
   void doStep();
+  /** try to insertVertex, if accepted do it.
+   *  on accept applyInsertion is called.
+   */
   bool tryVertexInsert();
   bool tryVertexRemoval();
 

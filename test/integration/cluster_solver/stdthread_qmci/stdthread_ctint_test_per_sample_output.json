@@ -1,0 +1,64 @@
+{
+	"output" :
+	{
+            "directory": "./",
+            "output-format": "ADIOS2",
+            "filename-dca": "single_meas_G.bp",
+            "dump-lattice-self-energy": true,
+            "dump-cluster-Greens-functions" : true
+        },
+        "physics": {
+                "beta"                      :  2,
+                "chemical-potential"        : 0
+        },
+
+        "single-band-Hubbard-model":
+        {
+                "t"       : 1,
+                "U"       : 5
+        },
+
+        "domains": {
+                "real-space-grids": {
+                        "cluster": [[2, 0],
+                                [0, 2]]
+                },
+
+                "imaginary-time": {
+                        "sp-time-intervals": 512
+                },
+
+                "imaginary-frequency": {
+                        "sp-fermionic-frequencies": 512,
+                        "four-point-fermionic-frequencies": 8
+                }
+        },
+
+        "CT-INT" : {
+                "initial-configuration-size" :5,
+                "alpha-dd-pos" : 0.501
+        },
+
+        "DCA": {
+                "iterations": 1,
+                "self-energy-mixing-factor": 1.,
+                "interacting-orbitals": [0]
+        },
+
+        "Monte-Carlo-integration" :
+        {
+                "warm-up-sweeps"         : 100,
+                "sweeps-per-measurement" : 1,
+                "measurements"           : 400,
+
+                "threaded-solver" : {
+                        "walkers": 1,
+                        "accumulators": 1,
+                        "shared-walk-and-accumulation-thread": true,
+                        "fix-meas-per-walker": true
+                },
+                "stamping-period" : 1,
+                "per-measurement-MFunction" : true,
+                "seed" : 0
+        }
+}

@@ -17,7 +17,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -33,7 +33,7 @@ TEST(DeconvolutionRoutinesTest, ProjectionOperator) {
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, Threading, profiling::NullProfiler, Model,
-                               void /*RandomNumberGenerator*/, phys::solver::CT_AUX>;
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
   using KSourceDmn = func::dmn_0<
       phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
                                     phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;

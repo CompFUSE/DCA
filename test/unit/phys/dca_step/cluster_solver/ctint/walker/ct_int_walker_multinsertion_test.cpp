@@ -24,7 +24,7 @@ constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/multinsert_input.json";
 
 using G0Setup =
-    typename dca::testing::G0Setup<dca::testing::LatticeHund, dca::phys::solver::CT_INT, input_name>;
+    typename dca::testing::G0Setup<dca::testing::LatticeHund, dca::ClusterSolverId::CT_INT, input_name>;
 using namespace dca::phys::solver;
 using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters>;
 using Matrix = Walker::Matrix;

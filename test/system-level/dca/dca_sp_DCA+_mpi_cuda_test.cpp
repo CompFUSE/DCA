@@ -53,7 +53,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using ParametersType_test =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading_test,
                                     dca::profiling::NullProfiler, ModelType_test, RngType_test,
-                                    dca::phys::solver::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX>;
   using DcaDataType_test = dca::phys::DcaData<ParametersType_test, dca::DistType::NONE>;
   using ClusterSolverType_test =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType_test, DcaDataType_test>;

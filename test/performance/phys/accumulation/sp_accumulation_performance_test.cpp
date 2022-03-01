@@ -69,7 +69,7 @@ using Model =
 using Concurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
-                                                 Model, void, dca::phys::solver::CT_AUX>;
+                                                 Model, void, dca::ClusterSolverId::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
 using Real = typename dca::config::McOptions::MCScalar;

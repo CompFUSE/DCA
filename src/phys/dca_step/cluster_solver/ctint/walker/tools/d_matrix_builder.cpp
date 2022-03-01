@@ -78,6 +78,7 @@ Real DMatrixBuilder<CPU, Real>::computeD(const int i, const int j, const Sector&
   const int p_index = label(b1, b2, delta_r);
   const Real delta_tau = configuration.getTau(i) - configuration.getTau(j);
   const Real g0_val = g0_ref_(delta_tau, p_index);
+  // This needs to be considered assert(b1 == b2);
   if (i == j)
     return g0_val - computeAlpha(configuration.getAuxFieldType(i), b1);
   else

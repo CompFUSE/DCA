@@ -38,7 +38,7 @@ using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_6
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                   dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, dca::phys::solver::CT_INT>;
+                                  RandomNumberGenerator, dca::ClusterSolverId::CT_INT>;
 
 using DcaData = dca::phys::DcaData<ParametersType>;
 using Solver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType, true>;

@@ -45,7 +45,7 @@ TEST(AnalysisDCAParticleParticleUpDownSymmetricTest, LeadingEigenvalues) {
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
-                               ModelType, void /*RngType*/, phys::solver::CT_AUX>;
+                               ModelType, void /*RngType*/, ClusterSolverId::CT_AUX>;
   using DcaDataType = phys::DcaData<ParametersType>;
   using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
 

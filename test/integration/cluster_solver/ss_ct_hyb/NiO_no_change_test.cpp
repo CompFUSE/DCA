@@ -17,6 +17,7 @@
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
@@ -45,7 +46,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                    Model, Rng, dca::phys::solver::SS_CT_HYB>;
+                                    Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
       dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data>>;

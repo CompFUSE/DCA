@@ -31,7 +31,7 @@ using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
 
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, void, dca::phys::solver::CT_AUX>;
+                                                 Model, void, dca::ClusterSolverId::CT_AUX>;
 
 using Lattice = typename Parameters::lattice_type;
 

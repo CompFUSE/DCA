@@ -58,7 +58,7 @@ using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::FeAsLattice<dca::phys::domains::D4>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
-using dca::phys::solver::CT_INT;
+using dca::ClusterSolverId::CT_INT;
 
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,

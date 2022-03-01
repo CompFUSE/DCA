@@ -22,7 +22,7 @@
 
 template <typename Real>
 using DMatrixBuilderGpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
 using namespace dca::phys::solver;
 
 using dca::linalg::Matrix;

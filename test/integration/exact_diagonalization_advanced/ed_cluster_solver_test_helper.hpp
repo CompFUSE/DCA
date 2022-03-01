@@ -55,7 +55,7 @@ using F_k_t =
 using Lattice = phys::models::square_lattice<phys::domains::D4>;
 using Model = phys::models::TightBindingModel<Lattice>;
 using Parameters = phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void,
-                                            phys::solver::CT_AUX>;  // CT_AUX is a placeholder
+                                            ClusterSolverId::CT_AUX>;  // CT_AUX is a placeholder
 using Data = phys::DcaData<Parameters>;
 using DataRealFreq = phys::DcaDataRealFreq<Parameters>;
 

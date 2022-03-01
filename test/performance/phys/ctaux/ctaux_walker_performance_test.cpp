@@ -53,7 +53,7 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
-                                                 dca::phys::solver::CT_AUX>;
+                                                 dca::ClusterSolverId::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using Real = dca::config::McOptions::MCScalar;
 using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;

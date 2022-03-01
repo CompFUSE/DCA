@@ -315,7 +315,7 @@ void Vector<ScalarType, device_name, Allocator>::setAsync(const Container& rhs,
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuStream& stream) {
+void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuStream& stream [[maybe_unused]]) {
   // TODO: implement in copy.hpp.
 #ifdef DCA_HAVE_GPU
   checkRC(cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream));

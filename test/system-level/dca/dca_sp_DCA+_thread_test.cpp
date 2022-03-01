@@ -59,7 +59,7 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                    ModelType, RngType, dca::phys::solver::CT_AUX>;
+                                    ModelType, RngType, dca::ClusterSolverId::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;

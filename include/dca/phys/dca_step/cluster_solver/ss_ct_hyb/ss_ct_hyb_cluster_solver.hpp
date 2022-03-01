@@ -27,7 +27,7 @@
 #include "dca/linalg/device_type.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/parallel/util/get_workload.hpp"
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
@@ -48,6 +48,8 @@ namespace solver {
 template <dca::linalg::DeviceType device_t, class parameters_type, class DATA>
 class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<parameters_type, DATA> {
 public:
+  static constexpr ClusterSolverId solver_type{ClusterSolverId::SS_CT_HYB};
+
   typedef cthyb::ss_hybridization_solver_routines<parameters_type, DATA> ss_hybridization_solver_routines_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
@@ -63,13 +65,12 @@ public:
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KDmn, w>;
   using SpGreensFunction = func::function<std::complex<double>, nu_nu_k_DCA_w>;
-
+  
   using ParametersType = parameters_type;
   using Data = DATA;
   using Accumulator = cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, DATA>;
+  using MFunction = typename Accumulator::MFunction;
   using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, DATA>;
-
-  const static int MC_TYPE = SS_CT_HYB;
 
   static constexpr linalg::DeviceType device = device_t;
 
@@ -101,7 +102,7 @@ public:
 
   /** local_G_k_w might be sort of be computeG_k_w
    */
-  void computeG_k_w(const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
+  void computeG_k_w(const SpGreensFunction& G0 [[maybe_unused]], const SpGreensFunction& M_k_w  [[maybe_unused]], SpGreensFunction& G_k_w  [[maybe_unused]]) const {
     throw std::logic_error("Developer error ss_ct_hyb method doesn't support purish computeG_k_w");
   }
 

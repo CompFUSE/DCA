@@ -61,8 +61,8 @@ using Model = dca::phys::models::TightBindingModel<
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
 using dca::phys::solver::ClusterSolverName;
-using dca::phys::solver::CT_AUX;
-using dca::phys::solver::CT_INT;
+using dca::ClusterSolverId::CT_AUX;
+using dca::ClusterSolverId::CT_INT;
 
 template <ClusterSolverName name>
 using ParametersType =

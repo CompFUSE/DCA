@@ -33,6 +33,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 class SsCtHybAccumulator : public MC_accumulator_data,
                            public ss_hybridization_solver_routines<parameters_type, Data> {
 public:
+  constexpr static ClusterSolverId solver_id{ClusterSolverId::SS_CT_HYB};
   using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
 
   using ParametersType = parameters_type;
@@ -115,7 +116,9 @@ public:
 
   const auto& get_sign() const { return current_sign; }
 
-  const MFunction& get_single_measurement_sign_times_M_r_w();
+  const MFunction& get_single_measurement_sign_times_MFunction() { return G_r_w;}
+
+  void clearSingleMeasurement();
   
   void accumulate_length(walker_type& walker);
   void accumulate_overlap(walker_type& walker);
@@ -308,10 +311,11 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-const typename SsCtHybAccumulator<device_t, parameters_type, Data>::MFunction& SsCtHybAccumulator<device_t, parameters_type, Data>::get_single_measurement_sign_times_M_r_w() {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::clearSingleMeasurement() {
   throw std::logic_error("SsCtHyb method doesn't traffic in M_r_w() developer error!");
 }
 
+  
 }  // cthyb
 }  // solver
 }  // phys

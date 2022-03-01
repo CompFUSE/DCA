@@ -96,6 +96,8 @@ public:
     return vertices_[i].tag;
   }
 
+  /** for this vertex get H_int(nu1, nu2, delta_r);
+   */
   inline double getStrength(int vertex_index) const;
   inline short getSign(int vertex_index) const;
 

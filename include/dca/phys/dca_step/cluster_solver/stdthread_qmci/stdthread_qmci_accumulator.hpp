@@ -29,6 +29,7 @@ namespace stdthreadqmci {
 
 template <class QmciAccumulator, class SpGreensFunction>
 class StdThreadQmciAccumulator : public QmciAccumulator {
+public:
   using ThisType = StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>;
   using Parameters = typename QmciAccumulator::ParametersType;
   using Concurrency = typename Parameters::concurrency_type;
@@ -36,8 +37,8 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using KDmn = typename CDA::KClusterDmn;
   using RDmn = typename CDA::RClusterDmn;
+  using MFunction = typename QmciAccumulator::MFunction;
 
-public:
   StdThreadQmciAccumulator(const Parameters& parameters_ref, Data& data_ref, int id,
                            std::shared_ptr<io::Writer<Concurrency>> writer);
 
@@ -54,15 +55,17 @@ public:
 
   void logPerConfigurationGreensFunction(const SpGreensFunction&) const;
 
+  void logPerConfigurationMFunction(const SpGreensFunction&, const int sign) const;
+
   void measure();
 
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
   void sumTo(QmciAccumulator& other);
 
-  const auto& get_single_measurment_sign_times_M_r_w() {
-    return QmciAccumulator::get_single_measurment_sign_times_M_r_w();
-  };
+  void clearSingleMeasurementM_r_t() {
+    QmciAccumulator::clearSingleMeasurement();
+  }
   // Signals that this object will not need to perform any more accumulation.
   void notifyDone();
 
@@ -78,6 +81,8 @@ public:
     measuring_ = false;
   }
 
+  std::size_t get_meas_id() const { return meas_id_; }
+
 private:
   int thread_id_;
   bool measuring_;
@@ -91,6 +96,8 @@ private:
   const unsigned stamping_period_;
   std::shared_ptr<io::Writer<Concurrency>> writer_;
   const Data& data_ref_;
+  // Temp hack to deal with vexing ss_ct_hyb build issue
+  MFunction dummy_mfunc;
 };
 
 template <class QmciAccumulator, class SpGreensFunction>
@@ -147,6 +154,31 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
   assert(measuring_);
 
   QmciAccumulator::measure();
+}
+
+template <class QmciAccumulator, class SpGreensFunction>
+void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationMFunction(
+    const SpGreensFunction& mfunc, const int sign) const {
+  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
+  if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+    if (writer_ && (writer_->isADIOS2() || concurrency_id_ == 0)) {
+      const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
+                                     std::to_string(meas_id_) + "_w_" +
+                                     std::to_string(walker_thread_id_);
+      // Normally we /= the sign but here it is going to be strictly +/- 1 so the
+      // faster operation can be used.
+      auto signFreeMFunc = mfunc;
+      signFreeMFunc *= -sign;
+      writer_->lock();
+      writer_->open_group("STQW_Configurations");
+      writer_->open_group(stamp_name);
+      writer_->execute("MFunction", signFreeMFunc);
+      writer_->execute("sign", sign);
+      writer_->close_group();
+      writer_->close_group();
+      writer_->unlock();
+    }
+  }
 }
 
 template <class QmciAccumulator, class SpGreensFunction>

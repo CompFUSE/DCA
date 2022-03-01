@@ -27,6 +27,9 @@ class DeviceInterpolationData {
 public:
   DeviceInterpolationData(const DeviceInterpolationData& other) = default;
 
+  /** Returns the interpolated g0 on the device
+   *  This is what actually gets called by the default build config for main_dca
+   */
   __DEVICE__ Real operator()(Real tau, int lindex) const {
     assert(tau >= -beta_ && tau <= beta_);
 
