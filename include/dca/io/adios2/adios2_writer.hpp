@@ -283,11 +283,14 @@ bool ADIOS2Writer<CT>::execute(const std::string& name,
   for (int i = 0; i < n; ++i) {
     sizes[i] = value[i].size();
     nTotal += sizes[i];
-    std::cout << sizes[i];
-    if (i < n - 1) {
-      std::cout << ", ";
+    if (verbose_) {
+      std::cout << sizes[i];
+      if (i < n - 1) {
+        std::cout << ", ";
+      }
     }
   }
+
   if (verbose_) {
     std::cout << ")\n";
   }

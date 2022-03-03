@@ -1,5 +1,5 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -68,7 +68,7 @@ public:
       func::function<Real, func::dmn_variadic<NuDmn, NuDmn, RDmn, LastDmn>>& f_output) {
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RDmn, LastDmn>> f_out_cmplx;
     execute(f_input, f_out_cmplx);
-    f_output = std::move(func::util::real(f_out_cmplx, true));
+    f_output = std::move(func::util::real(f_out_cmplx, ImagCheck::WARN));
   }
 
   // Default to old implementation when no band is present.

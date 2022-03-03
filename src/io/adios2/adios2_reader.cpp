@@ -43,7 +43,7 @@ ADIOS2Reader<CT>::~ADIOS2Reader() {
 template <class CT>
 void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
   if (verbose_) {
-    std::cout << "\t ADIOS2Reader: Open for Read file : " << file_name << "\n";
+    std::cout << "\t ADIOS2Reader: Open read file : " << file_name << "\n";
   }
   io_name_ = file_name;
   file_name_ = file_name;
@@ -53,10 +53,15 @@ void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
 
 template <class CT>
 void ADIOS2Reader<CT>::close_file() {
+  if (verbose_)
+    std::cout << "\t ADIOS2Reader: Trying to close read file : " << file_name_ << "\n";
+
   if (file_) {
     file_.Close();
     adios_.RemoveIO(io_name_);
   }
+  if (verbose_)
+    std::cout << "\t ADIOS2Reader: closed read file : " << file_name_ << "\n";
 }
 
 template <class CT>

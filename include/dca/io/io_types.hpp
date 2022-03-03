@@ -22,15 +22,13 @@ namespace io {
  *  dummy at 0 debug automatic initialization of int to 0
  *  causes a bug. That is not a good code smell.
  */
-enum class IOType : int {
-  JSON = 0,
-  HDF5,
-  ADIOS2
-};
+enum class IOType : int { JSON = 0, HDF5, ADIOS2, UNKNOWN };
 
 IOType stringToIOType(const std::string& name);
 
 std::string toString(const IOType type);
+
+IOType extensionToIOType(const std::string& file_name);
 
 }  // namespace io
 }  // namespace dca

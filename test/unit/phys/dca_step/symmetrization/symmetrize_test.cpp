@@ -84,7 +84,7 @@ TEST_F(SymmetrizeTest, G0_t) {
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cmplx;
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t_cmplx);
   function<double, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
-  G0_r_t = dca::func::util::real(G0_r_t_cmplx, true);
+  G0_r_t = dca::func::util::real(G0_r_t_cmplx, dca::ImagCheck::FAIL);
 
   // Test the symmetrization.
   dca::phys::symmetrize::execute<Lattice>(G0_k_t, H_symmetry_, true);
