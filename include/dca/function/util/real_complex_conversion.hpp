@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This file provides utility methods to convert functions from real to complex and vice versa.
 
@@ -36,6 +37,10 @@ auto complex(const function<Scalartype, Dmn>& f) {
 }
 
 namespace detail {
+ /** implementation of function complex to real conversion function
+  *  This allows good code reuse with no loss or low loss of performance
+  *  in the ignore and warn cases.
+  */
 template <typename Scalartype, typename Dmn, ImagCheck IC>
 auto real(const function<std::complex<Scalartype>, Dmn>& f) {
   function<Scalartype, Dmn> f_real;
@@ -65,6 +70,7 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f) {
   return f_real;
 }
 }  // namespace detail
+
 // Returns a real valued function that is equal to the real part of f.
 // If IC ==
 //   ImagCheck::FAIL    -> throw exception if imaginary part of f is zero
