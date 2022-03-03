@@ -37,16 +37,16 @@ TEST(RealComplexConversionTest, ComplexToReal) {
   f(0) = std::complex<double>(0.5, 0.);
   f(1) = std::complex<double>(1., 1.);
 
-  auto f_real = dca::func::util::real(f, false);
+  auto f_real = dca::func::util::real(f);
 
   EXPECT_DOUBLE_EQ(0.5, f_real(0));
   EXPECT_DOUBLE_EQ(1., f_real(1));
 
-  // If the second argument is true, the function's imaginary part must be zero.
-  EXPECT_THROW(dca::func::util::real(f, true), std::logic_error);
+  // Template argument controls behavior of check,  the function's imaginary part must be zero.
+  EXPECT_THROW(dca::func::util::real(f, dca::ImagCheck::FAIL), std::out_of_range);
 
   f(1).imag(0.);
-  f_real = dca::func::util::real(f, true);
+  f_real = dca::func::util::real(f, dca::ImagCheck::FAIL);
 
   EXPECT_DOUBLE_EQ(0.5, f_real(0));
   EXPECT_DOUBLE_EQ(1., f_real(1));

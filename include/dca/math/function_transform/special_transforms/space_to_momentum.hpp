@@ -72,7 +72,7 @@ public:
       func::function<Real, func::dmn_variadic<NuDmn, NuDmn, KDmn, LastDmn>>& f_output) {
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, LastDmn>> f_out_cmplx;
     execute(f_input, f_out_cmplx);
-    f_output = std::move(func::util::real(f_out_cmplx, false));
+    f_output = std::move(func::util::real(f_out_cmplx, ImagCheck::WARN));
   }
 
   // Default to old implementation when no band is present.

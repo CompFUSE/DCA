@@ -19,6 +19,7 @@
 #include "dca/function/function.hpp"
 
 namespace dca {
+  enum class ImagCheck { IGNORE, WARN, FAIL };
 namespace func {
 namespace util {
 // dca::func::util::
@@ -34,22 +35,51 @@ auto complex(const function<Scalartype, Dmn>& f) {
   return f_complex;
 }
 
-// Returns a real valued function that is equal to the real part of f.
-// If check_imaginary = true, the method checks whether the imaginary part of f is zero and throws a
-// std::logic_error if this is not the case.
-template <typename Scalartype, typename Dmn>
-auto real(const function<std::complex<Scalartype>, Dmn>& f, const bool check_imaginary = false) {
+namespace detail {
+template <typename Scalartype, typename Dmn, ImagCheck IC>
+auto real(const function<std::complex<Scalartype>, Dmn>& f) {
   function<Scalartype, Dmn> f_real;
-
+  auto checkForImaginary = [](const std::complex<Scalartype> s) -> bool {
+    return (std::abs(s.imag()) > (1000 * std::numeric_limits<Scalartype>::epsilon()));
+  };
+  auto writeCheckFail = [](const int i, const std::complex<Scalartype> s) -> std::string {
+    std::ostringstream fail_message;
+    fail_message << "Element " << i << " of function conversion complex -> real "
+                 << " has a non negligible imaginary component of " << std::abs(s.imag()) << '\n';
+    return fail_message.str();
+  };
+  bool have_not_warned = true;
   for (int i = 0; i < f_real.size(); ++i) {
-    if (check_imaginary && std::abs(f(i).imag()) > 1000 * std::numeric_limits<Scalartype>::epsilon()) {
-      std::ostringstream err_msg;
-      throw(std::logic_error(err_msg.str()));
+    if constexpr (IC == ImagCheck::WARN) {
+      if (have_not_warned) {
+        if (checkForImaginary(f(i)))
+          std::cerr << writeCheckFail(i, f(i));
+      }
+    }
+    else if constexpr (IC == ImagCheck::FAIL) {
+      if (checkForImaginary(f(i)))
+        throw(std::out_of_range(writeCheckFail(i, f(i))));
     }
     f_real(i) = f(i).real();
   }
-
   return f_real;
+}
+}  // namespace detail
+// Returns a real valued function that is equal to the real part of f.
+// If IC ==
+//   ImagCheck::FAIL    -> throw exception if imaginary part of f is zero
+//   ImagCheck::WARN    -> write one warning per conversion to std::err continue without further
+//   checks ImagCheck::IGNORE  -> do not check for imaginary elements in f at all
+template <typename Scalartype, typename Dmn>
+auto real(const function<std::complex<Scalartype>, Dmn>& f, ImagCheck ic = ImagCheck::IGNORE) {
+  switch (ic) {
+    case ImagCheck::IGNORE:
+      return detail::real<Scalartype, Dmn, ImagCheck::IGNORE>(f);
+    case ImagCheck::WARN:
+      return detail::real<Scalartype, Dmn, ImagCheck::WARN>(f);
+    case ImagCheck::FAIL:
+      return detail::real<Scalartype, Dmn, ImagCheck::FAIL>(f);
+  }
 }
 
 }  // namespace util
