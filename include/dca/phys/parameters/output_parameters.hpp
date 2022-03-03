@@ -40,6 +40,11 @@ public:
         filename_ed_("ed.hdf5"),
         filename_qmc_("qmc.hdf5"),
         filename_profiling_("profiling.json"),
+#ifdef DCA_HAVE_ADIOS2
+        autoresume_filename_{filename_dca_},
+#else
+        autoresume_filename_{filename_dca_ + std::string{".tmp"}},
+#endif
         dump_lattice_self_energy_(false),
         dump_cluster_Greens_functions_(false),
         dump_Gamma_lattice_(false),
@@ -63,7 +68,9 @@ public:
   bool autoresume() const {
     return autoresume_;
   }
-
+  const std::string& get_autoresume_filename() const {
+    return autoresume_filename_;
+  }
   const std::string& get_output_format() const {
     return output_format_;
   }
@@ -120,6 +127,7 @@ private:
   std::string filename_ed_;
   std::string filename_qmc_;
   std::string filename_profiling_;
+  std::string autoresume_filename_;
   bool dump_lattice_self_energy_;
   bool dump_cluster_Greens_functions_;
   bool dump_Gamma_lattice_;
@@ -141,6 +149,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(filename_ed_);
   buffer_size += concurrency.get_buffer_size(filename_qmc_);
   buffer_size += concurrency.get_buffer_size(filename_profiling_);
+  buffer_size += concurrency.get_buffer_size(autoresume_filename_);
   buffer_size += concurrency.get_buffer_size(dump_lattice_self_energy_);
   buffer_size += concurrency.get_buffer_size(dump_cluster_Greens_functions_);
   buffer_size += concurrency.get_buffer_size(dump_Gamma_lattice_);
@@ -163,6 +172,7 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, filename_ed_);
   concurrency.pack(buffer, buffer_size, position, filename_qmc_);
   concurrency.pack(buffer, buffer_size, position, filename_profiling_);
+  concurrency.pack(buffer, buffer_size, position, autoresume_filename_);
   concurrency.pack(buffer, buffer_size, position, dump_lattice_self_energy_);
   concurrency.pack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.pack(buffer, buffer_size, position, dump_Gamma_lattice_);
@@ -183,6 +193,7 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, filename_ed_);
   concurrency.unpack(buffer, buffer_size, position, filename_qmc_);
   concurrency.unpack(buffer, buffer_size, position, filename_profiling_);
+  concurrency.unpack(buffer, buffer_size, position, autoresume_filename_);
   concurrency.unpack(buffer, buffer_size, position, dump_lattice_self_energy_);
   concurrency.unpack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.unpack(buffer, buffer_size, position, dump_Gamma_lattice_);
@@ -214,6 +225,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("filename-ed", filename_ed_);
     try_to_read_or_write("filename-qmc", filename_qmc_);
     try_to_read_or_write("filename-profiling", filename_profiling_);
+    try_to_read_or_write("autoresume-filename", autoresume_filename_);
     try_to_read_or_write("dump-lattice-self-energy", dump_lattice_self_energy_);
     try_to_read_or_write("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
     try_to_read_or_write("dump-Gamma-lattice", dump_Gamma_lattice_);

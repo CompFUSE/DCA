@@ -42,8 +42,6 @@ public:
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
-        // TODO: consider setting default do true.
-        fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE),
         store_configuration_(true),
@@ -155,7 +153,7 @@ private:
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
   bool distributed_g4_enabled_;
-  bool fix_meas_per_walker_;
+  bool fix_meas_per_walker_ = true;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
   bool store_configuration_;

@@ -205,42 +205,45 @@ template <typename ParametersType, typename DDT, typename MCIntegratorType, Dist
 void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   static_assert(std::is_same<DDT, dca::phys::DcaData<ParametersType, DIST>>::value);
   int last_completed = -1;
-
+  auto& autoresume_filename = parameters.get_autoresume_filename();
+  io::IOType iotype = io::extensionToIOType(autoresume_filename);
   if (parameters.autoresume()) {  // Try to read state of previous run.
-    auto& dca_filename = parameters.get_filename_dca();
-    std::size_t extension_start = dca_filename.rfind('.');
-    std::string extension{dca_filename.substr(extension_start, dca_filename.size())};
-    std::cout << extension << '\n';
-    // This is not complete, how do we want to decide what format we are reading?  Just from output format?
+                                  // This is not complete we should work based on extension
+    // do we want to decide what format we are reading?  Just from output format?
 #ifdef DCA_HAVE_ADIOS2
-    if (io::stringToIOType(parameters.get_output_format()) == io::IOType::ADIOS2)
-      last_completed =
-          DCA_info_struct.readData(file_name_, parameters.get_output_format(), concurrency, adios_);
+    if (iotype == io::IOType::ADIOS2)
+      last_completed = DCA_info_struct.readData(
+          autoresume_filename, parameters.get_output_format(), concurrency, adios_);
     else
 #endif
-      last_completed =
-          DCA_info_struct.readData(file_name_ + ".tmp", parameters.get_output_format(), concurrency);
-  }
-  if (last_completed >= 0) {
-    if (concurrency.id() == concurrency.first())
-      std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1 << "  *******\n"
-                << std::endl;
+      last_completed = DCA_info_struct.readData(autoresume_filename,
+                                                parameters.get_output_format(), concurrency);
+    if (last_completed >= 0) {
+      if (concurrency.id() == concurrency.first())
+        std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1
+                  << "  *******\n"
+                  << std::endl;
 
-    dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
-    #ifdef DCA_HAVE_ADIOS2
-    MOMS.initializeSigma(adios_, file_name_ + ".tmp");
-    #else
-    MOMS.initializeSigma(file_name_ + ".tmp");
-    #endif
-    perform_lattice_mapping();
+      dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
+#ifdef DCA_HAVE_ADIOS2
+      if (iotype == io::IOType::ADIOS2)
+        MOMS.initializeSigma(adios_, autoresume_filename);
+      else
+#else
+      MOMS.initializeSigma(autoresume_filename);
+#endif
+        perform_lattice_mapping();
+    }
   }
   else if (parameters.get_initial_self_energy() != "zero") {
-    #ifdef DCA_HAVE_ADIOS2
-    MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
-    #else
+#ifdef DCA_HAVE_ADIOS2
+    if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
+      MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
+    else
+#else
     MOMS.initializeSigma(parameters.get_initial_self_energy());
-    #endif 
-    perform_lattice_mapping();
+#endif
+      perform_lattice_mapping();
   }
 
   // In ADIOS2 every rank has an output_file_ for the purposes of writing per rank

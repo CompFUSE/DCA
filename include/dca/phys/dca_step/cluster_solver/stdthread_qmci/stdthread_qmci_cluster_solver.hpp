@@ -88,8 +88,9 @@ public:
   };
 
   auto transformMFunction(const MFuncAndSign& mfs) const;
-  auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w) const ;
-  void logSingleMeasurement(StdThreadAccumulatorType& accumulator, int stamping_period, bool log_MFunction) const;
+  auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w) const;
+  void logSingleMeasurement(StdThreadAccumulatorType& accumulator, int stamping_period,
+                            bool log_MFunction) const;
 
 private:
   void startWalker(int id);
@@ -230,9 +231,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       throw std::logic_error("Thread task is undefined.");
   }
   auto print_metadata = [&]() {
-    std::cout << "walk_finished_: " << walk_finished_ << " params: " << parameters_.get_walkers()
-              << std::endl;
-    // assert(walk_finished_ == parameters_.get_walkers());
+    assert(walk_finished_ == parameters_.get_walkers());
 
     dca::profiling::WallTime end_time;
 
@@ -445,7 +444,8 @@ auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(
 }
 
 template <class QmciSolver>
-void StdThreadQmciClusterSolver<QmciSolver>::logSingleMeasurement(StdThreadAccumulatorType& accumulator_obj, int stamping_period, bool log_MFunction) const {
+void StdThreadQmciClusterSolver<QmciSolver>::logSingleMeasurement(
+    StdThreadAccumulatorType& accumulator_obj, int stamping_period, bool log_MFunction) const {
   if (accumulator_obj.get_meas_id() % stamping_period == 0) {
     auto mfs = ThisType::getSingleMFunc(accumulator_obj);
     auto M_k_w = ThisType::transformMFunction(mfs);
