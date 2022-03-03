@@ -53,7 +53,7 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f) {
     if constexpr (IC == ImagCheck::WARN) {
       if (have_not_warned) {
         if (checkForImaginary(f(i)))
-          std::cerr << writeCheckFail(i, f(i));
+          std::cerr << "WARNING: " << writeCheckFail(i, f(i));
       }
     }
     else if constexpr (IC == ImagCheck::FAIL) {
