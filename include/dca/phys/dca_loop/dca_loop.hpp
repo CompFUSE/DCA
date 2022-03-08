@@ -212,12 +212,12 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     // do we want to decide what format we are reading?  Just from output format?
 #ifdef DCA_HAVE_ADIOS2
     if (iotype == io::IOType::ADIOS2)
-      last_completed = DCA_info_struct.readData(
-          autoresume_filename, parameters.get_output_format(), concurrency, adios_);
+      last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
+                                                concurrency, adios_);
     else
 #endif
-      last_completed = DCA_info_struct.readData(autoresume_filename,
-                                                parameters.get_output_format(), concurrency);
+      last_completed =
+          DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
     if (last_completed >= 0) {
       if (concurrency.id() == concurrency.first())
         std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1

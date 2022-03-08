@@ -605,6 +605,8 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
     reader.open_file(filename);
     readSigmaFile(reader);
   }
+  concurrency_.broadcast(parameters_.get_chemical_potential());
+  concurrency_.broadcast(Sigma);
 }
 #endif
 
@@ -615,6 +617,8 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     reader.open_file(filename);
     readSigmaFile(reader);
   }
+  concurrency_.broadcast(parameters_.get_chemical_potential());
+  concurrency_.broadcast(Sigma);
 }
 
 template <class Parameters, DistType DT>
@@ -630,9 +634,6 @@ void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   reader.open_group("functions");
   reader.execute(Sigma);
   reader.close_group();
-
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast(Sigma);
 }
 
 template <class Parameters, DistType DT>
