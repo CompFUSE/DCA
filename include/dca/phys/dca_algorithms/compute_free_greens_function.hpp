@@ -90,7 +90,7 @@ void compute_G0_k_t(
 
   compute_G0_k_t(H0_k, mu, beta, f_cmplx);
 
-  G0_k_t = std::move(func::util::real(f_cmplx, ImagCheck::FAIL));
+  G0_k_t = std::move(func::util::real(f_cmplx, ImagCheck::WARN));
 }
 
 }  // namespace phys
