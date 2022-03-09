@@ -219,17 +219,11 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
-  auto try_to_read = [&](const std::string& name, auto& var) {
-    try {
-      reader_or_writer.execute(name, var);
-    }
-    catch (const std::exception& r_e) {
-    }
+  auto try_to_read = [&](const std::string& name, auto& var) -> bool {
+    return reader_or_writer.execute(name, var);
   };
 
-  try {
-    reader_or_writer.open_group("DCA");
-
+  if(reader_or_writer.open_group("DCA")) {
     try_to_read("initial-self-energy", initial_self_energy_);
     try_to_read("iterations", dca_iterations_);
     try_to_read("accuracy", dca_accuracy_);
@@ -239,38 +233,23 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read("do-post-interpolation", do_post_interpolation_);
 
     try_to_read("do-finite-size-QMC", do_finite_size_qmc_);
-
-    try {
-      reader_or_writer.open_group("coarse-graining");
-
-      try_to_read("k-mesh-recursion", k_mesh_recursion_);
-      try_to_read("periods", coarsegraining_periods_);
-      try_to_read("quadrature-rule", quadrature_rule_);
-      try_to_read("threads", coarsegraining_threads_);
-      try_to_read("tail-frequencies", tail_frequencies_);
-
-      reader_or_writer.close_group();
+    if(reader_or_writer.open_group("coarse-graining")) {
+        try_to_read("k-mesh-recursion", k_mesh_recursion_);
+        try_to_read("periods", coarsegraining_periods_);
+        try_to_read("quadrature-rule", quadrature_rule_);
+        try_to_read("threads", coarsegraining_threads_);
+        try_to_read("tail-frequencies", tail_frequencies_);
+        reader_or_writer.close_group();
     }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
-      reader_or_writer.open_group("DCA+");
-
+    if(reader_or_writer.open_group("DCA+")) {
       try_to_read("do-DCA+", do_dca_plus_);
       try_to_read("deconvolution-iterations", deconvolution_iterations_);
       try_to_read("deconvolution-tolerance", deconvolution_tolerance_);
       try_to_read("HTS-approximation", hts_approximation_);
       try_to_read("HTS-threads", hts_threads_);
-
       reader_or_writer.close_group();
     }
-    catch (const std::exception& r_e) {
-    }
-
     reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
   }
 
   // Check parameters for consistency.

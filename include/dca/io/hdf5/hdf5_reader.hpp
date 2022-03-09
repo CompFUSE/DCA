@@ -50,8 +50,9 @@ public:
   void open_file(std::string file_name);
   void close_file();
 
-  void open_group(std::string name) {
+  bool open_group(std::string name) {
     paths_.push_back(name);
+    return true;
   }
   void close_group() {
     paths_.pop_back();
