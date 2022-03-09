@@ -92,6 +92,10 @@ function(dca_add_gtest name)
     return()
   endif()
 
+  IF (DCA_ADD_GTEST_CUDA_MPI AND NOT DCA_HAVE_GPU_AWARE_MPI)
+    return()
+  endif()
+  
   # Right now we're only testing GPU distributed code on one node so its pointless
   # without more than one GPU per node.
   if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_GPU_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )

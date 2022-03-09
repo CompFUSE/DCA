@@ -1,3 +1,4 @@
+
 dca_add_gtest(ringG_tp_accumulator_gpu_test
  EXTENSIVE
  CUDA_MPI

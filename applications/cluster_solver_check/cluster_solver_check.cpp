@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     // QMC solver
     // The QMC solver uses the free Greens function G0 computed by the ED solver.
     // It is passed via the dca_data_imag object.
-    ClusterSolver qmc_solver(parameters, dca_data_imag);
+    ClusterSolver qmc_solver(parameters, dca_data_imag, nullptr);
     qmc_solver.initialize(1);  // 1 = dummy iteration number
     qmc_solver.integrate();
 
@@ -144,7 +144,9 @@ int main(int argc, char** argv) {
     qmc_solver.finalize(dca_loop_data);
 
     if (concurrency.id() == concurrency.first()) {
-      dca_data_imag.write(data_file_qmc);
+      dca::io::Writer<Concurrency> writer(concurrency, "HDF5", false);
+      writer.open_file(data_file_qmc, true);
+      dca_data_imag.write(writer);
     }
 
     // Print errors.

@@ -14,14 +14,15 @@
 
 #include <cassert>
 #include <complex>
-#include <magma_v2.h>
-
-#include "dca/linalg/lapack/lapack.hpp"
 
 #include "dca/config/haves_defines.hpp"
 #if defined(DCA_HAVE_GPU)
+#include <magma_v2.h>
 #include "dca/platform/dca_gpu.h"
 #endif
+#include "dca/linalg/lapack/lapack.hpp"
+
+
 #include "dca/linalg/util/cast_gpu.hpp"
 
 // C++ wrappers

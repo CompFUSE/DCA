@@ -21,9 +21,10 @@
 #include "dca/config/rng.hpp"            // defines RandomNumberGenerator
 #include "dca/config/walker_device.hpp"  // defines walker_device
 #include "dca/config/threading.hpp"      // defines Threading
+#include "dca/distribution/dist_types.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
-constexpr ClusterSolverId solver_name = @DCA_CLUSTER_SOLVER_NAME@;
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
+constexpr dca::ClusterSolverId solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
@@ -36,6 +37,7 @@ using DcaDataType = dca::phys::DcaData<ParametersType>;
 using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
+template<class DIST = DistType::NONE>
 using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 #ifdef DCA_WITH_THREADED_SOLVER

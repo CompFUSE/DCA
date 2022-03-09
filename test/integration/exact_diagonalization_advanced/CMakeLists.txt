@@ -6,7 +6,10 @@ dca_add_gtest(hamiltonian_test
   LIBS function json time_and_frequency_domains cluster_domains enumerations quantum_domains ${LAPACK_LIBRARIES}
        ${DCA_GPU_LIBS} ${UTIL_LIBS})
 
-set(IO_LIBS gpu_utils dca_hdf5)
+set(IO_LIBS dca_hdf5)
+if (DCA_HAVE_GPU)
+  set(IO_LIBS gpu_utils)
+endif()
 if (DCA_HAVE_ADIOS2)
   set(IO_LIBS dca_adios2 ${IO_LIBS})
 endif()

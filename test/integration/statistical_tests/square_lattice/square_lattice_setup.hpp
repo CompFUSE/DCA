@@ -57,34 +57,32 @@ using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::square_lattice<dca::phys::domains::D4>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
-using dca::phys::solver::ClusterSolverName;
-using dca::ClusterSolverId::CT_AUX;
-using dca::ClusterSolverId::CT_INT;
+using dca::ClusterSolverId;
 
-template <ClusterSolverName CS_NAME = CT_AUX>
+template <ClusterSolverId CS_NAME = ClusterSolverId::CT_AUX>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                   Threading, dca::profiling::NullProfiler, Model,
                                   RandomNumberGenerator, CS_NAME>;
 
-template <ClusterSolverName name>
+template <ClusterSolverId name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
 
-template <ClusterSolverName name = CT_AUX>
+template <ClusterSolverId name = ClusterSolverId::CT_AUX>
 struct ClusterSolverSelector;
 template <>
-struct ClusterSolverSelector<CT_AUX> {
-  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<CT_AUX>,
-        DcaData<CT_AUX>>;
+struct ClusterSolverSelector<ClusterSolverId::CT_AUX> {
+  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<ClusterSolverId::CT_AUX>,
+        DcaData<ClusterSolverId::CT_AUX>>;
 };
 template <>
-struct ClusterSolverSelector<CT_INT> {
-  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<CT_INT>, true>;
+struct ClusterSolverSelector<ClusterSolverId::CT_INT> {
+  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
 };
-template <ClusterSolverName name = CT_AUX>
+template <ClusterSolverId name = ClusterSolverId::CT_AUX>
 using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
 
-template <ClusterSolverName name = CT_AUX>
+template <ClusterSolverId name = ClusterSolverId::CT_AUX>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;

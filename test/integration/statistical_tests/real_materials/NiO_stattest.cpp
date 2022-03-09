@@ -64,7 +64,7 @@ TEST(Ni0, GS) {
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, Rng, dca::phys::solver::SS_CT_HYB>;
+                                    dca::profiling::NullProfiler, Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
       dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data>>;

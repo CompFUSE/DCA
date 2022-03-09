@@ -15,8 +15,9 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
+#ifdef DCA_HAVE_GPU
   dca::linalg::util::initializeMagma();
-
+#endif
   using namespace dca::testing;
 
   const int id = dca_test_env->concurrency.id();
@@ -27,7 +28,7 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType<CT_INT> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType<ClusterSolverId::CT_INT> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
 
   const int meas_per_node = parameters.get_measurements().back();
@@ -36,11 +37,11 @@ TEST(CtintBilayerLatticeVerificationTest, GreensFunction) {
   parameters.update_model();
   parameters.update_domains();
 
-  DcaData<CT_INT> data(parameters);
+  DcaData<ClusterSolverId::CT_INT> data(parameters);
   data.initialize();
 
   // Do one QMC iteration.
-  ThreadedSolver<CT_INT, default_device> qmc_solver(parameters, data, nullptr);
+  ThreadedSolver<ClusterSolverId::CT_INT, default_device> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
