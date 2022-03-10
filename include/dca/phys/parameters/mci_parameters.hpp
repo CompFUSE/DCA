@@ -287,7 +287,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
   reader_or_writer.execute("stamping-period", stamping_period_);
   reader_or_writer.execute("per-measurement-MFunction", per_measurement_MFunction_);
-  reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
 
   reader_or_writer.execute("store-configuration", store_configuration_);
 
