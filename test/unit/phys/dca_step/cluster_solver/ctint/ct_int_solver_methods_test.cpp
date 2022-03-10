@@ -1,7 +1,7 @@
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 
 #include "gtest/gtest.h"
-
 #include "dca/phys/parameters/parameters.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"

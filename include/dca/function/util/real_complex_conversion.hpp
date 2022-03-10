@@ -84,6 +84,7 @@ auto real(const function<std::complex<Scalartype>, Dmn>& f, ImagCheck ic = ImagC
     case ImagCheck::WARN:
       return detail::real<Scalartype, Dmn, ImagCheck::WARN>(f);
     case ImagCheck::FAIL:
+    default:
       return detail::real<Scalartype, Dmn, ImagCheck::FAIL>(f);
   }
 }

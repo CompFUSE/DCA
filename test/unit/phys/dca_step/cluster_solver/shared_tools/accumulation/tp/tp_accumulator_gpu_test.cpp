@@ -10,7 +10,7 @@
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
 
-
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>

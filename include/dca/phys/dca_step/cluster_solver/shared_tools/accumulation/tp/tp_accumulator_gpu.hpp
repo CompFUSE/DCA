@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "dca/config/mc_options.hpp"
-#include "dca/config/profiler.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"

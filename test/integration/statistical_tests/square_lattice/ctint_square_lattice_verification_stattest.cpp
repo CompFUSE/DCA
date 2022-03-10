@@ -11,6 +11,7 @@
 // Verification test of CT-AUX against a reference run
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;

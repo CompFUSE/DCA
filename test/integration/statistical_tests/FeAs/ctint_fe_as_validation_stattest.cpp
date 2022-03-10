@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "test/integration/statistical_tests/FeAs/fe_as_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
