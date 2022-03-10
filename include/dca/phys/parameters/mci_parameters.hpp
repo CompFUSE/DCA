@@ -268,11 +268,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.execute("seed", seed_);
   }
 
-  // Read error computation type.
-  std::string error_type = toString(error_computation_type_);
-  reader_or_writer.execute("error-computation-type", error_type);
-  error_computation_type_ = stringToErrorComputationType(error_type);
-
   reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
   read_legacy_vector("sweeps-per-measurement", sweeps_per_measurement_);
   read_legacy_vector("measurements", measurements_);
@@ -290,6 +285,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.execute("shared-walk-and-accumulation-thread",
                            shared_walk_and_accumulation_thread_);
   reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
+
+
+  // Read error computation type.
+  std::string error_type = toString(error_computation_type_);
+  reader_or_writer.execute("error-computation-type", error_type);
+  error_computation_type_ = stringToErrorComputationType(error_type);
 
   // Read distribution type.
   std::string g4_dist_name = toString(g4_distribution_);

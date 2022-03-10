@@ -64,6 +64,7 @@ template <typename Concurrency>
 void EdSolverParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, eigenvalue_cut_off_);
+  concurrency.unpack(buffer, buffer_size, position, threads_);
 }
 
 template <typename ReaderOrWriter>
