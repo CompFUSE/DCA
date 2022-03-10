@@ -31,17 +31,20 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
                                                      RandomNumberGenerator, solver_name>;
 
 #include "dca/phys/dca_data/dca_data.hpp"
-using DcaDataType = dca::phys::DcaData<ParametersType>;
+template<dca::DistType DIST = dca::DistType::NONE>
+using DcaDataType = dca::phys::DcaData<ParametersType, DIST>;
 
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/ed_cluster_solver.hpp"
-using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType>;
+template<dca::DistType DIST = dca::DistType::NONE>
+using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType<DIST>>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
-template<class DIST = DistType::NONE>
+template<dca::DistType DIST = dca::DistType::NONE>
 using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 #ifdef DCA_WITH_THREADED_SOLVER
 #include "@DCA_THREADED_SOLVER_INCLUDE@"
+template<dca::DistType DIST = dca::DistType::NONE>
 using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 #else
 using ClusterSolver = ClusterSolverBaseType;

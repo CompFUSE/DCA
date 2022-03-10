@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
     dca::phys::DcaLoopData<ParametersType> dca_loop_data;
 
     // Create and initialize the DCA_data objects.
-    DcaDataType dca_data_imag(parameters);
+    DcaDataType<> dca_data_imag(parameters);
     dca_data_imag.initialize();
     dca::phys::DcaDataRealFreq<ParametersType> dca_data_real(parameters);
 
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     std::string data_file_qmc = parameters.get_directory() + parameters.get_filename_qmc();
 
     // ED solver
-    EdSolver ed_solver(parameters, dca_data_imag, dca_data_real);
+    EdSolver<> ed_solver(parameters, dca_data_imag, dca_data_real);
     ed_solver.initialize(0);
     ed_solver.execute();
     ed_solver.finalize(dca_loop_data);
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     // QMC solver
     // The QMC solver uses the free Greens function G0 computed by the ED solver.
     // It is passed via the dca_data_imag object.
-    ClusterSolver qmc_solver(parameters, dca_data_imag, nullptr);
+    ClusterSolver<> qmc_solver(parameters, dca_data_imag, nullptr);
     qmc_solver.initialize(1);  // 1 = dummy iteration number
     qmc_solver.integrate();
 

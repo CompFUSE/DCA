@@ -49,7 +49,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
   function<double, SigmaCutDomain> G_k_w_measured(G_on_node, "G_k_w");
   dca_test_env->concurrency.sum_and_average(G_k_w_measured);
 
-  // End of concurrent section.
+  // // End of concurrent section.
   if (id == dca_test_env->concurrency.first()) {
     // read the stored reference data
     function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
@@ -74,6 +74,9 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     EXPECT_LT(p_value_default, p_value);
   }
 
+  if (id == dca_test_env->concurrency.first()) {
+    std::cout << "number_of_samples: " << number_of_samples << "  G_k_w_measured.size(): " << G_k_w_measured.size() << '\n';
+  }
   // If many MPI ranks where used store covariance and mean for future testing.
   if (number_of_samples > G_k_w_measured.size()) {
     function<double, CovarianceDomain> covariance_measured("G_k_w_covariance");

@@ -1,0 +1,32 @@
+{
+    "output" : {
+    "dump-cluster-Greens-functions" : true
+    },
+    "physics": {
+        "beta": 1.,
+        "chemical-potential": 0.
+    },
+  "single-band-Hubbard-model":
+  {
+    "t"       : 1.,
+    "U"       : 4.
+  },
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[2, 0],
+                        [0, 2]]
+        },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512
+    }
+    },
+
+    "ED": {
+        "eigenvalue-cut-off": 1.e-14
+    }
+}
