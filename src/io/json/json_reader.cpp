@@ -49,10 +49,10 @@ bool JSONReader::open_group(const std::string& name) noexcept {
   if (open_groups_.top())
     new_group = open_groups_.top()->getGroup(name);
 
-  // TODO maybe: process error here.
-  //  if (!new_group)
-  //    throw(std::logic_error("Group " + name + " does not exist"));
-  open_groups_.push(new_group);
+  if (new_group)
+  {
+    open_groups_.push(new_group);
+  }
   return static_cast<bool>(new_group);
 }
 

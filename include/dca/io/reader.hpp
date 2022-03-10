@@ -20,7 +20,6 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 
-
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_reader.hpp"
 #endif
@@ -32,14 +31,15 @@ class Reader {
 public:
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true) {
+  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
+      : concurrency_(concurrency) {
     if (format == "HDF5") {
       reader_.template emplace<io::HDF5Reader>(verbose);
     }
     else if (format == "JSON") {
       reader_.template emplace<io::JSONReader>(verbose);
     }
-    #ifdef DCA_HAVE_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
       reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
     }
@@ -60,8 +60,11 @@ public:
     std::visit([&](auto& var) { var.close_file(); }, reader_);
   }
 
-  void open_group(const std::string& new_path) {
-    std::visit([&](auto& var) { var.open_group(new_path); }, reader_);
+  /** For reading input there is great utility in knowing if a group is present.
+   *  It isn't an exceptional circumstance if a group is not present.
+   */
+  bool open_group(const std::string& new_path) {
+    return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, reader_);
   }
   void close_group() {
     std::visit([&](auto& var) { var.close_group(); }, reader_);
@@ -78,7 +81,9 @@ private:
 #ifdef DCA_HAVE_ADIOS2
                ,io::ADIOS2Reader<Concurrency>
 #endif
-    > reader_;
+               >
+      reader_;
+  const Concurrency& concurrency_;
 };
 
 extern template class Reader<dca::parallel::NoConcurrency>;

@@ -42,8 +42,6 @@ public:
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
-        // TODO: consider setting default do true.
-        fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE),
         store_configuration_(true),
@@ -78,7 +76,6 @@ public:
     std::fill(measurements_.begin(), measurements_.end(), measurements);
   }
 
-  
   int get_walkers() const {
     return walkers_;
   }
@@ -89,7 +86,7 @@ public:
     return shared_walk_and_accumulation_thread_;
   }
 
-    // Maximum distance (in MC time) considered when computing the correlation between configurations.
+  // Maximum distance (in MC time) considered when computing the correlation between configurations.
   int get_time_correlation_window() const {
     return time_correlation_window_;
   }
@@ -153,7 +150,7 @@ private:
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
   bool distributed_g4_enabled_;
-  bool fix_meas_per_walker_;
+  bool fix_meas_per_walker_ = true;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
   bool store_configuration_;
@@ -271,11 +268,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.execute("seed", seed_);
   }
 
-  // Read error computation type.
-  std::string error_type = toString(error_computation_type_);
-  reader_or_writer.execute("error-computation-type", error_type);
-  error_computation_type_ = stringToErrorComputationType(error_type);
-
   reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
   read_legacy_vector("sweeps-per-measurement", sweeps_per_measurement_);
   read_legacy_vector("measurements", measurements_);
@@ -293,6 +285,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.execute("shared-walk-and-accumulation-thread",
                            shared_walk_and_accumulation_thread_);
   reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
+
+
+  // Read error computation type.
+  std::string error_type = toString(error_computation_type_);
+  reader_or_writer.execute("error-computation-type", error_type);
+  error_computation_type_ = stringToErrorComputationType(error_type);
 
   // Read distribution type.
   std::string g4_dist_name = toString(g4_distribution_);

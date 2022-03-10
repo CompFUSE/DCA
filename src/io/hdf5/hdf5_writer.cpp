@@ -49,13 +49,14 @@ void HDF5Writer::close_file() {
   }
 }
 
-void HDF5Writer::open_group(std::string name) {
+bool HDF5Writer::open_group(std::string name) {
   my_paths_.push_back(name);
   const std::string path = get_path();
 
   if (!exists(path)) {
     file_->createGroup(path.c_str());
   }
+  return true;
 }
 
 void HDF5Writer::close_group() {
@@ -81,7 +82,7 @@ void HDF5Writer::erase(const std::string& name) {
     H5Ldelete(file_id_, full_name.c_str(), H5P_DEFAULT);
 }
 
-void HDF5Writer::execute(const std::string& name,
+bool HDF5Writer::execute(const std::string& name,
                          const std::string& value)  //, H5File& file, std::string path)
 {
   // HDF5 does not allow a datatype of size 0.
@@ -94,13 +95,14 @@ void HDF5Writer::execute(const std::string& name,
   H5::StrType datatype(H5::PredType::C_S1, value.size());
 
   write(full_name, std::vector<hsize_t>{1}, datatype, value.data());
+  return true;
 }
 
-void HDF5Writer::execute(const std::string& name,
+bool HDF5Writer::execute(const std::string& name,
                          const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
   if (value.size() == 0)
-    return;
+    return true;
 
   const std::string full_name = get_path() + "/" + name;
 
@@ -112,6 +114,7 @@ void HDF5Writer::execute(const std::string& name,
   }
 
   write(full_name, std::vector<hsize_t>{data.size()}, s_type, data.data());
+  return true;
 }
 
 H5::DataSet HDF5Writer::write(const std::string& name, const std::vector<hsize_t>& dims,
