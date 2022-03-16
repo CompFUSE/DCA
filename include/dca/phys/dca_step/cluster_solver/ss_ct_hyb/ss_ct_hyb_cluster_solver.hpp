@@ -256,7 +256,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, DATA>::integrate() {
 
   Walker walker(parameters_, data_, rng);
 
-  walker.initialize();
+  walker.initialize(dca_iteration_);
 
   warmUp(walker);
 
@@ -264,7 +264,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, DATA>::integrate() {
 
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements()[dca_iteration_] << std::endl;
 
     walker.printSummary();
   }
@@ -350,7 +350,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, DATA>::measure(Walker& walk
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = dca::parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+  const int n_meas = dca::parallel::util::getWorkload(parameters_.get_measurements()[dca_iteration_], concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
     walker.doSweep();

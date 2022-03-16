@@ -92,8 +92,8 @@ endif()
 # TODO: Add more point groups and lattices.
 
 # Point group
-set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4 | no_symmetry<2>.")
-set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4 no_symmetry<2>)
+set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4 | no_symmetry<2> | no_symmetry<3>.")
+set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4 no_symmetry<2> no_symmetry<3>)
 
 if (DCA_POINT_GROUP STREQUAL "C6")
   set(DCA_POINT_GROUP_INCLUDE
@@ -104,16 +104,18 @@ elseif (DCA_POINT_GROUP STREQUAL "D4")
 
 elseif (DCA_POINT_GROUP STREQUAL "no_symmetry<2>")
   set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp")
+elseif (DCA_POINT_GROUP STREQUAL "no_symmetry<3>")
+  set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4.")
+  message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4 | no_symmetry<2> | no_symmetry<3>.")
 endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | threeband | FeAs.")
+    hund | twoband_Cu | threeband | FeAs | material ")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
-             FeAs)
+             FeAs material)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -149,10 +151,14 @@ elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
+elseif (DCA_LATTICE STREQUAL "material")
+  set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::NiO_unsymmetric, dca::phys::domains::${DCA_POINT_GROUP}>")
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/material_hamiltonians/material_lattice.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | threeband | FeAs.")
+          hund | twoband_Cu | threeband | FeAs | material.")
 endif()
 
 # Model type

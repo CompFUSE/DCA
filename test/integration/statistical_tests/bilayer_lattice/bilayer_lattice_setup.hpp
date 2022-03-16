@@ -64,9 +64,8 @@ using dca::ClusterSolverId;
 
 template <ClusterSolverId name>
 using ParametersType =
-    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  Threading, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, name>;
+    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
+                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, name>;
 
 template <ClusterSolverId name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
@@ -76,11 +75,13 @@ struct ClusterSolverSelector;
 
 template <DeviceType device>
 struct ClusterSolverSelector<ClusterSolverId::CT_AUX, device> {
-  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<ClusterSolverId::CT_AUX>, DcaData<ClusterSolverId::CT_AUX>>;
+  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<ClusterSolverId::CT_AUX>,
+                                                     DcaData<ClusterSolverId::CT_AUX>>;
 };
 template <DeviceType device>
 struct ClusterSolverSelector<ClusterSolverId::CT_INT, device> {
-  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
+  using type =
+      dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
 };
 template <ClusterSolverId name, DeviceType device>
 using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;
@@ -89,9 +90,9 @@ template <ClusterSolverId name, DeviceType device>
 using ThreadedSolver =
     dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, device>>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 }  // namespace testing

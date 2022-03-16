@@ -10,7 +10,7 @@
   },
 
   "material-model"
-  : {"t_ij-filename" : "hard_coded", "U_ij-filename" : "hard_coded"},
+    : {"t_ij-filename" : "./t_ij_NiO.txt", "U_ij-filename" : "./U_ij_NiO_8_lit.txt"},
 
   "double-counting"
   : {

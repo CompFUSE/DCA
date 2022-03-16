@@ -73,9 +73,9 @@ using QuantumClusterSolver = dca::phys::solver::CtintClusterSolver<device, Param
 template <DeviceType device>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<device>>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 }  // namespace testing

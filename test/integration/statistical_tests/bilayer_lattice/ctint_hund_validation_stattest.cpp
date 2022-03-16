@@ -44,9 +44,9 @@ using ParametersType =
 using DcaData = dca::phys::DcaData<ParametersType>;
 using Solver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType, true>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;

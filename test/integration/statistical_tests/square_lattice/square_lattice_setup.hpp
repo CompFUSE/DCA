@@ -48,7 +48,7 @@ constexpr int n_frequencies = 10;
 constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
 #else
 constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
-#endif // DCA_HAVE_GPU
+#endif  // DCA_HAVE_GPU
 
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/square_lattice/";
@@ -61,9 +61,8 @@ using dca::ClusterSolverId;
 
 template <ClusterSolverId CS_NAME = ClusterSolverId::CT_AUX>
 using ParametersType =
-    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  Threading, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, CS_NAME>;
+    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
+                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, CS_NAME>;
 
 template <ClusterSolverId name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
@@ -73,11 +72,12 @@ struct ClusterSolverSelector;
 template <>
 struct ClusterSolverSelector<ClusterSolverId::CT_AUX> {
   using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<ClusterSolverId::CT_AUX>,
-        DcaData<ClusterSolverId::CT_AUX>>;
+                                                     DcaData<ClusterSolverId::CT_AUX>>;
 };
 template <>
 struct ClusterSolverSelector<ClusterSolverId::CT_INT> {
-  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
+  using type =
+      dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
 };
 template <ClusterSolverId name = ClusterSolverId::CT_AUX>
 using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
@@ -85,9 +85,9 @@ using QuantumClusterSolver = typename ClusterSolverSelector<name>::type;
 template <ClusterSolverId name = ClusterSolverId::CT_AUX>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name>>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 }  // namespace testing

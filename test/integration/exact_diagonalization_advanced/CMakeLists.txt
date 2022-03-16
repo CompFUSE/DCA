@@ -19,7 +19,7 @@ dca_add_gtest(ed_cluster_solver_single_site_test
   CUDA
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
   LIBS function json time_and_frequency_domains cluster_domains enumerations quantum_domains ${IO_LIBS} timer
-       dca_algorithms ${LAPACK_LIBRARIES} ${DCA_THREADING_LIBS} ${DCA_GPU_LIBS} gpu_utils)
+       dca_algorithms ${LAPACK_LIBRARIES} ${DCA_THREADING_LIBS} ${DCA_GPU_LIBS} dca_hdf5 gpu_utils)
 
 dca_add_gtest(ed_cluster_solver_four_site_test
   EXTENSIVE
