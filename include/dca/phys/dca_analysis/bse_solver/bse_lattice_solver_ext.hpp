@@ -89,7 +89,7 @@ public:
 
   using HOST_matrix_dmn_t = func::dmn_variadic<LatticeEigenvectorDmn, LatticeEigenvectorDmn>;
 
-  BseLatticeSolverExt(ParametersType& parameters, DcaDataType& MOMS);
+  BseLatticeSolverExt(ParametersType& parameters, DcaDataType& dca_data);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -141,7 +141,7 @@ private:
   ParametersType& parameters;
   concurrency_type& concurrency;
 
-  DcaDataType& data;
+  DcaDataType& dca_data_;
 
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> Gamma_lattice;
   func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, WVertexDmn>>
@@ -170,11 +170,11 @@ private:
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::BseLatticeSolverExt(
-    ParametersType& parameters_ref, DcaDataType& MOMS_ref)
+    ParametersType& parameters_ref, DcaDataType& dca_data)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
-      MOMS(MOMS_ref),
+      dca_data_(dca_data),
 
       Gamma_lattice("Gamma_lattice"),
       chi_0_lattice("chi_0_lattice"),
@@ -315,39 +315,39 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
     latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
 
-    MOMS.Sigma_lattice_interpolated = 0.;
-    MOMS.Sigma_lattice_coarsegrained = 0.;
-    MOMS.Sigma_lattice = 0.;
+    dca_data_.Sigma_lattice_interpolated = 0.;
+    dca_data_.Sigma_lattice_coarsegrained = 0.;
+    dca_data_.Sigma_lattice = 0.;
 
     if (parameters.hts_approximation()) {
       clustermapping::CoarsegrainingSp<ParametersType> CoarsegrainingSp(parameters);
 
       DcaDataType dca_data_hts(parameters);
-      dca_data_hts.H_HOST = MOMS.H_HOST;
-      dca_data_hts.H_interactions = MOMS.H_interactions;
+      dca_data_hts.H_HOST = dca_data_.H_HOST;
+      dca_data_hts.H_interactions = dca_data_.H_interactions;
 
       solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType> hts_solver(
           parameters, dca_data_hts);
 
       lattice_map_sp.execute_with_HTS_approximation(
-          dca_data_hts, hts_solver, CoarsegrainingSp, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
-          MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+          dca_data_hts, hts_solver, CoarsegrainingSp, dca_data_.Sigma, dca_data_.Sigma_lattice_interpolated,
+          dca_data_.Sigma_lattice_coarsegrained, dca_data_.Sigma_lattice);
     }
     else {
-      lattice_map_sp.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
-                             MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+      lattice_map_sp.execute(dca_data_.Sigma, dca_data_.Sigma_lattice_interpolated,
+                             dca_data_.Sigma_lattice_coarsegrained, dca_data_.Sigma_lattice);
     }
 
     if (parameters.do_dca_plus())
-      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_lattice);
+      coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma_lattice, chi_0_lattice);
 
     else  // do_post_interpolation
-      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice_interpolated, chi_0_lattice);
+      coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma_lattice_interpolated, chi_0_lattice);
   }
 
   // (Standard) DCA: Compute \chi_0 from cluster self-energy.
   else {
-    coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma, chi_0_lattice);
+    coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma, chi_0_lattice);
   }
 
   // Renormalize and set diagonal \chi_0 matrix.
