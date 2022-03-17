@@ -122,7 +122,7 @@ public:
   void write(Writer& writer);
 
 #ifdef DCA_WITH_ADIOS2
-  void writeAdios(adios2::ADIOS& adios);
+  void writeDistributedG4Adios(adios2::ADIOS& adios);
 #endif
 
   void initialize();
@@ -414,7 +414,7 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
 
 #ifdef DCA_WITH_ADIOS2
 template <class Parameters, DistType DIST>
-void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
+void DcaData<Parameters, DIST>::writeDistributedG4Adios(adios2::ADIOS& adios) {
   if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
     if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
         parameters_.get_g4_distribution() != DistType::NONE) {
@@ -441,6 +441,7 @@ void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
   }
   else  // DIST == DistType::NONE
   {
+    
   }
 }
 #endif
@@ -525,6 +526,13 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
           writer.execute(G4_channel_err);
       }
     }
+#ifdef DCA_WITH_ADIOS2
+    else
+    {
+      // special adios writer only for block or linear distributed G4
+      writeDistributedG4Adios(adios_);
+    }
+#endif
   }
   writer.close_group();
 }
