@@ -141,7 +141,7 @@ private:
   ParametersType& parameters;
   concurrency_type& concurrency;
 
-  DcaDataType& MOMS;
+  DcaDataType& data;
 
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> Gamma_lattice;
   func::function<std::complex<ScalarType>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, WVertexDmn>>

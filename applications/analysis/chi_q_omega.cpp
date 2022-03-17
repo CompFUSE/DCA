@@ -64,12 +64,12 @@ int main(int argc, char** argv) {
 #else
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
   #endif
-  BseSolverType bse_solver(parameters, dca_data);
-  bse_solver.calculateSusceptibilities();
+  BseSolverExt bse_solver_ext(parameters, dca_data);
+  bse_solver_ext.calculateSusceptibilities();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    bse_solver.write();
+    bse_solver_ext.write();
 
     std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
   }

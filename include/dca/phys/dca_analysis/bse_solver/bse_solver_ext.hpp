@@ -101,10 +101,6 @@ BseSolverExt<ParametersType, DcaDataType>::BseSolverExt(ParametersType& paramete
 
       wave_functions_names_("wave-functions-names"),
       harmonics_("harmonics") {
-  if (parameters_.get_four_point_channels().size() != 1) {
-    throw(std::logic_error("The analysis code can analyze exactly one channel."));
-  }
-
   initialize_wave_functions();
 
   {

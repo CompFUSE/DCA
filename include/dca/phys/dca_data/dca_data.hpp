@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <variant>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
@@ -122,7 +123,7 @@ public:
   void write(Writer& writer);
 
 #ifdef DCA_WITH_ADIOS2
-  void writeDistributedG4Adios(adios2::ADIOS& adios);
+  void writeDistributedG4Adios(io::ADIOS2Writer<Concurrency>& writer);
 #endif
 
   void initialize();
@@ -414,15 +415,12 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
 
 #ifdef DCA_WITH_ADIOS2
 template <class Parameters, DistType DIST>
-void DcaData<Parameters, DIST>::writeDistributedG4Adios(adios2::ADIOS& adios) {
+void DcaData<Parameters, DIST>::writeDistributedG4Adios(io::ADIOS2Writer<Concurrency>& writer) {
   if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
     if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
         parameters_.get_g4_distribution() != DistType::NONE) {
       std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
-      auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
-      std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
-      adios2_writer.open_file(file_name, true);
-      // adios2_writer.open_group("functions");
+
       for (const auto& G4_channel : G4_) {
 #ifndef NDEBUG
         std::cerr << "Writing G4_channel:" << G4_channel.get_name()
@@ -433,15 +431,9 @@ void DcaData<Parameters, DIST>::writeDistributedG4Adios(adios2::ADIOS& adios) {
         auto str_sub_ind_end = vectorToString(G4_channel.get_end_subindex());
         std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
 #endif
-        adios2_writer.execute(G4_channel);
+        writer.execute(G4_channel);
       }
-      // adios2_writer.close_group();
-      adios2_writer.close_file();
     }
-  }
-  else  // DIST == DistType::NONE
-  {
-    
   }
 }
 #endif
@@ -530,7 +522,8 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
     else
     {
       // special adios writer only for block or linear distributed G4
-      writeDistributedG4Adios(adios_);
+      if(writer.isADIOS2())
+	writeDistributedG4Adios(std::get<io::ADIOS2Writer<Concurrency>>(writer.getUnderlying()));
     }
 #endif
   }

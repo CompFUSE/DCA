@@ -34,5 +34,5 @@ using DcaDataType = dca::phys::DcaData<ParametersType>;
 using BseSolverType = dca::phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
 #include "dca/phys/dca_analysis/bse_solver/bse_solver_ext.hpp"
-using BseSolver = dca::phys::analysis::BseSolverExt<ParametersType, DcaDataType>;
+using BseSolverExt = dca::phys::analysis::BseSolverExt<ParametersType, DcaDataType>;
 #endif  // DCA_CONFIG_ANALYSIS_HPP
