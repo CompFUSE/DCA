@@ -21,7 +21,7 @@ namespace config {
 struct CMakeOptions {
   // CUDA
   static const std::string dca_with_cuda;
-  static const std::string cuda_gpu_arch;
+  static const std::string cuda_architectures;
 
   // Parallelization
   static const std::string dca_with_mpi;

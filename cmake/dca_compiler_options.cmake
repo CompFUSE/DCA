@@ -36,7 +36,7 @@ set(DCA_CUDA_OPTIONS "")
 if (DCA_HAVE_CUDA)
   if (CUDA_VERSION VERSION_GREATER "11.0.0")
     list(APPEND CMAKE_CUDA_FLAGS
-      -arch=${CUDA_GPU_ARCH}
+      -arch=${CUDA_ARCHITECTURES}
       -std=c++14
       -Xcompiler -Wall
       -Xcompiler -Wextra
@@ -45,7 +45,7 @@ if (DCA_HAVE_CUDA)
       -Xcompiler ${DCA_THREADING_FLAGS})
   else (CUDA_VERSION VERSION_GREATER "11.0.0")
     list(APPEND DCA_CUDA_OPTIONS
-      -arch=${CUDA_GPU_ARCH}
+      -arch=${CUDA_ARCHITECTURES}
       -std=c++11
       -Xcompiler -Wall
       -Xcompiler -Wextra

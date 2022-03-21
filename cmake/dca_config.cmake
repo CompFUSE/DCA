@@ -58,13 +58,13 @@ if (DCA_WITH_HIP)
   if (NOT DCA_HAVE_HIP)
     message(FATAL_ERROR "HIP and/or MAGMA not found but requested.")
   endif()
-  dca_add_config_define(DCA_WITH_HIP)
-  dca_add_config_define(DCA_WITH_GPU)
+  dca_add_config_define(DCA_HAVE_HIP)
+  dca_add_config_define(DCA_HAVE_GPU)
 endif()
 
 ################################################################################
 # Extra parameters common to all GPU setups.
-if (DCA_WITH_GPU)
+if (DCA_HAVE_GPU)
   if (NOT DCA_HAVE_MAGMA)
     message(FATAL_ERROR "At the moment the GPU code requires MAGMA.")
   endif()

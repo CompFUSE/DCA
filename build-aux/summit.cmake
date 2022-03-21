@@ -38,7 +38,7 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 option(DCA_WITH_GPU_AWARE_MPI "Enable GPU aware MPI." ON)
 
 # Compile for Volta compute architecture.
-set(CMAKE_CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
+set(CUDA_ARCHITECTURES 70 CACHE STRING "GPU Hardware Architecture.")
 
 # Summit's static CUDA runtime is bugged.
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
