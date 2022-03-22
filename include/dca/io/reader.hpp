@@ -29,6 +29,13 @@ namespace dca::io {
 template <class Concurrency>
 class Reader {
 public:
+  using DCAReaderVariant =  std::variant<io::HDF5Reader, io::JSONReader
+#ifdef DCA_HAVE_ADIOS2
+               ,
+               io::ADIOS2Reader<Concurrency>
+#endif
+					 >;
+
   // In: format. output format, HDF5 or JSON.
   // In: verbose. If true, the reader outputs a short log whenever it is executed.
   Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
@@ -89,20 +96,26 @@ public:
     std::visit([&](auto& var) { var.close_group(); }, reader_);
   }
 
+  void begin_step() {
+    std::visit([&](auto& var) { var.begin_step(); }, reader_);
+  }
+
+  void end_step() {
+    std::visit([&](auto& var) { var.end_step(); }, reader_);
+  }
+  
   template <class... Args>
   bool execute(Args&&... args) noexcept {
     return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },
                       reader_);
   }
 
+  DCAReaderVariant& getUnderlying() {
+    return reader_;
+  }
+
 private:
-  std::variant<io::HDF5Reader, io::JSONReader
-#ifdef DCA_HAVE_ADIOS2
-               ,
-               io::ADIOS2Reader<Concurrency>
-#endif
-               >
-      reader_;
+  DCAReaderVariant reader_;
   const Concurrency& concurrency_;
 };
 

@@ -58,18 +58,27 @@ public:
   constexpr bool is_writer() {
     return false;
   }
-
+  
   void open_file(const std::string& file_name);
   void close_file();
 
   bool open_group(const std::string& name);
   void close_group();
 
+  void begin_step();
+  void end_step();
+
   std::string get_path(const std::string& name = "");
 
   template <typename arbitrary_struct_t>
   static void from_file(adios2::ADIOS& adios, arbitrary_struct_t& arbitrary_struct, std::string file_name);
 
+  /** Return number of steps in the file
+   *  file may have multiple iterations in it.
+   *  Each iteration is a step in the adios file for many variables.
+   */
+  std::size_t getStepCount() { return file_.Steps(); }
+  
   // `execute` returns true if the object is read correctly.
 
   template <typename Scalartype>

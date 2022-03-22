@@ -108,7 +108,7 @@ private:
   /** gpu M_r_t */
   std::array<NfftType, 2> cached_nfft_obj_;
   /** \todo Don't always pay the memory cost even when not collect single measurement G's */
-  std::array<NfftType, 2> single_measurement_M_r_t_;
+  std::vector<NfftType> single_measurement_M_r_t_;
 };
 
 template <class Parameters, typename Real>
@@ -117,17 +117,21 @@ SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(const Parameters& pa
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
-                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)},
-      single_measurement_M_r_t_{NfftType(parameters_.get_beta(), streams_[0], false),
-                                NfftType(parameters_.get_beta(), streams_[1], false)} {}
+                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {
+  if (parameters_.stamping_period() > 0) {
+    single_measurement_M_r_t_.reserve(2);
+    single_measurement_M_r_t_.emplace_back(parameters_.get_beta(), streams_[0], false);
+    single_measurement_M_r_t_.emplace_back(parameters_.get_beta(), streams_[1], false);
+  }
+}
 
 template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::GPU, Real>::resetAccumulation() {
   for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].resetAccumulation();
-    single_measurement_M_r_t_[s].resetAccumulation();
+    if (parameters_.stamping_period() > 0)
+      single_measurement_M_r_t_[s].resetAccumulation();
   }
-
   finalized_ = false;
 }
 
@@ -141,13 +145,17 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
 
   for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].reserve(configs[s].size());
-    single_measurement_M_r_t_[s].resetAccumulation();
-    single_measurement_M_r_t_[s].reserve(configs[s].size());
+    if (parameters_.stamping_period() > 0) {
+      single_measurement_M_r_t_[s].resetAccumulation();
+      single_measurement_M_r_t_[s].reserve(configs[s].size());
+    }    
   }
 
   for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
-    single_measurement_M_r_t_[s].accumulate(Ms[s], configs[s], sign);
+    if (parameters_.stamping_period() > 0) {
+      single_measurement_M_r_t_[s].accumulate(Ms[s], configs[s], sign);
+    }
   }
 }
 

@@ -399,6 +399,7 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
   reader.execute(Sigma);
 
   if (parameters_.isAccumulatingG4()) {
+    std::cout << "Trying to read Gkw since we are accumulating G4\n";
     reader.execute(G_k_w);
 
     // Try to read G4 with a legacy name.
@@ -601,9 +602,16 @@ void DcaData<Parameters, DT>::initialize_G0() {
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unused]],
                                               const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {    
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "reading Sigma File\n";
     io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
+    auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+    std::size_t step_count = adios2_reader.getStepCount();
+    for (std::size_t i = 0; i < step_count; ++i) {
+      adios2_reader.begin_step();
+      adios2_reader.end_step();
+    }
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -614,6 +622,7 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "reading Sigma File\n";
     io::Reader reader(concurrency_, parameters_.get_output_format());
     reader.open_file(filename);
     readSigmaFile(reader);
@@ -625,10 +634,11 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   if (parameters_.adjust_chemical_potential()) {
-    reader.open_group("parameters");
-    reader.open_group("physics");
-    reader.execute("chemical-potential", parameters_.get_chemical_potential());
-    reader.close_group();
+    reader.open_group("DCA-loop-functions");
+    std::vector<double> chemical_potentials;
+    reader.execute("chemical-potential", chemical_potentials);
+    std:: cout << "chemical-potentials: " << vectorToString(chemical_potentials) << '\n';
+    parameters_.get_chemical_potential() = chemical_potentials.back();
     reader.close_group();
   }
 

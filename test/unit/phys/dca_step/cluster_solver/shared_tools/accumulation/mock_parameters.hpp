@@ -30,6 +30,7 @@ public:
     return beta_;
   }
 
+  int stamping_period() const { return 0; }
   double beta_;
 };
 

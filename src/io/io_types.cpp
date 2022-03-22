@@ -51,5 +51,19 @@ IOType extensionToIOType(const std::string& file_name) {
   return IOType::UNKNOWN;
 }
 
+std::string extensionFromIOType(const IOType type) {
+  switch (type) {
+    case IOType::JSON:
+      return ".json";
+    case IOType::HDF5:
+      return ".hdf5";
+    case IOType::ADIOS2:
+      return ".bp";
+    case IOType::UNKNOWN:
+      throw std::logic_error("asked for file extension for unknown IOType");
+  }
+}
+
+  
 }  // namespace io
 }  // namespace dca

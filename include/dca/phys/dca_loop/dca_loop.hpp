@@ -107,7 +107,6 @@ protected:
   concurrency_type& concurrency;
 #ifdef DCA_WITH_ADIOS2
   adios2::ADIOS adios_;
-  ;
 #endif
 
 private:
@@ -168,7 +167,6 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
   if (concurrency.id() == concurrency.first()) {
     // dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
-
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
 }
@@ -179,7 +177,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
-    DCA_info_struct.write(*output_file_);
+    DCA_info_struct.write(*output_file_, concurrency);
 
     // None of this kludgy file shuffling with ADIOS2 each iteration is a step in the ADIOS2 output
     if (output_file_ && !(output_file_->isADIOS2())) {
@@ -197,7 +195,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   // data.
   if (output_file_ != nullptr && output_file_->isADIOS2()) {
     concurrency.barrier();
-    output_file_->end_step();
+    output_file_->close_file();
+    std::cout << "ADIOS2 output closed\n";
   }
 }
 
@@ -218,6 +217,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 #endif
       last_completed =
           DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
+
     if (last_completed >= 0) {
       if (concurrency.id() == concurrency.first())
         std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1
@@ -229,10 +229,9 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
       if (iotype == io::IOType::ADIOS2)
         MOMS.initializeSigma(adios_, autoresume_filename);
       else
-#else
-      MOMS.initializeSigma(autoresume_filename);
 #endif
-        perform_lattice_mapping();
+        MOMS.initializeSigma(autoresume_filename);
+      perform_lattice_mapping();
     }
   }
   else if (parameters.get_initial_self_energy() != "zero") {
@@ -240,10 +239,10 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
       MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
     else
-#else
-    MOMS.initializeSigma(parameters.get_initial_self_energy());
 #endif
-      perform_lattice_mapping();
+      MOMS.initializeSigma(parameters.get_initial_self_energy());
+
+    perform_lattice_mapping();
   }
 
   // In ADIOS2 every rank has an output_file_ for the purposes of writing per rank
@@ -469,7 +468,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy
     output_file_->close_group();
     output_file_->close_group();
 
-    DCA_info_struct.write(*output_file_);
+    DCA_info_struct.write(*output_file_, concurrency);
   }
 }
 

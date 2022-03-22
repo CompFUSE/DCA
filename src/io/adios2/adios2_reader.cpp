@@ -80,6 +80,16 @@ void ADIOS2Reader<CT>::close_group() {
   my_paths_.pop_back();
 }
 
+template <class Concurrency>
+void ADIOS2Reader<Concurrency>::begin_step() {
+  file_.BeginStep();
+};
+template <class Concurrency>
+void ADIOS2Reader<Concurrency>::end_step() {
+  file_.EndStep();
+};
+
+  
 template <class CT>
 std::string ADIOS2Reader<CT>::get_path(const std::string& name) {
   std::string path = "/";
@@ -139,7 +149,7 @@ bool ADIOS2Reader<CT>::exists(const std::string& name) const {
   std::string varType = io_.VariableType(name);
   return !varType.empty();
 }
-
+  
 template class ADIOS2Reader<dca::parallel::NoConcurrency>;
 #ifdef DCA_HAVE_MPI
 template class ADIOS2Reader<dca::parallel::MPIConcurrency>;

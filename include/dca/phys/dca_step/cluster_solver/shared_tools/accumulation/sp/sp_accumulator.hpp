@@ -55,7 +55,8 @@ public:
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using MFunction =
-    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
+
 public:
   SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
 
@@ -78,7 +79,7 @@ public:
   const MFunction& get_single_measurement_sign_times_MFunction();
 
   void clearSingleMeasurement();
-  
+
   template <class T>
   void syncStreams(const T&) {}
 
@@ -126,11 +127,13 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
   if (accumulate_m_sqr_)
     cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
 
-  single_measurement_M_r_t_ = std::make_unique<std::array<NfftType, 2>>();
+  if (parameters_.stamping_period() > 0) {
+    single_measurement_M_r_t_ = std::make_unique<std::array<NfftType, 2>>();
+    single_measurement_M_r_w_.release();
+  }
 
   M_r_w_.release();
   M_r_w_sqr_.release();
-  single_measurement_M_r_w_.release();
   finalized_ = false;
   initialized_ = true;
 }
@@ -170,8 +173,8 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
         (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
         if (accumulate_m_sqr_)
           (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
-
-        (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
+        if (parameters_.stamping_period() > 0)
+          (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
       }
     }
   }
@@ -211,8 +214,6 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
   initialized_ = false;
 }
 
-
-  
 template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::CPU, Real>::sumTo(
     SpAccumulator<Parameters, linalg::CPU, Real>& other) const {
@@ -245,7 +246,8 @@ const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w_s
 }
 
 template <class Parameters, typename Real>
-const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumulator<Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction() {
+const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumulator<
+    Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction() {
   single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
   finalizeFunction(*single_measurement_M_r_t_, *single_measurement_M_r_w_);
   return *single_measurement_M_r_w_;
@@ -255,7 +257,7 @@ template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::CPU, Real>::clearSingleMeasurement() {
   single_measurement_M_r_t_ = std::make_unique<std::array<NfftType, 2>>();
 }
-  
+
 }  // namespace accumulator
 }  // namespace solver
 }  // namespace phys

@@ -30,6 +30,8 @@ std::string toString(const IOType type);
 
 IOType extensionToIOType(const std::string& file_name);
 
+std::string extensionFromIOType(const IOType type);
+  
 }  // namespace io
 }  // namespace dca
 

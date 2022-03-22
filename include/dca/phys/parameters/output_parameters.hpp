@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class reads, stores, and writes the output parameters.
 
@@ -15,6 +16,7 @@
 
 #include <stdexcept>
 #include <string>
+#include "dca/io/io_types.hpp"
 
 namespace dca {
 namespace phys {
@@ -92,6 +94,12 @@ public:
   const std::string& get_filename_analysis() const {
     return filename_analysis_;
   }
+  std::string getAppropriateFilenameAnalysis() const {
+    std::size_t extension_start = filename_analysis_.rfind('.');
+    std::string cleaned_filename{filename_analysis_.substr(0, extension_start)};
+    cleaned_filename += extensionFromIOType(io::stringToIOType(get_output_format()));
+    return cleaned_filename;
+  }
   const std::string& get_filename_ed() const {
     return filename_ed_;
   }
@@ -113,7 +121,7 @@ public:
   bool dump_chi_0_lattice() const {
     return dump_chi_0_lattice_;
   }
-
+  
 private:
   std::string directory_;
   bool autoresume_ = false;

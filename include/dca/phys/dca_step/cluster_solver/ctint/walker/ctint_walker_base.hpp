@@ -342,7 +342,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::markThermalized() {
   // Recompute the Monte Carlo weight.
   setMFromConfig();
 #ifndef NDEBUG
-  writeAlphas();
+  //writeAlphas();
 #endif
 }
 

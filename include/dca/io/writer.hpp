@@ -82,6 +82,8 @@ public:
   }
 #endif
 
+  bool isOpen() { return is_open_; }
+  
   void begin_step() {
     std::visit([&](auto& var) { var.begin_step(); }, writer_);
   }
@@ -92,10 +94,12 @@ public:
 
   void open_file(const std::string& file_name, bool overwrite = true) {
     std::visit([&](auto& var) { var.open_file(file_name, overwrite); }, writer_);
+    is_open_ = true;
   }
 
   void close_file() {
     std::visit([&](auto& var) { var.close_file(); }, writer_);
+    is_open_ = false;
   }
 
   /** For writing open_group is expected to always return true
@@ -157,6 +161,7 @@ private:
   adios2::ADIOS& adios_;
 #endif
   Concurrency& concurrency_;
+  bool is_open_;
 };
 
 }  // namespace dca::io

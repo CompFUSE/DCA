@@ -164,7 +164,7 @@ void CtintAccumulator<Parameters, device, Real, DIST>::updateFrom(Walker& walker
   // Compute M.
   walker.computeM(M_);
 
-  if (device == linalg::GPU) {
+  if constexpr (device == linalg::GPU) {
     for (int s = 0; s < 2; ++s) {
       event_.record(walker.get_stream(s));
       //  Synchronize sp accumulator streams with walker.
