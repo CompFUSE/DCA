@@ -365,6 +365,21 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
             }
 }
 
+
+template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename QBrillouin>
+void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Lattice() {
+  for (int wm_ind = 0; w_ind < WVertexDmn::dmn_size(); wm_ind++)
+      for (int q_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); q_ind++)
+	for (int wn_ind = 0; w_ind < WVertexDmn::dmn_size(); wn_ind++)
+	for (int wnp_ind = 0; w_ind < WVertexDmn::dmn_size(); wnp_ind++)
+  	for (int m2 = 0; m2 < b::dmn_size(); m2++)
+	  for (int n2 = 0; n2 < b::dmn_size(); n2++)
+	    for (int m1 = 0; m1 < b::dmn_size(); m1++)
+	      for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+	      
+	    }
+}
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename ClusterMatrixDmn>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaLattice(

@@ -183,17 +183,18 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
 
     // coordinate  0 1 2 3 4 5 6 7 8    9
     // G4        : b b b b k w k w k_ex w_ex
-    // G_II      : b b k w b b k w
+    // G_II      : b b b b k w k w k_ex w_ex
 
     coor_1[0] = coor_2[0];
     coor_1[1] = coor_2[1];
-    coor_1[2] = coor_2[4];  // k_1
-    coor_1[3] = coor_2[5];  // w_1
-    coor_1[4] = coor_2[2];
-    coor_1[5] = coor_2[3];
+    coor_1[2] = coor_2[2];  // k_1
+    coor_1[3] = coor_2[3];  // w_1
+    coor_1[4] = coor_2[4];
+    coor_1[5] = coor_2[5];
     coor_1[6] = coor_2[6];  // k_2
     coor_1[7] = coor_2[7];  // w_2
-
+    coor_1[8] = coor_2[8];  // KExchange
+    coor_1[9] = coor_2[9];  // WExchange
     // Note: only the first momentum and frequency exchange (7th and 10th index of G4) are analyzed.
     G_II(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7]) =
         G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7],
@@ -204,6 +205,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
   delete[] coor_2;
 }
 
+/** This calculates close to the Chi_0(Q,omega_m)K,K' that we want for S(q,omega)
+  */  
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
     func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0) {

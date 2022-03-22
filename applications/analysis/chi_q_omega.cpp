@@ -7,7 +7,7 @@
 //
 // Author: Peter Doak (doakpw@ornl.gov)
 //
-// Main file for generating dynamic susceptibility (Chi''_Q_omega) from a DCA++ G4 
+// Main file for generating dynamic susceptibility (Chi''_Q_omega) from a DCA++ G4
 // Usage: ./chi_q_omega input_file.json
 
 #include <iostream>
@@ -19,13 +19,16 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
+#include "dca/io/writer.hpp"
+#include "dca/io/reader.hpp"
+#include "dca/io/io_types.hpp"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
     std::cout << "Usage: " << argv[0] << " input_file.json" << std::endl;
     return -1;
   }
-  
+
   std::string input_file(argv[1]);
 
   Concurrency concurrency(argc, argv);
@@ -58,19 +61,36 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-  #ifdef DCA_HAVE_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS adios;
-  dca_data.read(adios, parameters.get_directory() + parameters.get_filename_dca());
+  std::string filename(parameters.get_directory() + parameters.get_filename_dca());
+  dca::io::Reader reader(concurrency, parameters.get_output_format());
+  reader.open_file(filename);
+  auto& adios2_reader = std::get<dca::io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+  std::size_t step_count = adios2_reader.getStepCount();
+  for (std::size_t i = 0; i < step_count; ++i) {
+    adios2_reader.begin_step();
+    adios2_reader.end_step();
+  }
+  dca_data.read(reader);
 #else
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
-  #endif
+#endif
   BseSolverExt bse_solver_ext(parameters, dca_data);
   bse_solver_ext.calculateSusceptibilities();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    bse_solver_ext.write();
-
+#ifdef DCA_HAVE_ADIOS2
+    if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
+      dca::io::Writer writer(adios, concurrency, parameters.get_output_format());
+      std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
+      writer.open_file(filename_bse);
+      bse_solver_ext.write(writer);
+    }
+    else
+#endif
+      bse_solver_ext.write();
     std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
   }
 
