@@ -90,6 +90,17 @@ public:
     return four_point_frequency_transfer_;
   }
 
+  // Returns the vector of indexes of bosonic exchange frequencies
+  std::vector<int> get_four_point_frequency_transfers() const {
+    std::vector<int> transfers;
+    if(compute_all_transfers_)
+      for(int i = 0; i < four_point_frequency_transfer_; ++i)
+	transfers.push_back(i);
+    else
+      transfers.push_back(four_point_frequency_transfer_);
+    return transfers;
+  }
+  
   // Returns the 'exact' momentum transfer (q-vector), i.e. the DCA momentum space cluster vector
   // whose distance (L2 norm) to the input momentum transfer is minimal.
   // It assumes that the input q-vectors' distance to the next DCA momentum space cluster vector is

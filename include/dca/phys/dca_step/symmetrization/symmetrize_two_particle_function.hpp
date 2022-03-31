@@ -65,6 +65,9 @@ protected:
                                                     func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
       std::vector<double> Q, bool do_diff = false);
 
+  /** This symmetrizes G2(l1,l2,k1,l3,l4,k2,k3) for each w1, w2 pair.
+   *  That execute is private.   
+   */
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
   static void execute(
       func::function<scalartype,

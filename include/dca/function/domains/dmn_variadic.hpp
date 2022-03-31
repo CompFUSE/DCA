@@ -54,6 +54,18 @@ public:
   // Resets the domain back to the original state at creation time.
   void reset();
 
+  // template <typename TUPLE, std::size_t... Is>
+  // std::size_t array_index_impl(const TUPLE&& t, std::index_sequence<Is...>) const;
+
+  // template <typename... Args>
+  // std::size_t index_by_tuple(std::tuple<Args...>&& t) const;
+
+  template <typename ARRAY, std::size_t... SIZE>
+  std::size_t index_by_array_impl(const ARRAY& a, std::index_sequence<SIZE...>) const;
+
+  template <std::size_t N, typename Indices = std::make_index_sequence<N>>
+  std::size_t index_by_array(const std::array<int, N>& a) const;
+
   // Indexing operator: accesses elements of the domain.
   // If sizeof(args) < sizeof(domains): error.
   // If sizeof(args) == sizeof(domains): calls index via branch domains.
@@ -220,6 +232,33 @@ void dmn_variadic<domain_list...>::reset() {
   // std::cout << "Domain size is " << size << std::endl;
 }
 
+// template <typename... domain_list>
+// template <typename TUPLE, std::size_t... Is>
+// std::size_t dmn_variadic<domain_list...>::array_index_impl(const TUPLE&& t,
+// std::index_sequence<Is...>) const {
+//   return operator()(std::get<Is>(t)...);
+// }
+
+// template <typename... domain_list>
+// template <typename... Args>
+// std::size_t dmn_variadic<domain_list...>::index_by_tuple(std::tuple<Args...>&& t) const {
+//   return array_index_impl(std::move(t), std::index_sequence_for<Args...>{});
+// }
+
+template <typename... domain_list>
+template <typename ARRAY, std::size_t... SIZE>
+std::size_t dmn_variadic<domain_list...>::index_by_array_impl(const ARRAY& a,
+                                                              std::index_sequence<SIZE...>) const {
+  return operator()(a[SIZE]...);
+}
+
+template <typename... domain_list>
+template <std::size_t N, typename Indices>
+std::size_t dmn_variadic<domain_list...>::index_by_array(const std::array<int, N>& a) const {
+  // return index_by_tuple(std::move(util::Array2Tuple(a)));
+  return index_by_array_impl(a, Indices{});
+}
+
 template <typename... domain_list>
 template <typename... Args>
 std::size_t dmn_variadic<domain_list...>::operator()(Args&&... args) const {
@@ -254,9 +293,9 @@ std::size_t dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bo
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
 
 #ifndef NDEBUG
-  auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
-  check_indices("branch ", branch_domain_sizes, seq2, branch_i0,
-                std::forward<Args>(branch_indices)...);
+  // auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
+  // check_indices("branch ", branch_domain_sizes, seq2, branch_i0,
+  //               std::forward<Args>(branch_indices)...);
 #endif  // NDEBUG
 
   std::size_t N = branch_i0 + detail::multiply_offsets(branch_domain_steps, seq,
@@ -272,8 +311,8 @@ std::size_t dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bo
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
 
 #ifndef NDEBUG
-  auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
-  check_indices("leaf", leaf_domain_sizes, seq2, leaf_i0, std::forward<Args>(leaf_indices)...);
+  // auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
+  // check_indices("leaf", leaf_domain_sizes, seq2, leaf_i0, std::forward<Args>(leaf_indices)...);
 #endif  // NDEBUG
 
   std::size_t N = leaf_i0 + detail::multiply_offsets(leaf_domain_steps, seq,

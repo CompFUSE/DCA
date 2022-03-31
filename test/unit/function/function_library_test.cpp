@@ -14,9 +14,6 @@
 // TODO: Move domains-only tests to separate files and rename this file to function_test.cpp and the
 //       test cases to FunctionTest.
 
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
-
 #include <cassert>
 #include <complex>
 #include <cstdio>
@@ -32,10 +29,7 @@
 
 #include "dca/util/type_list.hpp"
 #include "dca/util/type_utils.hpp"
-
-using dca::func::dmn;
-using dca::func::dmn_0;
-using dca::func::dmn_variadic;
+#include "function_testing.hpp"
 
 namespace dca {
 namespace testing {
@@ -69,205 +63,17 @@ bool compare_to_file(const std::string& filename, const std::string& check) {
   return false;
 }
 
-// A selection of domain types we can use for testing.
-typedef dmn_0<dmn<1, double>> test_domain_0a;
-typedef dmn_0<dmn<2, double>> test_domain_0b;
-typedef dmn_0<dmn<4, double>> test_domain_0c;
-typedef dmn_0<dmn<8, double>> test_domain_0d;
-typedef dmn_variadic<test_domain_0d> test_domain_1d;
-typedef dmn_variadic<test_domain_0a, test_domain_0b> test_domain_2a;
-typedef dmn_variadic<test_domain_0c, test_domain_0d> test_domain_2c;
-typedef dmn_variadic<test_domain_2a, test_domain_2c> test_domain_4a;
-typedef dmn_variadic<test_domain_4a, test_domain_4a, test_domain_2c> test_domain_16;
+dca::func::function<double, Domain0a> function_0a("Domain0a");
+dca::func::function<double, Domain0b> function_0b("Domain0b");
+dca::func::function<double, Domain0c> function_0c("Domain0c");
+dca::func::function<double, Domain0d> function_0d("Domain0d");
+dca::func::function<double, Domain1d> function_1d("Domain1d");
+dca::func::function<double, Domain2a> function_2a("Domain2a");
+dca::func::function<double, Domain4a> function_4a("Domain4a");
+dca::func::function<double, Domain16> function_16("Domain16");
 
-typedef dmn_variadic<test_domain_0d> test_domain_0v;
-typedef dmn_variadic<test_domain_4a, test_domain_4a, test_domain_2c> test_domain_16v;
-
-dca::func::function<double, test_domain_0a> function_0a("test_domain_0a");
-dca::func::function<double, test_domain_0b> function_0b("test_domain_0b");
-dca::func::function<double, test_domain_0c> function_0c("test_domain_0c");
-dca::func::function<double, test_domain_0d> function_0d("test_domain_0d");
-dca::func::function<double, test_domain_1d> function_1d("test_domain_1d");
-dca::func::function<double, test_domain_2a> function_2a("test_domain_2a");
-dca::func::function<double, test_domain_4a> function_4a("test_domain_4a");
-dca::func::function<double, test_domain_16> function_16("test_domain_16");
-
-test_domain_0v dummy;
-test_domain_16v dummy2;
-
-template <typename T1>
-struct function_test {};
-
-template <int N, typename Dmn>
-struct function_test<dca::func::function<double, dmn<N, Dmn>>> {
-  typedef dca::func::function<double, dmn<N, Dmn>> fType;
-
-  function_test(fType& func) : f(func) {}
-
-  template <typename Arg>
-  bool check_1(Arg /*arg*/) {
-    /*
-    std::cout << "Sub branch size " << std::endl;
-    for (int i = 0; i < f.get_Nb_branch_domains(); i++) {
-      std::cout << f.get_branch_size(i) << "\t";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Sub branch steps " << std::endl;
-    for (int i = 0; i < f.get_Nb_branch_domains(); i++) {
-      std::cout << f.get_branch_domain_steps()[i] << "\t";
-    }
-    std::cout << std::endl;
-    */
-    return true;
-  }
-
-  fType& f;
-};
-
-template <typename Domain>
-struct function_test<dca::func::function<double, Domain>> {
-  typedef dca::func::function<double, Domain> fType;
-  typedef typename fType::this_scalar_type scalartype;
-  typedef Domain domainType;
-  // typedef typename Domain::this_type sub_type;
-
-  // const int Ntypes = dca::util::Length<sub_type>::value;
-
-  function_test(fType& func) : f(func) {}
-
-  int signature() {
-    return f.signature();
-  }
-  int size() {
-    return f.size();
-  }
-
-  void fill_sequence() {
-    int N = f.size();
-    for (int i = 0; i < N; ++i) {
-      f(i) = i;
-      // if (i<1024) std::cout << i << ",";
-    }
-  }
-
-  void check_sequence() {
-    int N = f.size();
-    for (int i = 0; i < N; ++i) {
-      if (f(i) != i)
-        throw(std::runtime_error("fault"));
-    }
-    // std::cout << "Ntypes " << Ntypes << " signature " << signature() << " size " << size()
-    //           << std::endl;
-  }
-
-  template <typename Arg>
-  bool check_1(Arg /*arg*/) {
-    std::cout << "Sub branch size " << std::endl;
-    for (int i = 0; i < f.get_domain().get_Nb_branch_domains(); i++) {
-      std::cout << f.get_domain().get_branch_size(i) << "\t";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Sub branch steps " << std::endl;
-    for (int i = 0; i < f.get_domain().get_Nb_branch_domains(); i++) {
-      std::cout << f.get_domain().get_branch_domain_steps()[i] << "\t";
-    }
-    std::cout << std::endl;
-
-    // IsSame<mp_append<test_domain_0a::this_type, test_domain_0b::this_type>::type, double>();
-    // IsSame<test_domain_0a::this_type, test_domain_0b::this_type>();
-    // IsSame<test_domain_0a, test_domain_0b>();
-    // IsSame<test_domain_2a, test_domain_2c>();
-
-    std::cout << std::endl;
-    using test_list = dca::util::Typelist<int*, double, float&, int, int*, int, int, const float*,
-                                          const int, long long, int&>;
-    using test_list2 = dca::util::Typelist<float, int, int*, double*, int, int, int*, double, int,
-                                           float, const int, long long, int&>;
-    std::cout << "Testing Typelist Length " << dca::util::mp_size<test_list>::value << std::endl;
-    std::cout << "Testing Typelist Length " << dca::util::Length<test_list>::value << std::endl;
-
-    std::cout << "Testing Typelist NumberOf " << dca::util::mp_count<test_list, int>::value
-              << std::endl;
-    std::cout << "Testing Typelist NumberOf " << dca::util::NumberOf<test_list, int>::value
-              << std::endl;
-
-    std::cout << "Testing Typelist IndexOf " << dca::util::mp_index_of<long long, test_list>::value
-              << std::endl;
-    std::cout << "Testing Typelist IndexOf " << dca::util::IndexOf<long long, test_list>::value
-              << std::endl;
-
-    std::cout << "Testing Typelist TypeAt "
-              << dca::util::type_name<dca::util::mp_element<9, test_list>::type>().c_str()
-              << std::endl;
-    std::cout << "Testing Typelist TypeAt "
-              << dca::util::type_name<dca::util::TypeAt<9, test_list>::type>().c_str() << std::endl;
-
-    std::cout << "Testing Typelist Append "
-              << dca::util::mp_size<dca::util::mp_append<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Append "
-              << dca::util::Length<dca::util::Append<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Append/Index "
-              << dca::util::mp_index_of<const float*, dca::util::mp_append<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Append/Index "
-              << dca::util::IndexOf<const float*, dca::util::Append<test_list, test_list2>::type>::value
-              << std::endl;
-
-    std::cout << "Testing Typelist Prepend "
-              << dca::util::mp_size<dca::util::mp_prepend<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Prepend "
-              << dca::util::Length<dca::util::Prepend<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Prepend/Index "
-              << dca::util::mp_index_of<const float*,
-                                        dca::util::mp_prepend<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << "Testing Typelist Prepend/Index "
-              << dca::util::IndexOf<const float*, dca::util::Prepend<test_list, test_list2>::type>::value
-              << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Printing typelist test_domain_16v \n";
-    dca::util::print_type<test_domain_16v>::print(std::cout);
-
-    std::cout << "Printing typelist test_list \n";
-    dca::util::print_type<test_list>::print(std::cout);
-    std::cout << std::endl;
-
-    // std::cout << "\nTesting Typelist count "
-    //           << dca::util::type_name<dca::util::TypeAt<2, test_list>>().c_str() << std::endl;
-    // std::cout << "\nTesting Typelist count "
-    //           << dca::util::type_name<dca::util::TypeAt<2, test_list>>().c_str() << std::endl;
-
-    // typedef typename TypeAt<typename Domain::domain_typelist_0, 0>::Result dom_0;
-    // std::cout << "Getting first subdomain "
-    //           << "Type Id is " << typeid(dom_0).name() << std::endl;
-    // dca::func::function<double, dom_0> sub_function;
-    // function_test<decltype(sub_function)> sub_domain(sub_function);
-    // sub_domain.check_1(1);
-
-    return true;
-  }
-
-  template <typename... Args>
-  scalartype expand(Args... /*args*/) {
-    return scalartype(0);
-  }
-
-  template <typename... Args>
-  bool check_value(Args... args) {
-    // if (f(args...) == arg1 * offset<f, 1> + arg2 * offset<f, 2> +) {
-    // }
-    return f.operator()(args...) == f(args...);
-    // return check_value(args...);
-  }
-  fType& f;
-};
+Domain0v dummy;
+Domain16v dummy2;
 
 }  // namespace testing
 }  // namespace dca
@@ -337,6 +143,7 @@ TEST(Function, FingerPrint) {
   dca::testing::function_4a.print_fingerprint(result);
   dca::testing::function_16.print_fingerprint(result);
 
+  std::cout << result.str();
   EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/fingerprint.txt",
                                             result.str()));
 }
@@ -353,24 +160,24 @@ TEST(Function, PrintElements) {
 TEST(Function, to_JSON) {
   std::stringstream result;
 
-  dca::util::print_type<dca::testing::test_domain_16::this_type>::to_JSON(std::cout);
-  dca::util::print_type<dca::testing::test_domain_0a::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain16::this_type>::to_JSON(std::cout);
+  dca::util::print_type<dca::testing::Domain0a::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_0b::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain0b::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_0c::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain0c::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_0d::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain0d::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_1d::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain1d::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_2a::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain2a::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_2c::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain2c::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_4a::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain4a::this_type>::to_JSON(result);
   result << "\n";
-  dca::util::print_type<dca::testing::test_domain_16::this_type>::to_JSON(result);
+  dca::util::print_type<dca::testing::Domain16::this_type>::to_JSON(result);
   result << "\n";
 
   EXPECT_TRUE(
@@ -379,7 +186,7 @@ TEST(Function, to_JSON) {
 
 TEST(FunctionTest, DefaultConstructor) {
   // Default name
-  dca::func::function<double, dca::testing::test_domain_2a> f1;
+  dca::func::function<double, dca::testing::Domain2a> f1;
 
   EXPECT_EQ(2, f1.signature());
   EXPECT_EQ(2, f1.size());
@@ -389,7 +196,7 @@ TEST(FunctionTest, DefaultConstructor) {
 
   // Custom name
   const std::string name = "my-function";
-  dca::func::function<double, dca::testing::test_domain_4a> f2(name);
+  dca::func::function<double, dca::testing::Domain4a> f2(name);
 
   EXPECT_EQ(name, f2.get_name());
   EXPECT_EQ(4, f2.signature());
@@ -400,7 +207,7 @@ TEST(FunctionTest, DefaultConstructor) {
 }
 
 TEST(FunctionTest, CopyConstructor) {
-  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+  using FunctionType = dca::func::function<double, dca::testing::Domain2a>;
 
   FunctionType f1("original");
   f1(0) = 3.14;
@@ -431,7 +238,7 @@ TEST(FunctionTest, CopyConstructor) {
 }
 
 TEST(FunctionTest, MoveConstructor) {
-  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+  using FunctionType = dca::func::function<double, dca::testing::Domain2a>;
 
   FunctionType f1("original");
   f1(0) = 3.14;
@@ -464,7 +271,7 @@ TEST(FunctionTest, MoveConstructor) {
 }
 
 TEST(FunctionTest, CopyAssignment) {
-  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+  using FunctionType = dca::func::function<double, dca::testing::Domain2a>;
 
   FunctionType f1("original");
   f1(0) = 3.14;
@@ -497,7 +304,7 @@ TEST(FunctionTest, CopyAssignment) {
 }
 
 TEST(FunctionTest, MoveAssignment) {
-  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+  using FunctionType = dca::func::function<double, dca::testing::Domain2a>;
 
   FunctionType f1("original");
   f1(0) = 3.14;
@@ -559,7 +366,7 @@ int VariableDmn::size_ = 0;
 TEST(FunctionTest, Reset) {
   // Size of test_domain_0b = 2.
   using Domain =
-      dca::func::dmn_variadic<dca::testing::test_domain_0b, dca::func::dmn_0<dca::testing::VariableDmn>>;
+      dca::func::dmn_variadic<dca::testing::Domain0b, dca::func::dmn_0<dca::testing::VariableDmn>>;
 
   dca::testing::VariableDmn::initialize(3);
 
@@ -597,7 +404,7 @@ TEST(FunctionTest, Reset) {
 }
 
 TEST(FunctionTest, ComparisonOperatorEqual) {
-  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+  using FunctionType = dca::func::function<double, dca::testing::Domain2a>;
 
   FunctionType f1("f1");
   f1(0) = 3.14;
@@ -658,4 +465,68 @@ TEST(FunctionTest, RangeBasedLoop) {
 
   for (int i = 0; i < f.size(); ++i)
     EXPECT_EQ(i, f(i));
+}
+
+TEST(FunctionTest, ArrayBasedIndexing) {
+  using namespace dca::testing;
+  dca::func::function<double, Domain2c0c0c> f2c0c0c;
+  function_test<decltype(f2c0c0c)> f2c0c0c_test(f2c0c0c);
+  f2c0c0c_test.fill_sequence();
+  std::array<int, 3> index{11, 0, 0};
+  EXPECT_EQ(f2c0c0c(index), 11);
+  index = {0, 1, 0};
+  EXPECT_EQ(f2c0c0c(index), 32);
+
+  // using it to to do remapping
+  using DomainNot2c = dmn_variadic<Domain0d, Domain0c>;
+  using DomainNot2c0c0c = dmn_variadic<DomainNot2c, Domain0c, Domain0c>;
+  dca::func::function<double, DomainNot2c0c0c> fNot2c0c0c;
+  std::array<int, 4> subind;
+  std::array<int, 4> subind_transpose;
+  for (int c1 = 0; c1 < Domain0c::dmn_size(); c1++)
+    for (int c2 = 0; c2 < Domain0c::dmn_size(); c2++)
+      for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
+        f2c0c0c.linind_2_subind(i2c + c2 * Domain2c::dmn_size() + c1 * Domain0c::dmn_size() * Domain2c::dmn_size(), subind);
+	if (subind[2] > 0)
+	  std::cout << "break";
+        subind_transpose[1] = subind[0];
+        subind_transpose[0] = subind[1];
+        subind_transpose[2] = subind[2];
+        subind_transpose[3] = subind[3];
+        fNot2c0c0c(subind_transpose) = f2c0c0c(subind);
+      }
+  EXPECT_EQ(fNot2c0c0c(0, 0, 0, 0), f2c0c0c(0, 0, 0, 0));
+  EXPECT_EQ(fNot2c0c0c(1, 0, 0, 0), f2c0c0c(0, 1, 0, 0));
+  EXPECT_EQ(fNot2c0c0c(7, 3, 0, 0), f2c0c0c(3, 7, 0, 0));
+  EXPECT_EQ(fNot2c0c0c(1, 0, 1, 0), f2c0c0c(0, 1, 1, 0));
+  EXPECT_EQ(fNot2c0c0c(1, 0, 1, 0), f2c0c0c(0, 1, 1, 0));
+  EXPECT_EQ(fNot2c0c0c(1, 0, 1, 1), f2c0c0c(0, 1, 1, 1));
+  EXPECT_EQ(fNot2c0c0c(1, 0, 1, 1), f2c0c0c(0, 1, 1, 1));
+
+
+  using Domain2c0a0c = dmn_variadic<Domain2c, Domain0a, Domain0c>;
+  using DomainNot2c0a0c = dmn_variadic<DomainNot2c, Domain0a, Domain0c>;
+  dca::func::function<double, Domain2c0a0c> f2c0a0c;
+  function_test<decltype(f2c0a0c)> f2c0a0c_test(f2c0a0c);
+  f2c0a0c_test.fill_sequence();  
+  dca::func::function<double, DomainNot2c0a0c> fNot2c0a0c;
+  std::size_t linind = 0;
+  for (int c1 = 0; c1 < Domain0c::dmn_size(); c1++)
+    for (int c2 = 0; c2 < Domain0a::dmn_size(); c2++)
+      for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
+        f2c0a0c.linind_2_subind(linind++, subind);
+	if (subind[2] > 0)
+	  std::cout << "break";
+        subind_transpose[1] = subind[0];
+        subind_transpose[0] = subind[1];
+        subind_transpose[2] = subind[2];
+        subind_transpose[3] = subind[3];
+        fNot2c0a0c(subind_transpose) = f2c0a0c(subind);
+      }
+  EXPECT_EQ(fNot2c0a0c(0, 0, 0, 0), f2c0a0c(0, 0, 0, 0));
+  EXPECT_EQ(fNot2c0a0c(1, 0, 0, 0), f2c0a0c(0, 1, 0, 0));
+  EXPECT_EQ(fNot2c0a0c(7, 3, 0, 0), f2c0a0c(3, 7, 0, 0));
+  EXPECT_EQ(fNot2c0a0c(1, 0, 0, 1), f2c0a0c(0, 1, 0, 1));
+  EXPECT_EQ(fNot2c0a0c(7, 3, 0, 1), f2c0a0c(3, 7, 0, 1));
+
 }

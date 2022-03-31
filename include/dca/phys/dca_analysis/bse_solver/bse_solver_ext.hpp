@@ -54,8 +54,6 @@ public:
   using TpHostKDmn =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-
-  using KCutDomain = brillouin_zone_cut_domain
   
   BseSolverExt(ParametersType& parameters, DcaDataType& dca_data);
 
@@ -226,9 +224,9 @@ void BseSolverExt<ParametersType, DcaDataType>::calculateSusceptibilities() {
   bse_lattice_solver_.computeGammaLattice(bse_cluster_solver_.get_Gamma_cluster());
   bse_lattice_solver_.computeChi0Lattice();
 
-  
-  
-  bse_lattice_solver_.diagonalizeGammaChi0();
+  bse_lattice_solver_.computeG4Lattice();
+
+  bse_lattice_solver_.computeChiDblPrime_q_w();
 }
 
 }  // namespace analysis

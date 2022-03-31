@@ -14,7 +14,8 @@
 #include "dca/phys/parameters/domains_parameters.hpp"
 #include "gtest/gtest.h"
 #include "dca/io/json/json_reader.hpp"
-
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+  
 TEST(DomainsParametersTest, DefaultValues) {
   const int dimension = 2;
   dca::phys::params::DomainsParameters pars(dimension);
@@ -64,3 +65,4 @@ TEST(DomainsParametersTest, ReadAll) {
   EXPECT_EQ(128, pars.get_real_frequencies());
   EXPECT_EQ(0.001, pars.get_imaginary_damping());
 }
+

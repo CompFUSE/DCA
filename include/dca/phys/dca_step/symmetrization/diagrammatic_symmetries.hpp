@@ -148,6 +148,13 @@ public:
       func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                     func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G);
 
+  template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+  void execute(
+      func::function<scalartype,
+                     func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                           func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
+                                        KExDmn, WExDmn>>& G4);
+
 private:
   template <typename scalartype, typename k_dmn, typename w_dmn>
   void symmetrize_over_matsubara_frequencies(
@@ -305,6 +312,26 @@ void diagrammatic_symmetries<parameters_type>::execute(
     default:
       throw std::logic_error(__FUNCTION__);
   }
+}
+
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn, typename KExDmn, typename WExDmn>
+void diagrammatic_symmetries<parameters_type>::execute(
+    func::function<scalartype,
+                   func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
+                                                         func::dmn_variadic<b, b, k_dmn, w_dmn>>,
+                                      KExDmn, WExDmn>>& f) {
+  std::vector<int> subind(3);
+  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind)
+    for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); ++kex_ind) {
+      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
+                                                    func::dmn_variadic<b, b, k_dmn, w_dmn>>>
+          independent_G4_sub;
+      subind = {0, kex_ind, wex_ind};
+      f.slice(0, subind, static_cast<scalartype*>(independent_G4_sub.values()));
+      execute(independent_G4_sub);
+      f.distribute(0, subind, static_cast<scalartype*>(independent_G4_sub.values()));
+    }
 }
 
 // Symmetrizes G_2 over Matsubara frequencies for G_2 only given for one q-vector.
@@ -673,7 +700,7 @@ void diagrammatic_symmetries<parameters_type>::set_real(
   }
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_HPP

@@ -62,6 +62,22 @@ public:
                                                     func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
       func::function<int, nu_nu>& H_symmetry, std::vector<double> Q, bool do_diff = false);
 
+  template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+  static void execute(
+      func::function<scalartype,
+                     func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                           func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
+                                        KExDmn, WExDmn>>& f,
+      std::vector<double> Q, bool do_diff = false);
+
+  template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+  static void execute(
+      func::function<scalartype,
+                     func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                           func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
+                                        KExDmn, WExDmn>>& f,
+      func::function<int, nu_nu>& H_symmetry, std::vector<double> Q, bool do_diff = false);
+
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
   static void execute(
       func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
@@ -117,6 +133,25 @@ void symmetrize::execute(
                                                   func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
     func::function<int, nu_nu>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
   symmetrize_two_particle_function::execute(f, Q, do_diff);
+}
+
+template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+void symmetrize::execute(
+    func::function<scalartype,
+                   func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                         func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
+    KExDmn, WExDmn>>& f,
+    func::function<int, nu_nu>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
+  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind)
+    for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); ++kex_ind) {
+      func::function<scalartype,
+		     func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+	func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>> independent_f_sub;
+      int subind[]{0,kex_ind, wex_ind};
+      f.slice(1,2, subind, static_cast<double*>(independent_f_sub.values()));
+      symmetrize_two_particle_function::execute(independent_f_sub, Q, do_diff);
+      // copy slice into f
+    }
 }
 
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>

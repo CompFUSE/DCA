@@ -198,7 +198,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
         G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7],
            0, 0);
   }
-
+  
   delete[] coor_1;
   delete[] coor_2;
 }

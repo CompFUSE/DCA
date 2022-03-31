@@ -41,3 +41,4 @@ TEST_F(MomentumExchangeDomainTest, MultipleExchanges) {
   const std::vector<int> expected_elements{00, 01, 02, 05, 06, 10};
   EXPECT_TRUE(expected_elements == MomentumExchangeDomain::get_elements());
 }
+

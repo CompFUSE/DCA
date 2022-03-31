@@ -22,3 +22,7 @@ endif(DCA_HAVE_GPU)
 dca_add_gtest(function_construction_test
   MPI MPI_NUMPROC 4
   LIBS ${FUNCTION_CONSTRUCTION_TEST_LIBS})
+
+dca_add_gtest(function_slice_test
+  GTEST_MAIN
+  LIBS function)

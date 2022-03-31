@@ -175,6 +175,20 @@ struct IsComplex<std::complex<T>> {
   constexpr static bool value = 1;
 };
 
+template<typename ARRAY, std::size_t... SIZE>
+auto Array2Tuple_impl(const ARRAY& a, std::index_sequence<SIZE...>)
+{
+  return std::make_tuple(a[SIZE]...);
+}
+
+template<typename T, std::size_t N, typename Indices = std::make_index_sequence<N>>
+auto Array2Tuple(const std::array<T,N>& a)
+{
+  return Array2Tuple_impl(a, Indices{});
+}
+  
+
+
 }  // namespace util
 }  // namespace dca
 
