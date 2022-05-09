@@ -19,6 +19,19 @@ inline std::string vectorToString(const std::vector<T>& v) {
   return ss.str();
 }
 
+template <class T>
+inline std::string vectorToString(const std::vector<std::vector<T>>& v) {
+  std::ostringstream ss;
+  ss << "[";
+  for (size_t i = 0; i < v.size(); ++i) {
+    if (i != 0)
+      ss << ",";
+    ss << vectorToString(v[i]);
+  }
+  ss << "]";
+  return ss.str();
+}
+
 }
 
 #endif

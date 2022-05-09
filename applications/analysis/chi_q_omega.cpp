@@ -39,6 +39,10 @@ int main(int argc, char** argv) {
     dca::util::Modules::print();
     dca::config::CMakeOptions::print();
 
+    #ifdef DCA_HAVE_GPU
+    dca::linalg::util::printInfoDevices();
+#endif  // DCA_HAVE_GPU
+
     std::cout
         << "\n"
         << "********************************************************************************\n"
@@ -52,6 +56,10 @@ int main(int argc, char** argv) {
         << std::endl;
   }
 
+#ifdef DCA_HAVE_GPU
+    dca::linalg::util::initializeMagma();
+#endif  // DCA_HAVE_GPU
+  
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);

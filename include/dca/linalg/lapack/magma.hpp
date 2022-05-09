@@ -36,7 +36,7 @@ inline void getrf_gpu(int m, int n, float* a, int lda, int* ipiv) {
 
   int info = 0;
   magma_sgetrf_gpu(m, n, a, lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -45,7 +45,7 @@ inline void getrf_gpu(int m, int n, double* a, int lda, int* ipiv) {
 
   int info = 0;
   magma_dgetrf_gpu(m, n, a, lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -55,7 +55,7 @@ inline void getrf_gpu(int m, int n, std::complex<float>* a, int lda, int* ipiv) 
 
   int info = 0;
   magma_cgetrf_gpu(m, n, cu_a, lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -65,7 +65,7 @@ inline void getrf_gpu(int m, int n, std::complex<double>* a, int lda, int* ipiv)
 
   int info = 0;
   magma_zgetrf_gpu(m, n, cu_a, lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -75,7 +75,7 @@ inline void getri_gpu(int n, float* a, int lda, int* ipiv, float* work, int lwor
 
   int info = 0;
   magma_sgetri_gpu(n, a, lda, ipiv, work, lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -84,7 +84,7 @@ inline void getri_gpu(int n, double* a, int lda, int* ipiv, double* work, int lw
 
   int info = 0;
   magma_dgetri_gpu(n, a, lda, ipiv, work, lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -96,7 +96,7 @@ inline void getri_gpu(int n, std::complex<float>* a, int lda, int* ipiv, std::co
 
   int info = 0;
   magma_cgetri_gpu(n, cu_a, lda, ipiv, cu_work, lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
@@ -109,7 +109,7 @@ inline void getri_gpu(int n, std::complex<double>* a, int lda, int* ipiv,
 
   int info = 0;
   magma_zgetri_gpu(n, cu_a, lda, ipiv, cu_work, lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 
   checkErrorsCudaDebug();
 }
