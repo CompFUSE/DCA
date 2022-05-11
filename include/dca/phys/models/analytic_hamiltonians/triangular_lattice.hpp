@@ -30,14 +30,26 @@ namespace models {
 template <typename DCA_point_group_type>
 class triangular_lattice {
 public:
-  typedef domains::no_symmetry<2> LDA_point_group;
-  typedef DCA_point_group_type DCA_point_group;
+  static constexpr bool complex_g0 = true;
+  static constexpr bool spin_symmetric = false;
+
+  using LDA_point_group = domains::no_symmetry<2>;
+  using DCA_point_group = PointGroup;
+  //typedef domains::no_symmetry<2> LDA_point_group;
+  //typedef DCA_point_group_type DCA_point_group;
 
   const static int DIMENSION = 2;
-  const static int BANDS = 1;
+  const static int BANDS = 2;
 
   static double* initializeRDCABasis();
   static double* initializeRLDABasis();
+  
+  constexpr static int transformationSignOfR(int, int, int) {
+    return 1;
+  }
+  constexpr static int transformationSignOfK(int, int, int) {
+    return 1;
+  }
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -108,7 +120,7 @@ void triangular_lattice<point_group_type>::initializeHInteraction(
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandDmn::dmn_size() != BANDS)
-    throw std::logic_error("Triangular lattice has one band.");
+    throw std::logic_error("Triangular lattice has two bands.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
@@ -126,17 +138,31 @@ void triangular_lattice<point_group_type>::initializeHInteraction(
   nn_vec[2][0] += basis[1][0];
   nn_vec[2][1] += basis[1][1];
 
-  util::initializeSingleBandHint(parameters, nn_vec, H_interaction);
+//I cancelled the line below since we will use bilayer model
+//  util::initializeSingleBandHint(parameters, nn_vec, H_interaction);
+
+
+   // Set all elements to zero.
+   H_interaction = 0.;
+
+  const int origin = RDmn::parameter_type::origin_index();
+   // On-site interaction, store up-down interaction in the first sector.
+   const double U = parameters.get_U();
+   H_interaction(0, 0, 1, 0, origin) = U;
+   H_interaction(1, 0, 0, 0, origin) = U;
+
 }
 
 template <typename DCA_point_group_type>
 template <class domain>
 void triangular_lattice<DCA_point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
-  H_symmetries(0, 0) = 0;
-  H_symmetries(0, 1) = -1;
-  H_symmetries(1, 0) = -1;
-  H_symmetries(1, 1) = 0;
+  H_symmetries = -1;
+  
+  //H_symmetries(0, 0) = 0;
+  //H_symmetries(0, 1) = -1;
+  //H_symmetries(1, 0) = -1;
+  //H_symmetries(1, 1) = 0;
 }
 
 template <typename point_group_type>
@@ -153,16 +179,46 @@ void triangular_lattice<point_group_type>::initializeH0(
   const auto& k_vecs = KDmn::get_elements();
 
   const auto t = parameters.get_t();
+  const auto h = parameters.get_h();
+  const auto lambda = parameters.get_lambda();
+  const auto phi = parameters.get_phi();
 
   H_0 = ScalarType(0);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> m(2);
+  constexpr ScalarType i{0, 1};
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
-    const auto val =
-        -2. * t * std::cos(k[0]) - 4. * t * std::cos(sqrt(3.) * k[1] / 2.) * std::cos(k[0] / 2.);
 
-    H_0(0, 0, 0, 0, k_ind) = val;
-    H_0(0, 1, 0, 1, k_ind) = val;
+     // kinetic term
+     //m(0, 0) = m(1, 1) = -2. * t * (std::cos(k[0]) + std::cos(k[1]));
+     m(0,0) = -2. * t * std::cos(k[0] + phi) - 4. * t * std::cos(sqrt(3.) * k[1] / 2.) * std::cos(-k[0] / 2. + phi);
+     m(1,1) = -2. * t * std::cos(k[0] - phi) - 4. * t * std::cos(sqrt(3.) * k[1] / 2.) * std::cos(-k[0] / 2. - phi);
+
+     // Note: spin space is {e_DN, e_UP}
+     // Zeeman field
+     m(0, 0) += h;
+     m(1, 1) += -h;
+  
+     // Pauli matrix sigma_x
+     m(0, 1) = m(1, 0) = 2 * lambda * (-std::sin(k[1]));
+  
+     // Pauli matrix sigma_y
+    const auto val = 2 * lambda * std::sin(k[0]);
+    m(0, 1) += +i * val;
+    m(1, 0) += -i * val;
+  
+    for (int s1 = 0; s1 < 2; ++s1)
+      for (int s2 = 0; s2 < 2; ++s2)
+        H_0(s1, 0, s2, 0, k_ind) = m(s1, s2);
+
+
+
+//    const auto val =
+//        -2. * t * std::cos(k[0]) - 4. * t * std::cos(sqrt(3.) * k[1] / 2.) * std::cos(k[0] / 2.);
+
+//    H_0(0, 0, 0, 0, k_ind) = val;
+//    H_0(0, 1, 0, 1, k_ind) = val;
   }
 }
 

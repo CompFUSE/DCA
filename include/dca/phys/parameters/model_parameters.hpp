@@ -67,6 +67,7 @@ class ModelParameters {};
 
 // Specialization for Rashba-Hubbard model
 #include "model_parameters_rashba_hubbard.inc"
+#include "model_parameters_triangular_hubbard.inc"
 
 #include "model_parameters_singleband_chain.inc"
 #include "model_parameters_twoband_chain.inc"
