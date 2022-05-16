@@ -467,6 +467,48 @@ TEST(FunctionTest, RangeBasedLoop) {
     EXPECT_EQ(i, f(i));
 }
 
+TEST(FunctionTest, BranchIndexingAndAssignment) {
+  using namespace dca::testing;
+  using dca::func::dmn_variadic;
+  using dca::vectorToString;
+
+  dca::func::function<double, dmn_variadic<dmn_variadic<Domain2c, Domain2c>, Domain0c>> branched_function;
+  dca::func::function<double, dmn_variadic<dmn_variadic<Domain2c, Domain2c>, Domain0c>> bf_test;
+
+  function_test<decltype(branched_function)> branched_function_test(bf_test);
+  branched_function_test.fill_sequence();
+  int size_domain2c = Domain2c::dmn_size();
+  EXPECT_EQ(size_domain2c, 32);
+  auto& branched_steps = branched_function.get_domain().get_branch_domain_steps();
+  std::cout << "branched_steps: " << vectorToString(branched_steps) << '\n';
+  auto& branch_sizes = branched_function.get_domain().get_branch_domain_sizes();
+  std::cout << "branched_sizes: " << vectorToString(branch_sizes) << '\n';
+  auto get_steps = [](const std::vector<unsigned long>& sbdm_sizes) {
+    std::vector<unsigned long> sbdm_steps(sbdm_sizes.size(), 1);
+    for (int i = 1; i < sbdm_steps.size(); ++i)
+      sbdm_steps[i] = sbdm_steps[i - 1] * sbdm_sizes[i - 1];
+    return sbdm_steps;
+  };
+
+  auto other_steps = get_steps(branch_sizes);
+  EXPECT_EQ(branched_steps, other_steps);
+  ASSERT_EQ(bf_test(0, 0, 0, 0, 1), 1024);
+  ASSERT_EQ(bf_test(0, 1, 0, 0, 0), 4);
+  ASSERT_EQ(bf_test(0, 1), 1024);
+  for (int c0_ind = 0; c0_ind < Domain0c::dmn_size(); ++c0_ind) {
+    for (int j = 0; j < size_domain2c; ++j)
+      for (int i = 0; i < size_domain2c; ++i) {
+        branched_function(i + j * size_domain2c, c0_ind) =
+            i + j * size_domain2c + c0_ind * size_domain2c * size_domain2c;
+      }
+  }
+
+  EXPECT_EQ(branched_function.size(), 4096);
+  EXPECT_EQ(branched_function.getValues().size(), 4096);
+  std::cout << vectorToString(branched_function.getValues()) << '\n';
+  std::cout << vectorToString(branched_function_test.f.getValues()) << '\n';
+}
+
 TEST(FunctionTest, ArrayBasedIndexing) {
   using namespace dca::testing;
   dca::func::function<double, Domain2c0c0c> f2c0c0c;
@@ -486,9 +528,11 @@ TEST(FunctionTest, ArrayBasedIndexing) {
   for (int c1 = 0; c1 < Domain0c::dmn_size(); c1++)
     for (int c2 = 0; c2 < Domain0c::dmn_size(); c2++)
       for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
-        f2c0c0c.linind_2_subind(i2c + c2 * Domain2c::dmn_size() + c1 * Domain0c::dmn_size() * Domain2c::dmn_size(), subind);
-	if (subind[2] > 0)
-	  std::cout << "break";
+        f2c0c0c.linind_2_subind(
+            i2c + c2 * Domain2c::dmn_size() + c1 * Domain0c::dmn_size() * Domain2c::dmn_size(),
+            subind);
+        if (subind[2] > 0)
+          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];
@@ -503,20 +547,19 @@ TEST(FunctionTest, ArrayBasedIndexing) {
   EXPECT_EQ(fNot2c0c0c(1, 0, 1, 1), f2c0c0c(0, 1, 1, 1));
   EXPECT_EQ(fNot2c0c0c(1, 0, 1, 1), f2c0c0c(0, 1, 1, 1));
 
-
   using Domain2c0a0c = dmn_variadic<Domain2c, Domain0a, Domain0c>;
   using DomainNot2c0a0c = dmn_variadic<DomainNot2c, Domain0a, Domain0c>;
   dca::func::function<double, Domain2c0a0c> f2c0a0c;
   function_test<decltype(f2c0a0c)> f2c0a0c_test(f2c0a0c);
-  f2c0a0c_test.fill_sequence();  
+  f2c0a0c_test.fill_sequence();
   dca::func::function<double, DomainNot2c0a0c> fNot2c0a0c;
   std::size_t linind = 0;
   for (int c1 = 0; c1 < Domain0c::dmn_size(); c1++)
     for (int c2 = 0; c2 < Domain0a::dmn_size(); c2++)
       for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
         f2c0a0c.linind_2_subind(linind++, subind);
-	if (subind[2] > 0)
-	  std::cout << "break";
+        if (subind[2] > 0)
+          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];
@@ -528,5 +571,4 @@ TEST(FunctionTest, ArrayBasedIndexing) {
   EXPECT_EQ(fNot2c0a0c(7, 3, 0, 0), f2c0a0c(3, 7, 0, 0));
   EXPECT_EQ(fNot2c0a0c(1, 0, 0, 1), f2c0a0c(0, 1, 0, 1));
   EXPECT_EQ(fNot2c0a0c(7, 3, 0, 1), f2c0a0c(3, 7, 0, 1));
-
 }

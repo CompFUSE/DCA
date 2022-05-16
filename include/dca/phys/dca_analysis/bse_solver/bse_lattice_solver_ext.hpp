@@ -574,7 +574,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
 
       for (int j = 0; j < N; j++)
         for (int i = 0; i < N; i++)
-          G4_lattice(i, j, k_ind, wex_ind) = G4_lat_indi(i, j);
+          G4_lattice(i + j * N, k_ind, wex_ind) = G4_lat_indi(i, j);
     }
 }
 

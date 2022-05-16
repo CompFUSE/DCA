@@ -293,9 +293,9 @@ std::size_t dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bo
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
 
 #ifndef NDEBUG
-  // auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
-  // check_indices("branch ", branch_domain_sizes, seq2, branch_i0,
-  //               std::forward<Args>(branch_indices)...);
+  auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};
+  check_indices("branch ", branch_domain_sizes, seq2, branch_i0,
+                std::forward<Args>(branch_indices)...);
 #endif  // NDEBUG
 
   std::size_t N = branch_i0 + detail::multiply_offsets(branch_domain_steps, seq,
@@ -307,6 +307,7 @@ template <typename... domain_list>
 template <typename... Args>
 std::size_t dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bool, false>::type,
                                                        int leaf_i0, Args... leaf_indices) const {
+  static_assert(sizeof...(Args) + 1  == leaf_domain_steps.size());
   // Create an index sequence starting from 1, with length sizeof...(args)-1.
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
 

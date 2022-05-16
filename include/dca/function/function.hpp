@@ -291,6 +291,7 @@ public:
     return fnc_values_[dmn(static_cast<int>(t), static_cast<int>(subindices)...)];
   }
 
+  
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
@@ -829,9 +830,15 @@ const scalartype& function<scalartype, domain, DT>::operator()(const int* const 
 template <typename scalartype, class domain, DistType DT>
 const scalartype& function<scalartype, domain, DT>::operator()(const std::vector<int>& subind) const {
   int linind;
-  subind_2_linind(subind, linind);
-
-  assert(linind >= 0 && linind < size());
+  if( subind.size() == Nb_sbdms ) {
+    subind_2_linind(subind, linind);
+    assert(linind >= 0 && linind < size());
+  }
+  else if (subind.size() == dmn.get_Nb_branch_domains()) {
+    branch_subind_2_linind(subind);
+  }
+  else
+    throw std::runtime_error("number of indicies matches neither branches or leaves");
   return fnc_values_[linind];
 }
 
