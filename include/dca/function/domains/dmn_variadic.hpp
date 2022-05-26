@@ -307,7 +307,6 @@ template <typename... domain_list>
 template <typename... Args>
 std::size_t dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bool, false>::type,
                                                        int leaf_i0, Args... leaf_indices) const {
-  static_assert(sizeof...(Args) + 1  == leaf_domain_steps.size());
   // Create an index sequence starting from 1, with length sizeof...(args)-1.
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
 

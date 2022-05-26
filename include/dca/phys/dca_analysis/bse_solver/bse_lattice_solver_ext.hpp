@@ -516,7 +516,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
                     }
       };
 
-  int n_threads = 8;
+  int n_threads = std::min(8, WExDmn::dmn_size());
   // Threading parallelization_obj;
   Threading().execute(n_threads, makeChi0Matrix, std::ref(chi_0_lattice),
                       std::ref(chi_0_lattice_matrix));

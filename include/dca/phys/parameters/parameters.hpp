@@ -77,7 +77,7 @@ public:
   using random_number_generator = RandomNumberGenerator;
   using model_type = Model;
   using lattice_type = typename Model::lattice_type;
-  
+
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -147,7 +147,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, ClusterSolverId solver_name>
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
-    : AnalysisParameters(),
+    : AnalysisParameters(Model::DIMENSION),
       DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
