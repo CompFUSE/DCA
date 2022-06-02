@@ -37,8 +37,9 @@ public:
   auto get() const {
     return communicator_;
   }
-
 private:
+
+
   MPI_Comm communicator_;
   int id_;
   int size_;

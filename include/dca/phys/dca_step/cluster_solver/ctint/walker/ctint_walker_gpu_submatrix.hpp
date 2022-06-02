@@ -62,7 +62,7 @@ public:
 
   void doSweep() override;
 
-  void synchronize();
+  void synchronize() const override;
 
   using BaseClass::order;
   using RootClass::get_stream;
@@ -146,7 +146,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::setMFromConfig() {
 }
 
 template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::synchronize() {
+void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::synchronize() const {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   cudaStreamSynchronize(get_stream(0));

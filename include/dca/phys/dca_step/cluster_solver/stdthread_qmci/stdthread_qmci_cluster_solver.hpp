@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -279,10 +279,11 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     if (concurrency_.id() == concurrency_.first())
       std::cout << "Computing Error Bars." << std::endl;
-
+    // For CTINT this is a no op.
     BaseClass::computeErrorBars();
   }
 
+  // CTINT calculates its error here maybe
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
 
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)

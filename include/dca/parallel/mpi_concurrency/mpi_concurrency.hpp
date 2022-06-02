@@ -31,6 +31,11 @@
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 
+#ifdef DCA_HAVE_ADIOS2
+#include "adios2.h"
+#endif
+
+
 namespace dca {
 namespace parallel {
 // dca::parallel::
@@ -79,8 +84,18 @@ public:
 
   friend std::ostream& operator<<(std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
 
+#ifdef DCA_HAVE_ADIOS2
+  adios2::ADIOS& get_adios() {
+    return adios_;
+  }
+#endif
+
 private:
   constexpr static char parallel_type_str_[] = "MPIConcurrency";
+
+#ifdef DCA_HAVE_ADIOS2
+  adios2::ADIOS adios_;
+#endif
 };
 
 template <typename object_type>

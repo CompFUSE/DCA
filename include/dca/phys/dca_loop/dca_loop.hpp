@@ -105,9 +105,6 @@ protected:
   ParametersType& parameters;
   DcaDataType& MOMS;
   concurrency_type& concurrency;
-#ifdef DCA_WITH_ADIOS2
-  adios2::ADIOS adios_;
-#endif
 
 private:
   DcaLoopData<ParametersType> DCA_info_struct;
@@ -140,22 +137,21 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
-#ifdef DCA_HAVE_ADIOS2
-      adios_("", concurrency_ref.get()),
-#endif
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 #ifdef DCA_HAVE_ADIOS2
-      output_file_(parameters.get_output_format() == "ADIOS2"
-                       ? std::make_shared<io::Writer<concurrency_type>>(
-                             adios_, concurrency_ref, parameters.get_output_format(), false)
-                       : (concurrency.id() == concurrency.first()
-                              ? std::make_shared<io::Writer<concurrency_type>>(
-                                    adios_, concurrency_ref, parameters.get_output_format(), false)
-                              : nullptr)),
+      output_file_(
+          parameters.get_output_format() == "ADIOS2"
+              ? std::make_shared<io::Writer<concurrency_type>>(
+                    concurrency.get_adios(), concurrency_ref, parameters.get_output_format(), false)
+              : (concurrency.id() == concurrency.first()
+                     ? std::make_shared<io::Writer<concurrency_type>>(
+                           concurrency.get_adios(), concurrency_ref, parameters.get_output_format(),
+                           false)
+                     : nullptr)),
 #else
       output_file_(concurrency.id() == concurrency.first()
                        ? std::make_shared<io::Writer<concurrency_type>>(
@@ -173,14 +169,18 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
+  output_file_->begin_step();
   if (concurrency.id() == concurrency.first()) {
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
     DCA_info_struct.write(*output_file_, concurrency);
-
     // None of this kludgy file shuffling with ADIOS2 each iteration is a step in the ADIOS2 output
-    if (output_file_ && !(output_file_->isADIOS2())) {
+  }
+  output_file_->end_step();
+
+  if (concurrency.id() == concurrency.first()) {
+  if (output_file_ && !(output_file_->isADIOS2())) {
       output_file_->close_file();
       output_file_.reset();
       std::error_code code;
@@ -190,13 +190,13 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
       }
     }
   }
-
   // For ADIOS2 every rank has an output_file_ so close them
   // data.
   if (output_file_ != nullptr && output_file_->isADIOS2()) {
-    concurrency.barrier();
+    // if (concurrency.id() == concurrency.first()) {
     output_file_->close_file();
     std::cout << "ADIOS2 output closed\n";
+    //}
   }
 }
 
@@ -212,7 +212,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 #ifdef DCA_HAVE_ADIOS2
     if (iotype == io::IOType::ADIOS2)
       last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
-                                                concurrency, adios_);
+                                                concurrency, concurrency.get_adios());
     else
 #endif
       last_completed =
@@ -227,7 +227,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
       dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
 #ifdef DCA_HAVE_ADIOS2
       if (iotype == io::IOType::ADIOS2)
-        MOMS.initializeSigma(adios_, autoresume_filename);
+        MOMS.initializeSigma(concurrency.get_adios(), autoresume_filename);
       else
 #endif
         MOMS.initializeSigma(autoresume_filename);
@@ -237,7 +237,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   else if (parameters.get_initial_self_energy() != "zero") {
 #ifdef DCA_HAVE_ADIOS2
     if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
-      MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
+      MOMS.initializeSigma(concurrency.get_adios(), parameters.get_initial_self_energy());
     else
 #endif
       MOMS.initializeSigma(parameters.get_initial_self_energy());

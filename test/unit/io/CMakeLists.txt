@@ -33,3 +33,4 @@ if (DCA_HAVE_ADIOS2)
       LIBS parallel_no_concurrency dca_io function)
   endif()
 endif()
+

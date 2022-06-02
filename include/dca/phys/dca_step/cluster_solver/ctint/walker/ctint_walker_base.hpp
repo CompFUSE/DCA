@@ -163,7 +163,7 @@ public:
     return flop;
   }
 
-  const auto& get_stream(int s) {
+  const auto& get_stream(int s) const {
     assert(s >= 0 && s < 2);
     return *streams_[s];
   }

@@ -3,7 +3,7 @@
 dca_add_gtest(hamiltonian_test
   GTEST_MAIN
   INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
-  LIBS function json time_and_frequency_domains cluster_domains enumerations quantum_domains ${LAPACK_LIBRARIES}
+  LIBS function dca_io json time_and_frequency_domains cluster_domains enumerations quantum_domains ${LAPACK_LIBRARIES}
        ${DCA_GPU_LIBS} ${UTIL_LIBS})
 
 set(IO_LIBS dca_hdf5)
