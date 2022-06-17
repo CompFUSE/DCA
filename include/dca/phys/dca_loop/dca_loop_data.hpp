@@ -123,7 +123,6 @@ void DcaLoopData<ParametersType>::write(Writer& writer, Concurrency& concurrency
   if (concurrency.id() == concurrency.first()) {
     if (writer.isOpen()) {
       writer.open_group("DCA-loop-functions");
-
       {
         writer.execute(Gflop_per_mpi_task);
         writer.execute(times_per_mpi_task);
@@ -143,7 +142,6 @@ void DcaLoopData<ParametersType>::write(Writer& writer, Concurrency& concurrency
         writer.execute(n_k);
         writer.execute(A_k);
         writer.execute(orbital_occupancies);
-
         writer.execute("completed-iteration", last_completed_iteration);
       }
 
@@ -216,7 +214,6 @@ void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader, const std::
   reader.execute(A_k);
   reader.execute(orbital_occupancies);
 
-  reader.open_group("DCA-loop-functions");
   reader.close_file();
 }
 

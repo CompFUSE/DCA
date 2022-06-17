@@ -60,6 +60,7 @@ public:
     assert(MPIProcessorGrouping::get_id() > -1);
     return MPIProcessorGrouping::get_id();
   }
+  /* apparently the number of ranks */
   int number_of_processors() const {
     assert(MPIProcessorGrouping::get_size() > -1);
     return MPIProcessorGrouping::get_size();

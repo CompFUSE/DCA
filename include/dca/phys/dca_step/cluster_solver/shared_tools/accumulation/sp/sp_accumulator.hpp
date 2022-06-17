@@ -150,9 +150,8 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
   const Real one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr Real epsilon = std::is_same<Real, double>::value ? 1e-16 : 1e-7;
 
-  // Why here?  If stamping_period > 1 we still want M_r_t_ for only one configuration
-  // (*single_measurement_M_r_t_)[0].resetAccumulation();
-  // (*single_measurement_M_r_t_)[1].resetAccumulation();
+  (*single_measurement_M_r_t_)[0].resetAccumulation();
+  (*single_measurement_M_r_t_)[1].resetAccumulation();
 
   for (int s = 0; s < 2; ++s) {
     const auto& config = configs[s];
@@ -173,8 +172,9 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
         (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
         if (accumulate_m_sqr_)
           (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
-        if (parameters_.stamping_period() > 0)
+        if (parameters_.stamping_period() > 0)	{ 
           (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
+	}
       }
     }
   }

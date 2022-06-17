@@ -154,6 +154,7 @@ public:
     std::visit([&](auto& var) { var.set_verbose(verbose); }, writer_);
   }
 
+  dca::parallel::thread_traits::mutex_type& get_mutex() { return mutex_; }
 private:
   dca::parallel::thread_traits::mutex_type mutex_;
   DCAWriterVariant writer_;

@@ -121,6 +121,10 @@ public:
   bool dump_chi_0_lattice() const {
     return dump_chi_0_lattice_;
   }
+  bool dump_every_iteration() const {
+    return dump_every_iteration_;
+  }
+
   
 private:
   std::string directory_;
@@ -140,6 +144,7 @@ private:
   bool dump_cluster_Greens_functions_;
   bool dump_Gamma_lattice_;
   bool dump_chi_0_lattice_;
+  bool dump_every_iteration_;
 };
 
 template <typename Concurrency>
@@ -162,7 +167,8 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(dump_cluster_Greens_functions_);
   buffer_size += concurrency.get_buffer_size(dump_Gamma_lattice_);
   buffer_size += concurrency.get_buffer_size(dump_chi_0_lattice_);
-
+  buffer_size += concurrency.get_buffer_size(dump_every_iteration_);
+  
   return buffer_size;
 }
 
@@ -185,6 +191,7 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.pack(buffer, buffer_size, position, dump_Gamma_lattice_);
   concurrency.pack(buffer, buffer_size, position, dump_chi_0_lattice_);
+  concurrency.pack(buffer, buffer_size, position, dump_every_iteration_);
 }
 
 template <typename Concurrency>
@@ -206,6 +213,7 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.unpack(buffer, buffer_size, position, dump_Gamma_lattice_);
   concurrency.unpack(buffer, buffer_size, position, dump_chi_0_lattice_);
+  concurrency.unpack(buffer, buffer_size, position, dump_every_iteration_);
 }
 
 template <typename ReaderOrWriter>
@@ -238,6 +246,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
     try_to_read_or_write("dump-Gamma-lattice", dump_Gamma_lattice_);
     try_to_read_or_write("dump-chi-0-lattice", dump_chi_0_lattice_);
+    try_to_read_or_write("dump-every-iteration", dump_every_iteration_);
 
     reader_or_writer.close_group();
   }

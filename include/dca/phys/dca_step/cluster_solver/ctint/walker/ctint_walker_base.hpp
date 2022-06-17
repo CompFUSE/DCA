@@ -349,7 +349,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::markThermalized() {
 template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
-      (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
+      (meas_id % dca::util::ceilDiv(meas_to_do, 20)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();
     const double avg_order = avgOrder();

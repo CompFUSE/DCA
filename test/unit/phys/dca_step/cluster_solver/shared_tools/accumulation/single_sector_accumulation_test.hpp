@@ -168,12 +168,14 @@ public:
 
   auto compute2DFTBaseline() const -> F_w_w;
 
-  void prepareConfiguration(Configuration& config, Matrix& M, const int n, const unsigned long long num_discard = 0) const {
+  void prepareConfiguration(Configuration& config, Matrix& M, const int n,
+                            const unsigned long long num_discard = 0) const {
     prepareConfiguration(config, M, BDmn::dmn_size(), RDmn::dmn_size(), get_beta(), n, num_discard);
   }
 
   static void prepareConfiguration(Configuration& config, Matrix& M, const int nb, const int nr,
-                                   const double beta, const int n, const unsigned long long num_discard = 0);
+                                   const double beta, const int n,
+                                   const unsigned long long num_discard = 0);
 
 protected:
   static constexpr double beta_ = 2.;
@@ -183,12 +185,13 @@ protected:
 
 template <typename Real, int n_bands, int n_sites, int n_frqs>
 void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfiguration(
-                                                                                        Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n, const unsigned long long num_discard) {
+    Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n,
+    const unsigned long long num_discard) {
   config.resize(n);
   M.resize(n);
   static dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
   rng.discard(num_discard);
-  
+
   for (int i = 0; i < n; ++i) {
     const double tau = rng() * beta;
     const int r = rng() * nr;

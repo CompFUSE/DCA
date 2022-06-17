@@ -16,6 +16,8 @@
 #define DCA_APPLICATION_DCA_LOOP_DISPATCH_HPP
 #include "dca/config/dca.hpp"
 
+/** This class allows us to dispatch at runtime over different DistType's for G4.
+ */
 template <dca::DistType DT>
 class DCALoopDispatch {
 public:
@@ -46,7 +48,7 @@ public:
         Profiler::stop(concurrency, parameters.get_filename_profiling());
       }
       catch (const std::exception& exc) {
-        std::cout << "unhandled exception in dca_loop.execute(): " << exc.what() << std::endl;
+        std::cout << "unhandled exception in dca_loop.finalize(): " << exc.what() << std::endl;
         throw exc;
       }
 

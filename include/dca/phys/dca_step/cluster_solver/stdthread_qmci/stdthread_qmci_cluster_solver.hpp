@@ -283,12 +283,30 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
     BaseClass::computeErrorBars();
   }
 
+  
   // CTINT calculates its error here maybe
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
 
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
+  if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
+    std::cout << "Writing actual run info\n";
+    auto& writer = *BaseClass::writer_;
+    writer.open_group("actual");
+    int num_ranks = concurrency_.number_of_processors();
+    writer.execute("ranks", num_ranks);
+    std::vector<int> rank_measurements(num_ranks,0);
+    for(int ir = 0; ir < num_ranks; ++ir)
+      rank_measurements[ir] = parallel::util::getWorkload(measurements_, num_ranks, ir);
+    writer.execute("rank_measurements", rank_measurements);
+    std::vector<int> thread_measurements(num_ranks*nr_walkers_, 0);
+    for(int ir = 0; ir < num_ranks; ++ir)
+      for(int iw = 0; iw < nr_walkers_; ++iw)
+	thread_measurements[iw+ir*nr_walkers_] = parallel::util::getWorkload(rank_measurements[ir], nr_walkers_, iw);
+    writer.execute("thread_measurements", thread_measurements);
+    writer.close_group();
+  }
   // Write and reset autocorrelation.
   autocorrelation_data_.sumConcurrency(concurrency_);
   if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
@@ -454,6 +472,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::logSingleMeasurement(
     if (log_MFunction)
       accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
     accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
+    // We can remove this if we finally trust the accumulators to clear there single measurments.
     accumulator_obj.clearSingleMeasurement();
   }
 }

@@ -150,7 +150,6 @@ protected:
   G0Interpolation<device_t, typename Walker::Scalar> g0_;
 
 private:
-  bool perform_tp_accumulation_;
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
@@ -188,8 +187,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
 
   Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
-  perform_tp_accumulation_ =
-      parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
+  // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
 }
 
@@ -257,7 +255,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   if (compute_error) {
     data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma);
     data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w);
-    if (perform_tp_accumulation_) {
+    if (accumulator_.perform_tp_accumulation()) {
       for (int channel = 0; channel < data_.get_G4().size(); ++channel)
         data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel]);
     }
@@ -494,7 +492,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAnd
 
   M /= std::complex<double>(sign, 0.);
 
-  if (perform_tp_accumulation_) {
+  if (accumulator_.perform_tp_accumulation()) {
     for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
       auto& G4 = data_.get_G4()[channel];
       G4 = accumulator_.get_sign_times_G4()[channel];

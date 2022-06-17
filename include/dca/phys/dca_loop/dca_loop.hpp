@@ -171,6 +171,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   output_file_->begin_step();
   if (concurrency.id() == concurrency.first()) {
+    // This should probably happen first not at the end
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
@@ -180,7 +181,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   output_file_->end_step();
 
   if (concurrency.id() == concurrency.first()) {
-  if (output_file_ && !(output_file_->isADIOS2())) {
+    if (output_file_ && !(output_file_->isADIOS2())) {
       output_file_->close_file();
       output_file_.reset();
       std::error_code code;
@@ -260,6 +261,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
   // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
+
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     if (output_file_ && output_file_->isADIOS2())
       output_file_->begin_step();
@@ -279,15 +281,33 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     perform_lattice_mapping();
 
-    update_DCA_loop_data_functions(dca_iteration_);
-    logSelfEnergy(dca_iteration_);  // Write a check point.
+    update_DCA_loop_data_functions(dca_iteration_);  // Really just updates
+
+    // This writes the self energy and DCA_loop_data.  Sort of a check point.
+    logSelfEnergy(dca_iteration_);
+
+    if (L2_Sigma_difference <
+        parameters.get_dca_accuracy()) {  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
+      if (output_file_ && output_file_->isADIOS2())
+        output_file_->end_step();
+      break;
+    }
+
+    // As long as this isn't the last iteration where this is handled by the finalize we want these here
+    if (dca_iteration_ != parameters.get_dca_iterations() - 1) {
+      if (output_file_ && output_file_->isADIOS2()) {
+        if (parameters.dump_every_iteration()) {
+          // This normally gets done in finalize before the dump.
+          perform_cluster_mapping_self_energy();
+          MOMS.compute_Sigma_bands();
+          MOMS.compute_single_particle_properties();
+          MOMS.write(*output_file_);
+        }
+      }
+    }
 
     if (output_file_ && output_file_->isADIOS2())
       output_file_->end_step();
-
-    if (L2_Sigma_difference <
-        parameters.get_dca_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
-      break;
   }
 }
 
