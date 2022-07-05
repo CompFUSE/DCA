@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     dca::util::Modules::print();
     dca::config::CMakeOptions::print();
 
-    #ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_GPU
     dca::linalg::util::printInfoDevices();
 #endif  // DCA_HAVE_GPU
 
@@ -57,9 +57,9 @@ int main(int argc, char** argv) {
   }
 
 #ifdef DCA_HAVE_GPU
-    dca::linalg::util::initializeMagma();
+  dca::linalg::util::initializeMagma();
 #endif  // DCA_HAVE_GPU
-  
+
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
@@ -69,38 +69,32 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-#ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS adios;
-  std::string filename(parameters.get_directory() + parameters.get_filename_dca());
-  dca::io::Reader reader(concurrency, parameters.get_output_format());
-  reader.open_file(filename);
-  auto& adios2_reader = std::get<dca::io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
-  std::size_t step_count = adios2_reader.getStepCount();
-  for (std::size_t i = 0; i < step_count; ++i) {
-    adios2_reader.begin_step();
-    adios2_reader.end_step();
-  }
-  dca_data.read(reader);
-#else
-  dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
-#endif
-  BseSolverExt bse_solver_ext(parameters, dca_data);
-  bse_solver_ext.calculateSusceptibilities();
-
-  if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+    
 #ifdef DCA_HAVE_ADIOS2
-    if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
-      dca::io::Writer writer(adios, concurrency, parameters.get_output_format());
-      std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
-      writer.open_file(filename_bse);
-      bse_solver_ext.write(writer);
-    }
-    else
-#endif
-      bse_solver_ext.write();
-    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
-  }
+  if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+    dca::io::Writer writer(adios, concurrency, parameters.get_output_format());
+    std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
+    writer.open_file(filename_bse);
 
-  return 0;
+    std::string filename(parameters.get_directory() + parameters.get_filename_dca());
+    dca::io::Reader reader(concurrency, parameters.get_output_format());
+    reader.open_file(filename);
+    auto& adios2_reader = std::get<dca::io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+    std::size_t step_count = adios2_reader.getStepCount();
+    for (std::size_t i = 0; i < step_count; ++i) {
+      adios2_reader.begin_step();
+      writer.begin_step();
+      dca_data.read(reader);
+      BseSolverExt bse_solver_ext(parameters, dca_data);
+      bse_solver_ext.calculateSusceptibilities();
+      bse_solver_ext.write(writer);
+      adios2_reader.end_step();
+      writer.end_step();
+    }
+  }
+#endif
+  std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+return 0;
 }
