@@ -111,9 +111,9 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | threeband | FeAs.")
+    hund | twoband_Cu | threeband | FeAs | Kagome.")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
-             FeAs)
+             FeAs Kagome)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -149,10 +149,14 @@ elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
+elseif (DCA_LATTICE STREQUAL "Kagome")
+  set(DCA_LATTICE_TYPE dca::phys::models::KagomeHubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | threeband | FeAs.")
+          hund | twoband_Cu | threeband | FeAs | Kagome.")
 endif()
 
 # Model type

@@ -26,6 +26,7 @@
 #include "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp"
 // #include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
 // #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
