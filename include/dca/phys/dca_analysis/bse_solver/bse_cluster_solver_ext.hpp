@@ -114,6 +114,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::write(Writer&
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::compute_Gamma_cluster() {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
+
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II("G_II");
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II_0("G_II_0");
 
@@ -131,6 +133,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::compute_Gamma
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetries_sp() {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
+
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
@@ -144,6 +148,8 @@ template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetries_tp(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II,
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II_0) {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
+
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
@@ -179,6 +185,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II) {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
+
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << " -- over " << KExDmn::dmn_size() << " k exchanges and "
               << WExDmn::dmn_size() << " frequency exchanges.\n\n";
@@ -232,6 +240,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II_0) {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
@@ -309,6 +318,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0_function(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II_0) {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
@@ -330,11 +340,14 @@ template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_cluster(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II,
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II_0) {
+  profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
   std::vector<int> subind(3);
+
+  if (concurrency.id() == concurrency.first())
+    std::cout << '\t' << __FUNCTION__ << '\n';
+
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); wex_ind++)
     for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); kex_ind++) {
-      if (concurrency.id() == concurrency.first())
-        std::cout << "\t" << __FUNCTION__ << "\n\n";
 
       func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_indi;
       func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_0_indi;
@@ -343,9 +356,6 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
       G_II_0.slice(0, subind, G_II_0_indi.values());
 
       profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
-
-      if (concurrency.id() == concurrency.first())
-        std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
       ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
 

@@ -148,7 +148,7 @@ CtintAccumulator<Parameters, device, Real, DIST>::CtintAccumulator(const Paramet
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 void CtintAccumulator<Parameters, device, Real, DIST>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
-    parameters_.isAccumulatingG4() && (dca_iteration == parameters_.get_dca_iterations() - 1 || parameters_.dump_every_iteration());
+    parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) || parameters_.dump_every_iteration());
   accumulated_order_.reset();
   accumulated_sign_.reset();
 

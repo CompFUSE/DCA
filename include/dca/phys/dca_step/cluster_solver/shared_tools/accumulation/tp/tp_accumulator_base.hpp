@@ -211,7 +211,6 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
 template <class Parameters, DistType DT>
 void TpAccumulatorBase<Parameters, DT>::initializeG0() {
   const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
-
   for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
     assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
     for (int k = 0; k < KDmn::dmn_size(); ++k)

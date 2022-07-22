@@ -94,9 +94,9 @@ public:
   const std::string& get_filename_analysis() const {
     return filename_analysis_;
   }
-  std::string getAppropriateFilenameAnalysis() const {
+  std::string getAppropriateFilenameAnalysis(int rank=0) const {
     std::size_t extension_start = filename_analysis_.rfind('.');
-    std::string cleaned_filename{filename_analysis_.substr(0, extension_start)};
+    std::string cleaned_filename{filename_analysis_.substr(0, extension_start) + std::to_string(rank)};
     cleaned_filename += extensionFromIOType(io::stringToIOType(get_output_format()));
     return cleaned_filename;
   }

@@ -351,50 +351,51 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
   clustermapping::coarsegraining_tp<ParametersType, k_HOST_VERTEX> coarsegraining_tp(parameters);
+  latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
+
+  if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
+
+    dca_data_.Sigma_lattice_interpolated = 0.;
+    dca_data_.Sigma_lattice_coarsegrained = 0.;
+    dca_data_.Sigma_lattice = 0.;
+
+    if (parameters.hts_approximation()) {
+      clustermapping::CoarsegrainingSp<ParametersType> CoarsegrainingSp(parameters);
+
+      DcaDataType dca_data_hts(parameters);
+      dca_data_hts.H_HOST = dca_data_.H_HOST;
+      dca_data_hts.H_interactions = dca_data_.H_interactions;
+
+      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType> hts_solver(
+          parameters, dca_data_hts);
+
+      lattice_map_sp.execute_with_HTS_approximation(
+          dca_data_hts, hts_solver, CoarsegrainingSp, dca_data_.Sigma,
+          dca_data_.Sigma_lattice_interpolated, dca_data_.Sigma_lattice_coarsegrained,
+          dca_data_.Sigma_lattice);
+    }
+    else {
+      lattice_map_sp.execute(dca_data_.Sigma, dca_data_.Sigma_lattice_interpolated,
+                             dca_data_.Sigma_lattice_coarsegrained, dca_data_.Sigma_lattice);
+    }
+  }
 
   func::function<std::complex<ScalarType>, Chi0LatticeDmn> chi_0_lattice_indi;
-
+  
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
     // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
     if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
-      latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST> lattice_map_sp(parameters);
-
-      dca_data_.Sigma_lattice_interpolated = 0.;
-      dca_data_.Sigma_lattice_coarsegrained = 0.;
-      dca_data_.Sigma_lattice = 0.;
-
-      if (parameters.hts_approximation()) {
-        clustermapping::CoarsegrainingSp<ParametersType> CoarsegrainingSp(parameters);
-
-        DcaDataType dca_data_hts(parameters);
-        dca_data_hts.H_HOST = dca_data_.H_HOST;
-        dca_data_hts.H_interactions = dca_data_.H_interactions;
-
-        solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType>
-            hts_solver(parameters, dca_data_hts);
-
-        lattice_map_sp.execute_with_HTS_approximation(
-            dca_data_hts, hts_solver, CoarsegrainingSp, dca_data_.Sigma,
-            dca_data_.Sigma_lattice_interpolated, dca_data_.Sigma_lattice_coarsegrained,
-            dca_data_.Sigma_lattice);
-      }
-      else {
-        lattice_map_sp.execute(dca_data_.Sigma, dca_data_.Sigma_lattice_interpolated,
-                               dca_data_.Sigma_lattice_coarsegrained, dca_data_.Sigma_lattice);
-      }
-
       if (parameters.do_dca_plus())
         coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma_lattice, chi_0_lattice_indi);
-
       else  // do_post_interpolation
         coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma_lattice_interpolated,
                                   chi_0_lattice_indi);
+      // (Standard) DCA: Compute \chi_0 from cluster self-energy.
     }
-
-    // (Standard) DCA: Compute \chi_0 from cluster self-energy.
     else {
       coarsegraining_tp.execute(dca_data_.H_HOST, dca_data_.Sigma, chi_0_lattice_indi);
     }
+
     subind = {0, wex_ind};
     chi_0_lattice.distribute(0, subind,
                              static_cast<std::complex<ScalarType>*>(chi_0_lattice_indi.values()));
@@ -580,24 +581,25 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChiDblPrime_q_w() {
+  profiler_type prof(__FUNCTION__, "BseLatticeSolverExt", __LINE__);
+
   std::vector<int> g4_lat_subind(3);
   std::size_t shared_matrix_size = SharedDmn::dmn_size() * SharedDmn::dmn_size();
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
     for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind) {
       g4_lat_subind = {0, k_ind, wex_ind};
       func::function<std::complex<ScalarType>, SharedMatrixDmn> g4_lat_indi;
-      G4_lattice.slice(0, g4_lat_subind,  static_cast<std::complex<ScalarType>*>(g4_lat_indi.values()));
-      //auto g4_lat_it = G4_lattice.begin() + G4_lattice.branch_subind_2_linind(g4_lat_subind);
-      chi_dbl_prime(k_ind, wex_ind) =
-	std::accumulate(g4_lat_indi.begin(), g4_lat_indi.end(),
-                          std::complex<ScalarType>{0.0, 0.0}, std::plus<>{});
+      G4_lattice.slice(0, g4_lat_subind,
+                       static_cast<std::complex<ScalarType>*>(g4_lat_indi.values()));
+      // auto g4_lat_it = G4_lattice.begin() + G4_lattice.branch_subind_2_linind(g4_lat_subind);
+      chi_dbl_prime(k_ind, wex_ind) = std::accumulate(
+          g4_lat_indi.begin(), g4_lat_indi.end(), std::complex<ScalarType>{0.0, 0.0}, std::plus<>{});
     }
   }
   ScalarType renorm = 1. / (parameters.get_beta());
   ScalarType renorm_sq = renorm * renorm;
   chi_dbl_prime *= renorm_sq;
 }
-
 
 }  // namespace analysis
 }  // namespace phys

@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     std::cout
         << "\n"
         << "********************************************************************************\n"
-        << "**********                      DCA(+) Analysis                       **********\n"
+        << "**********                      DCA(+) S(q,omega)  Calculation        **********\n"
         << "********************************************************************************\n"
         << "\n"
         << "Start time : " << dca::util::print_time() << "\n"
@@ -69,12 +69,14 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-  adios2::ADIOS adios;
-    
+
 #ifdef DCA_HAVE_ADIOS2
+  adios2::ADIOS adios;
+
   if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
+    int rank = concurrency.id();
     std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    dca::io::Writer writer(adios, concurrency, parameters.get_output_format());
+    dca::io::Writer writer(adios, concurrency, parameters.get_output_format(), true);
     std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
     writer.open_file(filename_bse);
 
@@ -83,18 +85,42 @@ int main(int argc, char** argv) {
     reader.open_file(filename);
     auto& adios2_reader = std::get<dca::io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
     std::size_t step_count = adios2_reader.getStepCount();
-    for (std::size_t i = 0; i < step_count; ++i) {
-      adios2_reader.begin_step();
+
+    int ranks = concurrency.get_size();
+
+    int current_step = 0;
+
+    while (true) {
+      if (current_step >= step_count - 1)
+        break;      
       writer.begin_step();
-      dca_data.read(reader);
-      BseSolverExt bse_solver_ext(parameters, dca_data);
-      bse_solver_ext.calculateSusceptibilities();
-      bse_solver_ext.write(writer);
-      adios2_reader.end_step();
+      int got_step_num = -1;
+      for (int ir = 0; ir < ranks; ++ir) {
+	// cut off the last weird step dca is saving
+        if (current_step >= step_count - 1)
+          goto end_steps;
+        adios2_reader.begin_step();
+        if (rank == ir) {
+          dca_data.read(reader);
+          got_step_num = current_step;
+        }
+        adios2_reader.end_step();
+        ++current_step;
+      }
+      if (got_step_num >= 0) {
+        std::cout << "Rank " << rank << " working on step " << got_step_num << '\n';
+        BseSolverExt bse_solver_ext(parameters, dca_data);
+        bse_solver_ext.calculateSusceptibilities();
+        writer.open_group("step_" + std::to_string(got_step_num));
+        bse_solver_ext.write(writer);
+        writer.close_group();
+        got_step_num = -1;
+      }
+    end_steps:
       writer.end_step();
     }
   }
 #endif
   std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
-return 0;
+  return 0;
 }

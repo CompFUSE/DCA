@@ -211,6 +211,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     case FourPointType::PARTICLE_HOLE_CHARGE:
     case FourPointType::PARTICLE_HOLE_MAGNETIC:
     case FourPointType::PARTICLE_HOLE_TRANSVERSE: {
+      std::cout << "interpolating tp for particle hole...\n";
       interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
