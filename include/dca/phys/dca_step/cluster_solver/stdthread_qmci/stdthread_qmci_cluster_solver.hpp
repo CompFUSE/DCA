@@ -288,6 +288,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   QmciSolver::accumulator_.finalize();
   if (concurrency_.id() == concurrency_.first())
     std::cout << "accumulator finalized!" << std::endl;
+
+  if (concurrency_.id() == concurrency_.first())
+    if (QmciSolver::accumulator_.perform_equal_time_accumulation())
+      if (BaseClass::writer_)
+	QmciSolver::accumulator_.write(*BaseClass::writer_);
 }
 
 template <class QmciSolver>
