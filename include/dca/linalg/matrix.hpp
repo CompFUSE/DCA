@@ -154,6 +154,11 @@ public:
   int nrCols() const {
     return size_.second;
   }
+
+  int getActualSize() {
+    return nrElements(capacity_);
+  }
+
   int leadingDimension() const {
     return capacity_.first;
   }

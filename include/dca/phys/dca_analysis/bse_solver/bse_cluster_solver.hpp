@@ -104,6 +104,7 @@ BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename Writer>
 void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
+  writer.execute(Gamma_cluster);
   writer.execute(G_II_0_function);
 }
 

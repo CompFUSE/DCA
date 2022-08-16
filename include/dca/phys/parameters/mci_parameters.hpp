@@ -128,6 +128,10 @@ public:
     return per_measurement_MFunction_;
   }
 
+  bool per_measurement_MFunction_time() const {
+    return per_measurement_MFunction_time_;
+  }
+
 protected:
   // Resize vector arguments to have the same size as the number of iterations.
   void inline solveDcaIterationConflict(int iterations);
@@ -160,6 +164,7 @@ private:
   DistType g4_distribution_;
   int stamping_period_ = 0;
   bool per_measurement_MFunction_ = false;
+  bool per_measurement_MFunction_time_ = false;
 };
 
 template <typename Concurrency>
@@ -184,6 +189,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(g4_distribution_);
   buffer_size += concurrency.get_buffer_size(stamping_period_);
   buffer_size += concurrency.get_buffer_size(per_measurement_MFunction_);
+  buffer_size += concurrency.get_buffer_size(per_measurement_MFunction_time_);
   return buffer_size;
 }
 
@@ -208,6 +214,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, g4_distribution_);
   concurrency.pack(buffer, buffer_size, position, stamping_period_);
   concurrency.pack(buffer, buffer_size, position, per_measurement_MFunction_);
+  concurrency.pack(buffer, buffer_size, position, per_measurement_MFunction_time_);
 }
 
 template <typename Concurrency>
@@ -231,6 +238,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, g4_distribution_);
   concurrency.unpack(buffer, buffer_size, position, stamping_period_);
   concurrency.unpack(buffer, buffer_size, position, per_measurement_MFunction_);
+  concurrency.unpack(buffer, buffer_size, position, per_measurement_MFunction_time_);
 }
 
 template <typename ReaderOrWriter>
@@ -287,6 +295,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.execute("compute-G-correlation", compute_G_correlation_);
   reader_or_writer.execute("stamping-period", stamping_period_);
   reader_or_writer.execute("per-measurement-MFunction", per_measurement_MFunction_);
+  reader_or_writer.execute("per-measurement-MFunction-time", per_measurement_MFunction_time_);
 
   reader_or_writer.execute("store-configuration", store_configuration_);
 

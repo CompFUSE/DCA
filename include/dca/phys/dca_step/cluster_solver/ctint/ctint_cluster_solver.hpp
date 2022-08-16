@@ -94,8 +94,12 @@ public:
 
   double computeDensity() const;
 
+  /** write runtime parameters used by cluster solver and its important owned objects */
   template <class Writer>
-  void write(Writer& /*writer*/) {}
+  void write(Writer& writer) {
+    writer.open_group("parameters");
+    accumulator_.write(writer);
+  }
 
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.

@@ -38,6 +38,7 @@ namespace analysis {
 template <typename ParametersType, typename DcaDataType>
 class BseSolverExt {
 public:
+  using CDA = ClusterDomainAliases<ParametersType::lattice_type::DIMENSION>;
   using ScalarType = double;
 
   using ProfilerType = typename ParametersType::profiler_type;
@@ -222,9 +223,16 @@ void BseSolverExt<ParametersType, DcaDataType>::calculateSusceptibilities() {
   bse_cluster_solver_.compute_Gamma_cluster();
 
   bse_lattice_solver_.computeGammaLattice(bse_cluster_solver_.get_Gamma_cluster());
-  bse_lattice_solver_.computeChi0Lattice();
 
-  bse_lattice_solver_.computeG4Lattice();
+  if(CDA::KClusterDmn::dmn_size() == 1) {
+    bse_lattice_solver_.computeChi0LatticeSingleSite();
+    bse_lattice_solver_.computeChi0LatticeSingleSite();
+  }
+  else
+  {
+    bse_lattice_solver_.computeChi0Lattice();
+    bse_lattice_solver_.computeG4Lattice();
+  }
 
   bse_lattice_solver_.computeChiDblPrime_q_w();
 }

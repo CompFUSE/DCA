@@ -89,7 +89,10 @@ public:
   typedef typename Parameters::concurrency_type concurrency_type;
 
   using MFunction = typename accumulator::SpAccumulator<Parameters, device_t, Real>::MFunction;
-
+  using MFunctionTime = typename SpAccumulator::MFunctionTime;
+  using FTauPair = typename SpAccumulator::FTauPair;
+  using PaddedTimeDmn = typename SpAccumulator::PaddedTimeDmn;
+  
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
   CtauxAccumulator(const Parameters& parameters_ref, Data& data_ref, int id);
@@ -152,6 +155,10 @@ public:
     return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction();
   }
 
+  const FTauPair& get_single_measurement_sign_times_MFunction_time() {
+    return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction_time();
+  }
+  
   void clearSingleMeasurement();
   
   const auto& get_sign_times_M_r_w_sqr() const {

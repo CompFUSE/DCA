@@ -55,7 +55,7 @@ public:
 
   virtual void doSweep();
 
-  virtual void computeM(typename BaseClass::MatrixPair& m_accum);
+  void computeM(typename BaseClass::MatrixPair& m_accum);
 
   using BaseClass::order;
 

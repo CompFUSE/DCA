@@ -34,16 +34,21 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <class Parameters, linalg::DeviceType device, typename Real = double, DistType DIST = dca::DistType::NONE>
+template <class Parameters, linalg::DeviceType device, typename REAL = double, DistType DIST = dca::DistType::NONE>
 class CtintAccumulator {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
+  using Real = REAL;
   using this_type = CtintAccumulator<Parameters, device, Real, DIST>;
   using ParametersType = Parameters;
   using DataType = phys::DcaData<Parameters, DIST>;
   using SpAccumulator = accumulator::SpAccumulator<Parameters, device, Real>;
   // Same form as SpGreensFunction
   using MFunction = typename SpAccumulator::MFunction;
+  using MFunctionTime = typename SpAccumulator::MFunctionTime;
+  using MFunctionTimePair = typename SpAccumulator::MFunctionTimePair;
+  using FTauPair = typename SpAccumulator::FTauPair;
+  using PaddedTimeDmn = typename SpAccumulator::PaddedTimeDmn;
   
   template <class Data>
   CtintAccumulator(const Parameters& pars, const Data& data, int id = 0);
@@ -62,6 +67,14 @@ public:
 
   void sumTo(this_type& other_acc);
 
+  /** write runtime parameters used by ctint_accumulator and its important owned objects */
+  template <class Writer>
+  void write(Writer& writer) {
+    writer.open_group("accumulator");
+    sp_accumulator_.write(writer);
+    writer.close_group();
+  }
+    
   const auto& get_sign() const { return sign_; }
 
   const auto& get_sign_times_M_r_w() const;
@@ -70,8 +83,12 @@ public:
     return sp_accumulator_.get_single_measurement_sign_times_MFunction();
   }
 
+  const FTauPair& get_single_measurement_sign_times_MFunction_time() {
+    return sp_accumulator_.get_single_measurement_sign_times_MFunction_time();
+  }
+
   void clearSingleMeasurement();
-  
+
   const auto& get_sign_times_G4() const;
 
   double avgSign() const {
@@ -81,6 +98,7 @@ public:
   int get_accumulated_sign() const {
     return accumulated_sign_.sum();
   }
+
   int get_number_of_measurements() const {
     return accumulated_sign_.count();
   }

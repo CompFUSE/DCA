@@ -52,7 +52,7 @@ public:
   using concurrency_type = typename ParametersType::concurrency_type;
 
   // Number of leading eigenvalues/eigenvectors to store.
-  static constexpr int num_evals = 10;
+  static constexpr int num_evals = 21;
   using LeadingEigDmn = func::dmn_0<func::dmn<num_evals, int>>;
 
   // Number of cubic harmonics to compare the leading eigenvectors with.

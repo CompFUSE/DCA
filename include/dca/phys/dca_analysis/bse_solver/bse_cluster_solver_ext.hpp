@@ -36,7 +36,7 @@ namespace analysis {
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 class BseClusterSolverExt {
 public:
-  using profiler_t = typename ParametersType::profiler_type;
+  using profiler_type = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
   using Lattice = typename ParametersType::lattice_type;
   using KExDmn = typename func::dmn_0<domains::MomentumExchangeDomain>;
@@ -137,8 +137,6 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
-
-  profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
   symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
   symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
@@ -355,7 +353,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
       G_II.slice(0, subind, G_II_indi.values());
       G_II_0.slice(0, subind, G_II_0_indi.values());
 
-      profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
+      profiler_type prof(__FUNCTION__, __FILE__, __LINE__);
 
       ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
 
