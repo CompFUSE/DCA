@@ -290,9 +290,12 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
     std::cout << "accumulator finalized!" << std::endl;
 
   if (concurrency_.id() == concurrency_.first())
+    // only CTAUX supports equal time accumulation.
+    if constexpr ( decltype(QmciSolver::accumulator_)::solver_id == ClusterSolverId::CT_AUX) {
     if (QmciSolver::accumulator_.perform_equal_time_accumulation())
       if (BaseClass::writer_)
 	QmciSolver::accumulator_.write(*BaseClass::writer_);
+    }
 }
 
 template <class QmciSolver>
