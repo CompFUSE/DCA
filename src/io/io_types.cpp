@@ -22,7 +22,8 @@ IOType stringToIOType(const std::string& name) {
     return IOType::HDF5;
   else if (name == "ADIOS2")
     return IOType::ADIOS2;
-  return IOType::UNKNOWN;
+  else
+    throw std::runtime_error(name + " is an unknown file format identifier!");
 }
 
 std::string toString(const IOType type) {
@@ -33,8 +34,6 @@ std::string toString(const IOType type) {
       return "HDF5";
     case IOType::ADIOS2:
       return "ADIOS2";
-    case IOType::UNKNOWN:
-      return "UNKNOWN";
   }
 }
 
@@ -48,7 +47,9 @@ IOType extensionToIOType(const std::string& file_name) {
     return IOType::HDF5;
   else if (extension == "json")
     return IOType::JSON;
-  return IOType::UNKNOWN;
+  else
+    throw std::runtime_error("extension " + extension + " identifies an unknown file format\n"
+			     + "known extensions (bp|hdf|hdf5|tmp|json)");
 }
 
 std::string extensionFromIOType(const IOType type) {
@@ -59,8 +60,6 @@ std::string extensionFromIOType(const IOType type) {
       return ".hdf5";
     case IOType::ADIOS2:
       return ".bp";
-    case IOType::UNKNOWN:
-      throw std::logic_error("asked for file extension for unknown IOType");
   }
 }
 

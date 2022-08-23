@@ -247,6 +247,9 @@ TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(const Par
 
       GFLOP(0),
 
+      G_r_t("G_r_t"),
+      G_r_t_stddev("G_r_t_stddev"),
+      
       G_r_t_accumulated("G_r_t_accumulated"),
       G_r_t_accumulated_squared("G_r_t_accumulated_squared"),
 

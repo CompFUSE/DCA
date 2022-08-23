@@ -17,6 +17,7 @@
 #include <string>
 #include <variant>
 
+#include "dca/io/io_types.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 
@@ -29,32 +30,41 @@ namespace dca::io {
 template <class Concurrency>
 class Reader {
 public:
-  using DCAReaderVariant =  std::variant<io::HDF5Reader, io::JSONReader
+  using DCAReaderVariant = std::variant<io::HDF5Reader, io::JSONReader
 #ifdef DCA_HAVE_ADIOS2
-               ,
-               io::ADIOS2Reader<Concurrency>
+                                        ,
+                                        io::ADIOS2Reader<Concurrency>
 #endif
-					 >;
-
-  // In: format. output format, HDF5 or JSON.
-  // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
+                                        >;
+  /**
+   * \param[in] concureency   current concurrency context
+   * \param[in] format        format as IOType
+   * \param[in] verbose       If true, reader does some logging
+   */
+  Reader(const Concurrency& concurrency, const IOType format, bool verbose = true)
       : concurrency_(concurrency) {
-    if (format == "HDF5") {
-      reader_.template emplace<io::HDF5Reader>(verbose);
-    }
-    else if (format == "JSON") {
-      reader_.template emplace<io::JSONReader>(verbose);
-    }
+    switch (format) {
+      case IOType::HDF5:
+        reader_.template emplace<io::HDF5Reader>(verbose);
+        break;
+      case IOType::JSON:
+        reader_.template emplace<io::JSONReader>(verbose);
+        break;
 #ifdef DCA_HAVE_ADIOS2
-    else if (format == "ADIOS2") {
-      reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
-    }
+      case IOType::ADIOS2:
+        reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
+        break;
 #endif
-    else {
-      throw(std::logic_error("Invalid input format"));
     }
   }
+
+  /** DEPRECATED -- Support for format type as string 
+   * \param[in] format        string representation of format, since parameters still use string
+   *
+   * \todo remove need for this constructor store IO format as enum class type.
+   */
+  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
+      : Reader(concurrency, stringToIOType(format), verbose) {}
 
 #ifdef DCA_HAVE_ADIOS2
   Reader(adios2::ADIOS& adios, const Concurrency& concurrency, const std::string& format,
@@ -103,7 +113,7 @@ public:
   void end_step() {
     std::visit([&](auto& var) { var.end_step(); }, reader_);
   }
-  
+
   template <class... Args>
   bool execute(Args&&... args) noexcept {
     return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },

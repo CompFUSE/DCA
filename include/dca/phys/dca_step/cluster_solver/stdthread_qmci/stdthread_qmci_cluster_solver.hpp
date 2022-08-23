@@ -308,6 +308,8 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
+  autocorrelation_data_.sumConcurrency(concurrency_);
+
   if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
     std::cout << "Writing actual run info\n";
     auto& writer = *BaseClass::writer_;
@@ -338,11 +340,11 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
     }
 
     // Write and reset autocorrelation.
-    autocorrelation_data_.sumConcurrency(concurrency_);
     std::cout << "Writing autocorrelation data\n";
     autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
-    autocorrelation_data_.reset();
   }
+  autocorrelation_data_.reset();
+
   return L2_Sigma_difference;
 }
 

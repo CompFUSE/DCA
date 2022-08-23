@@ -94,7 +94,7 @@ public:
   const std::string& get_filename_analysis() const {
     return filename_analysis_;
   }
-  std::string getAppropriateFilenameAnalysis(int rank=0) const {
+  std::string getAppropriateFilenameAnalysis(int rank = 0) const {
     std::size_t extension_start = filename_analysis_.rfind('.');
     std::string cleaned_filename{filename_analysis_.substr(0, extension_start) + std::to_string(rank)};
     cleaned_filename += extensionFromIOType(io::stringToIOType(get_output_format()));
@@ -125,7 +125,6 @@ public:
     return dump_every_iteration_;
   }
 
-  
 private:
   std::string directory_;
   bool autoresume_ = false;
@@ -168,7 +167,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(dump_Gamma_lattice_);
   buffer_size += concurrency.get_buffer_size(dump_chi_0_lattice_);
   buffer_size += concurrency.get_buffer_size(dump_every_iteration_);
-  
+
   return buffer_size;
 }
 
@@ -251,6 +250,19 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+  }
+
+  // Check here for known invalid input, if we know options conflict don't just crash while running.
+
+  if (dump_every_iteration_) {
+    io ::IOType io_type = io::stringToIOType(output_format_);
+    switch (io_type) {
+      case io::IOType::ADIOS2:
+        break;
+      case io::IOType::HDF5:
+      case io::IOType::JSON:
+        throw std::runtime_error("Only ADIOS2 output format support dump-ever-iteration.");
+    }
   }
 }
 

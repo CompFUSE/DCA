@@ -160,9 +160,10 @@ void HDF5Writer::addAttribute(const H5::DataSet& set, const std::string& name,
 }
 
 bool HDF5Writer::exists(const std::string& name) const {
+  return file_->nameExists(name);
   // the hdf5 write and reader are quit inconsistent in there API usage, sometimes cpp sometimes C
-  auto code = H5Gget_info_by_name(file_id_, name.c_str(), NULL, H5P_DEFAULT);
-  return code == 0;
+  // auto code = H5Gget_info_by_name(file_id_, name.c_str(), NULL, H5P_DEFAULT);
+  // return code == 0;
 }
 
 }  // namespace io

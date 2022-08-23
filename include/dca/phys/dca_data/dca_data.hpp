@@ -604,15 +604,19 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
                                               const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "reading Sigma File\n";
-    io::Reader reader(concurrency_, parameters_.get_output_format());
+    io::IOType sigma_file_io = io::extensionToIOType(filename);
+    io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
-    auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
-    std::size_t step_count = adios2_reader.getStepCount();
-    for (std::size_t i = 0; i < step_count; ++i) {
-      adios2_reader.begin_step();
-      adios2_reader.end_step();
+    // ADIOS2 output files can contain multiple iterations of sigma data, use the last one.
+    if (sigma_file_io == io::IOType::ADIOS2) {
+      auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+      std::size_t step_count = adios2_reader.getStepCount();
+      for (std::size_t i = 0; i < step_count; ++i) {
+	adios2_reader.begin_step();
+	adios2_reader.end_step();
+      }
     }
-    readSigmaFile(reader);
+    readSigmaFile(reader);  
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(Sigma);
@@ -623,8 +627,11 @@ template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "reading Sigma File\n";
-    io::Reader reader(concurrency_, parameters_.get_output_format());
+    io::IOType sigma_file_io = io::extensionToIOType(filename);
+    io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
+    if (sigma_file_io == io::IOType::ADIOS2)
+      throw std::runtime_error("DCA++ not built with ADIOS2 support");
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
