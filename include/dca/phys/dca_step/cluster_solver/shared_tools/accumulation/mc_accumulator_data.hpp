@@ -36,6 +36,7 @@ public:
   }
 
   void initialize(int dca_iteration) {
+    // there are too many copies of dca_iteration.
     DCA_iteration = dca_iteration;
 
     GFLOP = 0.;

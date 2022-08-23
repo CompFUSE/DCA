@@ -444,8 +444,6 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
   };
 
   const double local_time = total_time_;
-  const bool accumulate_g4 =
-    accumulator_.perform_tp_accumulation();
 
   {
     Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);
@@ -462,7 +460,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
       concurrency_.delayedSum(M_r_w_squared_);
     }
 
-    if (parameters_.additional_time_measurements()) {
+    if (accumulator_.perform_equal_time_accumulation()) {
       Profiler profiler("Additional time measurements.", "QMC-collectives", __LINE__);
       concurrency_.delayedSum(accumulator_.get_G_r_t());
       concurrency_.delayedSum(accumulator_.get_G_r_t_stddev());
@@ -472,7 +470,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     }
 
     // sum G4
-    if (accumulate_g4) {
+    if (accumulator_.perform_tp_accumulation()) {
       for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
         auto& G4 = data_.get_G4()[channel];
         // function operator = will reset this G4 size to other G4 size if they are not equal
@@ -499,12 +497,12 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
 
   M_r_w_ /= accumulated_sign_;
   M_r_w_squared_ /= accumulated_sign_;
-  if (accumulate_g4) {
+  if (accumulator_.perform_tp_accumulation()) {
     for (auto& G4 : data_.get_G4())
       G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
   }
 
-  if (parameters_.additional_time_measurements()) {
+  if (accumulator_.perform_equal_time_accumulation()) {
     accumulator_.get_G_r_t() /= accumulated_sign_;
     data_.G_r_t = accumulator_.get_G_r_t();
     accumulator_.get_G_r_t_stddev() /=

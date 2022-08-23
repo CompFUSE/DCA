@@ -349,7 +349,8 @@ std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, DIST
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 template <typename Writer>
 void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& writer) {
-  //       writer.open_group("CT-AUX-SOLVER-functions");
+  // it is assumed this this is called from CtauxClusterSolver and so we are in a
+  // CT-AUX-SOLVER-functions group.
 
 #ifdef DCA_WITH_QMC_BIT
   writer.execute(error);
@@ -357,9 +358,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& wri
 
   writer.execute(visited_expansion_order_k);
 
-  //       writer.execute(M_r_w);
-  //       writer.execute(M_r_w_stddev);
-
+  // equal time should just have a write
   if (perform_equal_time_accumulation_) {
     writer.execute(get_charge_cluster_moment());
     writer.execute(get_magnetic_cluster_moment());
@@ -368,8 +367,6 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& wri
     writer.execute(get_G_r_t());
     writer.execute(get_G_r_t_stddev());
   }
-
-  //       writer.close_group();
 }
 
 /*!

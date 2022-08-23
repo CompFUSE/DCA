@@ -169,6 +169,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
+  // We assume DCALoop write is called once at the end of the run and write its data in its own step.
   output_file_->begin_step();
   if (concurrency.id() == concurrency.first()) {
     // This should probably happen first not at the end
@@ -263,8 +264,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
   // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
 
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
-    if (output_file_ && output_file_->isADIOS2())
-      output_file_->begin_step();
+    output_file_->begin_step();
 
     adjust_chemical_potential();
 
@@ -302,12 +302,12 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
           MOMS.compute_Sigma_bands();
           MOMS.compute_single_particle_properties();
           MOMS.write(*output_file_);
+	  
         }
       }
     }
 
-    if (output_file_ && output_file_->isADIOS2())
-      output_file_->end_step();
+    output_file_->end_step();
   }
 }
 

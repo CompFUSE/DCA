@@ -62,6 +62,7 @@ public:
   using MFunctionTimePair = typename StdThreadAccumulatorType::MFunctionTimePair;
   using FTauPair = typename StdThreadAccumulatorType::FTauPair;
   using PaddedTimeDmn = typename StdThreadAccumulatorType::PaddedTimeDmn;
+
 protected:
 public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
@@ -288,14 +289,6 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   QmciSolver::accumulator_.finalize();
   if (concurrency_.id() == concurrency_.first())
     std::cout << "accumulator finalized!" << std::endl;
-
-  if (concurrency_.id() == concurrency_.first())
-    // only CTAUX supports equal time accumulation.
-    if constexpr ( decltype(QmciSolver::accumulator_)::solver_id == ClusterSolverId::CT_AUX) {
-    if (QmciSolver::accumulator_.perform_equal_time_accumulation())
-      if (BaseClass::writer_)
-	QmciSolver::accumulator_.write(*BaseClass::writer_);
-    }
 }
 
 template <class QmciSolver>
@@ -332,15 +325,24 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
             parallel::util::getWorkload(rank_measurements[ir], nr_walkers_, iw);
     writer.execute("thread_measurements", thread_measurements);
     writer.close_group();
-  }
-  // Write and reset autocorrelation.
-  autocorrelation_data_.sumConcurrency(concurrency_);
-  if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
+
+    // only CTAUX supports equal time accumulation.
+    if constexpr (decltype(QmciSolver::accumulator_)::solver_id == ClusterSolverId::CT_AUX) {
+      // This is a bit of a mess because we normally write the accumulator by writing the owning integrator
+      // but currently this is expected to only happen 1 time per run.
+      if (QmciSolver::accumulator_.perform_equal_time_accumulation()) {
+	writer.open_group("CT-AUX-SOLVER-functions");
+        QmciSolver::accumulator_.write(*BaseClass::writer_);
+	writer.close_group();
+      }
+    }
+
+    // Write and reset autocorrelation.
+    autocorrelation_data_.sumConcurrency(concurrency_);
     std::cout << "Writing autocorrelation data\n";
     autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+    autocorrelation_data_.reset();
   }
-  autocorrelation_data_.reset();
-
   return L2_Sigma_difference;
 }
 
