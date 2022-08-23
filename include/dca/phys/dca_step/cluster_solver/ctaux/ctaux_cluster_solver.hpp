@@ -418,7 +418,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
   concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
 
   // sum G4
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4()) {
+  if (accumulator_.perform_tp_accumulation()) {
     if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
@@ -445,7 +445,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
 
   const double local_time = total_time_;
   const bool accumulate_g4 =
-      parameters_.isAccumulatingG4() && dca_iteration_ == parameters_.get_dca_iterations() - 1;
+    accumulator_.perform_tp_accumulation();
 
   {
     Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);
