@@ -297,12 +297,13 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
     if (dca_iteration_ != parameters.get_dca_iterations() - 1) {
       if (output_file_ && output_file_->isADIOS2()) {
         if (parameters.dump_every_iteration()) {
-          // This normally gets done in finalize before the dump.
-          perform_cluster_mapping_self_energy();
-          MOMS.compute_Sigma_bands();
-          MOMS.compute_single_particle_properties();
-          MOMS.write(*output_file_);
-	  
+          if (concurrency.id() == concurrency.first()) {
+            // This normally gets done in finalize before the dump.
+            perform_cluster_mapping_self_energy();
+            MOMS.compute_Sigma_bands();
+            MOMS.compute_single_particle_properties();
+            MOMS.write(*output_file_);
+          }
         }
       }
     }
