@@ -743,7 +743,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
       // \todo remove, only necessary to get a look at gamma_lat_inv for debugging.
       chi0_lat_inv = chi0_lat_inv_GPU;
 #else
-      dca::linalg::matrixop::inverse(chi0_lat_inv_GPU);
+      dca::linalg::matrixop::inverse(chi0_lat_inv);
 #endif
       subind = {0, wex_ind};
       Gamma_lattice.slice(0, subind,
@@ -772,6 +772,10 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
           G4_lattice(i + j * N, k_ind, wex_ind) = G4_lat_indi(i, j);
 
 #else
+      // just to keep it clear this is the inv.
+      auto& gamma_lat_inv = gamma_lat;
+      dca::linalg::matrixop::inverse(gamma_lat);
+      
       for (int j = 0; j < N; j++)
         for (int i = 0; i < N; i++)
           G4_lattice(i + j * N, k_ind, wex_ind) = chi0_lat_inv(i, j) - gamma_lat_inv(i, j);
