@@ -11,6 +11,7 @@
 // This file implements hdf5_reader.hpp.
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
+#include "hdf5.h"
 
 #include <fstream>
 #include <stdexcept>
@@ -108,7 +109,7 @@ void HDF5Reader::read(const std::string& name, H5::DataType type, void* data) co
 }
 
 bool HDF5Reader::exists(const std::string& name) const {
-  auto code = H5Gget_objinfo(file_->getId(), name.c_str(), 0, NULL);
+  auto code = H5Gget_info_by_name(file_->getId(), name.c_str(), NULL, H5P_DEFAULT);
   return code == 0;
 }
 
