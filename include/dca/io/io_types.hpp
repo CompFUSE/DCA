@@ -18,11 +18,9 @@ namespace dca {
 namespace io {
 // dca::phys::
 
-/** Possible Flavors for G4
- *  dummy at 0 debug automatic initialization of int to 0
- *  causes a bug. That is not a good code smell.
+/** Enum of supported file IO types
  */
-enum class IOType : int { JSON = 0, HDF5, ADIOS2, UNKNOWN };
+enum class IOType : int { JSON = 0, HDF5, ADIOS2 };
 
 IOType stringToIOType(const std::string& name);
 
@@ -30,7 +28,9 @@ std::string toString(const IOType type);
 
 IOType extensionToIOType(const std::string& file_name);
 
+std::string extensionFromIOType(const IOType type);
+  
 }  // namespace io
 }  // namespace dca
 
-#endif  // DCA_PHYS_FOUR_POINT_TYPE_HPP
+#endif  // DCA_IO_TYPES_HPP

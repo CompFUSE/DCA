@@ -109,8 +109,7 @@ void HDF5Reader::read(const std::string& name, H5::DataType type, void* data) co
 }
 
 bool HDF5Reader::exists(const std::string& name) const {
-  auto code = H5Gget_info_by_name(file_->getId(), name.c_str(), NULL, H5P_DEFAULT);
-  return code == 0;
+  return file_->nameExists(name);
 }
 
 std::vector<hsize_t> HDF5Reader::readSize(const std::string& name) const {
