@@ -81,38 +81,44 @@ public:
 };
 
 template <typename PointGroupType>
-int KagomeHubbard<PointGroupType>::transformationSignOfR(int b1, int b2, int s) {
-    return 1; // TODO: FIXME
+int KagomeHubbard<PointGroupType>::transformationSignOfR(int b1 [[maybe_unused]],
+                                                         int b2 [[maybe_unused]],
+                                                         int s [[maybe_unused]]) {
+  return 1;  // TODO: FIXME
 }
 
 template <typename PointGroupType>
-int KagomeHubbard<PointGroupType>::transformationSignOfK(int b1, int b2, int s) {
-    return 1; // TODO: FIXME
+int KagomeHubbard<PointGroupType>::transformationSignOfK(int b1 [[maybe_unused]],
+                                                         int b2 [[maybe_unused]],
+                                                         int s [[maybe_unused]]) {
+  return 1;  // TODO: FIXME
 }
 
 template <typename PointGroupType>
 double* KagomeHubbard<PointGroupType>::initializeRDCABasis() {
-  static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.), std::sin(-M_PI / 3.)};
+  static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.),
+                                     std::sin(-M_PI / 3.)};
   // static std::array<double, 4> basis{1, 0, 0.5, std::sin(M_PI / 3.)};
   return basis.data();
 }
 // template <typename PointGroupType>
 // double* KagomeHubbard<PointGroupType>::initializeKDCABasis() {
-//   static std::array<double, 4> basis{2 * M_PI, -M_PI/std::sin(M_PI/3.), 0, 2. * M_PI/std::sin(M_PI/3.)};
-//   return basis.data();
+//   static std::array<double, 4> basis{2 * M_PI, -M_PI/std::sin(M_PI/3.), 0, 2. *
+//   M_PI/std::sin(M_PI/3.)}; return basis.data();
 // }
 
 template <typename PointGroupType>
 double* KagomeHubbard<PointGroupType>::initializeRLDABasis() {
-  static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.), std::sin(-M_PI / 3.)};
+  static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.),
+                                     std::sin(-M_PI / 3.)};
   // static std::array<double, 4> basis{1, 0, 0, std::sin(M_PI / 3.)};
   return basis.data();
 }
 
 // template <typename PointGroupType>
 // double* KagomeHubbard<PointGroupType>::initializeKLDABasis() {
-//   static std::array<double, 4> basis{2 * M_PI, -M_PI/std::sin(M_PI/3.), 0, 2. * M_PI/std::sin(M_PI/3.)};
-//   return basis.data();
+//   static std::array<double, 4> basis{2 * M_PI, -M_PI/std::sin(M_PI/3.), 0, 2. *
+//   M_PI/std::sin(M_PI/3.)}; return basis.data();
 // }
 
 template <typename PointGroupType>
@@ -149,8 +155,8 @@ void KagomeHubbard<PointGroupType>::initializeHInteraction(
   H_interaction = 0.;
 
   for (int i = 0; i < BANDS; i++) {
-            H_interaction(i, 0, i, 1, origin) = U;
-            H_interaction(i, 1, i, 0, origin) = U;
+    H_interaction(i, 0, i, 1, origin) = U;
+    H_interaction(i, 1, i, 0, origin) = U;
   }
 }
 
@@ -190,14 +196,13 @@ void KagomeHubbard<PointGroupType>::initializeH0(
     const auto& k = k_vecs[k_ind];
 
     for (int s = 0; s < 2; s++) {
-      H_0(0, s, 1, s, k_ind) = -2. * t * std::cos(0.5*k[0]);
-      H_0(0, s, 2, s, k_ind) = -2. * t * std::cos(0.25*k[0]+0.25*sqrt(3.)*k[1]);
-      H_0(1, s, 2, s, k_ind) = -2. * t * std::cos(0.25*k[0]-0.25*sqrt(3.)*k[1]);
-      
-      H_0(1, s, 0, s, k_ind) = -2. * t * std::cos(0.5*k[0]);
-      H_0(2, s, 0, s, k_ind) = -2. * t * std::cos(0.25*k[0]+0.25*sqrt(3.)*k[1]);
-      H_0(2, s, 1, s, k_ind) = -2. * t * std::cos(0.25*k[0]-0.25*sqrt(3.)*k[1]);
+      H_0(0, s, 1, s, k_ind) = -2. * t * std::cos(0.5 * k[0]);
+      H_0(0, s, 2, s, k_ind) = -2. * t * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
+      H_0(1, s, 2, s, k_ind) = -2. * t * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
 
+      H_0(1, s, 0, s, k_ind) = -2. * t * std::cos(0.5 * k[0]);
+      H_0(2, s, 0, s, k_ind) = -2. * t * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
+      H_0(2, s, 1, s, k_ind) = -2. * t * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
     }
   }
 }
