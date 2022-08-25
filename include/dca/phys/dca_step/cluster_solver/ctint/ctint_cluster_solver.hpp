@@ -99,6 +99,7 @@ public:
   void write(Writer& writer) {
     writer.open_group("parameters");
     accumulator_.write(writer);
+    writer.close_group();
   }
 
   // For testing purposes.

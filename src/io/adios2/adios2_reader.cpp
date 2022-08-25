@@ -15,24 +15,19 @@
 #include <stdexcept>
 
 #include "dca/io/adios2/adios2_global.hpp"
+#include "dca/util/to_string.hpp"
 
 namespace dca {
 namespace io {
 // dca::io::
-  
-template <class CT>
-ADIOS2Reader<CT>::ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency,
-                           bool verbose)
-    : adios_(adios),
-      verbose_(verbose),
-      concurrency_(concurrency) {}
 
 template <class CT>
-ADIOS2Reader<CT>::ADIOS2Reader(const CT* concurrency,
-                           bool verbose)
-  : adios_(GlobalAdios::getAdios()),
-      verbose_(verbose),
-      concurrency_(concurrency) {}
+ADIOS2Reader<CT>::ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency, bool verbose)
+    : adios_(adios), verbose_(verbose), concurrency_(concurrency) {}
+
+template <class CT>
+ADIOS2Reader<CT>::ADIOS2Reader(const CT* concurrency, bool verbose)
+    : adios_(GlobalAdios::getAdios()), verbose_(verbose), concurrency_(concurrency) {}
 
 template <class CT>
 ADIOS2Reader<CT>::~ADIOS2Reader() {
@@ -89,7 +84,6 @@ void ADIOS2Reader<Concurrency>::end_step() {
   file_.EndStep();
 };
 
-  
 template <class CT>
 std::string ADIOS2Reader<CT>::get_path(const std::string& name) {
   std::string path = "/";
@@ -149,7 +143,13 @@ bool ADIOS2Reader<CT>::exists(const std::string& name) const {
   std::string varType = io_.VariableType(name);
   return !varType.empty();
 }
-  
+
+template <class CT>
+void ADIOS2Reader<CT>::dumpAvailableVars() {
+  auto available_vars = io_.AvailableVariables();
+  std::cout << mapToString(available_vars);
+}
+
 template class ADIOS2Reader<dca::parallel::NoConcurrency>;
 #ifdef DCA_HAVE_MPI
 template class ADIOS2Reader<dca::parallel::MPIConcurrency>;

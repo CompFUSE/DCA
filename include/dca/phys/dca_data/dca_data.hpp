@@ -520,11 +520,10 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
       }
     }
 #ifdef DCA_WITH_ADIOS2
-    else
-    {
+    else {
       // special adios writer only for block or linear distributed G4
-      if(writer.isADIOS2())
-	writeDistributedG4Adios(std::get<io::ADIOS2Writer<Concurrency>>(writer.getUnderlying()));
+      if (writer.isADIOS2())
+        writeDistributedG4Adios(std::get<io::ADIOS2Writer<Concurrency>>(writer.getUnderlying()));
     }
 #endif
   }
@@ -612,11 +611,11 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
       auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
       std::size_t step_count = adios2_reader.getStepCount();
       for (std::size_t i = 0; i < step_count; ++i) {
-	adios2_reader.begin_step();
-	adios2_reader.end_step();
+        adios2_reader.begin_step();
+        adios2_reader.end_step();
       }
     }
-    readSigmaFile(reader);  
+    readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(Sigma);
@@ -643,9 +642,15 @@ void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   if (parameters_.adjust_chemical_potential()) {
     reader.open_group("DCA-loop-functions");
     std::vector<double> chemical_potentials;
-    reader.execute("chemical-potential", chemical_potentials);
-    std:: cout << "chemical-potentials: " << vectorToString(chemical_potentials) << '\n';
-    parameters_.get_chemical_potential() = chemical_potentials.back();
+    bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
+    if (chemical_potential_present) {
+      std::cout << "chemical-potentials: " << vectorToString(chemical_potentials) << '\n';
+      parameters_.get_chemical_potential() = chemical_potentials.back();
+    }
+    else {
+      throw std::runtime_error(
+          "readSigmaFile failed, initial-self-energy file is missing chemical potential data!");
+    }
     reader.close_group();
   }
 
