@@ -226,7 +226,7 @@ void BseSolverExt<ParametersType, DcaDataType>::calculateSusceptibilities() {
 
   if(CDA::KClusterDmn::dmn_size() == 1) {
     bse_lattice_solver_.computeChi0LatticeSingleSite();
-    bse_lattice_solver_.computeChi0LatticeSingleSite();
+    bse_lattice_solver_.computeG4LatticeSingleSite();
   }
   else
   {

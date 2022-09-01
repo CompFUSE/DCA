@@ -197,8 +197,6 @@ CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
       M_r_w_squared_("M_r_w_squared"),
       averaged_(false),
       writer_(writer) {
-  if (concurrency_.id() == concurrency_.first())
-    std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>

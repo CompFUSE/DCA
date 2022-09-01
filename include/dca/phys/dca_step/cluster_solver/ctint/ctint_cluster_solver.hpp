@@ -74,8 +74,6 @@ public:
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
                      std::shared_ptr<io::Writer<Concurrency>> writer);
 
-  ~CtintClusterSolver();
-
   // Initialize g0_interpolation and reset internal state. Must be called before integrate.
   void initialize(int dca_iteration = 0);
 
@@ -179,21 +177,19 @@ CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::~CtintClusterSolver() {
-  if (concurrency_.id() == concurrency_.first())
-    std::cout << "\n\n\t CT-INT Integrator has died \n\n";
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
-
+  
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
   // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
+              << ")\n\n";
+
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
