@@ -119,15 +119,19 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::compute_Gamma
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II("G_II");
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II_0("G_II_0");
 
-  apply_symmetries_sp();
+  //apply_symmetries_sp();
 
   load_G_II(G_II);
 
   load_G_II_0(G_II_0);
+  // This is what gets written to disk and that is all it gets used for.
+  // it used to need to be here because G_II_0 was renormalized now we only do that to a temp variable.
   load_G_II_0_function(G_II_0);
 
-  apply_symmetries_tp(G_II, G_II_0);
+  //apply_symmetries_tp(G_II, G_II_0);
 
+  // in original analysis code the G_II and G_II_0 come back renormalized
+  // not so here
   solve_BSE_on_cluster(G_II, G_II_0);
 }
 
@@ -239,9 +243,11 @@ template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
     func::function<std::complex<ScalarType>, TotalG4Dmn>& G_II_0) {
   profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
-  if (concurrency.id() == concurrency.first())
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\t" << __FUNCTION__ << "\n\n";
-
+    std::cout << "G_II_0 domain sizes: " << vectorToString(G_II_0.get_domain().get_leaf_domain_sizes()) << "\n\n";
+  }
+  
   func::dmn_variadic<k_DCA, WVertexDmn> k_w_dmn;
   G_II_0 = 0.;
 
@@ -374,6 +380,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
         for (int i = 0; i < N; i++)
           Gamma_cluster(i, j, kex_ind, wex_ind) = G4_0_inv_indi(i, j) - G4_inv_indi(i, j);
     }
+  Gamma_cluster *= parameters.get_beta();
 }
 }  // namespace analysis
 }  // namespace phys

@@ -166,7 +166,7 @@ private:
     double model_t = parameters.get_t();
     double t_prime = parameters.get_t_prime();
     return [model_t, t_prime, q](auto& k_elem) -> double {
-      return -2. * model_t * (std::cos(k_elem[0] + q[0]) + std::cos(k_elem[1] + q[1])) -
+      return -2. * model_t * (std::cos(k_elem[0]) + q[0] + std::cos(k_elem[1] + q[1])) -
              4.0 * t_prime * std::cos(k_elem[0] + q[0]) * std::cos(k_elem[1] + q[1]);
     };
   }
@@ -358,25 +358,9 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::initialize() 
   }
 }
 
-// template <typename ParametersType, typename DcaDataType, typename ScalarType>
-// void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0LatticebFull() {
-//   func::function<std::complex<ScalarType>, GlatticeDmn> g_lattice;
-//   auto omega_vertex = WVertexDmn::get_elements();
-//   for(int w_ind = 0; w_ind < WVertexDmn::dmn_size(); ++w_ind)
-//     for(int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind)
-//       for (int m1 = 0; m1 < b::dmn_size(); m1++)
-// 	for (int n1 = 0; n1 < b::dmn_size(); n1++)
-// 	  g_lattice(n1, m2, k_ind, w_ind) = (omega_vertex(w_ind)+1.0E-16
-// }
-
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0LatticeSingleSite() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
-
-  // auto dispersion = [model_t, t_prime](auto& k_elem) {
-  //   return -2. * model_t * (std::cos(k_elem[0]) + std::cos(k_elem[1])) -
-  //          4.0 * t_prime * std::cos(k_elem[0]) * std::cos(k_elem[1]);
-  // };
 
   std::vector<double> chi_q{M_PI, M_PI};
 
@@ -386,45 +370,62 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   int n_w_G = WDmn::dmn_size();
   int mid_index_w_G0 = n_w_G / 2;
 
-  int n_k_host = k_HOST_VERTEX::dmn_size();
-  std::vector<double> ek(n_k_host, 0.0);
-  std::vector<double> ekpq(n_k_host, 0.0);
+  int n_k = 100;
+  int n_k_grid = n_k * n_k;
+  std::vector<double> ek(n_k_grid, 0.0);
+  std::vector<double> ekpq(n_k_grid, 0.0);
 
-  auto kElements = k_HOST_VERTEX::get_elements();
+  std::vector<double> k_elements(n_k);
+  for(int ik = 0; ik < n_k; ++ik)
+    k_elements[ik] = -M_PI + ((2*M_PI) / n_k) * ik;
+  
+  std::vector<std::array<double,2>> k_grid_fine(n_k_grid);
+  auto iter_elements = k_grid_fine.begin();
+  for(int iky = 0; iky < n_k; ++iky)
+    for(int ikx = 0; ikx < n_k; ++ikx) {
+      (*iter_elements) = {k_elements[ikx], k_elements[iky]};
+      ++iter_elements;
+    }
 
-  std::cout << "kset\n";
-  for (int ik = 0; ik < n_k_host; ++ik) {
-    std::cout << vectorToString(k_HOST_VERTEX::get_elements()[ik]) << '\n';
-  }
-  std::transform(kElements.begin(), kElements.end(), ek.begin(), makeDispersionFunc({0.0, 0.0}));
-  std::transform(kElements.begin(), kElements.end(), ekpq.begin(), makeDispersionFunc({M_PI, M_PI}));
+  std::transform(k_grid_fine.begin(), k_grid_fine.end(), ek.begin(), makeDispersionFunc({0.0, 0.0}));
+  std::transform(k_grid_fine.begin(), k_grid_fine.end(), ekpq.begin(), makeDispersionFunc({M_PI, M_PI}));
 
+  auto& w_set = WDmn::get_elements();
   auto& wn_set = WVertexDmn::get_elements();
   auto& wex_set = WExDmn::get_elements();
-
   double inv_beta = 1 / parameters.get_beta();
-  double mu = parameters.get_chemical_potential();
-  std::complex<double> inv_n_k_host{0.0, 0.0};
-  inv_n_k_host.real(1.0 / static_cast<double>(n_k_host));
+#ifndef NDEBUG
+  std::cout << "WVertexDmn::elements: " << vectorToString(wn_set) << '\n';
+  std::cout << "WExDmn::elements: " << vectorToString(wex_set) << '\n';
+  std::vector<double> wex_translated(wex_set.size(), 0.0);
+  std::transform(wex_set.begin(), wex_set.end(), wex_translated.begin(),
+                 [inv_beta](int wex_ind) { return 2 * wex_ind * M_PI * inv_beta; });
+  std::cout << "WEx::elements translated: " << vectorToString(wex_translated) << '\n';
+#endif
 
+  double mu = parameters.get_chemical_potential();
+  std::complex<double> inv_n_k_grid{1.0 / static_cast<double>(n_k_grid), 0.0};
+  std::cout << "inv_n_k_host normalization = " << inv_n_k_grid << '\n';
+
+  std::vector<std::complex<double>> cc(n_k_grid);
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
     for (int iwn = 0; iwn < WVertexDmn::dmn_size(); ++iwn) {
       // wn is an actual frequency from WVertexDmn
       int i_wG = iwn - mid_index_w_G40 + mid_index_w_G0;
       int iwPlusiwm = std::min(std::max(i_wG + wex_ind, 0), n_w_G - 1);  // iwn + iwm
       double wex = 2 * wex_ind * M_PI * inv_beta;
-      std::vector<std::complex<double>> cc(n_k_host);
-      for (int ik = 0; ik < n_k_host; ++ik) {
-        auto& sigma = dca_data_.Sigma_lattice;
-        std::complex<double> c1{0, 1.0 / wn_set[iwn]};
-        c1 += 1.0 / (mu - ek[ik] - sigma(0, 0, 0, i_wG));
-        std::complex<double> c2{0, 1.0 / (wex_set[wex_ind] + wn_set[iwn])};
-        c2 += 1.0 / (mu - ekpq[ik] - sigma(0, 0, 0, iwPlusiwm));
+      assert((wex + wn_set[iwn]) - w_set[iwPlusiwm] < 0.0001);
+      for (int ik = 0; ik < n_k_grid; ++ik) {
+        auto& sigma = dca_data_.Sigma_lattice_interpolated;
+        std::complex<double> c1{0, wn_set[iwn]};
+        std::complex<double> c2{0, wex + wn_set[iwn]};
+        c1 = 1.0 / (c1 + (mu - ek[ik] - sigma(0, 0, 0, i_wG)));
+        c2 = 1.0 / (c2 + (mu - ekpq[ik] - sigma(0, 0, 0, iwPlusiwm)));
         cc[ik] = -c1 * c2;
       }
       std::complex<double> chi0_elem =
           std::accumulate(cc.begin(), cc.end(), std::complex<double>{0, 0});
-      single_site_chi_0_lattice(0, 0, wex_ind, iwn) = chi0_elem / inv_n_k_host;
+      single_site_chi_0_lattice(0, 0, wex_ind, iwn) = chi0_elem * inv_n_k_grid;
     }
   }
 }
@@ -490,22 +491,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   // Renormalize and set diagonal \chi_0 matrix.
 }
 
-// template <typename ParametersType, typename DcaDataType, typename ScalarType>
-// template <typename QBrillouin>
-// void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Lattice() {
-//   for(int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind
-//     for(int kex_ind = 0; kex_ind < KExDmn::dmn_size(); ++kex_ind)
-//       for (int wm_ind = 0; w_ind < WVertexDmn::dmn_size(); wm_ind++)
-//         for (int q_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); q_ind++)
-// 	  for (int wn_ind = 0; w_ind < WVertexDmn::dmn_size(); wn_ind++)
-// 	for (int wnp_ind = 0; w_ind < WVertexDmn::dmn_size(); wnp_ind++)
-//   	for (int m2 = 0; m2 < b::dmn_size(); m2++)
-// 	  for (int n2 = 0; n2 < b::dmn_size(); n2++)
-// 	    for (int m1 = 0; m1 < b::dmn_size(); m1++)
-// 	      for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-
-// 	    }
-// }
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename ClusterEigenDmn, typename KExDmn, typename WExDmn>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaLattice(
@@ -537,7 +522,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
             for (int m1 = 0; m1 < b::dmn_size(); m1++)
               for (int n1 = 0; n1 < b::dmn_size(); n1++)
                 gamma_lattice_indi(n1, m1, w1, n2, m2, w2) =
-                    gamma_cluster_indi(n1, m1, 0, w1, n2, m2, 0, w2);
+		  gamma_cluster_indi(n1, m1, 0, w1, n2, m2, 0, w2);
 
     std::vector<int> subind_gl{0, wex_ind};
     Gamma_lattice.distribute(0, subind_gl,
@@ -547,30 +532,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
   // Threading parallelization_obj;
   // parallelization_obj.execute(n_threads, makeGammaLatticeOverWExDmn);
 }
-
-// template <typename ParametersType, typename DcaDataType, typename ScalarType>
-// void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::diagonalizeGammaChi0() {
-//   if (parameters.project_onto_crystal_harmonics()) {
-//     diagonalize_folded_Gamma_chi_0();
-//   }
-//   else {
-// #ifndef DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
-//     // Diagonalize the symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
-//     // The origin in momentum space has always index = 0.
-//     // TODO: loop over multiple channels.
-//     if (parameters.get_four_point_channels()[0] == FourPointType::PARTICLE_PARTICLE_UP_DOWN &&
-//         parameters.get_four_point_momentum_transfer_index() == 0 &&
-//         parameters.get_four_point_frequency_transfer() == 0) {
-//       diagonalizeGammaChi0Symmetric();
-//     }
-//     else
-// #endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
-//       diagonalizeGammaChi0Full();
-//   }
-
-//   characterizeLeadingEigenvectors();
-//   printOnShell();
-// }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Lattice() {

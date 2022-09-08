@@ -397,7 +397,9 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
   reader.open_group("functions");
 
   reader.execute(Sigma);
-
+  reader.execute(Sigma_lattice);
+  reader.execute(Sigma_lattice_interpolated);
+  
   if (parameters_.isAccumulatingG4()) {
     std::cout << "Trying to read Gkw since we are accumulating G4\n";
     reader.execute(G_k_w);
@@ -476,7 +478,8 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
 
   writer.execute(Sigma);
   writer.execute(Sigma_err_);
-
+  writer.execute(Sigma_cluster);
+  
   if (parameters_.dump_lattice_self_energy()) {
     if (parameters_.do_dca_plus())
       writer.execute(Sigma_lattice);
