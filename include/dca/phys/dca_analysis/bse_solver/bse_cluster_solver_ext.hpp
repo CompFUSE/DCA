@@ -361,12 +361,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
 
       profiler_type prof(__FUNCTION__, __FILE__, __LINE__);
 
-      ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
-
       int N = cluster_eigenvector_dmn.get_size();
-
-      G_II_indi *= renorm;
-      G_II_0_indi *= renorm;
 
       // As I understand it each of the below is independent so we should be solving the matrices of the inner bbkwbbkw blocks.
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_inv_indi(N);

@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
@@ -318,17 +319,17 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
   assert(new_size.first >= 0 && new_size.second >= 0);
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
-	ValueType* new_data = nullptr;
-	new_data = Allocator::allocate(nrElements(new_capacity));
-	// hip memorycpy2D routines don't tolerate leadingDimension = 0
-	const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
-					    std::min(new_size.second, size_.second));
-	util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
-	Allocator::deallocate(data_);
-	data_ = new_data;
-	capacity_ = new_capacity;
-	size_ = new_size;
-      }
+    ValueType* new_data = nullptr;
+    new_data = Allocator::allocate(nrElements(new_capacity));
+    // hip memorycpy2D routines don't tolerate leadingDimension = 0
+    const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
+                                        std::min(new_size.second, size_.second));
+    util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
+    Allocator::deallocate(data_);
+    data_ = new_data;
+    capacity_ = new_capacity;
+    size_ = new_size;
+  }
   else {
     size_ = new_size;
   }
@@ -500,6 +501,17 @@ std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
     return capacity_.first * capacity_.second * sizeof(ScalarType);
   else
     return 0;
+}
+
+/// Factory function for diangonal matrices, type is inferred from the type of Vector.
+template <typename ScalarType, DeviceType device_name>
+auto makeDiagonalMatrix(Vector<ScalarType, device_name>& diag) {
+  int dsize = diag.size();
+  Matrix<ScalarType, device_name> matrix("diag_matrix", dsize);
+  for (int i = 0; i < dsize; ++i) {
+    matrix(i, i) = diag[i];
+  }
+  return matrix;
 }
 
 }  // namespace linalg

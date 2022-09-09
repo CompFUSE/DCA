@@ -166,7 +166,7 @@ private:
     double model_t = parameters.get_t();
     double t_prime = parameters.get_t_prime();
     return [model_t, t_prime, q](auto& k_elem) -> double {
-      return -2. * model_t * (std::cos(k_elem[0]) + q[0] + std::cos(k_elem[1] + q[1])) -
+      return -2. * model_t * (std::cos(k_elem[0] + q[0]) + std::cos(k_elem[1] + q[1])) -
              4.0 * t_prime * std::cos(k_elem[0] + q[0]) * std::cos(k_elem[1] + q[1]);
     };
   }
@@ -365,7 +365,8 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   std::vector<double> chi_q{M_PI, M_PI};
 
   std::cout << "WVertexDmn::dmn_size()" << WVertexDmn::dmn_size() << '\n';
-  int mid_index_w_G40 = WVertexDmn::dmn_size() / 2;
+  int n_w_G4 = WVertexDmn::dmn_size();
+  int mid_index_w_G40 = n_w_G4 / 2;
 
   int n_w_G = WDmn::dmn_size();
   int mid_index_w_G0 = n_w_G / 2;
@@ -376,19 +377,20 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   std::vector<double> ekpq(n_k_grid, 0.0);
 
   std::vector<double> k_elements(n_k);
-  for(int ik = 0; ik < n_k; ++ik)
-    k_elements[ik] = -M_PI + ((2*M_PI) / n_k) * ik;
-  
-  std::vector<std::array<double,2>> k_grid_fine(n_k_grid);
+  for (int ik = 0; ik < n_k; ++ik)
+    k_elements[ik] = -M_PI + ((2 * M_PI) / n_k) * ik;
+
+  std::vector<std::array<double, 2>> k_grid_fine(n_k_grid);
   auto iter_elements = k_grid_fine.begin();
-  for(int iky = 0; iky < n_k; ++iky)
-    for(int ikx = 0; ikx < n_k; ++ikx) {
+  for (int iky = 0; iky < n_k; ++iky)
+    for (int ikx = 0; ikx < n_k; ++ikx) {
       (*iter_elements) = {k_elements[ikx], k_elements[iky]};
       ++iter_elements;
     }
 
   std::transform(k_grid_fine.begin(), k_grid_fine.end(), ek.begin(), makeDispersionFunc({0.0, 0.0}));
-  std::transform(k_grid_fine.begin(), k_grid_fine.end(), ekpq.begin(), makeDispersionFunc({M_PI, M_PI}));
+  std::transform(k_grid_fine.begin(), k_grid_fine.end(), ekpq.begin(),
+                 makeDispersionFunc({M_PI, M_PI}));
 
   auto& w_set = WDmn::get_elements();
   auto& wn_set = WVertexDmn::get_elements();
@@ -409,16 +411,17 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
 
   std::vector<std::complex<double>> cc(n_k_grid);
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
-    for (int iwn = 0; iwn < WVertexDmn::dmn_size(); ++iwn) {
+    for (int iwn = 0; iwn < n_w_G4; ++iwn) {
       // wn is an actual frequency from WVertexDmn
       int i_wG = iwn - mid_index_w_G40 + mid_index_w_G0;
       int iwPlusiwm = std::min(std::max(i_wG + wex_ind, 0), n_w_G - 1);  // iwn + iwm
       double wex = 2 * wex_ind * M_PI * inv_beta;
       assert((wex + wn_set[iwn]) - w_set[iwPlusiwm] < 0.0001);
       for (int ik = 0; ik < n_k_grid; ++ik) {
-        auto& sigma = dca_data_.Sigma_lattice_interpolated;
+        auto& sigma = dca_data_.Sigma;
         std::complex<double> c1{0, wn_set[iwn]};
         std::complex<double> c2{0, wex + wn_set[iwn]};
+        // assert(ek[ik] != ekpq[ik]);
         c1 = 1.0 / (c1 + (mu - ek[ik] - sigma(0, 0, 0, i_wG)));
         c2 = 1.0 / (c2 + (mu - ekpq[ik] - sigma(0, 0, 0, iwPlusiwm)));
         cc[ik] = -c1 * c2;
@@ -522,7 +525,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
             for (int m1 = 0; m1 < b::dmn_size(); m1++)
               for (int n1 = 0; n1 < b::dmn_size(); n1++)
                 gamma_lattice_indi(n1, m1, w1, n2, m2, w2) =
-		  gamma_cluster_indi(n1, m1, 0, w1, n2, m2, 0, w2);
+                    gamma_cluster_indi(n1, m1, 0, w1, n2, m2, 0, w2);
 
     std::vector<int> subind_gl{0, wex_ind};
     Gamma_lattice.distribute(0, subind_gl,
@@ -539,10 +542,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
-
-  const ScalarType renorm = 1. / (parameters.get_beta() * k_HOST::dmn_size());
-
-  chi_0_lattice *= renorm;
 
   func::function<std::complex<ScalarType>, Chi0LatticeMatrixDmn> chi_0_lattice_matrix;
 
@@ -565,7 +564,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
                     }
       };
 
-  int n_threads = std::min(8, WExDmn::dmn_size());
+  int n_threads = 1;  // std::min(8, WExDmn::dmn_size());
   // Threading parallelization_obj;
   Threading().execute(n_threads, makeChi0Matrix, std::ref(chi_0_lattice),
                       std::ref(chi_0_lattice_matrix));
@@ -629,7 +628,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
       G4_lat_indi = chi0_lat_inv;
       dca::linalg::blas::UseDevice<linalg::CPU>::axpy(N * N, std::complex<ScalarType>(-1.0, 0.0),
                                                       gamma_lat.ptr(), 1, G4_lat_indi.ptr(), 1, 0, 0);
-
+      dca::linalg::matrixop::inverse(G4_lat_indi);
 #endif
       for (int j = 0; j < N; j++)
         for (int i = 0; i < N; i++)
@@ -644,107 +643,34 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  const ScalarType renorm = 1. / (parameters.get_beta() * k_HOST::dmn_size());
+  int num_wex = WExDmn::dmn_size();
+  int num_k = k_HOST::dmn_size();
+  for (int iwex = 0; iwex < num_wex; ++iwex) {
+    dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU> diag_wn(
+        single_site_chi_0_lattice.get_domain().get_branch_size(3));
+    single_site_chi_0_lattice.slice(3, {0, 0, iwex, 0}, diag_wn.data());
+    auto chi0_diag = dca::linalg::makeDiagonalMatrix(diag_wn);
+    int N = diag_wn.size();
+    dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> g2l("g2l", N);
+    dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> gamma_mat("gamma", N);
+    func::function<std::complex<ScalarType>, SharedMatrixDmn> gamma_lattice_indi;
+    Gamma_lattice.slice(0, {0, iwex},
+                        static_cast<std::complex<ScalarType>*>(gamma_lattice_indi.values()));
+    dca::linalg::matrixop::copyArrayToMatrix(N, N, gamma_lattice_indi.values(), N, gamma_mat);
+    g2l = chi0_diag;
+    assert(gamma_mat.leadingDimension() == g2l.leadingDimension());
+    for (int ir = 0; ir < gamma_mat.nrRows(); ++ir)
+      dca::linalg::blas::UseDevice<linalg::CPU>::axpy(N, std::complex<ScalarType>(-1.0, 0.0),
+                                                      gamma_mat.ptr(ir, 0), 1,
+                                                      g2l.ptr(ir, 0), 1, 0, 0);
+    dca::linalg::matrixop::inverse(g2l);
 
-  chi_0_lattice *= renorm;
-
-  // func::function<std::complex<ScalarType>, Chi0LatticeMatrixDmn> chi_0_lattice_matrix;
-  auto makeChi0Matrix =
-      [](int id, int nr_threads,
-         func::function<std::complex<ScalarType>, SingleSiteChi0LatticeDmn>& chi_0_lattice,
-         std::vector<func::function<std::complex<ScalarType>, OneWExChi0LatticeMatrixDmn>>&
-             chi_0_lattice_matrices) {
-        WExDmn wex_dmn;
-        const std::pair<int, int> wex_bounds = parallel::util::getBounds(id, nr_threads, wex_dmn);
-        for (int wex_ind = wex_bounds.first; wex_ind < wex_bounds.second; wex_ind++)
-          for (int K_ind = 0; K_ind < k_HOST::dmn_size(); K_ind++)
-            for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
-              for (int m2 = 0; m2 < b::dmn_size(); m2++)
-                for (int n2 = 0; n2 < b::dmn_size(); n2++)
-                  for (int m1 = 0; m1 < b::dmn_size(); m1++)
-                    for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                      // This is block diagonal for single site only
-                      chi_0_lattice_matrices[wex_ind](n1, m1, w_ind, n2, m2, w_ind, K_ind) =
-                          chi_0_lattice(n1, m1, n2, m2, w_ind, wex_ind);
-                    }
-        std::cout << "done on thread " << id << '\n';
-      };
-
-  int n_threads = std::min(8, WExDmn::dmn_size());
-  std::vector<func::function<std::complex<ScalarType>, OneWExChi0LatticeMatrixDmn>> chi_0_lattice_matrices(
-      WExDmn::dmn_size());
-
-  // Threading parallelization_obj;
-  Threading().execute(n_threads, makeChi0Matrix, std::ref(single_site_chi_0_lattice),
-                      std::ref(chi_0_lattice_matrices));
-
-  int N = SharedDmn::dmn_size();
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> gamma_lat(N);
-
-  func::function<std::complex<ScalarType>, SharedMatrixDmn> chi_0_lattice_matrix_indi;
-  func::function<std::complex<ScalarType>, SharedMatrixDmn> gamma_lattice_indi;
-  std::vector<int> subind(2);
-
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> chi0_lat_inv(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_lat_indi(N);
-#ifdef DCA_HAVE_GPU
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> gamma_lat_GPU(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> G4_lat_indi_GPU(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> chi0_lat_inv_GPU(N);
-#endif
-
-  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind)
-    for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind) {
-      chi_0_lattice_matrices[wex_ind].slice(
-          0, {0, k_ind}, static_cast<std::complex<ScalarType>*>(chi_0_lattice_matrix_indi.values()));
-
-      dca::linalg::matrixop::copyArrayToMatrix(N, N, chi_0_lattice_matrix_indi.values(), N,
-                                               chi0_lat_inv);
-#ifdef DCA_HAVE_GPU
-      chi0_lat_inv_GPU = chi0_lat_inv;
-      dca::linalg::matrixop::inverse(chi0_lat_inv_GPU);
-
-      // \todo remove, only necessary to get a look at gamma_lat_inv for debugging.
-      chi0_lat_inv = chi0_lat_inv_GPU;
-#else
-      dca::linalg::matrixop::inverse(chi0_lat_inv);
-#endif
-      subind = {0, wex_ind};
-      Gamma_lattice.slice(0, subind,
-                          static_cast<std::complex<ScalarType>*>(gamma_lattice_indi.values()));
-
-      dca::linalg::matrixop::copyArrayToMatrix(N, N, gamma_lattice_indi.values(), N, gamma_lat);
-
-#ifdef DCA_HAVE_GPU
-      gamma_lat_GPU = gamma_lat;
-      G4_lat_indi_GPU = chi0_lat_inv_GPU;
-
-      // for (int j = 0; j < N; j++)
-      //   for (int i = 0; i < N; i++)
-      //     G4_lat_inv(i, j) = chi0_lat_inv(i, j) - gamma_lat_inv(i, j);
-
-      // chi_0_lat_inv_GPU ends up with G4_lat_inv
-      dca::linalg::blas::UseDevice<linalg::GPU>::axpy(N * N, std::complex<ScalarType>(-1.0, 0.0),
-                                                      gamma_lat_GPU.ptr(), 1, G4_lat_indi_GPU.ptr(),
-                                                      1, 0, 0);
-      // This is the inv of G4_lat_inv
-      dca::linalg::matrixop::inverse(G4_lat_indi_GPU);
-      G4_lat_indi = G4_lat_indi_GPU;
-
-      for (int j = 0; j < N; j++)
-        for (int i = 0; i < N; i++)
-          G4_lattice(i + j * N, k_ind, wex_ind) = G4_lat_indi(i, j);
-
-#else
-      // just to keep it clear this is the inv.
-      auto& gamma_lat_inv = gamma_lat;
-      dca::linalg::matrixop::inverse(gamma_lat);
-
-      for (int j = 0; j < N; j++)
-        for (int i = 0; i < N; i++)
-          G4_lattice(i + j * N, k_ind, wex_ind) = chi0_lat_inv(i, j) - gamma_lat_inv(i, j);
-#endif
-    }
+    for (int j = 0; j < N; ++j)
+      for (int i = 0; i < N; ++i)
+        for (int k_ind = 0; k_ind < num_k; ++k_ind) {
+          G4_lattice(i + j * N, k_ind, iwex) = g2l(i, j);
+        }
+  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>

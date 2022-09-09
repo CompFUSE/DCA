@@ -40,6 +40,12 @@ namespace dca {
 namespace func {
 // dca::func::
 
+/** The tensor class used through DCA++.
+ *  This is a pretty complex construct but probably helps keeping track of the large number of different
+ *  tensors over domains in the code.
+ *  The memory layout is close packed so it is generally necessary to copy slices of
+ *  functions into matrices or vectors for efficient calculation.
+ */
 template <typename scalartype, class domain, DistType DT = DistType::NONE>
 class function;
 
