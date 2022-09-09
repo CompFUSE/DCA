@@ -645,6 +645,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
 
   int num_wex = WExDmn::dmn_size();
   int num_k = k_HOST::dmn_size();
+  double beta = parameters.get_beta();
   for (int iwex = 0; iwex < num_wex; ++iwex) {
     dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU> diag_wn(
         single_site_chi_0_lattice.get_domain().get_branch_size(3));
@@ -656,8 +657,10 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
     func::function<std::complex<ScalarType>, SharedMatrixDmn> gamma_lattice_indi;
     Gamma_lattice.slice(0, {0, iwex},
                         static_cast<std::complex<ScalarType>*>(gamma_lattice_indi.values()));
+    gamma_lattice_indi *= beta;
     dca::linalg::matrixop::copyArrayToMatrix(N, N, gamma_lattice_indi.values(), N, gamma_mat);
     g2l = chi0_diag;
+    dca::linalg::matrixop::inverse(g2l);
     assert(gamma_mat.leadingDimension() == g2l.leadingDimension());
     for (int ir = 0; ir < gamma_mat.nrRows(); ++ir)
       dca::linalg::blas::UseDevice<linalg::CPU>::axpy(N, std::complex<ScalarType>(-1.0, 0.0),
