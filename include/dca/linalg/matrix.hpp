@@ -28,6 +28,7 @@
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace linalg {
@@ -514,6 +515,21 @@ auto makeDiagonalMatrix(Vector<ScalarType, device_name>& diag) {
   return matrix;
 }
 
+/// Factory function for diangonal matrices, type is inferred from the type of Vector.
+template <typename ScalarType, DeviceType device_name>
+auto makeDiagonalMatrixInv(Vector<ScalarType, device_name>& diag) {
+  int dsize = diag.size();
+  Matrix<ScalarType, device_name> matrix("diag_matrix", dsize);
+  // insure that if ScalarType is complex the 1 is as well.
+  // then std::complex will give us a proper complex multiplicative inverse
+  ScalarType the_one{};
+  the_one += 1.0;
+  for (int i = 0; i < dsize; ++i) {
+    matrix(i, i) =  the_one / diag[i];
+  }
+  return matrix;
+}
+  
 }  // namespace linalg
 }  // namespace dca
 
