@@ -56,7 +56,7 @@ public:
     return branch_domain_steps;
   }
 
-  // linind <--> subdomain_indices != branch_indices
+  // linind <--> leaf indices
   void linind_2_subind(std::size_t linind, int* subind) const;
   void subind_2_linind(const int* subind, std::size_t& linind) const;
 

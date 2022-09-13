@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -22,6 +22,7 @@
 #include <cmath>    // std::abs
 #include <complex>  // std::abs(std::complex)
 #include <iostream>
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
 #include <type_traits>  // std::is_integral
@@ -79,6 +80,9 @@ public:
       : function(std::move(other)) {
     name_ = name;
   }
+
+  // Initializer list constructor
+  function(std::initializer_list<scalartype> init_list, const std::string& name = default_name_);
 
   // Copy assignment operator
   // Replaces the function's elements with a copy of the elements of other.
@@ -149,7 +153,7 @@ public:
     fnc_values_.resize(nb_elements_new);
   }
 
-  //void local_resize(std::size_t nb_elements) {}
+  // void local_resize(std::size_t nb_elements) {}
 
   // Returns the size of the leaf domain with the given index.
   // Does not return function values!
@@ -206,6 +210,10 @@ public:
   void linind_2_subind(int linind, int* subind) const;
   // std::vector version
   void linind_2_subind(int linind, std::vector<int>& subind) const;
+
+  template <std::size_t N>
+  void linind_2_subind(int linind, std::array<int,N>& subind) const;
+
   // modern RVO version
   std::vector<size_t> linind_2_subind(int linind) const;
 
@@ -216,6 +224,9 @@ public:
 
   // using standard vector and avoiding returning argument
   size_t subind_2_linind(const std::vector<int>& subind) const;
+
+  // using standard vector and avoiding returning argument
+  size_t branch_subind_2_linind(const std::vector<int>& subind) const;
 
   // Computes and returns the linear index for the given subindices of the branch or leaf domains,
   // depending on the size of subindices.
@@ -243,29 +254,45 @@ public:
   scalartype& operator()(const int* subind);
   const scalartype& operator()(const int* subind) const;
 
-  template <typename T>
+  template<std::size_t N>
+  scalartype& operator()(const std::array<int,N>& subind) {
+    #ifndef NDEBUG
+    auto linind = dmn.index_by_array(subind);
+    assert(linind >=0 && linind < size());
+    return fnc_values_[linind];
+    #else
+    return fnc_values_[dmn.index_by_array(subind)];
+    #endif
+  }
+
+  const scalartype& operator()(const std::vector<int>& subind) const;
+
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value, void>::type>
   scalartype& operator()(const T linind) {
     static_assert(std::is_integral<T>::value, "Index linind must be an integer.");
     assert(linind >= 0 && linind < size());
     return fnc_values_[linind];
   }
-  template <typename T>
+  template <typename T, typename = typename std::enable_if<std::is_integral<T>::value, void>::type>
   const scalartype& operator()(const T linind) const {
     static_assert(std::is_integral<T>::value, "Index linind must be an integer.");
     assert(linind >= 0 && linind < size());
     return fnc_values_[linind];
   }
 
-  template <typename... Ts>
-  scalartype& operator()(const Ts... subindices) {
+  template <typename T, typename... Ts,
+            typename = typename std::enable_if<std::is_integral<T>::value, void>::type>
+  scalartype& operator()(const T t, const Ts... subindices) {
     // We need to cast all indices to the same type for dmn_variadic.
-    return fnc_values_[dmn(static_cast<int>(subindices)...)];
+    return fnc_values_[dmn(static_cast<int>(t), static_cast<int>(subindices)...)];
   }
-  template <typename... Ts>
-  const scalartype& operator()(const Ts... subindices) const {
-    return fnc_values_[dmn(static_cast<int>(subindices)...)];
+  template <typename T, typename... Ts,
+            typename = typename std::enable_if<std::is_integral<T>::value, void>::type>
+  const scalartype& operator()(const T t, const Ts... subindices) const {
+    return fnc_values_[dmn(static_cast<int>(t), static_cast<int>(subindices)...)];
   }
 
+  
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
@@ -283,15 +310,33 @@ public:
   // TODO: Make the equal-comparison operator a non-member function.
   bool operator==(const function<scalartype, domain, DT>& other) const;
 
+  /** slice across 1 leaf domain
+   *  deprecated, really unsafe pointer use
+   */
   template <typename new_scalartype>
   void slice(int sbdm_index, int* subind, new_scalartype* fnc_vals) const;
+  /** slice across leaf domains or branch domains based on size of subind.
+   *  \param[in] subind    subindex of the slice, index in the slice domain is ignored
+   */
+  template <typename new_scalartype>
+  void slice(const int sbdm_index, std::vector<int> subind, new_scalartype* fnc_vals) const;
+
+  template <typename new_scalartype>
+  void slice(int sbdm_index_1, int sbdm_index_2, std::vector<int> subind,
+             new_scalartype* fnc_vals) const;
   template <typename new_scalartype>
   void slice(int sbdm_index_1, int sbdm_index_2, int* subind, new_scalartype* fnc_vals) const;
+
+  template <typename new_scalartype>
+  void distribute(int sbdm_index, std::vector<int> subind, const new_scalartype* fnc_vals);
   template <typename new_scalartype>
   void distribute(int sbdm_index, int* subind, const new_scalartype* fnc_vals);
   template <typename new_scalartype>
+  void distribute(int sbdm_index_1, int sbdm_index_2, std::vector<int> subind, const new_scalartype* fnc_vals);
+  template <typename new_scalartype>
   void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, const new_scalartype* fnc_vals);
 
+  
   //
   // Methods for printing
   //
@@ -385,6 +430,7 @@ function<scalartype, domain, DT>::function(const function<scalartype, domain, DT
   end_ = other.end_;
 }
 
+/** move constructor */
 template <typename scalartype, class domain, DistType DT>
 function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& other)
     : name_(std::move(other.name_)),
@@ -397,6 +443,22 @@ function<scalartype, domain, DT>::function(function<scalartype, domain, DT>&& ot
     throw std::logic_error("Move construction from a not yet resetted function.");
   start_ = other.start_;
   end_ = other.end_;
+}
+
+/** initializer list constructor
+ *  only needed for testing.
+ */
+template <typename scalartype, class domain, DistType DT>
+function<scalartype, domain, DT>::function(std::initializer_list<scalartype> init_list,
+                                           const std::string& name)
+    : name_(name),
+      function_type(__PRETTY_FUNCTION__),
+      dmn(),
+      Nb_sbdms(dmn.get_leaf_domain_sizes().size()) {
+  start_ = 0;
+  end_ = dmn.get_size();
+  fnc_values_.resize(dmn.get_size(), {});
+  std::copy_n(init_list.begin(), init_list.size(), fnc_values_.begin());
 }
 
 template <typename scalartype, class domain, DistType DT>
@@ -426,20 +488,23 @@ std::size_t function<scalartype, domain, DT>::calcDistribution(const Concurrency
     end_ = start_ + local_function_size;
     bool regular_local_function_size = false;
     size_t remaining_ranks = my_concurrency_size;
-    for (int idim = (dmn.get_Nb_leaf_domains() - 1); idim >= 0 ; --idim) {
-      if(remaining_ranks < dmn.get_subdomain_size(idim)) {
-	if( dmn.get_subdomain_size(idim) % remaining_ranks != 0) {
-	  break; //i.e no regular bricked blocking
-	} else {
-	  regular_local_function_size = true;
-	  break;
-	}
-      } else {
-	if( remaining_ranks % dmn.get_subdomain_size(idim) != 0 ) {
-	  break; //i.e no regular bricked blocking
-	} else {
-	  remaining_ranks /= dmn.get_subdomain_size(idim);
-	}
+    for (int idim = (dmn.get_Nb_leaf_domains() - 1); idim >= 0; --idim) {
+      if (remaining_ranks < dmn.get_subdomain_size(idim)) {
+        if (dmn.get_subdomain_size(idim) % remaining_ranks != 0) {
+          break;  // i.e no regular bricked blocking
+        }
+        else {
+          regular_local_function_size = true;
+          break;
+        }
+      }
+      else {
+        if (remaining_ranks % dmn.get_subdomain_size(idim) != 0) {
+          break;  // i.e no regular bricked blocking
+        }
+        else {
+          remaining_ranks /= dmn.get_subdomain_size(idim);
+        }
       }
     }
     if (!regular_local_function_size) {
@@ -673,6 +738,17 @@ void function<scalartype, domain, DT>::linind_2_subind(int linind, int* subind) 
   }
 }
 
+template <typename scalartype, class domain, DistType DT>
+template <std::size_t N>
+void function<scalartype, domain, DT>::linind_2_subind(int linind, std::array<int,N>& subind) const {
+  assert(N == dmn.get_Nb_branch_domains() || dmn.get_Nb_leaf_domains());
+  auto& size_sbdm = (N == dmn.get_Nb_branch_domains() ? dmn.get_branch_domain_sizes() : dmn.get_leaf_domain_sizes() );;
+  for (size_t i = 0; i < size_sbdm.size(); ++i) {
+    subind[i] = linind % size_sbdm[i];
+    linind = (linind - subind[i]) / size_sbdm[i];
+  }
+}
+
 // TODO: Resize vector if necessary.
 template <typename scalartype, class domain, DistType DT>
 void function<scalartype, domain, DT>::linind_2_subind(int linind, std::vector<int>& subind) const {
@@ -725,6 +801,15 @@ size_t function<scalartype, domain, DT>::subind_2_linind(const std::vector<int>&
 }
 
 template <typename scalartype, class domain, DistType DT>
+size_t function<scalartype, domain, DT>::branch_subind_2_linind(const std::vector<int>& subind) const {
+  auto& branch_sbdm = dmn.get_branch_domain_steps();
+  int linind = 0;
+  for (int i = 0; i < int(branch_sbdm.size()); ++i)
+    linind += subind[i] * branch_sbdm[i];
+  return linind;
+}
+
+template <typename scalartype, class domain, DistType DT>
 scalartype& function<scalartype, domain, DT>::operator()(const int* const subind) {
   auto& step_sbdm = dmn.get_leaf_domain_steps();
   int linind;
@@ -740,6 +825,21 @@ const scalartype& function<scalartype, domain, DT>::operator()(const int* const 
   subind_2_linind(subind, linind);
 
   assert(linind >= 0 && linind < size());
+  return fnc_values_[linind];
+}
+
+template <typename scalartype, class domain, DistType DT>
+const scalartype& function<scalartype, domain, DT>::operator()(const std::vector<int>& subind) const {
+  int linind;
+  if( subind.size() == Nb_sbdms ) {
+    subind_2_linind(subind, linind);
+    assert(linind >= 0 && linind < size());
+  }
+  else if (subind.size() == dmn.get_Nb_branch_domains()) {
+    branch_subind_2_linind(subind);
+  }
+  else
+    throw std::runtime_error("number of indicies matches neither branches or leaves");
   return fnc_values_[linind];
 }
 
@@ -814,6 +914,42 @@ bool function<scalartype, domain, DT>::operator==(const function<scalartype, dom
 
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
+void function<scalartype, domain, DT>::slice(const int sbdm_index, std::vector<int> subind,
+                                             new_scalartype* fnc_vals) const {
+  assert(sbdm_index >= 0);
+  assert(sbdm_index < Nb_sbdms);
+
+  int linind = 0;
+
+  if (subind.size() < Nb_sbdms && subind.size() == dmn.get_Nb_branch_domains()) {
+    auto& size_sbdm = dmn.get_branch_domain_sizes();
+    auto& step_sbdm = dmn.get_branch_domain_steps();
+
+    subind[sbdm_index] = 0;
+    linind = branch_subind_2_linind(subind);
+
+    for (int i = 0; i < size_sbdm[sbdm_index]; i++)
+      fnc_vals[i] =
+          ScalarCast<new_scalartype>::execute(fnc_values_[linind + i * step_sbdm[sbdm_index]]);
+  }
+  else if (subind.size() == Nb_sbdms) {
+    auto& size_sbdm = dmn.get_leaf_domain_sizes();
+    auto& step_sbdm = dmn.get_leaf_domain_steps();
+
+    subind[sbdm_index] = 0;
+    linind = subind_2_linind(subind);
+
+    for (int i = 0; i < size_sbdm[sbdm_index]; i++)
+      fnc_vals[i] =
+          ScalarCast<new_scalartype>::execute(fnc_values_[linind + i * step_sbdm[sbdm_index]]);
+  }
+  else
+    throw std::runtime_error(
+        "function::slice can only be called with subind of size of leaf or branch domains.");
+}
+
+template <typename scalartype, class domain, DistType DT>
+template <typename new_scalartype>
 void function<scalartype, domain, DT>::slice(const int sbdm_index, int* subind,
                                              new_scalartype* fnc_vals) const {
   assert(sbdm_index >= 0);
@@ -825,7 +961,6 @@ void function<scalartype, domain, DT>::slice(const int sbdm_index, int* subind,
   int linind = 0;
   subind[sbdm_index] = 0;
   subind_2_linind(subind, linind);
-
   for (int i = 0; i < size_sbdm[sbdm_index]; i++)
     fnc_vals[i] =
         ScalarCast<new_scalartype>::execute(fnc_values_[linind + i * step_sbdm[sbdm_index]]);
@@ -855,16 +990,106 @@ void function<scalartype, domain, DT>::slice(const int sbdm_index_1, const int s
   int step_sbdm_2 = step_sbdm[sbdm_index_2];
 
   new_scalartype* fnc_ptr_left = NULL;
-  new_scalartype* fnc_ptr_right = NULL;
 
   for (int j = 0; j < size_sbdm_2; j++) {
     fnc_ptr_left = &fnc_vals[0 + j * size_sbdm_1];
-    fnc_ptr_right = &fnc_values_[linind + j * step_sbdm_2];
+    const new_scalartype* fnc_ptr_right{fnc_values_.data() + linind + j * step_sbdm_2};
 
     for (int i = 0; i < size_sbdm_1; i++)
       fnc_ptr_left[i] = fnc_ptr_right[i * step_sbdm_1];
     //       fnc_vals[i+j*size_sbdm[sbdm_index_1]] = fnc_values_[linind + i*step_sbdm[sbdm_index_1]
     //       + j*step_sbdm[sbdm_index_2]];
+  }
+}
+
+template <typename scalartype, class domain, DistType DT>
+template <typename new_scalartype>
+void function<scalartype, domain, DT>::slice(const int sbdm_index_1, const int sbdm_index_2,
+                                             std::vector<int> subind, new_scalartype* fnc_vals) const {
+  assert(sbdm_index_1 >= 0);
+  assert(sbdm_index_2 >= 0);
+  assert(sbdm_index_1 < Nb_sbdms);
+  assert(sbdm_index_2 < Nb_sbdms);
+
+  int linind = 0;
+  subind[sbdm_index_1] = 0;
+  subind[sbdm_index_2] = 0;
+
+  if (subind.size() < Nb_sbdms && subind.size() == dmn.get_Nb_branch_domains()) {
+    linind = branch_subind_2_linind(subind);
+
+    auto& size_sbdm = dmn.get_branch_domain_sizes();
+    auto& step_sbdm = dmn.get_branch_domain_steps();
+
+    int size_sbdm_1 = size_sbdm[sbdm_index_1];
+    int size_sbdm_2 = size_sbdm[sbdm_index_2];
+
+    int step_sbdm_1 = step_sbdm[sbdm_index_1];
+    int step_sbdm_2 = step_sbdm[sbdm_index_2];
+
+    new_scalartype* fnc_ptr_left = NULL;
+
+    for (int j = 0; j < size_sbdm_2; j++) {
+      fnc_ptr_left = &fnc_vals[0 + j * size_sbdm_1];
+      const new_scalartype* fnc_ptr_right{fnc_values_.data() + linind + j * step_sbdm_2};
+
+      for (int i = 0; i < size_sbdm_1; i++)
+        fnc_ptr_left[i] = fnc_ptr_right[i * step_sbdm_1];
+      //       fnc_vals[i+j*size_sbdm[sbdm_index_1]] = fnc_values_[linind + i*step_sbdm[sbdm_index_1]
+      //       + j*step_sbdm[sbdm_index_2]];
+    }
+  } else {
+    linind = subind_2_linind(subind);
+
+    auto& size_sbdm = dmn.get_leaf_domain_sizes();
+    auto& step_sbdm = dmn.get_leaf_domain_steps();
+    int size_sbdm_1 = size_sbdm[sbdm_index_1];
+    int size_sbdm_2 = size_sbdm[sbdm_index_2];
+
+    int step_sbdm_1 = step_sbdm[sbdm_index_1];
+    int step_sbdm_2 = step_sbdm[sbdm_index_2];
+
+    new_scalartype* fnc_ptr_left = NULL;
+
+    for (int j = 0; j < size_sbdm_2; j++) {
+      fnc_ptr_left = &fnc_vals[0 + j * size_sbdm_1];
+      const new_scalartype* fnc_ptr_right{fnc_values_.data() + linind + j * step_sbdm_2};
+
+      for (int i = 0; i < size_sbdm_1; i++)
+        fnc_ptr_left[i] = fnc_ptr_right[i * step_sbdm_1];
+      //       fnc_vals[i+j*size_sbdm[sbdm_index_1]] = fnc_values_[linind + i*step_sbdm[sbdm_index_1]
+      //       + j*step_sbdm[sbdm_index_2]];
+    }
+  }
+}
+
+template <typename scalartype, class domain, DistType DT>
+template <typename new_scalartype>
+void function<scalartype, domain, DT>::distribute(const int sbdm_index, std::vector<int> subind,
+                                                  const new_scalartype* fnc_vals) {
+  assert(sbdm_index >= 0);
+  assert(sbdm_index < Nb_sbdms);
+
+  int linind = 0;
+  subind[sbdm_index] = 0;
+  
+  if (subind.size() < Nb_sbdms && subind.size() == dmn.get_Nb_branch_domains()) {
+    linind = branch_subind_2_linind(subind);
+
+    auto& size_sbdm = dmn.get_branch_domain_sizes();
+    auto& step_sbdm = dmn.get_branch_domain_steps();
+
+    for (int i = 0; i < size_sbdm[sbdm_index]; i++)
+      fnc_values_[linind + i * step_sbdm[sbdm_index]] = ScalarCast<scalartype>::execute(fnc_vals[i]);
+  }
+  else {
+    linind = subind_2_linind(subind);
+
+    auto& size_sbdm = dmn.get_leaf_domain_sizes();
+    auto& step_sbdm = dmn.get_leaf_domain_steps();
+
+    for (int i = 0; i < size_sbdm[sbdm_index]; i++)
+      fnc_values_[linind + i * step_sbdm[sbdm_index]] = ScalarCast<scalartype>::execute(fnc_vals[i]);
   }
 }
 
@@ -886,6 +1111,33 @@ void function<scalartype, domain, DT>::distribute(const int sbdm_index, int* sub
     fnc_values_[linind + i * step_sbdm[sbdm_index]] = ScalarCast<scalartype>::execute(fnc_vals[i]);
 }
 
+template <typename scalartype, class domain, DistType DT>
+template <typename new_scalartype>
+void function<scalartype, domain, DT>::distribute(const int sbdm_index_1, const int sbdm_index_2,
+                                                  std::vector<int> subind, const new_scalartype* fnc_vals) {
+  assert(sbdm_index_1 >= 0);
+  assert(sbdm_index_2 >= 0);
+  assert(sbdm_index_1 < Nb_sbdms);
+  assert(sbdm_index_2 < Nb_sbdms);
+
+  int linind = 0;
+  subind[sbdm_index_1] = 0;
+  subind[sbdm_index_2] = 0;
+
+  if (subind.size() < Nb_sbdms && subind.size() == dmn.get_Nb_branch_domains()) {
+  
+    linind = branch_subind_2_linind(subind);
+
+  auto& size_sbdm = dmn.get_branch_domain_sizes();
+  auto& step_sbdm = dmn.get_branch_domain_steps();
+
+  for (int i = 0; i < size_sbdm[sbdm_index_1]; i++)
+    for (int j = 0; j < size_sbdm[sbdm_index_2]; j++)
+      fnc_values_[linind + i * step_sbdm[sbdm_index_1] + j * step_sbdm[sbdm_index_2]] =
+          fnc_vals[i + j * size_sbdm[sbdm_index_1]];
+}
+}
+  
 template <typename scalartype, class domain, DistType DT>
 template <typename new_scalartype>
 void function<scalartype, domain, DT>::distribute(const int sbdm_index_1, const int sbdm_index_2,

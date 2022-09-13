@@ -1,5 +1,5 @@
 ****************************************
-function: test_domain_0a
+function: Domain0a
 ****************************************
 # subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<1, double> >
@@ -10,7 +10,7 @@ memory: 7.62939e-06 MiB
 ****************************************
 
 ****************************************
-function: test_domain_0b
+function: Domain0b
 ****************************************
 # subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<2, double> >
@@ -21,7 +21,7 @@ memory: 1.52588e-05 MiB
 ****************************************
 
 ****************************************
-function: test_domain_0c
+function: Domain0c
 ****************************************
 # subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<4, double> >
@@ -32,7 +32,7 @@ memory: 3.05176e-05 MiB
 ****************************************
 
 ****************************************
-function: test_domain_0d
+function: Domain0d
 ****************************************
 # subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<8, double> >
@@ -43,7 +43,7 @@ memory: 6.10352e-05 MiB
 ****************************************
 
 ****************************************
-function: test_domain_1d
+function: Domain1d
 ****************************************
 # subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<8, double> >
@@ -54,7 +54,7 @@ memory: 6.10352e-05 MiB
 ****************************************
 
 ****************************************
-function: test_domain_2a
+function: Domain2a
 ****************************************
 # subdomains: 2
 	dca::func::dmn_0<dca::func::dmn<1, double> >
@@ -66,7 +66,7 @@ memory: 1.52588e-05 MiB
 ****************************************
 
 ****************************************
-function: test_domain_4a
+function: Domain4a
 ****************************************
 # subdomains: 4
 	dca::func::dmn_0<dca::func::dmn<1, double> >
@@ -80,7 +80,7 @@ memory: 0.000488281 MiB
 ****************************************
 
 ****************************************
-function: test_domain_16
+function: Domain16
 ****************************************
 # subdomains: 10
 	dca::func::dmn_0<dca::func::dmn<1, double> >

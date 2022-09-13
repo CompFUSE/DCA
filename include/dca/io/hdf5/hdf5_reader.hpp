@@ -59,6 +59,9 @@ public:
     paths_.pop_back();
   }
 
+  void begin_step(){};
+  void end_step(){};
+
   std::string get_path();
 
   template <typename arbitrary_struct_t>
@@ -299,7 +302,7 @@ template <typename Scalar>
 bool HDF5Reader::execute(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   return execute(A.get_name(), A);
 }
-
+  
 }  // namespace io
 }  // namespace dca
 
