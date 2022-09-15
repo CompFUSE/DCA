@@ -390,7 +390,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
 
   std::transform(k_grid_fine.begin(), k_grid_fine.end(), ek.begin(), makeDispersionFunc({0.0, 0.0}));
   std::transform(k_grid_fine.begin(), k_grid_fine.end(), ekpq.begin(),
-                 makeDispersionFunc({M_PI, M_PI}));
+                 makeDispersionFunc({M_PI/4, M_PI/4}));
 
   auto& w_set = WDmn::get_elements();
   auto& wn_set = WVertexDmn::get_elements();
