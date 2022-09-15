@@ -133,8 +133,11 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, Scalar& value) {
-  std::string full_name = get_path() + "/" + name;
-
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -146,8 +149,11 @@ bool HDF5Reader::execute(const std::string& name, Scalar& value) {
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
-  std::string full_name = get_path() + "/" + name;
-
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -163,7 +169,11 @@ bool HDF5Reader::execute(const std::string& name, std::vector<Scalar>& value) {
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar>>& value) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -190,7 +200,11 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
 
 template <typename Scalar, std::size_t n>
 bool HDF5Reader::execute(const std::string& name, std::vector<std::array<Scalar, n>>& value) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -216,8 +230,11 @@ bool HDF5Reader::execute(func::function<Scalartype, domain_type, DT>& f) {
 
 template <typename Scalartype, typename domain_type, DistType DT>
 bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, domain_type, DT>& f) {
-  std::string full_name = get_path() + "/" + name;
-
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() +
                      "\n\n";
@@ -257,7 +274,11 @@ bool HDF5Reader::execute(const std::string& name, func::function<Scalartype, dom
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -274,7 +295,11 @@ bool HDF5Reader::execute(const std::string& name, dca::linalg::Vector<Scalar, dc
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }

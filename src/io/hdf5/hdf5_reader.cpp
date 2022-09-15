@@ -59,7 +59,11 @@ std::string HDF5Reader::get_path() {
 }
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
@@ -80,7 +84,11 @@ bool HDF5Reader::execute(const std::string& name, std::string& value) {
 }
 
 bool HDF5Reader::execute(const std::string& name, std::vector<std::string>& value) {
-  std::string full_name = get_path() + "/" + name;
+  std::string full_name = get_path();
+  if (full_name == "/")
+    full_name += name;
+  else
+    full_name += "/" + name;
   if (!exists(full_name)) {
     return false;
   }
