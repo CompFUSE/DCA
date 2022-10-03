@@ -42,7 +42,7 @@ struct function_test {};
 
 template <int N, typename Dmn>
 struct function_test<dca::func::function<double, dmn<N, Dmn>>> {
-  typedef dca::func::function<double, dmn<N, Dmn>> fType;
+  using fType = dca::func::function<double, dmn<N, Dmn>>;
 
   function_test(fType& func) : f(func) {}
 
@@ -68,16 +68,13 @@ struct function_test<dca::func::function<double, dmn<N, Dmn>>> {
   fType& f;
 };
 
-template <typename Domain>
-struct function_test<dca::func::function<double, Domain>> {
-  typedef dca::func::function<double, Domain> fType;
-  typedef typename fType::this_scalar_type scalartype;
-  typedef Domain domainType;
-  // typedef typename Domain::this_type sub_type;
+template <typename DOMAIN>
+struct function_test<dca::func::function<double, DOMAIN>> {
+  using FuncType = dca::func::function<double, DOMAIN>;
+  using ScalarType = typename FuncType::this_scalar_type;
+  using Domain = DOMAIN;
 
-  // const int Ntypes = dca::util::Length<sub_type>::value;
-
-  function_test(fType& func) : f(func) {}
+  function_test(FuncType& func) : f(func) {}
 
   int signature() {
     return f.signature();
@@ -86,10 +83,10 @@ struct function_test<dca::func::function<double, Domain>> {
     return f.size();
   }
 
-  void fill_sequence() {
+  void fill_sequence(int start = 0) {
     int N = f.size();
     for (int i = 0; i < N; ++i) {
-      f(i) = i;
+      f(i) = i + start;
       // if (i<1024) std::cout << i << ",";
     }
   }
@@ -141,8 +138,8 @@ struct function_test<dca::func::function<double, Domain>> {
   }
 
   template <typename... Args>
-  scalartype expand(Args... /*args*/) {
-    return scalartype(0);
+  ScalarType expand(Args... /*args*/) {
+    return ScalarType(0);
   }
 
   template <typename... Args>
@@ -152,7 +149,7 @@ struct function_test<dca::func::function<double, Domain>> {
     return f.operator()(args...) == f(args...);
     // return check_value(args...);
   }
-  fType& f;
+  FuncType& f;
 };
 
 }  // namespace testing

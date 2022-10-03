@@ -1,7 +1,6 @@
 #include <string>
 #include <sstream>
 #include <map>
-
 #ifndef DCA_TO_STRING_HPP
 #define DCA_TO_STRING_HPP
 

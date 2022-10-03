@@ -330,12 +330,12 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
     // only CTAUX supports equal time accumulation.
     if constexpr (decltype(QmciSolver::accumulator_)::solver_id == ClusterSolverId::CT_AUX) {
-      // This is a bit of a mess because we normally write the accumulator by writing the owning integrator
-      // but currently this is expected to only happen 1 time per run.
+      // This is a bit of a mess because we normally write the accumulator by writing the owning
+      // integrator but currently this is expected to only happen 1 time per run.
       if (QmciSolver::accumulator_.perform_equal_time_accumulation()) {
-	writer.open_group("CT-AUX-SOLVER-functions");
+        writer.open_group("CT-AUX-SOLVER-functions");
         QmciSolver::accumulator_.write(*BaseClass::writer_);
-	writer.close_group();
+        writer.close_group();
       }
     }
 
@@ -488,7 +488,6 @@ auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(
     const SpGreensFunction& M_k_w) const {
   SpGreensFunction G_k_w("G_k_w");
   QmciSolver::computeG_k_w(data_.G0_k_w_cluster_excluded, M_k_w, G_k_w);
-
   return G_k_w;
 }
 

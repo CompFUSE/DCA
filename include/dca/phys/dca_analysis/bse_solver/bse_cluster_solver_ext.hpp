@@ -85,7 +85,7 @@ private:
   diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
   func::function<std::complex<ScalarType>,
-                 func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t, KExDmn, WExDmn>>
+                 func::dmn_variadic<DCA_matrix_dmn_t, KExDmn, WExDmn>>
       Gamma_cluster;
   func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, WVertexDmn, KExDmn, WExDmn>>
       G_II_0_function;
@@ -371,9 +371,10 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
       dca::linalg::matrixop::inverse(G4_inv_indi);
       dca::linalg::matrixop::copyArrayToMatrix(N, N, G_II_0_indi.values(), N, G4_0_inv_indi);
       dca::linalg::matrixop::inverse(G4_0_inv_indi);
+
       for (int j = 0; j < N; j++)
         for (int i = 0; i < N; i++)
-          Gamma_cluster(i, j, kex_ind, wex_ind) = G4_0_inv_indi(i, j) - G4_inv_indi(i, j);
+          Gamma_cluster(i + N * j, kex_ind, wex_ind) = G4_0_inv_indi(i, j) - G4_inv_indi(i, j);
     }
   Gamma_cluster *= parameters.get_beta();
 }

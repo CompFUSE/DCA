@@ -34,6 +34,9 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
+/** Matrix class for interfacing with Blas, Cublas, Rocblas
+ *  its row major i.e, row is fast.
+ */
 template <typename ScalarType, DeviceType device_name>
 class Matrix : public util::DefaultAllocator<ScalarType, device_name> {
 public:
@@ -525,11 +528,11 @@ auto makeDiagonalMatrixInv(Vector<ScalarType, device_name>& diag) {
   ScalarType the_one{};
   the_one += 1.0;
   for (int i = 0; i < dsize; ++i) {
-    matrix(i, i) =  the_one / diag[i];
+    matrix(i, i) = the_one / diag[i];
   }
   return matrix;
 }
-  
+
 }  // namespace linalg
 }  // namespace dca
 

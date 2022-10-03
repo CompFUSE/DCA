@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,8 +7,9 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
-// This class computes susceptibilities using the Bethe-Salpeter equation (BSE).
+// This class computes susceptibilities for inelastic neutron scattering.
 //
 // TODO: Add descriptions to (public) methods.
 
@@ -55,7 +56,7 @@ public:
   using TpHostKDmn =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  
+
   BseSolverExt(ParametersType& parameters, DcaDataType& dca_data);
 
   void write();
@@ -91,7 +92,8 @@ private:
 };
 
 template <typename ParametersType, typename DcaDataType>
-BseSolverExt<ParametersType, DcaDataType>::BseSolverExt(ParametersType& parameters, DcaDataType& dca_data)
+BseSolverExt<ParametersType, DcaDataType>::BseSolverExt(ParametersType& parameters,
+                                                        DcaDataType& dca_data)
     : parameters_(parameters),
       concurrency_(parameters.get_concurrency()),
 
@@ -147,7 +149,6 @@ void BseSolverExt<ParametersType, DcaDataType>::write() {
     throw std::logic_error(__FUNCTION__);
 }
 
-  
 template <typename ParametersType, typename DcaDataType>
 template <typename Writer>
 void BseSolverExt<ParametersType, DcaDataType>::write(Writer& writer) {
@@ -224,17 +225,11 @@ void BseSolverExt<ParametersType, DcaDataType>::calculateSusceptibilities() {
 
   bse_lattice_solver_.computeGammaLattice(bse_cluster_solver_.get_Gamma_cluster());
 
-  if(CDA::KClusterDmn::dmn_size() == 1) {
-    bse_lattice_solver_.computeChi0LatticeSingleSite();
-    bse_lattice_solver_.computeG4LatticeSingleSite();
+  if (CDA::KClusterDmn::dmn_size() == 1) {
+    bse_lattice_solver_.computeChi0LatticeOverHost();
+    bse_lattice_solver_.computeG4LatticeOverHost();
+    bse_lattice_solver_.computeChiDblPrime_q_w();
   }
-  else
-  {
-    bse_lattice_solver_.computeChi0Lattice();
-    bse_lattice_solver_.computeG4Lattice();
-  }
-
-  bse_lattice_solver_.computeChiDblPrime_q_w();
 }
 
 }  // namespace analysis
