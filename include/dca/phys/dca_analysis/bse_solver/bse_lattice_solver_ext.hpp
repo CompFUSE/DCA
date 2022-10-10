@@ -368,10 +368,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
     gamma_lattice_.distribute(0, subind_gl,
                               static_cast<std::complex<ScalarType>*>(gamma_lattice_indi.values()));
   }
-
-  // int n_threads = 1; //WExDmn::dmn_size();
-  // Threading parallelization_obj;
-  // parallelization_obj.execute(n_threads, makeGammaLatticeOverWExDmn);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -577,7 +573,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChiDbl
     for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind) {
       g4_lat_subind = {0, 0, 0, 0, 0, 0, wex_ind, k_ind};
       std::size_t linind = G4_lattice.subind_2_linind(g4_lat_subind);
-      std::cout << "g4_lat linind: " << linind << '\n';
       auto g4_lat_begin = G4_lattice.begin() + linind;
       auto g4_lat_end = G4_lattice.begin() + linind + shared_matrix_size;
       // std::copy(G4_lattice.begin()+linind, g4_lat_end, g4_lat_indi.begin());

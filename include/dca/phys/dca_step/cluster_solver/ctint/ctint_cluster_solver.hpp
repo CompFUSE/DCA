@@ -187,7 +187,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
   // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
   if (concurrency_.id() == concurrency_.first())
-    std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
+    std::cout << "\n\n\t CT-INT Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
 
 }
