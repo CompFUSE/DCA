@@ -42,6 +42,12 @@ public:
   using KSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using RQHostDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using KQHostDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   // Host vertex cluster domains
   using RTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_TP,

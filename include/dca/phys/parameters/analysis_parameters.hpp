@@ -126,7 +126,7 @@ void AnalysisParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       reader_or_writer.execute("g4-channel", g4_channel_name);
     }
     try {
-      reader_or_writer.execute("k-host", q_host_);
+      reader_or_writer.execute("q-host", q_host_);
     }
     catch (const std::exception& r_e) {
     }

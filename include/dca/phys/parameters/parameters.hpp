@@ -94,6 +94,10 @@ public:
   using RSpHostDmn = typename CDA::RSpHostDmn;
   using KSpHostDmn = typename CDA::KSpHostDmn;
 
+  // Host q domains
+  using RQHostDmn = typename CDA::RQHostDmn;
+  using KQHostDmn = typename CDA::KQHostDmn;
+  
   // Host vertex cluster domains
   using RTpHostDmn = typename CDA::RTpHostDmn;
   using KTpHostDmn = typename CDA::KTpHostDmn;
@@ -291,6 +295,15 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
   if (concurrency_.id() == concurrency_.first())
     KSpHostDmn::parameter_type::print(std::cout);
+
+  // Host grid for single-particle functions (q-lattice)
+  domains::cluster_domain_initializer<RQHostDmn>::execute(Model::get_r_DCA_basis(),
+                                                           AnalysisParameters::get_q_host());
+  domains::cluster_domain_symmetry_initializer<
+      RQHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  if (concurrency_.id() == concurrency_.first())
+    KQHostDmn::parameter_type::print(std::cout);
 
   // Host grid for two-particle functions (tp-lattice)
   if (do_dca_plus() || doPostInterpolation()) {

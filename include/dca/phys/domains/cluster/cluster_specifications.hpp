@@ -56,6 +56,22 @@ struct cluster_specifications<scalar_type, LATTICE_SP, REAL_SPACE, S> {
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
+struct cluster_specifications<scalar_type, LATTICE_Q, MOMENTUM_SPACE, S> {
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
+      dmn_specifications_type;
+};
+
+template <typename scalar_type, CLUSTER_SHAPE S>
+struct cluster_specifications<scalar_type, LATTICE_Q, REAL_SPACE, S> {
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
+      dmn_specifications_type;
+};
+  
+template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, LATTICE_TP, MOMENTUM_SPACE, S> {
   typedef math::transform::domain_specifications<
       scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,

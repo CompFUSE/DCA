@@ -33,6 +33,9 @@ std::string to_str(CLUSTER_NAMES NAME) {
     case LATTICE_TP:
       return "LATTICE_TP";
 
+    case LATTICE_Q:
+      return "LATTICE_Q";
+
     case TMP_CLUSTER:
       return "TMP_CLUSTER";
 
@@ -70,6 +73,6 @@ std::string to_str(CLUSTER_SHAPE NAME) {
   }
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca

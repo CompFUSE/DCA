@@ -4,6 +4,6 @@
         "Gamma-deconvolution-cut-off": 0.1,
         "project-onto-crystal-harmonics": true,
         "projection-cut-off-radius": 3.0,
-	"k-host" : [[3, 3], [3, -3]]
+	"q-host" : [[3, 3], [3, -3]]
     }
 }

@@ -78,6 +78,10 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
+  using q_HOST =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_Q,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+
   using host_vertex_r_cluster_type =
       domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                               domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
@@ -90,32 +94,30 @@ public:
   using SharedMatrixDmn = func::dmn_variadic<SharedDmn, SharedDmn>;
   using GammaLatticeDmn = SharedDmn;
   using Chi0LatticeOneQDmn = func::dmn_variadic<SharedDmn, WExDmn>;
-  using Chi0LatticeDmn = func::dmn_variadic<Chi0LatticeOneQDmn, k_HOST_VERTEX>;
+  using Chi0LatticeDmn = func::dmn_variadic<Chi0LatticeOneQDmn, q_HOST>;
 
   using Chi0LatticeOneQ = func::function<std::complex<ScalarType>, Chi0LatticeOneQDmn>;
+
   using Chi0Lattice = func::function<std::complex<ScalarType>, Chi0LatticeDmn>;
 
   using OneWExChi0LatticeMatrixDmn =
-      func::dmn_variadic<func::dmn_variadic<b, b, WVertexDmn, b, b, WVertexDmn>, k_HOST_VERTEX>;
+      func::dmn_variadic<func::dmn_variadic<b, b, WVertexDmn, b, b, WVertexDmn>, q_HOST>;
   using Chi0LatticeMatrixDmn =
-      func::dmn_variadic<WExDmn, func::dmn_variadic<b, b, WVertexDmn, b, b, WVertexDmn>, k_HOST_VERTEX>;
+      func::dmn_variadic<WExDmn, func::dmn_variadic<b, b, WVertexDmn, b, b, WVertexDmn>, q_HOST>;
   /** A matrix domain over the ChiLatticeDmn, for single site we are only interest in the block
-   * diagonal elements where k_HOST, and WVertexDmn are diagonal. */
+   * diagonal elements where q_HOST, and WVertexDmn are diagonal. */
   using Chi0LatticeMatrixFullDmn =
-      func::dmn_variadic<b, b, k_HOST, WVertexDmn, b, b, k_HOST, WVertexDmn>;
+      func::dmn_variadic<b, b, q_HOST, WVertexDmn, b, b, q_HOST, WVertexDmn>;
   using GLatticeDmn = func::dmn_variadic<b, b, WVertexDmn>;
   /**  results in a sparse matrix that would require sparse linear algebra or extra work to use with dense linalg
    */
-
   using G4LatticeOneQDmn = func::dmn_variadic<SharedMatrixDmn, WExDmn>;
-  using G4LatticeDmn = func::dmn_variadic<G4LatticeOneQDmn, k_HOST>;
+  using G4LatticeDmn = func::dmn_variadic<G4LatticeOneQDmn, q_HOST>;
 
   using G4LatticeOneQ = func::function<std::complex<ScalarType>, G4LatticeOneQDmn>;
   using G4Lattice = func::function<std::complex<ScalarType>, G4LatticeDmn>;
 
-  using MultExHostLatticeDmn = func::dmn_variadic<HOST_matrix_dmn_t, WExDmn>;
-
-  using ChiDblPrimeDmn = func::dmn_variadic<k_HOST, WExDmn>;
+  using ChiDblPrimeDmn = func::dmn_variadic<q_HOST, WExDmn>;
 
   BseLatticeSolverExt(ParametersType& parameters, DcaDataType& dca_data);
 
@@ -201,9 +203,9 @@ BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::BseLatticeSolverEx
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename Writer>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
-  writer.execute(gamma_lattice_);
-  writer.execute(chi_0_lattice);
-  writer.execute(G4_lattice);
+  //writer.execute(gamma_lattice_);
+  //writer.execute(chi_0_lattice);
+  //writer.execute(G4_lattice);
   writer.execute(chi_dbl_prime);
 }
 
@@ -215,6 +217,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::initialize() 
     INITDOMAINOUT(k_DCA);
     INITDOMAINOUT(k_HOST);
     INITDOMAINOUT(k_HOST_VERTEX);
+    INITDOMAINOUT(q_HOST);
     INITDOMAINOUT(WVertexDmn);
     INITDOMAINOUT(Chi0LatticeDmn);
     INITDOMAINOUT(Chi0LatticeOneQDmn);
@@ -241,27 +244,27 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::initialize() 
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0LatticeOverHost() {
-  std::vector<std::vector<double>> k_elements = k_HOST::get_elements();
-  std::cout << "K_ELEMENTS!\n";
-  std::cout << vectorToString(k_elements) << '\n';
+  std::vector<std::vector<double>> q_elements = q_HOST::get_elements();
+  std::cout << "q_ELEMENTS!\n";
+  std::cout << vectorToString(q_elements) << '\n';
 
   int n_threads = 8;
 
   std::vector<Chi0LatticeOneQ> chi0_qs(n_threads);
 
-  auto computeSingleSiteChi0 = [&](auto& k_elems, auto& chi0_q) {
-    computeChi0LatticeSingleSite(k_elems, chi0_q);
+  auto computeSingleSiteChi0 = [&](auto& q_elems, auto& chi0_q) {
+    computeChi0LatticeSingleSite(q_elems, chi0_q);
   };
 
-  auto makeChi0LatticeOneQ = [&computeSingleSiteChi0, &k_elements](
+  auto makeChi0LatticeOneQ = [&computeSingleSiteChi0, &q_elements](
                                  int id, int nr_threads, std::vector<Chi0LatticeOneQ>& chi0_qs,
                                  Chi0Lattice& chi_0_lattice) {
-    k_HOST k_dmn;
+    q_HOST q_dmn;
     std::vector<int> subind(2);
-    const std::pair<int, int> k_bounds = parallel::util::getBounds(id, nr_threads, k_dmn);
-    for (int k_ind = k_bounds.first; k_ind < k_bounds.second; ++k_ind) {
-      computeSingleSiteChi0(k_elements[k_ind], chi0_qs[id]);
-      subind = {0, k_ind};
+    const std::pair<int, int> q_bounds = parallel::util::getBounds(id, nr_threads, q_dmn);
+    for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
+      computeSingleSiteChi0(q_elements[q_ind], chi0_qs[id]);
+      subind = {0, q_ind};
       // could cause cache line contention.
       chi_0_lattice.distribute(0, subind,
                                static_cast<std::complex<ScalarType>*>(chi0_qs[id].values()));
@@ -371,106 +374,6 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Lattice() {
-  profiler_type prof(__FUNCTION__, "BseLatticeSolverExt", __LINE__);
-
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n" << __FUNCTION__ << std::endl;
-
-  func::function<std::complex<ScalarType>, Chi0LatticeMatrixDmn> chi_0_lattice_matrix;
-
-  auto makeChi0Matrix =
-      [](int id, int nr_threads,
-         func::function<std::complex<ScalarType>, func::dmn_variadic<Chi0LatticeDmn, WExDmn>>& chi_0_lattice,
-         func::function<std::complex<ScalarType>, Chi0LatticeMatrixDmn>& chi_0_lattice_matrix) {
-        WExDmn wex_dmn;
-        const std::pair<int, int> wex_bounds = parallel::util::getBounds(id, nr_threads, wex_dmn);
-        for (int wex_ind = wex_bounds.first; wex_ind < wex_bounds.second; wex_ind++)
-          for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
-            for (int K_ind = 0; K_ind < k_HOST::dmn_size(); K_ind++)
-              for (int m2 = 0; m2 < b::dmn_size(); m2++)
-                for (int n2 = 0; n2 < b::dmn_size(); n2++)
-                  for (int m1 = 0; m1 < b::dmn_size(); m1++)
-                    for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                      // This is block diagonal for single site only
-                      chi_0_lattice_matrix(wex_ind, n1, m1, w_ind, n2, m2, w_ind, K_ind, wex_ind) =
-                          chi_0_lattice(n1, m1, n2, m2, K_ind, w_ind);
-                    }
-      };
-
-  int n_threads = 1;  // std::min(8, WExDmn::dmn_size());
-  // Threading parallelization_obj;
-  Threading().execute(n_threads, makeChi0Matrix, std::ref(chi_0_lattice),
-                      std::ref(chi_0_lattice_matrix));
-
-  int N = SharedDmn::dmn_size();
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> gamma_lat(N);
-
-  func::function<std::complex<ScalarType>, SharedMatrixDmn> chi_0_lattice_matrix_indi;
-  func::function<std::complex<ScalarType>, SharedMatrixDmn> gamma_lattice_indi;
-  std::vector<int> subind(2);
-
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> chi0_lat_inv(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_lat_indi(N);
-
-#ifdef DCA_HAVE_GPU
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> gamma_lat_GPU(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> chi0_lat_inv_GPU(N);
-  dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::GPU> G4_lat_indi_GPU(N);
-#endif
-
-  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind)
-    for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind) {
-      chi_0_lattice_matrix.slice(
-          0, {0, k_ind, wex_ind},
-          static_cast<std::complex<ScalarType>*>(chi_0_lattice_matrix_indi.values()));
-
-      dca::linalg::matrixop::copyArrayToMatrix(N, N, chi_0_lattice_matrix_indi.values(), N,
-                                               chi0_lat_inv);
-      // dca::linalg::util::GpuStream stream;
-#ifdef DCA_HAVE_GPU
-      chi0_lat_inv_GPU = chi0_lat_inv;
-      dca::linalg::matrixop::inverse(chi0_lat_inv_GPU);
-
-      // \todo remove, only necessary to get a look at gamma_lat_inv for debugging.
-      chi0_lat_inv = chi0_lat_inv_GPU;
-#else
-      dca::linalg::matrixop::inverse(chi0_lat_inv);
-#endif
-      subind = {0, wex_ind};
-      gamma_lattice_.slice(0, subind,
-                           static_cast<std::complex<ScalarType>*>(gamma_lattice_indi.values()));
-
-      dca::linalg::matrixop::copyArrayToMatrix(N, N, gamma_lattice_indi.values(), N, gamma_lat);
-
-#ifdef DCA_HAVE_GPU
-      gamma_lat_GPU = gamma_lat;
-      G4_lat_indi_GPU = chi0_lat_inv_GPU;
-
-      // for (int j = 0; j < N; j++)
-      //   for (int i = 0; i < N; i++)
-      //     G4_lat_inv(i, j) = chi0_lat_inv(i, j) - gamma_lat_inv(i, j);
-
-      // chi_0_lat_inv_GPU ends up with G4_lat_inv
-      dca::linalg::blas::UseDevice<linalg::GPU>::axpy(N * N, std::complex<ScalarType>(-1.0, 0.0),
-                                                      gamma_lat_GPU.ptr(), 1, G4_lat_indi_GPU.ptr(),
-                                                      1, 0, 0);
-      // This is the inv of G4_lat_inv
-      dca::linalg::matrixop::inverse(G4_lat_indi_GPU);
-      G4_lat_indi = G4_lat_indi_GPU;
-#else
-      G4_lat_indi = chi0_lat_inv;
-      dca::linalg::blas::UseDevice<linalg::CPU>::axpy(N * N, std::complex<ScalarType>(-1.0, 0.0),
-                                                      gamma_lat.ptr(), 1, G4_lat_indi.ptr(), 1, 0, 0);
-      dca::linalg::matrixop::inverse(G4_lat_indi);
-#endif
-      for (int j = 0; j < N; j++)
-        for (int i = 0; i < N; i++)
-          G4_lattice(i + j * N, k_ind, wex_ind) = G4_lat_indi(i, j);
-    }
-}
-
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4LatticeOverHost() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolverExt", __LINE__);
   if (concurrency.id() == concurrency.first())
@@ -479,7 +382,8 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
   int num_wex = WExDmn::dmn_size();
   double inv_beta = 1 / parameters.get_beta();
 
-  int n_threads = 8;
+  // See a deadlock on g4l_mutex_ in some cases
+  int n_threads = 1;
 
   std::vector<Chi0LatticeOneQ> chi0_qs(n_threads);
 
@@ -489,9 +393,9 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
     computeG4LatticeSingleSite(g4l, chi0_q);
   };
 
-  auto writeG4OneQ = [&](G4LatticeOneQ& g4l, int k_ind) {
+  auto writeG4OneQ = [&](G4LatticeOneQ& g4l, int q_ind) {
     parallel::thread_traits::scoped_lock lock(g4l_mutex_);
-    std::vector<int> subind_g4{0, k_ind};
+    std::vector<int> subind_g4{0, q_ind};
     std::size_t linind = G4_lattice.branch_subind_2_linind(subind_g4);
     std::copy(g4l.begin(), g4l.end(), G4_lattice.begin() + linind);
     // G4_lattice.distribute(0, subind_g4, static_cast<std::complex<ScalarType>*>(g4l.values()));
@@ -500,13 +404,13 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeG4Latt
   auto makeG4LatticeOneQ = [&computeG4OneQ, &writeG4OneQ](
                                int id, int nr_threads, std::vector<Chi0LatticeOneQ>& chi0_qs,
                                std::vector<G4LatticeOneQ>& g4ls, Chi0Lattice& chi_0_lattice) {
-    k_HOST k_dmn;
-    const std::pair<int, int> k_bounds = parallel::util::getBounds(id, nr_threads, k_dmn);
-    for (int k_ind = k_bounds.first; k_ind < k_bounds.second; ++k_ind) {
-      std::vector<int> subind = {0, k_ind};
+    q_HOST q_dmn;
+    const std::pair<int, int> q_bounds = parallel::util::getBounds(id, nr_threads, q_dmn);
+    for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
+      std::vector<int> subind = {0, q_ind};
       chi_0_lattice.slice(0, subind, static_cast<std::complex<ScalarType>*>(chi0_qs[id].values()));
       computeG4OneQ(g4ls[id], chi0_qs[id]);
-      writeG4OneQ(g4ls[id], k_ind);
+      writeG4OneQ(g4ls[id], q_ind);
       // mutex bulk assign G4_lattice
     }
   };
@@ -570,16 +474,12 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChiDbl
   std::size_t shared_matrix_size = SharedDmn::dmn_size() * SharedDmn::dmn_size();
   // func::function<std::complex<ScalarType>, SharedMatrixDmn> g4_lat_indi;
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
-    for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind) {
-      g4_lat_subind = {0, 0, 0, 0, 0, 0, wex_ind, k_ind};
+    for (int q_ind = 0; q_ind < q_HOST::dmn_size(); ++q_ind) {
+      g4_lat_subind = {0, 0, 0, 0, 0, 0, wex_ind, q_ind};
       std::size_t linind = G4_lattice.subind_2_linind(g4_lat_subind);
       auto g4_lat_begin = G4_lattice.begin() + linind;
       auto g4_lat_end = G4_lattice.begin() + linind + shared_matrix_size;
-      // std::copy(G4_lattice.begin()+linind, g4_lat_end, g4_lat_indi.begin());
-      //  G4_lattice.slice(5, g4_lat_subind,
-      //                   static_cast<std::complex<ScalarType>*>(g4_lat_indi.values()));
-      //  auto g4_lat_it = G4_lattice.begin() + G4_lattice.branch_subind_2_linind(g4_lat_subind);
-      chi_dbl_prime(k_ind, wex_ind) = std::accumulate(
+      chi_dbl_prime(q_ind, wex_ind) = std::accumulate(
           g4_lat_begin, g4_lat_end, std::complex<ScalarType>{0.0, 0.0}, std::plus<>{});
     }
   }
