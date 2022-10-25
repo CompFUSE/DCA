@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "H5Cpp.h"
+#include <H5Cpp.h>
 
 #include "dca/function/domains.hpp"
 #include "dca/io/buffer.hpp"
