@@ -12,7 +12,6 @@
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "hdf5.h"
-#include "H5Opublic.h"
 #include <fstream>
 #include <stdexcept>
 
