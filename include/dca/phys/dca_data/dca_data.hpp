@@ -399,7 +399,7 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
   reader.execute(Sigma);
   reader.execute(Sigma_lattice);
   reader.execute(Sigma_lattice_interpolated);
-  
+
   if (parameters_.isAccumulatingG4()) {
     std::cout << "Trying to read Gkw since we are accumulating G4\n";
     reader.execute(G_k_w);
@@ -479,7 +479,7 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
   writer.execute(Sigma);
   writer.execute(Sigma_err_);
   writer.execute(Sigma_cluster);
-  
+
   if (parameters_.dump_lattice_self_energy()) {
     if (parameters_.do_dca_plus())
       writer.execute(Sigma_lattice);
@@ -642,20 +642,21 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
-  if (parameters_.adjust_chemical_potential()) {
-    reader.open_group("DCA-loop-functions");
-    std::vector<double> chemical_potentials;
-    bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
-    if (chemical_potential_present) {
-      std::cout << "chemical-potentials: " << vectorToString(chemical_potentials) << '\n';
-      parameters_.get_chemical_potential() = chemical_potentials.back();
-    }
-    else {
-      throw std::runtime_error(
-          "readSigmaFile failed, initial-self-energy file is missing chemical potential data!");
-    }
-    reader.close_group();
+  reader.open_group("DCA-loop-functions");
+  std::vector<double> chemical_potentials;
+  bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
+  int completed_iteration;
+  bool has_iteration = reader.execute("completed-iteration", completed_iteration);
+  
+  if (chemical_potential_present && has_iteration) {
+    std::cout << "chemical-potential from Sigma file: " << chemical_potentials[completed_iteration] << '\n';
+    parameters_.get_chemical_potential() = chemical_potentials[completed_iteration];
   }
+  else {
+    throw std::runtime_error(
+        "readSigmaFile failed, initial-self-energy file is missing chemical potential data!");
+  }
+  reader.close_group();
 
   reader.open_group("functions");
   reader.execute(Sigma);

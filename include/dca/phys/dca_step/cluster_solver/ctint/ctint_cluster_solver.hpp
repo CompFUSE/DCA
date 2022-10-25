@@ -271,12 +271,8 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
 
   auto local_time = total_time_;
-  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_
-            << std::endl;
   concurrency_.sum(total_time_);
   auto gflop = accumulator_.getFLOPs() * 1e-9;
-  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_
-            << std::endl;
   concurrency_.sum(gflop);
 
   if (concurrency_.id() == concurrency_.first()) {

@@ -47,7 +47,8 @@ public:
         deconvolution_iterations_(16),
         deconvolution_tolerance_(1.e-3),
         hts_approximation_(false),
-        hts_threads_(1) {
+        hts_threads_(1),
+        do_not_update_sigma_(false) {
     std::iota(interacting_orbitals_.begin(), interacting_orbitals_.end(), 0);
   }
 
@@ -91,6 +92,11 @@ public:
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
+
+  bool do_not_update_sigma() const {
+    return do_not_update_sigma_;
+  }
+  
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
   }
@@ -146,6 +152,9 @@ private:
   double deconvolution_tolerance_;
   bool hts_approximation_;
   int hts_threads_;
+
+  // Binned output
+  bool do_not_update_sigma_;
 };
 
 template <typename Concurrency>
@@ -169,6 +178,7 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(deconvolution_tolerance_);
   buffer_size += concurrency.get_buffer_size(hts_approximation_);
   buffer_size += concurrency.get_buffer_size(hts_threads_);
+  buffer_size += concurrency.get_buffer_size(do_not_update_sigma_);
 
   return buffer_size;
 }
@@ -193,6 +203,7 @@ void DcaParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, deconvolution_tolerance_);
   concurrency.pack(buffer, buffer_size, position, hts_approximation_);
   concurrency.pack(buffer, buffer_size, position, hts_threads_);
+  concurrency.pack(buffer, buffer_size, position, do_not_update_sigma_);
 }
 
 template <typename Concurrency>
@@ -215,6 +226,7 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, deconvolution_tolerance_);
   concurrency.unpack(buffer, buffer_size, position, hts_approximation_);
   concurrency.unpack(buffer, buffer_size, position, hts_threads_);
+  concurrency.unpack(buffer, buffer_size, position, do_not_update_sigma_);
 }
 
 template <typename ReaderOrWriter>
@@ -231,6 +243,7 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read("interacting-orbitals", interacting_orbitals_);
     try_to_read("do-post-interpolation", do_post_interpolation_);
     try_to_read("do-finite-size-QMC", do_finite_size_qmc_);
+    try_to_read("do-not-update-Sigma", do_not_update_sigma_);
     if(reader_or_writer.open_group("coarse-graining")) {
         try_to_read("k-mesh-recursion", k_mesh_recursion_);
         try_to_read("periods", coarsegraining_periods_);

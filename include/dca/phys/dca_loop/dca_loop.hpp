@@ -309,6 +309,18 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
     }
 
     output_file_->end_step();
+
+    if (parameters.do_not_update_sigma()) {
+	if (parameters.get_initial_self_energy() == "zero")
+	  throw std::runtime_error("If there is no initial self energy it must be updated!");
+#ifdef DCA_HAVE_ADIOS2
+	if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
+	  MOMS.initializeSigma(concurrency.get_adios(), parameters.get_initial_self_energy());
+	else
+#endif
+	  MOMS.initializeSigma(parameters.get_initial_self_energy());
+    }
+
   }
 }
 
