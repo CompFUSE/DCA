@@ -12,7 +12,7 @@
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "hdf5.h"
-
+#include "H5Opublic.h"
 #include <fstream>
 #include <stdexcept>
 
@@ -60,7 +60,7 @@ std::string HDF5Reader::get_path() {
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path();
-  if (full_name == "/")
+  if (full_name.size() < 1)
     full_name += name;
   else
     full_name += "/" + name;
@@ -85,7 +85,7 @@ bool HDF5Reader::execute(const std::string& name, std::string& value) {
 
 bool HDF5Reader::execute(const std::string& name, std::vector<std::string>& value) {
   std::string full_name = get_path();
-  if (full_name == "/")
+  if (full_name.size() < 1)
     full_name += name;
   else
     full_name += "/" + name;
