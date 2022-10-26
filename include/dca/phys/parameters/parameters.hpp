@@ -105,6 +105,7 @@ public:
   using DcaClusterFamily = typename CDA::DcaClusterFamily;
   using HostSpClusterFamily = typename CDA::HostSpClusterFamily;
   using HostTpClusterFamily = typename CDA::HostTpClusterFamily;
+  using HostQClusterFamily = typename CDA::HostQClusterFamily;
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
@@ -191,8 +192,9 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   writer.open_group("domains");
 
   DcaClusterFamily::write(writer);
+  HostQClusterFamily::write(writer);
   HostSpClusterFamily::write(writer);
-  HostTpClusterFamily::write(writer);
+  HostQClusterFamily::write(writer);
 
   TDmn::parameter_type::write(writer);
   WDmn::parameter_type::write(writer);

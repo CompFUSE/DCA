@@ -64,6 +64,10 @@ public:
   using HostTpClusterFamily =
       domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_TP,
                                      domains::BRILLOUIN_ZONE>;
+  using HostQClusterFamily =
+      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_Q,
+                                     domains::BRILLOUIN_ZONE>;
+
 };
 
 }  // phys
