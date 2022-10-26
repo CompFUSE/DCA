@@ -119,9 +119,12 @@ int main(int argc, char** argv) {
     end_steps:
       writer.end_step();
     }
-    parameters.write(writer);
-  }
+    writer.begin_step();
+    if (concurrency.id() == concurrency.first())
+      parameters.write(writer);
+    writer.end_step();
 
+  }
 #endif
   std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
   return 0;

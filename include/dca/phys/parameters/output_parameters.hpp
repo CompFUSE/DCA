@@ -32,13 +32,14 @@ public:
         g4_output_format_("ADIOS2"),
         filename_g4_("dca_g4.bp"),
         filename_dca_("dca.bp"),
+        filename_analysis_("analysis0.bp"),
 #else
         output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
+        filename_analysis_("analysis0.hdf5"),
 #endif
         directory_config_read_(""),
         directory_config_write_(""),
-        filename_analysis_("analysis.hdf5"),
         filename_ed_("ed.hdf5"),
         filename_qmc_("qmc.hdf5"),
         filename_profiling_("profiling.json"),
@@ -132,9 +133,9 @@ private:
   std::string g4_output_format_;
   std::string filename_g4_;
   std::string filename_dca_;
+  std::string filename_analysis_;
   std::string directory_config_read_;
   std::string directory_config_write_;
-  std::string filename_analysis_;
   std::string filename_ed_;
   std::string filename_qmc_;
   std::string filename_profiling_;
@@ -155,9 +156,9 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(output_format_);
   buffer_size += concurrency.get_buffer_size(filename_g4_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
+  buffer_size += concurrency.get_buffer_size(filename_analysis_);
   buffer_size += concurrency.get_buffer_size(directory_config_read_);
   buffer_size += concurrency.get_buffer_size(directory_config_write_);
-  buffer_size += concurrency.get_buffer_size(filename_analysis_);
   buffer_size += concurrency.get_buffer_size(filename_ed_);
   buffer_size += concurrency.get_buffer_size(filename_qmc_);
   buffer_size += concurrency.get_buffer_size(filename_profiling_);
@@ -179,9 +180,9 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, output_format_);
   concurrency.pack(buffer, buffer_size, position, filename_g4_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
+  concurrency.pack(buffer, buffer_size, position, filename_analysis_);
   concurrency.pack(buffer, buffer_size, position, directory_config_read_);
   concurrency.pack(buffer, buffer_size, position, directory_config_write_);
-  concurrency.pack(buffer, buffer_size, position, filename_analysis_);
   concurrency.pack(buffer, buffer_size, position, filename_ed_);
   concurrency.pack(buffer, buffer_size, position, filename_qmc_);
   concurrency.pack(buffer, buffer_size, position, filename_profiling_);
@@ -201,9 +202,9 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, output_format_);
   concurrency.unpack(buffer, buffer_size, position, filename_g4_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
+  concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_read_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_write_);
-  concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
   concurrency.unpack(buffer, buffer_size, position, filename_ed_);
   concurrency.unpack(buffer, buffer_size, position, filename_qmc_);
   concurrency.unpack(buffer, buffer_size, position, filename_profiling_);
@@ -234,9 +235,9 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("g4-output-format", g4_output_format_);
     try_to_read_or_write("filename-g4-", filename_g4_);
     try_to_read_or_write("filename-dca", filename_dca_);
+    try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("directory-config-read", directory_config_read_);
     try_to_read_or_write("directory-config-write", directory_config_write_);
-    try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("filename-ed", filename_ed_);
     try_to_read_or_write("filename-qmc", filename_qmc_);
     try_to_read_or_write("filename-profiling", filename_profiling_);
