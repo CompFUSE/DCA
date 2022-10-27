@@ -203,9 +203,9 @@ BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::BseLatticeSolverEx
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename Writer>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
-  //writer.execute(gamma_lattice_);
-  //writer.execute(chi_0_lattice);
-  //writer.execute(G4_lattice);
+  writer.execute(gamma_lattice_);
+  writer.execute(chi_0_lattice);
+  writer.execute(G4_lattice);
   writer.execute(chi_dbl_prime);
 }
 
