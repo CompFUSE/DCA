@@ -32,11 +32,11 @@ public:
         g4_output_format_("ADIOS2"),
         filename_g4_("dca_g4.bp"),
         filename_dca_("dca.bp"),
-        filename_analysis_("analysis0.bp"),
+        filename_analysis_("sofqomega.bp"),
 #else
         output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
-        filename_analysis_("analysis0.hdf5"),
+        filename_analysis_("sofqomega.hdf5"),
 #endif
         directory_config_read_(""),
         directory_config_write_(""),
