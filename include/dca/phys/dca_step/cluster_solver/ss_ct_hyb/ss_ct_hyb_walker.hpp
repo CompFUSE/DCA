@@ -73,7 +73,7 @@ public:
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type, MOMS_type> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_solver_routines<parameters_type> ss_hybridization_solver_routines_type;
   typedef ss_hybridization_walker_routines<parameters_type, MOMS_type, configuration_type, rng_type>
       ss_hybridization_walker_routines_type;
 

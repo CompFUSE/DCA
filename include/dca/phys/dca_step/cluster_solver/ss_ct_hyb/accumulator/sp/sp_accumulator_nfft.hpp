@@ -65,9 +65,14 @@ public:
   // Does this _t notation carry some information?
   using r_dmn_t = RClusterDmn;
   using k_dmn_t = KClusterDmn;
-
   using p_dmn_t = func::dmn_variadic<nu, nu, r_dmn_t>;
-
+  using NfftType = math::nfft::Dnfft1D<double, w, p_dmn_t>;
+  using MFunctionTime = NfftType;
+  using MFunctionTimePair = std::array<MFunctionTime, 2>;
+  using FTau = typename NfftType::FTau;
+  using FTauPair = std::array<FTau,2>;
+  using PaddedTimeDmn = typename NfftType::PaddedTimeDmn;
+  
   void sumTo(SpAccumulatorNfft<parameters_type, base_cluster_type>& other) const;
 
 public:
@@ -82,6 +87,8 @@ public:
 
   void finalize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
                 func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
+
+  const FTauPair& get_single_measurement_sign_times_MFunction_time();
 
 private:
   template <class configuration_type, class H_type>
@@ -99,6 +106,10 @@ private:
 
   math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_GS_obj;
   // math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_GS_squared_obj;
+
+  /** for stamping period > 0 and per-measurement-MFunction-time */
+  std::unique_ptr<MFunctionTimePair> single_measurement_M_r_t_;
+  FTauPair single_meas_ftau_pair_;
 };
 
 template <class parameters_type, class base_cluster_type>
@@ -256,6 +267,14 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::sumTo(
   other.cached_nfft_1D_GS_obj += cached_nfft_1D_GS_obj;
 }
 
+template <class Parameters, typename base_cluster_type>
+const typename SpAccumulatorNfft<Parameters, base_cluster_type>::FTauPair& SpAccumulatorNfft<
+  Parameters, base_cluster_type>::get_single_measurement_sign_times_MFunction_time() {
+  single_meas_ftau_pair_[0] = single_measurement_M_r_t_->operator[](0).get_f_tau();
+  single_meas_ftau_pair_[1] = single_measurement_M_r_t_->operator[](1).get_f_tau();
+  return single_meas_ftau_pair_;
+}
+  
 }  // namespace cthyb
 }  // namespace solver
 }  // namespace phys

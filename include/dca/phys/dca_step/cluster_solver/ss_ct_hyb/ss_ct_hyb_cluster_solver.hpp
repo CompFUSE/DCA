@@ -47,11 +47,11 @@ namespace solver {
 // dca::phys::solver::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class DATA>
-class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<parameters_type, DATA> {
+class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<parameters_type> {
 public:
   static constexpr ClusterSolverId solver_type{ClusterSolverId::SS_CT_HYB};
-
-  typedef cthyb::ss_hybridization_solver_routines<parameters_type, DATA> ss_hybridization_solver_routines_type;
+  using Real = typename config::McOptions::MCScalar;
+  typedef cthyb::ss_hybridization_solver_routines<parameters_type> ss_hybridization_solver_routines_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -69,7 +69,7 @@ public:
   
   using ParametersType = parameters_type;
   using Data = DATA;
-  using Accumulator = cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, DATA>;
+  using Accumulator = cthyb::SsCtHybAccumulator<parameters_type, dca::linalg::CPU, Real>;
   using MFunction = typename Accumulator::MFunction;
   using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, DATA>;
 
@@ -163,7 +163,7 @@ protected:
 template <dca::linalg::DeviceType DEV, class PARAM, class DATA>
 SsCtHybClusterSolver<DEV, PARAM, DATA>::SsCtHybClusterSolver(
     PARAM& parameters_ref, DATA& data_ref, const std::shared_ptr<io::Writer<Concurrency>>& writer)
-    : cthyb::ss_hybridization_solver_routines<PARAM, DATA>(parameters_ref, data_ref),
+    : cthyb::ss_hybridization_solver_routines<PARAM>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
       data_(data_ref),

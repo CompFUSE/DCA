@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
     if (concurrency.id() == concurrency.first())
       parameters.write(writer);
     writer.end_step();
-
+    writer.close_file();
   }
 #endif
   std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
