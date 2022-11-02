@@ -47,7 +47,7 @@ else()
   message("${CMAKE_CXX_COMPILER_ID}")
   message(WARNING "Unknown C/C++ compiler ${CMAKE_CXX_COMPILER_ID}, default flags will be used")
 endif()
-message(STATUS "C++ Compiler is identified by QMCPACK as : ${COMPILER}")
+message(STATUS "C++ Compiler is identified by DCA++ as : ${COMPILER}")
 
 #------------------------------------
 # Include compiler-specific cmake file

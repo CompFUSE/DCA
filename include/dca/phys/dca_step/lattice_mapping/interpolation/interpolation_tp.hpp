@@ -55,7 +55,7 @@ public:
       domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_TP,
                               domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
-  using k_HOST = func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+  using k_HOST = func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   
 public:
