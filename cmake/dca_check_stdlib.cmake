@@ -1,3 +1,3 @@
 find_package(Filesystem
-   COMPONENTS Experimental Final
+   COMPONENTS Final Experimental
    REQUIRED)
