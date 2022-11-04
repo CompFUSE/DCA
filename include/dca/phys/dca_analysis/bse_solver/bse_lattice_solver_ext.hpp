@@ -48,7 +48,7 @@ namespace phys {
 namespace analysis {
 // dca::phys::analysis::
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <class ParametersType, class DcaDataType, typename ScalarType>
 class BseLatticeSolverExt {
 public:
   using profiler_type = typename ParametersType::profiler_type;
@@ -129,10 +129,10 @@ public:
   /** Compute Chi0LatticeSingleSite as in the python miniapp */
   void computeChi0LatticeSingleSite(const std::vector<double>& chi_q, Chi0LatticeOneQ& cloq);
 
-  template <typename DCA_matrix_dmn_t, typename KExDmn, typename WExDmn>
+  template <typename CEDmn, typename KEXD, typename WEXD>
   void computeGammaLattice(
-      /*const*/ func::function<std::complex<ScalarType>,
-                               func::dmn_variadic<DCA_matrix_dmn_t, KExDmn, WExDmn>>& Gamma_cluster);
+      /*const*/ func::function<std::complex<ScalarType>, func::dmn_variadic<CEDmn, KEXD, WEXD>>&
+          Gamma_cluster);
 
   void computeG4Lattice();
   void computeG4LatticeOverHost();
@@ -337,11 +337,11 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
   }
 }
 
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-template <typename ClusterEigenMatrixDmn, typename KExDmn, typename WExDmn>
+template <class ParametersType, class DcaDataType, typename ScalarType>
+template <typename CEDmn, typename KEXD, typename WEXD>
 void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaLattice(
-    /*const*/ func::function<std::complex<ScalarType>,
-                             func::dmn_variadic<ClusterEigenMatrixDmn, KExDmn, WExDmn>>& Gamma_cluster) {
+    /*const*/ func::function<std::complex<ScalarType>, func::dmn_variadic<CEDmn, KEXD, WEXD>>&
+        Gamma_cluster) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolverExt", __LINE__);
 
   if (concurrency.id() == concurrency.first())
@@ -354,7 +354,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeGammaL
   double inv_beta = 1 / parameters.get_beta();
 
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
-    func::function<std::complex<ScalarType>, ClusterEigenMatrixDmn> gamma_cluster_indi;
+    func::function<std::complex<ScalarType>, CEDmn> gamma_cluster_indi;
     // Hard coded for single site.
     subind = {0, 0, wex_ind};
     Gamma_cluster.slice(0, subind,

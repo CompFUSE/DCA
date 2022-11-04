@@ -10,6 +10,8 @@
 //
 // No-change test for CT-INT posix wrapper.
 
+#include "dca/io/writer.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -28,7 +30,7 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 #include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
@@ -41,7 +43,7 @@ constexpr bool update_results = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
-using TestConcurrency = dca::parallel::NoConcurrency;
+using TestConcurrency = dca::parallel::MPIConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
@@ -53,74 +55,14 @@ using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-void performBaselineTest(const std::string& input, const std::string& baseline) {
-  static bool update_model = true;
-
-  TestConcurrency concurrency(0, nullptr);
-
-  Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input);
-  if (update_model) {
-    parameters.update_model();
-    parameters.update_domains();
-  }
-  update_model = false;
-
-  // Initialize data with G0 computation.
-  Data data(parameters);
-  data.initialize();
-
-  // Do one integration step.
-  QmcSolver qmc_solver(parameters, data, nullptr);
-  qmc_solver.initialize(0);
-  qmc_solver.integrate();
-
-  dca::phys::DcaLoopData<Parameters> loop_data;
-  qmc_solver.finalize(loop_data);
-
-  EXPECT_NEAR(1., qmc_solver.computeDensity(), 1e-2);
-
-  if (not update_results) {
-    // Read and confront with previous run.
-    if (concurrency.id() == 0) {
-      Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
-      dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + baseline);
-      reader.open_group("functions");
-      reader.execute(G_k_w_check);
-      reader.close_group(), reader.close_file();
-
-      const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
-
-      EXPECT_GE(5e-7, err_g.l_inf);
-    }
-  }
-  else {
-    //  Write results
-    if (concurrency.id() == concurrency.first()) {
-      dca::io::HDF5Writer writer;
-      writer.open_file(input_dir + baseline);
-      writer.open_group("functions");
-      writer.execute(data.G_k_w);
-      writer.close_group(), writer.close_file();
-    }
-  }
-}
-
-TEST(PosixCtintClusterSolverTest, NonShared) {
-  performBaselineTest("stdthread_ctint_test_nonshared_input.json",
-                      "stdthread_ctint_test_nonshared_baseline.hdf5");
-}
-
-TEST(PosixCtintClusterSolverTest, Shared) {
-  performBaselineTest("stdthread_ctint_test_shared_input.json",
-                      "stdthread_ctint_test_shared_baseline.hdf5");
-}
+// See below, life cycle issue with MPI
+// std::unique_ptr<dca::parallel::MPIConcurrency> concurrency;
+dca::parallel::MPIConcurrency* concurrency_ptr;
 
 TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
   static bool update_model = true;
 
-  TestConcurrency concurrency(0, nullptr);
+  TestConcurrency& concurrency = *concurrency_ptr;
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
@@ -135,8 +77,45 @@ TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
   Data data(parameters);
   data.initialize();
 
+  auto writer = std::make_shared<dca::io::Writer<TestConcurrency>>(
+								   concurrency.get_adios(), std::ref(concurrency), parameters.get_output_format(), false);
+  writer->open_file(parameters.get_filename_dca(),true);
   // Do one integration step.
-  QmcSolver qmc_solver(parameters, data, nullptr);
+  QmcSolver qmc_solver(parameters, data, writer);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
+  dca::phys::DcaLoopData<Parameters> loop_data;
+  qmc_solver.finalize(loop_data);
+  writer->close_file();
+
+  /// \todo add checks of single measurement output here.
+}
+
+int main(int argc, char** argv) {
+  int result = 0;
+
+  // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
+  // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
+  concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
+
+#ifdef DCA_HAVE_GPU
+  dca::linalg::util::printInfoDevices();
+
+  dca::linalg::util::initializeMagma();
+#endif
+  ::testing::InitGoogleTest(&argc, argv);
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+
+  // dca::linalg::util::printInfoDevices();
+
+  if (concurrency_ptr->id() != 0) {
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new dca::testing::MinimalistPrinter);
+  }
+
+  result = RUN_ALL_TESTS();
+
+  delete concurrency_ptr;
+
+  return result;
 }

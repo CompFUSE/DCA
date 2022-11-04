@@ -24,7 +24,7 @@ TEST(OutputParametersTest, DefaultValues) {
   EXPECT_EQ("", pars.get_directory_config_read());
   EXPECT_EQ("", pars.get_directory_config_write());
   EXPECT_EQ("dca.hdf5", pars.get_filename_dca());
-  EXPECT_EQ("analysis.hdf5", pars.get_filename_analysis());
+  EXPECT_EQ("sofqomega.hdf5", pars.get_filename_analysis());
   EXPECT_EQ("ed.hdf5", pars.get_filename_ed());
   EXPECT_EQ("qmc.hdf5", pars.get_filename_qmc());
   EXPECT_EQ("profiling.json", pars.get_filename_profiling());
