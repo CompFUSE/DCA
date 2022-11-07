@@ -92,8 +92,6 @@ TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
 }
 
 int main(int argc, char** argv) {
-  int result = 0;
-
   // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
   // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
   concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
@@ -113,7 +111,7 @@ int main(int argc, char** argv) {
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
-  result = RUN_ALL_TESTS();
+  int result = RUN_ALL_TESTS();
 
   delete concurrency_ptr;
 

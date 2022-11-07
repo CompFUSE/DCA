@@ -19,7 +19,7 @@ dca_add_gtest(tp_accumulator_test
   FAST
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
   )
 
 dca_add_gtest(tp_accumulator_singleband_test
@@ -58,7 +58,7 @@ dca_add_gtest(tp_accumulator_singleband_gpu_test
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
   )
   #;mc_kernels;lapack;lapack_kernels;blas_kernels;gpu_utils;magma::magma;magma::sparse;
 

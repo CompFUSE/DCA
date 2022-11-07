@@ -35,9 +35,13 @@ public:
 #endif
                                         >;
   /** Constructor for writer, pretty tortured due to optional Adios2.
-   *  \param [in] format     output format: ADIOS2, HDF5 or JSON.
-   *  \param [in] verbose    If true, the writer outputs a short log whenever it is executed.
-   *  \param [in] adios      Global adios2 env.
+   *  \param [in] adios        if build with ADIOS2 support adios2 env reference.
+   *  \param [in] concurrency  reference to the concurrency environment
+   *  \param [in] format       output format: ADIOS2, HDF5 or JSON.
+   *  \param [in] verbose      If true, the writer outputs a short log whenever it is executed.
+   *
+   *  When using a format other than ADIOS2 the concurrency and adios arguments aren't
+   *  used by the writer.
    */
   Writer(
 #ifdef DCA_HAVE_ADIOS2
