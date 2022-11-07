@@ -38,7 +38,8 @@ template <class Concurrency>
 ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
   // close_file won't close an invalid engine.
   // but this could still be a problem if the adios2::ADIOS object has been destroyed.
-  //close_file();
+  if(file_)
+    close_file();
 }
 
 template <class Concurrency>
@@ -76,7 +77,7 @@ template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
   if (static_cast<bool>(file_)) {
     file_.Close();
-    
+    adios_.RemoveIO(io_.Name());
     //adios_.RemoveIO(io_name_);
     //file_.Close();
     // This combined with overwrite seems to create issues.

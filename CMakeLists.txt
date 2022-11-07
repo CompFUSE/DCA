@@ -108,13 +108,14 @@ dca_write_haves_definitions_file()
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
 
+include(dca_check_stdlib)
+message("std::filesystem resolved")
+
 ################################################################################
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
 
-include(dca_check_stdlib)
-message("std::filesystem resolved")
 
 ################################################################################
 # Include directories

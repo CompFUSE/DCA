@@ -31,10 +31,9 @@ if (DCA_HAVE_GPU)
     ../../../math/nfft/nfft_helper.cu
     )
   add_library(mc_kernels ${kernel_sources})
-
+  dca_gpu_device_link(mc_kernels)
   dca_gpu_runtime_link(mc_kernels)
   dca_gpu_blas_link(mc_kernels)
-  dca_gpu_device_link(mc_kernels)
   
   target_link_libraries(mc_kernels PUBLIC ctint)
 endif()
