@@ -11,6 +11,7 @@
 
 #include "dca/util/containers/random_access_set.hpp"
 
+#include <algorithm>
 #include <set>
 #include <random>
 #include <string>
@@ -55,7 +56,8 @@ TEST(RandomAccessSetTest, LinearizeAndRandomAccess) {
   // Prepare a shuffled list of unique keys.
   std::vector<int> keys(n_insertions);
   std::iota(keys.begin(), keys.end(), 0);
-  std::random_shuffle(keys.begin(), keys.end());
+  std::mt19937_64 rng(0);
+  std::shuffle(keys.begin(), keys.end(), rng);
 
   for (int i = 0; i < n_insertions; ++i) {
     std_set.insert(keys[i]);
@@ -65,7 +67,6 @@ TEST(RandomAccessSetTest, LinearizeAndRandomAccess) {
   }
 
   // Remove random keys.
-  std::mt19937_64 rng(0);
   for (int i = 0; i < n_removals; ++i) {
     const std::size_t key_idx = std::uniform_int_distribution<std::size_t>(0, keys.size() - 1)(rng);
     const auto key = keys.at(key_idx);
