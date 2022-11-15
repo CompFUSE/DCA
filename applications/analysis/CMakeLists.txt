@@ -4,6 +4,8 @@ if (DCA_BUILD_ANALYSIS)
   add_executable(main_analysis main_analysis.cpp)
   target_include_directories(main_analysis PRIVATE ${DCA_INCLUDE_DIRS})
 
+  if (DCA_LATTICE STREQUAL "material")
+
   if (DCA_HAVE_GPU)
     target_link_libraries(main_analysis PRIVATE ${DCA_GPU_LIBS})
   endif()
@@ -19,5 +21,7 @@ if (DCA_BUILD_ANALYSIS)
   endif()
 
   target_link_libraries(chi_q_omega PUBLIC signals ${DCA_LIBS})
+
+  endif()
 
 endif()
