@@ -21,6 +21,7 @@
 #include <functional>
 #include <stack>
 #include <stdexcept>
+#include <array>
 
 #include "dca/util/containers/fixed_size_allocator.hpp"
 #include "dca/util/containers/random_access_map_iterator.hpp"

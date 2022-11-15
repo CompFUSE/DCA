@@ -4,6 +4,10 @@
 #target_include_directories(NiO_fullDCA PRIVATE ${TEST_INCLUDES})
 #target_compile_definitions(NiO_fullDCA PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/")
 
+find_path(ED_DATA_FILE NAMES NiO.data.ed.hdf5)
+#if (ED_DATA_FILE-NOTFOUND)
+  file(DOWNLOAD "https://code.ornl.gov/dcaplusplus/dca_binary_test_data/-/raw/582a07e53f081506a70e5f0cfad060e4d22e4701/NiO.data.ed.hdf5" " ${CMAKE_CURRENT_BINARY_DIR}/NiO.data.ed.hdf5" SHOW_PROGRESS)
+# endif()
 
 dca_add_gtest(NiO_stattest
     STOCHASTIC
@@ -13,7 +17,7 @@ dca_add_gtest(NiO_stattest
     LIBS  ${DCA_LIBS};statistical_testing
     )
 
-configure_file(NiO.data.ed.hdf5 ${CMAKE_CURRENT_BINARY_DIR}/NiO.data.ed.hdf5 COPYONLY)
+#configure_file(NiO.data.ed.hdf5 ${CMAKE_CURRENT_BINARY_DIR}/NiO.data.ed.hdf5 COPYONLY)
 configure_file(t_ij_NiO.txt ${CMAKE_CURRENT_BINARY_DIR}/t_ij_NiO.txt COPYONLY)
 configure_file(U_ij_NiO_8_lit.txt ${CMAKE_CURRENT_BINARY_DIR}/U_ij_NiO_8_lit.txt COPYONLY)
   
