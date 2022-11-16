@@ -78,7 +78,7 @@ struct ClusterSolverSelector;
 
 template <DeviceType device>
 struct ClusterSolverSelector<dca::ClusterSolverId::SS_CT_HYB, device> {
-  using type = dca::phys::solver::SsCtHybClusterSolver<device, TestParameters<dca::ClusterSolverId::SS_CT_HYB>, DcaData<dca::ClusterSolverId::SS_CT_HYB>>;
+  using type = dca::phys::solver::SsCtHybClusterSolver<device, TestParameters<dca::ClusterSolverId::SS_CT_HYB>, DcaData<dca::ClusterSolverId::SS_CT_HYB>, DistType::NONE>;
 };
 template <ClusterSolverId name, DeviceType device>
 using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;

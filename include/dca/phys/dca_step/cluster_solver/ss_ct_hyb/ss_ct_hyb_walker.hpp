@@ -53,6 +53,7 @@ namespace cthyb {
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class SsCtHybWalker {
 public:
+  static constexpr DistType DT = MOMS_type::DT;
   typedef typename parameters_type::random_number_generator rng_type;
 
   typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::profiler_type profiler_type;
@@ -73,7 +74,7 @@ public:
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_solver_routines<parameters_type, DT> ss_hybridization_solver_routines_type;
   typedef ss_hybridization_walker_routines<parameters_type, MOMS_type, configuration_type, rng_type>
       ss_hybridization_walker_routines_type;
 

@@ -155,7 +155,7 @@ elseif (DCA_LATTICE STREQUAL "material")
   set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::NiO_unsymmetric, dca::phys::domains::${DCA_POINT_GROUP}>")
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/material_hamiltonians/material_lattice.hpp")
-
+  set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
           hund | twoband_Cu | threeband | FeAs | material.")

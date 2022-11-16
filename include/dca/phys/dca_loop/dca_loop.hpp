@@ -260,9 +260,6 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
-  // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
-  // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
-
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
     output_file_->begin_step();
 

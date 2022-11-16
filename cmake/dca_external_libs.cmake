@@ -64,7 +64,7 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
 ################################################################################
 # Simplex GM Rule
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs/simplex_gm_rule)
-# list(APPEND DCA_EXTERNAL_LIBS ${SIMPLEX_GM_RULE_LIBRARY})
+list(APPEND DCA_EXTERNAL_LIBS ${SIMPLEX_GM_RULE_LIBRARY})
 # list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${SIMPLEX_GM_RULE_INCLUDE_DIR})
 
 ################################################################################
