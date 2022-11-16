@@ -53,20 +53,41 @@ TEST(NiO, ExactDiagonalization) {
   TestParameters<dca::ClusterSolverId::SS_CT_HYB> parameters(dca::util::GitVersion::string(),
                                                           dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");
-
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
+  parameters.set_t_ij_file_name(test_directory + "t_ij_NiO.txt");
+  parameters.set_U_ij_file_name(test_directory + "U_ij_NiO_8_lit.txt");
   parameters.update_model();
   parameters.update_domains();
 
   parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
   DcaData<dca::ClusterSolverId::SS_CT_HYB> data(parameters);
-  data.initialize();
+  data.initializeH0_and_H_i();
+
+  // Read and broadcast the rest of the initialization from full DCA results.
+  if (id == 0) {
+    dca::io::HDF5Reader reader;
+    reader.open_file(file_coarsegraining);
+    reader.open_group("functions");
+    reader.execute(data.G0_k_w);
+    reader.execute(data.G0_r_t);
+    reader.execute(data.G_k_w);
+    reader.close_group();
+    reader.open_group("additional_functions");
+    reader.execute(data.Sigma_cluster);
+    reader.close_group();
+    reader.close_file();
+  }
+  dca_test_env->concurrency.broadcast(data.G0_k_w);
+  dca_test_env->concurrency.broadcast(data.G0_r_t);
+  dca_test_env->concurrency.broadcast(data.G_k_w);
+  dca_test_env->concurrency.broadcast(data.Sigma_cluster);
+
+  //data.initialize();
 
   // Do one QMC iteration
   QuantumClusterSolver<dca::ClusterSolverId::SS_CT_HYB, CPU> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
-  // qmc_solver.integrate();
+  qmc_solver.integrate();
 
   // stores quantities from integration.
   using dca::func::function;

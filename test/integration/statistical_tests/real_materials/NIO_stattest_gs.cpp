@@ -61,7 +61,7 @@ TEST(Ni0, GS) {
 
   // using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
   //     dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
-  using Rng = RandomNumberGenerator; //dca::math::random::StdRandomWrapper<std::ranlux48_base>;
+  // using Rng = RandomNumberGenerator; //dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   // using TestParameters =
   //     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
   //                                   dca::profiling::NullProfiler, Model, Rng,
