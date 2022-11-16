@@ -1,9 +1,9 @@
 #  This application was used to build the reference data for the NiO test.
-#add_executable(NiO_fullDCA NiO_fullDCA.cpp)
-#target_link_libraries(NiO_fullDCA ${TEST_LIBRARIES})
-#target_include_directories(NiO_fullDCA PRIVATE ${TEST_INCLUDES})
-#target_compile_definitions(NiO_fullDCA PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/")
-
+#  leave it to break the build if its not maintained.  I found it completely inoperable after 4 years of not being built.
+add_executable(NiO_fullDCA NiO_fullDCA.cpp)
+target_link_libraries(NiO_fullDCA ${DCA_LIBS} ${DCA_THREADING_LIBS})
+target_include_directories(NiO_fullDCA PRIVATE ${DCA_INCLUDE_DIRS})
+target_compile_definitions(NiO_fullDCA PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/")
 
 # find_path(ED_DATA_FILE NAMES ${CMAKE_CURRENT_SOURCE_DIR}/NiO.data.ed.hdf5)
 # if (ED_DATA_FILE-NOTFOUND)
@@ -35,6 +35,14 @@ dca_add_gtest(NiO_stattest
     LIBS  ${DCA_LIBS};statistical_testing
     )
 
+dca_add_gtest(NiO_stattest_ctint
+    STOCHASTIC
+    # Run with more ranks for better error detection.
+    MPI MPI_NUMPROC 1
+    INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+    LIBS  ${DCA_LIBS};statistical_testing
+    )
+    
 dca_add_gtest(NiO_stattest_gs
     STOCHASTIC
     # Run with more ranks for better error detection.

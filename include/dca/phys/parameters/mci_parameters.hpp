@@ -333,10 +333,11 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
 
     // Check for number of ranks and g4 measurements consistency.
+    // This is potentially wrong if fancy rank ganging or the like is used.
     int mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     int local_meas = measurements_.back() / mpi_size;
-    if (measurements_.back() % mpi_size != 0 || local_meas % accumulators_ != 0) {
+    if (measurements_.back() % mpi_size != 0 && local_meas % accumulators_ != 0) {
       throw std::logic_error(
           "\n With distributed g4 enabled, 1) local measurements should be same across "
           "ranks, "

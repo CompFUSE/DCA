@@ -1,25 +1,27 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // Full DCA computation used to provide input state and reference data to the statistical NiO_test.
 
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
-#include "test/integration/statistical_tests/real_materials/dca_loop_wrapper.hpp"
+#include "dca/distribution/dist_types.hpp"
+#include "dca_loop_wrapper.hpp"
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
@@ -39,11 +41,11 @@ int main(int argc, char** argv) {
       dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using Parameters =
-      dca::phys::params::Parameters<Concurrency, dca::parallel::Pthreading, dca::profiling::NullProfiler,
-                                    Model, Rng, dca::phys::solver::SS_CT_HYB>;
+      dca::phys::params::Parameters<Concurrency, dca::parallel::stdthread, dca::profiling::NullProfiler,
+                                    Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
   using Data = dca::phys::DcaData<Parameters>;
-  using ImpuritySolver = dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, Parameters, Data>;
-  using ClusterSolver = dca::phys::solver::PosixQmciClusterSolver<ImpuritySolver>;
+  using ImpuritySolver = dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, Parameters, Data, dca::DistType::NONE>;
+  using ClusterSolver = dca::phys::solver::StdThreadQmciClusterSolver<ImpuritySolver>;
   using DCACalculation = dca::testing::DcaLoopWrapper<Parameters, Data, ClusterSolver>;
 
   Concurrency concurrency(argc, argv);
@@ -52,9 +54,6 @@ int main(int argc, char** argv) {
   // override file input for file names
   parameters.set_t_ij_file_name(TEST_DIRECTORY "t_ij_NiO.txt");
   parameters.set_U_ij_file_name(TEST_DIRECTORY "U_ij_NiO_8_lit.txt");
-
-  const int meas_per_process = parameters.get_measurements();
-  parameters.set_measurements(meas_per_process * concurrency.number_of_processors());
 
   parameters.update_model();
   parameters.update_domains();
@@ -94,7 +93,8 @@ int main(int argc, char** argv) {
     writer.execute(cov);
     writer.close_group();
     writer.open_group("parameters");
-    writer.execute("measurments_per_node", meas_per_process);
+    auto mpi_size = concurrency.number_of_processors();
+    writer.execute("measurments_per_rank", parameters.get_measurements().back() / mpi_size);
     writer.execute("nodes", concurrency.number_of_processors());
     writer.close_group();
     writer.close_file();
