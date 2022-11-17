@@ -46,7 +46,7 @@
       "quadrature-rule": 1,
       "number-of-periods": 0,
       "tail-frequencies": 32,
-      "threads": 8
+      "threads": 2
     },
 
     "DCA+": {
@@ -75,5 +75,5 @@
   "CT-INT": {
       "initial-configuration-size": 15,
       "max-submatrix-size": 256
-  },
+  }
 }

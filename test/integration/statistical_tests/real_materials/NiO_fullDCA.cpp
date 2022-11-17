@@ -22,31 +22,78 @@
 #include "dca/util/git_version.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca_loop_wrapper.hpp"
+#include "NiO_setup.hpp"
+
+constexpr auto SOLVER = dca::ClusterSolverId::CT_INT;
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
-using RDmn = dmn_0<dca::phys::domains::cluster_domain<double, 3, dca::phys::domains::CLUSTER,
-    dca::phys::domains::REAL_SPACE,
-    dca::phys::domains::BRILLOUIN_ZONE>>;
+using RDmn =
+    dmn_0<dca::phys::domains::cluster_domain<double, 3, dca::phys::domains::CLUSTER, dca::phys::domains::REAL_SPACE,
+                                             dca::phys::domains::BRILLOUIN_ZONE>>;
 
 using SigmaDomain = dca::math::util::SigmaDomain<RDmn>;
 using SigmaCutDomain = dmn_variadic<dca::math::util::details::Bdmn, RDmn,
-    dmn_0<dca::math::util::DmnWcut>, dca::math::util::RealImagDmn>;
+                                    dmn_0<dca::math::util::DmnWcut>, dca::math::util::RealImagDmn>;
 using CovarianceDomain = dmn_variadic<SigmaCutDomain, SigmaCutDomain>;
+using Concurrency = dca::parallel::MPIConcurrency;
+using Model = typename dca::testing::Model;
+using Rng = typename dca::testing::RandomNumberGenerator;
+using Parameters = typename dca::testing::TestParameters<Concurrency, SOLVER>;
+using Data = dca::phys::DcaData<Parameters>;
+using ImpuritySolver =
+    typename dca::testing::QuantumClusterSolver<SOLVER, Concurrency, dca::linalg::CPU>;
+using ClusterSolver = dca::phys::solver::StdThreadQmciClusterSolver<ImpuritySolver>;
+using DCACalculation = dca::testing::DcaLoopWrapper<Parameters, Data, ClusterSolver>;
+
+template <class DCACALC, class Parameters, dca::ClusterSolverId SOLVER>
+struct MakeOutput;
+
+template <class DCACALC, class Parameters>
+struct MakeOutput<DCACALC, Parameters, dca::ClusterSolverId::CT_INT>{
+  void operator()(DCACALC& calculation, Parameters& parameters, Concurrency& concurrency) {
+    
+    const int n_frequencies = 10;
+    auto G_k_cut = dca::math::util::bandDiagonal(
+        dca::math::util::cutFrequency(calculation.getSolver().local_G_k_w(), n_frequencies));
+    auto G_k_Savg(G_k_cut);
+    G_k_Savg.set_name("G_k_w");
+    concurrency.sum_and_average(G_k_Savg);
+  }
+};
+
+template <class DCACALC, class Parameters>
+struct MakeOutput<DCACALC, Parameters, dca::ClusterSolverId::SS_CT_HYB>  {
+  void operator()(DCACALC& calculation, Parameters& parameters, Concurrency& concurrency) {
+    const int n_frequencies = 10;
+    auto GScut = dca::math::util::bandDiagonal(
+        dca::math::util::cutFrequency(calculation.getSolver().local_GS_r_w(), n_frequencies));
+    auto GSavg(GScut);
+    GSavg.set_name("GS_r_w");
+    concurrency.sum_and_average(GSavg);
+
+    dca::func::function<double, CovarianceDomain> cov("Covariance");
+    concurrency.computeCovariance(GScut, GSavg, cov);
+    // write the result
+    if (concurrency.id() == 0) {
+      dca::io::HDF5Writer writer;
+      writer.open_file("NiO_covariance_output.hdf5");
+      writer.open_group("functions");
+      writer.execute(GSavg);
+      writer.execute(cov);
+      writer.close_group();
+      writer.open_group("parameters");
+      auto mpi_size = concurrency.number_of_processors();
+      writer.execute("measurments_per_rank", parameters.get_measurements().back() / mpi_size);
+      writer.execute("nodes", concurrency.number_of_processors());
+      writer.close_group();
+      writer.close_file();
+    }
+  }
+};
 
 int main(int argc, char** argv) {
-  const std::string input_file(TEST_DIRECTORY "input_NiO.json");
-  using Concurrency = dca::parallel::MPIConcurrency;
-  using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
-      dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
-  using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
-  using Parameters =
-      dca::phys::params::Parameters<Concurrency, dca::parallel::stdthread, dca::profiling::NullProfiler,
-                                    Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
-  using Data = dca::phys::DcaData<Parameters>;
-  using ImpuritySolver = dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, Parameters, Data, dca::DistType::NONE>;
-  using ClusterSolver = dca::phys::solver::StdThreadQmciClusterSolver<ImpuritySolver>;
-  using DCACalculation = dca::testing::DcaLoopWrapper<Parameters, Data, ClusterSolver>;
+  const std::string input_file(TEST_DIRECTORY "input_NiO_ctint.json");
 
   Concurrency concurrency(argc, argv);
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
@@ -74,29 +121,6 @@ int main(int argc, char** argv) {
   }
   // do one more iteration and compute covariance
   calculation.performIntegrationStep();
-
-  const int n_frequencies = 10;
-  auto GScut = dca::math::util::bandDiagonal(
-      dca::math::util::cutFrequency(calculation.getSolver().local_GS_r_w(), n_frequencies));
-  auto GSavg(GScut);
-  GSavg.set_name("GS_r_w");
-  concurrency.sum_and_average(GSavg);
-
-  dca::func::function<double, CovarianceDomain> cov("Covariance");
-  concurrency.computeCovariance(GScut, GSavg, cov);
-  // write the result
-  if (id == 0) {
-    dca::io::HDF5Writer writer;
-    writer.open_file("NiO_covariance_output.hdf5");
-    writer.open_group("functions");
-    writer.execute(GSavg);
-    writer.execute(cov);
-    writer.close_group();
-    writer.open_group("parameters");
-    auto mpi_size = concurrency.number_of_processors();
-    writer.execute("measurments_per_rank", parameters.get_measurements().back() / mpi_size);
-    writer.execute("nodes", concurrency.number_of_processors());
-    writer.close_group();
-    writer.close_file();
-  }
+  MakeOutput<decltype(calculation), decltype(parameters), SOLVER> output;
+  output(calculation, parameters, concurrency);
 }

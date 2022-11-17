@@ -17,8 +17,6 @@
 #include <iostream>
 #include <cmath>
 
-#include "gtest/gtest.h"
-
 #include "dca/config/threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -36,8 +34,6 @@
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "dca/testing/dca_mpi_test_environment.hpp"
-#include "dca/testing/minimalist_printer.hpp"
 
 namespace dca {
 namespace testing {
@@ -63,37 +59,36 @@ using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::ranlux48_
 
 using dca::ClusterSolverId;
 
-template <ClusterSolverId name>
+template <class Concurrency, ClusterSolverId name>
 using TestParameters =
-    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, name>;
+    dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
+                                  RandomNumberGenerator, name>;
 
-template <ClusterSolverId name>
-using DcaData = dca::phys::DcaData<TestParameters<name>>;
+template <ClusterSolverId name, class Concurrency>
+using DcaData = dca::phys::DcaData<TestParameters<Concurrency, name>>;
 
-template <ClusterSolverId name, DeviceType device>
+template <ClusterSolverId name, class Concurrency, DeviceType device>
 struct ClusterSolverSelector;
 
-template <DeviceType device>
-struct ClusterSolverSelector<ClusterSolverId::CT_INT, device> {
-  using type =
-      dca::phys::solver::CtintClusterSolver<device, TestParameters<ClusterSolverId::CT_INT>,
-                                            true, DistType::NONE>;
+template <class Concurrency, DeviceType device>
+struct ClusterSolverSelector<ClusterSolverId::CT_INT, Concurrency, device> {
+  using type = dca::phys::solver::CtintClusterSolver<
+      device, TestParameters<Concurrency, ClusterSolverId::CT_INT>, true, DistType::NONE>;
 };
 
-template <DeviceType device>
-struct ClusterSolverSelector<dca::ClusterSolverId::SS_CT_HYB, device> {
-  using type =
-      dca::phys::solver::SsCtHybClusterSolver<device, TestParameters<dca::ClusterSolverId::SS_CT_HYB>,
-                                              DcaData<dca::ClusterSolverId::SS_CT_HYB>, DistType::NONE>;
+template <class Concurrency, DeviceType device>
+struct ClusterSolverSelector<dca::ClusterSolverId::SS_CT_HYB, Concurrency, device> {
+  using type = dca::phys::solver::SsCtHybClusterSolver<
+      device, TestParameters<Concurrency, dca::ClusterSolverId::SS_CT_HYB>,
+    DcaData<dca::ClusterSolverId::SS_CT_HYB, Concurrency>, DistType::NONE>;
 };
 
-template <ClusterSolverId name, DeviceType device>
-using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;
+template <ClusterSolverId name, class Concurrency, DeviceType device>
+using QuantumClusterSolver = typename ClusterSolverSelector<name, Concurrency, device>::type;
 
-template <ClusterSolverId name, DeviceType device>
+template <ClusterSolverId name, class Concurrency, DeviceType device>
 using ThreadedSolver =
-    dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, device>>;
+    dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, Concurrency, device>>;
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;

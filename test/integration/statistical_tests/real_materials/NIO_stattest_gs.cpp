@@ -38,7 +38,7 @@ using dca::func::dmn_variadic;
 
 TEST(Ni0, GS) {
   using namespace dca::testing;
-
+  using Concurrency = std::remove_pointer_t<decltype(dca_test_env)>::ConcurrencyType;
   using RDmn =
     dmn_0<dca::phys::domains::cluster_domain<double, 3, dca::phys::domains::CLUSTER, dca::phys::domains::REAL_SPACE,
                                              dca::phys::domains::BRILLOUIN_ZONE>>;
@@ -66,9 +66,9 @@ TEST(Ni0, GS) {
   //     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
   //                                   dca::profiling::NullProfiler, Model, Rng,
   //                                   dca::ClusterSolverId::SS_CT_HYB>;
-  using Data = DcaData<dca::ClusterSolverId::SS_CT_HYB>;
-  using ImpuritySolver = ThreadedSolver<dca::ClusterSolverId::SS_CT_HYB, dca::linalg::CPU>;
-  TestParameters<dca::ClusterSolverId::SS_CT_HYB> parameters(dca::util::GitVersion::string(), *concurrency);
+  using Data = DcaData<dca::ClusterSolverId::SS_CT_HYB, Concurrency>;
+  using ImpuritySolver = ThreadedSolver<dca::ClusterSolverId::SS_CT_HYB, Concurrency, dca::linalg::CPU>;
+  TestParameters<Concurrency, dca::ClusterSolverId::SS_CT_HYB> parameters(dca::util::GitVersion::string(), *concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");
   // override file input for file names
   parameters.set_t_ij_file_name(test_directory + "t_ij_NiO.txt");

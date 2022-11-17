@@ -33,6 +33,7 @@ using dca::func::dmn_variadic;
 
 TEST(NiO, ExactDiagonalization) {
   using namespace dca::testing;
+  using Concurrency = std::remove_pointer_t<decltype(dca_test_env)>::ConcurrencyType;
   constexpr int dim = 3;
   using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<dim>>;
   using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<dim>>;
@@ -47,7 +48,7 @@ TEST(NiO, ExactDiagonalization) {
     dca::util::Modules::print();
   }
 
-  TestParameters<dca::ClusterSolverId::CT_INT> parameters(dca::util::GitVersion::string(),
+  TestParameters<Concurrency, dca::ClusterSolverId::CT_INT> parameters(dca::util::GitVersion::string(),
                                                           dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");
   parameters.set_t_ij_file_name(test_directory + "t_ij_NiO.txt");
@@ -57,11 +58,11 @@ TEST(NiO, ExactDiagonalization) {
 
   parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
-  DcaData<dca::ClusterSolverId::CT_INT> data(parameters);
+  DcaData<dca::ClusterSolverId::CT_INT, Concurrency> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<dca::ClusterSolverId::CT_INT, CPU> qmc_solver(parameters, data, nullptr);
+  QuantumClusterSolver<dca::ClusterSolverId::CT_INT, Concurrency, CPU> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
