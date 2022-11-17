@@ -17,15 +17,12 @@
 #include <iostream>
 #include <cmath>
 
-#include "gtest/gtest.h"
-
 #include "dca/config/threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp"
-
-
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/math/random/random.hpp"
@@ -37,8 +34,6 @@
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "dca/testing/dca_mpi_test_environment.hpp"
-#include "dca/testing/minimalist_printer.hpp"
 
 namespace dca {
 namespace testing {
@@ -59,33 +54,41 @@ const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/real_materials/";
 
 using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
-      dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
+    dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 
 using dca::ClusterSolverId;
 
-template <ClusterSolverId name>
+template <class Concurrency, ClusterSolverId name>
 using TestParameters =
-    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  Threading, dca::profiling::NullProfiler, Model,
+    dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
                                   RandomNumberGenerator, name>;
 
-template <ClusterSolverId name>
-using DcaData = dca::phys::DcaData<TestParameters<name>>;
+template <ClusterSolverId name, class Concurrency>
+using DcaData = dca::phys::DcaData<TestParameters<Concurrency, name>>;
 
-template <ClusterSolverId name, DeviceType device>
+template <ClusterSolverId name, class Concurrency, DeviceType device>
 struct ClusterSolverSelector;
 
-template <DeviceType device>
-struct ClusterSolverSelector<dca::ClusterSolverId::SS_CT_HYB, device> {
-  using type = dca::phys::solver::SsCtHybClusterSolver<device, TestParameters<dca::ClusterSolverId::SS_CT_HYB>, DcaData<dca::ClusterSolverId::SS_CT_HYB>>;
+template <class Concurrency, DeviceType device>
+struct ClusterSolverSelector<ClusterSolverId::CT_INT, Concurrency, device> {
+  using type = dca::phys::solver::CtintClusterSolver<
+      device, TestParameters<Concurrency, ClusterSolverId::CT_INT>, true, DistType::NONE>;
 };
-template <ClusterSolverId name, DeviceType device>
-using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;
 
-template <ClusterSolverId name, DeviceType device>
+template <class Concurrency, DeviceType device>
+struct ClusterSolverSelector<dca::ClusterSolverId::SS_CT_HYB, Concurrency, device> {
+  using type = dca::phys::solver::SsCtHybClusterSolver<
+      device, TestParameters<Concurrency, dca::ClusterSolverId::SS_CT_HYB>,
+    DcaData<dca::ClusterSolverId::SS_CT_HYB, Concurrency>, DistType::NONE>;
+};
+
+template <ClusterSolverId name, class Concurrency, DeviceType device>
+using QuantumClusterSolver = typename ClusterSolverSelector<name, Concurrency, device>::type;
+
+template <ClusterSolverId name, class Concurrency, DeviceType device>
 using ThreadedSolver =
-    dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, device>>;
+    dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, Concurrency, device>>;
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;

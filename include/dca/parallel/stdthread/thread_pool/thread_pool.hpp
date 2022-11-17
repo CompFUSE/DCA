@@ -67,11 +67,13 @@ public:
   // threads.
   void enlarge(std::size_t n_threads);
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   // Adds to the queue of tasks the execution of f(args...). This method is thread safe.
   // Returns: a future to the return value of f(args...).
   template <class F, class... Args>
   auto enqueue(F&& f, Args&&... args) -> thread_traits::future_type<typename std::result_of<F(Args...)>::type>;
-
+#pragma clang diagnostic pop
   // The destructor concludes all the pending work gracefully before merging all spawned threads.
   ~ThreadPool();
 
@@ -102,12 +104,17 @@ private:
   std::vector<int> master_affinity_;
 };
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 template <class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
     -> thread_traits::future_type<typename std::result_of<F(Args...)>::type> {
   using return_type = typename std::result_of<F(Args...)>::type;
   unsigned int id = active_id_++;
   id = id % size();
+
+#pragma clang diagnostic pop
 
   // Enqueue a new task so that the function f with arguments args will be executed by the worker
   // with index id.

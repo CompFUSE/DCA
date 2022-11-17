@@ -39,7 +39,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool update_results = false;
+[[maybe_unused]] constexpr bool update_results = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
@@ -78,8 +78,8 @@ TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
   data.initialize();
 
   auto writer = std::make_shared<dca::io::Writer<TestConcurrency>>(
-								   concurrency.get_adios(), std::ref(concurrency), parameters.get_output_format(), false);
-  writer->open_file(parameters.get_filename_dca(),true);
+      concurrency.get_adios(), std::ref(concurrency), parameters.get_output_format(), false);
+  writer->open_file(parameters.get_filename_dca(), true);
   // Do one integration step.
   QmcSolver qmc_solver(parameters, data, writer);
   qmc_solver.initialize(0);

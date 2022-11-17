@@ -49,7 +49,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
                                     Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
-      dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data>>;
+    dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data, dca::DistType::NONE>>;
 
   TestParameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");

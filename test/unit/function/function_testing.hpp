@@ -68,11 +68,13 @@ struct function_test<dca::func::function<double, dmn<N, Dmn>>> {
   fType& f;
 };
 
-template <typename DOMAIN>
-struct function_test<dca::func::function<double, DOMAIN>> {
-  using FuncType = dca::func::function<double, DOMAIN>;
+
+  
+template <typename DMN>
+struct function_test<dca::func::function<double, DMN>> {
+  using FuncType = dca::func::function<double, DMN>;
   using ScalarType = typename FuncType::this_scalar_type;
-  using Domain = DOMAIN;
+  using Domain = DMN;
 
   function_test(FuncType& func) : f(func) {}
 

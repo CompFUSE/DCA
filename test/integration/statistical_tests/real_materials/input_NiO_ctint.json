@@ -46,7 +46,7 @@
       "quadrature-rule": 1,
       "number-of-periods": 0,
       "tail-frequencies": 32,
-      "threads": 8
+      "threads": 2
     },
 
     "DCA+": {
@@ -72,11 +72,8 @@
     }
   },
 
-
-  "SS-CT-HYB": {
-    "steps-per-sweep" : 1.0,
-    "shifts-per-sweep" : 1.0,
-    "swaps-per-sweep" : 0.0,
-    "self-energy-tail-cutoff" : 60
+  "CT-INT": {
+      "initial-configuration-size": 15,
+      "max-submatrix-size": 256
   }
 }

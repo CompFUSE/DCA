@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <vector>
+#include <array>
 
 namespace dca {
 namespace util {

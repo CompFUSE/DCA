@@ -28,12 +28,12 @@ namespace solver {
 namespace cthyb {
 // dca::phys::solver::cthyb::
 
-template <typename parameters_t>
+template <typename parameters_t, DistType DIST>
 class ss_hybridization_solver_routines {
 public:
   const static bool SHOW_FUNCTIONS = false;
   typedef parameters_t parameters_type;
-  using MOMS_type = phys::DcaData<parameters_type>;;
+  using MOMS_type = phys::DcaData<parameters_type, DIST>;;
 
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -115,8 +115,8 @@ private:
   func::function<double, nu> a1;
 };
 
-template <typename parameters_t>
-ss_hybridization_solver_routines<parameters_t>::ss_hybridization_solver_routines(
+template <typename parameters_t, DistType DIST>
+ss_hybridization_solver_routines<parameters_t, DIST>::ss_hybridization_solver_routines(
     const parameters_t& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
@@ -136,22 +136,22 @@ ss_hybridization_solver_routines<parameters_t>::ss_hybridization_solver_routines
   initialize();
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::initialize() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::initialize() {
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
   initialize_interacting_band_vector();
 }
 
-template <typename parameters_t>
-bool ss_hybridization_solver_routines<parameters_t>::is_interacting_band(int b_ind) {
+template <typename parameters_t, DistType DIST>
+bool ss_hybridization_solver_routines<parameters_t, DIST>::is_interacting_band(int b_ind) {
   assert(b_ind > -1 and b_ind < b::dmn_size());
   return is_interacting_band_vector[b_ind];
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::initialize_interacting_band_vector() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::initialize_interacting_band_vector() {
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
@@ -164,14 +164,14 @@ void ss_hybridization_solver_routines<parameters_t>::initialize_interacting_band
   }
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::initialize_functions() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::initialize_functions() {
   initialize_hybridization_function();
   initialize_hybridization_chem_pot();
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::initialize_hybridization_chem_pot() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::initialize_hybridization_chem_pot() {
   for (int b_i = 0; b_i < b::dmn_size(); b_i++) {
     if (is_interacting_band(b_i)) {
       for (int s_i = 0; s_i < s::dmn_size(); s_i++) {
@@ -203,8 +203,8 @@ void ss_hybridization_solver_routines<parameters_t>::initialize_hybridization_ch
   }
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::initialize_hybridization_function() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::initialize_hybridization_function() {
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
@@ -224,8 +224,8 @@ void ss_hybridization_solver_routines<parameters_t>::initialize_hybridization_fu
   // assert(false);
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::construct_F_k_w() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::construct_F_k_w() {
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
@@ -262,8 +262,8 @@ void ss_hybridization_solver_routines<parameters_t>::construct_F_k_w() {
     dca::util::Plot::plotBandsLinesPoints(F_k_w);
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::construct_F_r_t() {
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::construct_F_r_t() {
   compute_moments(F_k_w);
 
   subtract_moments(F_k_w);
@@ -277,8 +277,8 @@ void ss_hybridization_solver_routines<parameters_t>::construct_F_r_t() {
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(F_k_t, F_r_t);
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::compute_moments(
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::compute_moments(
     func::function<std::complex<double>, nu_nu_k_DCA_w>& /*f_source*/) {
   int w_ind = 0;
   double w_val = w::get_elements()[w_ind];
@@ -289,8 +289,8 @@ void ss_hybridization_solver_routines<parameters_t>::compute_moments(
   }
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::subtract_moments(
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::subtract_moments(
     func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
@@ -303,8 +303,8 @@ void ss_hybridization_solver_routines<parameters_t>::subtract_moments(
   //         util::Plot::plotBandsLinesPoints(f_source);
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::add_moments(
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::add_moments(
     func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
@@ -317,8 +317,8 @@ void ss_hybridization_solver_routines<parameters_t>::add_moments(
   //         util::Plot::plotBandsLinesPoints(f_source);
 }
 
-template <typename parameters_t>
-void ss_hybridization_solver_routines<parameters_t>::compensate_for_moments(
+template <typename parameters_t, DistType DIST>
+void ss_hybridization_solver_routines<parameters_t, DIST>::compensate_for_moments(
     func::function<std::complex<double>, nu_nu_k_DCA_t>& f_source) {
   for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++) {
     double t_val = t::get_elements()[t_ind];

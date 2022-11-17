@@ -29,19 +29,19 @@ namespace solver {
 namespace cthyb {
 // dca::phys::solver::cthyb::
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename REAL = double>
+template <class parameters_type, dca::linalg::DeviceType device_t, typename REAL, DistType DIST>
 class SsCtHybAccumulator : public MC_accumulator_data,
-                           public ss_hybridization_solver_routines<parameters_type> {
+                           public ss_hybridization_solver_routines<parameters_type, DIST> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::SS_CT_HYB};
   using Real = REAL;
-  using this_type = SsCtHybAccumulator<parameters_type, device_t, REAL>;
+  using this_type = SsCtHybAccumulator<parameters_type, device_t, REAL, DIST>;
   using ParametersType = parameters_type;
-  using DataType = phys::DcaData<parameters_type>;
+  using DataType = phys::DcaData<parameters_type, DIST>;
 
   typedef SsCtHybWalker<device_t, parameters_type, DataType> walker_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_solver_routines<parameters_type, DIST> ss_hybridization_solver_routines_type;
 
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
@@ -186,10 +186,10 @@ protected:
   bool finalized_;
 };
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-SsCtHybAccumulator<parameters_type, device_t, Real>::SsCtHybAccumulator(
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::SsCtHybAccumulator(
     const parameters_type& parameters_ref, DataType& data_ref, int id)
-    : ss_hybridization_solver_routines<parameters_type>(parameters_ref, data_ref),
+    : ss_hybridization_solver_routines<parameters_type, DIST>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
       data_(data_ref),
@@ -211,8 +211,8 @@ SsCtHybAccumulator<parameters_type, device_t, Real>::SsCtHybAccumulator(
       single_particle_accumulator_obj(parameters_),
       finalized_(false) {}
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::initialize(int dca_iteration) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::initialize(int dca_iteration) {
   MC_accumulator_data::initialize(dca_iteration);
 
   visited_expansion_order_k = 0;
@@ -225,9 +225,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::initialize(int dca_ite
   finalized_ = false;
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t,
-                        Real>::finalize()  // func::function<double, nu> mu_DC)
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::finalize()  // func::function<double, nu> mu_DC)
 {
   if (finalized_)
     return;
@@ -235,9 +234,9 @@ void SsCtHybAccumulator<parameters_type, device_t,
   finalized_ = true;
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
 template <typename Writer>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::write(Writer& writer) {
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::write(Writer& writer) {
   writer.execute(G_r_w);
   writer.execute(GS_r_w);
 }
@@ -248,8 +247,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::write(Writer& writer) 
  **                                                         **
  *************************************************************/
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::updateFrom(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::updateFrom(walker_type& walker) {
   current_sign = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
@@ -258,8 +257,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::updateFrom(walker_type
     M_matrices(l) = walker.get_M_matrices()(l);
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::measure() {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
@@ -271,8 +270,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::measure() {
                                              data_.H_interactions);
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::accumulate_length(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::accumulate_length(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -285,8 +284,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::accumulate_length(walk
   }
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::accumulate_overlap(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::accumulate_overlap(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -312,8 +311,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::accumulate_overlap(wal
   }
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::sumTo(this_type& other) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::sumTo(this_type& other) {
   other.accumulated_sign += accumulated_sign;
   other.number_of_measurements += number_of_measurements;
 
@@ -322,8 +321,8 @@ void SsCtHybAccumulator<parameters_type, device_t, Real>::sumTo(this_type& other
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 }
 
-template <class parameters_type, dca::linalg::DeviceType device_t, typename Real>
-void SsCtHybAccumulator<parameters_type, device_t, Real>::clearSingleMeasurement() {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::clearSingleMeasurement() {
   throw std::logic_error("SsCtHyb method doesn't traffic in M_r_w() developer error!");
 }
 

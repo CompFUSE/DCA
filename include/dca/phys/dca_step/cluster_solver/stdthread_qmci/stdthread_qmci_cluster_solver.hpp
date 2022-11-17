@@ -65,6 +65,7 @@ public:
   using PaddedTimeDmn = typename StdThreadAccumulatorType::PaddedTimeDmn;
 
 protected:
+  using BaseClass::accumulator_;
 public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
                              const std::shared_ptr<io::Writer<Concurrency>>& writer);
@@ -128,7 +129,6 @@ private:
   void finalizeWalker(Walker& walker, int walker_id);
 
 private:
-  using BaseClass::accumulator_;
   using BaseClass::concurrency_;
   using BaseClass::data_;
   using BaseClass::dca_iteration_;

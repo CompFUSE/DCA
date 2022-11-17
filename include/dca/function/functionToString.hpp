@@ -20,9 +20,9 @@
 namespace dca {
 namespace func {
 
-template <typename T, class DOMAIN>
+template <typename T, class DMN>
 void leafTraverse(std::vector<int>& index, const std::vector<std::size_t>& dsizes,
-                         const dca::func::function<T, DOMAIN> a_function, const int depth,
+                         const dca::func::function<T, DMN> a_function, const int depth,
                          std::ostringstream& oss) {
   if (depth == 0) {
     oss << '[';
@@ -44,8 +44,8 @@ void leafTraverse(std::vector<int>& index, const std::vector<std::size_t>& dsize
   }
 }
 
-template <typename T, class DOMAIN>
-std::string functionToString(const dca::func::function<T, DOMAIN> a_function) {
+template <typename T, class DMN>
+std::string functionToString(const dca::func::function<T, DMN> a_function) {
   std::ostringstream oss;
   oss << "[";
   auto leaf_sizes = a_function.getDomainSizes();

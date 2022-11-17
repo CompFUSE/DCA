@@ -1,14 +1,14 @@
-// Copyright (C) 2022 ETH Zurich
-// Copyright (C) 2022 UT-Battelle, LLC
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter W. Doak (doakpw@ornl.gov)
-// 
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
 // Statistical integration test for the CT-HYB solver using  a NiO lattice.
-// This is a verification test with reference data taken from an exact diagonalization
+// This is a verification test with reference data taken from a full DCA computation.
 // It can run with any number of MPI ranks.
 
 #include "gtest/gtest.h"
@@ -28,17 +28,13 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-const std::string file_coarsegraining =
-    DCA_SOURCE_DIR "/test/integration/cluster_solver/ss_ct_hyb/NiO_coarse_grained.hdf5";
-
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
 
 TEST(NiO, ExactDiagonalization) {
   using namespace dca::testing;
-  constexpr int dim = 3;
-
   using Concurrency = std::remove_pointer_t<decltype(dca_test_env)>::ConcurrencyType;
+  constexpr int dim = 3;
   using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<dim>>;
   using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<dim>>;
   using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<dim>>;
@@ -52,7 +48,7 @@ TEST(NiO, ExactDiagonalization) {
     dca::util::Modules::print();
   }
 
-  dca::testing::TestParameters<dca::parallel::MPIConcurrency, dca::ClusterSolverId::SS_CT_HYB> parameters(dca::util::GitVersion::string(),
+  TestParameters<Concurrency, dca::ClusterSolverId::CT_INT> parameters(dca::util::GitVersion::string(),
                                                           dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");
   parameters.set_t_ij_file_name(test_directory + "t_ij_NiO.txt");
@@ -62,32 +58,11 @@ TEST(NiO, ExactDiagonalization) {
 
   parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
-  DcaData<dca::ClusterSolverId::SS_CT_HYB, Concurrency> data(parameters);
-  data.initializeH0_and_H_i();
-
-  // Read and broadcast the rest of the initialization from full DCA results.
-  if (id == 0) {
-    dca::io::HDF5Reader reader;
-    reader.open_file(file_coarsegraining);
-    reader.open_group("functions");
-    reader.execute(data.G0_k_w);
-    reader.execute(data.G0_r_t);
-    reader.execute(data.G_k_w);
-    reader.close_group();
-    reader.open_group("additional_functions");
-    reader.execute(data.Sigma_cluster);
-    reader.close_group();
-    reader.close_file();
-  }
-  dca_test_env->concurrency.broadcast(data.G0_k_w);
-  dca_test_env->concurrency.broadcast(data.G0_r_t);
-  dca_test_env->concurrency.broadcast(data.G_k_w);
-  dca_test_env->concurrency.broadcast(data.Sigma_cluster);
-
-  //data.initialize();
+  DcaData<dca::ClusterSolverId::CT_INT, Concurrency> data(parameters);
+  data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<dca::ClusterSolverId::SS_CT_HYB, Concurrency, CPU> qmc_solver(parameters, data, nullptr);
+  QuantumClusterSolver<dca::ClusterSolverId::CT_INT, Concurrency, CPU> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
