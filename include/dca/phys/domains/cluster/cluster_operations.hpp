@@ -96,7 +96,7 @@ int cluster_operations::index(const std::vector<scalar_type>& element,
   assert(index > -1 and index < elements.size());
 
   if (math::util::distance2(element, elements[index]) > 1.e-6) {
-    std::cout << "\n\t " << __FUNCTION__ << "\t" << index << "\n";
+    std::cout << "\n\t " << "cluster_operations::index" << "element mismatch " << "\t" << index << "\n";
     math::util::print(element);
     std::cout << "\n";
     math::util::print(elements[index]);
