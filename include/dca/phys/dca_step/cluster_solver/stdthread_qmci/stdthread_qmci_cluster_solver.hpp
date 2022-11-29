@@ -281,7 +281,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       }
       else if (concurrency_.id() == concurrency_.first()) {  // write one sample configuration.
         BaseClass::writer_->open_group("Configurations");
-        BaseClass::writer_->rewrite("sample", config_dump_[0]);
+        BaseClass::writer_->execute("sample", config_dump_[0]);
         BaseClass::writer_->close_group();
       }
       read_configuration_ = true;

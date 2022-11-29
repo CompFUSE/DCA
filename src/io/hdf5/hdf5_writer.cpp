@@ -76,8 +76,21 @@ std::string HDF5Writer::get_path() {
   return path;
 }
 
+void HDF5Writer::begin_step() {
+  if (in_step_)
+    throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
+  in_step_ = true;
+}
+
+void HDF5Writer::end_step() {
+  if (!in_step_)
+    throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
+  ++step_;
+  in_step_ = false;
+}
+
 void HDF5Writer::erase(const std::string& name) {
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   if (exists(full_name))
     H5Ldelete(file_id_, full_name.c_str(), H5P_DEFAULT);
 }
@@ -89,7 +102,7 @@ bool HDF5Writer::execute(const std::string& name,
   if (value.size() == 0)
     return execute(name, std::string{0});
 
-  std::string full_name = get_path() + '/' + name;
+  const std::string full_name{makeFullName(name)};
 
   // String type.
   H5::StrType datatype(H5::PredType::C_S1, value.size());
@@ -104,7 +117,7 @@ bool HDF5Writer::execute(const std::string& name,
   if (value.size() == 0)
     return true;
 
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
 
   auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
 

@@ -58,6 +58,18 @@ std::string HDF5Reader::get_path() {
   return path;
 }
 
+void HDF5Reader::begin_step() {
+  if (in_step_)
+    throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
+  in_step_ = true;
+}
+
+void HDF5Reader::end_step() {
+  if (!in_step_)
+    throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
+  ++step_;
+}
+
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
   std::string full_name = get_path() + "/" + name;
   if (!exists(full_name)) {

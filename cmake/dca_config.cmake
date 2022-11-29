@@ -414,6 +414,9 @@ if(DCA_FIX_BROKEN_MPICH)
   add_compile_definitions(DCA_FIX_BROKEN_MPICH)
 endif()
 
+if ((DCA_LATTICE STREQUAL "material") AND (NOT DCA_POINT_GROUP STREQUAL "no_symmetry<3>"))
+  message( FATAL_ERROR "material lattice must be used with the no_symmetry<3> pointgroup")
+endif()
 ################################################################################
 # Generate applications' config files.
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/analysis.hpp.in"
