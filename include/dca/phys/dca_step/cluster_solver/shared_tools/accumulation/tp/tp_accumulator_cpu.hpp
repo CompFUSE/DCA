@@ -433,7 +433,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
-                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                                   // w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, false);
                 }
         }
       }
@@ -573,7 +574,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-              *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              // *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              *G4_ptr += alpha * G_a_(b2, b4) * G_b_(b3, b1);
               ++G4_ptr;
             }
     else
@@ -616,7 +618,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-              *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              // *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              *G4_ptr += alpha * G_a_(b2, b1) * G_b_(b3, b4);
               ++G4_ptr;
             }
     else
