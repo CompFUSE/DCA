@@ -117,8 +117,8 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   else {
     w1 = n_w_ext_pos - 1 - w1;
     w2 = 2 * n_w_ext_pos - 1 - w2;
-    k1 = kMinus(k1);
-    k2 = kMinus(k2);
+    // k1 = kMinus(k1);
+    // k2 = kMinus(k2);
     return true;
   }
 }
