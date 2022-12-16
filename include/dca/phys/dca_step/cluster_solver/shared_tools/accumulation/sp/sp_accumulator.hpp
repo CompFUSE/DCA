@@ -62,7 +62,7 @@ public:
   using MFunctionTime = NfftType;
   using MFunctionTimePair = std::array<MFunctionTime, 2>;
   using FTau = typename NfftType::FTau;
-  using FTauPair = std::array<FTau,2>;
+  using FTauPair = std::array<FTau, 2>;
   using PaddedTimeDmn = typename NfftType::PaddedTimeDmn;
 
 public:
@@ -126,7 +126,7 @@ protected:
   std::unique_ptr<MFunctionTimePair> single_measurement_M_r_t_;
 
   FTauPair single_meas_ftau_pair_;
-  
+
 private:
   /** the accumulated cpu M_r_t */
   std::unique_ptr<MFunctionTimePair> cached_nfft_obj_;
@@ -168,8 +168,10 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
   const Real one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr Real epsilon = std::is_same<Real, double>::value ? 1e-16 : 1e-7;
 
-  (*single_measurement_M_r_t_)[0].resetAccumulation();
-  (*single_measurement_M_r_t_)[1].resetAccumulation();
+  if (parameters_.stamping_period() > 0) {
+    (*single_measurement_M_r_t_)[0].resetAccumulation();
+    (*single_measurement_M_r_t_)[1].resetAccumulation();
+  }
 
   for (int s = 0; s < 2; ++s) {
     const auto& config = configs[s];
@@ -186,13 +188,13 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
 
         const int index = bbr_dmn(b_i, b_j, delta_r);
         const Real f_val = Ms[s](i, j);
-	
+
         (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
         if (accumulate_m_sqr_)
           (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
-        if (parameters_.stamping_period() > 0)	{ 
+        if (parameters_.stamping_period() > 0) {
           (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
-	}
+        }
       }
     }
   }
@@ -273,12 +275,12 @@ const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumu
 
 template <class Parameters, typename Real>
 const typename SpAccumulator<Parameters, linalg::CPU, Real>::FTauPair& SpAccumulator<
-  Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction_time() {
+    Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction_time() {
   single_meas_ftau_pair_[0] = single_measurement_M_r_t_->operator[](0).get_f_tau();
   single_meas_ftau_pair_[1] = single_measurement_M_r_t_->operator[](1).get_f_tau();
   return single_meas_ftau_pair_;
 }
-  
+
 template <class Parameters, typename Real>
 void SpAccumulator<Parameters, linalg::CPU, Real>::clearSingleMeasurement() {
   single_measurement_M_r_t_ = std::make_unique<MFunctionTimePair>();
