@@ -272,6 +272,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
 
   auto local_time = total_time_;
   concurrency_.sum(total_time_);
+
   auto gflop = accumulator_.getFLOPs() * 1e-9;
   concurrency_.sum(gflop);
 

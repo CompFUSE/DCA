@@ -180,7 +180,7 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
     }
   }
 }
-
+  
 template <class Parameters, typename Real>
 template <class Configuration>
 void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(

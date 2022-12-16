@@ -157,7 +157,7 @@ public:
 
   static void setInteractionVertices(const Data& data, const Parameters& parameters);
 
-  float stealFLOPs() {
+  double stealFLOPs() {
     auto flop = flop_;
     flop_ = 0.;
     return flop;
@@ -218,7 +218,7 @@ protected:  // Members.
   // Store for testing purposes:
   Real acceptance_prob_;
 
-  float flop_ = 0.;
+  double flop_ = 0.;
 
   double sweeps_per_meas_ = 1.;
 
