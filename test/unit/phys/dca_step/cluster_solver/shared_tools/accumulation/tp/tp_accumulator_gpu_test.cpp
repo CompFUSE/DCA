@@ -27,14 +27,14 @@
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer.json";
+constexpr char input_file[] = INPUT_DIR "input_4x4_multitransfer_kagome.json";
 
 using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
+    dca::testing::G0Setup<dca::testing::LatticeKagome, dca::ClusterSolverId::CT_AUX, input_file>;
 
 uint loop_counter = 0;
 
