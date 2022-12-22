@@ -371,7 +371,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   Profiler profiler("updateG4", "tp-accumulation", __LINE__, thread_id_);
 
   double flops(0);
-
+ 
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(k, q); };
   // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
@@ -611,9 +611,9 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
   }
   else {
     getGMultiband(0, k1_a, k2_a, w1_a, w2_a, G_a_);
-    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign);
+    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign_);
     getGMultiband(0, k1_b, k2_b, w1_b, w2_b, G_b_);
-    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign);
+    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign_);
 
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)

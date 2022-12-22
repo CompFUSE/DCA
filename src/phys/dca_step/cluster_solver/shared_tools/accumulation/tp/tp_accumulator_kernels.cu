@@ -37,7 +37,7 @@ using namespace linalg;
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
 using phys::FourPointType;
-  
+
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
   const uint n_threads_j = std::min(block_size, j);
@@ -181,6 +181,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     return;
   }
 
+  const Real sign_over_2 = 0.5 * sign;
+
   unsigned b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex;
   g4_helper.unrollIndex(g4_index, b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
 
@@ -203,6 +205,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int k1_a(k1);
       int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
 
@@ -224,67 +227,154 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     } break;
 
     // The PARTICLE_HOLE_MAGNETIC contribution is computed in two parts:
-    case FourPointType::PARTICLE_HOLE_MAGNETIC: {
-      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-      int w1_a(w1);
-      int w2_a(w2);
-      int k1_a(k1);
-      int k2_a(k2);
-      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-      // const int i_a = b1 + nb * k1_a + no * w1_a;
-      // const int j_a = b4 + nb * k2_a + no * w2_a;
-      const int i_a = b2 + nb * k1_a + no * w1_a;
-      const int j_a = b4 + nb * k2_a + no * w2_a;
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
-
-      int w1_b(g4_helper.addWex(w2, w_ex));
-      int w2_b(g4_helper.addWex(w1, w_ex));
-      int k1_b = g4_helper.addKex(k2, k_ex);
-      int k2_b = g4_helper.addKex(k1, k_ex);
-      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-      // const int i_b = b2 + nb * k1_b + no * w1_b;
-      // const int j_b = b3 + nb * k2_b + no * w2_b;
-      const int i_b = b3 + nb * k1_b + no * w1_b;
-      const int j_b = b1 + nb * k2_b + no * w2_b;
-
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-
-      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
-    }
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
       // Spin Difference Contribution
       // new scope to reuse local index variables
       {
-        // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
-        int w1_a(w1);
-        int w2_a(g4_helper.addWex(w1, w_ex));
-        int k1_a = k1;
-        int k2_a = g4_helper.addKex(k1, k_ex);
-        const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-        // const int i_a = b1 + nb * k1_a + no * w1_a;
-        // const int j_a = b3 + nb * k2_a + no * w2_a;
-        const int i_a = b2 + nb * k1_a + no * w1_a;
-        const int j_a = b1 + nb * k2_a + no * w2_a;
+        if (g4_helper.get_bands() == 1) {
+          // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
+          int w1_a(w1);
+          int w2_a(g4_helper.addWex(w1, w_ex));
+          int k1_a = k1;
+          int k2_a = g4_helper.addKex(k1, k_ex);
+          const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+          // const int i_a = b1 + nb * k1_a + no * w1_a;
+          // const int j_a = b3 + nb * k2_a + no * w2_a;
+          const int i_a = b1 + nb * k1_a + no * w1_a;
+          const int j_a = b4 + nb * k2_a + no * w2_a;
 
-        const CudaComplex<Real> Ga =
-            cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
+          const CudaComplex<Real> Ga =
+              cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
 
-        int w1_b(g4_helper.addWex(w2, w_ex));
-        int w2_b(w2);
-        int k1_b = g4_helper.addKex(k2, k_ex);
-        int k2_b = k2;
-        const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-        // const int i_b = b2 + nb * k1_b + no * w1_b;
-        // const int j_b = b4 + nb * k2_b + no * w2_b;
-        const int i_b = b3 + nb * k1_b + no * w1_b;
-        const int j_b = b4 + nb * k2_b + no * w2_b;
+          int w1_b(g4_helper.addWex(w2, w_ex));
+          int w2_b(w2);
+          int k1_b = g4_helper.addKex(k2, k_ex);
+          int k2_b = k2;
+          const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+          // const int i_b = b2 + nb * k1_b + no * w1_b;
+          // const int j_b = b4 + nb * k2_b + no * w2_b;
+          const int i_b = b2 + nb * k1_b + no * w1_b;
+          const int j_b = b3 + nb * k2_b + no * w2_b;
 
-        const CudaComplex<Real> Gb =
-            cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
+          const CudaComplex<Real> Gb =
+              cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
-        contribution += (Ga * Gb);
+          contribution = (Ga * Gb);
+        }
+        else {
+          // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
+          int w1_a(w1);
+          int w2_a(g4_helper.addWex(w1, w_ex));
+          int k1_a = k1;
+          int k2_a = g4_helper.addKex(k1, k_ex);
+          const bool conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+          int i_a = nb * k1_a + no * w1_a;
+          int j_a = nb * k2_a + no * w2_a;
+          if (conj_a) {
+            i_a += b1;
+            j_a += b2;
+          }
+          else {
+            i_a += b2;
+            j_a += b1;
+          }
+
+          const CudaComplex<Real> Ga =
+              cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
+
+          int w1_b(g4_helper.addWex(w2, w_ex));
+          int w2_b(w2);
+          int k1_b = g4_helper.addKex(k2, k_ex);
+          int k2_b = k2;
+          const bool conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+          int i_b = nb * k1_b + no * w1_b;
+          int j_b = nb * k2_b + no * w2_b;
+          if (conj_b) {
+            i_b += b4;
+            j_b += b3;
+          }
+          else {
+            i_b = b3;
+            j_b = b4;
+          }
+
+          const CudaComplex<Real> Gb =
+              cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
+
+          contribution = (Ga * Gb);
+        }
+      }
+      {
+        // Actually bands don't matter and aren't a thing here
+        if (g4_helper.get_bands() == 1) {
+          // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
+          int w1_a(w1);
+          int w2_a(w2);
+          int k1_a(k1);
+          int k2_a(k2);
+          const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+          const int i_a = b2 + nb * k1_a + no * w1_a;
+          const int j_a = b4 + nb * k2_a + no * w2_a;
+          const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+          const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+
+          int w1_b(g4_helper.addWex(w2, w_ex));
+          int w2_b(g4_helper.addWex(w1, w_ex));
+          int k1_b = g4_helper.addKex(k2, k_ex);
+          int k2_b = g4_helper.addKex(k1, k_ex);
+          const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+          const int i_b = b3 + nb * k1_a + no * w1_a;
+          const int j_b = b1 + nb * k2_a + no * w2_a;
+
+          const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+
+          const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+
+          contribution += -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+        }
+        else {
+          // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
+          int w1_a(w1);
+          int w2_a(w2);
+          int k1_a(k1);
+          int k2_a(k2);
+          const bool conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+          int i_a = nb * k1_a + no * w1_a;
+          int j_a = nb * k2_a + no * w2_a;
+          if (conj_a) {
+            i_a += b4;
+            j_a += b2;
+          }
+          else {
+            i_a += b2;
+            j_a += b4;
+          }
+
+          const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+          const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+
+          int w1_b(g4_helper.addWex(w2, w_ex));
+          int w2_b(g4_helper.addWex(w1, w_ex));
+          int k1_b = g4_helper.addKex(k2, k_ex);
+          int k2_b = g4_helper.addKex(k1, k_ex);
+          const bool conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+          int i_b = nb * k1_b + no * w1_b;
+          int j_b = nb * k2_b + no * w2_b;
+          if (conj_b) {
+            i_b += b1;
+            j_b += b3;
+          }
+          else {
+            i_b += b3;
+            j_b += b1;
+          }
+
+          const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+
+          const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+
+          contribution += -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+        }
       }
       break;
 
@@ -498,6 +588,7 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
       // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
       return 26. * n_updates;
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+
       // Each update of a G4 entry involves 3 complex additions and 4 complex multiplications.
       return 32 * n_updates;
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
@@ -526,7 +617,7 @@ template void computeGMultiband<double>(std::complex<double>* G, int ldg,
                                         const std::complex<double>* G0, int ldg0, int nb, int nk,
                                         int nw_pos, double beta, cudaStream_t stream);
 
-  template float updateG4<float, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+template float updateG4<float, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
@@ -536,12 +627,10 @@ template float updateG4<float, FourPointType::PARTICLE_HOLE_MAGNETIC>(
     const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
-template float updateG4<float, FourPointType::PARTICLE_HOLE_CHARGE>(std::complex<float>* G4,
-                                                     const std::complex<float>* G_up, const int ldgu,
-                                                     const std::complex<float>* G_down,
-                                                     const int ldgd, const int sign, bool atomic,
-                                                     cudaStream_t stream, std::size_t start,
-                                                     std::size_t end);
+template float updateG4<float, FourPointType::PARTICLE_HOLE_CHARGE>(
+    std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
