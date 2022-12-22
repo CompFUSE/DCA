@@ -65,10 +65,14 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
                                         parameters_.get_beta(), n);
 
   using namespace dca::phys;
-  parameters_.set_four_point_channels(std::vector<FourPointType>{
-      FourPointType::PARTICLE_HOLE_TRANSVERSE, FourPointType::PARTICLE_HOLE_MAGNETIC,
-      FourPointType::PARTICLE_HOLE_CHARGE, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
-      FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, FourPointType::PARTICLE_PARTICLE_UP_DOWN});
+  std::vector<FourPointType> four_point_channels{FourPointType::PARTICLE_HOLE_TRANSVERSE,
+                                                 FourPointType::PARTICLE_HOLE_MAGNETIC,
+                                                 FourPointType::PARTICLE_HOLE_CHARGE,
+                                                 FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+                                                 FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+                                                 FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+
+  parameters_.set_four_point_channels(four_point_channels);
 
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU>
       accumulatorHost(data_->G0_k_w_cluster_excluded, parameters_);
@@ -111,7 +115,7 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
     const auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
                                                   accumulatorDevice.get_G4()[channel]);
-    EXPECT_GT(5e-7, diff.l_inf);
+    EXPECT_GT(5e-7, diff.l_inf) << "channel: " << dca::phys::toString(four_point_channels[channel]);
   }
 }
 
