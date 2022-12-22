@@ -205,10 +205,17 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int k1_a(k1);
       int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-
-      const int i_a = b1 + nb * k1_a + no * w1_a;
-      const int j_a = b4 + nb * k2_a + no * w2_a;
-
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+          if (conj_a) {
+            i_a += b4;
+            j_a += b1;
+          }
+          else {
+            i_a += b1;
+            j_a += b4;
+          }
+      
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
@@ -217,13 +224,21 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int k1_b = g4_helper.addKex(k2, k_ex);
       int k2_b = g4_helper.addKex(k1, k_ex);
       const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-      const int i_b = b2 + nb * k1_b + no * w1_b;
-      const int j_b = b3 + nb * k2_b + no * w2_b;
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      if (conj_b) {
+	i_b += b3;
+	j_b += b2;
+      }
+      else {
+	i_b += b2;
+	j_b += b3;
+      }
 
       const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
       const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+      contribution = -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     } break;
 
     // The PARTICLE_HOLE_MAGNETIC contribution is computed in two parts:
@@ -259,7 +274,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
           const CudaComplex<Real> Gb =
               cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
-          contribution = (Ga * Gb);
+          contribution = sign_over_2 * (Ga * Gb);
         }
         else {
           // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
@@ -294,14 +309,14 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
             j_b += b3;
           }
           else {
-            i_b = b3;
-            j_b = b4;
+            i_b += b3;
+            j_b += b4;
           }
 
           const CudaComplex<Real> Gb =
               cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
-          contribution = (Ga * Gb);
+          contribution = sign_over_2 * (Ga * Gb);
         }
       }
       {
@@ -330,7 +345,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
           const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-          contribution += -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+          contribution += -sign_over_2 *(Ga_1 * Gb_1 + Ga_2 * Gb_2);
         }
         else {
           // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
@@ -373,7 +388,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
           const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-          contribution += -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+          contribution += -sign_over_2 * Ga_1 * Gb_1 + Ga_2 * Gb_2;
         }
       }
       break;
@@ -551,9 +566,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
   CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
   if (atomic)
-    dca::linalg::atomicAdd(result_ptr, contribution * 0.5f * static_cast<Real>(sign));
+    dca::linalg::atomicAdd(result_ptr, contribution);
   else
-    *result_ptr += contribution * 0.5f * static_cast<Real>(sign);
+    *result_ptr += contribution;
 }
 
 template <typename Real, FourPointType type>

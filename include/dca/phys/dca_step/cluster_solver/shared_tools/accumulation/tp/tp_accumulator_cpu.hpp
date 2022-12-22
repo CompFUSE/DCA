@@ -611,9 +611,9 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
   }
   else {
     getGMultiband(0, k1_a, k2_a, w1_a, w2_a, G_a_);
-    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign_);
+    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign);
     getGMultiband(0, k1_b, k2_b, w1_b, w2_b, G_b_);
-    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign_);
+    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign);
 
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)
