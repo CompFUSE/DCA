@@ -12,9 +12,13 @@
 //
 // TODO: Remove code duplication in the two NiO specializations (symmetric and unsymmetric).
 
+#include <type_traits>
+
+#define IS3D std::enable_if_t< point_group_type::DIM == 3>
+
 // NiO symmetric
 template <typename point_group_type>
-class material_lattice<NiO_symmetric, point_group_type> {
+class material_lattice<NiO_symmetric, point_group_type, IS3D> {
 public:
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
@@ -66,7 +70,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<NiO_symmetric, point_group_type>::initializeRDCABasis() {
+double* material_lattice<NiO_symmetric, point_group_type, IS3D>::initializeRDCABasis() {
   static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
@@ -83,7 +87,7 @@ double* material_lattice<NiO_symmetric, point_group_type>::initializeRDCABasis()
 }
 
 template <typename point_group_type>
-double* material_lattice<NiO_symmetric, point_group_type>::initializeRLDABasis() {
+double* material_lattice<NiO_symmetric, point_group_type, IS3D>::initializeRLDABasis() {
   static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
@@ -100,7 +104,7 @@ double* material_lattice<NiO_symmetric, point_group_type>::initializeRLDABasis()
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<NiO_symmetric, point_group_type>::flavors() {
+std::vector<int> material_lattice<NiO_symmetric, point_group_type, IS3D>::flavors() {
   static std::vector<int> flavors(BANDS);
   flavors[0] = 0;
   flavors[1] = 0;
@@ -115,21 +119,21 @@ std::vector<int> material_lattice<NiO_symmetric, point_group_type>::flavors() {
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<NiO_symmetric, point_group_type>::aVectors() {
+std::vector<std::vector<double>> material_lattice<NiO_symmetric, point_group_type, IS3D>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    NiO_symmetric, point_group_type>::orbitalPermutations() {
+  NiO_symmetric, point_group_type, IS3D>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-void material_lattice<NiO_symmetric, point_group_type>::initializeHInteraction(
+void material_lattice<NiO_symmetric, point_group_type, IS3D>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandSpinDmn::dmn_size() != 2 * BANDS)
@@ -149,7 +153,7 @@ void material_lattice<NiO_symmetric, point_group_type>::initializeHInteraction(
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<NiO_symmetric, point_group_type>::initializeHSymmetry(
+void material_lattice<NiO_symmetric, point_group_type, IS3D>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
@@ -160,7 +164,7 @@ void material_lattice<NiO_symmetric, point_group_type>::initializeHSymmetry(
 
 template <typename point_group_type>
 template <class parameters_type>
-std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_type>::get_t_ij(
+std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_type, IS3D>::get_t_ij(
     parameters_type& parameters) {
   static std::vector<std::vector<double>> t_ij(0, std::vector<double>(0));
 
@@ -177,7 +181,7 @@ std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_ty
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void material_lattice<NiO_symmetric, point_group_type>::initializeH0(
+void material_lattice<NiO_symmetric, point_group_type, IS3D>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -237,7 +241,7 @@ void material_lattice<NiO_symmetric, point_group_type>::initializeH0(
 
 // NiO unsymmetric
 template <typename point_group_type>
-class material_lattice<NiO_unsymmetric, point_group_type> {
+class material_lattice<NiO_unsymmetric, point_group_type, IS3D> {
 public:
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
@@ -289,7 +293,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRDCABasis() {
+double* material_lattice<NiO_unsymmetric, point_group_type, IS3D>::initializeRDCABasis() {
   static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
@@ -306,7 +310,7 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRDCABasis
 }
 
 template <typename point_group_type>
-double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRLDABasis() {
+double* material_lattice<NiO_unsymmetric, point_group_type, IS3D>::initializeRLDABasis() {
   static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
@@ -323,7 +327,7 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initializeRLDABasis
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<NiO_unsymmetric, point_group_type>::flavors() {
+std::vector<int> material_lattice<NiO_unsymmetric, point_group_type, IS3D>::flavors() {
   static std::vector<int> flavors(BANDS);
 
   for (int i = 0; i < BANDS; i++)
@@ -332,21 +336,21 @@ std::vector<int> material_lattice<NiO_unsymmetric, point_group_type>::flavors() 
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<NiO_unsymmetric, point_group_type>::aVectors() {
+std::vector<std::vector<double>> material_lattice<NiO_unsymmetric, point_group_type, IS3D>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    NiO_unsymmetric, point_group_type>::orbitalPermutations() {
+    NiO_unsymmetric, point_group_type, IS3D>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-void material_lattice<NiO_unsymmetric, point_group_type>::initializeHInteraction(
+void material_lattice<NiO_unsymmetric, point_group_type, IS3D>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandSpinDmn::dmn_size() != 2 * BANDS)
@@ -366,7 +370,7 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initializeHInteraction
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<NiO_unsymmetric, point_group_type>::initializeHSymmetry(
+void material_lattice<NiO_unsymmetric, point_group_type, IS3D>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
@@ -377,7 +381,7 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initializeHSymmetry(
 
 template <typename point_group_type>
 template <class parameters_type>
-std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_type>::get_t_ij(
+std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_type, IS3D>::get_t_ij(
     parameters_type& parameters) {
   static std::vector<std::vector<double>> t_ij(0, std::vector<double>(0));
 
@@ -394,7 +398,7 @@ std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void material_lattice<NiO_unsymmetric, point_group_type>::initializeH0(
+void material_lattice<NiO_unsymmetric, point_group_type, IS3D>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {

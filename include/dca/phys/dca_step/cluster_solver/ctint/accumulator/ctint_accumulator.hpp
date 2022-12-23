@@ -34,7 +34,8 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <class Parameters, linalg::DeviceType device, typename REAL = double, DistType DIST = dca::DistType::NONE>
+template <class Parameters, linalg::DeviceType device, typename REAL = double,
+          DistType DIST = dca::DistType::NONE>
 class CtintAccumulator {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
@@ -49,7 +50,7 @@ public:
   using MFunctionTimePair = typename SpAccumulator::MFunctionTimePair;
   using FTauPair = typename SpAccumulator::FTauPair;
   using PaddedTimeDmn = typename SpAccumulator::PaddedTimeDmn;
-  
+
   template <class Data>
   CtintAccumulator(const Parameters& pars, const Data& data, int id = 0);
   CtintAccumulator(this_type&& other_one) = default;
@@ -74,8 +75,10 @@ public:
     sp_accumulator_.write(writer);
     writer.close_group();
   }
-    
-  const auto& get_sign() const { return sign_; }
+
+  const auto& get_sign() const {
+    return sign_;
+  }
 
   const auto& get_sign_times_M_r_w() const;
 
@@ -118,9 +121,11 @@ public:
     return accumulator::TpAccumulator<Parameters, DIST, device>::staticDeviceFingerprint();
   }
 
-  bool perform_tp_accumulation() const { return perform_tp_accumulation_; }
-  
-  float getFLOPs() const {
+  bool perform_tp_accumulation() const {
+    return perform_tp_accumulation_;
+  }
+
+  double getFLOPs() const {
     return flop_;
   }
 
@@ -147,13 +152,17 @@ private:
   bool ready_ = false;
   bool finalized_ = false;
 
-  float flop_ = 0.;
+  double flop_ = 0.;
+
+  // cache flop calculations to avoid doing them in hot functions
+  // Flops for a measurement
+  double measure_flops_ = 0.0;
 };
 
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 template <class Data>
-CtintAccumulator<Parameters, device, Real, DIST>::CtintAccumulator(const Parameters& pars, const Data& data,
-                                                       int id)
+CtintAccumulator<Parameters, device, Real, DIST>::CtintAccumulator(const Parameters& pars,
+                                                                   const Data& data, int id)
     : parameters_(pars),
       thread_id_(id),
       sp_accumulator_(pars),
@@ -166,7 +175,8 @@ CtintAccumulator<Parameters, device, Real, DIST>::CtintAccumulator(const Paramet
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 void CtintAccumulator<Parameters, device, Real, DIST>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ =
-    parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) || parameters_.dump_every_iteration());
+      parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) ||
+                                         parameters_.dump_every_iteration());
   accumulated_order_.reset();
   accumulated_sign_.reset();
 
@@ -175,6 +185,9 @@ void CtintAccumulator<Parameters, device, Real, DIST>::initialize(const int dca_
   if (perform_tp_accumulation_)
     tp_accumulator_.resetAccumulation(dca_iteration);
 
+  flop_ = 0.0;
+  measure_flops_ = M_[0].nrCols() * M_[0].nrCols() * 2 * 2 * 8 * 19;
+
   finalized_ = false;
 }
 
@@ -182,7 +195,15 @@ template <class Parameters, linalg::DeviceType device, typename Real, DistType D
 template <class Walker>
 void CtintAccumulator<Parameters, device, Real, DIST>::updateFrom(Walker& walker) {
   // Compute M.
+  auto m_size = M_[0].nrCols();
   walker.computeM(M_);
+
+  // if accumulating the M_ squared too + another term with 22 instead of 19
+  // first factor of 2 is because there are 2 M_
+  // second 2 is a factor from the device accumulation
+  // 8 is oversampling
+  if (m_size != M_[0].nrCols())
+    measure_flops_ = M_[0].nrCols() * M_[0].nrCols() * 2 * 2 * 8 * 19;
 
   if constexpr (device == linalg::GPU) {
     for (int s = 0; s < 2; ++s) {
@@ -217,6 +238,8 @@ void CtintAccumulator<Parameters, device, Real, DIST>::measure() {
   accumulated_order_.addSample(order());
 
   sp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
+  flop_ += measure_flops_;
+
   if (perform_tp_accumulation_)
     tp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
 
@@ -254,10 +277,10 @@ const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_M_r
 }
 
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
-  void CtintAccumulator<Parameters, device, Real, DIST>::clearSingleMeasurement() {
+void CtintAccumulator<Parameters, device, Real, DIST>::clearSingleMeasurement() {
   sp_accumulator_.clearSingleMeasurement();
 }
-  
+
 template <class Parameters, linalg::DeviceType device, typename Real, DistType DIST>
 const auto& CtintAccumulator<Parameters, device, Real, DIST>::get_sign_times_G4() const {
   if (!perform_tp_accumulation_)

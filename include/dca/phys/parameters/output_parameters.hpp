@@ -259,10 +259,10 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     io ::IOType io_type = io::stringToIOType(output_format_);
     switch (io_type) {
       case io::IOType::ADIOS2:
-        break;
       case io::IOType::HDF5:
+        break;
       case io::IOType::JSON:
-        throw std::runtime_error("Only ADIOS2 output format support dump-ever-iteration.");
+        throw std::runtime_error("JSON output format support dump-ever-iteration.");
     }
   }
 }

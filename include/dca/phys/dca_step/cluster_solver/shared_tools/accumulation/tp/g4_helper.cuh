@@ -56,10 +56,17 @@ public:
 
   // Maps the indices w1 w2 from the compact frequency domain of G4,
   // to the extended (positive for w1) domain used by G.
-  // In/Out: w1, w2.
+  // k1, k2 mapped to minusK(k1), minus(k2)
+  // In/Out: k1, k2, w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
   __device__ inline bool extendGIndices(int& k1, int& k2, int& w1, int& w2) const;
 
+  // Maps the indices w1 w2 from the compact frequency domain of G4,
+  // to the extended (positive for w1) domain used by G.
+  // In/Out: k1, k2, w1, w2.
+  // Returns: true if G(w1, w2) is stored as a complex conjugate.
+  __device__ inline bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
+  
   // Unroll the linear index of G4 as a function of band, band, band, band,
   // k1, k2, k_ex, w1, w2, w_ex.
   __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
@@ -111,6 +118,8 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   w1 += ext_size_;
   w2 += ext_size_;
   if (w1 >= n_w_ext_pos) {
+    if (w2 < 0)
+      w2 -= n_w_ext_pos;
     w1 -= n_w_ext_pos;
     return false;
   }
@@ -123,7 +132,22 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   }
 }
 
-__device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
+inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const {
+  const int n_w_ext_pos = ext_size_ + nw_pos_;
+  w1 += ext_size_;
+  w2 += ext_size_;
+  if (w1 >= n_w_ext_pos) {
+    w1 -= n_w_ext_pos;
+    return false;
+  }
+  else {
+    w1 = n_w_ext_pos - 1 - w1;
+    w2 = 2 * n_w_ext_pos - 1 - w2;
+    return true;
+  }
+}
+  
+inline __device__ void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
                                              unsigned& b3, unsigned& b4, unsigned& k1, unsigned& w1,
                                              unsigned& k2, unsigned& w2, unsigned& k_ex,
                                              unsigned& w_ex) const {

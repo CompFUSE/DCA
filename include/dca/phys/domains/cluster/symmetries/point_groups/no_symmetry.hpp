@@ -22,6 +22,7 @@ namespace domains {
 
 template <int DIMENSION>
 struct no_symmetry {
+  static constexpr int DIM = DIMENSION;
   typedef dca::util::Typelist<identity_group_operation<DIMENSION>> point_group_type_list;
 };
 

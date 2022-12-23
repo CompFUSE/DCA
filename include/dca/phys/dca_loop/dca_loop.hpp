@@ -208,9 +208,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
   auto& autoresume_filename = parameters.get_autoresume_filename();
   io::IOType iotype = io::extensionToIOType(autoresume_filename);
-  if (parameters.autoresume()) {  // Try to read state of previous run.
-                                  // This is not complete we should work based on extension
-    // do we want to decide what format we are reading?  Just from output format?
+  if (parameters.autoresume()) {
 #ifdef DCA_HAVE_ADIOS2
     if (iotype == io::IOType::ADIOS2)
       last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
@@ -285,7 +283,6 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     if (L2_Sigma_difference <
         parameters.get_dca_accuracy()) {  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
-      if (output_file_ && output_file_->isADIOS2())
         output_file_->end_step();
       break;
     }

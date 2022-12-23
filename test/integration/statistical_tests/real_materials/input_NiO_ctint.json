@@ -37,7 +37,7 @@
 
   "DCA" : {
     "accuracy" : 0,
-    "interacting-orbitals" : [ 0, 1, 2, 3, 4 ],
+      "interacting-orbitals" : [ 0, 1, 2, 3, 4, 5, 6, 7 ],
     "iterations" : 9,
     "self-energy-mixing-factor" : 0.75,
 

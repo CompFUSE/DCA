@@ -28,6 +28,7 @@
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/profiling/null_profiler.hpp"
@@ -43,6 +44,7 @@ constexpr char default_input[] =
 using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
+using LatticeKagome = phys::models::KagomeHubbard<phys::domains::no_symmetry<2>>;
 
 template <class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
           const char* input_name = default_input, DistType DT = DistType::NONE>

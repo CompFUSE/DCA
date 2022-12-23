@@ -56,8 +56,8 @@ public:
 
   std::string get_path();
 
-  void begin_step(){};
-  void end_step(){};
+  void begin_step();
+  void end_step();
 
   void erase(const std::string& name);
 
@@ -123,6 +123,15 @@ public:
     verbose_ = verbose;
   }
 
+  std::string makeFullName(const std::string& name) {
+    std::string full_name = get_path() + '/';
+    if (in_step_)
+      full_name += "step_" + std::to_string(step_) + "_" + name;
+    else
+      full_name += name;
+    return full_name;
+  }
+
 private:
   bool exists(const std::string& name) const;
 
@@ -141,6 +150,9 @@ private:
   bool verbose_;
 
   std::vector<hsize_t> size_check_;
+
+  int step_ = 0;
+  bool in_step_ = false;
 };
 
 template <typename arbitrary_struct_t>
@@ -153,7 +165,7 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, Scalar value) {
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims{1};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value);
@@ -162,7 +174,7 @@ bool HDF5Writer::execute(const std::string& name, Scalar value) {
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims{2};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value.first);
@@ -173,7 +185,7 @@ template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::vector<Scalar>& value,
                          [[maybe_unused]] const bool local) {
   if (value.size() > 0) {
-    std::string full_name = get_path() + "/" + name;
+    const std::string full_name{makeFullName(name)};
     std::vector<hsize_t> dims{value.size()};
     write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
     return true;
@@ -183,8 +195,7 @@ bool HDF5Writer::execute(const std::string& name, const std::vector<Scalar>& val
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
-  std::string full_name = get_path() + "/" + name;
-
+  const std::string full_name{makeFullName(name)};
   std::vector<hvl_t> data(value.size());
   for (int i = 0; i < value.size(); ++i) {
     data[i].p = const_cast<void*>(static_cast<const void*>((value[i].data())));
@@ -203,7 +214,7 @@ bool HDF5Writer::execute(const std::string& name, const std::vector<std::array<S
     return true;
 
   std::vector<hsize_t> dims{value.size(), n};
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
   return true;
@@ -236,8 +247,7 @@ bool HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   if (f.size() == 0)
     return true;
 
-  const std::string full_name = get_path() + "/" + name;
-
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims;
   for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
@@ -258,7 +268,7 @@ bool HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   auto dataset =
       write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
 
@@ -277,8 +287,7 @@ bool HDF5Writer::execute(const std::string& name,
   for (int i = 0; i < A.nrRows(); ++i)
     for (int j = 0; j < A.nrCols(); ++j)
       linearized[linindex++] = A(i, j);
-
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 
   addAttribute(dataset, "name", A.get_name());

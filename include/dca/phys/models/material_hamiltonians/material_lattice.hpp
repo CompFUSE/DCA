@@ -29,10 +29,16 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
+template <typename T>
+using Is3D =
+    std::enable_if_t<std::conditional<T::DIM == 3, std::true_type, std::false_type>::value, bool>;
+template <typename T>
+using Is2D = std::enable_if_t<std::is_floating_point<T>::value, bool>;
+
 enum material_name_type { NiO_symmetric, NiO_unsymmetric, CuO2, CuO2_1band, SrVO3 };
 
 // Empty class template
-template <material_name_type name, typename point_group_type>
+template <material_name_type name, typename point_group_type, typename = void>
 class material_lattice {};
 
 // Specialization for CuO2
@@ -47,8 +53,8 @@ class material_lattice {};
 // Specialization for SrVO3
 #include "SrVO3/material_lattice_SrVO3.inc"
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_LATTICE_HPP

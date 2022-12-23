@@ -159,7 +159,8 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
       for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
         std::vector<double> k = k_dmn_t::get_elements()[i];
         std::vector<double> trafo_k(DIMENSION, 0);
-
+        auto sym_elem = sym_super_cell_dmn_t::get_elements()[l];
+        auto kelems = k_dmn_t::get_elements();
         sym_super_cell_dmn_t::get_elements()[l].linear_transform(&k[0], &trafo_k[0]);
 
         k_symmetry_matrix(i, j, l).first = find_k_index(trafo_k);
@@ -190,6 +191,8 @@ int set_symmetry_matrices<base_cluster_type>::find_k_index(std::vector<double> k
   */
 
   k = cluster_operations::translate_inside_cluster(k, k_cluster_type::get_super_basis_vectors());
+
+  auto k_cluster_elements = k_cluster_type::get_elements();
 
   int index = cluster_operations::index(k, k_cluster_type::get_elements(), base_cluster_type::SHAPE);
 
@@ -277,8 +280,8 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell() {
   }
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_HPP
