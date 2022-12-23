@@ -29,11 +29,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure
-        run: tests/test_automation/github-actions/ci/run_step.sh configure
+        run: test/test_automation/ci/run_step.sh configure
 
       - name: Build
-        run: tests/test_automation/github-actions/ci/run_step.sh build
+        run: test/test_automation/ci/run_step.sh build
 
       - name: Test
-        run: tests/test_automation/github-actions/ci/run_step.sh test
+        run: test/test_automation/ci/run_step.sh test
 
