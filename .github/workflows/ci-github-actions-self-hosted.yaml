@@ -25,64 +25,15 @@ jobs:
 #            GCC12-MPI-NoMPI-CUDA-Real-Debug-Full,
 
     steps:
-      # Request repo info, required since issue_comment doesn't point at PR commit, but develop
-      - name: GitHub API Request
-        if: steps.check.outputs.triggered == 'true'
-        id: request
-        uses: octokit/request-action@v2.1.0
-        with:
-          route: ${{github.event.issue.pull_request.url}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      # Create a separate PR status pointing at GitHub Actions tab URL
-      # just like any other third-party service
-      - name: Create PR status
-        if: steps.check.outputs.triggered == 'true'
-        uses: Sibz/github-status-action@v1
-        with:
-          authToken: ${{secrets.GITHUB_TOKEN}}
-          context: "volta-cidev-node ${{ matrix.jobname }}"
-          state: "pending"
-          sha: ${{fromJson(steps.request.outputs.data).head.sha}}
-          target_url: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
-
-      - name: Get PR information
-        if: steps.check.outputs.triggered == 'true'
-        id: pr_data
-        run: |
-          echo "::set-output name=branch::${{ fromJson(steps.request.outputs.data).head.ref }}"
-          echo "::set-output name=repo_name::${{ fromJson(steps.request.outputs.data).head.repo.full_name }}"
-          echo "::set-output name=repo_clone_url::${{ fromJson(steps.request.outputs.data).head.repo.clone_url }}"
-          echo "::set-output name=repo_ssh_url::${{ fromJson(steps.request.outputs.data).head.repo.ssh_url }}"
-
       - name: Checkout PR branch
-        if: steps.check.outputs.triggered == 'true'
         uses: actions/checkout@v3
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          repository: ${{fromJson(steps.request.outputs.data).head.repo.full_name}}
-          ref: ${{steps.pr_data.outputs.branch}}
 
       - name: Configure
-        if: steps.check.outputs.triggered == 'true'
         run: tests/test_automation/github-actions/ci/run_step.sh configure
 
       - name: Build
-        if: steps.check.outputs.triggered == 'true'
         run: tests/test_automation/github-actions/ci/run_step.sh build
 
       - name: Test
-        if: steps.check.outputs.triggered == 'true'
         run: tests/test_automation/github-actions/ci/run_step.sh test
-
-      - name: Report PR status
-        if: always() && steps.check.outputs.triggered == 'true'
-        uses: Sibz/github-status-action@v1
-        with:
-          authToken: ${{secrets.GITHUB_TOKEN}}
-          context: "ornl-sulfur CI ${{matrix.jobname}}"
-          state: ${{job.status}}
-          sha: ${{fromJson(steps.request.outputs.data).head.sha}}
-          target_url: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
 
