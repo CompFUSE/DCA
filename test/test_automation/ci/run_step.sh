@@ -57,9 +57,9 @@ case "$1" in
     if [[ "$HOST_NAME" =~ (volta-cidev-node) ]]
     then
       # use gcc-12
-      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-9.4.0/binutils-2.38-ljwszfsihiioxxusqiwg76hsr3t7eazd/bin:$PATH
+      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-9.4.0/binutils-2.38-ljwszfsihiioxxusqiwg76hsr3t7eazd/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.8.0-3fgvnzslqxogwa5djfpvthlj2ebs3w4f/bin:$PATH
       export LD_LIBRARY_PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/lib64:$LD_LIBRARY_PATH
-
+      export CUDA_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.8.0-3fgvnzslqxogwa5djfpvthlj2ebs3w4f
       export MAGMA_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/magma-2.7.0-hzsyoya4k46b7ufbtccl7bh3yxgubcxd
       export HDF5_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/hdf5-1.12.2-lisnrzzj7stud3m3okbsotk7eume7665
       export OPENBLAS_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openblas-0.3.21-hxlxmz56qgkexpvfku2dugwacjf2auvl
@@ -78,7 +78,7 @@ case "$1" in
               -DCMAKE_CXX_COMPILER=g++ \
 	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-lgfortran" \
               -DDCA_WITH_MPI=1 \
-	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
+	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${CUDA_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 -DDCA_WITH_ADIOS2=1 \
