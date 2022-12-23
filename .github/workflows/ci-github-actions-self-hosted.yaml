@@ -26,17 +26,6 @@ jobs:
 #            GCC12-MPI-NoMPI-CUDA-Real-Debug-Full,
 
     steps:
-      - name: Verify actor
-        # Only trigger for certain "actors" (those commenting the PR, not the PR originator)
-        # this is in-line with the current workflow
-        env:
-          ACTOR_TOKEN: ${{secrets.TOKENIZER}}${{github.actor}}${{secrets.TOKENIZER}}
-          SECRET_ACTORS: ${{secrets.CI_GPU_ACTORS}}
-        if: contains(env.SECRET_ACTORS, env.ACTOR_TOKEN)
-        id: check
-        run: |
-          echo "::set-output name=triggered::true"
-
       # Request repo info, required since issue_comment doesn't point at PR commit, but develop
       - name: GitHub API Request
         if: steps.check.outputs.triggered == 'true'
