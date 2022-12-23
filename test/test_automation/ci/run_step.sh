@@ -64,6 +64,7 @@ case "$1" in
       export HDF5_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/hdf5-1.12.2-lisnrzzj7stud3m3okbsotk7eume7665
       export OPENBLAS_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openblas-0.3.21-hxlxmz56qgkexpvfku2dugwacjf2auvl
       export ADIOS2_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/adios2-2.8.3-ln3ke2w6zishdslde526mvwjuurr4ayh
+      export MPI_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openmpi-2.1.6-24emdbitdevs7ecwquhtc6433ausfff7
       # Make current environment variables available to subsequent steps
       echo "PATH=$PATH" >> $GITHUB_ENV
       echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
@@ -77,7 +78,7 @@ case "$1" in
               -DCMAKE_CXX_COMPILER=g++ \
 	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-lgfortran" \
               -DDCA_WITH_MPI=1 \
-	      -DCMAKE_PREFIX_PATH=${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
+	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 -DDCA_WITH_ADIOS2=1 \
