@@ -678,7 +678,6 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int
       // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
       return 26. * n_updates;
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-
       // Each update of a G4 entry involves 3 complex additions and 4 complex multiplications.
       return 32 * n_updates;
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
