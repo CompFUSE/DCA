@@ -82,8 +82,6 @@ protected:
   using BaseGpu::ndft_objs_;
   using BaseGpu::workspaces_;
   using BaseGpu::G_;
-  using BaseGpu::G_a_;
-  using BaseGpu::G_b_;
   using BaseGpu::space_trsf_objs_;
   using BaseGpu::nr_accumulators_;
   using BaseGpu::event_;

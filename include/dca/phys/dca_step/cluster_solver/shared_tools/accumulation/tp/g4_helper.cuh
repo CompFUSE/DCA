@@ -66,7 +66,6 @@ public:
   // In/Out: k1, k2, w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
   __device__ inline bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
-
   
   // Unroll the linear index of G4 as a function of band, band, band, band,
   // k1, k2, k_ex, w1, w2, w_ex.

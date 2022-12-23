@@ -34,7 +34,7 @@ if (CMAKE_CUDA_COMPILER)
   list(APPEND DCA_GPU_LIBS CUDA::cudart CUDA::cublas)
   set(DCA_CUDA_PROPERTIES "CMAKE_CUDA_ARCHITECTURES 70")
   list(APPEND CUDAFLAGS "--expt-relaxed-constexpr" ${DCA_CUDA_OPTIONS})
-  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_STANDARD 17)
   set(CVD_LAUNCHER "" CACHE INTERNAL "launch script for setting the Cuda visible devices.")
   # Use the following script for systems with multiple gpus visible from a rank.
   # set(CVD_LAUNCHER "test/cvd_launcher.sh" CACHE INTERNAL "")

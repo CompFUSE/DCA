@@ -118,8 +118,6 @@ protected:
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
   std::array<RMatrix, 2> G_;
-  std::array<RMatrix, 2> G_a_;
-  std::array<RMatrix, 2> G_b_;
 
   const int nr_accumulators_;
 
@@ -141,7 +139,7 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
-      G_a_{n_bands_,n_bands_}, G_b_{n_bands_,n_bands_},
+
       nr_accumulators_(pars.get_accumulators()),
       thread_id_(thread_id) {
   initializeG4Helpers();
