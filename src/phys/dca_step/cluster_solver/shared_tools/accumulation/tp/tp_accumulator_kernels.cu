@@ -467,9 +467,21 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(g4_helper.addWex(w1, w_ex));
       int k1_a = k1;
       int k2_a = g4_helper.addKex(k1, k_ex);
-      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-      const int i_a = b1 + nb * k1_a + no * w1_a;
-      const int j_a = b3 + nb * k2_a + no * w2_a;
+      bool conj_a = false;
+      if (g4_helper.get_bands() == 1)
+        conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      else
+        conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+      if (conj_a) {
+        i_a += b4;
+        j_a += b2;
+      }
+      else {
+        i_a += b2;
+        j_a += b4;
+      }
 
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
@@ -478,9 +490,22 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(w2);
       int k1_b = g4_helper.addKex(k2, k_ex);
       int k2_b = k2;
-      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-      const int i_b = b2 + nb * k1_b + no * w1_b;
-      const int j_b = b4 + nb * k2_b + no * w2_b;
+      bool conj_b = false;
+      if (g4_helper.get_bands() == 1)
+        conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      else
+        conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      if (conj_b) {
+        i_b += b1;
+        j_b += b3;
+      }
+      else {
+        i_b += b3;
+        j_b += b1;
+      }
 
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
@@ -493,10 +518,22 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_a(w2);
       int k1_a(k1);
       int k2_a(k2);
-      const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-      const int i_a = b1 + nb * k1_a + no * w1_a;
-      const int j_a = b4 + nb * k2_a + no * w2_a;
 
+      bool conj_a = false;
+      if (g4_helper.get_bands() == 1)
+        conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      else
+        conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+      if (conj_a) {
+        i_a += b4;
+        j_a += b1;
+      }
+      else {
+        i_a += b1;
+        j_a += b4;
+      }
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
@@ -504,9 +541,23 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       int w2_b(g4_helper.addWex(w1, w_ex));
       int k1_b = g4_helper.addKex(k2, k_ex);
       int k2_b = g4_helper.addKex(k1, k_ex);
-      const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-      const int i_b = b2 + nb * k1_b + no * w1_b;
-      const int j_b = b3 + nb * k2_b + no * w2_b;
+
+      bool conj_b = false;
+      if (g4_helper.get_bands() == 1)
+        conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      else
+        conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      if (conj_b) {
+        i_b += b3;
+        j_b += b2;
+      }
+      else {
+        i_b += b2;
+        j_b += b3;
+      }
 
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
@@ -520,9 +571,21 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int w2_a(g4_helper.addWex(w1, w_ex));
     int k1_a = k1;
     int k2_a = g4_helper.addKex(k1, k_ex);
-    const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-    const int i_a = b1 + nb * k1_a + no * w1_a;
-    const int j_a = b3 + nb * k2_a + no * w2_a;
+    bool conj_a = false;
+    if (g4_helper.get_bands() == 1)
+      conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    else
+      conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+    int i_a = nb * k1_a + no * w1_a;
+    int j_a = nb * k2_a + no * w2_a;
+    if (conj_a) {
+      i_a += b4;
+      j_a += b2;
+    }
+    else {
+      i_a += b2;
+      j_a += b4;
+    }
 
     const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
     const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
@@ -531,9 +594,22 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int w2_b(w2);
     int k1_b = g4_helper.addKex(k2, k_ex);
     int k2_b = k2;
-    const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-    const int i_b = b2 + nb * k1_b + no * w1_b;
-    const int j_b = b4 + nb * k2_b + no * w2_b;
+    bool conj_b = false;
+    if (g4_helper.get_bands() == 1)
+      conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    else
+      conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+    int i_b = nb * k1_b + no * w1_b;
+    int j_b = nb * k2_b + no * w2_b;
+    if (conj_b) {
+      i_b += b1;
+      j_b += b3;
+    }
+    else {
+      i_b += b3;
+      j_b += b1;
+    }
 
     const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
     const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
@@ -546,10 +622,21 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int w2_a(w2);
     int k1_a(k1);
     int k2_a(k2);
-    const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-    const int i_a = b1 + nb * k1_a + no * w1_a;
-    const int j_a = b3 + nb * k2_a + no * w2_a;
-
+    bool conj_a = false;
+    if (g4_helper.get_bands() == 1)
+      conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    else
+      conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+    int i_a = nb * k1_a + no * w1_a;
+    int j_a = nb * k2_a + no * w2_a;
+    if (conj_a) {
+      i_a += b4;
+      j_a += b2;
+    }
+    else {
+      i_a += b2;
+      j_a += b4;
+    }
     const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
     const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
@@ -557,9 +644,22 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int w2_b(g4_helper.wexMinus(w2, w_ex));
     int k1_b = g4_helper.kexMinus(k1, k_ex);
     int k2_b = g4_helper.kexMinus(k2, k_ex);
-    const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-    const int i_b = b2 + nb * k1_b + no * w1_b;
-    const int j_b = b4 + nb * k2_b + no * w2_b;
+    bool conj_b = false;
+    if (g4_helper.get_bands() == 1)
+      conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    else
+      conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+    int i_b = nb * k1_b + no * w1_b;
+    int j_b = nb * k2_b + no * w2_b;
+    if (conj_b) {
+      i_b += b1;
+      j_b += b3;
+    }
+    else {
+      i_b += b3;
+      j_b += b1;
+    }
 
     const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
     const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);

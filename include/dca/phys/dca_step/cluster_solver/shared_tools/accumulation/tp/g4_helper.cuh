@@ -146,9 +146,8 @@ inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1, int& k2, int& 
     return true;
   }
 }
-
   
-__device__ inline void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
+inline __device__ void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
                                              unsigned& b3, unsigned& b4, unsigned& k1, unsigned& w1,
                                              unsigned& k2, unsigned& w2, unsigned& k_ex,
                                              unsigned& w_ex) const {
