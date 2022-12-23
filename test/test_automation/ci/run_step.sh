@@ -78,6 +78,7 @@ case "$1" in
               -DCMAKE_C_COMPILER=gcc \
               -DCMAKE_CXX_COMPILER=g++ \
 	      -DCMAKE_CUDA_COMPILER=${CUDA_HOME}/bin/nvcc \
+	      -DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler \
 	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-lgfortran" \
               -DDCA_WITH_MPI=1 \
 	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${CUDA_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
