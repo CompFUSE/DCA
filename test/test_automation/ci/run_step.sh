@@ -57,7 +57,7 @@ case "$1" in
     if [[ "$HOST_NAME" =~ (volta-cidev-node) ]]
     then
       # use gcc-12
-      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:$PATH
+      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-9.4.0/binutils-2.38-ljwszfsihiioxxusqiwg76hsr3t7eazd/bin:$PATH
       export LD_LIBRARY_PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/lib64:$LD_LIBRARY_PATH
 
       export MAGMA_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/magma-2.7.0-hzsyoya4k46b7ufbtccl7bh3yxgubcxd
@@ -75,7 +75,7 @@ case "$1" in
         cmake -GNinja \
               -DCMAKE_C_COMPILER=gcc \
               -DCMAKE_CXX_COMPILER=g++ \
-	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-fuse-ld=lld -lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-fuse-ld=lld -lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-fuse-ld=lld -lgfortran" \
+	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-lgfortran" \
               -DDCA_WITH_MPI=1 \
 	      -DCMAKE_PREFIX_PATH=${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
