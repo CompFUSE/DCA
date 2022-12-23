@@ -87,7 +87,7 @@ case "$1" in
 	      -DTEST_RUNNER="mpiexec" \
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 -DDCA_WITH_ADIOS2=1 \
 	      -DDCA_WITH_TESTS_FAST=1 \
-	      -DLAPACK_LIBRARIES=${OPENBLAS_ROOT}/lib64/libopenblas.a \
+	      -DLAPACK_LIBRARIES=${OPENBLAS_ROOT}/lib/libopenblas.a \
               ${GITHUB_WORKSPACE}
       ;;
     esac
