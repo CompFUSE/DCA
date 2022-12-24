@@ -110,6 +110,7 @@ case "$1" in
     
     # Run only deterministic tests (reasonable for CI) by default
     TEST_LABEL=""
+    export MPI_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openmpi-4.1.4-mbv4sqfzxaqfwcyhjaaammhsd56dtvl2
     export PATH=${MPI_ROOT}/bin:${PATH}
     cd ${GITHUB_WORKSPACE}/../dca-build
     
