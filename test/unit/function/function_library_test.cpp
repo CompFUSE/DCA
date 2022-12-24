@@ -14,6 +14,7 @@
 // TODO: Move domains-only tests to separate files and rename this file to function_test.cpp and the
 //       test cases to FunctionTest.
 
+#include <array>
 #include <cassert>
 #include <complex>
 #include <cstdio>

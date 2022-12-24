@@ -12,6 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/cluster_helper.cuh"
 
 #include <mutex>
+#include <array>
 #include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 
