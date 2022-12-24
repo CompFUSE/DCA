@@ -5,16 +5,16 @@ HOST_NAME=$(hostname -s)
 
 case "$1" in 
 
-  # Configure qmcpack using cmake out-of-source builds 
+  # Configure DCA++ using cmake out-of-source builds 
   configure)
     
     if [ -d ${GITHUB_WORKSPACE}/../dca-build ]
     then
-      echo "Found existing out-of-source build directory ${GITHUB_WORKSPACE}/../qmcpack-build, removing"
+      echo "Found existing out-of-source build directory ${GITHUB_WORKSPACE}/../dca-build, removing"
       rm -fr ${GITHUB_WORKSPACE}/../dca-build
     fi
     
-    echo "Creating new out-of-source build directory ${GITHUB_WORKSPACE}/../qmcpack-build"
+    echo "Creating new out-of-source build directory ${GITHUB_WORKSPACE}/../dca-build"
     cd ${GITHUB_WORKSPACE}/..
     mkdir dca-build
     cd dca-build
@@ -110,8 +110,8 @@ case "$1" in
     
     # Run only deterministic tests (reasonable for CI) by default
     TEST_LABEL=""
-    
-    cd ${GITHUB_WORKSPACE}/../qmcpack-build
+    export PATH=${MPI_ROOT}/bin:${PATH}
+    cd ${GITHUB_WORKSPACE}/../dca-build
     
     # Add ctest concurrent parallel jobs 
     # Default for Linux GitHub Action runners
