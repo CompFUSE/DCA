@@ -62,11 +62,11 @@ case "$1" in
       export CUDA_HOME=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.8.0-3fgvnzslqxogwa5djfpvthlj2ebs3w4f
       export CUDAHOSTCXX=g++
       export MAGMA_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/magma-2.7.0-hzsyoya4k46b7ufbtccl7bh3yxgubcxd
-      export HDF5_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/hdf5-1.12.2-lisnrzzj7stud3m3okbsotk7eume7665
+      export HDF5_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/hdf5-1.12.2-p5ew5d7whyvd7ka3bkf2q7rixojq5voy
       export OPENBLAS_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openblas-0.3.21-hxlxmz56qgkexpvfku2dugwacjf2auvl
-      export ADIOS2_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/adios2-2.8.3-ln3ke2w6zishdslde526mvwjuurr4ayh
-      export MPI_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openmpi-2.1.6-24emdbitdevs7ecwquhtc6433ausfff7
-      export FFTW3_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/fftw-3.3.10-prbfydyn57vsnnbgrfsxhjvxzr77qkj2
+      export ADIOS2_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/adios2-2.8.3-ba3mpxuh435rvisxhorzotb53m3dgfuv
+      export MPI_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openmpi-4.1.4-mbv4sqfzxaqfwcyhjaaammhsd56dtvl2
+      export FFTW3_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/fftw-3.3.10-hdyb4eim5ngsgkhqyiyl5ggispxqmzo5
       # Make current environment variables available to subsequent steps
       echo "PATH=$PATH" >> $GITHUB_ENV
       echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
