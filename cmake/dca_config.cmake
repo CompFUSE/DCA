@@ -1,6 +1,14 @@
 ################################################################################
-# Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
-#         Giovanni Badlduzzi (gbalduzz@itp.phys.ethz.ch)
+# Copyright (C) 2023 ETH Zurich
+# Copyright (C) 2023 UT-Battelle, LLC
+# All rights reserved.
+#
+# See LICENSE for terms of usage.
+# See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+#
+# Authors: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#          Giovanni Badlduzzi (gbalduzz@itp.phys.ethz.ch)
+#          Peter Doak (doakpw@ornl.gov
 #
 # Build options for DCA++.
 
@@ -156,7 +164,7 @@ elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
 elseif (DCA_LATTICE STREQUAL "material")
-  set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::NiO_unsymmetric, dca::phys::domains::${DCA_POINT_GROUP}>")
+  set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::${DCA_POINT_GROUP}>")
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/material_hamiltonians/material_lattice.hpp")
   set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
