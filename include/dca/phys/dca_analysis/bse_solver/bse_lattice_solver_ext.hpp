@@ -82,6 +82,8 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_Q,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
+  using KQFineDmn = typename ParametersType::KQFineDmn;
+
   using host_vertex_r_cluster_type =
       domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                               domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
@@ -94,6 +96,10 @@ public:
   using SharedMatrixDmn = func::dmn_variadic<SharedDmn, SharedDmn>;
   using GammaLatticeDmn = SharedDmn;
   using Chi0LatticeOneQDmn = func::dmn_variadic<SharedDmn, WExDmn>;
+
+  using NuDmn = typename ParametersType::NuDmn;
+  using H0QDmn = func::dmn_variadic<NuDmn, NuDmn, KQFineDmn>;
+
   using Chi0LatticeDmn = func::dmn_variadic<Chi0LatticeOneQDmn, q_HOST>;
 
   using Chi0LatticeOneQ = func::function<std::complex<ScalarType>, Chi0LatticeOneQDmn>;
@@ -128,6 +134,9 @@ public:
   void computeChi0LatticeOverHost();
   /** Compute Chi0LatticeSingleSite as in the python miniapp */
   void computeChi0LatticeSingleSite(const std::vector<double>& chi_q, Chi0LatticeOneQ& cloq);
+
+  /// Single site but doesn't ignore Nu
+  void computeChi0LatticeBetter(const std::vector<double>& chi_q, Chi0LatticeOneQ& cloq);
 
   template <typename CEDmn, typename KEXD, typename WEXD>
   void computeGammaLattice(
@@ -180,6 +189,9 @@ private:
   /// for optimization of fine k grid for chi_0_lattice calculation
   static constexpr int n_k_{100};
   static constexpr int n_k_grid_{n_k_ * n_k_};
+
+  // this will replace ek_
+  func::function<ScalarType, H0QDmn> h0_k_fine_;
 
   std::vector<double> ek_;
   std::vector<std::array<double, 2>> k_grid_fine_;
@@ -240,6 +252,7 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::initialize() 
       ++iter_elements;
     }
 
+  // what we need to do here is actually create a q shifted H_0
   std::transform(k_grid_fine_.begin(), k_grid_fine_.end(), ek_.begin(),
                  makeDispersionFunc({0.0, 0.0}));
 }
@@ -330,6 +343,65 @@ void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0La
         c2 = 1.0 / (c2 + (mu - ekpq[ik] - sigma(0, 0, 0, iwPlusiwm)));
         cc[ik] = -c1 * c2;
       }
+      std::complex<double> chi0_elem =
+          std::accumulate(cc.begin(), cc.end(), std::complex<double>{0, 0});
+      cloq(0, 0, iwn, wex_ind) = chi0_elem * inv_n_k_grid;
+    }
+  }
+}
+
+template <typename ParametersType, typename DcaDataType, typename ScalarType>
+void BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>::computeChi0LatticeBetter(
+    const std::vector<double>& chi_q, Chi0LatticeOneQ& cloq) {
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
+
+  func::function<ScalarType, H0QDmn> h0_q_fine;
+
+  // std::cout << "WVertexDmn::dmn_size()" << WVertexDmn::dmn_size() << '\n';
+  int n_w_G4 = WVertexDmn::dmn_size();
+  int mid_index_w_G40 = n_w_G4 / 2;
+
+  int n_w_G = WDmn::dmn_size();
+  int mid_index_w_G0 = n_w_G / 2;
+
+  Lattice::initializeH0WithQ(parameters, h0_q_fine, chi_q);
+
+  auto& w_set = WDmn::get_elements();
+  auto& wn_set = WVertexDmn::get_elements();
+  double inv_beta = 1 / parameters.get_beta();
+#ifndef NDEBUG
+  // auto& wex_set = WExDmn::get_elements();
+  // std::cout << "WVertexDmn::elements: " << vectorToString(wn_set) << '\n';
+  // std::cout << "WExDmn::elements: " << vectorToString(wex_set) << '\nf';
+  // std::vector<double> wex_translated(wex_set.size(), 0.0);
+  // std::transform(wex_set.begin(), wex_set.end(), wex_translated.begin(),
+  //                [inv_beta](int wex_ind) { return 2 * wex_ind * M_PI * inv_beta; });
+  // std::cout << "WEx::elements translated: " << vectorToString(wex_translated) << '\n';
+#endif
+
+  double mu = parameters.get_chemical_potential();
+  std::complex<double> inv_n_k_grid{1.0 / static_cast<double>(n_k_grid_), 0.0};
+
+  func::function<std::complex<double>, H0QDmn> cc;
+
+  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind) {
+    for (int iwn = 0; iwn < n_w_G4; ++iwn) {
+      // wn is an actual frequency from WVertexDmn
+      int i_wG = iwn - mid_index_w_G40 + mid_index_w_G0;
+      int iwPlusiwm = std::min(std::max(i_wG + wex_ind, 0), n_w_G - 1);  // iwn + iwm
+      double wex = 2 * wex_ind * M_PI * inv_beta;
+      assert((wex + wn_set[iwn]) - w_set[iwPlusiwm] < 0.0001);
+      for (int ik = 0; ik < KQFineDmn::size(); ++ik)
+        for (int nu_2 = 0; nu_2 < NuDmn::size(); ++nu_2)
+          for (int nu_1 = 0; nu_1 < NuDmn::size(); ++nu_1) {
+            auto& sigma = dca_data_.Sigma;
+            std::complex<double> c1{0, wn_set[iwn]};
+            std::complex<double> c2{0, wex + wn_set[iwn]};
+            // assert(ek[ik] != ekpq[ik]);
+            c1 = 1.0 / (c1 + (mu - h0_k_fine_(nu_1, nu_2, ik) - sigma(nu_1, nu_2, 0, i_wG)));
+            c2 = 1.0 / (c2 + (mu - h0_q_fine(nu_1, nu_2, ik) - sigma(nu_1, nu_2, 0, iwPlusiwm)));
+            cc(nu_1, nu_2, ik) = -c1 * c2;
+          }
       std::complex<double> chi0_elem =
           std::accumulate(cc.begin(), cc.end(), std::complex<double>{0, 0});
       cloq(0, 0, iwn, wex_ind) = chi0_elem * inv_n_k_grid;

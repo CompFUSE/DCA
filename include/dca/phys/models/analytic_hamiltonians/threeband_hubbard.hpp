@@ -69,14 +69,20 @@ public:
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
-
+  
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
   template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initializeH0(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+      func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+  static void initializeH0WithQ(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+      func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type q);
 };
 
 template <typename PointGroupType>
@@ -204,19 +210,36 @@ void ThreebandHubbard<PointGroupType>::initializeHSymmetry(func::function<int, d
   //  H_symmetries(1, 1, 1, 1) = 1; // at i, G of spin 0 or 1 has the same values.
 }
 
+
 template <typename PointGroupType>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void ThreebandHubbard<PointGroupType>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  typename KDmn::element_type default_q;
+  initializeH0WithQ(parameters, H_0, default_q);
+}
+
+/** generate the actual H0 with q-shift
+ *  assumption that the origin of KDmn is the default initialization of KDmn::element_type
+ */
+template <typename PointGroupType>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+void ThreebandHubbard<PointGroupType>::initializeH0WithQ(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type q) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Three-band Hubbard model has three bands.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
-  const auto& k_vecs = KDmn::get_elements();
+  std::vector<typename KDmn::element_type> k_vecs(KDmn::get_elements());
 
+  for( auto & k_elem : k_vecs)
+    std::transform(k_elem.cbegin(), k_elem.cend(), q.begin(), k_elem.begin(), [](auto& k, auto q_elem) { return k + q_elem; });
+  
   const auto t_pd = parameters.get_t_pd();
   const auto t_pp = parameters.get_t_pp();
   const auto ep_d = parameters.get_ep_d();
@@ -228,6 +251,7 @@ void ThreebandHubbard<PointGroupType>::initializeH0(
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
+    
     const auto valdpx = 2. * I * t_pd * std::sin(k[0] / 2.);
     const auto valdpy = -2. * I * t_pd * std::sin(k[1] / 2.);
     const auto valpxpy = 4. * t_pp * std::sin(k[0] / 2.) * std::sin(k[1] / 2.);

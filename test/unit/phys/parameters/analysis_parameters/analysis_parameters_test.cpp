@@ -26,6 +26,8 @@ TEST(AnalysisParametersTest, DefaultValues) {
   EXPECT_EQ(1.5, pars.get_projection_cut_off_radius());
   std::vector<std::vector<int>> q_host_check{{1, 0}, {0, 1}};
   EXPECT_EQ(q_host_check, pars.get_q_host());
+  std::vector<std::vector<int>> q_host_fine_check{{10, 0}, {0, 10}};
+  EXPECT_EQ(q_host_fine_check, pars.get_q_host_fine());
 }
 
 TEST(AnalysisParametersTest, ReadAll) {
@@ -47,4 +49,7 @@ TEST(AnalysisParametersTest, ReadAll) {
 
   std::vector<std::vector<int>> q_host_check{{3, 3}, {3, -3}};
   EXPECT_EQ(q_host_check, pars.get_q_host());
+  std::vector<std::vector<int>> q_host_fine_check{{100, 0}, {0, 100}};
+  EXPECT_EQ(q_host_fine_check, pars.get_q_host_fine());
+
 }

@@ -68,6 +68,13 @@ public:
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+  static void initializeH0WithQ(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+      func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q);
+
 };
 
 template <typename point_group_type>
@@ -154,7 +161,17 @@ template <typename ParametersType, typename ScalarType, typename BandDmn, typena
 void square_lattice<point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  typename KDmn::element_type default_q;
+  initializeH0WithQ(parameters, H_0, default_q);
+}
+  
+template <typename point_group_type>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+void square_lattice<point_group_type>::initializeH0WithQ(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Square lattice has one band.");
   if (SpinDmn::dmn_size() != 2)

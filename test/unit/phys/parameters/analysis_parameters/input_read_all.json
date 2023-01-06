@@ -5,5 +5,6 @@
         "project-onto-crystal-harmonics": true,
         "projection-cut-off-radius": 3.0,
 	"q-host" : [[3, 3], [3, -3]]
+	"q-host" : [[100, 0], [0, 100]]
     }
 }

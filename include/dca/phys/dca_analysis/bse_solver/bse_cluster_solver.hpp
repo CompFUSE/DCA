@@ -43,9 +43,9 @@ public:
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA = typename ParametersType::KClusterDmn;
+  //      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+  //                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, WVertexDmn>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
@@ -199,7 +199,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
         G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7],
            0, 0);
   }
-  
+
   delete[] coor_1;
   delete[] coor_2;
 }
@@ -312,18 +312,18 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_clu
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
-  //ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
+  // ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
 
   int N = cluster_eigenvector_dmn.get_size();
 
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_inv(N);
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_0_inv(N);
 
-  //G_II *= renorm;
+  // G_II *= renorm;
   dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II(0), N, G4_inv);
   dca::linalg::matrixop::inverse(G4_inv);
 
-  //G_II_0 *= renorm;
+  // G_II_0 *= renorm;
   dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II_0(0), N, G4_0_inv);
   dca::linalg::matrixop::inverse(G4_0_inv);
 
