@@ -282,6 +282,7 @@ TEST(ReaderWriterTest, NonAccessibleFile) {
     dca::io::Writer writer(*concurrency_ptr, type);
 #endif
     H5::Exception::dontPrint();
+    // Exception type doesn't seem portable
     if (type != "ADIOS2")
       EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
 
@@ -290,7 +291,8 @@ TEST(ReaderWriterTest, NonAccessibleFile) {
 #else
     dca::io::Reader reader(*concurrency_ptr, type);
 #endif
-    EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
+    // Exception type doesn't seem portable
+    EXPECT_ANY_THROW(reader.open_file("not_existing_file.txt"));
   }
 }
 

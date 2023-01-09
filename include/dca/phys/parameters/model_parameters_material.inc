@@ -9,7 +9,7 @@
 //
 // Template specialization of model parameters for material models.
 
-template <models::material_name_type name, typename PointGroup>
+template <models::Material name, typename PointGroup>
 class ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>> {
 public:
   ModelParameters() : t_ij_file_name_("t_ij.txt"), U_ij_file_name_("U_ij.txt") {}
@@ -43,7 +43,7 @@ private:
   std::string U_ij_file_name_;
 };
 
-template <models::material_name_type name, typename PointGroup>
+template <models::Material name, typename PointGroup>
 template <typename Concurrency>
 int ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::getBufferSize(
     const Concurrency& concurrency) const {
@@ -55,7 +55,7 @@ int ModelParameters<models::TightBindingModel<models::material_lattice<name, Poi
   return buffer_size;
 }
 
-template <models::material_name_type name, typename PointGroup>
+template <models::Material name, typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::pack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
@@ -63,7 +63,7 @@ void ModelParameters<models::TightBindingModel<models::material_lattice<name, Po
   concurrency.pack(buffer, buffer_size, position, U_ij_file_name_);
 }
 
-template <models::material_name_type name, typename PointGroup>
+template <models::Material name, typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::unpack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
@@ -71,7 +71,7 @@ void ModelParameters<models::TightBindingModel<models::material_lattice<name, Po
   concurrency.unpack(buffer, buffer_size, position, U_ij_file_name_);
 }
 
-template <models::material_name_type name, typename PointGroup>
+template <models::Material name, typename PointGroup>
 template <typename ReaderOrWriter>
 void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {

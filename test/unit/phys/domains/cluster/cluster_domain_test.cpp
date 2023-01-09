@@ -94,4 +94,12 @@ TEST(ClusterDomainsTest, initializeKDmn) {
     CDA::RQHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
 
   EXPECT_EQ(CDA::KQHostDmn::dmn_size(), 18);
+
+  dca::phys::domains::cluster_domain_initializer<CDA::RQFineDmn>::execute(Model::get_r_DCA_basis(),
+                                                           pars.get_q_host_fine());
+  dca::phys::domains::cluster_domain_symmetry_initializer<
+    CDA::RQFineDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  EXPECT_EQ(CDA::KQFineDmn::dmn_size(), 100);
+
 }

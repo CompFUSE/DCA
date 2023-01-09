@@ -16,7 +16,7 @@
 #include <functional>
 #include <string>
 #include "gtest/gtest.h"
-
+#include "dca/util/integer_division.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
@@ -109,6 +109,8 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
   }
 #endif
 
+  std::cout << "blocks: " << dca::util::ceilDiv(int(accumulatorHost.get_G4()[0].size()), 256) << '\n';
+  
   for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
     auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
                                             accumulatorDevice.get_G4()[channel]);

@@ -31,12 +31,13 @@ public:
         Gamma_deconvolution_cut_off_(0.5),
         project_onto_crystal_harmonics_(false),
         projection_cut_off_radius_(1.5),
-	q_host_(dimension, std::vector<int>(dimension,0))
-		{
+        q_host_(dimension, std::vector<int>(dimension, 0)),
+        q_host_fine_(dimension, std::vector<int>(dimension, 0)) {
     for (int i = 0; i < dimension; ++i) {
       q_host_[i][i] = 1;
+      q_host_fine_[i][i] = 10;
     }
-		}
+  }
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -63,11 +64,13 @@ public:
   const std::vector<std::vector<int>>& get_q_host() const {
     return q_host_;
   }
-
+  const std::vector<std::vector<int>>& get_q_host_fine() const {
+    return q_host_fine_;
+  }
   bool get_dump_intermediates() const {
     return dump_intermediates_;
   }
-  
+
 private:
   bool symmetrize_Gamma_ = true;
   double Gamma_deconvolution_cut_off_ = 0.5;
@@ -75,6 +78,7 @@ private:
   double projection_cut_off_radius_ = 1.5;
   FourPointType g4_channel_ = FourPointType::PARTICLE_HOLE_MAGNETIC;
   std::vector<std::vector<int>> q_host_;
+  std::vector<std::vector<int>> q_host_fine_;
   bool dump_intermediates_ = false;
 };
 
@@ -88,8 +92,10 @@ int AnalysisParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(projection_cut_off_radius_);
   buffer_size += concurrency.get_buffer_size(g4_channel_);
   buffer_size += concurrency.get_buffer_size(q_host_);
+  buffer_size += concurrency.get_buffer_size(q_host_fine_);
+
   buffer_size += concurrency.get_buffer_size(dump_intermediates_);
-  
+
   return buffer_size;
 }
 
@@ -102,6 +108,8 @@ void AnalysisParameters::pack(const Concurrency& concurrency, char* buffer, int 
   concurrency.pack(buffer, buffer_size, position, projection_cut_off_radius_);
   concurrency.pack(buffer, buffer_size, position, g4_channel_);
   concurrency.pack(buffer, buffer_size, position, q_host_);
+  concurrency.pack(buffer, buffer_size, position, q_host_fine_);
+
   concurrency.pack(buffer, buffer_size, position, dump_intermediates_);
 }
 
@@ -114,6 +122,8 @@ void AnalysisParameters::unpack(const Concurrency& concurrency, char* buffer, in
   concurrency.unpack(buffer, buffer_size, position, projection_cut_off_radius_);
   concurrency.unpack(buffer, buffer_size, position, g4_channel_);
   concurrency.unpack(buffer, buffer_size, position, q_host_);
+  concurrency.unpack(buffer, buffer_size, position, q_host_fine_);
+
   concurrency.unpack(buffer, buffer_size, position, dump_intermediates_);
 }
 
@@ -138,6 +148,12 @@ void AnalysisParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
+    try {
+      reader_or_writer.execute("q-host-fine", q_host_fine_);
+    }
+    catch (const std::exception& r_e) {
+    }
+
     reader_or_writer.execute("dump-intermediates", dump_intermediates_);
     reader_or_writer.close_group();
   }

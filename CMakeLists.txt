@@ -172,6 +172,7 @@ set(DCA_LIBS
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
+  models
 )
   
 set(SYSTEM_GPU_COUNT 0)

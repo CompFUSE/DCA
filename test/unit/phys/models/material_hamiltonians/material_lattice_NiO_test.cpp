@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+// Authors: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//          Peter W. Doak (doakpw@ornl.gov)
 //
 // This file tests the specialization of material_lattice for NiO.
 
@@ -31,15 +32,16 @@ namespace testing {
 // dca::testing::
 
 struct NiOSymmetricStruct {
-  static constexpr phys::models::material_name_type type = phys::models::NiO_symmetric;
+  static constexpr phys::models::Material type = phys::models::Material::NiO_symmetric;
 };
 
 struct NiOUnsymmetricStruct {
-  static constexpr phys::models::material_name_type type = phys::models::NiO_unsymmetric;
+  static constexpr phys::models::Material type = phys::models::Material::NiO_unsymmetric;
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+
+}  // namespace dca
 
 template <typename T>
 class MaterialLatticeNiOTest : public ::testing::Test {};
@@ -57,7 +59,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
 
   using KDmn = func::dmn<3, std::vector<double>>;
-  const double a = Lattice::latticeConstant();
+  const double a = Lattice::lattice_constant;
   KDmn::set_elements({{0., 0., 0.}, {0., M_PI / a, 0.}, {M_PI / a, M_PI / a, M_PI / a}});
 
   func::function<std::complex<double>, func::dmn_variadic<BandSpinDmn, BandSpinDmn, func::dmn_0<KDmn>>> H_0;
@@ -101,11 +103,13 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
 
   using CDA = dca::phys::ClusterDomainAliases<Lattice::DIMENSION>;
   using RClusterType = typename CDA::RClusterType;
-  using RClusterDmn= typename CDA::RClusterDmn;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initializeRDCABasis(),
-                                                            DCA_cluster);
+
+  auto r_DCA = Lattice::initializeRDCABasis();
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(),
+                                                                  DCA_cluster);
 
   // Get index of origin and check it.
   const int origin = RClusterType::origin_index();

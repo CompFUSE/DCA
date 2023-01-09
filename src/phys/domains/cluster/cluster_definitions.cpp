@@ -36,6 +36,9 @@ std::string to_str(CLUSTER_NAMES NAME) {
     case LATTICE_Q:
       return "LATTICE_Q";
 
+    case LATTICE_Q_FINE:
+      return "LATTICE_Q_FINE";
+
     case TMP_CLUSTER:
       return "TMP_CLUSTER";
 

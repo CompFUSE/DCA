@@ -23,6 +23,15 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
+adios2::ADIOS* adios_ptr;
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+dca::parallel::MPIConcurrency* concurrency_ptr;
+#else
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+dca::parallel::NoConcurrency* concurrency_ptr;
+#endif
+
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
@@ -42,6 +51,8 @@ using RDmn = Parameters::RClusterDmn;
 const std::vector<std::vector<double>> a_vecs{std::vector<double>{0, 0},
                                               std::vector<double>{0.25, 0.25}};
 
+class FunctionTransformTest : public ::testing::Test {};
+
 void initialize() {
   static bool initialized = false;
   if (!initialized) {
@@ -57,8 +68,6 @@ void initialize() {
 
 template <class InpDmn, class OutDmn>
 void spTestImplementation(const bool direct) {
-  initialize();
-
   using namespace dca::func;
   using Real = double;
   using Complex = std::complex<Real>;
@@ -136,4 +145,29 @@ TEST(FunctionTransformTest, SpaceToMomentumCmplx) {
 
 TEST(FunctionTransformTest, MomentumToSpaceCmplx) {
   spTestImplementation<KDmn, RDmn>(false);
+}
+
+int main(int argc, char** argv) {
+#ifdef DCA_HAVE_MPI
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+#else
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+#endif
+
+  //ADIOS expects MPI_COMM pointer or nullptr
+  adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
+  adios_ptr = &adios;
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  initialize();
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

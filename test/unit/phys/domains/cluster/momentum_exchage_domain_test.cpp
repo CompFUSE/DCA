@@ -26,7 +26,6 @@ using MomentumExchangeDomainTest =
 
 
 TEST_F(MomentumExchangeDomainTest, MultipleExchanges) {
-  MomentumExchangeDomain::initialize(parameters_);
   EXPECT_TRUE(MomentumExchangeDomain::isInitialized());
 
   // Cluster sites with their id:

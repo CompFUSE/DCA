@@ -97,6 +97,10 @@ public:
   // Host q domains
   using RQHostDmn = typename CDA::RQHostDmn;
   using KQHostDmn = typename CDA::KQHostDmn;
+
+  // "fine" q domains
+  using RQFineDmn = typename CDA::RQFineDmn;
+  using KQFineDmn = typename CDA::KQFineDmn;
   
   // Host vertex cluster domains
   using RTpHostDmn = typename CDA::RTpHostDmn;
@@ -298,7 +302,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   if (concurrency_.id() == concurrency_.first())
     KSpHostDmn::parameter_type::print(std::cout);
 
-  // Host grid for single-particle functions (q-lattice)
+  // Host grid for bse extended single-particle functions (q-lattice)
   domains::cluster_domain_initializer<RQHostDmn>::execute(Model::get_r_DCA_basis(),
                                                            AnalysisParameters::get_q_host());
   domains::cluster_domain_symmetry_initializer<
@@ -307,6 +311,16 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   if (concurrency_.id() == concurrency_.first())
     KQHostDmn::parameter_type::print(std::cout);
 
+  // Host grid for bse fine single-particle functions (q-fine)
+  domains::cluster_domain_initializer<RQFineDmn>::execute(Model::get_r_DCA_basis(),
+							  AnalysisParameters::get_q_host_fine());
+  domains::cluster_domain_symmetry_initializer<
+      RQFineDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  if (concurrency_.id() == concurrency_.first())
+    KQFineDmn::parameter_type::print(std::cout);
+
+  
   // Host grid for two-particle functions (tp-lattice)
   if (do_dca_plus() || doPostInterpolation()) {
     domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
