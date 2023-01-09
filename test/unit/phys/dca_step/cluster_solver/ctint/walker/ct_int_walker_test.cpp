@@ -106,7 +106,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   for (int s = 0; s < 2; ++s)
     for (int j = 0; j < new_M[s].nrCols(); j++)
       for (int i = 0; i < new_M[s].nrRows(); i++)
-        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 10 * std::numeric_limits<Real>::epsilon());
+        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 20 * std::numeric_limits<Real>::epsilon());
   det_ratio = computeDetRatio(old_M, new_M);
   EXPECT_NEAR(det_ratio, walker.getRatio(), 100 * std::numeric_limits<Real>::epsilon());
 

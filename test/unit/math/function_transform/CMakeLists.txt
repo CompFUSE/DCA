@@ -1,6 +1,5 @@
 # unit/math/function_transform
 dca_add_gtest(function_transform_test
-        GTEST_MAIN
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
         LIBS ${DCA_LIBS})
 
