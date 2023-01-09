@@ -255,7 +255,8 @@ TEST(ADIOS2ReaderWriterTest, NonAccessibleFile) {
   //EXPECT_THROW(writer.open_file("/not_accessible_directory/file.txt"), std::ios_base::failure);
 
   dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);
-  EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
+  // Exception type doesn't seem portable
+  EXPECT_ANY_THROW(reader.open_file("not_existing_file.txt"));
 }
 
 TEST(ADIOS2ReaderWriterTest, FunctionNotPresent) {
@@ -368,7 +369,7 @@ int main(int argc, char** argv) {
 #endif
   
   //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get(), false);
+  adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
   adios_ptr = &adios;
 
   ::testing::InitGoogleTest(&argc, argv);
