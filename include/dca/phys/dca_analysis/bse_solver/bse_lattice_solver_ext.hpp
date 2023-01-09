@@ -97,7 +97,7 @@ public:
   using GammaLatticeDmn = SharedDmn;
   using Chi0LatticeOneQDmn = func::dmn_variadic<SharedDmn, WExDmn>;
 
-  using NuDmn = typename ParametersType::NuDmn;
+  using NuDmn = typename DcaDataType::NuDmn;
   using H0QDmn = func::dmn_variadic<NuDmn, NuDmn, KQFineDmn>;
 
   using Chi0LatticeDmn = func::dmn_variadic<Chi0LatticeOneQDmn, q_HOST>;
