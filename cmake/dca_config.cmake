@@ -121,8 +121,8 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    kagome | hund | twoband_Cu | threeband | FeAs | material ")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular kagome hund twoband_Cu threeband
+    Kagome | hund | twoband_Cu | threeband | FeAs | material ")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular Kagome hund twoband_Cu threeband
              FeAs material)
 
 if (DCA_LATTICE STREQUAL "bilayer")
@@ -139,7 +139,7 @@ elseif (DCA_LATTICE STREQUAL "triangular")
   set(DCA_LATTICE_TYPE dca::phys::models::triangular_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
-elseif (DCA_LATTICE STREQUAL "kagome")
+elseif (DCA_LATTICE STREQUAL "Kagome")
   set(DCA_LATTICE_TYPE dca::phys::models::KagomeHubbard<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
@@ -169,7 +169,7 @@ elseif (DCA_LATTICE STREQUAL "material")
       "dca/phys/models/material_hamiltonians/material_lattice.hpp")
   set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
 else()
-  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | kagome |
+  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | Kagome |
           hund | twoband_Cu | threeband | FeAs | material.")
 endif()
 

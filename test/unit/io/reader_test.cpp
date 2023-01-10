@@ -64,13 +64,15 @@ TEST(HDF5ReaderTest, Vector) {
   // Simple 3D vector
   std::vector<float> vec_1;
   std::vector<float> vec_1_check{1., 2., 3.};
-  reader.execute("simple-vector", vec_1);
+  bool result = reader.execute("simple-vector", vec_1);
+  EXPECT_TRUE(result);
   EXPECT_EQ(vec_1_check, vec_1);
 
   // Vector of 3 vectors variable length
   std::vector<std::vector<float>> vec_2;
   std::vector<std::vector<float>> vec_2_check{{1.2, 3.4}, {5.6, 7.8, 4.4}, {1.0}};
-  reader.execute("vector-of-vectors", vec_2);
+  result = reader.execute("vector-of-vectors", vec_2);
+  EXPECT_TRUE(result);
   EXPECT_EQ(vec_2_check, vec_2);
 
   reader.close_file();

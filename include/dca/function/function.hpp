@@ -314,6 +314,7 @@ public:
     return fnc_values_[dmn(static_cast<int>(t), static_cast<int>(subindices)...)];
   }
 
+  
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
@@ -362,6 +363,7 @@ public:
   template <typename new_scalartype>
   void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, const new_scalartype* fnc_vals);
 
+  
   //
   // Methods for printing
   //
@@ -1101,7 +1103,6 @@ void function<scalartype, domain, DT>::distribute(const int sbdm_index, std::vec
 
   int linind = 0;
   subind[sbdm_index] = 0;
-
   if (subind.size() < Nb_sbdms && subind.size() == dmn.get_Nb_branch_domains()) {
     linind = branch_subind_2_linind(subind);
 

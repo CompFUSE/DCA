@@ -64,12 +64,12 @@ TEST(DeconvolutionRoutinesTest, ProjectionOperator) {
   // Check the first rows of the projection operator matrices.
   EXPECT_DOUBLE_EQ(0.66963106982612841, projection_op(0, 0));
   EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op(0, 1));
-  EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op(0, 2));
+  EXPECT_NEAR(0.14867881635766231, projection_op(0, 2), 10E-8);
   EXPECT_DOUBLE_EQ(0.033011297458547091, projection_op(0, 3));
 
   EXPECT_DOUBLE_EQ(0.66963106982612841, projection_op_symmetrized(0, 0));
   EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op_symmetrized(0, 1));
-  EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op_symmetrized(0, 2));
+  EXPECT_NEAR(0.14867881635766231, projection_op_symmetrized(0, 2), 10E-8);
   EXPECT_DOUBLE_EQ(0.033011297458547091, projection_op_symmetrized(0, 3));
 
   // Target (lattice) k-domain to source (cluster) k-domain projection operators

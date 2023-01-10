@@ -4,10 +4,10 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.21)
 project(DCA++ LANGUAGES C CXX)
 
-cmake_policy(VERSION 3.18)
+cmake_policy(VERSION 3.21)
 
 ################################################################################
 # Always use <PackageName>_ROOT vars to search first
@@ -20,6 +20,8 @@ endif()
 if(POLICY CMP0074)
    cmake_policy(SET CMP0074 NEW)
 endif()
+
+cmake_policy(SET CMP0056 NEW)
 
 ################################################################################
 # Disable in-source builds.

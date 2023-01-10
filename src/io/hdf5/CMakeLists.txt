@@ -14,7 +14,6 @@ if(DCA_HAVE_MPI)
   target_link_libraries(dca_hdf5 PUBLIC parallel_mpi_concurrency)
 endif()
 
-
 # Only GCC < 9 needs to link to a separate filesystem library
 target_link_libraries(dca_hdf5 PRIVATE
   std::filesystem

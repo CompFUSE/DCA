@@ -15,7 +15,6 @@
 //       test cases to FunctionTest.
 
 #include "gtest/gtest.h"
-
 #include <array>
 #include <cassert>
 #include <complex>
