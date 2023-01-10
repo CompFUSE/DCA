@@ -12,8 +12,6 @@
 // Material lattice specialization for NiO.
 //
 
-#include <type_traits>
-
 // this can be used as an element in a std::conjunction, std::disjunction
 template <Material MATERIAL>
 using IsNiO_t =

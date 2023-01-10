@@ -1,3 +1,15 @@
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Peter Doak (doakpw@ornl.gov)
+//
+// Material lattice specialization for FeSn.
+//
+
 template <typename point_group_type>
 class material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>> {
 public:

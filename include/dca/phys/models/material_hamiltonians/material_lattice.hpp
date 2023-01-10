@@ -17,6 +17,7 @@
 #include <cmath>
 #include <complex>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include "dca/function/domains.hpp"
