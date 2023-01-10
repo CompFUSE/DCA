@@ -41,7 +41,7 @@ struct FeSnStruct {
 template <typename T>
 class MaterialLatticeFeSnTest : public ::testing::Test {};
 
-typedef ::testing::Types<dca::testing::FeSnSymmetricStruct, dca::testing::FeSnUnsymmetricStruct> FeSnTypes;
+typedef ::testing::Types<dca::testing::FeSnStruct> FeSnTypes;
 TYPED_TEST_CASE(MaterialLatticeFeSnTest, FeSnTypes);
 
 TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_0) {
