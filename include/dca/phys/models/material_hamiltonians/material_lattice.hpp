@@ -40,7 +40,7 @@ using Is3D = std::enable_if_t<Is3D_t<T>::value>;
 template <typename T>
 using Is2D = std::enable_if_t<std::is_floating_point<T>::value, bool>;
 
-enum class Material { NiO_symmetric, NiO_unsymmetric, CuO2, CuO2_1band, SrVO3 };
+enum class Material { NiO_symmetric, NiO_unsymmetric, CuO2, CuO2_1band, SrVO3, FeSn };
   
 // forward declaration of class template
 // we don't make this empty because we want this to fail at compile time if a particle specialization is unavailable.
@@ -59,6 +59,10 @@ class material_lattice;
 // // Specialization for SrVO3
 #include "SrVO3/material_lattice_SrVO3.inc"
 
+// // Specialization for SrVO3
+#include "FeSn/material_lattice_FeSn.inc"
+
+  
 }  // namespace models
 }  // namespace phys
 }  // namespace dca
