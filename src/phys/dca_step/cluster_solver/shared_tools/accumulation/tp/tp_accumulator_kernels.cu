@@ -171,11 +171,25 @@ __device__ Complex getG(const Complex* __restrict__ G, const int ldg, int k1, in
   const unsigned nk = g4_helper.get_cluster_size();
   const unsigned no = nb * nk;
 
-  const unsigned i_idx = b1 + nb * k1 + no * w1;
-  const unsigned j_idx = b2 + nb * k2 + no * w2;
+  unsigned i_idx = b1 + nb * k1 + no * w1;
+  unsigned j_idx = b2 + nb * k2 + no * w2;
 
-  const auto val = G[i_idx + ldg * j_idx];
-  return is_conj ? conj(val) : val;
+  auto val = G[i_idx + ldg * j_idx];
+
+  if (!is_conj)
+      return val;
+  else {
+      if (b1==b2)
+          return conj(val);
+      else {
+          i_idx = b2 + nb * k1 + no * w1;
+          j_idx = b1 + nb * k2 + no * w2;
+          val = -conj(G[i_idx + ldg * j_idx]);
+          return val;
+      }
+  }
+//}  
+  // return is_conj ? conj(val) : val;
 }
 
 template <typename Real, FourPointType type>
@@ -519,6 +533,52 @@ __global__ void updateG4NotSpinSymmetricKernel(CudaComplex<Real>* __restrict__ G
     *result_ptr += contribution;
 }
 
+
+template <typename Real>
+__global__ void updateG4NotSpinSymmetricPHMagKernel(CudaComplex<Real>* __restrict__ G4,
+                                               const CudaComplex<Real>* __restrict__ G, const int ldg,
+                                               const CudaComplex<Real> factor, const bool atomic,
+                                               const uint64_t start, const uint64_t end) {
+  // only PARTICLE_HOLE_MAGNETIC channel is supported.
+  const uint64_t local_g4_index =
+      static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x) +
+      static_cast<uint64_t>(threadIdx.x);
+
+  const uint64_t g4_index = local_g4_index + start;
+
+  if (g4_index >= end) {  // out of domain.
+    return;
+  }
+
+  unsigned k1, k2, k_ex, w1, w2, w_ex, s1, s2, s3, s4;
+  g4_helper.unrollIndex(g4_index, s1, s2, s3, s4, k1, w1, k2, w2, k_ex, w_ex);
+
+  const auto delta_k1 = g4_helper.addKex(k1, k_ex);
+  const auto delta_k2 = g4_helper.addKex(k2, k_ex);
+  const auto delta_w1 = g4_helper.addWex(w1, w_ex);
+  const auto delta_w2 = g4_helper.addWex(w2, w_ex);
+  CudaComplex<Real> contribution = makeComplex(Real(0.));
+
+  // same spin contribution
+  //// contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
+  // Changed to: contraction: G(k1, k2, s1, s3) * G(k_ex - k1, k_ex - k2, s2, s4).
+  contribution += getG(G, ldg, k1, delta_k1, w1, delta_w1, s2, s1) *
+                  getG(G, ldg, delta_k2, k2, delta_w2, w2, s3, s4);
+
+  //// contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
+  // Changed to: contraction: -G(k1, k_ex - k2, s1, s4) * G(k_ex - k1, k2, s2, s3).
+  contribution -= getG(G, ldg, delta_k2, delta_k1, delta_w2, delta_w1, s3, s1) *
+                  getG(G, ldg, k1, k2, w1, w2, s2, s4);
+
+  contribution *= factor;
+
+  CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
+  if (atomic)
+    dca::linalg::atomicAdd(result_ptr, contribution);
+  else
+    *result_ptr += contribution;
+}
+
 template <typename Real, FourPointType type>
 float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_dn, const int ldgd,
                const std::complex<Real>* G_up, const int ldgu, const std::complex<Real> factor,
@@ -567,12 +627,20 @@ float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_dn, const int
     }
   }
   else {  // !spin_symmetric
-    if (type != PARTICLE_PARTICLE_UP_DOWN) {
-      throw(std::logic_error("Not implemented."));
-    }
+    if (type == PARTICLE_PARTICLE_UP_DOWN) {
+    //  throw(std::logic_error("Not implemented."));
+    
 
     updateG4NotSpinSymmetricKernel<Real><<<n_blocks, n_threads, 0, stream>>>(
         castCuda(G4), castCuda(G_dn), ldgd, castCuda(factor), atomic, start, end);
+    }
+    else if (type == PARTICLE_HOLE_MAGNETIC)
+    {
+    updateG4NotSpinSymmetricPHMagKernel<Real><<<n_blocks, n_threads, 0, stream>>>(
+        castCuda(G4), castCuda(G_dn), ldgd, castCuda(factor), atomic, start, end);
+    
+    }
+
 
     // Each update of a G4 entry involves 4 complex additions,  4 complex multiplications,
     // and 3 real multiplications.

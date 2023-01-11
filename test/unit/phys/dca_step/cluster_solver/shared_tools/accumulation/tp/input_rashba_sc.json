@@ -28,7 +28,7 @@
   },
 
   "four-point": {
-    "type": "PARTICLE_HOLE_MAGNETIC",
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
     "frequency-transfer": 3,
     "compute-all-transfers" : true
   },

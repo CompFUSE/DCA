@@ -27,7 +27,8 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <typename DCA_point_group_type>
+//template <typename DCA_point_group_type>
+template <typename PointGroup>
 class triangular_lattice {
 public:
   static constexpr bool complex_g0 = true;

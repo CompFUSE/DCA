@@ -249,7 +249,6 @@ template <class Configuration, typename RealIn>
 double TpAccumulator<Parameters, linalg::CPU, DT>::accumulate(
     const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const Scalar factor) {
-
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
   if (!(configs[0].size() + configs[1].size()))  // empty config
@@ -388,15 +387,15 @@ void TpAccumulator<Parameters, linalg::CPU, DT>::getGMultiband(int s, int k1, in
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
         // G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
-        G(b1, b2) =  G_ptr[b1 + b2 * n_bands_];
+        G(b1, b2) = G_ptr[b1 + b2 * n_bands_];
   }
   else {
     const Complex* const G_ptr =
         &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
-        // &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
+    // &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-          // G(b1, b2) = std::conj(G_ptr[b2 + b1 * n_bands_]);
+        // G(b1, b2) = std::conj(G_ptr[b2 + b1 * n_bands_]);
         // G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
         if (b1 == b2)
           G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b2 + b1 * n_bands_]);
@@ -419,6 +418,7 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id
 
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(k, q); };
+  auto q_plus_k  = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
   auto w_plus_w_ex = [](const int w, const int w_ex) { return w + w_ex; };
   // Returns the index of the exchange frequency w_ex minus the Matsubara frequency with index w.
@@ -621,7 +621,7 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id
                             G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
                                 // factor_ * G_a_(b3, b2) * G_b_(b4, b1);
                                 factor_ * G_a_(b1, b3) * G_b_(b2, b4);
-                                // factor_ * G_a_(b1, b3);
+                            // factor_ * G_a_(b1, b3);
                           }
 
                     // contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
@@ -640,6 +640,47 @@ double TpAccumulator<Parameters, linalg::CPU, DT>::updateG4(const int channel_id
                   }
           }
         }
+
+      case PARTICLE_HOLE_MAGNETIC:
+        // G4(k1, k2, k_ex) =  <c^+(k1+k_ex, s1) c(k1, s2) c^+(k2, s4) c(k2+k_ex, s3)>
+        //                  = G(k1, k1+k_ex, s2, s1) G(k2+k_ex, k2, s3, s4)
+        //                  - G(k2+k_ex, k1+k_ex, s3, s1) G(k1, k2, s2, s4)]
+
+        for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+          const int w_ex = exchange_frq[w_ex_idx];
+          for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+            const int k_ex = exchange_mom[k_ex_idx];
+            for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
+                  for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
+                    // contraction: G(k1, k1+k_ex, s2, s1) G(k2+k_ex, k2, s3, s4)
+                    getGMultiband(0, k1, q_plus_k(k1, k_ex), w1, w_plus_w_ex(w1, w_ex), G_a_);
+                    getGMultiband(0, q_plus_k(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2, G_b_);
+
+                    for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                      for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
+                        for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+                          for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+                            G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
+                                factor_ * G_a_(b2, b1) * G_b_(b3, b4);
+                          }
+
+                    // contraction: - G(k2+k_ex, k1+k_ex, s3, s1) G(k1, k2, s2, s4)
+                    getGMultiband(0, q_plus_k(k2, k_ex), q_plus_k(k1, k_ex), w_plus_w_ex(w2, w_ex), w_plus_w_ex(w1, w_ex), G_a_);
+                    getGMultiband(0, k1, k2, w1, w2, G_b_);
+
+                    for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                      for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
+                        for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+                          for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+                            G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) -=
+                                factor_ * G_a_(b3, b1) * G_b_(b2, b4);
+                          }
+                  }
+          }
+        }
+
         flops += n_loops * std::pow(BDmn::dmn_size(), 4) * 2 * 3;
         break;
 

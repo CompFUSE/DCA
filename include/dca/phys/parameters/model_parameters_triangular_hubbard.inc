@@ -108,7 +108,7 @@ void ModelParameters<models::TightBindingModel<models::triangular_lattice<PointG
     tryToRead("h", h_);
     tryToRead("lambda", lambda_);
     tryToRead("U", U_);
-    tryToRead("U", phi_);
+    tryToRead("phi", phi_);
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
@@ -124,6 +124,7 @@ void ModelParameters<models::TightBindingModel<models::triangular_lattice<PointG
               << "\t\t h  : " << h_ << "\n"
               << "\t\t lambda  : " << lambda_ << "\n"
               << "\t\t U : " << U_ << "\n"
+              << "\t\t phi : " << phi_ << "\n"
               << "\n"
               << std::endl;
   }
