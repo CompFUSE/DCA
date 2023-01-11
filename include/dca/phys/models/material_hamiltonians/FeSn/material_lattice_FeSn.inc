@@ -14,7 +14,7 @@ template <typename point_group_type>
 class material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>> {
 public:
   static constexpr int DIMENSION = 3;
-  static constexpr int BANDS = 8;
+  static constexpr int BANDS = 15;
 
   static constexpr Material my_Material = Material::FeSn;
   using my_PGT = point_group_type;
@@ -58,13 +58,13 @@ public:
     return a;
   }
 
-  static constexpr double lattice_constant = 7.89358;
+  static constexpr double lattice_constant = 5.2969999313;
 
 private:
   template <class parameters_type>
   static std::vector<std::vector<double>>& get_t_ij(parameters_type& parameters);
 
-  static constexpr double a = 7.89358;  // 3.946789070;
+  static constexpr double a = 5.2969999313;  // 3.946789070;
 };
 
 template <typename point_group_type>
@@ -72,15 +72,15 @@ std::array<double, 9> material_lattice<Material::FeSn, point_group_type,
                                        Is3D<point_group_type>>::initializeRDCABasis() {
   std::array<double, 9> r_DCA;
 
-  r_DCA[0] = 0;
-  r_DCA[3] = a / 2.;
-  r_DCA[6] = a / 2.;
-  r_DCA[1] = a / 2.;
-  r_DCA[4] = 0;
-  r_DCA[7] = a / 2.;
-  r_DCA[2] = a / 2.;
-  r_DCA[5] = a / 2.;
-  r_DCA[8] = 0;
+  r_DCA[0] = a;
+  r_DCA[1] = 0;
+  r_DCA[2] = 0;
+  r_DCA[3] = -a * std::cos(M_PI / 3.);
+  r_DCA[4] =  a * std::sin(M_PI / 3.);
+  r_DCA[5] = 0;
+  r_DCA[6] = 0;
+  r_DCA[7] = 0;
+  r_DCA[8] = 4.481;
 
   return r_DCA;
 }
@@ -90,15 +90,15 @@ std::array<double, 9> material_lattice<Material::FeSn, point_group_type,
                                        Is3D<point_group_type>>::initializeRLDABasis() {
   std::array<double, 9> r_LDA;
 
-  r_LDA[0] = 0;
-  r_LDA[3] = a / 2.;
-  r_LDA[6] = a / 2.;
-  r_LDA[1] = a / 2.;
-  r_LDA[4] = 0;
-  r_LDA[7] = a / 2.;
-  r_LDA[2] = a / 2.;
-  r_LDA[5] = a / 2.;
-  r_LDA[8] = 0;
+  r_LDA[0] = a;
+  r_LDA[1] = 0;
+  r_LDA[2] = 0;
+  r_LDA[3] = -a * std::cos(M_PI / 3.);
+  r_LDA[4] =  a * std::sin(M_PI / 3.);
+  r_LDA[5] = 0;
+  r_LDA[6] = 0;
+  r_LDA[7] = 0;
+  r_LDA[8] = 4.481;
 
   return r_LDA;
 }
@@ -115,8 +115,28 @@ template <typename point_group_type>
 std::vector<std::vector<double>> material_lattice<Material::FeSn, point_group_type,
                                                   Is3D<point_group_type>>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
+
+  a_vecs[0] = {0., 0., 0.};
+  a_vecs[1] = {0., 0., 0.};
+  a_vecs[2] = {0., 0., 0.};
+  a_vecs[3] = {0., 0., 0.};
+  a_vecs[4] = {0., 0., 0.};
+
+  a_vecs[5] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[6] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[7] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[8] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[9] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  
+  a_vecs[10] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[11] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[12] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[13] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[14] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+
   return a_vecs;
 }
+
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
