@@ -33,6 +33,9 @@ using DcaDataType = dca::phys::DcaData<ParametersType>;
 #include "dca/phys/dca_analysis/bse_solver/bse_solver.hpp"
 using BseSolverType = dca::phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
+
+#ifdef DCA_HAS_SOFQOMEGA
 #include "dca/phys/dca_analysis/bse_solver/bse_solver_ext.hpp"
 using BseSolverExt = dca::phys::analysis::BseSolverExt<ParametersType, DcaDataType>;
+#endif
 #endif  // DCA_CONFIG_ANALYSIS_HPP

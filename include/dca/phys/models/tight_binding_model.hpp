@@ -13,12 +13,12 @@
 #define DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP
 
 #include <vector>
+#include <type_traits>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/models/clean_traits.hpp"
 
 namespace dca {
 namespace phys {
@@ -107,7 +107,7 @@ std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
 
 template <typename Lattice>
 double* TightBindingModel<Lattice>::get_r_DCA_basis() {
-  if constexpr (AbusesStatic_t<Lattice>::value) {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRDCABasis()), double *>) {
     static double* r_DCA = Lattice::initializeRDCABasis();
     return r_DCA;
   }
@@ -119,7 +119,7 @@ double* TightBindingModel<Lattice>::get_r_DCA_basis() {
 
 template <typename Lattice>
 double* TightBindingModel<Lattice>::get_r_LDA_basis() {
-  if constexpr (AbusesStatic_t<Lattice>::value) {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRLDABasis()), double *>) {
     static double* r_LDA = Lattice::initializeRLDABasis();
     return r_LDA;
   }

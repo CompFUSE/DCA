@@ -24,7 +24,6 @@
 #include "dca/function/function.hpp"
 #include "dca/io/csv/csv_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
-#include "dca/phys/models/clean_traits.hpp"
 
 namespace dca {
 namespace phys {
@@ -63,6 +62,7 @@ class material_lattice;
 // // Specialization for SrVO3
 #include "FeSn/material_lattice_FeSn.inc"
 
+std::string to_str(Material mat);
   
 }  // namespace models
 }  // namespace phys
