@@ -13,7 +13,7 @@ if (DCA_BUILD_ANALYSIS)
   if (DCA_LATTICE STREQUAL "square")
     #new development of exanded q chi_q_omega
     add_executable(chi_q_omega chi_q_omega.cpp)
-    target_compile_definitions(chi_q_omega DCA_HAS_SOFQOMEGA)
+    target_compile_definitions(chi_q_omega PUBLIC DCA_HAS_SOFQOMEGA)
     target_include_directories(chi_q_omega PRIVATE ${DCA_INCLUDE_DIRS})
 
     if (DCA_HAVE_GPU)
