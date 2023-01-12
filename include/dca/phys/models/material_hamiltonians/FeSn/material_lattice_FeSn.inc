@@ -10,11 +10,15 @@
 // Material lattice specialization for FeSn.
 //
 
+#include <type_traits>
+
 template <typename point_group_type>
 class material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>> {
 public:
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 15;
+
+  static constexpr std::string_view material_name{"FeSn"};
 
   static constexpr Material my_Material = Material::FeSn;
   using my_PGT = point_group_type;
@@ -76,7 +80,7 @@ std::array<double, 9> material_lattice<Material::FeSn, point_group_type,
   r_DCA[1] = 0;
   r_DCA[2] = 0;
   r_DCA[3] = -a * std::cos(M_PI / 3.);
-  r_DCA[4] =  a * std::sin(M_PI / 3.);
+  r_DCA[4] = a * std::sin(M_PI / 3.);
   r_DCA[5] = 0;
   r_DCA[6] = 0;
   r_DCA[7] = 0;
@@ -94,7 +98,7 @@ std::array<double, 9> material_lattice<Material::FeSn, point_group_type,
   r_LDA[1] = 0;
   r_LDA[2] = 0;
   r_LDA[3] = -a * std::cos(M_PI / 3.);
-  r_LDA[4] =  a * std::sin(M_PI / 3.);
+  r_LDA[4] = a * std::sin(M_PI / 3.);
   r_LDA[5] = 0;
   r_LDA[6] = 0;
   r_LDA[7] = 0;
@@ -122,21 +126,20 @@ std::vector<std::vector<double>> material_lattice<Material::FeSn, point_group_ty
   a_vecs[3] = {0., 0., 0.};
   a_vecs[4] = {0., 0., 0.};
 
-  a_vecs[5] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[6] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[7] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[8] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[9] = {-0.75*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  
-  a_vecs[10] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[11] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[12] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[13] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
-  a_vecs[14] = {-0.25*a, 0.5*std::sin(M_PI/3.)*a, 0.0};
+  a_vecs[5] = {-0.75 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[6] = {-0.75 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[7] = {-0.75 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[8] = {-0.75 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[9] = {-0.75 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+
+  a_vecs[10] = {-0.25 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[11] = {-0.25 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[12] = {-0.25 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[13] = {-0.25 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
+  a_vecs[14] = {-0.25 * a, 0.5 * std::sin(M_PI / 3.) * a, 0.0};
 
   return a_vecs;
 }
-
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
@@ -199,8 +202,12 @@ void material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>>:
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
-  if (BandDmn::dmn_size() != BANDS)
-    throw std::logic_error("FeSn has 8 bands.");
+  if (BandDmn::dmn_size() != BANDS) {
+    std::ostringstream msg;
+    msg << material_name << " has " << BANDS << " but BandDmn size is " << BandDmn::dmn_size()
+        << "!\n";
+    throw std::logic_error(msg.str());
+  }
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 

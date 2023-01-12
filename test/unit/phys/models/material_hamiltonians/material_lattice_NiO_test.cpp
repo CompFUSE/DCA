@@ -46,7 +46,7 @@ struct NiOUnsymmetricStruct {
 template <typename T>
 class MaterialLatticeNiOTest : public ::testing::Test {};
 
-typedef ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct> NiOTypes;
+using NiOTypes = ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct>;
 TYPED_TEST_CASE(MaterialLatticeNiOTest, NiOTypes);
 
 TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {

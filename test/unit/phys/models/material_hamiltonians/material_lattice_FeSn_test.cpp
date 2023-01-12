@@ -41,7 +41,7 @@ struct FeSnStruct {
 template <typename T>
 class MaterialLatticeFeSnTest : public ::testing::Test {};
 
-typedef ::testing::Types<dca::testing::FeSnStruct> FeSnTypes;
+using FeSnTypes = ::testing::Types<dca::testing::FeSnStruct>;
 TYPED_TEST_CASE(MaterialLatticeFeSnTest, FeSnTypes);
 
 TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_0) {
@@ -49,7 +49,7 @@ TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_0) {
 
   using Lattice = phys::models::material_lattice<TypeParam::type, phys::domains::no_symmetry<3>>;
 
-  using BandDmn = func::dmn<8, int>;
+  using BandDmn = func::dmn<15, int>;
   using SpinDmn = func::dmn<2, int>;
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
 
@@ -92,7 +92,7 @@ TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_interaction) {
 
   using Lattice = phys::models::material_lattice<TypeParam::type, phys::domains::no_symmetry<3>>;
 
-  using BandDmn = func::dmn<8, int>;
+  using BandDmn = func::dmn<15, int>;
   using SpinDmn = func::dmn<2, int>;
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
 

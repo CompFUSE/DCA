@@ -24,10 +24,6 @@ template <Material MATERIAL, typename PGT>
 using EnableNiO =
     std::enable_if_t<std::conjunction<Is3D_t<PGT>, IsNiO_t<MATERIAL>, std::true_type>::value>;  // typename IsNiO<MATERIAL>>::value>;
 
-template <class Lattice>
-struct AbusesStatic_t<Lattice, EnableNiO<Lattice::my_Material, typename Lattice::my_PGT>>
-    : public std::false_type {};
-
 // NiO
 template <Material MATERIAL, typename point_group_type>
 class material_lattice<MATERIAL, point_group_type, EnableNiO<MATERIAL, point_group_type>> {
