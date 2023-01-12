@@ -462,7 +462,7 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<func::dmn_0<cluster_domain<
     scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_elements_2D(scalar_type shift) {
-  math::util::coordinate_transformation<scalar_type> coordinate_trafo(2);
+  math::util::coordinate_transformation<scalar_type, 2> coordinate_trafo;
 
   {
     coordinate_trafo.set_basis(k_dmn::get_super_basis());
@@ -522,7 +522,7 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<func::dmn_0<cluster_domain<
     scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_elements_3D(scalar_type shift) {
-  math::util::coordinate_transformation<scalar_type> coordinate_trafo(3);
+  math::util::coordinate_transformation<scalar_type, 3> coordinate_trafo;
 
   {
     coordinate_trafo.set_basis(k_dmn::get_super_basis());
