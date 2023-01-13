@@ -56,6 +56,8 @@ endif()
 ################################################################################
 ################################################################################
 # FFTW
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/ext_findFFTW" ${CMAKE_MODULE_PATH})
+
 find_package(FFTW REQUIRED)
 
 list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})

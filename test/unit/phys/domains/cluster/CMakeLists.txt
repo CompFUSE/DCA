@@ -11,7 +11,7 @@ dca_add_gtest(momentum_exchage_domain_test
 
 dca_add_gtest(cluster_domain_test
   GTEST_MAIN
-  LIBS ${LAPACK_LIBRARIES} function enumerations quantum_domains cluster_domains dca_io fftw ${DCA_GPU_LIBS})
+  LIBS ${LAPACK_LIBRARIES} function enumerations quantum_domains cluster_domains dca_io FFTW::Double ${DCA_GPU_LIBS})
 
 
 # deprecated (requires NFFT)
