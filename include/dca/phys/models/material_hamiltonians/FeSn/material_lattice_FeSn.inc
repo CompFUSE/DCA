@@ -153,9 +153,12 @@ template <typename BandSpinDmn, typename RDmn, typename parameters_type>
 void material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
-  if (BandSpinDmn::dmn_size() != 2 * BANDS)
-    throw std::logic_error("Band-spin domain size must be 8*2=16.");
-
+  if (BandSpinDmn::dmn_size() != 2 * BANDS) {
+    std::ostringstream msg;
+    msg << material_name << " has BandSpin domin of " << BANDS * 2 << " but BandDmn size is " << BandSpinDmn::dmn_size()
+        << "!\n";
+    throw std::logic_error(msg.str());
+  }
   const int origin = RDmn::parameter_type::origin_index();
 
   std::vector<std::vector<double>> U;
@@ -219,6 +222,9 @@ void material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>>:
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 
   H_0 = ScalarType(0);
+
+  if (t_ij[0].size() != 8)
+    throw std::runtime_error("each row in the t_ij file must have 8 elements!");
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
