@@ -11,5 +11,5 @@ dca_add_gtest(dnfft_1d_gpu_test
   THREADED
   GTEST_MAIN
   CUDA
-  INCLUDE_DIRS ${FFTW_INCLUDE_DIR};${PROJECT_SOURCE_DIR}
-  LIBS ${FFTW_LIBRARY} time_and_frequency_domains random function mc_kernels gpu_utils nfft)
+  INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
+  LIBS FFTW::Double time_and_frequency_domains random function mc_kernels gpu_utils nfft)
