@@ -66,7 +66,7 @@ case "$1" in
       export OPENBLAS_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openblas-0.3.21-hxlxmz56qgkexpvfku2dugwacjf2auvl
       export ADIOS2_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/adios2-2.8.3-ba3mpxuh435rvisxhorzotb53m3dgfuv
       export MPI_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/openmpi-4.1.4-mbv4sqfzxaqfwcyhjaaammhsd56dtvl2
-      export FFTW3_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/fftw-3.3.10-hdyb4eim5ngsgkhqyiyl5ggispxqmzo5
+      export FFTW_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/fftw-3.3.10-hdyb4eim5ngsgkhqyiyl5ggispxqmzo5
       # Make current environment variables available to subsequent steps
       echo "PATH=$PATH" >> $GITHUB_ENV
       echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
