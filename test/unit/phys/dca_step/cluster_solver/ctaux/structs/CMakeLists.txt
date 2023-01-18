@@ -4,5 +4,5 @@ dca_add_gtest(read_write_config_test
         FAST
         GTEST_MAIN
         INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-        LIBS     ${DCA_LIBS}
+        LIBS     FFTW::Double ${DCA_LIBS}
         )

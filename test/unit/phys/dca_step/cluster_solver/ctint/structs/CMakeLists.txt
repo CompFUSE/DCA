@@ -20,7 +20,7 @@ dca_add_gtest(read_write_ctint_config_test
   FAST
   GTEST_MAIN
   INCLUDE_DIRS ${TEST_INCLUDES}
-  LIBS random;time_and_frequency_domains;function;ctint;${DCA_THREADING_LIBS};dca_io
+  LIBS FFTW::Double;random;time_and_frequency_domains;function;ctint;${DCA_THREADING_LIBS};dca_io
   )
 
 if (DCA_HAVE_GPU)
