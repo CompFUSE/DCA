@@ -42,7 +42,7 @@ TEST(Ni0NoChangeTest, GreensFunction) {
     dca::util::GitVersion::print();
 
   using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
-      dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
+      dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
