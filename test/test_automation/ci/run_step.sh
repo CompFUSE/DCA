@@ -57,9 +57,9 @@ case "$1" in
     if [[ "$HOST_NAME" =~ (volta-cidev-node) ]]
     then
       # use gcc-12
-      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-9.4.0/binutils-2.38-ljwszfsihiioxxusqiwg76hsr3t7eazd/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.8.0-3fgvnzslqxogwa5djfpvthlj2ebs3w4f/bin:$PATH
+      export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-9.4.0/binutils-2.38-ljwszfsihiioxxusqiwg76hsr3t7eazd/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.5.0-blvu7yyubqltbts7o4kknecfyxjthvdp:$PATH
       export LD_LIBRARY_PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/lib64:$LD_LIBRARY_PATH
-      export CUDA_HOME=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.8.0-3fgvnzslqxogwa5djfpvthlj2ebs3w4f
+      export CUDA_HOME=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cuda-11.5.0-blvu7yyubqltbts7o4kknecfyxjthvdp
       export CUDAHOSTCXX=g++
       export MAGMA_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/magma-2.7.0-hzsyoya4k46b7ufbtccl7bh3yxgubcxd
       export HDF5_ROOT=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/hdf5-1.12.2-p5ew5d7whyvd7ka3bkf2q7rixojq5voy
