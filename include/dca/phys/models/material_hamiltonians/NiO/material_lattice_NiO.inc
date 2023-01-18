@@ -132,7 +132,7 @@ std::vector<int> material_lattice<MATERIAL, point_group_type,
     flavors[6] = 2;
     flavors[7] = 2;
   }
-  else if constexpr (MATERIAL == Material::NiO_symmetric) {
+  else if constexpr (MATERIAL == Material::NiO_unsymmetric) {
     for (int i = 0; i < BANDS; i++)
       flavors[i] = i;
   }
