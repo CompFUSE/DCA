@@ -95,6 +95,7 @@ TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_interaction) {
   using BandDmn = func::dmn<15, int>;
   using SpinDmn = func::dmn<2, int>;
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
+  using NuNuDmn = func::dmn_variadic<BandSpinDmn, BandSpinDmn>;
 
   using CDA = dca::phys::ClusterDomainAliases<Lattice::DIMENSION>;
   using RClusterType = typename CDA::RClusterType;
@@ -103,8 +104,7 @@ TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_interaction) {
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
 
   auto r_DCA = Lattice::initializeRDCABasis();
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(),
-                                                                  DCA_cluster);
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(), DCA_cluster);
 
   // Get index of origin and check it.
   const int origin = RClusterType::origin_index();
@@ -132,18 +132,28 @@ TYPED_TEST(MaterialLatticeFeSnTest, Initialize_H_interaction) {
   // Check that there is no self-interaction (i.e. the diagonal in band and spin is zero).
   for (int s = 0; s < SpinDmn::dmn_size(); ++s)
     for (int b = 0; b < BandDmn::dmn_size(); ++b)
-      EXPECT_NEAR(0., H_interaction(b, s, b, s, origin), 1E-20) << "Fail? Self interaction is non-zero for band:" << b << "  spin:"<< s << '\n';;
+      EXPECT_NEAR(0., H_interaction(b, s, b, s, origin), 1E-20)
+          << "Fail? Self interaction is non-zero for band:" << b << "  spin:" << s << '\n';
+  ;
 
   // Check that H_interaction is symmetric in band and spin (H_interaction is real).
   for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
     for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
       for (int s1 = 0; s1 < s2; ++s1)
         for (int b1 = 0; b1 < b2; ++b1)
-          EXPECT_NEAR(H_interaction(b1, s1, b2, s2, origin),
-		      H_interaction(b2, s2, b1, s1, origin), 1E-22) << "H_interaction is not real for b1:" <<  b1 << " s1:" << s1 << " b2:" <<  b2 << " s2:" << s2 << '\n';
+          EXPECT_NEAR(H_interaction(b1, s1, b2, s2, origin), H_interaction(b2, s2, b1, s1, origin), 1E-22)
+              << "H_interaction is not symmetric in band and spin:" << b1 << " s1:" << s1 << " b2:" << b2
+              << " s2:" << s2 << '\n';
+
+  func::function<int, NuNuDmn> H_symmetry;
+  Lattice::initializeHSymmetry(H_symmetry);
+
+  for (int s = 0; s < SpinDmn::dmn_size(); s++)
+    for (int i = 0; i < BandDmn::dmn_size(); i++)
+      EXPECT_EQ(H_symmetry(i, s, i, s), i) << "i: " << i << "  s: " << s;
 
   // Check some values.
-  //EXPECT_DOUBLE_EQ(6.83, H_interaction(0, 0, 1, 0, origin));
-  //EXPECT_DOUBLE_EQ(9.14, H_interaction(0, 0, 0, 1, origin));
-  //EXPECT_DOUBLE_EQ(6.49, H_interaction(2, 0, 4, 0, origin));
+  // EXPECT_DOUBLE_EQ(6.83, H_interaction(0, 0, 1, 0, origin));
+  // EXPECT_DOUBLE_EQ(9.14, H_interaction(0, 0, 0, 1, origin));
+  // EXPECT_DOUBLE_EQ(6.49, H_interaction(2, 0, 4, 0, origin));
 }

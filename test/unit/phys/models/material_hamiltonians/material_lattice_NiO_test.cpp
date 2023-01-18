@@ -46,7 +46,8 @@ struct NiOUnsymmetricStruct {
 template <typename T>
 class MaterialLatticeNiOTest : public ::testing::Test {};
 
-using NiOTypes = ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct>;
+using NiOTypes =
+    ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct>;
 TYPED_TEST_CASE(MaterialLatticeNiOTest, NiOTypes);
 
 TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
@@ -100,6 +101,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   using BandDmn = func::dmn<8, int>;
   using SpinDmn = func::dmn<2, int>;
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
+  using NuNuDmn = func::dmn_variadic<BandSpinDmn, BandSpinDmn>;
 
   using CDA = dca::phys::ClusterDomainAliases<Lattice::DIMENSION>;
   using RClusterType = typename CDA::RClusterType;
@@ -108,8 +110,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
 
   auto r_DCA = Lattice::initializeRDCABasis();
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(),
-                                                                  DCA_cluster);
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(), DCA_cluster);
 
   // Get index of origin and check it.
   const int origin = RClusterType::origin_index();
@@ -151,4 +152,29 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   EXPECT_DOUBLE_EQ(6.83, H_interaction(0, 0, 1, 0, origin));
   EXPECT_DOUBLE_EQ(9.14, H_interaction(0, 0, 0, 1, origin));
   EXPECT_DOUBLE_EQ(6.49, H_interaction(2, 0, 4, 0, origin));
+
+  func::function<int, NuNuDmn> H_symmetry;
+  Lattice::initializeHSymmetry(H_symmetry);
+
+  for (int s = 0; s < SpinDmn::dmn_size(); s++)
+    for (int i = 0; i < BandDmn::dmn_size(); i++)
+      if constexpr (std::is_same<TypeParam, dca::testing::NiOSymmetricStruct>::value) {
+	int expect_band_flavor = 0;
+	switch(i) {
+	case 2:
+	case 4:
+	  expect_band_flavor = 1;
+	  break;
+	case 5:
+	case 6:
+	case 7:
+	  expect_band_flavor = 2;
+	  break;
+	default: // bands 0,1,3
+	  break;
+	}
+        EXPECT_EQ(H_symmetry(i, s, i, s), expect_band_flavor);
+      }
+      else
+        EXPECT_EQ(H_symmetry(i, s, i, s), i) << "i: " << i << "  s: " << s;
 }
