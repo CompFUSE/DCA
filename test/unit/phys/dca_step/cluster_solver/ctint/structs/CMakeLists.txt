@@ -6,7 +6,7 @@ dca_add_gtest(ct_int_interaction_vertices_test
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
     CUDA
-    LIBS ${DCA_LIBS}
+    LIBS FFTW::Double ${DCA_LIBS}
     )
 
 dca_add_gtest(solver_configuration_test
