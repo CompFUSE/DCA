@@ -45,8 +45,9 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.2)
 endif()
 
 # Set extra optimization specific flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+# These break tests intel x86_64
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
   # the case for x86_64
