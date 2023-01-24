@@ -435,13 +435,9 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                          const util::GpuStream& stream) {
+                                          const util::GpuStream& stream [[maybe_unused]]) {
   resize(rhs.size_);
-  util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
-  cudaEvent_t set_event;
-  checkRC(cudaEventCreateWithFlags(&set_event, cudaEventBlockingSync));
-  checkRC(cudaEventRecord(set_event, stream));
-  checkRC(cudaEventSynchronize(set_event));
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
