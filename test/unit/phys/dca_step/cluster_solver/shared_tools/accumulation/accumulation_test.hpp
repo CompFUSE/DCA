@@ -53,6 +53,10 @@ protected:
 
   void SetUp() {}
 
+    /** creates a configuration for testing
+     *  \param[out]  config
+     *  \param[out]  M
+     */
   void prepareConfiguration(Configuration& config, Sample& M, const std::array<int, 2> n, [[maybe_unused]] unsigned long long num_discard = 0) {
     for (int s = 0; s < 2; ++s)
       BaseClass::prepareConfiguration(config[s], M[s], n[s], num_discard);

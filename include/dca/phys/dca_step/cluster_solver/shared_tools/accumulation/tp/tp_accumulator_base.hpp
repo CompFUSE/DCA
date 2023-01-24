@@ -159,7 +159,7 @@ protected:
       nullptr;
 
   const int thread_id_;
-  const bool multiple_accumulators_;
+  bool multiple_accumulators_;
 
   const Real beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;

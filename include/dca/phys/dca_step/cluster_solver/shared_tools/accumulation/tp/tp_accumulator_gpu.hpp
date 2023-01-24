@@ -100,6 +100,9 @@ public:
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int dca_loop);
 
+    // Resets the object between DCA iterations.
+  void resetAccumulation(unsigned int dca_loop, dca::util::OncePerLoopFlag&);
+
   // Computes the two particles Greens function from the M matrix and accumulates it internally.
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
@@ -166,6 +169,7 @@ public:
   // Returns the accumulated Green's function.
   static inline std::vector<G4DevType>& get_G4Dev();
 
+  void set_multiple_accumulators(bool have_multiple_accumulators) { multiple_accumulators_ = true; }
 protected:
   using typename BaseGpu::Matrix;
   using typename BaseGpu::MatrixHost;
@@ -200,7 +204,6 @@ protected:
   float updateG4(const std::size_t channel_index);
 
   void synchronizeStreams();
-
 #ifdef DCA_HAVE_MPI
   struct RingMessage {
     int target;
@@ -236,9 +239,22 @@ TpAccumulator<Parameters, DT, linalg::GPU>::TpAccumulator(
     : Base(G0, pars, thread_id), BaseGpu(G0, pars, Base::get_n_pos_frqs(), thread_id) {}
 
 template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::GPU>::resetAccumulation(const unsigned int dca_loop, dca::util::OncePerLoopFlag& flag) {
+
+  dca::util::callOncePerLoop(flag, dca_loop, [&]() {
+    resetG4();
+    BaseGpu::initializeG0();
+  });
+
+  BaseGpu::synchronizeStreams();
+
+  initialized_ = true;
+  finalized_ = false;
+}
+
+template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::resetAccumulation(const unsigned int dca_loop) {
   static dca::util::OncePerLoopFlag flag;
-
   dca::util::callOncePerLoop(flag, dca_loop, [&]() {
     resetG4();
     BaseGpu::initializeG0();
@@ -257,11 +273,13 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
   for (auto& G4_channel : get_G4Dev()) {
     try {
       typename Base::TpDomain tp_dmn;
-      if (!multiple_accumulators_) {
-        G4_channel.setStream(queues_[0].getStream());
-      }
+      dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
+      if (!multiple_accumulators_)
+        reset_stream = queues_[0].getStream();
+
+      G4_channel.setStream(reset_stream);
       G4_channel.resizeNoCopy(G4_[0].size());
-      G4_channel.setToZeroAsync(queues_[0].getStream());
+      G4_channel.setToZero(reset_stream);
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";

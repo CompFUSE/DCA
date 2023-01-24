@@ -137,6 +137,8 @@ inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1, int& k2, int& 
   w1 += ext_size_;
   w2 += ext_size_;
   if (w1 >= n_w_ext_pos) {
+    if (w2 < 0)
+      w2 -= n_w_ext_pos;
     w1 -= n_w_ext_pos;
     return false;
   }

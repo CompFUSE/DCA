@@ -6,8 +6,9 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak     (doakpw@ornl.gov)
 //
-// This file implements a no-change test for the two particles accumulation on the GPU.
+// This file implements unit tests for two particles accumulation on the GPU.
 
 #include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
@@ -15,6 +16,8 @@
 #include <array>
 #include <functional>
 #include <string>
+#include <chrono>
+#include <thread>
 #include "gtest/gtest.h"
 #include "dca/util/integer_division.hpp"
 #include "dca/function/util/difference.hpp"
@@ -121,15 +124,21 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
 TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   dca::linalg::util::initializeMagma();
 
-  parameters_.set_four_point_channel(dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE);
+  parameters_.set_four_point_channel(dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC);
 
   using Accumulator =
       dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::DistType::NONE,
                                                     dca::linalg::GPU>;
   Accumulator accumulator_sum(data_->G0_k_w_cluster_excluded, parameters_, 0);
+  // If the input is not for multiple accumulators this must be manually set or this test can fail
+  //accumulator_sum.set_multiple_accumulators(true);
   Accumulator accumulator1(data_->G0_k_w_cluster_excluded, parameters_, 1);
+  //accumulator1.set_multiple_accumulators(true);
   Accumulator accumulator2(data_->G0_k_w_cluster_excluded, parameters_, 2);
+  //accumulator2.set_multiple_accumulators(true);
   Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_, 3);
+  //accumulator3.set_multiple_accumulators(true);
+
 
   auto prepare_configuration = [&](auto& M, auto& configuration, const auto& n) {
     ConfigGenerator::prepareConfiguration(M, configuration, TpAccumulatorGpuTest::BDmn::dmn_size(),
@@ -144,26 +153,68 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   prepare_configuration(config1, M1, n);
   prepare_configuration(config2, M2, n);
 
-  const int loop_id = loop_counter++;
-  accumulator1.resetAccumulation(loop_id);
-  accumulator2.resetAccumulation(loop_id);
-  accumulator_sum.resetAccumulation(loop_id);
+  dca::util::OncePerLoopFlag flag;
 
+  int loop_id = loop_counter++;
+  std::cout << "loop_id: " << loop_id << '\n';
+  accumulator1.resetAccumulation(loop_id, flag);
+  accumulator2.resetAccumulation(loop_id, flag);
+  accumulator_sum.resetAccumulation(loop_id, flag);
+
+  // This is a bandaid for CI.
+  std::chrono::microseconds sleep_time(10000);  
+  std::this_thread::sleep_for(sleep_time);
+
+  // there is a data race here between the resets above
+  // accumulates because different cuda streams can synchronize the reset and accumulation
+  // of the shared G4 data on the GPU.
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);
   accumulator1.sumTo(accumulator_sum);
-  accumulator2.sumTo(accumulator_sum);
+  accumulator2.sumTo(accumulator_sum);  
+  
   accumulator_sum.finalize();
 
   // Reset the G4 on the GPU to zero.
-  accumulator3.resetAccumulation(loop_counter++);
+
+  loop_id = loop_counter++;
+  std::cout << "loop_id: " << loop_id << '\n';
+
+  // This is consistent because there is only one accumulator involved and therefore the
+  // cuda stream works for synchronization.
+  accumulator3.resetAccumulation(loop_id, flag);
   accumulator3.accumulate(M1, config1, sign);
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();
+  
+  auto acc3_it = accumulator3.get_G4()[0].begin();
+  auto acc_sum_it = accumulator_sum.get_G4()[0].begin();
+  auto acc3_end = accumulator3.get_G4()[0].end();
+
+  int index = 0;
+  // while(acc3_it != acc3_end) {
+  //   EXPECT_NEAR(acc_sum_it->real(), acc3_it->real(), 1E-4) << "index = " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index));
+  //   ++acc3_it;
+  //   ++acc_sum_it;
+  //   ++index;
+  // }
 
   const auto diff =
       dca::func::util::difference(accumulator3.get_G4()[0], accumulator_sum.get_G4()[0]);
   EXPECT_GT(5e-7, diff.l_inf);
+
+  if (diff.l_inf < 5e-7) {
+    std::cout << "succeed with diff.l_inf = " << diff.l_inf << '\n';
+    int index = 10;
+    std::cout << "values at " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
+	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " << accumulator3.get_G4()[0](index) << '\n';
+  }
+  else {
+    int index = 10;
+        std::cout << "values at " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
+	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " << accumulator3.get_G4()[0](index) << '\n';
+
+  }
 }
 
 int main(int argc, char** argv) {

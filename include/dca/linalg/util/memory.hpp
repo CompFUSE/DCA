@@ -50,6 +50,11 @@ struct Memory<CPU> {
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
   }
+
+  template <typename ScalarType>
+  static void setToZero(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
+    setToZero(ptr, size);
+  }
 };
 
 #ifdef DCA_HAVE_GPU
@@ -76,6 +81,15 @@ struct Memory<GPU> {
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& stream) {
     cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
+  }
+
+  template <typename ScalarType>
+  static void setToZero(ScalarType* ptr, size_t size, const GpuStream& stream) {
+    checkRC(cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream));
+    cudaEvent_t zero_event;
+    checkRC(cudaEventCreateWithFlags(&zero_event, cudaEventBlockingSync));
+    checkRC(cudaEventRecord(zero_event, stream));
+    checkRC(cudaEventSynchronize(zero_event));
   }
 };
 #endif  // DCA_HAVE_GPU
