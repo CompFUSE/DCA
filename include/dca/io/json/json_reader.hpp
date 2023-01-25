@@ -42,8 +42,12 @@ public:
   // the root group.
   bool close_group() noexcept;
 
-  void begin_step(){};
-  void end_step(){};
+  std::size_t getStepCount() { return 0; }
+
+  std::string get_path() { return {}; }
+  
+  void begin_step(){}
+  void end_step(){}
   
   constexpr static bool is_reader = true;
   constexpr static bool is_writer = false;

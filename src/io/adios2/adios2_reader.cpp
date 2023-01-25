@@ -81,6 +81,7 @@ void ADIOS2Reader<Concurrency>::begin_step() {
 };
 template <class Concurrency>
 void ADIOS2Reader<Concurrency>::end_step() {
+  my_paths_.clear();
   file_.EndStep();
 };
 

@@ -24,6 +24,16 @@ HDF5Reader::~HDF5Reader() {
     close_file();
 }
 
+std::size_t HDF5Reader::getStepCount() {
+  std::size_t steps;
+  bool has_steps = execute("steps", steps);
+  if (!has_steps) {
+    std::cerr << "Legacy DCA hdf5 with no step data read.\n";
+    return 0;
+  }
+  return steps;
+}
+  
 void HDF5Reader::open_file(std::string file_name) {
   {  // check whether the file exists ...
     std::wifstream tmp(file_name.c_str());
@@ -65,12 +75,15 @@ void HDF5Reader::begin_step() {
   if (in_step_)
     throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
   in_step_ = true;
+  std::string step_group{"step_" + std::to_string(++step_ - 1)};
+  paths_.push_back(step_group);
 }
 
 void HDF5Reader::end_step() {
   if (!in_step_)
     throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
-  ++step_;
+  paths_.clear();
+  in_step_ = false;
 }
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {

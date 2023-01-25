@@ -49,6 +49,7 @@ void ADIOS2Writer<Concurrency>::begin_step() {
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::end_step() {
   file_.EndStep();
+  my_paths_.clear();
 };
 
 template <class Concurrency>

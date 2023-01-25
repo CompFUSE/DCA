@@ -106,6 +106,10 @@ public:
     std::visit([&](auto& var) { var.close_group(); }, reader_);
   }
 
+  std::size_t getStepCount() {
+    return std::visit([&](auto& var) ->std::size_t { return var.getStepCount(); }, reader_);
+  }
+  
   void begin_step() {
     std::visit([&](auto& var) { var.begin_step(); }, reader_);
   }
@@ -114,6 +118,10 @@ public:
     std::visit([&](auto& var) { var.end_step(); }, reader_);
   }
 
+  std::string get_path() {
+    return std::visit([&](auto& var) -> std::string { return var.get_path(); }, reader_);
+  }
+  
   template <class... Args>
   bool execute(Args&&... args) noexcept {
     return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },
