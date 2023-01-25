@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+// Authors: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//          Peter W. Doak (doakpw@ornl.gov)
 //
 // This file tests the specialization of material_lattice for NiO.
 
@@ -31,20 +32,22 @@ namespace testing {
 // dca::testing::
 
 struct NiOSymmetricStruct {
-  static constexpr phys::models::material_name_type type = phys::models::NiO_symmetric;
+  static constexpr phys::models::Material type = phys::models::Material::NiO_symmetric;
 };
 
 struct NiOUnsymmetricStruct {
-  static constexpr phys::models::material_name_type type = phys::models::NiO_unsymmetric;
+  static constexpr phys::models::Material type = phys::models::Material::NiO_unsymmetric;
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+
+}  // namespace dca
 
 template <typename T>
 class MaterialLatticeNiOTest : public ::testing::Test {};
 
-typedef ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct> NiOTypes;
+using NiOTypes =
+    ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsymmetricStruct>;
 TYPED_TEST_CASE(MaterialLatticeNiOTest, NiOTypes);
 
 TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
@@ -57,7 +60,7 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
 
   using KDmn = func::dmn<3, std::vector<double>>;
-  const double a = Lattice::latticeConstant();
+  const double a = Lattice::lattice_constant;
   KDmn::set_elements({{0., 0., 0.}, {0., M_PI / a, 0.}, {M_PI / a, M_PI / a, M_PI / a}});
 
   func::function<std::complex<double>, func::dmn_variadic<BandSpinDmn, BandSpinDmn, func::dmn_0<KDmn>>> H_0;
@@ -98,14 +101,16 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   using BandDmn = func::dmn<8, int>;
   using SpinDmn = func::dmn<2, int>;
   using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
+  using NuNuDmn = func::dmn_variadic<BandSpinDmn, BandSpinDmn>;
 
   using CDA = dca::phys::ClusterDomainAliases<Lattice::DIMENSION>;
   using RClusterType = typename CDA::RClusterType;
-  using RClusterDmn= typename CDA::RClusterDmn;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
-  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initializeRDCABasis(),
-                                                            DCA_cluster);
+
+  auto r_DCA = Lattice::initializeRDCABasis();
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(r_DCA.data(), DCA_cluster);
 
   // Get index of origin and check it.
   const int origin = RClusterType::origin_index();
@@ -147,4 +152,29 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
   EXPECT_DOUBLE_EQ(6.83, H_interaction(0, 0, 1, 0, origin));
   EXPECT_DOUBLE_EQ(9.14, H_interaction(0, 0, 0, 1, origin));
   EXPECT_DOUBLE_EQ(6.49, H_interaction(2, 0, 4, 0, origin));
+
+  func::function<int, NuNuDmn> H_symmetry;
+  Lattice::initializeHSymmetry(H_symmetry);
+
+  for (int s = 0; s < SpinDmn::dmn_size(); s++)
+    for (int i = 0; i < BandDmn::dmn_size(); i++)
+      if constexpr (std::is_same<TypeParam, dca::testing::NiOSymmetricStruct>::value) {
+	int expect_band_flavor = 0;
+	switch(i) {
+	case 2:
+	case 4:
+	  expect_band_flavor = 1;
+	  break;
+	case 5:
+	case 6:
+	case 7:
+	  expect_band_flavor = 2;
+	  break;
+	default: // bands 0,1,3
+	  break;
+	}
+        EXPECT_EQ(H_symmetry(i, s, i, s), expect_band_flavor);
+      }
+      else
+        EXPECT_EQ(H_symmetry(i, s, i, s), i) << "i: " << i << "  s: " << s;
 }

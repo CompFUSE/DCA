@@ -114,15 +114,15 @@ protected:
   using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real>;
   std::array<DftType, 2> space_trsf_objs_;
 
+  constexpr static int n_ndft_queues_ = config::McOptions::memory_savings ? 1 : 2;
+  constexpr static int n_bands_ = Parameters::model_type::BANDS;
+
   std::array<RMatrix, 2> G_;
 
   const int nr_accumulators_;
 
   bool finalized_ = false;
   bool initialized_ = false;
-
-  constexpr static int n_ndft_queues_ = config::McOptions::memory_savings ? 1 : 2;
-  constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
   const int thread_id_;
 
@@ -139,6 +139,7 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
+
       nr_accumulators_(pars.get_accumulators()),
       thread_id_(thread_id) {
   initializeG4Helpers();
@@ -196,7 +197,8 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
-    G0[s].setAsync(G0_host[s], queues_[s].getStream());
+    dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
+    G0[s].set(G0_host[s], reset_stream);
   }
 }
 
@@ -224,9 +226,10 @@ float TpAccumulatorGpuBase<Parameters, DT>::computeM(
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulatorGpuBase<Parameters, DT>::sumTo_(TpAccumulatorGpuBase<Parameters, DT>& /*other_one*/) {
+void TpAccumulatorGpuBase<Parameters, DT>::sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other) {
   // Nothing to do: G4 on the device is shared.
   synchronizeStreams();
+  other.synchronizeStreams();
   return;
 }
 

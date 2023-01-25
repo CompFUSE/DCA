@@ -47,7 +47,7 @@ public:
   DcaLoopData();
 
   template <typename WRITER>
-  void write(WRITER& writer);
+  void write(WRITER& writer, Concurrency& concurrency);
 
   // Attempts to read the loop functions from 'filename'. If successful returns
   // the last completed iteration from the input file, otherwise it returns -1.
@@ -118,33 +118,41 @@ DcaLoopData<ParametersType>::DcaLoopData()
 
 template <typename ParametersType>
 template <typename Writer>
-void DcaLoopData<ParametersType>::write(Writer& writer) {
-  writer.open_group("DCA-loop-functions");
+void DcaLoopData<ParametersType>::write(Writer& writer, Concurrency& concurrency) {
+  // This is suboptimal really the writer should report whether the file is open.
+  if (concurrency.id() == concurrency.first()) {
+    if (writer.isOpen()) {
+      writer.open_group("DCA-loop-functions");
+      {
+        writer.execute(Gflop_per_mpi_task);
+        writer.execute(times_per_mpi_task);
+        writer.execute(Gflops_per_mpi_task);
 
-  {
-    writer.execute(Gflop_per_mpi_task);
-    writer.execute(times_per_mpi_task);
-    writer.execute(Gflops_per_mpi_task);
+        writer.execute(sign);
 
-    writer.execute(sign);
+        writer.execute(L2_Sigma_difference);
+        writer.execute(standard_deviation);
 
-    writer.execute(L2_Sigma_difference);
-    writer.execute(standard_deviation);
+        writer.execute(chemical_potential);
+        writer.execute(density);
+        writer.execute(average_expansion_order);
 
-    writer.execute(chemical_potential);
-    writer.execute(density);
-    writer.execute(average_expansion_order);
+        writer.execute(Sigma_zero_moment);
 
-    writer.execute(Sigma_zero_moment);
+        writer.execute(n_k);
+        writer.execute(A_k);
+        writer.execute(orbital_occupancies);
+        writer.execute("completed-iteration", last_completed_iteration);
+      }
 
-    writer.execute(n_k);
-    writer.execute(A_k);
-    writer.execute(orbital_occupancies);
-
-    writer.execute("completed-iteration", last_completed_iteration);
+      writer.close_group();
+    }
+    else {
+      throw std::logic_error(
+          "Dca_loop_data write called on writer with closed file.  This is likely a developer "
+          "error.");
+    }
   }
-
-  writer.close_group();
 }
 
 template <typename ParametersType>
@@ -162,8 +170,15 @@ int DcaLoopData<ParametersType>::readData(const std::string& filename, const std
 template <typename ParametersType>
 int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
                                           const Concurrency& concurrency, adios2::ADIOS& adios) {
+  std::cout << "Reading dca_loop_data with ADIOS2\n";
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     io::Reader reader(adios, concurrency, format, false);
+    auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+    std::size_t step_count = adios2_reader.getStepCount();
+    for (std::size_t i = 0; i < step_count; ++i) {
+      adios2_reader.begin_step();
+      adios2_reader.end_step();
+    }
     readLoopDataCommon(reader, filename, format);
   }
   concurrency.broadcast(last_completed_iteration);
@@ -199,7 +214,6 @@ void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader, const std::
   reader.execute(A_k);
   reader.execute(orbital_occupancies);
 
-  reader.open_group("DCA-loop-functions");
   reader.close_file();
 }
 

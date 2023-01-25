@@ -1,6 +1,14 @@
 ################################################################################
-# Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
-#         Giovanni Badlduzzi (gbalduzz@itp.phys.ethz.ch)
+# Copyright (C) 2023 ETH Zurich
+# Copyright (C) 2023 UT-Battelle, LLC
+# All rights reserved.
+#
+# See LICENSE for terms of usage.
+# See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+#
+# Authors: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#          Giovanni Badlduzzi (gbalduzz@itp.phys.ethz.ch)
+#          Peter Doak (doakpw@ornl.gov
 #
 # Build options for DCA++.
 
@@ -92,8 +100,8 @@ endif()
 # TODO: Add more point groups and lattices.
 
 # Point group
-set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4 | no_symmetry<2>.")
-set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4 no_symmetry<2>)
+set(DCA_POINT_GROUP "D4" CACHE STRING "Point group symmetry, options are: C6 | D4 | no_symmetry<2> | no_symmetry<3>.")
+set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4 no_symmetry<2> no_symmetry<3>)
 
 if (DCA_POINT_GROUP STREQUAL "C6")
   set(DCA_POINT_GROUP_INCLUDE
@@ -104,16 +112,18 @@ elseif (DCA_POINT_GROUP STREQUAL "D4")
 
 elseif (DCA_POINT_GROUP STREQUAL "no_symmetry<2>")
   set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp")
+elseif (DCA_POINT_GROUP STREQUAL "no_symmetry<3>")
+  set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4.")
+  message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4 | no_symmetry<2> | no_symmetry<3>.")
 endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    hund | twoband_Cu | threeband | FeAs | Kagome.")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund twoband_Cu threeband
-             FeAs Kagome)
+    Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn ")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular Kagome hund twoband_Cu threeband
+             FeAs material_NiO material_FeSn)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -129,6 +139,10 @@ elseif (DCA_LATTICE STREQUAL "triangular")
   set(DCA_LATTICE_TYPE dca::phys::models::triangular_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
+elseif (DCA_LATTICE STREQUAL "Kagome")
+  set(DCA_LATTICE_TYPE dca::phys::models::KagomeHubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
 elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
 
@@ -149,14 +163,18 @@ elseif (DCA_LATTICE STREQUAL "twoband_Cu")
   set(DCA_LATTICE_TYPE dca::phys::models::TwoBandCu<PointGroup>)
   set(DCA_LATTICE_INCLUDE
       "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp")
-elseif (DCA_LATTICE STREQUAL "Kagome")
-  set(DCA_LATTICE_TYPE dca::phys::models::KagomeHubbard<PointGroup>)
+elseif (DCA_LATTICE STREQUAL "material_NiO")
+  set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::${DCA_POINT_GROUP}>")
   set(DCA_LATTICE_INCLUDE
-      "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
-
+      "dca/phys/models/material_hamiltonians/material_lattice.hpp")
+  set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
+elseif (DCA_LATTICE STREQUAL "material_FeSn")
+  set(DCA_LATTICE_TYPE "dca::phys::models::material_lattice<dca::phys::models::Material::FeSn, dca::phys::domains::${DCA_POINT_GROUP}>")
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/material_hamiltonians/material_lattice.hpp")
+  set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
 else()
-  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
-          hund | twoband_Cu | threeband | FeAs | Kagome.")
+  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn.")
 endif()
 
 # Model type
@@ -412,6 +430,9 @@ if(DCA_FIX_BROKEN_MPICH)
   add_compile_definitions(DCA_FIX_BROKEN_MPICH)
 endif()
 
+if ((DCA_LATTICE STREQUAL "material") AND (NOT DCA_POINT_GROUP STREQUAL "no_symmetry<3>"))
+  message( FATAL_ERROR "material lattice must be used with the no_symmetry<3> pointgroup")
+endif()
 ################################################################################
 # Generate applications' config files.
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/analysis.hpp.in"

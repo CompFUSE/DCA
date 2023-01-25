@@ -6,8 +6,8 @@
 # Usage: source summit_load_modules.sh
 
 module reset
-module load gcc/10.2.0
-module load cuda/11.4.2 # ldd shows magma is built with this cuda
+module load gcc/11.2.0
+module load cuda/11.5.2 # ldd shows magma is built with this cuda
 module load magma/2.6.2
 module load hdf5
 module load fftw

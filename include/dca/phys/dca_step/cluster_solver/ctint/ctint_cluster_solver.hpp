@@ -74,8 +74,6 @@ public:
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
                      std::shared_ptr<io::Writer<Concurrency>> writer);
 
-  ~CtintClusterSolver();
-
   // Initialize g0_interpolation and reset internal state. Must be called before integrate.
   void initialize(int dca_iteration = 0);
 
@@ -94,8 +92,13 @@ public:
 
   double computeDensity() const;
 
+  /** write runtime parameters used by cluster solver and its important owned objects */
   template <class Writer>
-  void write(Writer& /*writer*/) {}
+  void write(Writer& writer) {
+    writer.open_group("parameters");
+    accumulator_.write(writer);
+    writer.close_group();
+  }
 
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
@@ -150,7 +153,6 @@ protected:
   G0Interpolation<device_t, typename Walker::Scalar> g0_;
 
 private:
-  bool perform_tp_accumulation_;
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
@@ -175,22 +177,19 @@ CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::~CtintClusterSolver() {
-  if (concurrency_.id() == concurrency_.first())
-    std::cout << "\n\n\t CT-INT Integrator has died \n\n";
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
-
+  
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
-  perform_tp_accumulation_ =
-      parameters_.isAccumulatingG4() && dca_iteration == parameters_.get_dca_iterations() - 1;
+  // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
+  if (concurrency_.id() == concurrency_.first())
+    std::cout << "\n\n\t CT-INT Integrator has initialized (DCA-iteration : " << dca_iteration
+              << ")\n\n";
+
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
@@ -257,7 +256,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   if (compute_error) {
     data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma);
     data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w);
-    if (perform_tp_accumulation_) {
+    if (accumulator_.perform_tp_accumulation()) {
       for (int channel = 0; channel < data_.get_G4().size(); ++channel)
         data_.get_G4_error()[channel] = concurrency_.jackknifeError(data_.get_G4()[channel]);
     }
@@ -272,12 +271,9 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_t, data_.G_r_t);
 
   auto local_time = total_time_;
-  std::cout << "conccurency id: " << concurrency_.id() << "  total time: " << total_time_
-            << std::endl;
   concurrency_.sum(total_time_);
+
   auto gflop = accumulator_.getFLOPs() * 1e-9;
-  std::cout << "conccurency id: " << concurrency_.id() << "  gflop time: " << total_time_
-            << std::endl;
   concurrency_.sum(gflop);
 
   if (concurrency_.id() == concurrency_.first()) {
@@ -494,7 +490,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAnd
 
   M /= std::complex<double>(sign, 0.);
 
-  if (perform_tp_accumulation_) {
+  if (accumulator_.perform_tp_accumulation()) {
     for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
       auto& G4 = data_.get_G4()[channel];
       G4 = accumulator_.get_sign_times_G4()[channel];

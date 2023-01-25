@@ -38,22 +38,23 @@ using Bdmn = func::dmn_0<phys::domains::electron_band_domain>;
 using Sdmn = func::dmn_0<phys::domains::electron_spin_domain>;
 using Nu = func::dmn_variadic<Bdmn, Sdmn>;
 // Default momentum space.
+template<int DIM = 2>
 using Kdmn = func::dmn_0<phys::domains::cluster_domain<
-    double, 2, phys::domains::CLUSTER, phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;
+    double, DIM, phys::domains::CLUSTER, phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;
 }  // details
 // dca::math::util::
 
 using Complex = std::complex<double>;
 using DmnWcut = dca::func::ReducedDomain<details::Wdmn>;
 using RealImagDmn = func::dmn_0<func::dmn<2, std::string>>;
-template <class SpaceDmn = details::Kdmn>
+template <typename SpaceDmn>
 using SigmaDomain = func::dmn_variadic<details::Nu, details::Nu, SpaceDmn, details::Wdmn>;
 
 // Stores  n_w frequencies, all k or r points and bands (no spin).
-template <class SpaceDmn = details::Kdmn>
+template <class SpaceDmn>
 using SigmaCutDomain =
     func::dmn_variadic<details::Bdmn, details::Bdmn, SpaceDmn, func::dmn_0<DmnWcut>, RealImagDmn>;
-template <class SpaceDmn = details::Kdmn>
+template <class SpaceDmn>
 using CovarianceDomain = func::dmn_variadic<SigmaCutDomain<SpaceDmn>, SigmaCutDomain<SpaceDmn>>;
 
 // Prepares a function in the domain of the Self Energy to be statistically tested.
@@ -61,7 +62,7 @@ using CovarianceDomain = func::dmn_variadic<SigmaCutDomain<SpaceDmn>, SigmaCutDo
 // frequencies.
 // In: f, n_w.
 // Returns: the cut function.
-template <class SpaceDmn = details::Kdmn>
+template <class SpaceDmn>
 func::function<double, SigmaCutDomain<SpaceDmn>> cutFrequency(
     const func::function<Complex, SigmaDomain<SpaceDmn>>& f, const int n_w) {
   assert(n_w > 0);

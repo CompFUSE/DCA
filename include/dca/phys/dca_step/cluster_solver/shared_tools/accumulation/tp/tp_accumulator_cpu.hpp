@@ -350,11 +350,13 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
     }
   }
   else {
+    // const Complex* const G_ptr =
+    //     &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
     const Complex* const G_ptr =
-        &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
+        &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
+        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b2 + b1 * n_bands_]);
   }
 }
 
@@ -369,7 +371,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   Profiler profiler("updateG4", "tp-accumulation", __LINE__, thread_id_);
 
   double flops(0);
-
+ 
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(k, q); };
   // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
@@ -433,7 +435,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                   for (int s = 0; s < 2; ++s)
                     updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
                                    momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
-                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                                   // w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, false);
                 }
         }
       }
@@ -573,7 +576,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-              *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              // *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              *G4_ptr += alpha * G_a_(b2, b4) * G_b_(b3, b1);
               ++G4_ptr;
             }
     else
@@ -616,7 +620,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-              *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              // *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              *G4_ptr += alpha * G_a_(b2, b1) * G_b_(b3, b4);
               ++G4_ptr;
             }
     else

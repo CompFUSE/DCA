@@ -30,6 +30,7 @@
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 
 namespace dca {
@@ -46,6 +47,8 @@ class ModelParameters {};
 
 // Specialization for 2D 4-band model
 // #include "model_parameters_2d_4band.inc"
+
+#include "model_parameters_Kagome_hubbard.inc"
 
 // Specialization for square lattice bilayer Hubbard model
 #include "model_parameters_bilayer_hubbard.inc"
@@ -69,8 +72,8 @@ class ModelParameters {};
 #include "model_parameters_twoband_chain.inc"
 #include "model_parameters_threeband_hubbard.inc"
 
-}  // params
-}  // phys
-}  // dca
+}  // namespace params
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_PARAMETERS_MODEL_PARAMETERS_HPP

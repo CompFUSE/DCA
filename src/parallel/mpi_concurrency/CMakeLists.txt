@@ -11,6 +11,11 @@ if(DCA_HAVE_GPU)
   target_link_libraries(parallel_mpi_concurrency PUBLIC kernel_test)
 endif()
 
+if(DCA_HAVE_ADIOS2)
+  target_link_libraries(parallel_mpi_concurrency PUBLIC adios2::adios2)
+  target_include_directories(dca_adios2 PUBLIC adios2::adios2)
+endif()
+
 # if find_package(MPI) was used we need this, otherwise it does nothing
 target_link_libraries(parallel_mpi_concurrency PUBLIC ${MPI_C_LIBRARIES})
 

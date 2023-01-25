@@ -58,12 +58,12 @@ using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::FeAsLattice<dca::phys::domains::D4>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
-using dca::ClusterSolverId::CT_INT;
+using CSId = dca::ClusterSolverId;
 
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                   dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, CT_INT>;
+                                  RandomNumberGenerator, CSId::CT_INT>;
 
 using DcaData = dca::phys::DcaData<ParametersType>;
 
@@ -73,9 +73,9 @@ using QuantumClusterSolver = dca::phys::solver::CtintClusterSolver<device, Param
 template <DeviceType device>
 using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<device>>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 }  // namespace testing

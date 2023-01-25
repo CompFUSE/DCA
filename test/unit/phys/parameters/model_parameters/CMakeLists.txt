@@ -10,15 +10,12 @@
 
 dca_add_gtest(model_parameters_bilayer_hubbard_test
   GTEST_MAIN
-  INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
-  LIBS json)
+  LIBS function_transform json)
 
 dca_add_gtest(model_parameters_material_test
   GTEST_MAIN
-  INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
-  LIBS json)
+  LIBS function_transform json models)
 
 dca_add_gtest(model_parameters_single_band_hubbard_test
   GTEST_MAIN
-  INCLUDE_DIRS ${FFTW_INCLUDE_DIR}
-  LIBS json)
+  LIBS function_transform json)

@@ -14,6 +14,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 
 #include "dca/function/function.hpp"

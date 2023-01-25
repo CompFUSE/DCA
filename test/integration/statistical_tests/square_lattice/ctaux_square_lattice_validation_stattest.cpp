@@ -16,13 +16,15 @@
 #include "gtest/gtest.h"
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
+#ifdef DCA_HAVE_GPU
   dca::linalg::util::initializeMagma();
-
+#endif
   using namespace dca::testing;
   const std::string ed_data_name = "data.ed.hdf5";
 
@@ -34,18 +36,18 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType<CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType<ClusterSolverId::CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
   parameters.set_measurements(parameters.get_measurements().back() * number_of_samples / 50);
 
-  DcaData<CT_AUX> data(parameters);
+  DcaData<ClusterSolverId::CT_AUX> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_AUX> qmc_solver(parameters, data, nullptr);
+  QuantumClusterSolver<ClusterSolverId::CT_AUX> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

@@ -110,13 +110,14 @@ dca_write_haves_definitions_file()
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
 
+include(dca_check_stdlib)
+message("std::filesystem resolved")
+
 ################################################################################
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
 
-include(dca_check_stdlib)
-message("std::filesystem resolved")
 
 ################################################################################
 # Include directories
@@ -173,6 +174,7 @@ set(DCA_LIBS
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}
   lapack
+  models
 )
   
 set(SYSTEM_GPU_COUNT 0)

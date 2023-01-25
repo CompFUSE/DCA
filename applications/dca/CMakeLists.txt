@@ -7,6 +7,6 @@ if (DCA_BUILD_DCA)
   if (DCA_HAVE_GPU)
     target_link_libraries(main_dca PRIVATE ${DCA_GPU_LIBS})
   endif()
-
-  target_link_libraries(main_dca PUBLIC signals ${DCA_LIBS})
+  
+  target_link_libraries(main_dca PUBLIC FFTW::Double signals  ${DCA_LIBS})
 endif()

@@ -189,8 +189,6 @@ template <typename scalar_type>
 void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
-  std::cout << "Rank: " << MPIProcessorGrouping::get_id()
-            << " MPIProcessorGrouping :" << MPIProcessorGrouping::get() << std::endl;
   MPI_Allreduce(&value, &result, 1, MPITypeMap<scalar_type>::value(), MPI_SUM,
                 MPIProcessorGrouping::get());
 

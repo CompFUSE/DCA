@@ -38,10 +38,12 @@ double StatisticalTesting::computePValue(bool known_expected_covariance, int n_s
 
   if (known_expected_covariance == true)
     pvalue_ = 1 - chi2Cdf(distance_ * n_samples, dof_);
-  else
+  else {
+    if (n_samples - dof_ < 0)
+      std::cout << "bad n_samples: " << n_samples << "  minus dof: " << dof_ << '\n';
     pvalue_ = 1 - fCdf(distance_ * static_cast<double>(n_samples - dof_) / static_cast<double>(dof_),
                        dof_, n_samples - dof_);
-
+  }
   return pvalue_;
 }
 
@@ -284,7 +286,7 @@ static double incLBeta(double a, double b, double x) {
 // Cumulative chi2 distribution
 double chi2Cdf(double x, int k) {
   if (x < 0 or k <= 0)
-    throw(std::logic_error("The cdf is defined only for positive arguments"));
+    throw(std::logic_error("The chi2Cdf is defined only for positive arguments"));
   if (x == 0)
     return 0;
 
@@ -296,13 +298,20 @@ double chi2Cdf(double x, int k) {
 
 // Cumulative f distribution
 double fCdf(double x, int nu1, int nu2) {
-  if (x < 0 or nu1 <= 0 or nu2 <= 0)
-    throw(std::logic_error("The cdf is defined only for positive arguments"));
+  if (x < 0 or nu1 <= 0 or nu2 <= 0) {
+    auto writeCheckFail = [](auto x, auto nu1, auto nu2) -> std::string {
+      std::ostringstream fail_message;
+      fail_message << "The fCdf is defined only for positive arguments\n"
+                   << "x: " << x << " nu1: " << nu1 << " nu2: " << nu2 << '\n';
+      return fail_message.str();
+    };
+    throw(std::logic_error(writeCheckFail(x, nu1, nu2)));
+  }
   if (x == 0)
     return 0;
 
   return incLBeta(0.5 * nu1, 0.5 * nu2, nu1 * x / (nu1 * x + nu2));
 }
 
-}  // math
-}  // dca
+}  // namespace math
+}  // namespace dca

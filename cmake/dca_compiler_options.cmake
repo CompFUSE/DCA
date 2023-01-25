@@ -24,6 +24,8 @@ set(DCA_WARNINGS -Wall -Wextra  -Wno-sign-compare -Wno-dangling-else)
 # Languange standard
 set(DCA_STD_FLAG -std=c++17)
 
+include(inspectCompiler)
+
 # Set C and CXX flags.
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_WARNINGS}>")
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
@@ -37,7 +39,7 @@ if (DCA_HAVE_CUDA)
   if (CUDA_VERSION VERSION_GREATER "11.0.0")
     list(APPEND CMAKE_CUDA_FLAGS
       -arch=${CUDA_GPU_ARCH}
-      -std=c++14
+      -std=c++17
       -Xcompiler -Wall
       -Xcompiler -Wextra
       -Xcompiler -Wno-unused-parameter

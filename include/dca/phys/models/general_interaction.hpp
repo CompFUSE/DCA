@@ -78,7 +78,7 @@ void general_interaction<parameters_type>::set_vertex(
   const int pos = rng() * correlated_orbitals.size();
   // This is instead of crashing on segv when module is unknown.
   // \todo catch earlier in release as well.
-  assert( pos < correlated_orbitals.size() && "It is likely you have specified an unknown model" );
+  assert( pos < correlated_orbitals.size() && "It is likely you have specified an unknown model or set too few correlated orbitals" );
   const int lin_ind = correlated_orbitals[pos];
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2

@@ -77,7 +77,7 @@ public:
   using random_number_generator = RandomNumberGenerator;
   using model_type = Model;
   using lattice_type = typename Model::lattice_type;
-  
+
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -94,6 +94,14 @@ public:
   using RSpHostDmn = typename CDA::RSpHostDmn;
   using KSpHostDmn = typename CDA::KSpHostDmn;
 
+  // Host q domains
+  using RQHostDmn = typename CDA::RQHostDmn;
+  using KQHostDmn = typename CDA::KQHostDmn;
+
+  // "fine" q domains
+  using RQFineDmn = typename CDA::RQFineDmn;
+  using KQFineDmn = typename CDA::KQFineDmn;
+  
   // Host vertex cluster domains
   using RTpHostDmn = typename CDA::RTpHostDmn;
   using KTpHostDmn = typename CDA::KTpHostDmn;
@@ -101,6 +109,7 @@ public:
   using DcaClusterFamily = typename CDA::DcaClusterFamily;
   using HostSpClusterFamily = typename CDA::HostSpClusterFamily;
   using HostTpClusterFamily = typename CDA::HostTpClusterFamily;
+  using HostQClusterFamily = typename CDA::HostQClusterFamily;
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
@@ -147,7 +156,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, ClusterSolverId solver_name>
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
-    : AnalysisParameters(),
+    : AnalysisParameters(Model::DIMENSION),
       DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
@@ -187,8 +196,9 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   writer.open_group("domains");
 
   DcaClusterFamily::write(writer);
+  HostQClusterFamily::write(writer);
   HostSpClusterFamily::write(writer);
-  HostTpClusterFamily::write(writer);
+  HostQClusterFamily::write(writer);
 
   TDmn::parameter_type::write(writer);
   WDmn::parameter_type::write(writer);
@@ -292,6 +302,25 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   if (concurrency_.id() == concurrency_.first())
     KSpHostDmn::parameter_type::print(std::cout);
 
+  // Host grid for bse extended single-particle functions (q-lattice)
+  domains::cluster_domain_initializer<RQHostDmn>::execute(Model::get_r_DCA_basis(),
+                                                           AnalysisParameters::get_q_host());
+  domains::cluster_domain_symmetry_initializer<
+      RQHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  if (concurrency_.id() == concurrency_.first())
+    KQHostDmn::parameter_type::print(std::cout);
+
+  // Host grid for bse fine single-particle functions (q-fine)
+  domains::cluster_domain_initializer<RQFineDmn>::execute(Model::get_r_DCA_basis(),
+							  AnalysisParameters::get_q_host_fine());
+  domains::cluster_domain_symmetry_initializer<
+      RQFineDmn, typename Model::lattice_type::DCA_point_group>::execute();
+
+  if (concurrency_.id() == concurrency_.first())
+    KQFineDmn::parameter_type::print(std::cout);
+
+  
   // Host grid for two-particle functions (tp-lattice)
   if (do_dca_plus() || doPostInterpolation()) {
     domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
@@ -434,6 +463,7 @@ std::string Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGene
   return str;
 }
 
+  
 }  // namespace params
 }  // namespace phys
 }  // namespace dca

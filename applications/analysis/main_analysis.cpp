@@ -59,20 +59,40 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-  #ifdef DCA_HAVE_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS adios;
-  dca_data.read(adios, parameters.get_directory() + parameters.get_filename_dca());
-#else
-  dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
-  #endif
-  BseSolverType bse_solver(parameters, dca_data);
-  bse_solver.calculateSusceptibilities();
 
-  if (concurrency.id() == concurrency.first()) {
+  if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
+    int rank = concurrency.id();
     std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    bse_solver.write();
+    dca::io::Writer writer(adios, concurrency, parameters.get_output_format(), true);
+    std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
+    writer.open_file(filename_bse);
 
-    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    dca_data.read(adios, parameters.get_directory() + parameters.get_filename_dca());
+    BseSolverType bse_solver(parameters, dca_data);
+    bse_solver.calculateSusceptibilities();
+
+    if (concurrency.id() == concurrency.first()) {
+      std::cout << "\n Writing ADIOS2 output\n";
+      writer.begin_step();
+      bse_solver.write(writer);
+      writer.end_step();
+      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    }
+  }
+  else
+#endif
+  {
+    dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
+    BseSolverType bse_solver(parameters, dca_data);
+    bse_solver.calculateSusceptibilities();
+
+    if (concurrency.id() == concurrency.first()) {
+      std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+      bse_solver.write();
+      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    }
   }
 
   return 0;

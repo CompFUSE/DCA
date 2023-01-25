@@ -229,6 +229,8 @@ void BseSolver<ParametersType, DcaDataType>::calculateSusceptibilities() {
   bse_lattice_solver_.computeGammaLattice(bse_cluster_solver_.get_Gamma_cluster());
   bse_lattice_solver_.computeChi0Lattice();
   bse_lattice_solver_.diagonalizeGammaChi0();
+
+  
 }
 
 }  // namespace analysis

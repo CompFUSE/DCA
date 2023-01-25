@@ -22,7 +22,7 @@
 #endif
 
 #include "dca/math/nfft/dnfft_1d.hpp"
-
+#include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/linalg/util/gpu_event.hpp"
@@ -52,6 +52,8 @@ public:
   using ThisType = Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling>;
   using ElementType = ScalarType;
   using BaseClass = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, CUBIC>;
+  using FTau = typename BaseClass::FTau;
+  using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn;
 
   Dnfft1DGpu(double beta, const linalg::util::GpuStream& stream, bool accumulate_m_sqr = false);
 
@@ -91,8 +93,20 @@ public:
     return get_device_cubic_coeff().deviceFingerprint();
   }
 
+  FTau& get_f_tau() {
+    getDeviceData(accumulation_matrix_);
+    return BaseClass::get_f_tau();
+  }
+
+  const FTau& get_f_tau() const {
+    getDeviceData(accumulation_matrix_);
+    return BaseClass::get_f_tau();
+  }
+
 private:
   void initializeDeviceCoefficients();
+
+  void getDeviceData(const linalg::Matrix<ScalarType, linalg::GPU>& data);
 
   using BaseClass::f_tau_;
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
@@ -102,6 +116,7 @@ private:
   const bool accumulate_m_sqr_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
+  linalg::Matrix<ScalarType, linalg::CPU> accumulation_matrix_host_;
 
   linalg::util::HostVector<details::ConfigElem> config_left_;
   linalg::util::HostVector<details::ConfigElem> config_right_;
@@ -122,10 +137,24 @@ Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(
   func::dmn_variadic<BDmn, BDmn, RDmn> bbr_dmn;
   const int n_times = BaseClass::PaddedTimeDmn::dmn_size();
   accumulation_matrix_.resizeNoCopy(std::make_pair(n_times, bbr_dmn.get_size()));
+
+  // \todo make this optional it doubles size of host memeory
+  accumulation_matrix_host_.resizeNoCopy(std::make_pair(n_times, bbr_dmn.get_size()));
+
   if (accumulate_m_sqr)
     accumulation_matrix_sqr_.resizeNoCopy(accumulation_matrix_.size());
 
   resetAccumulation();
+}
+
+template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
+void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::getDeviceData(
+    const linalg::Matrix<ScalarType, linalg::GPU>& data) {
+  cudaMemcpy2DAsync(f_tau_.values(), f_tau_[0] * sizeof(ScalarType),
+                    data.ptr(), data.leadingDimension() * sizeof(ScalarType),
+                    data.nrRows() * sizeof(ScalarType), data.nrCols(), cudaMemcpyDeviceToHost,
+                    stream_);
+  cudaStreamSynchronize(stream_.streamActually());
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>

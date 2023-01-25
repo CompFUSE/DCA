@@ -13,6 +13,8 @@
 
 #include "gtest/gtest.h"
 
+#include <sstream>
+
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -57,6 +59,10 @@ TEST(ComputeBandStructureTest, Execute) {
   func::function<double, nu_k_cut> band_structure;
   phys::compute_band_structure::execute(parameters, band_structure);
 
+  std::ostringstream kcut_elements;
+  phys::domains::brillouin_zone_cut_domain<101>::to_JSON(kcut_elements);
+  std::cout << kcut_elements.str() << '\n';
+  
   // Check spin symmetry.
   for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
     for (int k_ind = 0; k_ind < k_domain_cut_dmn_type::dmn_size(); ++k_ind)

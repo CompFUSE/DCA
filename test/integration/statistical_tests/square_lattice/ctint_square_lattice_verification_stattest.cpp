@@ -11,6 +11,7 @@
 // Verification test of CT-AUX against a reference run
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
@@ -26,17 +27,17 @@ TEST(CtintVerificationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType<dca::testing::CT_INT> parameters(dca::util::GitVersion::string(),
+  ParametersType<ClusterSolverId::CT_INT> parameters(dca::util::GitVersion::string(),
                                                   dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  DcaData<dca::testing::CT_INT> data(parameters);
+  DcaData<ClusterSolverId::CT_INT> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  ThreadedSolver<dca::testing::CT_INT> qmc_solver(parameters, data, nullptr);
+  ThreadedSolver<ClusterSolverId::CT_INT> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

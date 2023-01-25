@@ -108,6 +108,7 @@ public:
   void setAsync(const Container& rhs, const util::GpuStream& stream);
 
   void setToZeroAsync(const util::GpuStream& stream);
+  void setToZero(const util::GpuStream& stream);
 
   template <class Container>
   void setAsync(const Container& rhs, int thred_id, int stream_id = 0);
@@ -323,6 +324,17 @@ void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuS
   std::memset(data_, 0, size_ * sizeof(ScalarType));
 #endif
 }
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream [[maybe_unused]]) {
+  dca::linalg::util::Memory<device_name>::setToZero(data_, size_, stream);
+}
+
+// template <typename ScalarType, DeviceType device_name, class Allocator>
+// void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream [[maybe_unused]]) {
+//   // TODO: implement in copy.hpp.
+//   dca::linalg::util::memory<device_name>::setToZero(data_, size_, stream);
+// }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <class Container>

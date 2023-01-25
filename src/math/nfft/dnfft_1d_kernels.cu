@@ -61,10 +61,12 @@ __global__ void accumulateOnDeviceKernel(
   const int m_i = thread_idx / conv_size;
   const int conv_idx = thread_idx - m_i * conv_size + 1;
 
+  // 2 flops
   const ScalarOut tau = nfft_helper.computeTau(times[m_i], times[m_j]);
 
   int t_idx, conv_coeff_idx;
   ScalarOut delta_t;
+  // 6 flops --> lots of mixed integer and fp math so maybe more
   nfft_helper.computeInterpolationIndices<CUBIC, oversampling, window_sampling>(
       tau, t_idx, conv_coeff_idx, delta_t);
 
@@ -75,9 +77,11 @@ __global__ void accumulateOnDeviceKernel(
   const auto* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
   ScalarOut* const out_ptr = out + t_idx + ldo * linindex + conv_idx;
 
+  // 10 flops
   const auto conv_function_value =
       ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t + conv_coeff[0];
   const auto contribution = f_val * sign * conv_function_value;
+  // 1 "flop"
   linalg::atomicAdd(out_ptr, contribution);
   if (accumulate_m_sqr) {
     linalg::atomicAdd(out_sqr, f_val * f_val * conv_function_value);

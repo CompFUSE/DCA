@@ -14,6 +14,7 @@
 // TODO: Move domains-only tests to separate files and rename this file to function_test.cpp and the
 //       test cases to FunctionTest.
 
+#include "gtest/gtest.h"
 #include <array>
 #include <cassert>
 #include <complex>
@@ -25,8 +26,6 @@
 #include <sstream>
 #include <utility>
 #include <vector>
-
-#include "gtest/gtest.h"
 
 #include "dca/util/type_list.hpp"
 #include "dca/util/type_utils.hpp"

@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <variant>
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
@@ -122,7 +123,7 @@ public:
   void write(Writer& writer);
 
 #ifdef DCA_WITH_ADIOS2
-  void writeAdios(adios2::ADIOS& adios);
+  void writeDistributedG4Adios(io::ADIOS2Writer<Concurrency>& writer);
 #endif
 
   void initialize();
@@ -396,8 +397,11 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
   reader.open_group("functions");
 
   reader.execute(Sigma);
+  reader.execute(Sigma_lattice);
+  reader.execute(Sigma_lattice_interpolated);
 
   if (parameters_.isAccumulatingG4()) {
+    std::cout << "Trying to read Gkw since we are accumulating G4\n";
     reader.execute(G_k_w);
 
     // Try to read G4 with a legacy name.
@@ -414,15 +418,12 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
 
 #ifdef DCA_WITH_ADIOS2
 template <class Parameters, DistType DIST>
-void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
+void DcaData<Parameters, DIST>::writeDistributedG4Adios(io::ADIOS2Writer<Concurrency>& writer) {
   if constexpr (DIST == DistType::BLOCKED || DIST == DistType::LINEAR) {
     if (parameters_.isAccumulatingG4() && parameters_.get_g4_output_format() == "ADIOS2" &&
         parameters_.get_g4_distribution() != DistType::NONE) {
       std::cerr << "trying to write G4 to adios on rank: " << concurrency_.id() << '\n';
-      auto adios2_writer = dca::io::ADIOS2Writer<Concurrency>(adios, &concurrency_, true);
-      std::string file_name = parameters_.get_directory() + parameters_.get_filename_g4();
-      adios2_writer.open_file(file_name, true);
-      // adios2_writer.open_group("functions");
+
       for (const auto& G4_channel : G4_) {
 #ifndef NDEBUG
         std::cerr << "Writing G4_channel:" << G4_channel.get_name()
@@ -433,14 +434,9 @@ void DcaData<Parameters, DIST>::writeAdios(adios2::ADIOS& adios) {
         auto str_sub_ind_end = vectorToString(G4_channel.get_end_subindex());
         std::cerr << "start subind: " << str_sub_ind_start << "   end: " << str_sub_ind_end << '\n';
 #endif
-        adios2_writer.execute(G4_channel);
+        writer.execute(G4_channel);
       }
-      // adios2_writer.close_group();
-      adios2_writer.close_file();
     }
-  }
-  else  // DIST == DistType::NONE
-  {
   }
 }
 #endif
@@ -482,6 +478,7 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
 
   writer.execute(Sigma);
   writer.execute(Sigma_err_);
+  writer.execute(Sigma_cluster);
 
   if (parameters_.dump_lattice_self_energy()) {
     if (parameters_.do_dca_plus())
@@ -525,6 +522,13 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
           writer.execute(G4_channel_err);
       }
     }
+#ifdef DCA_WITH_ADIOS2
+    else {
+      // special adios writer only for block or linear distributed G4
+      if (writer.isADIOS2())
+        writeDistributedG4Adios(std::get<io::ADIOS2Writer<Concurrency>>(writer.getUnderlying()));
+    }
+#endif
   }
   writer.close_group();
 }
@@ -600,9 +604,20 @@ void DcaData<Parameters, DT>::initialize_G0() {
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unused]],
                                               const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {    
-    io::Reader reader(concurrency_, parameters_.get_output_format());
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "reading Sigma File\n";
+    io::IOType sigma_file_io = io::extensionToIOType(filename);
+    io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
+    // ADIOS2 output files can contain multiple iterations of sigma data, use the last one.
+    if (sigma_file_io == io::IOType::ADIOS2) {
+      auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
+      std::size_t step_count = adios2_reader.getStepCount();
+      for (std::size_t i = 0; i < step_count; ++i) {
+        adios2_reader.begin_step();
+        adios2_reader.end_step();
+      }
+    }
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -613,8 +628,12 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
-    io::Reader reader(concurrency_, parameters_.get_output_format());
+    std::cout << "reading Sigma File\n";
+    io::IOType sigma_file_io = io::extensionToIOType(filename);
+    io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
+    if (sigma_file_io == io::IOType::ADIOS2)
+      throw std::runtime_error("DCA++ not built with ADIOS2 support");
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -623,13 +642,21 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
-  if (parameters_.adjust_chemical_potential()) {
-    reader.open_group("parameters");
-    reader.open_group("physics");
-    reader.execute("chemical-potential", parameters_.get_chemical_potential());
-    reader.close_group();
-    reader.close_group();
+  reader.open_group("DCA-loop-functions");
+  std::vector<double> chemical_potentials;
+  bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
+  int completed_iteration;
+  bool has_iteration = reader.execute("completed-iteration", completed_iteration);
+  
+  if (chemical_potential_present && has_iteration) {
+    std::cout << "chemical-potential from Sigma file: " << chemical_potentials[completed_iteration] << '\n';
+    parameters_.get_chemical_potential() = chemical_potentials[completed_iteration];
   }
+  else {
+    throw std::runtime_error(
+        "readSigmaFile failed, initial-self-energy file is missing chemical potential data!");
+  }
+  reader.close_group();
 
   reader.open_group("functions");
   reader.execute(Sigma);

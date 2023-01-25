@@ -14,7 +14,7 @@
 //         material_lattice_NiO.inc).
 
 template <typename point_group_type>
-class material_lattice<SrVO3, point_group_type> {
+class material_lattice<Material::SrVO3, point_group_type> {
 public:
   const static int DIMENSION = 3;
   const static int BANDS = 12;
@@ -47,7 +47,7 @@ private:
 };
 
 template <typename point_group_type>
-double* material_lattice<SrVO3, point_group_type>::initializeRDCABasis() {
+double* material_lattice<Material::SrVO3, point_group_type>::initializeRDCABasis() {
   const static double a = 7.260327248;
 
   static double* r_DCA = new double[9];
@@ -66,7 +66,7 @@ double* material_lattice<SrVO3, point_group_type>::initializeRDCABasis() {
 }
 
 template <typename point_group_type>
-double* material_lattice<SrVO3, point_group_type>::initializeRLDABasis() {
+double* material_lattice<Material::SrVO3, point_group_type>::initializeRLDABasis() {
   const static double a = 7.260327248;
 
   static double* r_LDA = new double[9];
@@ -85,7 +85,7 @@ double* material_lattice<SrVO3, point_group_type>::initializeRLDABasis() {
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<SrVO3, point_group_type>::flavors() {
+std::vector<int> material_lattice<Material::SrVO3, point_group_type>::flavors() {
   static std::vector<int> flavors(BANDS);
   bool sym = true;
   if (sym) {
@@ -110,21 +110,21 @@ std::vector<int> material_lattice<SrVO3, point_group_type>::flavors() {
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<SrVO3, point_group_type>::aVectors() {
+std::vector<std::vector<double>> material_lattice<Material::SrVO3, point_group_type>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    SrVO3, point_group_type>::orbitalPermutations() {
+    Material::SrVO3, point_group_type>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <class domain, class parameters_type>
-void material_lattice<SrVO3, point_group_type>::initializeHInteraction(
+void material_lattice<Material::SrVO3, point_group_type>::initializeHInteraction(
     func::function<double, domain>& H_i, parameters_type& parameters) {
   std::vector<std::vector<double>> U;
 
@@ -156,7 +156,7 @@ void material_lattice<SrVO3, point_group_type>::initializeHInteraction(
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<SrVO3, point_group_type>::initializeHSymmetry(
+void material_lattice<Material::SrVO3, point_group_type>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
@@ -167,7 +167,7 @@ void material_lattice<SrVO3, point_group_type>::initializeHSymmetry(
 
 template <typename point_group_type>
 template <class parameters_type>
-std::vector<std::vector<double>>& material_lattice<SrVO3, point_group_type>::get_t_ij(
+std::vector<std::vector<double>>& material_lattice<Material::SrVO3, point_group_type>::get_t_ij(
     parameters_type& parameters) {
   static std::vector<std::vector<double>> t_ij(0, std::vector<double>(0));
 
@@ -193,7 +193,7 @@ std::vector<std::vector<double>>& material_lattice<SrVO3, point_group_type>::get
 
 template <typename point_group_type>
 template <class parameters_type>
-std::complex<double> material_lattice<SrVO3, point_group_type>::get_LDA_Hamiltonians(
+std::complex<double> material_lattice<Material::SrVO3, point_group_type>::get_LDA_Hamiltonians(
     parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
   const static std::complex<double> I(0, 1);
 

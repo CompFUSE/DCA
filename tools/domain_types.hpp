@@ -32,6 +32,9 @@ using host_k_cluster_type =
 using host_vertex_k_cluster_type =
     cluster_domain<double, lattice_type::DIMENSION, LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
 
+using host_q_lattice_type =
+    cluster_domain<double, lattice_type::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+
 using LDA_r_cluster_type =
     cluster_domain<double, lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, PARALLELLEPIPEDUM>;
 using DCA_r_cluster_type =
@@ -48,6 +51,7 @@ using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 using k_PCM = func::dmn_0<PCM_k_cluster_type>;
 using k_HOST = func::dmn_0<host_k_cluster_type>;
 using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
+using q_HOST = func::dmn0<host_q_lattice_type>;
 
 using r_LDA = func::dmn_0<LDA_r_cluster_type>;
 using r_DCA = func::dmn_0<DCA_r_cluster_type>;

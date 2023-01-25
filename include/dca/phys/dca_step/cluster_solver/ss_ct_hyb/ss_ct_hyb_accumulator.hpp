@@ -29,19 +29,19 @@ namespace solver {
 namespace cthyb {
 // dca::phys::solver::cthyb::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+template <class parameters_type, dca::linalg::DeviceType device_t, typename REAL, DistType DIST>
 class SsCtHybAccumulator : public MC_accumulator_data,
-                           public ss_hybridization_solver_routines<parameters_type, Data> {
+                           public ss_hybridization_solver_routines<parameters_type, DIST> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::SS_CT_HYB};
-  using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
-
+  using Real = REAL;
+  using this_type = SsCtHybAccumulator<parameters_type, device_t, REAL, DIST>;
   using ParametersType = parameters_type;
-  using DataType = Data;
+  using DataType = phys::DcaData<parameters_type, DIST>;
 
-  typedef SsCtHybWalker<device_t, parameters_type, Data> walker_type;
+  typedef SsCtHybWalker<device_t, parameters_type, DataType> walker_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type, Data> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_solver_routines<parameters_type, DIST> ss_hybridization_solver_routines_type;
 
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
@@ -58,8 +58,12 @@ public:
 
   typedef RClusterDmn r_dmn_t;
 
-  using MFunction =
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>;
+  using MFunction = func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>;
+  using MFunctionTime = typename SpAccumulatorNfft<parameters_type, DataType>::MFunctionTime;
+  using MFunctionTimePair = typename SpAccumulatorNfft<parameters_type, DataType>::MFunctionTimePair;
+  using FTau = typename SpAccumulatorNfft<parameters_type, DataType>::FTau;
+  using FTauPair = typename SpAccumulatorNfft<parameters_type, DataType>::FTauPair;
+  using PaddedTimeDmn = typename SpAccumulatorNfft<parameters_type, DataType>::PaddedTimeDmn;
 
   typedef func::dmn_variadic<nu, nu, r_dmn_t> p_dmn_t;
 
@@ -68,17 +72,17 @@ public:
 
   typedef double scalar_type;
 
-  typedef
-      typename SsCtHybTypedefs<parameters_type, Data>::vertex_vertex_matrix_type vertex_vertex_matrix_type;
-  typedef
-      typename SsCtHybTypedefs<parameters_type, Data>::orbital_configuration_type orbital_configuration_type;
+  typedef typename SsCtHybTypedefs<parameters_type, DataType>::vertex_vertex_matrix_type
+      vertex_vertex_matrix_type;
+  typedef typename SsCtHybTypedefs<parameters_type, DataType>::orbital_configuration_type
+      orbital_configuration_type;
 
-  typedef typename SsCtHybTypedefs<parameters_type, Data>::configuration_type configuration_type;
+  typedef typename SsCtHybTypedefs<parameters_type, DataType>::configuration_type configuration_type;
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
 public:
-  SsCtHybAccumulator(const parameters_type& parameters_ref, Data& data_ref, int id = 0);
+  SsCtHybAccumulator(const parameters_type& parameters_ref, DataType& data_ref, int id = 0);
 
   void initialize(int dca_iteration);
 
@@ -114,12 +118,20 @@ public:
     return GS_r_w;
   }
 
-  const auto& get_sign() const { return current_sign; }
+  const auto& get_sign() const {
+    return current_sign;
+  }
 
-  const MFunction& get_single_measurement_sign_times_MFunction() { return G_r_w;}
+  const MFunction& get_single_measurement_sign_times_MFunction() {
+    return G_r_w;
+  }
+
+  const FTauPair& get_single_measurement_sign_times_MFunction_time() {
+    return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction_time();
+  }
 
   void clearSingleMeasurement();
-  
+
   void accumulate_length(walker_type& walker);
   void accumulate_overlap(walker_type& walker);
 
@@ -153,7 +165,7 @@ protected:
   using MC_accumulator_data::accumulated_sign;
 
   const parameters_type& parameters_;
-  Data& data_;
+  DataType& data_;
   const concurrency_type& concurrency;
 
   int thread_id;
@@ -169,15 +181,15 @@ protected:
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> G_r_w;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> GS_r_w;
 
-  SpAccumulatorNfft<parameters_type, Data> single_particle_accumulator_obj;
+  SpAccumulatorNfft<parameters_type, DataType> single_particle_accumulator_obj;
 
   bool finalized_;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(const parameters_type& parameters_ref,
-                                                                        Data& data_ref, int id)
-    : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::SsCtHybAccumulator(
+    const parameters_type& parameters_ref, DataType& data_ref, int id)
+    : ss_hybridization_solver_routines<parameters_type, DIST>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),
       data_(data_ref),
@@ -199,8 +211,8 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(const pa
       single_particle_accumulator_obj(parameters_),
       finalized_(false) {}
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::initialize(int dca_iteration) {
   MC_accumulator_data::initialize(dca_iteration);
 
   visited_expansion_order_k = 0;
@@ -213,9 +225,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_ite
   finalized_ = false;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type,
-                        Data>::finalize()  // func::function<double, nu> mu_DC)
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::finalize()  // func::function<double, nu> mu_DC)
 {
   if (finalized_)
     return;
@@ -223,9 +234,9 @@ void SsCtHybAccumulator<device_t, parameters_type,
   finalized_ = true;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
 template <typename Writer>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) {
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::write(Writer& writer) {
   writer.execute(G_r_w);
   writer.execute(GS_r_w);
 }
@@ -236,8 +247,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) 
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::updateFrom(walker_type& walker) {
   current_sign = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
@@ -246,8 +257,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type
     M_matrices(l) = walker.get_M_matrices()(l);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::measure() {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
@@ -259,8 +270,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::measure() {
                                              data_.H_interactions);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_length(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::accumulate_length(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -273,8 +284,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_length(walk
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(walker_type& walker) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::accumulate_overlap(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -300,8 +311,8 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other) {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::sumTo(this_type& other) {
   other.accumulated_sign += accumulated_sign;
   other.number_of_measurements += number_of_measurements;
 
@@ -310,15 +321,14 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::clearSingleMeasurement() {
+template <class parameters_type, dca::linalg::DeviceType device_t, typename Real, DistType DIST>
+void SsCtHybAccumulator<parameters_type, device_t, Real, DIST>::clearSingleMeasurement() {
   throw std::logic_error("SsCtHyb method doesn't traffic in M_r_w() developer error!");
 }
 
-  
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_ACCUMULATOR_HPP

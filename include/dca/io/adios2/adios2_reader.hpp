@@ -137,6 +137,9 @@ public:
     return execute(name, static_cast<io::Buffer::Container&>(buff));
   }
 
+  /** method for debugging when expected variables is missing */
+  void dumpAvailableVars();
+  
 private:
   bool exists(const std::string& name) const;
 

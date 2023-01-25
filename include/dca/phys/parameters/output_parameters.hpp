@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
 // This class reads, stores, and writes the output parameters.
 
@@ -15,6 +16,7 @@
 
 #include <stdexcept>
 #include <string>
+#include "dca/io/io_types.hpp"
 
 namespace dca {
 namespace phys {
@@ -30,13 +32,14 @@ public:
         g4_output_format_("ADIOS2"),
         filename_g4_("dca_g4.bp"),
         filename_dca_("dca.bp"),
+        filename_analysis_("sofqomega.bp"),
 #else
         output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
+        filename_analysis_("sofqomega.hdf5"),
 #endif
         directory_config_read_(""),
         directory_config_write_(""),
-        filename_analysis_("analysis.hdf5"),
         filename_ed_("ed.hdf5"),
         filename_qmc_("qmc.hdf5"),
         filename_profiling_("profiling.json"),
@@ -92,6 +95,12 @@ public:
   const std::string& get_filename_analysis() const {
     return filename_analysis_;
   }
+  std::string getAppropriateFilenameAnalysis(int rank = 0) const {
+    std::size_t extension_start = filename_analysis_.rfind('.');
+    std::string cleaned_filename{filename_analysis_.substr(0, extension_start) + std::to_string(rank)};
+    cleaned_filename += extensionFromIOType(io::stringToIOType(get_output_format()));
+    return cleaned_filename;
+  }
   const std::string& get_filename_ed() const {
     return filename_ed_;
   }
@@ -113,6 +122,9 @@ public:
   bool dump_chi_0_lattice() const {
     return dump_chi_0_lattice_;
   }
+  bool dump_every_iteration() const {
+    return dump_every_iteration_;
+  }
 
 private:
   std::string directory_;
@@ -121,9 +133,9 @@ private:
   std::string g4_output_format_;
   std::string filename_g4_;
   std::string filename_dca_;
+  std::string filename_analysis_;
   std::string directory_config_read_;
   std::string directory_config_write_;
-  std::string filename_analysis_;
   std::string filename_ed_;
   std::string filename_qmc_;
   std::string filename_profiling_;
@@ -132,6 +144,7 @@ private:
   bool dump_cluster_Greens_functions_;
   bool dump_Gamma_lattice_;
   bool dump_chi_0_lattice_;
+  bool dump_every_iteration_;
 };
 
 template <typename Concurrency>
@@ -143,9 +156,9 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(output_format_);
   buffer_size += concurrency.get_buffer_size(filename_g4_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
+  buffer_size += concurrency.get_buffer_size(filename_analysis_);
   buffer_size += concurrency.get_buffer_size(directory_config_read_);
   buffer_size += concurrency.get_buffer_size(directory_config_write_);
-  buffer_size += concurrency.get_buffer_size(filename_analysis_);
   buffer_size += concurrency.get_buffer_size(filename_ed_);
   buffer_size += concurrency.get_buffer_size(filename_qmc_);
   buffer_size += concurrency.get_buffer_size(filename_profiling_);
@@ -154,6 +167,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(dump_cluster_Greens_functions_);
   buffer_size += concurrency.get_buffer_size(dump_Gamma_lattice_);
   buffer_size += concurrency.get_buffer_size(dump_chi_0_lattice_);
+  buffer_size += concurrency.get_buffer_size(dump_every_iteration_);
 
   return buffer_size;
 }
@@ -166,9 +180,9 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, output_format_);
   concurrency.pack(buffer, buffer_size, position, filename_g4_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
+  concurrency.pack(buffer, buffer_size, position, filename_analysis_);
   concurrency.pack(buffer, buffer_size, position, directory_config_read_);
   concurrency.pack(buffer, buffer_size, position, directory_config_write_);
-  concurrency.pack(buffer, buffer_size, position, filename_analysis_);
   concurrency.pack(buffer, buffer_size, position, filename_ed_);
   concurrency.pack(buffer, buffer_size, position, filename_qmc_);
   concurrency.pack(buffer, buffer_size, position, filename_profiling_);
@@ -177,6 +191,7 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.pack(buffer, buffer_size, position, dump_Gamma_lattice_);
   concurrency.pack(buffer, buffer_size, position, dump_chi_0_lattice_);
+  concurrency.pack(buffer, buffer_size, position, dump_every_iteration_);
 }
 
 template <typename Concurrency>
@@ -187,9 +202,9 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, output_format_);
   concurrency.unpack(buffer, buffer_size, position, filename_g4_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
+  concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_read_);
   concurrency.unpack(buffer, buffer_size, position, directory_config_write_);
-  concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
   concurrency.unpack(buffer, buffer_size, position, filename_ed_);
   concurrency.unpack(buffer, buffer_size, position, filename_qmc_);
   concurrency.unpack(buffer, buffer_size, position, filename_profiling_);
@@ -198,6 +213,7 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
   concurrency.unpack(buffer, buffer_size, position, dump_Gamma_lattice_);
   concurrency.unpack(buffer, buffer_size, position, dump_chi_0_lattice_);
+  concurrency.unpack(buffer, buffer_size, position, dump_every_iteration_);
 }
 
 template <typename ReaderOrWriter>
@@ -219,9 +235,9 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("g4-output-format", g4_output_format_);
     try_to_read_or_write("filename-g4-", filename_g4_);
     try_to_read_or_write("filename-dca", filename_dca_);
+    try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("directory-config-read", directory_config_read_);
     try_to_read_or_write("directory-config-write", directory_config_write_);
-    try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("filename-ed", filename_ed_);
     try_to_read_or_write("filename-qmc", filename_qmc_);
     try_to_read_or_write("filename-profiling", filename_profiling_);
@@ -230,10 +246,24 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
     try_to_read_or_write("dump-Gamma-lattice", dump_Gamma_lattice_);
     try_to_read_or_write("dump-chi-0-lattice", dump_chi_0_lattice_);
+    try_to_read_or_write("dump-every-iteration", dump_every_iteration_);
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+  }
+
+  // Check here for known invalid input, if we know options conflict don't just crash while running.
+
+  if (dump_every_iteration_) {
+    io ::IOType io_type = io::stringToIOType(output_format_);
+    switch (io_type) {
+      case io::IOType::ADIOS2:
+      case io::IOType::HDF5:
+        break;
+      case io::IOType::JSON:
+        throw std::runtime_error("JSON output format support dump-ever-iteration.");
+    }
   }
 }
 

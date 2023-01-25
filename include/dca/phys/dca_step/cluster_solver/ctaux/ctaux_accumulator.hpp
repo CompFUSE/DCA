@@ -46,8 +46,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #ifdef DCA_HAVE_MPI
-//#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
-//#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
+// #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_blocked_gpu.hpp"
+// #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_mpi_gpu.hpp"
 #endif  // DCA_HAVE_MPI
 #endif  // DCA_HAVE_GPU
 
@@ -58,10 +58,11 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST,
-          typename Real = double>
+          typename REAL = double>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
-  static constexpr  ClusterSolverId solver_id{ClusterSolverId::CT_AUX};
+  static constexpr ClusterSolverId solver_id{ClusterSolverId::CT_AUX};
+  using Real = REAL;
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST, Real>;
   using TpAccumulator = accumulator::TpAccumulator<Parameters, DIST, device_t>;
   using ParametersType = Parameters;
@@ -87,8 +88,12 @@ public:
 
   typedef typename Parameters::profiler_type profiler_type;
   typedef typename Parameters::concurrency_type concurrency_type;
-
-  using MFunction = typename accumulator::SpAccumulator<Parameters, device_t, Real>::MFunction;
+  using SpAccumulator = typename accumulator::SpAccumulator<Parameters, device_t, Real>;
+  using MFunction = typename SpAccumulator::MFunction;
+  using MFunctionTime = typename SpAccumulator::MFunctionTime;
+  using MFunctionTimePair = typename SpAccumulator::MFunctionTimePair;
+  using FTauPair = typename SpAccumulator::FTauPair;
+  using PaddedTimeDmn = typename SpAccumulator::PaddedTimeDmn;
 
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
@@ -152,8 +157,12 @@ public:
     return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction();
   }
 
+  const FTauPair& get_single_measurement_sign_times_MFunction_time() {
+    return single_particle_accumulator_obj.get_single_measurement_sign_times_MFunction_time();
+  }
+
   void clearSingleMeasurement();
-  
+
   const auto& get_sign_times_M_r_w_sqr() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w_sqr();
   }
@@ -181,6 +190,13 @@ public:
 
   static std::size_t staticDeviceFingerprint() {
     return accumulator::TpAccumulator<Parameters, DIST, device_t>::staticDeviceFingerprint();
+  }
+
+  bool perform_tp_accumulation() const {
+    return perform_tp_accumulation_;
+  }
+  bool perform_equal_time_accumulation() const {
+    return perform_equal_time_accumulation_;
   }
 
 private:
@@ -227,6 +243,7 @@ protected:
 
   int dca_iteration_ = 0;
   bool perform_tp_accumulation_ = false;
+  bool perform_equal_time_accumulation_ = false;
 };
 
 /** This constructor takes a number of references for later convenience.
@@ -270,8 +287,9 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dc
   dca_iteration_ = dca_iteration;
   MC_accumulator_data::initialize(dca_iteration);
 
-  if (dca_iteration == parameters_.get_dca_iterations() - 1 && parameters_.isAccumulatingG4())
-    perform_tp_accumulation_ = true;
+  perform_tp_accumulation_ =
+      parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) ||
+                                         parameters_.dump_every_iteration());
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
     visited_expansion_order_k(i) = 0;
@@ -282,8 +300,11 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::initialize(int dc
   if (perform_tp_accumulation_)
     two_particle_accumulator_.resetAccumulation(dca_iteration);
 
-  if (dca_iteration == parameters_.get_dca_iterations() - 1 &&
-      parameters_.additional_time_measurements()) {
+  perform_equal_time_accumulation_ = parameters_.additional_time_measurements() &&
+                                     ((dca_iteration == parameters_.get_dca_iterations() - 1) ||
+                                      parameters_.dump_every_iteration());
+
+  if (perform_equal_time_accumulation_) {
     equal_time_accumulator_ptr_ =
         std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data, Real>>(parameters_, data_,
                                                                                 thread_id);
@@ -309,7 +330,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::finalize() {
     M_r_w_stddev *= factor;
   }
 
-  if (parameters_.additional_time_measurements())
+  if (perform_equal_time_accumulation_)
     equal_time_accumulator_ptr_->finalize();
 
   if (perform_tp_accumulation_)
@@ -328,7 +349,8 @@ std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, DIST
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST, typename Real>
 template <typename Writer>
 void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& writer) {
-  //       writer.open_group("CT-AUX-SOLVER-functions");
+  // it is assumed this this is called from CtauxClusterSolver and so we are in a
+  // CT-AUX-SOLVER-functions group.
 
 #ifdef DCA_WITH_QMC_BIT
   writer.execute(error);
@@ -336,10 +358,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& wri
 
   writer.execute(visited_expansion_order_k);
 
-  //       writer.execute(M_r_w);
-  //       writer.execute(M_r_w_stddev);
-
-  if (parameters_.additional_time_measurements()) {
+  // equal time should just have a write
+  if (perform_equal_time_accumulation_) {
     writer.execute(get_charge_cluster_moment());
     writer.execute(get_magnetic_cluster_moment());
     writer.execute(get_dwave_pp_correlator());
@@ -347,8 +367,6 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::write(Writer& wri
     writer.execute(get_G_r_t());
     writer.execute(get_G_r_t_stddev());
   }
-
-  //       writer.close_group();
 }
 
 /*!
@@ -400,8 +418,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::measure() {
 
   accumulate_single_particle_quantities();
 
-  if (DCA_iteration == parameters_.get_dca_iterations() - 1 &&
-      parameters_.additional_time_measurements())
+  if (perform_equal_time_accumulation_)
     accumulate_equal_time_quantities();
 }
 
@@ -457,7 +474,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::clearSingleMeasurement() {
   single_particle_accumulator_obj.clearSingleMeasurement();
 }
-  
+
 /*************************************************************
  **                                                         **
  **                 equal-time - MEASUREMENTS               **
@@ -517,8 +534,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST, Real>::sumTo(this_type& 
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 
   // equal time measurements
-  if (DCA_iteration == parameters_.get_dca_iterations() - 1 &&
-      parameters_.additional_time_measurements())
+  if (perform_equal_time_accumulation_)
     equal_time_accumulator_ptr_->sumTo(*other.equal_time_accumulator_ptr_);
 
   // tp-measurements

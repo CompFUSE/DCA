@@ -71,6 +71,7 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
+  // Since this object is constructed once per iteration is it really useful to have both constructor and reset methods.
   TpEqualTimeAccumulator(const Parameters& parameters_ref, Data& MOMS_ref, int id);
 
   void resetAccumulation();
@@ -246,6 +247,9 @@ TpEqualTimeAccumulator<Parameters, Data, Real>::TpEqualTimeAccumulator(const Par
 
       GFLOP(0),
 
+      G_r_t("G_r_t"),
+      G_r_t_stddev("G_r_t_stddev"),
+      
       G_r_t_accumulated("G_r_t_accumulated"),
       G_r_t_accumulated_squared("G_r_t_accumulated_squared"),
 

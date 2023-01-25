@@ -36,7 +36,9 @@ ADIOS2Writer<Concurrency>::ADIOS2Writer(adios2::ADIOS& adios, const Concurrency*
 
 template <class Concurrency>
 ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
-  if (file_)
+  // close_file won't close an invalid engine.
+  // but this could still be a problem if the adios2::ADIOS object has been destroyed.
+  if(file_)
     close_file();
 }
 
@@ -59,7 +61,8 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
   }
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
-  io_ = adios_.DeclareIO(io_name_);
+  if(!io_)
+    io_ = adios_.DeclareIO(io_name_);
 
   file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
@@ -72,9 +75,10 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
 
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
-  if (file_) {
+  if (static_cast<bool>(file_)) {
     file_.Close();
-    adios_.RemoveIO(io_name_);
+    adios_.RemoveIO(io_.Name());
+    //adios_.RemoveIO(io_name_);
     //file_.Close();
     // This combined with overwrite seems to create issues.
     // adios_.RemoveIO(io_name_);

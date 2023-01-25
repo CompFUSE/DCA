@@ -37,7 +37,7 @@ public:
 #endif
                                         >;
   /**
-   * \param[in] concureency   current concurrency context
+   * \param[in] concureency   reference to current concurrency env
    * \param[in] format        format as IOType
    * \param[in] verbose       If true, reader does some logging
    */

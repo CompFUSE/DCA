@@ -59,8 +59,8 @@ public:
     paths_.pop_back();
   }
 
-  void begin_step(){};
-  void end_step(){};
+  void begin_step();
+  void end_step();
 
   std::string get_path();
 
@@ -120,6 +120,9 @@ private:
   std::vector<std::string> paths_;
 
   bool verbose_;
+
+  int step_ = 0;
+  bool in_step_ = false;
 };
 
 template <typename arbitrary_struct_t>

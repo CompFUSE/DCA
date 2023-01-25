@@ -50,6 +50,28 @@ public:
   using ThisType = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>;
   using ElementType = ScalarType;
 
+  static constexpr int window_sampling_ = 32;
+  static constexpr double window_function_sigma_ = 2.;
+
+  using WindowFunction = kaiser_bessel_function;
+
+  using LinearCoefficientsDmn = func::dmn_0<nfft_linear_coefficients_domain>;
+  using CubicCoefficientsDmn = func::dmn_0<nfft_cubic_coefficients_domain>;
+
+  using OversamplingDmn = func::dmn_0<nfft_oversampling_domain<ThisType>>;
+  using WindowSamplingDmn = func::dmn_0<nfft_window_sampling_domain<ThisType>>;
+
+  using PaddedTimeDmn = func::dmn_0<nfft_time_domain<PADDED, ThisType>>;
+  using LeftOrientedTimeDmn = func::dmn_0<nfft_time_domain<LEFT_ORIENTED, ThisType>>;
+  using WindowFunctionTimeDmn = func::dmn_0<nfft_time_domain<WINDOW_FUNCTION, ThisType>>;
+
+  using ConvolutionTimeDmn = func::dmn_variadic<OversamplingDmn, WindowSamplingDmn>;
+
+  using PaddedTimePDmn = func::dmn_variadic<PaddedTimeDmn, PDmn>;
+  using LeftOrientedPDmn = func::dmn_variadic<LeftOrientedTimeDmn, PDmn>;
+
+  using FTau = func::function<ScalarType, PaddedTimePDmn>;
+
   Dnfft1D();
   Dnfft1D(ThisType&& other) = default;
 
@@ -89,32 +111,14 @@ public:
     return dfft_a.f_tau_ == dfft_b.f_tau_;
   }
 
+  FTau& get_f_tau() { return f_tau_; }
+  const FTau& get_f_tau() const { return f_tau_; }
 protected:
-  static constexpr int window_sampling_ = 32;
-  static constexpr double window_function_sigma_ = 2.;
-
-  using WindowFunction = kaiser_bessel_function;
-
-  using LinearCoefficientsDmn = func::dmn_0<nfft_linear_coefficients_domain>;
-  using CubicCoefficientsDmn = func::dmn_0<nfft_cubic_coefficients_domain>;
-
-  using OversamplingDmn = func::dmn_0<nfft_oversampling_domain<ThisType>>;
-  using WindowSamplingDmn = func::dmn_0<nfft_window_sampling_domain<ThisType>>;
-
-  using PaddedTimeDmn = func::dmn_0<nfft_time_domain<PADDED, ThisType>>;
-  using LeftOrientedTimeDmn = func::dmn_0<nfft_time_domain<LEFT_ORIENTED, ThisType>>;
-  using WindowFunctionTimeDmn = func::dmn_0<nfft_time_domain<WINDOW_FUNCTION, ThisType>>;
-
-  using ConvolutionTimeDmn = func::dmn_variadic<OversamplingDmn, WindowSamplingDmn>;
-
-  using PaddedTimePDmn = func::dmn_variadic<PaddedTimeDmn, PDmn>;
-  using LeftOrientedPDmn = func::dmn_variadic<LeftOrientedTimeDmn, PDmn>;
-
   static inline auto& get_convolution_time_values();
   static inline auto& get_linear_convolution_matrices();
   static inline auto& get_cubic_convolution_matrices();
 
-  func::function<ScalarType, PaddedTimePDmn> f_tau_;
+  FTau f_tau_;
 
 private:
   static void initializeDomains(const ThisType& this_obj);

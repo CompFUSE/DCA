@@ -47,6 +47,7 @@ struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true, Real, DIST> {
 template <class Parameters, typename Real, DistType DIST>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false, Real, DIST> {
   // There is only a submatrix implementation of the GPU walker.
+  // There needs to be way to kill this at compilation
 };
 #endif  // DCA_HAVE_GPU
 

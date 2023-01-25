@@ -62,7 +62,7 @@ public:
 
   void doSweep() override;
 
-  void synchronize();
+  void synchronize() const override;
 
   using BaseClass::order;
   using RootClass::get_stream;
@@ -146,7 +146,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::setMFromConfig() {
 }
 
 template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::synchronize() {
+void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::synchronize() const {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   cudaStreamSynchronize(get_stream(0));
@@ -216,6 +216,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::computeMInit() {
       D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
       d_builder_ptr_->computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
                                 get_stream(s));
+      flop_ += D_dev_[s].nrCols() * D_dev_[s].nrRows() * 10;
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
       details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), get_stream(s));
@@ -245,12 +246,14 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::computeGInit() {
     MatrixView<linalg::GPU> G(G_dev_[s]);
     const MatrixView<linalg::GPU> M(M_dev_[s]);
     details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], get_stream(s));
-
+    flop_ += n_init_[s] * n_max_[s] * 2;
+    
     if (delta > 0) {
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
+      // This doesn't do flops but the g0 interp data it uses does somewhere.
       d_builder_ptr_->computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
                                 get_stream(s));
-
+      flop_ += G0_dev_[s].nrCols() * G0_dev_[s].nrRows() * 10;
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
@@ -304,6 +307,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::updateM() {
 
     details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
                                  gamma_size, get_stream(s));
+    flop_ += gamma_size * M_dev_[s].nrCols() * 2;
   }
 
   // Remove non-interacting rows and columns.
@@ -333,6 +337,7 @@ void CtintWalkerSubmatrixGpu<Parameters, Real, DIST>::computeM(
     MatrixView<linalg::GPU> m_in(M_dev_[s]);
     MatrixView<linalg::GPU> m_out(m_accum[s]);
     details::multiplyByInverseFFactor(m_in, m_out, f_dev_[s].ptr(), get_stream(s));
+    flop_ += m_in.nrRows() * m_out.nrCols();
   }
 
   // TODO: understand why this is necessary.

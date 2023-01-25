@@ -36,8 +36,9 @@ namespace cthyb {
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 class ss_hybridization_walker_routines
-    : public ss_hybridization_solver_routines<parameters_t, MOMS_t> {
+  : public ss_hybridization_solver_routines<parameters_t, MOMS_t::DT> {
 public:
+  static constexpr DistType DT = MOMS_t::DT;
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
 
@@ -216,7 +217,7 @@ private:
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::ss_hybridization_walker_routines(
     const parameters_t& parameters_ref, MOMS_t& MOMS_ref, configuration_t& configuration_ref, rng_t& rng_ref)
-    : ss_hybridization_solver_routines<parameters_t, MOMS_t>(parameters_ref, MOMS_ref),
+  : ss_hybridization_solver_routines<parameters_t, MOMS_t::DT>(parameters_ref, MOMS_ref),
 
       parameters(parameters_ref),
       MOMS(MOMS_ref),

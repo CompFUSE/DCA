@@ -18,7 +18,7 @@
 namespace dca {
 namespace testing {
 
-template <class BaseTestSetup, typename AccumType>
+template <class BaseTestSetup, typename AccumType, bool singleGSampling>
 struct MockParameters {
 public:
   using profiler_type = dca::profiling::NullProfiler;
@@ -30,10 +30,26 @@ public:
     return beta_;
   }
 
+  int stamping_period() const {
+    if constexpr (singleGSampling)
+      return 1;
+    else
+      return 0;
+  }
   double beta_;
 };
 
-}  // testing
-}  // dca
+// template <class BaseTestSetup, typename AccumType>
+// int MockParameters<BaseTestSetup, AccumType, false>::stamping_period() const {
+//   return 0;
+// }
+
+// template <class BaseTestSetup, typename AccumType>
+// int MockParameters<BaseTestSetup, AccumType, true>::stamping_period() const {
+//   return 1;
+// }
+
+}  // namespace testing
+}  // namespace dca
 
 #endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_MOCK_PARAMETERS_HPP

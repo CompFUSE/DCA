@@ -42,14 +42,14 @@ TEST(Ni0NoChangeTest, GreensFunction) {
     dca::util::GitVersion::print();
 
   using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
-      dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
+      dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                     Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
-      dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data>>;
+    dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data, dca::DistType::NONE>>;
 
   TestParameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");

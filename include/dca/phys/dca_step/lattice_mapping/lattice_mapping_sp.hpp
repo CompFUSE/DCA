@@ -88,12 +88,9 @@ lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map
     /*const*/ parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
-
       interpolation_obj(parameters),
       deconvolution_obj(parameters),
-
       Sigma_shift("Sigma_shift"),
-
       Sigma_cluster("Sigma_cluster_HTS"),
       Sigma_lattice("Sigma_lattice_HTS") {}
 

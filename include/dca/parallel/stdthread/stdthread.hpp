@@ -53,7 +53,10 @@ public:
   auto sumReduction(int num_threads, F&& f, Args&&... args) {
     assert(num_threads > 0);
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     using ReturnType = typename std::result_of<F(int, int, Args...)>::type;
+#pragma clang diagnostic pop
 
     std::vector<thread_traits::future_type<ReturnType>> futures;
     auto& pool = ThreadPool::get_instance();

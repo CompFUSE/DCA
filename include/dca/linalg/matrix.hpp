@@ -22,16 +22,21 @@
 #include <type_traits>
 #include <utility>
 
+#include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
 
+/** Matrix class for interfacing with Blas, Cublas, Rocblas
+ *  its row major i.e, row is fast.
+ */
 template <typename ScalarType, DeviceType device_name>
 class Matrix : public util::DefaultAllocator<ScalarType, device_name> {
 public:
@@ -154,6 +159,11 @@ public:
   int nrCols() const {
     return size_.second;
   }
+
+  int getActualSize() {
+    return nrElements(capacity_);
+  }
+
   int leadingDimension() const {
     return capacity_.first;
   }
@@ -198,6 +208,9 @@ public:
   // + synchronization of stream
   template <DeviceType rhs_device_name>
   void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
+
+  template <DeviceType rhs_device_name>
+  void set(const Matrix<ScalarType, rhs_device_name>& rhs, const util::GpuStream& stream);
 
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
@@ -313,17 +326,17 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
   assert(new_size.first >= 0 && new_size.second >= 0);
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
-	ValueType* new_data = nullptr;
-	new_data = Allocator::allocate(nrElements(new_capacity));
-	// hip memorycpy2D routines don't tolerate leadingDimension = 0
-	const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
-					    std::min(new_size.second, size_.second));
-	util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
-	Allocator::deallocate(data_);
-	data_ = new_data;
-	capacity_ = new_capacity;
-	size_ = new_size;
-      }
+    ValueType* new_data = nullptr;
+    new_data = Allocator::allocate(nrElements(new_capacity));
+    // hip memorycpy2D routines don't tolerate leadingDimension = 0
+    const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
+                                        std::min(new_size.second, size_.second));
+    util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
+    Allocator::deallocate(data_);
+    data_ = new_data;
+    capacity_ = new_capacity;
+    size_ = new_size;
+  }
   else {
     size_ = new_size;
   }
@@ -421,6 +434,14 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
+void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                          const util::GpuStream& stream [[maybe_unused]]) {
+  resize(rhs.size_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
                                                const util::GpuStream& stream) {
   resizeNoCopy(rhs.size_);
@@ -495,6 +516,32 @@ std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
     return capacity_.first * capacity_.second * sizeof(ScalarType);
   else
     return 0;
+}
+
+/// Factory function for diangonal matrices, type is inferred from the type of Vector.
+template <typename ScalarType, DeviceType device_name>
+auto makeDiagonalMatrix(Vector<ScalarType, device_name>& diag) {
+  int dsize = diag.size();
+  Matrix<ScalarType, device_name> matrix("diag_matrix", dsize);
+  for (int i = 0; i < dsize; ++i) {
+    matrix(i, i) = diag[i];
+  }
+  return matrix;
+}
+
+/// Factory function for diangonal matrices, type is inferred from the type of Vector.
+template <typename ScalarType, DeviceType device_name>
+auto makeDiagonalMatrixInv(Vector<ScalarType, device_name>& diag) {
+  int dsize = diag.size();
+  Matrix<ScalarType, device_name> matrix("diag_matrix", dsize);
+  // insure that if ScalarType is complex the 1 is as well.
+  // then std::complex will give us a proper complex multiplicative inverse
+  ScalarType the_one{};
+  the_one += 1.0;
+  for (int i = 0; i < dsize; ++i) {
+    matrix(i, i) = the_one / diag[i];
+  }
+  return matrix;
 }
 
 }  // namespace linalg
