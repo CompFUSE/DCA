@@ -217,7 +217,9 @@ void ThreebandHubbard<PointGroupType>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
-  typename KDmn::element_type default_q;
+  typename KDmn::element_type default_q(ParametersType::lattice_dimension);
+  // would rather get it like this -> KDmn::parameter_type::DIMENSION);
+  // but KDmn are inconsistent about whether they known their kspace dimension!
   initializeH0WithQ(parameters, H_0, default_q);
 }
 
