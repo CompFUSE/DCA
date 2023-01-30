@@ -321,6 +321,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 
   reader_or_writer.close_group();
 
+  if constexpr (ReaderOrWriter::is_reader) {
+    // The input file can contain an integral seed or the seeding option "random".  
   // Check parameters consistency.
   if (g4_distribution_ == DistType::BLOCKED) {
 #ifdef DCA_HAVE_MPI
@@ -346,12 +348,16 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
 #else
     throw(std::logic_error("MPI distribution requested with no MPI available."));
 #endif  // DCA_HAVE_MPI
-
+    if (stamping_period_ != 0) {
+      if (!(shared_walk_and_accumulation_thread_ && walkers_ == accumulators_))
+	throw std::runtime_error("Individual measurement stamping not available unless shared-walk-and-accumulation-thread = true and walkers == acceptors!");
+    }
     // Solve conflicts
-    if (!time_correlation_window_)
-      compute_G_correlation_ = false;
   }
-}  // namespace params
+  }
+  if (!time_correlation_window_)
+      compute_G_correlation_ = false;
+}
 
 void MciParameters::solveDcaIterationConflict(int iterations) {
   // Solve conflicts between number of iterations and mci parameters.
