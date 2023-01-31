@@ -13,14 +13,14 @@
 #include <type_traits>
 
 template <typename point_group_type>
-class material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>> {
+class material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_type>> {
 public:
   static constexpr int DIMENSION = 2;
   static constexpr int BANDS = 3;
 
   static constexpr std::string_view material_name{"Emery"};
 
-  static constexpr Material my_Material = Material::Emery;
+  static constexpr Material my_Material = Material::CuO2_Emery;
   using my_PGT = point_group_type;
 
   typedef domains::no_symmetry<DIMENSION> LDA_point_group;
@@ -72,7 +72,7 @@ private:
 };
 
 template <typename point_group_type>
-std::array<double, 4> material_lattice<Material::Emery, point_group_type,
+std::array<double, 4> material_lattice<Material::CuO2_Emery, point_group_type,
                                        Is2D<point_group_type>>::initializeRDCABasis() {
   std::array<double, 4> r_DCA;
 
@@ -85,7 +85,7 @@ std::array<double, 4> material_lattice<Material::Emery, point_group_type,
 }
 
 template <typename point_group_type>
-std::array<double, 4> material_lattice<Material::Emery, point_group_type,
+std::array<double, 4> material_lattice<Material::CuO2_Emery, point_group_type,
                                        Is2D<point_group_type>>::initializeRLDABasis() {
   std::array<double, 4> r_LDA;
 
@@ -98,7 +98,8 @@ std::array<double, 4> material_lattice<Material::Emery, point_group_type,
 }
 
 template <typename point_group_type>
-std::vector<int> material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>::flavors() {
+std::vector<int> material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::flavors() {
+  std::vector<int> flavors(BANDS);
   flavors[0] = 0;
   flavors[1] = 1;
   flavors[2] = 1;
@@ -106,7 +107,7 @@ std::vector<int> material_lattice<Material::Emery, point_group_type, Is2D<point_
 }
 
 template <typename point_group_type>
-std::vector<std::vector<double>> material_lattice<Material::Emery, point_group_type,
+std::vector<std::vector<double>> material_lattice<Material::CuO2_Emery, point_group_type,
                                                   Is2D<point_group_type>>::aVectors() {
   static std::vector<std::vector<double>> a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
 
@@ -119,14 +120,14 @@ std::vector<std::vector<double>> material_lattice<Material::Emery, point_group_t
 
 template <typename point_group_type>
 std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattice<
-    Material::Emery, point_group_type, Is2D<point_group_type>>::orbitalPermutations() {
+    Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::orbitalPermutations() {
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
   return permutations;
 }
 
 template <typename point_group_type>
 template <typename BandSpinDmn, typename RDmn, typename parameters_type>
-void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>::initializeHInteraction(
+void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::initializeHInteraction(
     func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandSpinDmn::dmn_size() != 2 * BANDS) {
@@ -149,7 +150,7 @@ void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>
 
 template <typename point_group_type>
 template <class domain>
-void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>::initializeHSymmetry(
+void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::initializeHSymmetry(
     func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
@@ -161,7 +162,7 @@ void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>
 template <typename point_group_type>
 template <class parameters_type>
 std::vector<std::vector<double>>& material_lattice<
-    Material::Emery, point_group_type, Is2D<point_group_type>>::get_t_ij(parameters_type& parameters) {
+    Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::get_t_ij(parameters_type& parameters) {
   static std::vector<std::vector<double>> t_ij(0, std::vector<double>(0));
 
   static bool is_initialized = false;
@@ -177,7 +178,7 @@ std::vector<std::vector<double>>& material_lattice<
 
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
-void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>::initializeH0(
+void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_type>>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                   func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
@@ -232,4 +233,4 @@ void material_lattice<Material::Emery, point_group_type, Is2D<point_group_type>>
   }
 }
 
-extern template class material_lattice<Material::Emery, dca::phys::domains::no_symmetry<3>>;
+extern template class material_lattice<Material::CuO2_Emery, dca::phys::domains::no_symmetry<2>>;

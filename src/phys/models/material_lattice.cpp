@@ -18,12 +18,16 @@ std::string to_str(Material mat) {
       return "CuO2_1band";
     case Material::SrVO3:
       return "SrVO3";
+  case Material::CuO2_Emery:
+    return "CuO2 Emery";
+
   }
 }
 
 template class material_lattice<Material::NiO_symmetric, dca::phys::domains::no_symmetry<3>>;
 template class material_lattice<Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>;
 template class material_lattice<Material::FeSn, dca::phys::domains::no_symmetry<3>>;
+template class material_lattice<Material::CuO2_Emery, dca::phys::domains::no_symmetry<2>>;
 
 }  // namespace models
 }  // namespace phys
