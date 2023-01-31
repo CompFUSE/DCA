@@ -18,7 +18,7 @@ public:
   static constexpr int DIMENSION = 2;
   static constexpr int BANDS = 3;
 
-  static constexpr std::string_view material_name{"Emery"};
+  static constexpr std::string_view material_name{"CuO2_Emery"};
 
   static constexpr Material my_Material = Material::CuO2_Emery;
   using my_PGT = point_group_type;
@@ -194,7 +194,7 @@ void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_t
   const std::complex<double> I(0, 1);
 
   const auto& k_vecs = KDmn::get_elements();
-  std::array<double, 9> r_LDA = initializeRLDABasis();
+  std::array<double, 4> r_LDA = initializeRLDABasis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 
