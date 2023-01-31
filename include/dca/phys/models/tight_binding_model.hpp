@@ -112,7 +112,7 @@ double* TightBindingModel<Lattice>::get_r_DCA_basis() {
     return r_DCA;
   }
   else {
-    static std::array<double, 9> r_DCA = Lattice::initializeRDCABasis();
+    static decltype(Lattice::initializeRDCABasis()) r_DCA = Lattice::initializeRDCABasis(); // std::array<double, 9>
     return r_DCA.data();
   }
 }
@@ -124,7 +124,7 @@ double* TightBindingModel<Lattice>::get_r_LDA_basis() {
     return r_LDA;
   }
   else {
-    static std::array<double, 9> r_LDA = Lattice::initializeRLDABasis();
+    static decltype(Lattice::initializeRLDABasis()) r_LDA = Lattice::initializeRLDABasis();
     return r_LDA.data();
   }
 }
