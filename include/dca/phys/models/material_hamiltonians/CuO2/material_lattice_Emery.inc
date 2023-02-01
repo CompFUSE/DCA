@@ -200,8 +200,8 @@ void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_t
 
   H_0 = ScalarType(0);
 
-  if (t_ij[0].size() != 8)
-    throw std::runtime_error("each row in the t_ij file must have 8 elements!");
+  if (t_ij[0].size() != 7)
+    throw std::runtime_error("each row in the t_ij file must have 7 elements!");
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
@@ -209,7 +209,7 @@ void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_t
     for (std::size_t i = 0; i < t_ij.size(); i++) {
       std::vector<double>& t = t_ij[i];
 
-      assert(t.size() == 8);
+      assert(t.size() == 7);
 
       int b_i = t[0];
       int b_j = t[1];
@@ -222,10 +222,10 @@ void material_lattice<Material::CuO2_Emery, point_group_type, Is2D<point_group_t
       double r_x = t[2] * r_LDA[0] + t[3] * r_LDA[2];
       double r_y = t[2] * r_LDA[1] + t[3] * r_LDA[3];
 
-      val.real(t[5]);
-      val.imag(t[6]);
+      val.real(t[4]);
+      val.imag(t[5]);
 
-      double multiplicity = t[7];
+      double multiplicity = t[6];
       ScalarType h0_elem = val * std::exp(I * (k[0] * r_x + k[1] * r_y)) / multiplicity;
       H_0(b_i, 0, b_j, 0, k_ind) += h0_elem;
       H_0(b_i, 1, b_j, 1, k_ind) += h0_elem;
