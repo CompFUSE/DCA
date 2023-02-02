@@ -147,16 +147,12 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
           parameters.get_output_format() == "ADIOS2"
               ? std::make_shared<io::Writer<concurrency_type>>(
                     concurrency.get_adios(), concurrency_ref, parameters.get_output_format(), false)
-              : (concurrency.id() == concurrency.first()
-                     ? std::make_shared<io::Writer<concurrency_type>>(
+              : std::make_shared<io::Writer<concurrency_type>>(
                            concurrency.get_adios(), concurrency_ref, parameters.get_output_format(),
-                           false)
-                     : nullptr)),
+                           false)),
 #else
-      output_file_(concurrency.id() == concurrency.first()
-                       ? std::make_shared<io::Writer<concurrency_type>>(
-                             concurrency_ref, parameters.get_output_format(), false)
-                       : nullptr),
+      output_file_(std::make_shared<io::Writer<concurrency_type>>(
+								  concurrency_ref, parameters.get_output_format(), false)),
 #endif
       monte_carlo_integrator_(parameters_ref, MOMS_ref, output_file_) {
   file_name_ = parameters.get_directory() + parameters.get_filename_dca();

@@ -9,8 +9,8 @@
         "g4-distribution": "MPI",
 	"stamping-period": 2,
         "threaded-solver": {
-            "walkers": 3,
-            "accumulators": 5,
+            "walkers": 1,
+            "accumulators": 1,
             "shared-walk-and-accumulation-thread": true
         }
     }

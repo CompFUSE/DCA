@@ -123,15 +123,7 @@ public:
     verbose_ = verbose;
   }
 
-  std::string makeFullName(const std::string& name) {
-    std::string full_name = get_path() + '/';
-    if (in_step_)
-      full_name += "step_" + std::to_string(step_) + "_" + name;
-    else
-      full_name += name;
-    return full_name;
-  }
-
+  std::string makeFullName(const std::string& name);
 private:
   bool exists(const std::string& name) const;
 

@@ -20,8 +20,7 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  if (file_)
-    close_file();
+  close_file();
 }
 
 void HDF5Writer::open_file(std::string file_name, bool overwrite) {
@@ -43,9 +42,11 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
 
 void HDF5Writer::close_file() {
   if (file_) {
+    my_paths_.clear();
+    execute("steps", step_);
     // file_->flush(H5F_SCOPE_LOCAL);
     file_->close();
-    file_.release();
+    file_.reset(nullptr);
   }
 }
 
@@ -76,16 +77,22 @@ std::string HDF5Writer::get_path() {
   return path;
 }
 
+std::string HDF5Writer::makeFullName(const std::string& name) {
+  return { get_path() + '/' + name };
+}
+  
 void HDF5Writer::begin_step() {
   if (in_step_)
     throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
   in_step_ = true;
+  std::string step_group{"step_" + std::to_string(++step_ - 1)};
+  open_group(step_group);
 }
 
 void HDF5Writer::end_step() {
   if (!in_step_)
     throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
-  ++step_;
+  my_paths_.clear();
   in_step_ = false;
 }
 

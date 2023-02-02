@@ -609,15 +609,11 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
     io::IOType sigma_file_io = io::extensionToIOType(filename);
     io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
-    // ADIOS2 output files can contain multiple iterations of sigma data, use the last one.
-    if (sigma_file_io == io::IOType::ADIOS2) {
-      auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
-      std::size_t step_count = adios2_reader.getStepCount();
+    std::size_t step_count = reader.getStepCount();
       for (std::size_t i = 0; i < step_count; ++i) {
-        adios2_reader.begin_step();
-        adios2_reader.end_step();
+        reader.begin_step();
+        reader.end_step();
       }
-    }
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
@@ -632,8 +628,11 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     io::IOType sigma_file_io = io::extensionToIOType(filename);
     io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
-    if (sigma_file_io == io::IOType::ADIOS2)
-      throw std::runtime_error("DCA++ not built with ADIOS2 support");
+    std::size_t step_count = reader.getStepCount();
+      for (std::size_t i = 0; i < step_count; ++i) {
+        reader.begin_step();
+        reader.end_step();
+      }
     readSigmaFile(reader);
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
