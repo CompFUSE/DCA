@@ -3,16 +3,17 @@
       "directory": "./",
       "output-format": "ADIOS2",
       "g4-ouput-format": "ADIOS2",
-      "filename-dca": "conv.bp",
+      "filename-dca": "g4_binned.bp",
       "dump-lattice-self-energy": true,
       "dump-cluster-Greens-functions" : true,
+      "dump-every-iteration" : true,
       "dump-Gamma-lattice" : true,
       "dump-chi-0-lattice" : true
     },
 "physics": {
       "beta": 8.0,
     "density": 1.6,
-    "adjust-chemical-potential": true
+    "adjust-chemical-potential": false
   },
     "bilayer-Hubbard-model": {
         "t": 1.,
@@ -23,7 +24,7 @@
         "V-prime": 0.0
     },
   "DCA": {
-      "initial-self-energy": "zero",
+      "initial-self-energy": "conv.bp",
       "interacting-orbitals" : [ 0 ],
     "iterations": 10,
     "accuracy": 10e-4,
@@ -100,6 +101,25 @@
     "CT-INT": {
         "initial-configuration-size": 40,
         "max-submatrix-size": 256
+    },
+       "four-point": {
+        "type": "PARTICLE_HOLE_MAGNETIC",
+        "momentum-transfer": [0,0],
+        "frequency-transfer": 16,
+            "compute-all-transfers" : true,
+            "bin-measurements-every": true
+    },
+       "analysis": {
+        "q-host": [
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          -2
+        ]
+      ]
     }
 }
 

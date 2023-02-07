@@ -1,0 +1,89 @@
+{
+
+  "output": {
+    "directory": "./",
+    "output-format": "ADIOS2",
+    "g4-ouput-format": "ADIOS2",
+    "filename-dca": "conv1.bp",
+    "dump-lattice-self-energy": true,
+    "dump-cluster-Greens-functions" : true,
+    "dump-every-iteration" : false,
+    "dump-Gamma-lattice" : true,
+    "dump-chi-0-lattice" : true
+  },
+
+  "physics" :
+  {
+    "beta" : 5,
+
+    "adjust-chemical-potential" : true,
+    "density" : 1.05,
+    "chemical-potential" : 0.00
+  },
+
+  "material-model"
+    : {"t_ij-filename" : "./t_ij_Emery.txt", "U_ij-filename" : "./U_ij_Emery.txt"},
+
+  "double-counting"
+  : {
+    "method" : "constant-correction-with-U-correction",
+    "correction" : 0.0
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster" : [ [ 1, 0 ], [ 0, 1 ] ],
+      "sp-host": [ [ 4, 0 ], [ 0, 4 ] ],
+      "tp-host": [ [ 4, 0 ], [ 0, 4 ] ]
+    },
+    "imaginary-time" : {
+      "sp-time-intervals": 512,
+      "time-intervals-for-time-measurements" : 32
+    },
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "HTS-bosonic-frequencies": 32,
+      "four-point-fermionic-frequencies": 32
+    }
+  },
+
+  "DCA" : {
+    "initial-self-energy": "zero",
+    "accuracy" : 0,
+    "interacting-orbitals" : [ 0 ],
+    "iterations" : 15,
+    "self-energy-mixing-factor" : 0.75,
+
+    "coarse-graining" : {
+      "k-mesh-recursion": 2,
+      "quadrature-rule": 1,
+      "number-of-periods": 0,
+      "tail-frequencies": 32,
+      "threads": 2
+    },
+
+    "DCA+": {
+      "do-DCA+": false
+    }
+  },
+
+  "Monte-Carlo-integration"
+  : {
+    "warm-up-sweeps": 1500,
+    "sweeps-per-measurement" : 50,
+    "measurements": 100000,
+
+    "adaptive-double-counting" : 0,
+
+    "seed" : "random",
+
+    "threaded-solver": {
+      "walkers": 4,
+      "accumulators": 4,
+      "shared-walk-and-accumulation-thread": true,
+      "additional-steps": 0
+    }
+  }
+
+}
+

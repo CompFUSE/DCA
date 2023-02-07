@@ -3,29 +3,30 @@
       "directory": "./",
       "output-format": "ADIOS2",
       "g4-ouput-format": "ADIOS2",
-      "filename-dca": "conv.bp",
+      "filename-dca": "training_conv.bp",
       "dump-lattice-self-energy": true,
       "dump-cluster-Greens-functions" : true,
+      "dump-every-iteration" : true,
       "dump-Gamma-lattice" : true,
       "dump-chi-0-lattice" : true
     },
 "physics": {
       "beta": 8.0,
     "density": 1.6,
-    "adjust-chemical-potential": true
+    "adjust-chemical-potential": false
   },
     "bilayer-Hubbard-model": {
         "t": 1.,
         "t-prime": 0.0,
         "t-perp": 0.0,
-        "U": 6.,
-        "V": 3.,
+        "U": 6.0,
+        "V": 3.0,
         "V-prime": 0.0
     },
   "DCA": {
-      "initial-self-energy": "zero",
+      "initial-self-energy": "conv.bp",
       "interacting-orbitals" : [ 0 ],
-    "iterations": 10,
+    "iterations": 1,
     "accuracy": 10e-4,
     "self-energy-mixing-factor": 0.8,
     "coarse-graining": {
@@ -87,12 +88,13 @@
   },
   "Monte-Carlo-integration": {
     "warm-up-sweeps": 1500,
-    "sweeps-per-measurement" : 4,
-    "measurements": 180000,
+    "sweeps-per-measurement" : 16,
+"measurements": 360000,
     "seed": 9854510000,
+    "stamping-period" : 1,
     "threaded-solver": {
-      "accumulators": 6,
-      "walkers": 6,
+      "accumulators": 1,
+      "walkers": 1,
       "fix-meas-per-walkers": true,
       "shared-walk-and-accumulation-thread": true
     }
