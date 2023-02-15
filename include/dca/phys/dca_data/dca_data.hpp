@@ -247,10 +247,11 @@ public:  // Optional members getters.
   //     non_density_interactions_(nu1, nu2, nu3, nu4, r1 - r2)
   // Note: this contribution to the Hamiltonian is not double counted.
   auto& get_non_density_interactions() {
-    if (not non_density_interactions_)
-      non_density_interactions_.reset(
-          new func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>(
-              "non_density_interaction"));
+    if (not non_density_interactions_) {
+      non_density_interactions_ = std::make_unique<
+          func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>(
+          "non_density_interaction");
+    }
     return *non_density_interactions_;
   }
   const auto& get_non_density_interactions() const {
@@ -707,6 +708,7 @@ void DcaData<Parameters, DT>::compute_single_particle_properties() {
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::compute_Sigma_bands() {
   {
+    // We now always sum over both spin sectors so this is appropriate for both real and complex g0
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
 

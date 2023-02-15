@@ -442,7 +442,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       bool conj_a = false;
       if (g4_helper.get_bands() == 1)
         conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-      else
+      else 
         conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
       int i_a = nb * k1_a + no * w1_a;
       int j_a = nb * k2_a + no * w2_a;

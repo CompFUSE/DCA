@@ -324,7 +324,8 @@ void smallInverse(Matrix<Scalar, CPU>& m_inv, Vector<int, CPU>& ipiv, Vector<Sca
       std::swap(m_inv(0, 0), m_inv(1, 1));
       m_inv(0, 0) /= det;
       m_inv(1, 1) /= det;
-      std::swap(m_inv(1, 0), m_inv(0, 1));
+      // Thomas this looks like your bug fix was this it?
+      // std::swap(m_inv(1, 0), m_inv(0, 1));
       m_inv(1, 0) /= -det;
       m_inv(0, 1) /= -det;
       break;
