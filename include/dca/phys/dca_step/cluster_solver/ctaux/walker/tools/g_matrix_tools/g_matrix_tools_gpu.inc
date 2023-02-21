@@ -10,15 +10,17 @@
 // G-matrix tools class.
 // Template specialization for GPU.
 
-template <class Parameters, typename Real>
-class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters, Real> {
+template <class Parameters>
+class G_MATRIX_TOOLS<dca::linalg::GPU, Parameters> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
   using Concurrency = typename Parameters::concurrency_type;
   using Profiler = typename Parameters::profiler_type;
 
 public:
-  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
+  G_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -91,8 +93,8 @@ public:
 private:
   int thread_id;
 
-  Parameters& parameters;
-  Concurrency& concurrency;
+  const Parameters& parameters;
+  const Concurrency& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> i_index_gpu, j_index_gpu;
   dca::linalg::Vector<bool, dca::linalg::GPU> is_Bennett_gpu;

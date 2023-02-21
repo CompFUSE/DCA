@@ -35,8 +35,8 @@ public:
         filename_analysis_("sofqomega.bp"),
 #else
         output_format_("HDF5"),
-        filename_dca_("dca.hdf5"),
-        filename_analysis_("sofqomega.hdf5"),
+        filename_dca_("dca.bp"),
+        filename_analysis_("sofqomega.bp"),
 #endif
         directory_config_read_(""),
         directory_config_write_(""),
@@ -144,7 +144,7 @@ private:
   bool dump_cluster_Greens_functions_;
   bool dump_Gamma_lattice_;
   bool dump_chi_0_lattice_;
-  bool dump_every_iteration_;
+  bool dump_every_iteration_ = false;
 };
 
 template <typename Concurrency>

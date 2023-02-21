@@ -20,6 +20,7 @@
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/io/buffer.hpp"
+#include "dca/math/util/phase.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/linalg/util/stream_container.hpp"
@@ -51,17 +52,17 @@ class CtintWalker;
 template <class Parameters, typename Real = double, DistType DIST = DistType::NONE>
 class CtintWalkerBase {
 public:
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
   using parameters_type = Parameters;
   using Data = DcaData<Parameters, DIST>;
   using Rng = typename Parameters::random_number_generator;
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Matrix = linalg::Matrix<Real, linalg::CPU>;
-  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
+  using Matrix = linalg::Matrix<Scalar, linalg::CPU>;
+  using MatrixPair = std::array<Matrix, 2>;
   using GpuStream = linalg::util::GpuStream;
 
-  using Scalar = Real;
   constexpr static linalg::DeviceType device = linalg::CPU;
 
 protected:  // The class is not instantiable.
@@ -100,8 +101,8 @@ public:
   double avgOrder() const {
     return order_avg_.count() ? order_avg_.mean() : order();
   }
-  int get_sign() const {
-    return sign_;
+  auto get_sign() const {
+    return phase_.getSign();
   }
 
   Real get_MC_log_weight() const {
@@ -151,7 +152,7 @@ public:
 
   // Initialize the builder object shared by all walkers.
   template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type, Real>& g0);
+  static void setDMatrixBuilder(const G0Interpolation<device_type, Scalar>& g0);
 
   static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
 
@@ -184,7 +185,7 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
+  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Scalar>> d_builder_ptr_;
   static inline InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -205,7 +206,7 @@ protected:  // Members.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
-  util::Accumulator<int> sign_avg_;
+  util::Accumulator<Phase<Scalar>> sign_avg_;
   unsigned long n_steps_ = 0;
   unsigned long thermalization_steps_ = 0;
   unsigned long n_accepted_ = 0;
@@ -213,10 +214,10 @@ protected:  // Members.
 
   bool thermalized_ = false;
 
-  int sign_ = 1;
+  math::Phase<Scalar> phase_;
 
   // Store for testing purposes:
-  Real acceptance_prob_;
+  Scalar acceptance_prob_;
 
   double flop_ = 0.;
 
@@ -251,11 +252,11 @@ CtintWalkerBase<Parameters, Real, DIST>::CtintWalkerBase(const Parameters& param
 template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::initialize(int iteration) {
   assert(total_interaction_);
+  phase_.reset();
+
+  mc_log_weight_ = 0.;
 
   sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
-
-  sign_ = 1;
-  mc_log_weight_ = 0.;
 
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
@@ -271,7 +272,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::initialize(int iteration) {
 template <class Parameters, typename Real, DistType DIST>
 void CtintWalkerBase<Parameters, Real, DIST>::setMFromConfig() {
   mc_log_weight_ = 0.;
-  sign_ = 1;
+  phase_.reset();
 
   for (int s = 0; s < 2; ++s) {
     // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
@@ -287,9 +288,10 @@ void CtintWalkerBase<Parameters, Real, DIST>::setMFromConfig() {
         M(i, j) = d_builder_ptr_->computeD(i, j, sector);
 
     if (M.nrRows()) {
-      const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
+      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
       mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
-      sign_ *= sign;
+      phase_.divide(phase);
     }
   }
 
@@ -298,8 +300,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::setMFromConfig() {
     // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
     const Real term = -configuration_.getStrength(i);
     mc_log_weight_ += std::log(std::abs(term));
-    if (term < 0)
-      sign_ *= -1;
+    phase_.multiply(term);
   }
 }
 
@@ -389,7 +390,7 @@ void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixBuilder(
   if (d_builder_ptr_)
     std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
 
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Real>>(g0, n_bands_, RDmn());
+  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Scalar>>(g0, n_bands_, RDmn());
 }
 
 template <class Parameters, typename Real, DistType DIST>

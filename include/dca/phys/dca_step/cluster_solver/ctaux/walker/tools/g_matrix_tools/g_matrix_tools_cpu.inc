@@ -10,13 +10,16 @@
 // G-matrix tools class.
 // Template specialization for CPU.
 
-template <class Parameters, typename Real>
-class G_MATRIX_TOOLS<dca::linalg::CPU, Parameters, Real> {
+template <class Parameters>
+class G_MATRIX_TOOLS<dca::linalg::CPU, Parameters> {
   using Concurrency = typename Parameters::concurrency_type;
   using Profiler = typename Parameters::profiler_type;
 
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+
 public:
-  G_MATRIX_TOOLS(int id, Parameters& parameters_ref)
+  G_MATRIX_TOOLS(int id, const Parameters& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -111,6 +114,6 @@ public:
 private:
   int thread_id;
 
-  Parameters& parameters;
-  Concurrency& concurrency;
+  const Parameters& parameters;
+  const Concurrency& concurrency;
 };

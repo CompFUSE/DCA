@@ -17,49 +17,53 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
+template <class Scalar>
 class MC_accumulator_data {
 public:
+  MC_accumulator_data() {
+    initialize(0);
+  }
+
   double& get_Gflop() {
-    return GFLOP;
+    return gflop_;
   }
 
-  int get_accumulated_sign() const {
-    return accumulated_sign;
+  auto get_accumulated_sign() const {
+    return accumulated_sign_;
   }
 
-  int get_number_of_measurements() const {
-    return number_of_measurements;
+  std::size_t get_number_of_measurements() const {
+    return number_of_measurements_;
   }
 
-  double get_average_sign() const {
-    return static_cast<double>(accumulated_sign) / static_cast<double>(number_of_measurements);
+  auto get_average_sign() const {
+    return accumulated_sign_ / static_cast<double>(number_of_measurements_);
   }
 
   void initialize(int dca_iteration) {
-    // there are too many copies of dca_iteration.
-    DCA_iteration = dca_iteration;
+    dca_iteration_ = dca_iteration;
 
-    GFLOP = 0.;
+    gflop_ = 0.;
 
-    current_sign = 1;
-    accumulated_sign = 0;
+    current_sign_.reset();
+    accumulated_sign_ = 0;
 
-    number_of_measurements = 0;
+    number_of_measurements_ = 0;
   }
 
 protected:
-  int DCA_iteration;
+  int dca_iteration_;
 
-  double GFLOP;
+  double gflop_;
 
-  int current_sign;
-  int accumulated_sign;
+  math::Phase<Scalar> current_sign_;
+  std::conditional_t<util::IsComplex_t<Scalar>::value, Scalar, int> accumulated_sign_;
 
-  int number_of_measurements;
+  std::size_t number_of_measurements_;
 };
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP

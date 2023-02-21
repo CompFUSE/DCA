@@ -121,9 +121,9 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-    Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn ")
+    Kagome | hund | twoband_Cu | threeband | Rashba_Hubbard | Moire_Hubbard | FeAs | material_NiO | material_FeSn ")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular Kagome hund twoband_Cu threeband
-             FeAs material_NiO material_FeSn)
+             Rashba_Hubbard Moire_Hubbard FeAs material_NiO material_FeSn)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -145,12 +145,18 @@ elseif (DCA_LATTICE STREQUAL "Kagome")
     "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
 elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
-
 elseif (DCA_LATTICE STREQUAL "threeband")
   set(DCA_LATTICE_TYPE dca::phys::models::ThreebandHubbard<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp")
-
+elseif (DCA_LATTICE STREQUAL "Rashba_Hubbard")
+  set(DCA_LATTICE_TYPE dca::phys::models::RashbaHubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp")
+elseif (DCA_LATTICE STREQUAL "Moire_Hubbard")
+  set(DCA_LATTICE_TYPE dca::phys::models::moire_hubbard<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/Moire_Hubbard.hpp")
 elseif (DCA_LATTICE STREQUAL "twoband_chain")
   set(DCA_LATTICE_TYPE dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<1>>)
   set(DCA_LATTICE_INCLUDE
@@ -174,7 +180,7 @@ elseif (DCA_LATTICE STREQUAL "material_FeSn")
       "dca/phys/models/material_hamiltonians/material_lattice.hpp")
   set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
 else()
-  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn.")
+  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular | Kagome | hund | twoband_Cu | threeband | Rashba_Hubbard | Moire_Hubbard | FeAs | material_NiO | material_FeSn.")
 endif()
 
 # Model type
@@ -390,9 +396,9 @@ option(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS "Measure two particle function 
 
 if (DCA_WITH_SINGLE_PRECISION_MC)
   set(DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS ON CACHE BOOL "Measure two particle function in single precision." FORCE)
-  set(MC_SCALAR float)
+  set(MC_REAL float)
 else()
-  set(MC_SCALAR double)
+  set(MC_REAL double)
 endif()
 
 if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)

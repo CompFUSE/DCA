@@ -64,6 +64,9 @@ public:
   using BaseGpu = TpAccumulatorGpuBase<Parameters, DT>;
   using ThisType = TpAccumulator<Parameters, DT, linalg::GPU>;
   using typename Base::Real;
+  using typename Base::Scalar;
+  using typename Base::Complex;
+  
   using RDmn = typename Base::RDmn;
   using KDmn = typename Base::KDmn;
   using NuDmn = typename Base::NuDmn;
@@ -74,7 +77,6 @@ public:
   using typename Base::WTpPosDmn;
   using typename Base::BDmn;
   using typename Base::SDmn;
-  using typename Base::Complex;
   using typename Base::TpGreensFunction;
 
 protected:
@@ -108,14 +110,14 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   // Returns: number of flop.
-  template <class Configuration, typename RealIn>
-  float accumulate(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+  template <class Configuration>
+  double accumulate(const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& M,
+                   const std::array<Configuration, 2>& configs, const Scalar factor);
 
   // CPU input. For testing purposes.
   template <class Configuration>
-  float accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, int sign);
+  double accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
+                   const std::array<Configuration, 2>& configs, const Scalar factor);
 
   // Downloads the accumulation result to the host.
   void finalize();
@@ -182,7 +184,7 @@ protected:
   using Base::n_pos_frqs_;
 
   using Base::non_density_density_;
-  using Base::sign_;
+  using Base::phase_;
   using Base::thread_id_;
 
   using BaseGpu::initialized_;
@@ -289,10 +291,10 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
 }
 
 template <class Parameters, DistType DT>
-template <class Configuration, typename RealIn>
-float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
+template <class Configuration>
+double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const Scalar sign) {
   [[maybe_unused]] Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
 
@@ -302,7 +304,7 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return flop;
 
-  Base::sign_ = sign;
+  Base::phase_ = sign;
   flop += BaseGpu::computeM(M, configs);
   computeG();
 
@@ -320,10 +322,10 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
 
 template <class Parameters, DistType DT>
 template <class Configuration>
-float TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const int sign) {
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
+double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const Scalar sign) {
+  std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0].getStream());
 
@@ -383,34 +385,34 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t cha
       Base::G4_[0].get_end() + 1;  // because the kernel expects this to be one past the end index
   switch (channel) {
     case FourPointType::PARTICLE_HOLE_TRANSVERSE:
-      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_MAGNETIC:
-      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_MAGNETIC>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_MAGNETIC>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_CHARGE:
-      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_CHARGE>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_CHARGE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
-      return details::updateG4<Real, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
-      return details::updateG4<Real, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+      return details::updateG4<Scalar, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");

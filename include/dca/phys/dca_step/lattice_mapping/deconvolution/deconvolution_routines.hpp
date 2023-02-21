@@ -103,7 +103,7 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
   coarsegrain_obj.compute_phi_r(phi_r_);
 
   func::function<double, target_r_dmn_t> phi_r_symmetrized(phi_r_, "phi_symmetrized(r)");
-  symmetrize::execute(phi_r_symmetrized);
+  Symmetrize<parameters_type>::execute(phi_r_symmetrized);
 
   // Compute target (lattice) k-domain to target k-domain projection operators.
   initializeProjectionOperator<target_k_dmn_t>(phi_r_, T_);

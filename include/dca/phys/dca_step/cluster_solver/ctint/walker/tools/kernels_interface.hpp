@@ -18,6 +18,7 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
+#include "dca/util/dca_types.hpp"
 
 namespace dca {
 namespace phys {
@@ -25,11 +26,13 @@ namespace solver {
 namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
+  using dca::SignType;
 
-template <typename Real>
-void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
+  
+template <typename Scalar>
+void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
+                   DeviceInterpolationData<Scalar, SignType<Scalar>> g0_interp, cudaStream_t stream);
 
 }  // namespace details
 }  // namespace ctint

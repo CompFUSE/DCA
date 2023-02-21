@@ -24,6 +24,10 @@
 #include <cxxabi.h>
 #endif
 
+#ifdef DCA_HAVE_GPU
+#include "dca/platform/dca_gpu_complex.h"
+#endif
+
 #include "dca/util/type_list.hpp"
 
 namespace dca {
@@ -165,15 +169,24 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
   }
 };
 
-// Determine if a type is complex or not.
-template <class T>
-struct IsComplex {
-  constexpr static bool value = 0;
-};
-template <class T>
-struct IsComplex<std::complex<T>> {
-  constexpr static bool value = 1;
-};
+template <typename T>
+struct IsComplex_t : public std::false_type {};
+template <typename T>
+struct IsComplex_t<std::complex<T>> : public std::true_type {};
+
+#ifdef DCA_HAVE_GPU
+
+template <>
+struct IsComplex_t<cuComplex> : public std::true_type {};
+
+template <>
+struct IsComplex_t<cuDoubleComplex> : public std::true_type {};
+#endif
+  
+template <typename T>
+using IsComplex = std::enable_if_t<IsComplex_t<T>::value, bool>;
+template <typename T>
+using IsReal = std::enable_if_t<std::is_floating_point<T>::value, bool>;
 
 template <typename T>
 using IsReal = std::enable_if_t<std::is_floating_point<T>::value, bool>;
@@ -186,10 +199,23 @@ struct RealAlias_impl<T, IsReal<T>> {
   using value_type = T;
 };
 
+#ifdef DCA_HAVE_GPU
+template <>
+struct RealAlias_impl<cuComplex, bool> {
+  using value_type = float;
+};
+
+template <>
+struct RealAlias_impl<cuDoubleComplex, bool> {
+  using value_type = double;
+};
+#endif
+
 template <typename T>
 struct RealAlias_impl<T, IsComplex<T>> {
   using value_type = typename T::value_type;
 };
+
 
 /** If you have a function templated on a value that can be real or complex
  *   and you need to get the base Real type if its complex or just the real.
@@ -199,6 +225,39 @@ struct RealAlias_impl<T, IsComplex<T>> {
  */
 template <typename T>
 using RealAlias = typename RealAlias_impl<T>::value_type;
+
+template <typename T, typename = bool>
+struct ComplexAlias_impl {};
+
+template <typename T>
+struct ComplexAlias_impl<T, IsReal<T>> {
+  using value_type = std::complex<T>;
+};
+
+template <typename T>
+struct ComplexAlias_impl<T, IsComplex<T>> {
+  using value_type = T;
+};
+
+template <typename T>
+using ComplexAlias = typename ComplexAlias_impl<T>::value_type;
+
+
+  
+template <typename REAL, bool complex>
+struct ScalarSelect {
+  using type = REAL;
+};
+
+template <typename REAL>
+struct ScalarSelect<REAL, false> {
+  using type = REAL;
+};
+
+template <typename REAL>
+struct ScalarSelect<REAL, true> {
+  using type = std::complex<REAL>;
+};
 
 template <typename ARRAY, std::size_t... SIZE>
 auto Array2Tuple_impl(const ARRAY& a, std::index_sequence<SIZE...>) {

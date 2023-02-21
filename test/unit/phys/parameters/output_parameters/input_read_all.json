@@ -13,6 +13,7 @@
         "dump-lattice-self-energy": true,
         "dump-cluster-Greens-functions": true,
         "dump-Gamma-lattice": true,
-        "dump-chi-0-lattice": true
+        "dump-chi-0-lattice": true,
+        "dump-every-iteration": false
     }
 }

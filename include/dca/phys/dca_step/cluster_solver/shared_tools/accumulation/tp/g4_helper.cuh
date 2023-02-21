@@ -132,7 +132,7 @@ inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& 
   }
 }
 
-inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const {
+inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1 [[maybe_unused]], int& k2 [[maybe_unused]], int& w1, int& w2) const {
   const int n_w_ext_pos = ext_size_ + nw_pos_;
   w1 += ext_size_;
   w2 += ext_size_;

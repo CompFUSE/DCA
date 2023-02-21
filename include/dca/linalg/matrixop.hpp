@@ -41,6 +41,7 @@
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
 #include "dca/linalg/vector.hpp"
+#include "dca/math/util/phase.hpp"
 
 #ifdef DCA_HAVE_GPU
 #include "dca/linalg/blas/kernels_gpu.hpp"
@@ -1127,10 +1128,10 @@ void eigensolverHermitian(char jobv, char uplo, const Matrix<std::complex<Scalar
   v = a;
 
   // Get optimal worksize.
-  auto lwork = util::getEigensolverHermitianWorkSize(jobv, uplo, v);
-  dca::linalg::Vector<std::complex<Scalar>, CPU> work(std::get<0>(lwork));
-  dca::linalg::Vector<Scalar, CPU> rwork(std::get<1>(lwork));
-  dca::linalg::Vector<int, CPU> iwork(std::get<2>(lwork));
+  auto [wsize, rsize, isize] = util::getEigensolverHermitianWorkSize(jobv, uplo, v);
+  dca::linalg::Vector<std::complex<Scalar>, CPU> work(wsize);
+  dca::linalg::Vector<Scalar, CPU> rwork(rsize);
+  dca::linalg::Vector<int, CPU> iwork(isize);
 
   lapack::heevd(&jobv, &uplo, v.nrRows(), v.ptr(), v.leadingDimension(), lambda.ptr(), work.ptr(),
                 work.size(), rwork.ptr(), rwork.size(), iwork.ptr(), iwork.size());
@@ -1144,7 +1145,7 @@ void eigensolverGreensFunctionMatrix(char jobv, char uplo, const Matrix<std::com
   int n = a.nrRows();
   assert(n % 2 == 0);
 
-  if (n == 2) {
+  if (n == 2) {  // must be diagonal in spin space.
     lambda.resize(2);
     v.resize(2);
 
@@ -1244,7 +1245,7 @@ Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
       throw(std::logic_error("LU decomposition failed."));
   }
 
-  double det = 1.;
+  Scalar det = 1.;
   for (int i = 0; i < n; i++) {
     det *= M(i, i);
     if (ipiv[i] != i + 1)
@@ -1256,46 +1257,45 @@ Scalar determinantIP(MatrixType<Scalar, CPU>& M) {
 // Copy and computes the determinant of the matrix.
 // Returns: determinant.
 template <typename Scalar, DeviceType device>
-double determinant(const Matrix<Scalar, device>& M) {
+Scalar determinant(const Matrix<Scalar, device>& M) {
   Matrix<Scalar, CPU> M_copy(M);
   return determinantIP(M_copy);
 }
 
-// Returns: logarithm of the absolute value of the determinant and the sign of the determinant,
-//          or zero if the determinant is zero.
+// Returns: logarithm of the absolute value of the determinant and the sign or phase of the
+// determinant. If the determinant is zero returns the null sign/phase.
 // Postcondition: M is its LU decomposition.
 template <template <typename, DeviceType> class MatrixType, typename Scalar>
-std::pair<Scalar, int> logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<int>& ipiv) {
+auto logDeterminantIP(MatrixType<Scalar, CPU>& M, std::vector<int>& ipiv) {
   assert(M.is_square());
-  static_assert(std::is_same_v<Scalar, float> || std::is_same_v<Scalar, double>,
-                " This function is defined only for Real numbers");
-
   const int n = M.nrCols();
   ipiv.resize(n);
+
+  dca::util::RealAlias<Scalar> log_det = 0.;
+  math::Phase<Scalar> phase;
 
   try {
     lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
   }
   catch (lapack::util::LapackException& err) {
-    if (err.info() > 0)
-      return {0., 0};
-    else
+    if (err.info() > 0) {
+      phase.makeNull();
+      return std::make_pair(log_det, phase);
+    }
+    else {
       throw(std::logic_error("LU decomposition failed."));
+    }
   }
-
-  Scalar log_det = 0.;
-  int sign = 1;
 
   for (int i = 0; i < n; i++) {
     log_det += std::log(std::abs(M(i, i)));
-    if (M(i, i) < 0)
-      sign *= -1;
+    phase.multiply(M(i, i));
 
     if (ipiv[i] != i + 1)
-      sign *= -1;
+      phase.flip();
   }
 
-  return {log_det, sign};
+  return std::make_pair(log_det, phase);
 }
 
 template <template <typename, DeviceType> class MatrixType, typename Scalar, DeviceType device>
@@ -1306,20 +1306,20 @@ auto logDeterminant(const MatrixType<Scalar, device>& m) {
 }
 
 template <typename Scalar, template <typename, DeviceType> class MatrixType>
-std::pair<Scalar, int> inverseAndLogDeterminant(MatrixType<Scalar, CPU>& mat) {
+auto inverseAndLogDeterminant(MatrixType<Scalar, CPU>& mat) {
   std::vector<int> ipiv;
-  const auto [log_det, sign] = logDeterminantIP(mat, ipiv);
+  auto [log_det, phase] = logDeterminantIP(mat, ipiv);
 
-  if (!sign)
+  if (phase.isNull())
     throw(std::logic_error("Singular matrix"));
 
+  // Invert
   const int lwork = util::getInverseWorkSize(mat);
   std::vector<Scalar> work(lwork);
-
   lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
                                 work.data(), lwork);
 
-  return {-log_det, sign};
+  return std::make_pair(-log_det, phase);
 }
 
 template <typename Scalar>

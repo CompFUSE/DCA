@@ -16,44 +16,91 @@
 #ifdef DCA_HAVE_GPU
 
 #include "dca/platform/gpu_definitions.h"
+#include "dca/util/type_utils.hpp"
+#include "dca/util/dca_types.hpp"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <typename Real>
+template <typename Scalar, typename SignType>
 class DeviceInterpolationData {
 public:
+  using Real = dca::util::RealAlias<Scalar>;
+
   DeviceInterpolationData(const DeviceInterpolationData& other) = default;
 
   /** Returns the interpolated g0 on the device
-   *  This is what actually gets called by the default build config for main_dca
    */
-  __DEVICE__ Real operator()(Real tau, int lindex) const {
+  __DEVICE__ dca::util::CudaScalar<Scalar> operator()(Real tau, int lindex) const {
+    using dca::util::castGPUType;
+    using dca::util::ComplexAlias;
+    using dca::util::RealAlias;
+    using dca::util::GPUTypeConversion;
+    using dca::util::IsComplex_t;
+    using dca::util::CudaComplex;
+    using dca::util::CudaScalar;
+    using dca::util::CUDATypeMap;
+    using namespace dca::linalg;
     assert(tau >= -beta_ && tau <= beta_);
 
     if (tau == 0)  // returns G0(tau = 0+)
-      return g0_minus_[lindex];
+      return *castGPUType(g0_minus_ + lindex);
 
-    short int factor = 1;
-    if (tau < 0) {
-      tau += beta_;
-      factor = -1;
+    if constexpr (IsComplex_t<SignType>::value) {
+      CudaComplex<RealAlias<SignType>> factor;
+      factor.x = 0.0;
+      factor.y = 0.0;
+
+      if (tau < 0) {
+        tau += beta_;
+        factor.x = -1.0;
+      }
+      else
+        factor.x = 1.0;
+
+      // Scale tau in [0, n_time_slices). Assume even spacing in time.
+      const Real scaled_tau = tau * n_div_beta_;
+      const int tau_index(scaled_tau);
+      const Real delta_tau = scaled_tau - tau_index;
+
+      // Get the pointer to the first akima coeff.
+      const CUDATypeMap<Scalar>* coeff_ptr =
+          castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
+
+      // Return akima interpolation.
+      return factor *
+                 coeff_ptr[0] +
+                 delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3]));
     }
+    else {
+      std::int8_t factor = 0;
 
-    // Scale tau in [0, n_time_slices). Assume even spacing in time.
-    const Real scaled_tau = tau * n_div_beta_;
-    const int tau_index(scaled_tau);
-    const Real delta_tau = scaled_tau - tau_index;
+      if (tau < 0) {
+        tau += beta_;
+        factor = -1;
+      }
+      else
+        factor = 1;
 
-    // Get the pointer to the first akima coeff.
-    const Real* coeff_ptr = &values_[tau_index * coeff_size_ + lindex * stride_];
+      // Scale tau in [0, n_time_slices). Assume even spacing in time.
+      const Real scaled_tau = tau * n_div_beta_;
+      const int tau_index(scaled_tau);
+      const Real delta_tau = scaled_tau - tau_index;
 
-    // Return akima interpolation.
-    return factor *
-           (coeff_ptr[0] +
-            delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
+      // Get the pointer to the first akima coeff.
+      const CUDATypeMap<Scalar>* coeff_ptr =
+          castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
+
+      // Return akima interpolation.
+      return factor *
+             static_cast<Scalar>(
+                 coeff_ptr[0] +
+                 delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
+    }
   }
 
 protected:
@@ -62,7 +109,8 @@ protected:
   constexpr static int coeff_size_ = 4;  // Same as G0Interpolation<linalg::CPU>.
   unsigned stride_;
   Real beta_, n_div_beta_;
-  Real *values_, *g0_minus_;
+  Scalar* values_;
+  Scalar* g0_minus_;
 };
 
 }  // namespace solver

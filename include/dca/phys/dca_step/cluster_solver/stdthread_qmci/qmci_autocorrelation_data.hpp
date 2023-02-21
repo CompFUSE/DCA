@@ -35,14 +35,15 @@ class QmciAutocorrelationData {
   using Parameters = typename Walker::parameters_type;
   using Data = DcaData<Parameters>;
   using Concurrency = typename Parameters::concurrency_type;
-  using Real = typename Walker::Scalar;
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
 
   constexpr static auto device = Walker::device;
   constexpr static int bands = Parameters::bands;
 
 public:
   QmciAutocorrelationData(const Parameters& parameters, int thread_id,
-                          G0Interpolation<device, Real>& g0);
+                          G0Interpolation<device, Scalar>& g0);
   virtual ~QmciAutocorrelationData() = default;
 
   void accumulateAutocorrelation(Walker& walker);
@@ -62,14 +63,15 @@ private:
   const unsigned autocorrelation_window_;
   const bool accumulate_G_;
 
-  std::array<dca::linalg::Matrix<Real, device>, 2> m_correlator_;
+  std::array<dca::linalg::Matrix<Scalar, device>, 2> m_correlator_;
 
-  TimeCorrelator<Parameters, Real, device> time_correlator_;
+  TimeCorrelator<Parameters, Scalar, device> time_correlator_;
   math::statistics::Autocorrelation<int> order_correlator_;
-  math::statistics::Autocorrelation<Real> weight_correlator_;
+  math::statistics::Autocorrelation<Scalar> weight_correlator_;
 
   // Store MC weights for each chain
-  std::vector<std::vector<std::int8_t>> signs_;
+  using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
+  std::vector<std::vector<SignType>> signs_;
   std::vector<std::vector<double>> weights_;
   std::vector<std::vector<unsigned long>> steps_;
   std::vector<unsigned> thermalization_step_;
@@ -78,7 +80,7 @@ private:
 template <class Walker>
 QmciAutocorrelationData<Walker>::QmciAutocorrelationData(const Parameters& parameters,
                                                          const int thread_id,
-                                                         G0Interpolation<device, Real>& g0)
+                                                         G0Interpolation<device, Scalar>& g0)
     : autocorrelation_window_(parameters.get_time_correlation_window()),
       accumulate_G_(parameters.compute_G_correlation()),
       time_correlator_(parameters, thread_id, g0),
@@ -111,9 +113,9 @@ void QmciAutocorrelationData<Walker>::write(io::Writer<Concurrency>& writer, int
   if (accumulate_G_) {
     writer.open_group("G_t0");
 
-    linalg::Matrix<Real, linalg::CPU> g_corr(bands, "autocorr");
-    linalg::Matrix<Real, linalg::CPU> g_stdev(bands, "stdev");
-    linalg::Matrix<Real, linalg::CPU> g_mean(bands, "mean");
+    linalg::Matrix<Scalar, linalg::CPU> g_corr(bands, "autocorr");
+    linalg::Matrix<Scalar, linalg::CPU> g_stdev(bands, "stdev");
+    linalg::Matrix<Scalar, linalg::CPU> g_mean(bands, "mean");
 
     int lindex = 0;
     for (int b1 = 0; b1 < bands; ++b1)

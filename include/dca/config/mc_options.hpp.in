@@ -23,7 +23,7 @@ namespace config {
 // dca::config::
 
 struct McOptions {
-  using MCScalar = @MC_SCALAR@;
+  using MC_REAL = @MC_REAL@;
 
   using TPAccumulationScalar = @TP_ACCUMULATION_SCALAR@;
 

@@ -21,6 +21,7 @@
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_gpu.hpp"
+#include "dca/util/type_utils.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
@@ -35,9 +36,11 @@ namespace details {
 
 using namespace linalg;
 using linalg::util::CudaComplex;
-using linalg::util::castCudaComplex;
+using dca::util::castGPUType;
+using dca::util::RealAlias;
 using phys::FourPointType;
-
+using dca::SignType;
+  
 std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
   const uint n_threads_i = std::min(block_size, i);
   const uint n_threads_j = std::min(block_size, j);
@@ -87,7 +90,7 @@ void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>
   auto blocks = getBlockSize(n_rows, n_rows * 2);
 
   computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(
-      castCudaComplex(G), ldg, castCudaComplex(G0), nk, nw_pos, beta);
+      castGPUType(G), ldg, castGPUType(G0), nk, nw_pos, beta);
 }
 
 template <typename Real>
@@ -159,14 +162,50 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
   const auto blocks = getBlockSize(n_rows, n_rows * 2, width);
 
   computeGMultibandKernel<<<blocks[0], blocks[1], width * width * sizeof(std::complex<Real>), stream>>>(
-      castCudaComplex(G), ldg, castCudaComplex(G0), ldg0, nb, nk, nw_pos, beta);
+      castGPUType(G), ldg, castGPUType(G0), ldg0, nb, nk, nw_pos, beta);
 }
 
-template <typename Real, FourPointType type>
-__global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
-                               const CudaComplex<Real>* __restrict__ G_up, const int ldgu,
-                               const CudaComplex<Real>* __restrict__ G_down, const int ldgd,
-                               const int sign, const bool atomic, const uint64_t start,
+template <typename Complex>
+__device__ Complex getG(const Complex* __restrict__ G, const int ldg, int k1, int k2, int w1,
+                        int w2, const int b1, const int b2) {
+  const bool is_conj = g4_helper.extendGIndices(k1, k2, w1, w2);
+
+  const unsigned nb = g4_helper.get_bands();
+  const unsigned nk = g4_helper.get_cluster_size();
+  const unsigned no = nb * nk;
+
+  unsigned i_idx = b1 + nb * k1 + no * w1;
+  unsigned j_idx = b2 + nb * k2 + no * w2;
+
+  auto val = G[i_idx + ldg * j_idx];
+
+  if (!is_conj)
+      return val;
+  else {
+      // For Moire model G_up(-k, -wn) = conj(G_dn(k, wn))
+      // but for a given configuration, SU(2) symmetry is broken by the auxialary spin field
+      // This mean the following code is incorrect and we must extend the calculation to all 
+      // frequencies w1, w2, including negative w1. 
+        i_idx = 1-b2 + nb * k1 + no * w1;
+        j_idx = 1-b1 + nb * k2 + no * w2;
+        val = conj(G[i_idx + ldg * j_idx]);
+      // if (b1==b2)
+      //     return conj(val);
+      // else {
+      //     i_idx = b2 + nb * k1 + no * w1;
+      //     j_idx = b1 + nb * k2 + no * w2;
+      //     val = -conj(G[i_idx + ldg * j_idx]);
+          return val;
+      // }
+  }
+  // return is_conj ? conj(val) : val;
+}
+
+template <typename Scalar, FourPointType type>
+__global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
+                               const CudaComplex<RealAlias<Scalar>>* __restrict__ G_up, const int ldgu,
+                               const CudaComplex<RealAlias<Scalar>>* __restrict__ G_down, const int ldgd,
+                               const SignType<Scalar> factor, const bool atomic, const uint64_t start,
                                const uint64_t end) {
   // TODO: reduce code duplication.
   // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
@@ -181,7 +220,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     return;
   }
 
-  const Real sign_over_2 = 0.5 * sign;
+  const SignType<Scalar> sign_over_2 = 0.5 * factor;
 
   unsigned b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex;
   g4_helper.unrollIndex(g4_index, b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
@@ -189,9 +228,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   const unsigned nb = g4_helper.get_bands();
   const unsigned nk = g4_helper.get_cluster_size();
 
-  CudaComplex<Real> contribution;
+  CudaComplex<RealAlias<Scalar>> contribution;
   const unsigned no = nk * nb;
-  auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
+  auto cond_conj = [](const CudaComplex<RealAlias<Scalar>> a, const bool cond) { return cond ? conj(a) : a; };
 
   // This code needs to be repeated over and over.  This happens in getGMultiband in the cpu
   // implementation. The gpu code is structed differently so without signficant restructing this
@@ -220,8 +259,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
     condSwapAdd(i_a, j_a, b1, b4, conj_a);
-    const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
     int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(g4_helper.addWex(w1, w_ex));
@@ -231,8 +270,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
     condSwapAdd(i_b, j_b, b2, b3, conj_b);
-    const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-    const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
     contribution = -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
@@ -254,7 +293,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
     condSwapAdd(i_a, j_a, b2, b1, conj_a);
-    CudaComplex<Real> Ga = cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
+    CudaComplex<RealAlias<Scalar>> Ga = cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
 
     int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(w2);
@@ -268,7 +307,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
     condSwapAdd(i_b, j_b, b3, b4, conj_b);
-    CudaComplex<Real> Gb = cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
+    CudaComplex<RealAlias<Scalar>> Gb = cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
     contribution = sign_over_2 * (Ga * Gb);
 
@@ -293,8 +332,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       i_a += b2;
       j_a += b4;
     }
-    CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+    CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
     w1_b = g4_helper.addWex(w2, w_ex);
     w2_b = g4_helper.addWex(w1, w_ex);
@@ -316,8 +355,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       i_b += b3;
       j_b += b1;
     }
-    CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-    CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+    CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
     contribution += -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
@@ -345,8 +384,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_a += b4;
       }
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
       int w1_b(g4_helper.addWex(w2, w_ex));
       int w2_b(g4_helper.addWex(w1, w_ex));
@@ -369,9 +408,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_b += b3;
       }
 
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
       contribution = -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
@@ -401,7 +440,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_a += b1;
       }
 
-      const CudaComplex<Real> Ga =
+      const CudaComplex<RealAlias<Scalar>> Ga =
           cond_conj(G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a], conj_a);
 
       int w1_b(g4_helper.addWex(w2, w_ex));
@@ -425,7 +464,7 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_b += b4;
       }
 
-      const CudaComplex<Real> Gb =
+      const CudaComplex<RealAlias<Scalar>> Gb =
           cond_conj(G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b], conj_b);
 
       contribution += sign_over_2 * (Ga * Gb);
@@ -455,8 +494,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_a += b4;
       }
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
       int w1_b(g4_helper.addWex(w2, w_ex));
       int w2_b(w2);
@@ -479,8 +518,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_b += b1;
       }
 
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
 
       contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
@@ -506,8 +545,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         i_a += b1;
         j_a += b4;
       }
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
       int w1_b(g4_helper.addWex(w2, w_ex));
       int w2_b(g4_helper.addWex(w1, w_ex));
@@ -531,8 +570,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         j_b += b3;
       }
 
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_down[i_b + ldgu * j_b], conj_b);
 
       contribution += -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
@@ -559,8 +598,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       j_a += b4;
     }
 
-    const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
     int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(w2);
@@ -583,8 +622,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       j_b += b1;
     }
 
-    const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-    const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
     contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
@@ -609,8 +648,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       i_a += b2;
       j_a += b4;
     }
-    const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
     int w1_b(g4_helper.wexMinus(w1, w_ex));
     int w2_b(g4_helper.wexMinus(w2, w_ex));
@@ -633,29 +672,29 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       j_b += b1;
     }
 
-    const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-    const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
     contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
 
-  CudaComplex<Real>* const result_ptr = G4 + local_g4_index;
+  CudaComplex<RealAlias<Scalar>>* const result_ptr = G4 + local_g4_index;
   if (atomic)
     dca::linalg::atomicAdd(result_ptr, contribution);
   else
     *result_ptr += contribution;
 }
 
-template <typename Real, FourPointType type>
-float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
-               const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
+template <typename Scalar, FourPointType type>
+float updateG4(ComplexAlias<Scalar>* G4, const ComplexAlias<Scalar>* G_up, const int ldgu,
+               const ComplexAlias<Scalar>* G_down, const int ldgd, const SignType<Scalar> factor, bool atomic,
                cudaStream_t stream, std::size_t start, std::size_t end) {
   constexpr const std::size_t n_threads = 256;
   const unsigned n_blocks = dca::util::ceilDiv(end - start, n_threads);
 
-  updateG4Kernel<Real, type>
-      <<<n_blocks, n_threads, 0, stream>>>(castCudaComplex(G4), castCudaComplex(G_up), ldgu,
-                                           castCudaComplex(G_down), ldgd, sign, atomic, start, end);
+  updateG4Kernel<Scalar, type>
+      <<<n_blocks, n_threads, 0, stream>>>(castGPUType(G4), castGPUType(G_up), ldgu,
+                                           castGPUType(G_down), ldgd, factor, atomic, start, end);
 
   // Check for errors.
   auto err = cudaPeekAtLastError();
@@ -708,64 +747,125 @@ template void computeGMultiband<double>(std::complex<double>* G, int ldg,
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_MAGNETIC>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_CHARGE>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<float, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
-    const std::complex<float>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<float>* G_down, const int ldgd, const SignType<float> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_HOLE_MAGNETIC>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_HOLE_CHARGE>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 template float updateG4<double, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
-    const std::complex<double>* G_down, const int ldgd, const int sign, bool atomic,
+    const std::complex<double>* G_down, const int ldgd, const SignType<double> factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
+// complex g0
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_MAGNETIC>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_CHARGE>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<float>, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+  //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+  //   const std::complex<float>* G_down, const int ldgd, const SignType<std::complex<float>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_MAGNETIC>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_CHARGE>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+
+  // template float updateG4<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+  //   std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+  //   const std::complex<double>* G_down, const int ldgd, const SignType<std::complex<double>> factor, bool atomic,
+  //   cudaStream_t stream, std::size_t start, std::size_t end);
+  
 }  // namespace details
 }  // namespace accumulator
 }  // namespace solver

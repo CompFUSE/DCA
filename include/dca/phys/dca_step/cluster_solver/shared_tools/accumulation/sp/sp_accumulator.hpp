@@ -37,14 +37,16 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters, linalg::DeviceType device = linalg::CPU, typename Real = double>
+template <class Parameters, linalg::DeviceType device = linalg::CPU>
 class SpAccumulator;
 
-template <class Parameters, typename Real>
-class SpAccumulator<Parameters, linalg::CPU, Real> {
+template <class Parameters>
+class SpAccumulator<Parameters, linalg::CPU> {
 public:
   using Profiler = typename Parameters::profiler_type;
-  using Scalar = Real;
+  using Real = dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using BDmn = func::dmn_0<domains::electron_band_domain>;
@@ -55,10 +57,10 @@ public:
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using MFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RDmn, WDmn>>;
 
   constexpr static int oversampling = 8;
-  using NfftType = math::nfft::Dnfft1D<Real, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
+  using NfftType = math::nfft::Dnfft1D<Scalar, WDmn, PDmn, oversampling, math::nfft::CUBIC>;
   using MFunctionTime = NfftType;
   using MFunctionTimePair = std::array<MFunctionTime, 2>;
   using FTau = typename NfftType::FTau;
@@ -71,12 +73,12 @@ public:
   void resetAccumulation();
 
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   void finalize();
 
-  void sumTo(SpAccumulator<Parameters, linalg::CPU, Real>& other) const;
+  void sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const;
 
   void synchronizeCopy() {}
 
@@ -134,13 +136,13 @@ private:
   std::unique_ptr<MFunctionTimePair> cached_nfft_sqr_obj_;
 };
 
-template <class Parameters, typename Real>
-SpAccumulator<Parameters, linalg::CPU, Real>::SpAccumulator(const Parameters& parameters_ref,
-                                                            const bool accumulate_m_sqr)
+template <class Parameters>
+SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(const Parameters& parameters_ref,
+                                                      const bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
   cached_nfft_obj_ = std::make_unique<MFunctionTimePair>();
   if (accumulate_m_sqr_)
     cached_nfft_sqr_obj_ = std::make_unique<MFunctionTimePair>();
@@ -156,11 +158,11 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::resetAccumulation() {
   initialized_ = true;
 }
 
-template <class Parameters, typename Real>
+template <class Parameters>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
-    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
+void SpAccumulator<Parameters, linalg::CPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   if (!initialized_)
     throw(std::logic_error("The accumulator was not initialized."));
 
@@ -184,24 +186,24 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::accumulate(
         const int r_i = config[i].get_right_site();
         const Real t_i = config[i].get_tau();
         const int delta_r = RDmn::parameter_type::subtract(r_j, r_i);
-        const double scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
+        const Real scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
 
         const int index = bbr_dmn(b_i, b_j, delta_r);
-        const Real f_val = Ms[s](i, j);
+        const Scalar f_val = Ms[s](i, j);
 
-        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, sign * f_val);
+        (*cached_nfft_obj_)[s].accumulate(index, scaled_tau, factor * f_val);
         if (accumulate_m_sqr_)
-          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, sign * f_val * f_val);
+          (*cached_nfft_sqr_obj_)[s].accumulate(index, scaled_tau, factor * f_val * f_val);
         if (parameters_.stamping_period() > 0) {
-          (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, sign * f_val);
+          (*single_measurement_M_r_t_)[s].accumulate(index, scaled_tau, factor * f_val);
         }
       }
     }
   }
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::finalizeFunction(MFunctionTimePair& ft_objs,
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::finalizeFunction(MFunctionTimePair& ft_objs,
                                                                     MFunction& function) {
   func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
   const Real normalization = 1. / RDmn::dmn_size();
@@ -217,8 +219,8 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::finalizeFunction(MFunctionTim
   }
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::finalize() {
   if (finalized_)
     return;
 
@@ -234,9 +236,8 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::finalize() {
   initialized_ = false;
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::sumTo(
-    SpAccumulator<Parameters, linalg::CPU, Real>& other) const {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const {
   if (!other.cached_nfft_obj_)
     other.cached_nfft_obj_.reset(new MFunctionTimePair);
   if (!other.cached_nfft_sqr_obj_ && accumulate_m_sqr_)
@@ -249,15 +250,15 @@ void SpAccumulator<Parameters, linalg::CPU, Real>::sumTo(
   }
 }
 
-template <class Parameters, typename Real>
-const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   return *M_r_w_;
 }
 
-template <class Parameters, typename Real>
-const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w_sqr() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   if (!accumulate_m_sqr_)
@@ -265,24 +266,24 @@ const auto& SpAccumulator<Parameters, linalg::CPU, Real>::get_sign_times_M_r_w_s
   return *M_r_w_sqr_;
 }
 
-template <class Parameters, typename Real>
-const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumulator<
-    Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction() {
+template <class Parameters>
+const typename SpAccumulator<Parameters, linalg::CPU>::MFunction& SpAccumulator<
+    Parameters, linalg::CPU>::get_single_measurement_sign_times_MFunction() {
   single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
   finalizeFunction(*single_measurement_M_r_t_, *single_measurement_M_r_w_);
   return *single_measurement_M_r_w_;
 }
 
-template <class Parameters, typename Real>
-const typename SpAccumulator<Parameters, linalg::CPU, Real>::FTauPair& SpAccumulator<
-    Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction_time() {
+template <class Parameters>
+const typename SpAccumulator<Parameters, linalg::CPU>::FTauPair& SpAccumulator<
+    Parameters, linalg::CPU>::get_single_measurement_sign_times_MFunction_time() {
   single_meas_ftau_pair_[0] = single_measurement_M_r_t_->operator[](0).get_f_tau();
   single_meas_ftau_pair_[1] = single_measurement_M_r_t_->operator[](1).get_f_tau();
   return single_meas_ftau_pair_;
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::CPU, Real>::clearSingleMeasurement() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::clearSingleMeasurement() {
   single_measurement_M_r_t_ = std::make_unique<MFunctionTimePair>();
 }
 

@@ -20,6 +20,7 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
+#include "dca/phys/models/traits.hpp"
 
 namespace dca {
 namespace phys {
@@ -34,6 +35,9 @@ struct FeAsPointGroup {
 template <typename /*PointGroupType*/>
 class FeAsLattice : public bilayer_lattice<FeAsPointGroup> {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   using BaseClass = bilayer_lattice<FeAsPointGroup>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
@@ -46,17 +50,16 @@ public:
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   // Initializes the interaction Hamiltonian  density-density local term.
-  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename Parameters>
   static void initializeHInteraction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-      const parameters_type& parameters);
+      const Parameters& parameters);
 
   // Initializes the interaction Hamiltonian non density-density local term.
-  template <typename Nu, typename RDmn, typename parameters_type>
+  template <typename Parameters>
   static void initializeNonDensityInteraction(
-      func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
-      const parameters_type& parameters);
+      NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters);
 };
 
 template <typename PointGroupType>
@@ -98,11 +101,11 @@ void FeAsLattice<PointGroupType>::initializeH0(
 }
 
 template <typename PointGroupType>
-template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename Parameters>
 void FeAsLattice<PointGroupType>::initializeHInteraction(
     func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-    const parameters_type& parameters) {
+    const Parameters& parameters) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Bilayer lattice has two bands.");
   if (SpinDmn::dmn_size() != 2)
@@ -129,13 +132,12 @@ void FeAsLattice<PointGroupType>::initializeHInteraction(
 }
 
 template <typename PointGroupType>
-template <typename Nu, typename RDmn, typename parameters_type>
+template <typename Parameters>
 void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
-    func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RDmn>>& non_density_interaction,
-    const parameters_type& parameters) {
+    NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters) {
   const double J = parameters.get_J();
   const double Jp = parameters.get_Jp();
-  const Nu nu;  // band-spin domain.
+  const NuDmn nu;  // band-spin domain.
   constexpr int up(0), down(1);
 
   non_density_interaction = 0.;

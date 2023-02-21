@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
@@ -46,6 +46,8 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
+using dca::util::RealAlias;
+  
 template <class Parameters, DistType DT = DistType::NONE, linalg::DeviceType device = linalg::CPU>
 class TpAccumulator {};
 
@@ -53,7 +55,8 @@ template <class Parameters, DistType DT>
 class TpAccumulatorBase {
 public:
   using Real = typename Parameters::TP_measurement_scalar_type;
-
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -73,7 +76,7 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-  using Complex = std::complex<Real>;
+  using Complex = std::complex<RealAlias<Scalar>>;
 
   using SpGreenFunction =
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
@@ -164,8 +167,10 @@ protected:
   const Real beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
+  constexpr static bool  spin_symmetric_ = Parameters::model_type::spin_symmetric;
+  
   constexpr static bool non_density_density_ =
-      models::has_non_density_interaction<typename Parameters::lattice_type>;
+    models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
   CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   SpGreenFunction G_;
@@ -175,7 +180,7 @@ protected:
 
   func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
-  int sign_;
+  math::Phase<Scalar> phase_;
 
   const int extension_index_offset_ = -1;
   const int n_pos_frqs_ = -1;

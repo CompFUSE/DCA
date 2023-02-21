@@ -12,8 +12,12 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
 
 #include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -22,28 +26,42 @@ namespace ctaux {
 namespace walkerkernels {
 // dca::phys::solver::ctaux::walkerkernels::
 
-template <typename Real>
-__global__ void compute_Gamma_kernel(Real* Gamma, int Gamma_n, int Gamma_ld, Real* N, int N_r,
-                                     int N_c, int N_ld, Real* G, int G_r, int G_c, int G_ld,
-                                     int* random_vertex_vector, Real* exp_V, Real* exp_delta_V) {
+template <class T>
+__global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r,
+                                     int N_c, int N_ld, const T* G, int G_r, int G_c, int G_ld,
+                                     const int* random_vertex_vector, const T* exp_V,
+                                     const T* exp_delta_V) {
+  using namespace dca::linalg;
+
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  int vertex_index = N_c - G_c;
+  const int vertex_index = N_c - G_c;
 
+  T the_one;
+  if constexpr (dca::util::IsComplex_t<T>::value)
+    the_one = {1., 0};
+  else
+    the_one = 1;
+
+  
   if (i < Gamma_n and j < Gamma_n) {
-    int configuration_e_spin_index_i = random_vertex_vector[i];
-    int configuration_e_spin_index_j = random_vertex_vector[j];
+    const int configuration_e_spin_index_i = random_vertex_vector[i];
+    const int configuration_e_spin_index_j = random_vertex_vector[j];
 
     if (configuration_e_spin_index_j < vertex_index) {
-      Real delta = 0;
-
+      T delta;
       if (configuration_e_spin_index_i == configuration_e_spin_index_j)
-        delta = 1.;
+        if constexpr (dca::util::IsComplex_t<T>::value)
+          delta = {1., 0};
+        else
+          delta = 1;
 
-      Real N_ij = N[configuration_e_spin_index_i + configuration_e_spin_index_j * N_ld];
+      const auto N_ij = N[configuration_e_spin_index_i + configuration_e_spin_index_j * N_ld];
 
-      Gamma[i + j * Gamma_ld] = (N_ij * exp_V[j] - delta) / (exp_V[j] - 1.);
+      
+      
+      Gamma[i + j * Gamma_ld] = (N_ij * exp_V[j] - delta) / (exp_V[j] - the_one);
     }
     else
       Gamma[i + j * Gamma_ld] =
@@ -51,15 +69,15 @@ __global__ void compute_Gamma_kernel(Real* Gamma, int Gamma_n, int Gamma_ld, Rea
   }
 
   if (i < Gamma_n and j < Gamma_n and i == j) {
-    Real gamma_k = exp_delta_V[j];
-    Gamma[i + j * Gamma_ld] -= (gamma_k) / (gamma_k - 1.);
+    const auto gamma_k = exp_delta_V[j];
+    Gamma[i + j * Gamma_ld] -= (gamma_k) / (gamma_k - the_one);
   }
 }
 
-template <typename Real>
-void compute_Gamma(Real* Gamma, int Gamma_n, int Gamma_ld, Real* N, int N_r, int N_c, int N_ld,
-                   Real* G, int G_r, int G_c, int G_ld, int* random_vertex_vector, Real* exp_V,
-                   Real* exp_delta_V, int thread_id, int stream_id) {
+template <class T>
+void compute_Gamma(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r, int N_c, int N_ld,
+                   const T* G, int G_r, int G_c, int G_ld, const int* random_vertex_vector,
+                   const T* exp_V, const T* exp_delta_V, int thread_id, int stream_id) {
   const int number_of_threads = 16;
 
   if (Gamma_n > 0) {
@@ -72,20 +90,25 @@ void compute_Gamma(Real* Gamma, int Gamma_n, int Gamma_ld, Real* N, int N_r, int
 
     cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
+    using dca::util::castGPUType;
     compute_Gamma_kernel<<<blocks, threads, 0, stream_handle>>>(
-        Gamma, Gamma_n, Gamma_ld, N, N_r, N_c, N_ld, G, G_r, G_c, G_ld, random_vertex_vector, exp_V,
-        exp_delta_V);
+        castGPUType(Gamma), Gamma_n, Gamma_ld, castGPUType(N), N_r, N_c, N_ld, castGPUType(G), G_r,
+        G_c, G_ld, random_vertex_vector, castGPUType(exp_V), castGPUType(exp_delta_V));
 
     checkErrorsCudaDebug();
   }
 }
-template void compute_Gamma(float* Gamma, int Gamma_n, int Gamma_ld, float* N, int N_r, int N_c,
-                            int N_ld, float* G, int G_r, int G_c, int G_ld, int* random_vertex_vector,
-                            float* exp_V, float* exp_delta_V, int thread_id, int stream_id);
-template void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r, int N_c,
-                            int N_ld, double* G, int G_r, int G_c, int G_ld,
-                            int* random_vertex_vector, double* exp_V, double* exp_delta_V,
-                            int thread_id, int stream_id);
+
+template void compute_Gamma(float*, int, int, const float*, int, int, int, const float*, int, int,
+                            int, const int*, const float*, const float*, int, int);
+template void compute_Gamma(double*, int, int, const double*, int, int, int, const double*, int,
+                            int, int, const int*, const double*, const double*, int, int);
+template void compute_Gamma(std::complex<float>*, int, int, const std::complex<float>*, int, int,
+                            int, const std::complex<float>*, int, int, int, const int*,
+                            const std::complex<float>*, const std::complex<float>*, int, int);
+template void compute_Gamma(std::complex<double>*, int, int, const std::complex<double>*, int, int,
+                            int, const std::complex<double>*, int, int, int, const int*,
+                            const std::complex<double>*, const std::complex<double>*, int, int);
 
 }  // namespace walkerkernels
 }  // namespace ctaux

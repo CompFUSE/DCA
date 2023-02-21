@@ -85,7 +85,7 @@ public:
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
   constexpr static dca::linalg::DeviceType device = device_t;
-  using Scalar = typename dca::config::McOptions::MCScalar;
+  using Real = typename dca::config::McOptions::MC_REAL;
 public:
   SsCtHybWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 

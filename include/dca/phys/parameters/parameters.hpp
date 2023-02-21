@@ -80,7 +80,7 @@ public:
   using lattice_type = typename Model::lattice_type;
 
   constexpr static bool complex_g0 = lattice_type::complex_g0;
-  using MCScalar = util::Scalar<config::McOptions::single_precision, complex_g0>;
+  using Real = config::McOptions::MC_REAL;
 
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;

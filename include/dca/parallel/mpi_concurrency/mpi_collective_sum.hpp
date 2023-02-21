@@ -567,7 +567,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(
 template <typename T>
 void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) const {
   // On summit large messages hangs if sizeof(floating point type) * message_size > 2^31-1.
-  constexpr std::size_t max_size = dca::util::IsComplex<T>::value
+  constexpr std::size_t max_size = dca::util::IsComplex_t<T>::value
                                        ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
                                        : std::numeric_limits<int>::max() / sizeof(T);
 

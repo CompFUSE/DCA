@@ -169,7 +169,6 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   signals
-  symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
   ${DCA_THREADING_LIBS}

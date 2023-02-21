@@ -49,6 +49,9 @@ public:
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
   static constexpr linalg::DeviceType device = QmciSolver::device;
   using Parameters = typename BaseClass::ParametersType;
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
   using Data = typename BaseClass::Data;
   using typename BaseClass::Concurrency;
   using typename BaseClass::Profiler;
@@ -81,7 +84,7 @@ public:
 
   struct MFuncAndSign {
     const MFunction& m_r_w;
-    const int sign;
+    const SignType sign;
   };
 
   /** gets the MFunction which for CT-INT and CT-AUX is M_r_w
@@ -90,12 +93,12 @@ public:
    */
   MFuncAndSign getSingleMFunc(StdThreadAccumulatorType& accumulator) const {
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
-    return {mfunc, accumulator.get_sign()};
+    return {mfunc, accumulator.get_sign().getSign()};
   };
 
   struct MFuncTimeAndSign {
     const typename Accumulator::FTauPair& m_r_t;
-    const int sign;
+    const SignType sign;
   };
 
   /** gets the MFunction in time domain  which for CT-INT and CT-AUX is M_r_t
@@ -104,7 +107,7 @@ public:
    */
   MFuncTimeAndSign getSingleMFuncTime(StdThreadAccumulatorType& accumulator) const {
     const FTauPair& mfunc(accumulator.get_single_measurement_sign_times_MFunction_time());
-    return {mfunc, accumulator.get_sign()};
+    return {mfunc, accumulator.get_sign().getSign()};
   };
 
   auto transformMFunction(const MFuncAndSign& mfs) const;
