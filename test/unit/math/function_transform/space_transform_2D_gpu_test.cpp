@@ -10,6 +10,13 @@
 // This test confronts a 2D space to momentum function transform executed on the GPU, with the same
 // transform executed on the CPU.
 
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 

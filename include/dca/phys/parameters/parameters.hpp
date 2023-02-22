@@ -20,7 +20,8 @@
 #include <string>
 #include <vector>
 
-#include "dca/config/mc_options.hpp"
+// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
+// included
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"

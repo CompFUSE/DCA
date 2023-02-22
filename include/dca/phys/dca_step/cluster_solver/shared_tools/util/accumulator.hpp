@@ -56,23 +56,32 @@ struct MeanType<T,  dca::util::IsComplex<T>> {
 // Specialization for phase
 template <typename T>
 struct MeanType<T, typename std::enable_if_t<
-  std::conjunction_v<dca::math::IsPhase<T>::type, std::is_integral<decltype(T::getSign())>>>> {
-  using type = double;
+  std::conjunction<dca::math::IsPhase<T>, std::is_same<T, dca::math::PhaseImpl<true>>, std::true_type>::value, bool>> {
+  using type = std::complex<double>;
 };
 
 template <typename T>
-struct MeanType<T, typename std::enable_if_t<
-  std::conjunction_v<
-  dca::math::IsPhase<T>::type, dca::util::IsComplex_t<decltype(T::getSign())>>>> {
-  using type = decltype(T::getSign());
+struct MeanType<T, typename std::enable_if_t<  std::conjunction<dca::math::IsPhase<T>, std::is_same<T, dca::math::PhaseImpl<false>>, std::true_type>::value, bool>> {
+  using type = double;
 };
+
+template <typename T, typename = bool>
+struct SampleType { 
+  using type = T;
+};
+
+template <typename T>
+struct SampleType<T, typename std::enable_if_t<dca::math::IsPhase<T>::value, bool>> {
+  using type = decltype(std::declval<T>().getSign());
+};
+
 
 }  // namespace details
 
 template <typename T>
 class Accumulator {
 public:
-  using SampleType = T;
+  using SampleType = typename details::SampleType<T>::type;
   using MeanType = typename details::MeanType<T>::type;
   using CountType = std::size_t;
 

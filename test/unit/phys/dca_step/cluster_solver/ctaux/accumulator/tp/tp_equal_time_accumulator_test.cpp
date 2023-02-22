@@ -10,13 +10,20 @@
 //
 // This file tests the summation of equal time two particle results.
 
+#include "test/mock_mcconfig.hpp"
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 
 #include "gtest/gtest.h"
 
 #include "dca/function/util/difference.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 constexpr char input_file[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctaux/accumulator/tp/input.json";
@@ -41,7 +48,7 @@ TEST_F(TpEqualTimeAccumulatorTest, AccumulateAndSum) {
                      TpEqualTimeAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(), n);
 
   using Accumulator =
-      dca::phys::solver::ctaux::TpEqualTimeAccumulator<G0Setup::Parameters, G0Setup::Data, double>;
+      dca::phys::solver::ctaux::TpEqualTimeAccumulator<G0Setup::Parameters, G0Setup::Data>;
 
   std::cout << "Configuration built\n";
   

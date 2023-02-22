@@ -1,5 +1,5 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -17,6 +17,14 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"

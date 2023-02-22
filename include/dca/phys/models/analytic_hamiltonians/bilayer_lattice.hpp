@@ -51,11 +51,11 @@ public:
     return 1;
   }
 
-  static double* initializeRDCABasis();
-  static double* initializeKDCABasis();
+  static const double* initializeRDCABasis();
+  static const double* initializeKDCABasis();
 
-  static double* initializeRLDABasis();
-  static double* initializeKLDABasis();
+  static const double* initializeRLDABasis();
+  static const double* initializeKLDABasis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -82,7 +82,7 @@ public:
 };
 
 template <typename point_group_type>
-double* bilayer_lattice<point_group_type>::initializeRDCABasis() {
+const double* bilayer_lattice<point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.0;
@@ -94,7 +94,7 @@ double* bilayer_lattice<point_group_type>::initializeRDCABasis() {
 }
 
 template <typename point_group_type>
-double* bilayer_lattice<point_group_type>::initializeKDCABasis() {
+const double* bilayer_lattice<point_group_type>::initializeKDCABasis() {
   static double* k_DCA = new double[4];
 
   k_DCA[0] = 2 * M_PI;
@@ -106,7 +106,7 @@ double* bilayer_lattice<point_group_type>::initializeKDCABasis() {
 }
 
 template <typename point_group_type>
-double* bilayer_lattice<point_group_type>::initializeRLDABasis() {
+const double* bilayer_lattice<point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1.;
@@ -118,7 +118,7 @@ double* bilayer_lattice<point_group_type>::initializeRLDABasis() {
 }
 
 template <typename point_group_type>
-double* bilayer_lattice<point_group_type>::initializeKLDABasis() {
+const double* bilayer_lattice<point_group_type>::initializeKLDABasis() {
   static double* k_LDA = new double[4];
 
   k_LDA[0] = 2. * M_PI;

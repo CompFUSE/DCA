@@ -25,7 +25,8 @@
 #include <mutex>
 #include <vector>
 
-#include "dca/config/mc_options.hpp"
+// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
+// included
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"

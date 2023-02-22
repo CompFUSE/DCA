@@ -39,8 +39,8 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 1;
 
-  static double* initializeRDCABasis();
-  static double* initializeRLDABasis();
+  static const double* initializeRDCABasis();
+  static const double* initializeRLDABasis();
 
   constexpr static int transformationSignOfR(int, int, int) {
     return 1;
@@ -81,7 +81,7 @@ public:
 };
 
 template <typename point_group_type>
-double* square_lattice<point_group_type>::initializeRDCABasis() {
+const double* square_lattice<point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.;
@@ -93,7 +93,7 @@ double* square_lattice<point_group_type>::initializeRDCABasis() {
 }
 
 template <typename point_group_type>
-double* square_lattice<point_group_type>::initializeRLDABasis() {
+const double* square_lattice<point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1.;

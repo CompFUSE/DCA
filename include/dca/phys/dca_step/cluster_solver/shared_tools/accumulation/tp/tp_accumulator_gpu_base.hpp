@@ -18,8 +18,9 @@
 #include <stdexcept>
 #include <vector>
 
+// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
+// included
 #include "dca/config/haves_defines.hpp"
-#include "dca/config/mc_options.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrix_view.hpp"

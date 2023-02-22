@@ -17,7 +17,8 @@
 #include <memory>
 #include <complex>
 #include "dca/config/haves_defines.hpp"
-#include "dca/config/mc_options.hpp"
+// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
+// included
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"

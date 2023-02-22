@@ -51,11 +51,11 @@ public:
     return 1;
   }
 
-  static double* initializeRDCABasis();
-  static double* initializeKDCABasis();
+  static const double* initializeRDCABasis();
+  static const double* initializeKDCABasis();
 
-  static double* initializeRLDABasis();
-  static double* initializeKLDABasis();
+  static const double* initializeRLDABasis();
+  static const double* initializeKLDABasis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -82,26 +82,26 @@ public:
 };
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initializeRDCABasis() {
+const double* twoband_chain<point_group_type>::initializeRDCABasis() {
   static std::array<double, 4> r_DCA{2., 0., 0., 1.};
   return r_DCA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initializeKDCABasis() {
+const double* twoband_chain<point_group_type>::initializeKDCABasis() {
   static std::array<double, 4> k_DCA{M_PI, 0., 0, 2 * M_PI};
   return k_DCA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initializeRLDABasis() {
+const double* twoband_chain<point_group_type>::initializeRLDABasis() {
   static std::array<double, 4> r_LDA{2., 0., 0., 1.};
 
   return r_LDA.data();
 }
 
 template <typename point_group_type>
-double* twoband_chain<point_group_type>::initializeKLDABasis() {
+const double* twoband_chain<point_group_type>::initializeKLDABasis() {
   static std::array<double, 4> k_LDA{M_PI, 0., 0, 2 * M_PI};
   return k_LDA.data();
 }

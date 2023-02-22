@@ -20,8 +20,6 @@
 
 namespace dca::math {
 
-namespace {  // implementation
-
 template <bool is_complex>
 class PhaseImpl;
   
@@ -148,7 +146,6 @@ public:
 private:
   std::int8_t sign_ = 1;
 };
-}  // namespace
 
 template <class T>
 using Phase = PhaseImpl<dca::util::IsComplex_t<T>::value>;
@@ -157,11 +154,8 @@ using Phase = PhaseImpl<dca::util::IsComplex_t<T>::value>;
 struct IsPhase : public std::false_type {};
 
 template<typename T>
-struct IsPhase<T, std::enable_if_t<std::disjunction_v<std::is_same<T, PhaseImpl<true>>::value, std::is_same<T, PhaseImpl<false>>::value>, std::false_type>>
+struct IsPhase<T, typename std::enable_if_t<(std::is_same<T, PhaseImpl<true>>::value || std::is_same<T, PhaseImpl<false>>::value), bool>>
  : public std::true_type {};    
-
-
-
   
 }  // namespace dca::math
 

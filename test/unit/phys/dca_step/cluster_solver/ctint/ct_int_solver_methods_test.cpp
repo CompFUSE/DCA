@@ -1,9 +1,15 @@
 #include "dca/config/profiler.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 
-#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
