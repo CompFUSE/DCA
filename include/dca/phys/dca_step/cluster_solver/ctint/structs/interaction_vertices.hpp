@@ -55,9 +55,9 @@ public:
 
   void insertElement(const std::vector<double>& vec);
 
-  template <class Nu, class Rdmn, class TDmn>
+  template <class Scalar, class Nu, class Rdmn, class TDmn>
   void checkForInterbandPropagators(
-      const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, TDmn>>& G_r_t);
+      const func::function<Scalar, func::dmn_variadic<Nu, Nu, Rdmn, TDmn>>& G_r_t);
 
   void reset();
   // In: random number generator object.
@@ -202,9 +202,9 @@ void InteractionVertices::initializeFromNonDensityHamiltonian(
           }
 }
 
-template <class Nu, class RDmn, class TDmn>
+template <typename Scalar, class Nu, class RDmn, class TDmn>
 void InteractionVertices::checkForInterbandPropagators(
-    const func::function<double, func::dmn_variadic<Nu, Nu, RDmn, TDmn>>& G_r_t) {
+    const func::function<Scalar, func::dmn_variadic<Nu, Nu, RDmn, TDmn>>& G_r_t) {
   interband_propagator_ = false;
   const int t0 = TDmn::dmn_size() / 2;
   const int nb = Nu::dmn_size() / 2;

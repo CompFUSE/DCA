@@ -12,6 +12,8 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP
 
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -29,7 +31,7 @@ public:
   }
 
   auto get_accumulated_sign() const {
-    return accumulated_sign_;
+    return accumulated_phase_;
   }
 
   std::size_t get_number_of_measurements() const {
@@ -37,7 +39,7 @@ public:
   }
 
   auto get_average_sign() const {
-    return accumulated_sign_ / static_cast<double>(number_of_measurements_);
+    return accumulated_phase_.mean();
   }
 
   void initialize(int dca_iteration) {
@@ -45,8 +47,8 @@ public:
 
     gflop_ = 0.;
 
-    current_sign_.reset();
-    accumulated_sign_ = 0;
+    current_phase_.reset();
+    accumulated_phase_.reset();
 
     number_of_measurements_ = 0;
   }
@@ -56,8 +58,8 @@ protected:
 
   double gflop_;
 
-  math::Phase<Scalar> current_sign_;
-  std::conditional_t<util::IsComplex_t<Scalar>::value, Scalar, int> accumulated_sign_;
+  math::Phase<Scalar> current_phase_;
+  util::Accumulator<dca::math::Phase<Scalar>> accumulated_phase_;
 
   std::size_t number_of_measurements_;
 };

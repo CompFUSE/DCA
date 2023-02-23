@@ -104,7 +104,7 @@ public:
     return order_avg_.count() ? order_avg_.mean() : order();
   }
   auto get_sign() const {
-    return phase_.getSign();
+    return phase_;
   }
 
   Real get_MC_log_weight() const {
@@ -309,7 +309,7 @@ void CtintWalkerBase<Parameters,DIST>::setMFromConfig() {
 template <class Parameters, DistType DIST>
 void CtintWalkerBase<Parameters,DIST>::updateSweepAverages() {
   order_avg_.addSample(order());
-  sign_avg_.addSample(phase_);
+  sign_avg_.addSample(phase_.getSign());
   // Track avg order for the final number of steps / sweep.
   if (!thermalized_ && order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
     partial_order_avg_.addSample(order());

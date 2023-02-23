@@ -127,8 +127,8 @@ private:
   }
 
 protected:
-  using MatrixView = linalg::MatrixView<Real, linalg::CPU>;
-  using Matrix = linalg::Matrix<Real, linalg::CPU>;
+  using MatrixView = linalg::MatrixView<Scalar, linalg::CPU>;
+  using Matrix = linalg::Matrix<Scalar, linalg::CPU>;
 
   using BaseClass::parameters_;
   using BaseClass::configuration_;
@@ -136,7 +136,7 @@ protected:
   using BaseClass::thread_id_;
   using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
-  using BaseClass::sign_;
+  using BaseClass::phase_;
   using BaseClass::M_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
@@ -157,6 +157,8 @@ protected:
   using BaseClass::acceptance_prob_;
 
 protected:
+  static constexpr Scalar the_one_ = dca::util::TheOne<Scalar>::value;
+
   std::vector<DelayedMoveType> delayed_moves_;
 
   using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
@@ -475,9 +477,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
       BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
 
       // Are we capturing the avg sign properly wrt multiple delayed moves
-      if (acceptance_prob_ < 0)
-        sign_ *= -1;
-
+      phase_.multiply(acceptance_prob_);
+      
       // Update GammaInv if necessary.
       if (!at_least_one_recently_added)
         for (int s = 0; s < 2; ++s)
@@ -584,7 +585,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
     const int delta = n_max_[s] - n_init_[s];
 
     if (delta > 0) {
-      Real f_j;
+      Scalar f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
       d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
@@ -626,7 +627,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeGInit() {
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
 
-    Real f;
+    // f?  thanks
+    Scalar f;
     Matrix G0(std::make_pair(n_max_[s], delta));
 
     G_[s].resizeNoCopy(n_max_[s]);
@@ -637,7 +639,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeGInit() {
       f = f_[field_type][b];
 
       for (int i = 0; i < n_max_[s]; ++i) {
-        G_[s](i, j) = (M_[s](i, j) * f - Real(i == j)) / (f - 1);
+        G_[s](i, j) = (M_[s](i, j) * f - Real(i == j)) / (f - 1.0);
       }
     }
 
@@ -654,9 +656,9 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeGInit() {
 
 template <class Parameters, DistType DIST>
 auto CtintWalkerSubmatrixCpu<Parameters, DIST>::computeAcceptanceProbability() {
-  Real acceptance_probability = det_ratio_;
+  Scalar acceptance_probability = det_ratio_;
 
-  Real gamma_factor = 1;
+  Scalar gamma_factor = the_one_;
   const auto move_type = current_move_->move_type;
   for (int s = 0; s < 2; ++s) {
     if (!sector_indices_[s].size())
@@ -675,7 +677,7 @@ auto CtintWalkerSubmatrixCpu<Parameters, DIST>::computeAcceptanceProbability() {
   const int interaction_sign = configuration_.getSign(index_[0]);
   const int non_empty_sector = sector_indices_[0].size() ? 0 : 1;
 
-  Real mc_weight_ratio = acceptance_probability;
+  Scalar mc_weight_ratio = acceptance_probability;
   Real K = total_interaction_;
 
   for (int v_id = 0; v_id < delta_vertices; ++v_id) {
@@ -685,7 +687,7 @@ auto CtintWalkerSubmatrixCpu<Parameters, DIST>::computeAcceptanceProbability() {
         configuration_.getSector(non_empty_sector).getLeftB(sector_indices_[non_empty_sector][v_id]);
     K *= beta_ * prob_const_[field_type][b] * interaction_sign;
 
-    const Real weight_term = prob_const_[field_type][b] * configuration_.getStrength(index_[v_id]);
+    const Scalar weight_term = prob_const_[field_type][b] * configuration_.getStrength(index_[v_id]);
     if (move_type == INSERTION)
       mc_weight_ratio *= weight_term;
     else
@@ -740,15 +742,15 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateGammaInv(int s) {
     details::smallInverse(s_[s], s_inv);
 
     auto& Gamma_q = Gamma_q_[s];
-    linalg::matrixop::gemm(Real(-1.), Gamma_q, s_inv, Real(0.), q_inv);
+    linalg::matrixop::gemm(Scalar(-1.), Gamma_q, s_inv, Real(0.), q_inv);
 
     auto& r_Gamma = workspace_;
     r_Gamma.resizeNoCopy(r_[s].size());
     linalg::matrixop::gemm(r_[s], bulk, r_Gamma);
-    linalg::matrixop::gemm(Real(-1.), s_inv, r_Gamma, Real(0.), r_inv);
+    linalg::matrixop::gemm(Scalar(-1.), s_inv, r_Gamma, Real(0.), r_inv);
 
     // Gamma_ += Gamma_ * q_ * s_^-1 * r_ * Gamma_
-    linalg::matrixop::gemm(Real(-1.), q_inv, r_Gamma, Real(1.), bulk);
+    linalg::matrixop::gemm(Scalar(-1.), q_inv, r_Gamma, Real(1.), bulk);
   }
   else {
     Gamma_inv_[s].resizeNoCopy(delta);
@@ -778,7 +780,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateM() {
       }
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
-      linalg::matrixop::gemm(Real(-1.), old_G, result_matrix, Real(1.), M_[s]);
+      linalg::matrixop::gemm(Scalar(-1.), old_G, result_matrix, Real(1.), M_[s]);
       flop_ += 2 * Gamma_inv_[s].nrRows() * Gamma_inv_[s].nrCols() * old_M.nrCols();
       flop_ += 2 * old_G.nrRows() * old_G.nrCols() * result_matrix.nrCols();
 
@@ -866,7 +868,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::removeRowAndColOfGammaInv() {
       linalg::matrixop::gemm(q_[s], s_[s], q_s);
 
       // Gamma_inv_ -= Q*S^-1*R
-      linalg::matrixop::gemm(Real(-1.), q_s, r_[s], Real(1.), Gamma_inv_[s]);
+      linalg::matrixop::gemm(Scalar(-1.), q_s, r_[s], Real(1.), Gamma_inv_[s]);
     }  // if n
     else {
       Gamma_inv_[s].resizeNoCopy(0);
@@ -914,7 +916,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::transformM() {
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const Real f_i = -(f_[field_type][b] - 1);
+        const Scalar f_i = -(f_[field_type][b] - 1);
         M_[s](i, j) /= f_i;
       }
     }
@@ -930,7 +932,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeM(typename BaseClass::Mat
       for (int i = 0; i < M_[s].size().first; ++i) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
         const auto b = configuration_.getSector(s).getLeftB(i);
-        const Real factor = -(f_[field_type][b] - 1.);
+        const Scalar factor = -(f_[field_type][b] - 1.);
         m_accum[s](i, j) = M_[s](i, j) * factor;
       }
     }
@@ -969,7 +971,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeInsertionMatrices(
     auto& Gamma_q = Gamma_q_[s];
     Gamma_q.resizeNoCopy(q_[s].size());
     linalg::matrixop::gemm(Gamma_inv_[s], q_[s], Gamma_q);
-    linalg::matrixop::gemm(Real(-1.), r_[s], Gamma_q, Real(1.), s_[s]);
+    linalg::matrixop::gemm(Scalar(-1.), r_[s], Gamma_q, Scalar(1.), s_[s]);
   }
 }
 

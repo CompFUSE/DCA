@@ -90,11 +90,12 @@ void ModelParameters<models::TightBindingModel<models::RashbaHubbard<PointGroup>
       reader_or_writer.execute(name, obj);
     }
     catch (const std::exception& /*err*/) {
+      std::cerr << "Warning: Rashba-Hubbard-model has no " << name << " value specified.\n";
     }
   };
 
   try {
-    reader_or_writer.open_group("Rasha-Hubbard-model");
+    reader_or_writer.open_group("Rashba-Hubbard-model");
     tryToRead("t", t_);
     tryToRead("h", h_);
     tryToRead("lambda", lambda_);
@@ -102,7 +103,7 @@ void ModelParameters<models::TightBindingModel<models::RashbaHubbard<PointGroup>
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\n  Rasha-Hubbard-model parameter group is not defined!\n" << std::endl;
+    std::cout << "\n  Rashba-Hubbard-model parameter group is not defined!\n" << std::endl;
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 

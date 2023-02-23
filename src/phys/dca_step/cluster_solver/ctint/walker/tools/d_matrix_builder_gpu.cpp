@@ -49,6 +49,8 @@ void DMatrixBuilder<GPU, Scalar>::computeG0(Matrix& G0,
 // Instantation.
 template class DMatrixBuilder<GPU, float>;
 template class DMatrixBuilder<GPU, double>;
+  template class DMatrixBuilder<GPU, std::complex<float>>;
+  template class DMatrixBuilder<GPU, std::complex<double>>;
 
 }  // namespace ctint
 }  // namespace solver

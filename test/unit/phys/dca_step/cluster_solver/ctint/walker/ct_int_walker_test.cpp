@@ -10,6 +10,13 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "gtest/gtest.h"
 

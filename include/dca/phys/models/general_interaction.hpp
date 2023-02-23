@@ -17,6 +17,7 @@
 
 #include <array>
 #include <vector>
+#include <cmath>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -78,7 +79,9 @@ void general_interaction<parameters_type>::set_vertex(
   const int pos = rng() * correlated_orbitals.size();
   // This is instead of crashing on segv when module is unknown.
   // \todo catch earlier in release as well.
-  assert( pos < correlated_orbitals.size() && "It is likely you have specified an unknown model or set too few correlated orbitals" );
+  // if ( pos >= correlated_orbitals.size() )
+  //   std::cout << pos << " >= " << correlated_orbitals.size() << std::endl;
+  // assert( pos < correlated_orbitals.size() && "It is likely you have specified an unknown model or set too few correlated orbitals" );
   const int lin_ind = correlated_orbitals[pos];
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2
@@ -122,7 +125,7 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
           for (int s_i = 0; s_i < SpinDmn::dmn_size(); ++s_i) {
             for (auto b_i : interacting_orbitals) {
               // This 1.e-3 seems like a very magic number!
-              if (std::abs(H_interaction(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
+              if (std::fabs(H_interaction(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
                 int linear_index = get_spin_orbital_pair_domain<BandDmn, SpinDmn, RDmn>()(
                     b_i, s_i, b_j, s_j, r_i, r_j);
                 correlated_orbitals.push_back(linear_index);

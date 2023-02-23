@@ -182,7 +182,7 @@ struct IsComplex_t<cuComplex> : public std::true_type {};
 template <>
 struct IsComplex_t<cuDoubleComplex> : public std::true_type {};
 #endif
-  
+
 template <typename T>
 using IsComplex = std::enable_if_t<IsComplex_t<T>::value, bool>;
 template <typename T>
@@ -216,7 +216,6 @@ struct RealAlias_impl<T, IsComplex<T>> {
   using value_type = typename T::value_type;
 };
 
-
 /** If you have a function templated on a value that can be real or complex
  *   and you need to get the base Real type if its complex or just the real.
  *
@@ -242,8 +241,6 @@ struct ComplexAlias_impl<T, IsComplex<T>> {
 template <typename T>
 using ComplexAlias = typename ComplexAlias_impl<T>::value_type;
 
-
-  
 template <typename REAL, bool complex>
 struct ScalarSelect {
   using type = REAL;
@@ -257,6 +254,26 @@ struct ScalarSelect<REAL, false> {
 template <typename REAL>
 struct ScalarSelect<REAL, true> {
   using type = std::complex<REAL>;
+};
+
+template <typename T, typename = bool>
+struct TheOne {
+  static constexpr T value = 1;
+};
+
+template <typename T>
+struct TheOne<T, IsComplex<T>> {
+  static constexpr T value = {1.0, 0.0};
+};
+
+template <typename T, typename = bool>
+struct TheZero {
+  static constexpr T value = 0;
+};
+
+template <typename T>
+struct TheZero<T, IsComplex<T>> {
+  static constexpr T value = {0.0, 0.0};
 };
 
 template <typename ARRAY, std::size_t... SIZE>

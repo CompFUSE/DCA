@@ -22,7 +22,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
-
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/mc_accumulator_data.hpp"
+#include "dca/util/type_utils.hpp"
 #ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
@@ -36,12 +37,17 @@ namespace ctint {
 
 template <class Parameters, linalg::DeviceType device,
           DistType DIST = dca::DistType::NONE>
-class CtintAccumulator {
+class CtintAccumulator : public MC_accumulator_data<typename dca::util::ScalarSelect<typename dca::config::McOptions::MC_REAL,Parameters::complex_g0>::type> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
   using Real = typename dca::config::McOptions::MC_REAL;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Base = MC_accumulator_data<Scalar>;
   using this_type = CtintAccumulator<Parameters, device, DIST>;
+  using Base::accumulated_phase_;
+  using Base::current_phase_;
+  using Base::number_of_measurements_;
+  
   using ParametersType = Parameters;
   using DataType = phys::DcaData<Parameters, DIST>;
   using SpAccumulator = accumulator::SpAccumulator<Parameters, device>;
@@ -78,7 +84,7 @@ public:
   }
 
   const auto& get_sign() const {
-    return sign_;
+    return current_phase_;
   }
 
   const auto& get_sign_times_M_r_w() const;
@@ -96,15 +102,16 @@ public:
   const auto& get_sign_times_G4() const;
 
   double avgSign() const {
-    return accumulated_sign_.mean();
+    return accumulated_phase_.mean();
   }
 
-  int get_accumulated_sign() const {
-    return accumulated_sign_.sum();
+  auto get_accumulated_phase() const {
+    return accumulated_phase_.sum();
   }
 
   int get_number_of_measurements() const {
-    return accumulated_sign_.count();
+    assert(accumulated_phase_.count() == number_of_measurements_);
+    return number_of_measurements_;
   }
 
   int order() const {
@@ -136,12 +143,10 @@ private:
   // Internal instantaneous configuration.
   std::array<linalg::Matrix<Scalar, device>, 2> M_;
   MatrixConfiguration configuration_;
-  int sign_ = 0;
 
   std::vector<const linalg::util::GpuStream*> streams_;
   linalg::util::GpuEvent event_;
 
-  util::Accumulator<int> accumulated_sign_;
   util::Accumulator<unsigned long> accumulated_order_;
 
   const int thread_id_;
@@ -179,8 +184,8 @@ void CtintAccumulator<Parameters, device, DIST>::initialize(const int dca_iterat
       parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) ||
                                          parameters_.dump_every_iteration());
   accumulated_order_.reset();
-  accumulated_sign_.reset();
-
+  
+  BaseClass:initialize(dca_iteration);
   sp_accumulator_.resetAccumulation();
   sp_accumulator_.clearSingleMeasurement();
   if (perform_tp_accumulation_)
@@ -217,7 +222,7 @@ void CtintAccumulator<Parameters, device, DIST>::updateFrom(Walker& walker) {
   }
 
   configuration_ = walker.getConfiguration();
-  sign_ = walker.get_sign();
+  current_phase_ = walker.get_sign();
   flop_ += walker.stealFLOPs();
 
   ready_ = true;
@@ -232,17 +237,17 @@ void CtintAccumulator<Parameters, device, DIST>::accumulate(Walker& walker) {
 
 template <class Parameters, linalg::DeviceType device, DistType DIST>
 void CtintAccumulator<Parameters, device, DIST>::measure() {
-  if (!ready_ || sign_ == 0)
+  if (!ready_ || current_phase_.isNull())
     throw(std::logic_error("No or invalid configuration to accumulate."));
-
-  accumulated_sign_.addSample(sign_);
+  accumulated_phase_.addSample(current_phase_.getSign());
   accumulated_order_.addSample(order());
+  number_of_measurements_ += 1;
 
-  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
+  sp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_phase_.getSign());
   flop_ += measure_flops_;
 
   if (perform_tp_accumulation_)
-    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), sign_);
+    tp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_phase_.getSign());
 
   ready_ = false;
 }
@@ -250,7 +255,7 @@ void CtintAccumulator<Parameters, device, DIST>::measure() {
 template <class Parameters, linalg::DeviceType device, DistType DIST>
 void CtintAccumulator<Parameters, device, DIST>::sumTo(this_type& other_one) {
   other_one.accumulated_order_ += accumulated_order_;
-  other_one.accumulated_sign_ += accumulated_sign_;
+  other_one.accumulated_phase_ += accumulated_phase_;
 
   sp_accumulator_.sumTo(other_one.sp_accumulator_);
   if (perform_tp_accumulation_) {

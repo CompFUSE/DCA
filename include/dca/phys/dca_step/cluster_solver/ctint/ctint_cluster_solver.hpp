@@ -85,12 +85,13 @@ public:
   // gather the walker's measurements and average them across the processes.
   // Then it computes the final integration results.
   // Postcondition: DcaData contains Sigma, G_r_t, G_r_w, G_k_w, G_k_t
-  double finalize();
+  // \param[return]  avg_phase
+  auto finalize();
 
   // Calls finalize(). In addition:
   // Postcondition: dca_info_struct contains metadata on the integration.
   // Returns: L2 difference between Sigma and Sigma_cluster.
-  double finalize(DcaLoopData<Parameters>& dca_info_struct);
+  auto finalize(DcaLoopData<Parameters>& dca_info_struct);
 
   double computeDensity() const;
 
@@ -132,8 +133,13 @@ protected:  // Protected for testing purposes.
   void computeSigma(const SpGreensFunction& G, const SpGreensFunction& G0,
                     SpGreensFunction& Sigma) const;
 
-  // Returns: average sign.
-  double gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
+  /** gather all M and G4 and accumulated sign
+   *  \param[out] Returns: average phase
+   *  \param[in,out]  G                 greens function has allreduce or leaveoneoutSum applied to it
+   *                                    side effect seems undesirable and motivated by saving copy.
+   *  \param[in]      compute_error     does leave one out sum removing the local accumulated type.
+   */
+  auto gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
 
   double L2Difference() const;
 
@@ -224,7 +230,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::integrate() 
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize() {
+auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize() {
   bool compute_error = false;
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     if (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE) {
@@ -240,7 +246,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
   SpGreensFunction M;
 
   // average M across ranks.
-  double avg_sign = gatherMAndG4(M, compute_error);
+  SignType<Scalar> avg_sign = gatherMAndG4(M, compute_error);
 
   // compute G_r_t and save it into data_.
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);
@@ -293,9 +299,9 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize()
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize(
+auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize(
     DcaLoopData<Parameters>& loop_data) {
-  double avg_sign = finalize();
+  auto avg_sign = finalize();
   // Compute and save into loop_data Sigma_zero_mom and std deviation
   for (int nu = 0; nu < Nu::dmn_size(); nu++) {
     for (int k = 0; k < KDmn::dmn_size(); k++) {
@@ -461,18 +467,18 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::computeDen
   double result(0.);
   const int t0_minus = TDmn::dmn_size() / 2 - 1;
   for (int i = 0; i < Nu::dmn_size(); i++)
-    result += data_.G_r_t(i, i, RDmn::parameter_type::origin_index(), t0_minus);
+    result += std::real(data_.G_r_t(i, i, RDmn::parameter_type::origin_index(), t0_minus));
 
   return result;
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
-double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAndG4(
+auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAndG4(
     SpGreensFunction& M, bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
 
-  double sign = accumulator_.get_accumulated_sign();
+  auto accumulated_phase = accumulator_.get_accumulated_phase();
 
   Symmetrize<Parameters>::execute(M, data_.H_symmetry);
 
@@ -485,23 +491,27 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::gatherMAnd
   };
 
   collect(M);
-  collect(sign);
+  collect(accumulated_phase);
 
   std::size_t n_meas = accumulator_.get_number_of_measurements();
   concurrency_.sum(n_meas);
 
-  M /= std::complex<double>(sign, 0.);
+  // we're here
+  if constexpr (dca::util::IsComplex_t<Scalar>::value)
+    M /= accumulated_phase;
+  else
+    M /= std::complex<double>(accumulated_phase, 0.);
 
   if (accumulator_.perform_tp_accumulation()) {
     for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
       auto& G4 = data_.get_G4()[channel];
       G4 = accumulator_.get_sign_times_G4()[channel];
       collect(G4);
-      G4 /= sign * parameters_.get_beta() * parameters_.get_beta();
+      G4 /= accumulated_phase * parameters_.get_beta() * parameters_.get_beta();
     }
   }
 
-  return sign / double(n_meas);
+  return accumulated_phase / double(n_meas);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>

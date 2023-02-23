@@ -167,7 +167,7 @@ protected:
   const Real beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
-  constexpr static bool  spin_symmetric_ = Parameters::model_type::spin_symmetric;
+  constexpr static bool  spin_symmetric_ = Parameters::model_type::lattice_type::spin_symmetric;
   
   constexpr static bool non_density_density_ =
     models::HasInitializeNonDensityInteractionMethod<Parameters>::value;

@@ -132,6 +132,7 @@ private:
   SampleType sum_;
 };
 
+  
 }  // namespace util
 }  // namespace solver
 }  // namespace phys

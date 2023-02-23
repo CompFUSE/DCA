@@ -147,9 +147,13 @@ public:
 
   // sp-measurements
   const auto& get_sign() const {
-    return current_sign_;
+    return current_phase_;
   }
 
+  const auto get_accumulated_phase() const {
+    return accumulated_phase_.sum();
+  }
+  
   const auto& get_sign_times_M_r_w() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w();
   }
@@ -221,8 +225,8 @@ protected:
   using MC_accumulator_data<Scalar>::dca_iteration_;
   using MC_accumulator_data<Scalar>::number_of_measurements_;
 
-  using MC_accumulator_data<Scalar>::accumulated_sign_;
-  using MC_accumulator_data<Scalar>::current_sign_;
+  using MC_accumulator_data<Scalar>::accumulated_phase_;
+  using MC_accumulator_data<Scalar>::current_phase_;
 
   const bool compute_std_deviation_;
 
@@ -384,7 +388,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
 
   gflop_ += walker.get_Gflop();
 
-  current_sign_ = walker.get_sign();
+  current_phase_ = walker.get_sign();
 
   const linalg::util::GpuEvent* event = walker.computeM(M_);
 
@@ -392,8 +396,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
   two_particle_accumulator_.synchronizeCopy();
 
   configuration_type& full_configuration = walker.get_configuration();
-  hs_configuration_[0] = full_configuration.get(e_UP);
-  hs_configuration_[1] = full_configuration.get(e_DN);
+  hs_configuration_[0] = full_configuration.get(e_DN);
+  hs_configuration_[1] = full_configuration.get(e_UP);
 
   const int k = full_configuration.get_number_of_interacting_HS_spins();
   if (k < visited_expansion_order_k.size())
@@ -411,7 +415,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::measure() {
   number_of_measurements_ += 1;
-  accumulated_sign_ += current_sign_.getSign();
+  accumulated_phase_.addSample(current_phase_.getSign());
 
   if (perform_tp_accumulation_)
     accumulate_two_particle_quantities();
@@ -464,7 +468,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
 
-  single_particle_accumulator_obj.accumulate(M_, hs_configuration_, current_sign_.getSign());
+  single_particle_accumulator_obj.accumulate(M_, hs_configuration_, current_phase_.getSign());
 
   gflop_ += 2. * 8. * M_[1].size().first * M_[1].size().first * (1.e-9);
   gflop_ += 2. * 8. * M_[0].size().first * M_[0].size().first * (1.e-9);
@@ -503,7 +507,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_equal_time_quantities(
     const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M) {
   equal_time_accumulator_ptr_->accumulateAll(hs_configuration_[0], M[0], hs_configuration_[1], M[1],
-                                             current_sign_.getSign());
+                                             current_phase_.getSign());
 
   gflop_ += equal_time_accumulator_ptr_->get_gflop();
 }
@@ -517,14 +521,14 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_equal_time_q
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_two_particle_quantities() {
   profiler_type profiler("tp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
-  gflop_ += 1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign_.getSign());
+  gflop_ += 1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_phase_.getSign());
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::sumTo(this_type& other) {
   other.gflop_ += gflop_;
 
-  other.accumulated_sign_ += accumulated_sign_;
+  other.accumulated_phase_ += accumulated_phase_;
   other.number_of_measurements_ += number_of_measurements_;
 
   other.get_visited_expansion_order_k() += visited_expansion_order_k;

@@ -325,7 +325,7 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
   dca_info_struct.average_expansion_order(dca_iteration_) = integral / total;
 
   dca_info_struct.sign(dca_iteration_) =
-      accumulator_.get_accumulated_sign() /
+      accumulator_.get_accumulated_phase() /
       static_cast<double>(accumulator_.get_number_of_measurements());
 
   dca_info_struct.thermalization_per_mpi_task(dca_iteration_) =
@@ -413,7 +413,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
   accumulator_.finalize();
 
   M_r_w_new = accumulator_.get_sign_times_M_r_w();
-  M_r_w_new /= accumulator_.get_accumulated_sign();
+  M_r_w_new /= accumulator_.get_accumulated_phase();
 
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_new, M_k_w_new);
 
@@ -434,7 +434,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /=
-          parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign();
+	parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign().sum();
       concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
     }
   }
@@ -455,7 +455,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     Profiler profiler("QMC-collectives", "CT-AUX solver", __LINE__);
     concurrency_.delayedSum(total_time_);
     concurrency_.delayedSum(accumulator_.get_Gflop());
-    accumulated_sign_ = accumulator_.get_accumulated_sign();
+    accumulated_sign_ = accumulator_.get_accumulated_phase();
     collect_delayed(accumulated_sign_);
 
     M_r_w_ = accumulator_.get_sign_times_M_r_w();

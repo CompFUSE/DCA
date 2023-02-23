@@ -156,7 +156,7 @@ protected:
   float computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
-  double updateG4(FourPointType channel_id);
+  double updateG4(int channel_index);
 
   void inline updateG4Atomic(Complex* G4_ptr, const int s_a, const int k1_a, const int k2_a,
                              const int w1_a, const int w2_a, const int s_b, const int k1_b,
@@ -169,9 +169,9 @@ protected:
                                      const Complex alpha, const bool cross_legs);
 
 protected:
-  CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  std::complex<Real> factor_;
+  dca::SignType<Scalar> factor_;
 
 private:
   // work spaces for computeGMultiband.
@@ -190,14 +190,11 @@ TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
       throw(std::logic_error("The number of single particle frequencies is too small."));
     Base::initializeG0();
 
-    Scalar the_zero{};
-
     // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
     // We want to avoid copies because function's copy ctor does not copy the name (and because
     // copies are expensive).
-    for (auto& G4_channel : G4_) {
-      G4_channel = the_zero;
-      G4_.emplace_back("G4_" + toString(channels_));
+    for (int channel_id = 0; channel_id < channels_.size(); ++channel_id) {
+      G4_.emplace_back("G4_" + toString(channels_[channel_id]));
     }
   }
 }
@@ -223,8 +220,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::accumulate(
   gflops += computeM(M_pair, configs);
   gflops += computeG();
 
-  for (int channel_id = 0; channel_id < G4_.size(); ++channel_id)
-    gflops += updateG4(channel_id);
+  for (int channel_index = 0; channel_index < G4_.size(); ++channel_index)
+    gflops += updateG4(channel_index);
 
   return gflops;
 }
@@ -346,7 +343,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
 }
 
 template <class Parameters, DistType DT>
-double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const FourPointType channel_id) {
+double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
