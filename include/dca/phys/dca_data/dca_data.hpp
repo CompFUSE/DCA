@@ -619,25 +619,45 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
         reader.end_step();
       }
     readSigmaFile(reader);
+    reader.close_file();
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(Sigma);
 }
 #endif
 
+// Strong assumption here that this only gets called for HDF5 input.
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "reading Sigma File\n";
     io::IOType sigma_file_io = io::extensionToIOType(filename);
     io::Reader reader(concurrency_, sigma_file_io);
+    int hdf5_last_iteration = -1;
     reader.open_file(filename);
     std::size_t step_count = reader.getStepCount();
-      for (std::size_t i = 0; i < step_count; ++i) {
-        reader.begin_step();
-        reader.end_step();
+  // Work around odd way hdf5 steps get written
+    int completed_iteration = 0;
+  find_step:
+    if ( hdf5_last_iteration >= 0 )
+      step_count = hdf5_last_iteration;
+    for (std::size_t i = 0; i < step_count; ++i) {
+      reader.begin_step();
+      std::cerr << "current step " << i << '\n';
+      bool has_iteration = reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
+      std::cerr << "completed_iteration " << completed_iteration << '\n';
+      if (has_iteration && (i > completed_iteration)) {
+	std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
+	hdf5_last_iteration = completed_iteration;
+	reader.close_file();
+	reader.open_file(filename);
+	goto find_step;	
       }
+      reader.end_step();
+    }
+    reader.begin_step();
     readSigmaFile(reader);
+    reader.close_file();
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast(Sigma);

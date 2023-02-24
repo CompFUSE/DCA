@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // HDF5 reader.
 
@@ -62,7 +63,7 @@ public:
   void begin_step();
   void end_step();
 
-  std::string get_path();
+  std::string get_path() const;
 
   std::size_t getStepCount();
   
@@ -113,6 +114,7 @@ public:
   }
 
 private:
+  bool buildCheckedFullName(const std::string& name, std::string& full_name) const;
   bool exists(const std::string& name) const;
 
   void read(const std::string& name, H5::DataType type, void* data) const;
@@ -138,9 +140,8 @@ void HDF5Reader::from_file(arbitrary_struct_t& arbitrary_struct, std::string fil
 
 template <typename Scalar>
 bool HDF5Reader::execute(const std::string& name, Scalar& value) {
-  std::string full_name = get_path() + "/" + name;
-
-  if (!exists(full_name)) {
+  std::string full_name;
+  if (!buildCheckedFullName(name, full_name)) {
     return false;
   }
 

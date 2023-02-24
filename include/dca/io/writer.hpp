@@ -89,6 +89,10 @@ public:
   }
 #endif
 
+  bool isHDF5() {
+    return std::holds_alternative<io::HDF5Writer>(writer_);
+  }
+  
   bool isOpen() { return is_open_; }
   
   void begin_step() {

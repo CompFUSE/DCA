@@ -285,7 +285,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     // As long as this isn't the last iteration where this is handled by the finalize we want these here
     if (dca_iteration_ != parameters.get_dca_iterations() - 1) {
-      if (output_file_ && output_file_->isADIOS2()) {
+      if (output_file_ && (output_file_->isADIOS2() || output_file_->isHDF5())) {
         if (parameters.dump_every_iteration()) {
           if (concurrency.id() == concurrency.first()) {
             // This normally gets done in finalize before the dump.
