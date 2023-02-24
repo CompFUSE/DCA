@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file implements a 2D NDFT from imaginary time to Matsubara frequency, applied independently
 // to each pair of orbitals, where an orbital is a combination of cluster site and band.
@@ -37,30 +38,29 @@ namespace accumulator {
 
 template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>
-    : public CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density> {
+  : public CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
-  using BaseClass = CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>;
-  using typename BaseClass::BDmn;
-  using typename BaseClass::SDmn;
-  using Real = dca::util::RealAlias<Scalar>;
-  using Complex = std::complex<Real>;
-
+  using Base = CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>;
+  using typename Base::Real;
+  using Complex = dca::util::ComplexAlias<Scalar>;
+  using typename Base::BDmn;
+  using typename Base::SDmn;
 public:
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // In case OutDmn contains the spin domain as a subdomain, 'spin' is used to rearrange the output.
   // Out: M_r_r_w_w.
   // Returns: the number of flops performed by the method.
-  template <class Configuration, class OutDmn>
-  float execute(const Configuration& configuration, const linalg::Matrix<Scalar, linalg::CPU>& M,
-                func::function<Complex, OutDmn>& M_r_r_w_w, int spin = 0);
+  template <class Configuration, typename ScalarIn, class OutDmn>
+  float execute(const Configuration& configuration, const linalg::Matrix<ScalarIn, linalg::CPU>& M,
+                func::function<Scalar, OutDmn>& M_r_r_w_w, int spin = 0);
 
 private:
   template <class Configuration>
   void computeT(const Configuration& configuration);
 
-  template <typename ScalarInp>
-  void computeMMatrix(const linalg::Matrix<ScalarInp, linalg::CPU>& M, int orb_i, int orb_j);
+  template <typename ScalarIn>
+  void computeMMatrix(const linalg::Matrix<ScalarIn, linalg::CPU>& M, int orb_i, int orb_j);
 
   void computeTSubmatrices(int orb_i, int orb_j);
 
@@ -85,14 +85,14 @@ private:
   static void orbitalToBR(int orbital, int& b, int& r);
 
 private:
-  using BaseClass::n_orbitals_;
-  using BaseClass::w_;
-  using BaseClass::config_left_;
-  using BaseClass::config_right_;
-  using BaseClass::start_index_left_;
-  using BaseClass::start_index_right_;
-  using BaseClass::end_index_left_;
-  using BaseClass::end_index_right_;
+  using Base::n_orbitals_;
+  using Base::w_;
+  using Base::config_left_;
+  using Base::config_right_;
+  using Base::start_index_left_;
+  using Base::start_index_right_;
+  using Base::end_index_left_;
+  using Base::end_index_right_;
 
   using CmplxMatrix = linalg::Matrix<Complex, dca::linalg::CPU>;
   CmplxMatrix M_ij_;
@@ -104,15 +104,15 @@ private:
 };
 
 template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration, class OutDmn>
+template <class Configuration, typename ScalarIn, class OutDmn>
 float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<Scalar, linalg::CPU>& M,
-    func::function<Complex, OutDmn>& M_r_r_w_w, const int spin) {
+    const Configuration& configuration, const linalg::Matrix<ScalarIn, linalg::CPU>& M,
+    func::function<Scalar, OutDmn>& M_r_r_w_w, const int spin) {
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 1] == WDmn::dmn_size());
   assert(M_r_r_w_w[M_r_r_w_w.signature() - 2] == WPosDmn::dmn_size());
   double flops = 0.;
 
-  BaseClass::sortConfiguration(configuration);
+  Base::sortConfiguration(configuration);
 
   computeT(configuration);
 
@@ -158,9 +158,9 @@ void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::
 }
 
 template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <typename ScalarInp>
+template <typename ScalarIn>
 void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeMMatrix(
-    const linalg::Matrix<ScalarInp, linalg::CPU>& M, const int orb_i, const int orb_j) {
+    const linalg::Matrix<ScalarIn, linalg::CPU>& M, const int orb_i, const int orb_j) {
   M_ij_.resizeNoCopy(std::pair<int, int>(end_index_left_[orb_i] - start_index_left_[orb_i],
                                          end_index_right_[orb_j] - start_index_right_[orb_j]));
 

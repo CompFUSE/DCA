@@ -118,8 +118,6 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-  using TP_measurement_scalar_type = config::McOptions::TPAccumulationScalar;
-
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>

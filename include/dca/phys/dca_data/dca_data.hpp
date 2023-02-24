@@ -75,7 +75,7 @@ public:
 
   using Real = dca::config::McOptions::MC_REAL;
   using Scalar = std::conditional_t<Lattice::complex_g0, std::complex<Real>, Real>;
-  using TpAccumulatorScalar = typename Parameters::TP_measurement_scalar_type;
+  using TpAccumulatorScalar = typename dca::config::McOptions::TPAccumulationPrecision;
 
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;

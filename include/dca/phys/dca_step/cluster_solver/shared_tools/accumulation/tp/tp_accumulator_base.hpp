@@ -54,10 +54,10 @@ class TpAccumulator {};
 template <class Parameters, DistType DT>
 class TpAccumulatorBase {
 public:
-  using Real = typename Parameters::TP_measurement_scalar_type;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
-  using Complex = std::complex<RealAlias<Scalar>>;
-  
+  using TpPrecision = typename dca::config::McOptions::TPAccumulationPrecision;
+  using TpComplex = std::complex<TpPrecision>;
+  // In the context of the tp accumulator the scalar always needs to be complex
+
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -79,7 +79,7 @@ protected:
 
 
   using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtDmn, WTpExtDmn>>;
+      func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtDmn, WTpExtDmn>>;
 
   using TpDomain =
       func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
@@ -90,16 +90,16 @@ public:
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulatorBase(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
   // Computes the two particles Greens function from the M matrix and accumulates it internally.
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
-  template <class Configuration, typename RealIn>
-  double accumulate(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
-                    const std::array<Configuration, 2>& configs, int sign);
+  template <class Configuration, typename SpScalar>
+  double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
+                    const std::array<Configuration, 2>& configs, SignType<SpScalar> sign);
 
   // Empty method for compatibility with GPU version.
   void finalize() {}
@@ -141,20 +141,20 @@ protected:
 
 //  void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, Complex beta = 0) const;
 
-  auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> Complex const;
+  auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
-  template <class Configuration, typename RealIn>
-  float computeM(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
+  template <class Configuration, typename SpScalar>
+  float computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_id);
 
-  void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
-                             int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
+  void inline updateG4Atomic(TpComplex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
+                             int s_b, int k1_b, int k2_b, int w1_b, int w2_b, TpPrecision alpha,
                              bool cross_legs);
 
-  void inline updateG4SpinDifference(Complex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
-                                     int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
+  void inline updateG4SpinDifference(TpComplex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
+                                     int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, TpPrecision alpha,
                                      bool cross_legs);
 
 protected:
@@ -164,32 +164,29 @@ protected:
   const int thread_id_;
   bool multiple_accumulators_;
 
-  const Real beta_ = -1;
+  const TpPrecision beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
   constexpr static bool  spin_symmetric_ = Parameters::model_type::lattice_type::spin_symmetric;
   
   constexpr static bool non_density_density_ =
     models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
-  CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  //CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   SpGreenFunction G_;
 
   std::vector<TpGreensFunction> G4_;
   std::vector<FourPointType> channels_;
 
-  func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
-
-  math::Phase<Scalar> phase_;
+  func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
   const int extension_index_offset_ = -1;
   const int n_pos_frqs_ = -1;
-
 };
 
 template <class Parameters, DistType DT>
 TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
