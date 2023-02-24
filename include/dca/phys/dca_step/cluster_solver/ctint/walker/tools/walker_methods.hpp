@@ -53,7 +53,7 @@ inline void smallInverse(MatrixA& m) {
       m(0, 0) = 1. / m(0, 0);
       break;
     case 2: {
-      const double det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
+      const typename MatrixA::ValueType det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
       std::swap(m(0, 0), m(1, 1));
       m(0, 0) /= det;
       m(1, 0) /= -det;

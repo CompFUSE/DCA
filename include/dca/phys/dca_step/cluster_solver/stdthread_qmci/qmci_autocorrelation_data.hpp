@@ -70,7 +70,7 @@ private:
   math::statistics::Autocorrelation<Scalar> weight_correlator_;
 
   // Store MC weights for each chain
-  using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
+  using SignType = dca::SignType<Scalar>;
   std::vector<std::vector<SignType>> signs_;
   std::vector<std::vector<double>> weights_;
   std::vector<std::vector<unsigned long>> steps_;

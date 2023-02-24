@@ -39,6 +39,7 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/models/traits.hpp"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/util/dca_types.hpp"
 
 namespace dca {
 namespace phys {
@@ -99,7 +100,7 @@ public:
   // In: sign: sign of the configuration.
   template <class Configuration, typename SpScalar>
   double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
-                    const std::array<Configuration, 2>& configs, SignType<SpScalar> sign);
+                    const std::array<Configuration, 2>& configs, dca::SignType<SpScalar> sign);
 
   // Empty method for compatibility with GPU version.
   void finalize() {}
