@@ -153,7 +153,7 @@ protected:
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> Complex const;
 
   template <class Configuration>
-  float computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  float computeM(const std::array<linalg::Matrix<Complex, linalg::CPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_index);
@@ -229,11 +229,11 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::accumulate(
 template <class Parameters, DistType DT>
 template <class Configuration>
 float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Complex, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
 
-  func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>> M_r_r_w_w;
+  func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtDmn, WTpExtDmn>> M_r_r_w_w;
 
   for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
     Profiler prf_a("Frequency FT", "tp-accumulation", __LINE__, thread_id_);
@@ -244,7 +244,7 @@ float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
 
   Profiler prf_b("Space FT", "tp-accumulation", __LINE__, thread_id_);
   // TODO: add the gflops here.
-  math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(M_r_r_w_w, G_);
+  math::transform::SpaceTransform2D<RDmn, KDmn, Scalar>::execute(M_r_r_w_w, G_);
 
   return flops;
 }

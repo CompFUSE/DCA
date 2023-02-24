@@ -51,6 +51,8 @@ public:
     return chemical_potential_;
   }
 
+  void set_chemical_potential(double cpot) { chemical_potential_ = cpot; }
+
   bool adjust_chemical_potential() const {
     return adjust_chemical_potential_;
   }

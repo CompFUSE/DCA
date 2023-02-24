@@ -29,10 +29,10 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Real = double>
+template <class RDmn, class KDmn, typename Scalar = double>
 class SpaceTransform2D {
 protected:
-  using Complex = std::complex<Real>;
+  using Complex = dca::util::ComplexAlias<Scalar>;
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
 
@@ -89,8 +89,8 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
           }
 }
 
-template <class RDmn, class KDmn, typename Real>
-const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Real>::get_T_matrix() {
+template <class RDmn, class KDmn, typename Scalar>
+const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Scalar>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
     linalg::Matrix<Complex, linalg::CPU> T(RDmn::dmn_size());
@@ -98,7 +98,7 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
         const auto& k = KDmn::parameter_type::get_elements()[i];
-        T(i, j) = std::exp(Complex(0, util::innerProduct(k, r)));
+        T(i, j) = std::exp(dca::util::ComplexAlias<Scalar>(0, util::innerProduct(k, r)));
       }
     }
     return T;

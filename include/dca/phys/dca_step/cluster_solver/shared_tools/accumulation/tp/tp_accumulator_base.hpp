@@ -56,6 +56,7 @@ class TpAccumulatorBase {
 public:
   using Real = typename Parameters::TP_measurement_scalar_type;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Complex = std::complex<RealAlias<Scalar>>;
   
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
@@ -68,7 +69,7 @@ public:
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
   using TpGreensFunction = typename DcaData<Parameters, DT>::TpGreensFunction;
@@ -76,10 +77,9 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-  using Complex = std::complex<RealAlias<Scalar>>;
 
   using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtDmn, WTpExtDmn>>;
 
   using TpDomain =
       func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
