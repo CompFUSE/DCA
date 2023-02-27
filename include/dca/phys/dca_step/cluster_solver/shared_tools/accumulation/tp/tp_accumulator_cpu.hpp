@@ -91,7 +91,7 @@ public:
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulator(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
@@ -171,7 +171,7 @@ protected:
                                      const SpScalar alpha, const bool cross_legs);
 
 protected:
-  CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
 private:
   // work spaces for computeGMultiband.
@@ -180,7 +180,7 @@ private:
 
 template <class Parameters, DistType DT>
 TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : Base(G0, pars, thread_id), G0_M_(n_bands_), G_a_(n_bands_), G_b_(n_bands_) {
   if constexpr (DT == DistType::BLOCKED) {

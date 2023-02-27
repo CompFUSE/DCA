@@ -58,9 +58,9 @@ protected:
   static const auto& getPhaseFactors();
 };
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, class KDmn, typename Scalar>
 template <class W1Dmn, class W2Dmn>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, KDmn, Scalar>::execute(
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
     func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output) {
   assert(SDmn::dmn_size() == 2);
@@ -108,8 +108,8 @@ const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransfo
   return T;
 }
 
-template <class RDmn, class KDmn, typename Real>
-const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
+template <class RDmn, class KDmn, typename Scalar>
+const auto& SpaceTransform2D<RDmn, KDmn, Scalar>::getPhaseFactors() {
   static func::function<Complex, func::dmn_variadic<BDmn, KDmn>> phase_factors("Phase factors.");
   static std::once_flag flag;
 

@@ -64,9 +64,8 @@ public:
   using Base = TpAccumulatorBase<Parameters, DT>;
   using BaseGpu = TpAccumulatorGpuBase<Parameters, DT>;
   using ThisType = TpAccumulator<Parameters, DT, linalg::GPU>;
-  using typename Base::Real;
-  using typename Base::Scalar;
-  using typename Base::Complex;
+  using typename Base::TpPrecision;
+  using typename Base::TpComplex;
   
   using RDmn = typename Base::RDmn;
   using KDmn = typename Base::KDmn;
@@ -111,14 +110,15 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   // Returns: number of flop.
-  template <class Configuration>
-  double accumulate(const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, const Scalar factor);
+
+  template <class Configuration, typename SpScalar, typename SignType>
+  double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M,
+                   const std::array<Configuration, 2>& configs, const SignType factor);
 
   // CPU input. For testing purposes.
-  template <class Configuration>
-  double accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
-                   const std::array<Configuration, 2>& configs, const Scalar factor);
+  template <class Configuration, typename SpScalar, typename SignType>
+  double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M,
+                   const std::array<Configuration, 2>& configs, const SignType factor);
 
   // Downloads the accumulation result to the host.
   void finalize();
@@ -168,7 +168,7 @@ public:
   // FOR TESTING: Returns the accumulated Green's function.
   std::vector<TpGreensFunction>& get_nonconst_G4();
 
-  using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+  using G4DevType = linalg::Vector<TpComplex, linalg::GPU, config::McOptions::TpAllocator<TpComplex>>;
   // Returns the accumulated Green's function.
   static inline std::vector<G4DevType>& get_G4Dev();
 
@@ -185,7 +185,6 @@ protected:
   using Base::n_pos_frqs_;
 
   using Base::non_density_density_;
-  using Base::phase_;
   using Base::thread_id_;
 
   using BaseGpu::initialized_;
@@ -204,7 +203,8 @@ protected:
 
   void computeGSingleband(int s);
 
-  float updateG4(const std::size_t channel_index);
+  template <typename SignType>
+  double updateG4(const std::size_t channel_index, SignType factor);
 
   void synchronizeStreams();
 #ifdef DCA_HAVE_MPI
@@ -230,8 +230,8 @@ RingMessage{-1, -1, MPI_REQUEST_NULL}};
 #endif
 
 #ifndef DCA_HAVE_GPU_AWARE_MPI
-  std::array<std::vector<Complex>, 2> sendbuffer_;
-  std::array<std::vector<Complex>, 2> recvbuffer_;
+  std::array<std::vector<TpComplex>, 2> sendbuffer_;
+  std::array<std::vector<TpComplex>, 2> recvbuffer_;
 #endif  // DCA_HAVE_GPU_AWARE_MPI
 };
 
@@ -292,10 +292,10 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
 }
 
 template <class Parameters, DistType DT>
-template <class Configuration>
+template <class Configuration, typename SpScalar, typename SignType>
 double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const Scalar sign) {
+    const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const SignType sign) {
   [[maybe_unused]] Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
 
@@ -322,11 +322,11 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
 }
 
 template <class Parameters, DistType DT>
-template <class Configuration>
+template <class Configuration, typename SpScalar, typename SignType>
 double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const Scalar sign) {
-  std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
+    const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const SignType sign) {
+  std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0].getStream());
 
@@ -369,7 +369,8 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::computeGMultiband(const int s) 
 }
 
 template <class Parameters, DistType DT>
-float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t channel_index) {
+template <typename SignType>
+double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t channel_index, SignType factor) {
   // G4 is stored with the following band convention:
   // b1 ------------------------ b3
   //        |           |
@@ -386,34 +387,34 @@ float TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t cha
       Base::G4_[0].get_end() + 1;  // because the kernel expects this to be one past the end index
   switch (channel) {
     case FourPointType::PARTICLE_HOLE_TRANSVERSE:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_MAGNETIC:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_MAGNETIC>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_MAGNETIC>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_CHARGE:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_CHARGE>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_CHARGE>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
-      return details::updateG4<Scalar, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+      return details::updateG4<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), phase_.getSign(), multiple_accumulators_, queues_[0], start, end);
+          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
     default:
       throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
@@ -531,17 +532,17 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 
 
 #ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
-    MPI_Isend(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
+    MPI_Isend(data[s].ptr(), g_size, MPITypeMap<TpComplex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
 #else
 
   for (int s = 0; s < 2; ++s) {
     sendbuffer_[s].resize(g_size);
-    checkRC(cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(Complex),
+    checkRC(cudaMemcpy(sendbuffer_[s].data(), data[s].ptr(), g_size * sizeof(TpComplex),
 		       cudaMemcpyDeviceToHost));
 
-    MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), messages[s].target,
+    MPI_Isend(sendbuffer_[s].data(), g_size, MPITypeMap<TpComplex>::value(), messages[s].target,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
 
@@ -557,20 +558,20 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>&
 
 #ifdef DCA_HAVE_GPU_AWARE_MPI
   for (int s = 0; s < 2; ++s) {
-    MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<Complex>::value(), messages[s].source,
+    MPI_Irecv(data[s].ptr(), g_size, MPITypeMap<TpComplex>::value(), messages[s].source,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
 
 #else
   for (int s = 0; s < 2; ++s) {
     recvbuffer_[s].resize(g_size);
-    MPI_Irecv(recvbuffer_[s].data(), g_size, MPITypeMap<Complex>::value(), messages[s].source,
+    MPI_Irecv(recvbuffer_[s].data(), g_size, MPITypeMap<TpComplex>::value(), messages[s].source,
               thread_id_ + 1, MPI_COMM_WORLD, &(messages[s].request));
   }
   for (int s = 0; s < 2; ++s) {
     MPI_Wait(&(messages[s].request), MPI_STATUSES_IGNORE);
     // Note: MPI can not access host memory allocated from CUDA, hence the usage of blocking communication.
-    checkRC(cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(Complex),
+    checkRC(cudaMemcpy(data[s].ptr(), recvbuffer_[s].data(), g_size * sizeof(TpComplex),
 		       cudaMemcpyHostToDevice));
   }
 #endif  // DCA_HAVE_GPU_AWARE_MPI

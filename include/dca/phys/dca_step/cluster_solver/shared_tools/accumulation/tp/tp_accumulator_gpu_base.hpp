@@ -53,8 +53,8 @@ namespace accumulator {
 template <class Parameters, DistType DT>
 class TpAccumulatorGpuBase {
 public:
-  using Real = typename Parameters::TP_measurement_scalar_type;
-  using Complex = std::complex<Real>;
+  using TpPrecision = typename dca::config::McOptions::TPAccumulationPrecision;
+  using TpComplex = std::complex<TpPrecision>;
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
   using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
@@ -63,24 +63,24 @@ public:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
 protected:
   using Profiler = typename Parameters::profiler_type;
-  using Matrix = linalg::Matrix<Complex, linalg::GPU>;
+  using Matrix = linalg::Matrix<TpComplex, linalg::GPU>;
 
-  using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
+  using MatrixDev = linalg::Matrix<TpComplex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
+      linalg::ReshapableMatrix<TpComplex, linalg::GPU, config::McOptions::TpAllocator<TpComplex>>;
   using RMatrixValueType = typename RMatrix::ValueType;
-  using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
+  using MatrixHost = linalg::Matrix<TpComplex, linalg::CPU>;
 
 public:
   TpAccumulatorGpuBase(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int n_pos_frqs, int thread_id);
 
 protected:
@@ -95,7 +95,7 @@ protected:
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
 
   // \todo is this violation of single source of truth necessary.
-  const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
+  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
   const int n_pos_frqs_ = -1;
@@ -108,11 +108,11 @@ protected:
   // this is how this is defined in the all tp_accumulator_gpu, suspect?
   constexpr static bool non_density_density_ =
     models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
-  CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  using NdftType = CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::GPU, non_density_density_>;
+  using NdftType = CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
-  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real>;
+  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, TpComplex>;
   std::array<DftType, 2> space_trsf_objs_;
 
   constexpr static int n_ndft_queues_ = config::McOptions::memory_savings ? 1 : 2;
@@ -133,7 +133,7 @@ protected:
 
 template <class Parameters, DistType DT>
 TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int n_pos_frqs, int thread_id)
     : G0_ptr_(&G0),
       n_pos_frqs_(n_pos_frqs),
