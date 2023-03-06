@@ -73,9 +73,9 @@ public:
   using Lattice = typename Parameters::lattice_type;
   constexpr static int DIMENSION = Lattice::DIMENSION;
 
-  using Real = dca::config::McOptions::MC_REAL;
-  using Scalar = std::conditional_t<Lattice::complex_g0, std::complex<Real>, Real>;
-  using TpAccumulatorScalar = typename dca::config::McOptions::TPAccumulationPrecision;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
+  using TpAccumulatorScalar = typename Parameters::TPAccumPrec;
 
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;

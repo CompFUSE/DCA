@@ -25,51 +25,53 @@ namespace ctint {
 using dca::DistType;
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, typename Real = double, DistType DIST = DistType::NONE>
-class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters, Real, DIST> {
+  template <typename SCALAR, class Parameters, DistType DIST = DistType::NONE>
+class WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters, DIST> {
 public:
-  using BaseClass = CtintWalker<dca::linalg::CPU, Parameters, Real, DIST>;
-  using Rng = typename BaseClass::Rng;
+  using Base = CtintWalker<dca::linalg::CPU, Parameters, DIST>;
+  using Scalar = SCALAR;
+  using Real = dca::util::RealAlias<Scalar>;
+  using Rng = typename Base::Rng;
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
-    BaseClass::initialize(0);
+      : Base(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0) {
+    Base::initialize(0);
   }
 
-  using BaseClass::doStep;
+  using Base::doStep;
 
   bool tryVertexInsert() {
-    BaseClass::initializeStep();
-    return BaseClass::tryVertexInsert();
+    Base::initializeStep();
+    return Base::tryVertexInsert();
   }
   bool tryVertexRemoval() {
-    BaseClass::initializeStep();
-    return BaseClass::tryVertexRemoval();
+    Base::initializeStep();
+    return Base::tryVertexRemoval();
   }
 
-  using BaseClass::setMFromConfig;
-  using BaseClass::getM;
+  using Base::setMFromConfig;
+  using Base::getM;
 
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
 
   void setM(const Matrix& m) {
-    BaseClass::getM() = m;
+    Base::getM() = m;
   }
 
   Real getRatio() const {
-    return BaseClass::det_ratio_[0] * BaseClass::det_ratio_[1];
+    return Base::det_ratio_[0] * Base::det_ratio_[1];
   }
 
   Real getAcceptanceProbability() const {
-    return BaseClass::acceptance_prob_;
+    return Base::acceptance_prob_;
   }
 
   const auto& getWalkerConfiguration() const {
-    return BaseClass::configuration_;
+    return Base::configuration_;
   }
 
 private:
-  using BaseClass::configuration_;
+  using Base::configuration_;
 };
 
 }  // namespace ctint

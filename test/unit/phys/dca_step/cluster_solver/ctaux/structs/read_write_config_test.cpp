@@ -21,8 +21,10 @@
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctaux/structs/input.json";
 
+using Scalar = double;
+
 using ReadWriteConfigTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_name>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_name>;
 
 TEST_F(ReadWriteConfigTest, All) {
   std::vector<double> random(100);

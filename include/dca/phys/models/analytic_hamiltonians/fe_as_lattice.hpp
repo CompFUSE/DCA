@@ -57,9 +57,9 @@ public:
       const Parameters& parameters);
 
   // Initializes the interaction Hamiltonian non density-density local term.
-  template <typename Parameters>
+  template <typename Scalar, typename Parameters>
   static void initializeNonDensityInteraction(
-      NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters);
+					      NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction, const Parameters& parameters);
 };
 
 template <typename PointGroupType>
@@ -132,9 +132,9 @@ void FeAsLattice<PointGroupType>::initializeHInteraction(
 }
 
 template <typename PointGroupType>
-template <typename Parameters>
+template <typename Scalar, typename Parameters>
 void FeAsLattice<PointGroupType>::initializeNonDensityInteraction(
-    NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters) {
+								  NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction, const Parameters& parameters) {
   const double J = parameters.get_J();
   const double Jp = parameters.get_Jp();
   const NuDmn nu;  // band-spin domain.

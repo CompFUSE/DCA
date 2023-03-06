@@ -11,7 +11,6 @@
 // This file tests the summation of equal time two particle results.
 
 #include "test/mock_mcconfig.hpp"
-#include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {
 using McOptions = MockMcOptions<double>;
@@ -28,11 +27,13 @@ using McOptions = MockMcOptions<double>;
 constexpr char input_file[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctaux/accumulator/tp/input.json";
 
+using Scalar = double;
+
 using TpEqualTimeAccumulatorTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
 using Configuration = std::array<std::vector<dca::phys::solver::ctaux::vertex_singleton>, 2>;
-using Sample = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
+using Sample = std::array<dca::linalg::Matrix<Scalar, dca::linalg::CPU>, 2>;
 
 void buildConfiguration(Configuration& config, Sample& sample, int b_size, int r_size, double beta,
                         std::array<int, 2> n);

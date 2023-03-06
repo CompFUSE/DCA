@@ -55,7 +55,7 @@ class TpAccumulator {};
 template <class Parameters, DistType DT>
 class TpAccumulatorBase {
 public:
-  using TpPrecision = typename dca::config::McOptions::TPAccumulationPrecision;
+  using TpPrecision = typename Parameters::TPAccumPrec;
   using TpComplex = std::complex<TpPrecision>;
   // In the context of the tp accumulator the scalar always needs to be complex
 
@@ -68,7 +68,7 @@ public:
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
@@ -80,10 +80,10 @@ protected:
 
 
   using SpGreenFunction =
-      func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtDmn, WTpExtDmn>>;
+      func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
 
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+  // using TpDomain =
+  //     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
 
 public:
   // Constructor:

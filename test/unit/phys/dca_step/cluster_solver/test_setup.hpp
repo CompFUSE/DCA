@@ -35,6 +35,8 @@ using McOptions = MockMcOptions<double>;
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Moire_Hubbard.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
@@ -53,8 +55,10 @@ using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 using LatticeKagome = phys::models::KagomeHubbard<phys::domains::no_symmetry<2>>;
+using LatticeRashba = phys::models::RashbaHubbard<phys::domains::no_symmetry<2>>;
+using LatticeMoireHubbard = phys::models::moire_hubbard<phys::domains::no_symmetry<2>>;
 
-template <class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
+template <typename Scalar, class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
           const char* input_name = default_input, DistType DT = DistType::NONE>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
@@ -62,7 +66,7 @@ struct G0Setup : public ::testing::Test {
   using RngType = testing::StubRng;
   using Concurrency = parallel::NoConcurrency;
   using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
-                                              profiling::NullProfiler, Model, RngType, solver_name>;
+    profiling::NullProfiler, Model, RngType, solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = phys::DcaData<Parameters, DT>;
 
   // Commonly used domains.

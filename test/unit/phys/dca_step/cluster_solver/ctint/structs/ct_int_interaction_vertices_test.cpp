@@ -56,6 +56,7 @@ TEST(InteractionVerticesTest, SamplingProb) {
   // TODO: re-enable.
   // Test if v1 and v2 are sampled with probability 1/5.
   // The interval [0,1) is mapped int he following way: [0,0.6) -> v3, [0.6,0.8) -> v2 and [0.8,1)
+
   // -> v1
   //  EXPECT_EQ(2, H.getInsertionIndices(0.3).first);
   //  EXPECT_EQ(1, H.getInsertionIndices(0.7).first);
@@ -63,10 +64,11 @@ TEST(InteractionVerticesTest, SamplingProb) {
   //  EXPECT_EQ(0, H.getInsertionIndices(0.8).first);
 }
 
-using G0Setup = dca::testing::G0Setup<dca::testing::LatticeHund>;
-TEST_F(G0Setup, InitializeFromHamiltonians) {
+using InteractionVerticesTestG0Setup = dca::testing::G0Setup<double, dca::testing::LatticeHund>;
+
+TEST_F(InteractionVerticesTestG0Setup, InitializeFromHamiltonians) {
   //  ****************************
-  //  **  Density-density test  **
+  //  **  DensityA-density test  **
   //  ****************************
   {
     auto& H_int = G0Setup::data_->H_interactions;

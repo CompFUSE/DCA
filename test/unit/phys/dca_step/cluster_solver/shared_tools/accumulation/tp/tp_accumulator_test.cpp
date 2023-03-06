@@ -9,6 +9,7 @@
 //
 // This file implements a no-change test for the two point accumulation of a mock configuration.
 
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
@@ -22,7 +23,7 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+
 
 constexpr bool update_baseline = false;
 
@@ -35,8 +36,10 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
+using Scalar = double;
+
 using TpAccumulatorTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, Accumulate) {
   const std::array<int, 2> n{18, 22};

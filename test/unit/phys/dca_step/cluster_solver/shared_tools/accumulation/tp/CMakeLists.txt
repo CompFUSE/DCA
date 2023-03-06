@@ -22,6 +22,13 @@ dca_add_gtest(tp_accumulator_test
   LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
   )
 
+dca_add_gtest(tp_accumulator_test_complex
+  FAST
+  GTEST_MAIN
+  INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
+  )
+
 dca_add_gtest(tp_accumulator_singleband_test
   FAST
   GTEST_MAIN

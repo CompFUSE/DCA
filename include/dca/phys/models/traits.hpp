@@ -28,10 +28,10 @@ namespace models {
 using NuDmn = func::dmn_variadic<func::dmn_0<domains::electron_band_domain>,
                                  func::dmn_0<domains::electron_spin_domain>>;
 
-template <class Parameters>
+template <typename Scalar, class Parameters>
 using NonDensityIntHamiltonian =
-    func::function<double,
-                   func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
+      func::function<Scalar,
+                     func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
 
 // Class to detect if class T implements the templated "initializeNonDensityInteraction" method.
 template <class Pars>
@@ -46,16 +46,16 @@ public:
   constexpr static bool value = decltype(test<Pars>(nullptr))::value;
 };
 
-template <class Parameters>
+template <typename Scalar, class Parameters>
 std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
-    NonDensityIntHamiltonian<Parameters>& interaction, const Parameters& pars) {
+													      NonDensityIntHamiltonian<Scalar, Parameters>& interaction, const Parameters& pars) {
   Parameters::lattice_type::initializeNonDensityInteraction(interaction, pars);
 }
 
-template <class Lattice, class Parameters>
+  template <typename Scalar, class Lattice, class Parameters>
 std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
-    std::unique_ptr<NonDensityIntHamiltonian<Parameters>>& interaction, const Parameters& pars) {
-  interaction = std::make_unique<NonDensityIntHamiltonian<Parameters>>();
+													      std::unique_ptr<NonDensityIntHamiltonian<Scalar, Parameters>>& interaction, const Parameters& pars) {
+    interaction = std::make_unique<NonDensityIntHamiltonian<Scalar, Parameters>>();
   Parameters::lattice_type::initializeNonDensityInteraction(*interaction, pars);
 }
 

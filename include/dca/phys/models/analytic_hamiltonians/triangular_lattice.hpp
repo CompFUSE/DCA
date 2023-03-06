@@ -30,6 +30,9 @@ namespace models {
 template <typename DCA_point_group_type>
 class triangular_lattice {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
 

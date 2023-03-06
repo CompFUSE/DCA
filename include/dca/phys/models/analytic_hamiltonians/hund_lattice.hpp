@@ -42,18 +42,20 @@ public:
   constexpr static int DIMENSION = BaseClass::DIMENSION;
 
   // Initializes the interaction Hamiltonian non density-density local term.
-  template <typename Parameters>
+  template <typename Scalar, class Parameters>
   static void initializeNonDensityInteraction(
-      NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters);
+      NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction,
+      const Parameters& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
 };
 
 template <typename point_group_type>
-template <typename Parameters>
+template <typename Scalar, class Parameters>
 void HundLattice<point_group_type>::initializeNonDensityInteraction(
-    NonDensityIntHamiltonian<Parameters>& non_density_interaction, const Parameters& parameters) {
+    NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction,
+    const Parameters& parameters) {
   const double Jh = parameters.get_Jh();
   const NuDmn nu;  // band-spin domain.
   constexpr int up(0), down(1);
