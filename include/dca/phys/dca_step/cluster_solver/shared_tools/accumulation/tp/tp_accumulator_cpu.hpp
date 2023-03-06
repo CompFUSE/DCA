@@ -362,7 +362,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   // Returns the index of the exchange frequency w_ex minus the Matsubara frequency with index w.
   auto w_ex_minus_w = [](const int w, const int w_ex) { return w_ex + WTpDmn::dmn_size() - 1 - w; };
 
-  const TpPrecision sign_over_2 = 0.5 * factor;
+  const auto sign_over_2 = 0.5 * factor;
 
   const double flops_update_atomic = 3 * std::pow(n_bands_, 4);
   const double flops_update_spin_diff = flops_update_atomic + 2 * std::pow(n_bands_, 2);
