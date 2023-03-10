@@ -26,7 +26,7 @@
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"

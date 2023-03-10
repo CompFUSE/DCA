@@ -27,6 +27,7 @@ class OutputParameters {
 public:
   OutputParameters()
       : directory_("./"),
+	autoresume_(false),
 #ifdef DCA_HAVE_ADIOS2
         output_format_("ADIOS2"),
         g4_output_format_("ADIOS2"),
@@ -35,7 +36,7 @@ public:
         filename_analysis_("sofqomega.bp"),
 #else
         output_format_("HDF5"),
-        filename_dca_("dca.bp"),
+        filename_dca_("dca.hdf5"),
         filename_analysis_("sofqomega.bp"),
 #endif
         directory_config_read_(""),
@@ -128,7 +129,7 @@ public:
 
 private:
   std::string directory_;
-  bool autoresume_ = false;
+  bool autoresume_; // = false;
   std::string output_format_;
   std::string g4_output_format_;
   std::string filename_g4_;
@@ -258,7 +259,9 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   if (dump_every_iteration_) {
     io ::IOType io_type = io::stringToIOType(output_format_);
     switch (io_type) {
+      // google test cannot handle these cases being combined.?
       case io::IOType::ADIOS2:
+	break;
       case io::IOType::HDF5:
         break;
       case io::IOType::JSON:

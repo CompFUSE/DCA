@@ -10,6 +10,8 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "gtest/gtest.h"
@@ -18,15 +20,16 @@
 #include "walker_wrapper_submatrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/multinsert_input.json";
 
+using Scalar = double;
+
 using G0Setup =
-    typename dca::testing::G0Setup<dca::testing::LatticeHund, dca::ClusterSolverId::CT_INT, input_name>;
+  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeHund, dca::ClusterSolverId::CT_INT, input_name>;
 using namespace dca::phys::solver;
-using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters>;
+using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar,G0Setup::Parameters>;
 using Matrix = Walker::Matrix;
 using MatrixPair = std::array<Matrix, 2>;
 
@@ -124,7 +127,7 @@ TEST_F(G0Setup, NoSubmatrix) {
 }
 
 // Compare the double insertion probability of a submatrix walker with a non-submatrix one.
-using WalkerSubmatrix = testing::phys::solver::ctint::WalkerWrapperSubmatrix<G0Setup::Parameters>;
+using WalkerSubmatrix = testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar,G0Setup::Parameters>;
 TEST_F(G0Setup, Submatrix) {
   G0Setup::RngType rng(std::vector<double>{});
   G0Interpolation<dca::linalg::CPU, double> g0(

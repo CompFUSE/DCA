@@ -472,9 +472,9 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
 
     func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> S_k_DCA(
         "Sigma-k-DCA");
-    std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, WDmn::dmn_size() / 2),
-                sizeof(std::complex<Real>) * std::pow(2 * BDmn::dmn_size(), 2.) *
-                    KClusterDmn::dmn_size());
+    std::memcpy(
+        &S_k_DCA(0), &Sigma(0, 0, 0, WDmn::dmn_size() / 2),
+        sizeof(std::complex<Real>) * std::pow(2 * BDmn::dmn_size(), 2.) * KClusterDmn::dmn_size());
     math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(S_k_DCA, S_r_DCA);
 
     writer.execute(S_r_DCA);
@@ -575,33 +575,38 @@ void DcaData<Parameters, DT>::initializeH0_and_H_i() {
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initialize_G0() {
-  profiler_type prof(__FUNCTION__, "DcaData", __LINE__);
+  try {
+    profiler_type prof(__FUNCTION__, "DcaData", __LINE__);
 
-  util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
+    util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
 
-  // Compute G0_k_w.
-  compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
-                 parameters_.get_coarsegraining_threads(), G0_k_w);
-  Symmetrize<Parameters>::execute(G0_k_w, H_symmetry, true);
+    // Compute G0_k_w.
+    compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
+                   parameters_.get_coarsegraining_threads(), G0_k_w);
+    Symmetrize<Parameters>::execute(G0_k_w, H_symmetry, true);
 
-  // Compute G0_k_t.
-  compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
-  Symmetrize<Parameters>::execute(G0_k_t, H_symmetry, true);
+    // Compute G0_k_t.
+    compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
+    Symmetrize<Parameters>::execute(G0_k_t, H_symmetry, true);
 
-  // Compute G0_r_w.
-  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
-  Symmetrize<Parameters>::execute(G0_r_w, H_symmetry, true);
+    // Compute G0_r_w.
+    math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
+    Symmetrize<Parameters>::execute(G0_r_w, H_symmetry, true);
 
-  // Compute G0_r_t.
-  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t);
-  Symmetrize<Parameters>::execute(G0_r_t, H_symmetry, true);
+    // Compute G0_r_t.
+    math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t);
+    Symmetrize<Parameters>::execute(G0_r_t, H_symmetry, true);
 
-  // Initialize the cluster excluded Green's functions with the corresponding free Green's
-  // functions.
-  G0_k_w_cluster_excluded = G0_k_w;
-  G0_k_t_cluster_excluded = G0_k_t;
-  G0_r_w_cluster_excluded = G0_r_w;
-  G0_r_t_cluster_excluded = G0_r_t;
+    // Initialize the cluster excluded Green's functions with the corresponding free Green's
+    // functions.
+    G0_k_w_cluster_excluded = G0_k_w;
+    G0_k_t_cluster_excluded = G0_k_t;
+    G0_r_w_cluster_excluded = G0_r_w;
+    G0_r_t_cluster_excluded = G0_r_t;
+  }
+  catch (const std::exception& exc) {
+    std::throw_with_nested(std::runtime_error("Failure in initialization of G0!"));
+  }
 }
 
 #ifdef DCA_HAVE_ADIOS2
@@ -614,10 +619,10 @@ void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unuse
     io::Reader reader(concurrency_, sigma_file_io);
     reader.open_file(filename);
     std::size_t step_count = reader.getStepCount();
-      for (std::size_t i = 0; i < step_count; ++i) {
-        reader.begin_step();
-        reader.end_step();
-      }
+    for (std::size_t i = 0; i < step_count; ++i) {
+      reader.begin_step();
+      reader.end_step();
+    }
     readSigmaFile(reader);
     reader.close_file();
   }
@@ -636,21 +641,22 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     int hdf5_last_iteration = -1;
     reader.open_file(filename);
     std::size_t step_count = reader.getStepCount();
-  // Work around odd way hdf5 steps get written
+    // Work around odd way hdf5 steps get written
     int completed_iteration = 0;
   find_step:
     for (std::size_t i = 0; i < step_count; ++i) {
       reader.begin_step();
       std::cerr << "current step " << i << '\n';
-      bool has_iteration = reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
+      bool has_iteration =
+          reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
       std::cerr << "completed_iteration " << completed_iteration << '\n';
       if (has_iteration && (i > completed_iteration)) {
-	std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
-	hdf5_last_iteration = completed_iteration;
-	reader.close_file();
-	reader.open_file(filename);
-	step_count = hdf5_last_iteration + 1;
-	goto find_step;	
+        std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
+        hdf5_last_iteration = completed_iteration;
+        reader.close_file();
+        reader.open_file(filename);
+        step_count = hdf5_last_iteration + 1;
+        goto find_step;
       }
       reader.end_step();
     }
@@ -669,9 +675,10 @@ void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
   int completed_iteration;
   bool has_iteration = reader.execute("completed-iteration", completed_iteration);
-  
+
   if (chemical_potential_present && has_iteration) {
-    std::cout << "chemical-potential from Sigma file: " << chemical_potentials[completed_iteration] << '\n';
+    std::cout << "chemical-potential from Sigma file: " << chemical_potentials[completed_iteration]
+              << '\n';
     parameters_.get_chemical_potential() = chemical_potentials[completed_iteration];
   }
   else {

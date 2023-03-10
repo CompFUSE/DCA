@@ -13,7 +13,8 @@
 
 #include <iostream>
 #include <string>
-
+// Defined Precision and Scalar Type
+#include "dca/config/mc_options.hpp"
 // Defines Concurrency, Threading, ParametersType, DcaData, and BseSolver.
 #include "dca/config/analysis.hpp"
 #include "dca/config/cmake_options.hpp"

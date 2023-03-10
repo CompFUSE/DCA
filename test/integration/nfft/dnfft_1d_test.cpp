@@ -37,9 +37,9 @@ using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
 template <typename DnfftType>
 void computeWithDnfft(
-    const std::vector<typename DnfftType::ElementType>& t,
-    const std::vector<typename DnfftType::ElementType>& f, DnfftType& dnfft_obj,
-    function<std::complex<typename DnfftType::ElementType>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
+    const std::vector<typename DnfftType::Real>& t,
+    const std::vector<typename DnfftType::Real>& f, DnfftType& dnfft_obj,
+    function<std::complex<typename DnfftType::Real>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
 
 template <typename Real>
 void computeWithDft(const std::vector<Real>& t, const std::vector<Real>& f,
@@ -108,9 +108,9 @@ TYPED_TEST(Dnfft1DTest, CubicInterpolation) {
 
 template <typename DnfftType>
 void computeWithDnfft(
-    const std::vector<typename DnfftType::ElementType>& t,
-    const std::vector<typename DnfftType::ElementType>& f, DnfftType& dnfft_obj,
-    function<std::complex<typename DnfftType::ElementType>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
+    const std::vector<typename DnfftType::Real>& t,
+    const std::vector<typename DnfftType::Real>& f, DnfftType& dnfft_obj,
+    function<std::complex<typename DnfftType::Real>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
   dnfft_obj.resetAccumulation();
 
   const double begin = TimeDmn::get_elements().front();

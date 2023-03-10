@@ -35,8 +35,10 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
+using Scalar = double;
+
 using TpAccumulatorSinglebandTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   const std::array<int, 2> n{17, 17};

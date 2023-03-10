@@ -20,9 +20,11 @@
 using dca::phys::domains::MomentumExchangeDomain;
 using dca::math::util::isSameVector;
 
+using Scalar = double;
+
 constexpr char input_file[] = DCA_SOURCE_DIR "/test/unit/phys/domains/cluster/input.json";
 using MomentumExchangeDomainTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 
 TEST_F(MomentumExchangeDomainTest, MultipleExchanges) {

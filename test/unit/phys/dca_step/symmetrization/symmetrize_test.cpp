@@ -19,10 +19,19 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
+#include "dca/phys/parameters/num_traits.hpp"
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/phys/dca_step/symmetrization/";
 
@@ -87,10 +96,10 @@ TEST_F(SymmetrizeTest, G0_t) {
   G0_r_t = dca::func::util::real(G0_r_t_cmplx, dca::ImagCheck::FAIL);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute<Lattice>(G0_k_t, H_symmetry_, true);
-  dca::phys::symmetrize::execute<Lattice>(G0_r_t, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_t, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_t, H_symmetry_, true);
 
-  EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
+  EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }
 
 TEST_F(SymmetrizeTest, G0_w) {
@@ -103,8 +112,8 @@ TEST_F(SymmetrizeTest, G0_w) {
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
 
   // Test the symmetrization.
-  dca::phys::symmetrize::execute<Lattice>(G0_k_w, H_symmetry_, true);
-  dca::phys::symmetrize::execute<Lattice>(G0_r_w, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_w, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_w, H_symmetry_, true);
 
-  EXPECT_FALSE(dca::phys::symmetrize::differenceDetected());
+  EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }
