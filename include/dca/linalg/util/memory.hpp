@@ -44,7 +44,8 @@ struct Memory<CPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
+    std::complex<ScalarType> c_zero{0.0,0.0};
+    std::fill_n(ptr, size, c_zero); //memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {

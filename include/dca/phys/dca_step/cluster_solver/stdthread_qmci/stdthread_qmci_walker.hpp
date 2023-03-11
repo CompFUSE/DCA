@@ -27,7 +27,7 @@ namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
 template <class QmciWalker, class DATA>
-class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationData<QmciWalker> {
+class StdThreadQmciWalker final : public QmciWalker { // , public QmciAutocorrelationData<QmciWalker> {
   using ThisType = StdThreadQmciWalker<QmciWalker, DATA>;
   using Parameters = typename QmciWalker::parameters_type;
   using Data = DATA;
@@ -47,7 +47,7 @@ public:
   void doSweep();
 
   void markThermalized() {
-    QmciAutocorrelationData<QmciWalker>::markThermalized();
+    //    QmciAutocorrelationData<QmciWalker>::markThermalized();
     QmciWalker::markThermalized();
   }
 
@@ -79,7 +79,7 @@ StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(
     Parameters& parameters, DATA& data_ref, Rng& rng, int concurrency_id, int id,
     const std::shared_ptr<io::Writer<Concurrency>>& writer, G0Interpolation<device, Real>& g0)
     : QmciWalker(parameters, data_ref, rng, id),
-      QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
+      //QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
       stamping_period_(parameters.stamping_period()),
       concurrency_id_(concurrency_id),
       thread_id_(id),
@@ -97,7 +97,7 @@ void StdThreadQmciWalker<QmciWalker, DATA>::initialize(int iteration) {
 template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
   QmciWalker::doSweep();
-  QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
+  //QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
   if (QmciWalker::is_thermalized()) {
     // This must be before or the G_k_w and configuration meas_id will not match

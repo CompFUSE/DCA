@@ -30,7 +30,7 @@ namespace details {
 
 using dca::util::castGPUType;
 using dca::linalg::assign;
-using dca::SignType;
+using dca::util::SignType;
 using dca::linalg::util::GpuStream;
   
 template <typename Scalar, typename Real>

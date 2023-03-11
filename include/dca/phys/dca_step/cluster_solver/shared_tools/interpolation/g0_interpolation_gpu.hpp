@@ -31,7 +31,7 @@ namespace dca {
 namespace phys {
 namespace solver {
 // dca::phys::solver::
-using dca::SignType;
+  using dca::util::SignType;
 using dca::util::RealAlias;
 template <typename Scalar>
 class G0Interpolation<linalg::GPU, Scalar> final

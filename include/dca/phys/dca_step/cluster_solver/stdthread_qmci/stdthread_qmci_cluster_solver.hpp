@@ -157,7 +157,7 @@ private:
   dca::parallel::thread_traits::condition_variable_type queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
-  stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
+  //stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
   bool last_iteration_ = false;
   bool read_configuration_ = false;
@@ -180,8 +180,9 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
 
       accumulators_queue_(),
 
-      config_dump_(nr_walkers_),
-      autocorrelation_data_(parameters_, 0, BaseClass::g0_) {
+      config_dump_(nr_walkers_)
+      //autocorrelation_data_(parameters_, 0, BaseClass::g0_)
+{
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -311,7 +312,7 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
-  autocorrelation_data_.sumConcurrency(concurrency_);
+  //autocorrelation_data_.sumConcurrency(concurrency_);
 
   if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
     std::cout << "Writing actual run info\n";
@@ -344,9 +345,10 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
 
     // Write and reset autocorrelation.
     std::cout << "Writing autocorrelation data\n";
-    autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+    std::cout << "Autocorrelation incompatible with complex G0 and GPU";
+    //autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
   }
-  autocorrelation_data_.reset();
+  //autocorrelation_data_.reset();
 
   return L2_Sigma_difference;
 }
@@ -659,7 +661,7 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::finalizeWalker(Walker& walker, int walker_id) {
   config_dump_[walker_id] = walker.dumpConfig();
   walker_fingerprints_[walker_id] = walker.deviceFingerprint();
-  autocorrelation_data_ += walker;
+  //autocorrelation_data_ += walker;
 
   if (walker_id == 0 && concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;

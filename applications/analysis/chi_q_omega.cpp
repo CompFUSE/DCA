@@ -14,6 +14,7 @@
 #include <string>
 
 // Defines Concurrency, Threading, ParametersType, DcaData, and BseSolver.
+#include "dca/config/mc_options.hpp"
 #include "dca/config/analysis.hpp"
 #include "dca/config/cmake_options.hpp"
 #include "dca/io/json/json_reader.hpp"

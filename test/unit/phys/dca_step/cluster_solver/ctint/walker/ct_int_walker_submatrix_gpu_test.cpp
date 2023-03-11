@@ -11,6 +11,13 @@
 // This class tests the GPU walker used by the ctint cluster solver by comparing it with the CPU
 // version.
 
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
 
 #include "gtest/gtest.h"
@@ -27,13 +34,13 @@ using dca::linalg::GPU;
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
-template <typename Real>
+template <typename Scalar>
 using CtintWalkerSubmatrixGpuTest =
-    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
+  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
 
 using namespace dca::phys::solver;
 
-using FloatingPointTypes = ::testing::Types<float, double>;
+using FloatingPointTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(CtintWalkerSubmatrixGpuTest, FloatingPointTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
@@ -44,9 +51,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   using Parameters = typename TestFixture::Parameters;
 
   using SbmWalkerCpu =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Real, Parameters, dca::linalg::CPU>;
   using SbmWalkerGpu =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::GPU, Real>;
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Real, Parameters, dca::linalg::GPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};

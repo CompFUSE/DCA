@@ -57,9 +57,9 @@ public:
 
   TimeCorrelator(const Parameters& parameters_, int id, G0Interpolation<device, Scalar>& g0);
 
-  template <class WalkerConfig, typename RealInp>
+  template <class WalkerConfig, typename RealInp, typename SignType>
   void compute_G_r_t(const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
-                     const std::array<WalkerConfig, 2>& configs, Scalar factor);
+                     const std::array<WalkerConfig, 2>& configs, SignType factor);
 
   auto& getCorrelators() {
     return autocorrelations_;
@@ -154,10 +154,10 @@ void TimeCorrelator<Parameters, Scalar, device>::initializeFixedConfiguration() 
 }
 
 template <class Parameters, typename Scalar, DeviceType device>
-template <class WalkerConfig, typename RealInp>
+template <class WalkerConfig, typename RealInp, typename SignType>
 void TimeCorrelator<Parameters, Scalar, device>::compute_G_r_t(
     const std::array<dca::linalg::Matrix<RealInp, device>, 2>& M,
-    const std::array<WalkerConfig, 2>& configs, Scalar factor) {
+    const std::array<WalkerConfig, 2>& configs, SignType factor) {
   // Upload state
   constexpr int n_electron_spins = 1;  // Compute only on up-up sector.
 
@@ -265,7 +265,10 @@ void TimeCorrelator<Parameters, Scalar, device>::computeG0(linalg::Matrix<Scalar
   G0_mat.resizeNoCopy(std::make_pair(config_l.size(), config_r.size()));
 
   linalg::MatrixView<Scalar, device> G0_view(G0_mat);
-  details::computeG0<Scalar, Real>(G0_view, static_cast<DeviceInterpolationData<Scalar, SignType<Scalar>>>(g0_), config_l.template get<0>(), config_l.template get<1>(),
+  // details::computeG0<Scalar, Real>(G0_view, static_cast<DeviceInterpolationData<Scalar, SignType<Scalar>>>(g0_), config_l.template get<0>(), config_l.template get<1>(),
+  //                    config_l.template get<2>(), config_r.template get<0>(),
+  //                    config_r.template get<1>(), config_r.template get<2>(), stream_);
+  details::computeG0<Scalar, Real>(G0_view, g0_, config_l.template get<0>(), config_l.template get<1>(),
                      config_l.template get<2>(), config_r.template get<0>(),
                      config_r.template get<1>(), config_r.template get<2>(), stream_);
 }
@@ -298,6 +301,7 @@ void TimeCorrelator<Parameters, Scalar, device>::computeG0(linalg::Matrix<Scalar
     }
 }
 
+  
 }  // namespace solver
 }  // namespace phys
 }  // namespace dca

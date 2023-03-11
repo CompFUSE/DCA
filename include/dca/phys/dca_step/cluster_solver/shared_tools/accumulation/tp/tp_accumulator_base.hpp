@@ -78,12 +78,8 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-
   using SpGreenFunction =
       func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  // using TpDomain =
-  //     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
 
 public:
   // Constructor:
@@ -100,7 +96,7 @@ public:
   // In: sign: sign of the configuration.
   template <class Configuration, typename SpScalar>
   double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
-                    const std::array<Configuration, 2>& configs, dca::SignType<SpScalar> sign);
+                    const std::array<Configuration, 2>& configs, dca::util::SignType<SpScalar> sign);
 
   // Empty method for compatibility with GPU version.
   void finalize() {}

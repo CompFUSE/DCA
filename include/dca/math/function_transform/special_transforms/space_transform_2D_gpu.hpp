@@ -168,8 +168,9 @@ void SpaceTransform2DGpu<RDmn, KDmn, Scalar>::phaseFactorsAndRearrange(const RMa
 template <class RDmn, class KDmn, typename Scalar>
 const auto& SpaceTransform2DGpu<RDmn, KDmn, Scalar>::getPhaseFactors() {
   auto initialize = []() {
+    using dca::util::ComplexAlias;
     const auto& phase_factors = Base::getPhaseFactors();
-    linalg::Vector<std::complex<Scalar>, linalg::CPU> host_vector(phase_factors.size());
+    linalg::Vector<ComplexAlias<Scalar>, linalg::CPU> host_vector(phase_factors.size());
     std::copy_n(phase_factors.values(), phase_factors.size(), host_vector.ptr());
     return VectorDev(host_vector);
   };

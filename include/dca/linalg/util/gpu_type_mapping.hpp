@@ -124,6 +124,11 @@ inline auto GPUTypeConversion(T var, typename std::enable_if_t<std::is_floating_
   return var;
 }
 
+template <typename T>
+inline auto GPUTypeConversion(T var, typename std::enable_if_t<std::is_integral<T>::value>* = 0) {
+  return var;
+}
+
 #endif
 }  // namespace util
 }  // namespace dca

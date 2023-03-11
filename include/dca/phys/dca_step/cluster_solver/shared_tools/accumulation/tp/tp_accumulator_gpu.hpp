@@ -78,6 +78,11 @@ public:
   using typename Base::BDmn;
   using typename Base::SDmn;
   using typename Base::TpGreensFunction;
+  using typename Base::KExchangeDmn;
+  using typename Base::WExchangeDmn;
+
+  using TpDomain =
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
 
 protected:
   using BaseGpu::queues_;
@@ -220,7 +225,8 @@ protected:
 RingMessage{-1, -1, MPI_REQUEST_NULL}};
   // For distributed G4's
   // Applies pipepline ring algorithm to move G matrices around all ranks
-  void ringG(float& flop);
+  template <typename SignType>
+  void ringG(float& flop, SignType Factor);
 
   void send(const std::array<RMatrix, 2>& data, std::array<RingMessage, 2>& request);
   void receive(std::array<RMatrix, 2>& data, std::array<RingMessage, 2>& request);
@@ -275,7 +281,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
 
   for (auto& G4_channel : get_G4Dev()) {
     try {
-      typename Base::TpDomain tp_dmn;
+      TpDomain tp_dmn;
       dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
       if (!multiple_accumulators_)
         reset_stream = queues_[0].getStream();
@@ -295,7 +301,7 @@ template <class Parameters, DistType DT>
 template <class Configuration, typename SpScalar, typename SignType>
 double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const SignType sign) {
+    const std::array<Configuration, 2>& configs, const SignType factor) {
   [[maybe_unused]] Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   float flop = 0;
 
@@ -305,17 +311,17 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return flop;
 
-  Base::phase_ = sign;
+  //  Base::phase_ = sign;
   flop += BaseGpu::computeM(M, configs);
   computeG();
 
-  for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-    flop += updateG4(channel);
+  for (int channel_index = 0; channel_index < G4_.size(); ++channel_index) {
+    flop += updateG4(channel_index, factor);
   }
 
 #ifdef DCA_HAVE_MPI
   if constexpr (dist == DistType::LINEAR || dist == DistType::BLOCKED) {
-    ringG(flop);
+    ringG(flop, factor);
   }
 #endif
   return flop;
@@ -325,12 +331,12 @@ template <class Parameters, DistType DT>
 template <class Configuration, typename SpScalar, typename SignType>
 double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M,
-    const std::array<Configuration, 2>& configs, const SignType sign) {
+    const std::array<Configuration, 2>& configs, const SignType factor) {
   std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], queues_[0].getStream());
 
-  return accumulate(M_dev, configs, sign);
+  return accumulate(M_dev, configs, factor);
 }
 
 template <class Parameters, DistType DT>
@@ -381,7 +387,7 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
   //  TODO: set stream only if this thread gets exclusive access to G4.
   //  get_G4().setStream(queues_[0]);
   const FourPointType channel = Base::channels_[channel_index];
-  typename Base::TpDomain tp_dmn;
+
   uint64_t start = Base::G4_[0].get_start();
   uint64_t end =
       Base::G4_[0].get_end() + 1;  // because the kernel expects this to be one past the end index
@@ -474,7 +480,8 @@ std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::TpGreensFunctio
 #ifdef DCA_HAVE_MPI
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop) {
+template <typename SignType>
+void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop, SignType factor) {
   // get ready for send and receive
   static_assert(dist != DistType::NONE);
   for (int s = 0; s < 2; ++s) {
@@ -509,7 +516,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop) {
 
     // use newly copied G2 to update G4
     for (std::size_t channel = 0; channel < G4_.size(); ++channel) {
-      flop += updateG4(channel);
+      flop += updateG4(channel, factor);
     }
 
     // wait for sendbuf_G2 to be available again

@@ -31,7 +31,7 @@ using dca::util::IsComplex_t;
 using dca::util::IsComplex;
 using dca::util::IsReal;
 using namespace dca::linalg;
-using dca::SignType;
+using dca::util::SignType;
 using dca::util::CudaComplex;
 using dca::util::CudaScalar;
 

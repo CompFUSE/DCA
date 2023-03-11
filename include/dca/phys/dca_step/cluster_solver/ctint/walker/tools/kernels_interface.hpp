@@ -26,7 +26,7 @@ namespace solver {
 namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
-  using dca::SignType;
+using dca::util::SignType;
 
   
 template <typename Scalar>

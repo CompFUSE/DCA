@@ -188,9 +188,6 @@ using IsComplex = std::enable_if_t<IsComplex_t<T>::value, bool>;
 template <typename T>
 using IsReal = std::enable_if_t<std::is_floating_point<T>::value, bool>;
 
-template <typename T>
-using IsReal = std::enable_if_t<std::is_floating_point<T>::value, bool>;
-
 template <typename T, typename = bool>
 struct RealAlias_impl {};
 

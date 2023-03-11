@@ -127,7 +127,7 @@ public:
     sign_ = 1;
   }
 
-  int getSign() const noexcept {
+  int8_t getSign() const noexcept {
     return sign_;
   }
 
