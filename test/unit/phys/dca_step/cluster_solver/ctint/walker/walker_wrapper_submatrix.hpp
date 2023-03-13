@@ -91,7 +91,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
     return BaseClass::configuration_;
   }
 
-  Real getAcceptanceProbability() const {
+  auto getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
 

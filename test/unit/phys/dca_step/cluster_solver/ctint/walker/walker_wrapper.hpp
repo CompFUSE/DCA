@@ -62,7 +62,7 @@ public:
     return Base::det_ratio_[0] * Base::det_ratio_[1];
   }
 
-  Real getAcceptanceProbability() const {
+  auto getAcceptanceProbability() const {
     return Base::acceptance_prob_;
   }
 

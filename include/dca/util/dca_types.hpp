@@ -16,6 +16,8 @@
 #ifndef DCA_TYPE_HPP
 #define DCA_TYPE_HPP
 
+#include "dca/util/type_utils.hpp"
+
 namespace dca {
 namespace util {
 // template <typename Scalar>

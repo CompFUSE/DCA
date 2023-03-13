@@ -171,7 +171,7 @@ protected:
   MatrixPair s_;
   std::array<std::vector<Real>, 2> gamma_;
 
-  Real det_ratio_;
+  Scalar det_ratio_;
   std::map<int, std::array<Real, n_bands_>> f_;
   std::map<int, std::array<Real, n_bands_>> prob_const_;
   std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
@@ -742,15 +742,15 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateGammaInv(int s) {
     details::smallInverse(s_[s], s_inv);
 
     auto& Gamma_q = Gamma_q_[s];
-    linalg::matrixop::gemm(Scalar(-1.), Gamma_q, s_inv, Real(0.), q_inv);
+    linalg::matrixop::gemm(Scalar(-1.), Gamma_q, s_inv, Scalar(0.), q_inv);
 
     auto& r_Gamma = workspace_;
     r_Gamma.resizeNoCopy(r_[s].size());
     linalg::matrixop::gemm(r_[s], bulk, r_Gamma);
-    linalg::matrixop::gemm(Scalar(-1.), s_inv, r_Gamma, Real(0.), r_inv);
+    linalg::matrixop::gemm(Scalar(-1.), s_inv, r_Gamma, Scalar(0.), r_inv);
 
     // Gamma_ += Gamma_ * q_ * s_^-1 * r_ * Gamma_
-    linalg::matrixop::gemm(Scalar(-1.), q_inv, r_Gamma, Real(1.), bulk);
+    linalg::matrixop::gemm(Scalar(-1.), q_inv, r_Gamma, Scalar(1.), bulk);
   }
   else {
     Gamma_inv_[s].resizeNoCopy(delta);
@@ -787,7 +787,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateM() {
       p = 0;
       for (auto& i : move_indices_[s]) {
         for (int j = 0; j < n_max_[s]; ++j) {
-          M_[s](i, j) /= 1 + gamma_[s][p];
+          M_[s](i, j) /= 1.0 + gamma_[s][p];
         }
         ++p;
       }
@@ -868,7 +868,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::removeRowAndColOfGammaInv() {
       linalg::matrixop::gemm(q_[s], s_[s], q_s);
 
       // Gamma_inv_ -= Q*S^-1*R
-      linalg::matrixop::gemm(Scalar(-1.), q_s, r_[s], Real(1.), Gamma_inv_[s]);
+      linalg::matrixop::gemm(Scalar(-1.), q_s, r_[s], Scalar(1.), Gamma_inv_[s]);
     }  // if n
     else {
       Gamma_inv_[s].resizeNoCopy(0);

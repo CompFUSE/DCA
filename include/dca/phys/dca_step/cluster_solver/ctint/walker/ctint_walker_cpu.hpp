@@ -101,14 +101,14 @@ protected:
 
   // For testing purposes.
   using BaseClass::acceptance_prob_;
-  std::array<Real, 2> det_ratio_;
+  std::array<Scalar, 2> det_ratio_;
 
 private:
-  std::array<linalg::Matrix<Real, linalg::CPU>, 2> S_, Q_, R_;
+  std::array<linalg::Matrix<Scalar, linalg::CPU>, 2> S_, Q_, R_;
   // work spaces
   MatrixPair M_Q_;
   Matrix ws_dn_;
-  linalg::Vector<Real, linalg::CPU> v_work_;
+  linalg::Vector<Scalar, linalg::CPU> v_work_;
   linalg::Vector<int, linalg::CPU> ipiv_;
 
   std::array<linalg::util::HostVector<int>, 2> matrix_removal_list_;
@@ -419,6 +419,7 @@ void CtintWalker<linalg::CPU, Parameters,DIST>::smallInverse(const ConstView& in
                                                               const int s) {
   details::smallInverse(in, out, det_ratio_[s], ipiv_, v_work_);
 }
+
 template <class Parameters, DistType DIST>
 void CtintWalker<linalg::CPU, Parameters,DIST>::smallInverse(MatrixView& in_out, const int s) {
   details::smallInverse(in_out, det_ratio_[s], ipiv_, v_work_);

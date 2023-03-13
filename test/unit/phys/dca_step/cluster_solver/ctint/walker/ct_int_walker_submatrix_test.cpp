@@ -20,6 +20,8 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 
+#include "dca/phys/dca_step/cluster_solver/ctint/details/shrink_G0.hpp"
+
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
@@ -31,7 +33,7 @@ using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<double>;
+using ScalarTypes = ::testing::Types<double, std::complex<double>>;
 TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
@@ -96,10 +98,14 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     walker.setMFromConfig();
     MatrixPair direct_M(walker.getM());
 
-    constexpr auto tolerance = 1000 * std::numeric_limits<Scalar>::epsilon();
+    using dca::util::RealAlias;
+    
+    // This should just be the RealAliases of the scalar since in the
+    // complex case we are checking the Euclidean norm.
+    const auto tolerance = 1000.0 * std::numeric_limits<RealAlias<Scalar>>::epsilon();
 
     for (int s = 0; s < 2; ++s)
-      EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
+	EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
@@ -109,7 +115,8 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     for (int i = 0; i < steps; ++i)
       walker_nosub.doStep();
 
-    EXPECT_NEAR(walker.getAcceptanceProbability(), walker_nosub.getAcceptanceProbability(),
+    // this needs to be std::abs because it could be a "complex" probability
+    EXPECT_NEAR(std::abs(walker.getAcceptanceProbability()), std::abs(walker_nosub.getAcceptanceProbability()),
                 tolerance);
 
     auto config_nosubm = walker_nosub.getWalkerConfiguration();

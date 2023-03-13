@@ -53,8 +53,8 @@ class CtintWalker;
 template <class Parameters, DistType DIST = DistType::NONE>
 class CtintWalkerBase {
 public:
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using parameters_type = Parameters;
   using Data = DcaData<Parameters, DIST>;
   using Rng = typename Parameters::random_number_generator;

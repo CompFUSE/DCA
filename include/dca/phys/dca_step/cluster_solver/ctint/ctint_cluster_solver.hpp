@@ -23,6 +23,7 @@
 // its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
 // included
 #include "dca/distribution/dist_types.hpp"
+#include "dca/util/dca_types.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
@@ -246,7 +247,7 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::finalize() {
   SpGreensFunction M;
 
   // average M across ranks.
-  SignType<Scalar> avg_sign = gatherMAndG4(M, compute_error);
+  dca::util::SignType<Scalar> avg_sign = gatherMAndG4(M, compute_error);
 
   // compute G_r_t and save it into data_.
   computeG_k_w(data_.G0_k_w_cluster_excluded, M, data_.G_k_w);

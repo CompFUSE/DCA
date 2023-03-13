@@ -73,7 +73,7 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
       out(0, 0) = 1. / in(0, 0);
       break;
     case 2: {
-      const double det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
+      const auto det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
       out(0, 0) = in(1, 1) / det;
       out(0, 1) = -in(0, 1) / det;
       out(1, 0) = -in(1, 0) / det;
@@ -85,13 +85,13 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
   }
 }
 
-template <class MatrixA, class MatrixB, typename Real>
-inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
+template <class MatrixA, class MatrixB, typename Scalar>
+inline void smallInverse(const MatrixA& in, MatrixB& out, const Scalar det,
                          linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<Real, linalg::CPU>& work) {
-  static_assert(std::is_same<std::remove_cv_t<typename MatrixA::ValueType>, Real>::value,
+                         linalg::Vector<Scalar, linalg::CPU>& work) {
+  static_assert(std::is_same<std::remove_cv_t<typename MatrixA::ValueType>, Scalar>::value,
                 "Scalar type MatrixA mismatch.");
-  static_assert(std::is_same<typename MatrixB::ValueType, Real>::value,
+  static_assert(std::is_same<typename MatrixB::ValueType, Scalar>::value,
                 "Scalar type MatrixB mismatch.");
 
   assert(in.size() == out.size());
@@ -123,7 +123,7 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
       m(0, 0) = 1. / m(0, 0);
       break;
     case 2:
-      assert(det);
+      assert(std::abs(det));
       {
         const Real tmp = m(0, 0);
         m(0, 0) = m(1, 1) / det;
@@ -138,7 +138,7 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
 }
 
 template <class MatrixType>
-inline double smallDeterminant(const MatrixType& M) {
+typename MatrixType::ValueType smallDeterminant(const MatrixType& M) {
   static_assert(MatrixType::device == linalg::CPU, "GPU small inverse is not defined.");
   assert(M.is_square());
   switch (M.nrCols()) {
@@ -170,7 +170,7 @@ inline double smallDeterminant(const MatrixType& M) {
 }
 
 template <class Matrix, class Vector>
-inline double separateIndexDeterminant(const Matrix& M, const Vector& indices) {
+inline typename Matrix::ValueType separateIndexDeterminant(const Matrix& M, const Vector& indices) {
   switch (indices.size()) {
     case 1:
       return M(indices[0], indices[0]);
