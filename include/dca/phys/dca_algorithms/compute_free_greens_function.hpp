@@ -19,6 +19,7 @@
 #include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -28,13 +29,13 @@ namespace phys {
 // Hamiltonian H_0(\vec{k}).
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn>
 void compute_G0_k_w(
-    const func::function<std::complex<Scalar>,
+    const func::function<std::complex<dca::util::RealAlias<Scalar>>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const int n_threads,
-    func::function<std::complex<Scalar>,
+    func::function<std::complex<dca::util::RealAlias<Scalar>>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G0_k_w) {
   // Call compute_G_k_w with vanishing self-energy.
-  const func::function<std::complex<Scalar>,
+  const func::function<std::complex<dca::util::RealAlias<Scalar>>,
                        func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>
       zero;
   compute_G_k_w(H0_k, zero, mu, n_threads, G0_k_w);
@@ -44,13 +45,13 @@ void compute_G0_k_w(
 // Hamiltonian H_0(\vec{k}).
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
 void compute_G0_k_t(
-    const func::function<std::complex<Scalar>,
+		    const func::function<std::complex<dca::util::RealAlias<Scalar>>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const Scalar beta,
-    func::function<std::complex<Scalar>,
+		    func::function<std::complex<dca::util::RealAlias<Scalar>>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
   // Diagonal \mu function.
-  func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> mu_function;
+  func::function<std::complex<dca::util::RealAlias<Scalar>>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>> mu_function;
   for (int k = 0; k < KDmn::dmn_size(); ++k) {
     for (int m = 0; m < OrbitalSpinDmn::dmn_size(); ++m) {
       mu_function(m, m, k) = mu;

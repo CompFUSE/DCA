@@ -6,7 +6,7 @@ dca_add_gtest(ct_int_solver_methods_test
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${TEST_INCLUDES}
-  LIBS     FFTW::Double ${TEST_LIBS} ctint g0_interpolation
+  LIBS     FFTW::Double ${TEST_LIBS} ctint g0_interpolation ${KERNELS_LIB}
 )
 
 add_subdirectory(structs)

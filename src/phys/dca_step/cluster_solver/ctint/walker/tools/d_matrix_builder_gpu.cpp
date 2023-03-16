@@ -23,9 +23,10 @@ namespace ctint {
 
 using linalg::CPU;
 using linalg::GPU;
+using dca::linalg::util::GpuStream;
 
-template <typename Real>
-DMatrixBuilder<linalg::GPU, Real>::DMatrixBuilder(const G0Interpolation<GPU, Real>& g0,
+template <typename Scalar>
+DMatrixBuilder<linalg::GPU, Scalar>::DMatrixBuilder(const G0Interpolation<GPU, Scalar>& g0,
                                                   const linalg::Matrix<int, linalg::CPU>& site_add,
                                                   const linalg::Matrix<int, linalg::CPU>& site_diff,
                                                   const int nb, const int r0)
@@ -39,7 +40,7 @@ template <typename Scalar>
 void DMatrixBuilder<GPU, Scalar>::computeG0(Matrix& G0,
                                             const details::DeviceConfiguration& configuration,
                                             const int n_init, bool right_section,
-                                            cudaStream_t stream) const {
+                                            GpuStream stream) const {
   if (G0.nrRows() * G0.nrCols() == 0)
     return;
   details::buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU>(G0), n_init, right_section,
@@ -49,8 +50,8 @@ void DMatrixBuilder<GPU, Scalar>::computeG0(Matrix& G0,
 // Instantation.
 template class DMatrixBuilder<GPU, float>;
 template class DMatrixBuilder<GPU, double>;
-  template class DMatrixBuilder<GPU, std::complex<float>>;
-  template class DMatrixBuilder<GPU, std::complex<double>>;
+template class DMatrixBuilder<GPU, std::complex<float>>;
+template class DMatrixBuilder<GPU, std::complex<double>>;
 
 }  // namespace ctint
 }  // namespace solver

@@ -25,6 +25,8 @@
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
+#include "dca/linalg/util/gpu_stream.hpp"
+
 #endif  // DCA_HAVE_GPU
 
 namespace dca {
@@ -42,7 +44,7 @@ private:
   using Matrix = linalg::Matrix<Scalar, linalg::CPU>;
   using MatrixPair = std::array<Matrix, 2>;
   using Real = dca::util::RealAlias<Scalar>;
-
+  using GpuStream = dca::linalg::util::GpuStream;
 public:
   template <class RDmn>
   DMatrixBuilder(const G0Interpolation<linalg::CPU, Scalar>& g0, int nb, const RDmn& /*r_dmn*/);
@@ -84,7 +86,7 @@ public:
 #ifdef DCA_HAVE_GPU
   virtual void computeG0(linalg::Matrix<Scalar, linalg::GPU>& /*G0*/,
                          const details::DeviceConfiguration& /*configuration*/, int /*n_init*/,
-                         bool /*right_section*/, cudaStream_t /*stream*/) const {
+                         bool /*right_section*/, GpuStream /*stream*/) const {
     throw(std::runtime_error("Not implemented."));
   }
 #endif  // DCA_HAVE_GPU

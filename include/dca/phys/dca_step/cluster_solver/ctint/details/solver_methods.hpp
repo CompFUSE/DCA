@@ -21,9 +21,9 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-template <class Rdmn>
-auto shrinkG0(const func::function<double, func::dmn_variadic<Nu, Nu, Rdmn, Tdmn>>& G0) {
-  func::function<double, func::dmn_variadic<Bdmn, Bdmn, Rdmn, Tdmn>> g0_trimmed;
+template <class Rdmn, typename Scalar>
+auto shrinkG0(const func::function<Scalar, func::dmn_variadic<Nu, Nu, Rdmn, Tdmn>>& G0) {
+  func::function<Scalar, func::dmn_variadic<Bdmn, Bdmn, Rdmn, Tdmn>> g0_trimmed;
   const int s = 0;
   for (int b1 = 0; b1 < Bdmn::dmn_size(); b1++)
     for (int b2 = 0; b2 < Bdmn::dmn_size(); b2++)

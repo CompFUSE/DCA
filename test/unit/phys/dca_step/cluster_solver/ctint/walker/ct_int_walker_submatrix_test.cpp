@@ -20,8 +20,6 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/ctint/details/shrink_G0.hpp"
-
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 

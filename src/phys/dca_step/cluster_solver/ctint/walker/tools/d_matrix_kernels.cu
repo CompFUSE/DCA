@@ -74,14 +74,14 @@ void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> g0, const int n_init,
   checkErrorsCudaDebug();
 }
 
-  template<> void buildG0Matrix<float, std::int8_t>(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
-                            DeviceConfiguration, DeviceInterpolationData<float, std::int8_t>, GpuStream);
-  template<> void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
+  template void buildG0Matrix(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
+                            DeviceConfiguration, DeviceInterpolationData<float, signed char>, GpuStream);
+  template void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
                             DeviceConfiguration, DeviceInterpolationData<double, std::int8_t>, GpuStream);
-  template<> void buildG0Matrix(linalg::MatrixView<std::complex<float>, linalg::GPU>, const int,
+  template void buildG0Matrix(linalg::MatrixView<std::complex<float>, linalg::GPU>, const int,
                             const bool, DeviceConfiguration,
                             DeviceInterpolationData<std::complex<float>, std::complex<float>>, GpuStream);
-  template<> void buildG0Matrix(linalg::MatrixView<std::complex<double>, linalg::GPU>, const int,
+  template void buildG0Matrix(linalg::MatrixView<std::complex<double>, linalg::GPU>, const int,
                             const bool, DeviceConfiguration,
                             DeviceInterpolationData<std::complex<double>, std::complex<double>>, GpuStream);
 
