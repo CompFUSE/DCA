@@ -43,7 +43,7 @@ using Is2D_t = typename std::conditional_t<T::DIM == 2, std::true_type, std::fal
 template <typename T>
 using Is2D = std::enable_if_t<Is2D_t<T>::value>;
 
-enum class Material { NiO_symmetric, NiO_unsymmetric, CuO2, CuO2_1band, SrVO3, FeSn, CuO2_Emery };
+enum class Material { NiO_symmetric, NiO_unsymmetric, CuO2, CuO2_1band, SrVO3, FeSn, CuO2_Emery, FeSC };
 
 // forward declaration of class template
 // we don't make this empty because we want this to fail at compile time if a particle specialization is unavailable.
@@ -55,6 +55,9 @@ class material_lattice;
 
 // // Specialization for CuO2
 #include "CuO2/material_lattice_Emery.inc"
+
+// // Specialization for FeSC
+#include "FeSC/material_lattice_FeSC.inc"
 
 // // Specialization for CuO2 1-band
 #include "CuO2_1band/material_lattice_CuO2_1band.inc"
