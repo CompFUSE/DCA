@@ -176,6 +176,8 @@ public:
     std::visit([&](auto& var) { var.set_verbose(verbose); }, writer_);
   }
 
+  Concurrency& get_concurrency() { return concurrency_; }
+  
   dca::parallel::thread_traits::mutex_type& get_mutex() { return mutex_; }
 private:
   dca::parallel::thread_traits::mutex_type mutex_;

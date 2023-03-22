@@ -47,7 +47,7 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-  using dca::util::SignType;
+using dca::util::SignType;
 
 template <class Parameters, DistType DT>
 class TpAccumulator<Parameters, DT, linalg::CPU> : public TpAccumulatorBase<Parameters, DT> {

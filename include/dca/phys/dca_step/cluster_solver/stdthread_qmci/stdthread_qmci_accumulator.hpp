@@ -171,7 +171,7 @@ void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::measure() {
 template <class QmciAccumulator, class SpGreensFunction>
 void StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>::logPerConfigurationMFunction(
     const SpGreensFunction& mfunc, const SignType sign) const {
-  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
+  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open. \todo possibly this should always be true
   if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
     if (writer_ && (writer_->isADIOS2() || concurrency_id_ == 0)) {
       const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +

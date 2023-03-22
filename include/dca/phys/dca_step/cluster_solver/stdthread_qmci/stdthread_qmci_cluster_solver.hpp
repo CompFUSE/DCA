@@ -50,7 +50,7 @@ public:
   static constexpr linalg::DeviceType device = QmciSolver::device;
   using Parameters = typename BaseClass::ParametersType;
   using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
   using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
   using Data = typename BaseClass::Data;
   using typename BaseClass::Concurrency;
@@ -69,6 +69,7 @@ public:
 
 protected:
   using BaseClass::accumulator_;
+
 public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
                              const std::shared_ptr<io::Writer<Concurrency>>& writer);
@@ -157,7 +158,7 @@ private:
   dca::parallel::thread_traits::condition_variable_type queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
-  //stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
+  // stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
   bool last_iteration_ = false;
   bool read_configuration_ = false;
@@ -312,7 +313,7 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
     writeConfigurations();
 
-  //autocorrelation_data_.sumConcurrency(concurrency_);
+  // autocorrelation_data_.sumConcurrency(concurrency_);
 
   if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
     std::cout << "Writing actual run info\n";
@@ -346,9 +347,9 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
     // Write and reset autocorrelation.
     std::cout << "Writing autocorrelation data\n";
     std::cout << "Autocorrelation incompatible with complex G0 and GPU";
-    //autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+    // autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
   }
-  //autocorrelation_data_.reset();
+  // autocorrelation_data_.reset();
 
   return L2_Sigma_difference;
 }
@@ -585,7 +586,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
   Profiler::start_threading(id);
 
   // Create and warm a walker.
-  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
+  auto walker_log = BaseClass::writer_;
   Walker walker(parameters_, data_, rng_vector_[id], concurrency_.get_id(), id, walker_log,
                 BaseClass::g0_);
   initializeAndWarmUp(walker, id, id);
@@ -595,7 +596,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
       std::cout << "\n\t\t warm-up ends\n" << std::endl;
   }
 
-  auto accumulator_log = last_iteration_ ? BaseClass::writer_ : nullptr;
+  auto accumulator_log = BaseClass::writer_;
   StdThreadAccumulatorType accumulator_obj(parameters_, data_, id, accumulator_log);
   accumulator_obj.initialize(dca_iteration_);
 
@@ -661,7 +662,7 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::finalizeWalker(Walker& walker, int walker_id) {
   config_dump_[walker_id] = walker.dumpConfig();
   walker_fingerprints_[walker_id] = walker.deviceFingerprint();
-  //autocorrelation_data_ += walker;
+  // autocorrelation_data_ += walker;
 
   if (walker_id == 0 && concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;

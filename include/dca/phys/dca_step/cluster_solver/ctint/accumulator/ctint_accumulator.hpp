@@ -185,7 +185,7 @@ void CtintAccumulator<Parameters, device, DIST>::initialize(const int dca_iterat
                                          parameters_.dump_every_iteration());
   accumulated_order_.reset();
   
-  BaseClass:initialize(dca_iteration);
+  Base::initialize(dca_iteration);
   sp_accumulator_.resetAccumulation();
   sp_accumulator_.clearSingleMeasurement();
   if (perform_tp_accumulation_)

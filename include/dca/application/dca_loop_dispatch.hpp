@@ -56,9 +56,10 @@ public:
       //      if (concurrency.id() == concurrency.first()) {
       // std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
       dca_loop.write();
-      std::cout << "final output written to file: " << parameters.get_filename_dca() << '\n';
-
-      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+      if(concurrency.id() == concurrency.first()) {
+	std::cout << "final output written to file: " << parameters.get_filename_dca() << '\n';
+	std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+      }
       //      }
     }
   }
