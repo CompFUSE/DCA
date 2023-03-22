@@ -40,7 +40,7 @@ namespace phys {
 namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
-  using dca::util::SignType;
+using dca::util::SignType;
   
 template <class Parameters, class Data>
 class TpEqualTimeAccumulator {
