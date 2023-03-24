@@ -34,7 +34,7 @@ public:
     return accumulated_phase_;
   }
 
-  std::size_t get_number_of_measurements() const {
+  auto get_number_of_measurements() const {
     return number_of_measurements_;
   }
 
@@ -61,7 +61,7 @@ protected:
   math::Phase<Scalar> current_phase_;
   util::Accumulator<dca::math::Phase<Scalar>> accumulated_phase_;
 
-  std::size_t number_of_measurements_;
+  long number_of_measurements_;
 };
 
 }  // namespace solver

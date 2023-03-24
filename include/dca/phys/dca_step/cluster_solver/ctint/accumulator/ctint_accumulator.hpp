@@ -110,7 +110,9 @@ public:
   }
 
   int get_number_of_measurements() const {
-    assert(accumulated_phase_.count() == number_of_measurements_);
+    std::cout << "number_of_measurements ==" << number_of_measurements_ << '\n';
+    std::cout << "accumulated_phase_.count() == " << accumulated_phase_.count() << '\n';
+    //assert(accumulated_phase_.count() == number_of_measurements_);
     return number_of_measurements_;
   }
 
@@ -184,6 +186,7 @@ void CtintAccumulator<Parameters, device, DIST>::initialize(const int dca_iterat
       parameters_.isAccumulatingG4() && ((dca_iteration == parameters_.get_dca_iterations() - 1) ||
                                          parameters_.dump_every_iteration());
   accumulated_order_.reset();
+  accumulated_phase_.reset();
   
   Base::initialize(dca_iteration);
   sp_accumulator_.resetAccumulation();

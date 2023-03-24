@@ -39,6 +39,7 @@ public:
   using trafo_k_to_r_type = math::transform::basis_transform<target_k_dmn_t, target_r_dmn_t>;
   using trafo_r_to_k_type = math::transform::basis_transform<target_r_dmn_t, target_k_dmn_t>;
 
+  using profiler_type = typename parameters_type::profiler_type;
 public:
   deconvolution_routines(parameters_type& parameters_ref);
 
@@ -98,6 +99,8 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
       T_source_("T-source", std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())),
       T_source_symmetrized_("T-source-symmetrized",
                             std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())) {
+  profiler_type profiler("deconvolution-routines-construction", "DCA", __LINE__);
+
   clustermapping::CoarsegrainingSp<parameters_type> coarsegrain_obj(parameters);
 
   coarsegrain_obj.compute_phi_r(phi_r_);
