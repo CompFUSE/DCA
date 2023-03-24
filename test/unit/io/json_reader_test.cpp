@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
 
@@ -63,6 +63,11 @@ TEST(ReadTest, All) {
   EXPECT_EQ(b, false);
   reader.close_group();
 
+  std::vector<int> vi;
+  reader.execute("vec int", vi);
+  const std::vector<int> vi_check{1, 2, 3};
+  EXPECT_EQ(vi, vi_check);
+  
   reader.execute("vec vec string", vvs);
   const std::vector<std::vector<std::string>> vvs_check{std::vector<std::string>{"aa", "ab"},
                                                         std::vector<std::string>{"ba", "bc"}};
