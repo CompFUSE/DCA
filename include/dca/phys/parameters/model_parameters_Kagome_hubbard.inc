@@ -75,6 +75,10 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("Kagome-Hubbard-model");
+  }
+  catch (...) {
+    throw std::runtime_error("You must specify a Kagome-Hubbard-model seciton in input!");
+  }
     try {
       reader_or_writer.execute("t", t_);
     }
@@ -85,8 +89,9 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
     }
     catch (const std::exception& r_e) {
     }
+    if (std::abs(U_) <= 1e-3)
+      throw std::runtime_error("For Kagome model abs(U) must be greater than 1e-3");
+
     reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
-  }
 }
+
