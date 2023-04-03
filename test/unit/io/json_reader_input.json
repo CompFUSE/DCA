@@ -20,7 +20,7 @@
     "bool 3" : 1,
     "bool 4" : 0
   },
-
+  "vec int" : [1, 2, 3],
   "vec vec string" : [["aa", "ab"], ["ba", "bc"]],
   "vec vec int" : [[11, 12],
                    [21,11]],

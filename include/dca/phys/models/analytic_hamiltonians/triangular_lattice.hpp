@@ -156,6 +156,8 @@ void triangular_lattice<point_group_type>::initializeH0(
     throw std::logic_error("Triangular lattice has one band.");
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
+  if (parameters.get_t_prime() != 0.0)
+    throw std::runtime_error("Triangular lattice does not support the t prime parameter!");
 
   const auto& k_vecs = KDmn::get_elements();
 
@@ -173,8 +175,8 @@ void triangular_lattice<point_group_type>::initializeH0(
   }
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TRIANGULAR_LATTICE_HPP

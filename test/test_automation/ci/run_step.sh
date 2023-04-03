@@ -54,7 +54,7 @@ case "$1" in
     esac
 
     # Path to QMC_DATA in self-hosted CI system and point at minimum gcc-9
-    if [[ "$HOST_NAME" =~ (volta-cidev-node) ]]
+    if [[ "$HOST_NAME" =~ (v100-ci) ]]
     then
 	# use gcc-12
       export PATH=/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/gcc-12.2.0-cx7pjxgmemcce4tohlmsekuo5qvgjqbl/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/ninja-1.11.1-plzpokehn3kdbcviteppqntkqun5752f/bin:/home/epd/spack/opt/spack/linux-ubuntu20.04-cascadelake/gcc-12.2.0/cmake-3.25.0-xlxorwhfz5jxpyx65ypsh2horyo7n3ef/bin:$PATH

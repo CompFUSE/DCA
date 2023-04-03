@@ -111,35 +111,36 @@ template <typename ReaderOrWriter>
 void ModelParameters<models::TightBindingModel<Lattice>>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("single-band-Hubbard-model");
+  }
+  catch (...) {
+    throw std::runtime_error("You must specify a single-band-Hubbard-model in input!");
+  }
 
-    try {
-      reader_or_writer.execute("t", t_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("t-prime", t_prime_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("U", U_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("V", V_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("V-prime", V_prime_);
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    reader_or_writer.close_group();
+  try {
+    reader_or_writer.execute("t", t_);
   }
   catch (const std::exception& r_e) {
   }
+  try {
+    reader_or_writer.execute("t-prime", t_prime_);
+  }
+  catch (const std::exception& r_e) {
+  }
+  try {
+    reader_or_writer.execute("U", U_);
+  }
+  catch (const std::exception& r_e) {
+  }
+  try {
+    reader_or_writer.execute("V", V_);
+  }
+  catch (const std::exception& r_e) {
+  }
+  try {
+    reader_or_writer.execute("V-prime", V_prime_);
+  }
+  catch (const std::exception& r_e) {
+  }
+
+  reader_or_writer.close_group();
 }

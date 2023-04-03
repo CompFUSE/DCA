@@ -14,8 +14,8 @@
 #define DCA_GTEST_H_W_WARNING_BLOCKING_H
 
 #pragma GCC diagnostic push
-#include "gtest/gtest.h"
 #pragma GCC diagnostic ignored "-Wsuggest-override"
+#include "gtest/gtest.h"
 #pragma GCC diagnostic_pop
 
 #endif
