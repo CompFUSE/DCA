@@ -20,6 +20,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/phys/domains/cluster/cluster_definitions.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/util.hpp"
 
@@ -78,6 +79,13 @@ public:
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+  template <typename FNEW, typename KVECS>
+  static void timeOrFrequencySymmetrySpecial(dca::phys::domains::CLUSTER_REPRESENTATION cr,
+                                             FNEW& function, KVECS& k_vecs, int c_ind, int w_ind,
+                                             int w_0);
+
+  static void clusterSymmetrySpecial(int b0, int b1, int k_ind, int& k_new, int& b0_new,
+                                     int& b1_new, double& sign);
 };
 
 template <typename PointGroup>
@@ -190,6 +198,42 @@ void RashbaHubbard<PointGroup>::initializeH0(
     for (int s1 = 0; s1 < 2; ++s1)
       for (int s2 = 0; s2 < 2; ++s2)
         H_0(s1, 0, s2, 0, k_ind) = m(s1, s2);
+  }
+}
+
+// This breaks single band models symmetrized over spin and probably produces something completely
+// wrong in other cases For Rashba model: Set inter-orbital (spin-up/down) component to zero when
+// sin(kx)=0 & sin(ky)=0, i.e. when inter-orbital (inter-spin) Hamiltonian is zero
+template <typename PointGroup>
+template <typename FNEW, typename KVECS>
+void RashbaHubbard<PointGroup>::timeOrFrequencySymmetrySpecial(
+    dca::phys::domains::CLUSTER_REPRESENTATION cr, FNEW& f_new, KVECS& k_vecs, int c_ind, int w_ind,
+    int w_0) {
+  if (cr == domains::MOMENTUM_SPACE) {
+    const auto& k = k_vecs[c_ind];
+
+    if (abs(std::sin(k[0])) < 1.0e-4 && abs(std::sin(k[1])) < 1.0e-4) {
+      // std::cout << "Setting off-diag comp. to zero\n";
+
+      f_new(0, 1, c_ind, w_ind) = 0.0;
+      f_new(1, 0, c_ind, w_ind) = 0.0;
+      f_new(0, 1, c_ind, w_0 - w_ind) = 0.0;
+      f_new(1, 0, c_ind, w_0 - w_ind) = 0.0;
+    }
+  }
+}
+
+template <typename PointGroup>
+void RashbaHubbard<PointGroup>::clusterSymmetrySpecial(int b0, int b1, int k_ind, int& k_new,
+                                                       int& b0_new, int& b1_new, double& sign) {
+  if (b0 != b1) {  // For Rashba model, the up-down elements transform like ix + y
+    // const auto& k_vecs = func::dmn_0<domains::cluster_domain<scalar_type, D, N,
+    // domains::MOMENTUM_SPACE, S>>::get_elements(); const auto& k1 = k_vecs[k_ind]; const
+    // auto& k2 = k_vecs[k_new];
+    k_new = k_ind;
+    b0_new = b0;
+    b1_new = b1;
+    sign = 1;
   }
 }
 

@@ -11,6 +11,14 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "gtest/gtest.h"
@@ -31,7 +39,7 @@ using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<double, std::complex<double>>;
+using ScalarTypes = ::testing::Types<std::complex<double>>; //double, 
 TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the

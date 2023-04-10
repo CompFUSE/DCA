@@ -20,7 +20,7 @@ using McOptions = MockMcOptions<double>;
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include <string>
 
 #include "dca/io/json/json_reader.hpp"

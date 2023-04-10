@@ -61,6 +61,58 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
+// symmtrization meta helpers
+// Class to detect if class T implements the templated "timeOrFrequencySymmetrySpecial" method.
+template <class Pars>
+class HasTimeOrFrequencySymmetrySpecial {
+private:
+  template <typename U>
+  static std::true_type test(decltype(&U::lattice_type::template timeOrFrequencySymmetrySpecial<U>));
+  template <typename U>
+  static std::false_type test(...);
+
+public:
+  constexpr static bool value = decltype(test<Pars>(nullptr))::value;
+};
+
+template <class Parameters, class FNEW, typename KVECS>
+std::enable_if_t<HasTimeOrFrequencySymmetrySpecial<Parameters>::value> timeOrFrequencySymmetrySpecial(
+    dca::phys::domains::CLUSTER_REPRESENTATION cr, FNEW& f_new, KVECS& k_vecs, int c_ind, int w_ind,
+    int w_0) {
+  Parameters::lattice_type::timeOrFrequencySymmetrySpecial(cr, f_new, k_vecs, c_ind, w_ind, w_0);
+}
+
+template <class Parameters, class FNEW, typename KVECS>
+std::enable_if_t<!HasTimeOrFrequencySymmetrySpecial<Parameters>::value> timeOrFrequencySymmetrySpecial(
+    [[maybe_unused]] dca::phys::domains::CLUSTER_REPRESENTATION cr, [[maybe_unused]] FNEW& f_new,
+    [[maybe_unused]] KVECS& k_vecs, [[maybe_unused]] int c_ind, [[maybe_unused]] int w_ind, [[maybe_unused]] int w_0) {
+}
+
+template <class Pars>
+class HasClusterSymmetrySpecial {
+private:
+  template <typename U>
+  static std::true_type test(decltype(&U::lattice_type::template clusterSymmetrySpecial<U>));
+  template <typename U>
+  static std::false_type test(...);
+
+public:
+  constexpr static bool value = decltype(test<Pars>(nullptr))::value;
+};
+
+template <class Parameters>
+std::enable_if_t<HasClusterSymmetrySpecial<Parameters>::value> clusterSymmetrySpecial(
+    int b0, int b1, int k_ind, int& k_new, int& b0_new, int& b1_new, double& sign) {
+  Parameters::lattice_type::clusterSymmetrySpecial(b0, b1, k_ind, k_new,
+                                                   b0_new, b1_new, sign);
+}
+
+template <class Parameters>
+std::enable_if_t<!HasClusterSymmetrySpecial<Parameters>::value> clusterSymmetrySpecial(
+    [[maybe_unused]] int b0, [[maybe_unused]] int b1, [[maybe_unused]] int k_ind,
+    [[maybe_unused]] int& k_new, [[maybe_unused]] int& b0_new, [[maybe_unused]] int& b1_new,
+    [[maybe_unused]] double& sign) {}
+
 template <class Parameters>
 class SymmetrizeSingleParticleFunction {
 public:
@@ -511,22 +563,8 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
         }
       }
 
-      // For Rashba model: Set inter-orbital (spin-up/down) component to zero when sin(kx)=0 &
-      // sin(ky)=0, i.e. when inter-orbital (inter-spin) Hamiltonian is zero
-
-      if (representation == domains::MOMENTUM_SPACE) {
-        const auto& k_vecs = ClusterDomain::get_elements();
-        const auto& k = k_vecs[c_ind];
-
-        if (abs(std::sin(k[0])) < 1.0e-4 && abs(std::sin(k[1])) < 1.0e-4) {
-          // std::cout << "Setting off-diag comp. to zero\n";
-
-          f_new(0, 1, c_ind, w_ind) = 0.0;
-          f_new(1, 0, c_ind, w_ind) = 0.0;
-          f_new(0, 1, c_ind, w_0 - w_ind) = 0.0;
-          f_new(1, 0, c_ind, w_0 - w_ind) = 0.0;
-        }
-      }
+      timeOrFrequencySymmetrySpecial<Parameters>(representation, f_new,
+                                                 ClusterDomain::get_elements(), c_ind, w_ind, w_0);
     }
   }
 
@@ -760,14 +798,8 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
           double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
           norm += std::abs(sign);
 
-          if (b0 != b1) {  // For Rashba model, the up-down elements transform like ix + y
-            // const auto& k_vecs = func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE,
-            // S>>::get_elements(); const auto& k1 = k_vecs[k_ind]; const auto& k2 = k_vecs[k_new];
-            k_new = k_ind;
-            b0_new = b0;
-            b1_new = b1;
-            sign = 1;
-          }
+          clusterSymmetrySpecial<Parameters>(b0, b1, k_ind, k_new, b0_new,
+                                             b1_new, sign);
 
           f_new(b0, b1, k_ind) += sign * f(b0_new, b1_new, k_new);
         }

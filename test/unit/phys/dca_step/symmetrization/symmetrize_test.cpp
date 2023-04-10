@@ -11,7 +11,7 @@
 
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/config/threading.hpp"
 #include "dca/io/json/json_reader.hpp"

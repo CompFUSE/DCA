@@ -14,6 +14,7 @@
 #define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_MOCK_PARAMETERS_HPP
 
 #include "dca/profiling/null_profiler.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace testing {
@@ -23,7 +24,7 @@ struct MockParameters {
 public:
   using profiler_type = dca::profiling::NullProfiler;
   using MC_measurement_scalar_type = AccumType;
-
+  static constexpr bool complex_g0 = dca::util::IsComplex_t<AccumType>::value;
   using RClusterDmn = typename BaseTestSetup::RDmn;
 
   double get_beta() const {

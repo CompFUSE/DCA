@@ -9,18 +9,27 @@
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
 #include <limits>
 #include <vector>
-#include "gtest/gtest.h"
 
-#include "dca/config/mc_options.hpp"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "gtest/gtest.h"
 #include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-using Scalar = typename dca::config::McOptions::MCScalar;
+//using Scalar = typename dca::config::McOptions::MCScalar;
 using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
 
 using MatrixPair = SpAccumulatorGpuTest::Sample;
@@ -33,9 +42,9 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
   Configuration config;
   prepareConfiguration(config, M, n);
 
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU, Scalar> accumulatorHost(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
       parameters_);
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar> accumulatorDevice(
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
       parameters_);
 
   const int sign = 1;
@@ -55,7 +64,7 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
 
 TEST_F(SpAccumulatorGpuTest, SumTo) {
   using Accumulator =
-      dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU, Scalar>;
+      dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU>;
   Accumulator accumulator1(parameters_);
   Accumulator accumulator2(parameters_);
   Accumulator accumulator_sum(parameters_);

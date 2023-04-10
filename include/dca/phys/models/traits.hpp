@@ -1,10 +1,11 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE for terms of usage./
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // Defines the presence of non density-density interactions using SFINAE.
 
@@ -30,8 +31,8 @@ using NuDmn = func::dmn_variadic<func::dmn_0<domains::electron_band_domain>,
 
 template <typename Scalar, class Parameters>
 using NonDensityIntHamiltonian =
-      func::function<Scalar,
-                     func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
+    func::function<Scalar,
+                   func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
 
 // Class to detect if class T implements the templated "initializeNonDensityInteraction" method.
 template <class Pars>
@@ -48,20 +49,22 @@ public:
 
 template <typename Scalar, class Parameters>
 std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
-													      NonDensityIntHamiltonian<Scalar, Parameters>& interaction, const Parameters& pars) {
+    NonDensityIntHamiltonian<Scalar, Parameters>& interaction, const Parameters& pars) {
   Parameters::lattice_type::initializeNonDensityInteraction(interaction, pars);
 }
 
-  template <typename Scalar, class Lattice, class Parameters>
+template <typename Scalar, class Lattice, class Parameters>
 std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
-													      std::unique_ptr<NonDensityIntHamiltonian<Scalar, Parameters>>& interaction, const Parameters& pars) {
-    interaction = std::make_unique<NonDensityIntHamiltonian<Scalar, Parameters>>();
+    std::unique_ptr<NonDensityIntHamiltonian<Scalar, Parameters>>& interaction,
+    const Parameters& pars) {
+  interaction = std::make_unique<NonDensityIntHamiltonian<Scalar, Parameters>>();
   Parameters::lattice_type::initializeNonDensityInteraction(*interaction, pars);
 }
 
 template <class Lattice, class HType, class Parameters>
 std::enable_if_t<!HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
+
 
 }  // namespace models
 }  // namespace phys

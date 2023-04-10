@@ -10,8 +10,7 @@
 // This file tests the new methods in type_lists.hpp
 
 #include "dca/util/type_utils.hpp"
-
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(TypeListTest, Sublist) {
   using List = dca::util::Typelist<int, float, double, char>;

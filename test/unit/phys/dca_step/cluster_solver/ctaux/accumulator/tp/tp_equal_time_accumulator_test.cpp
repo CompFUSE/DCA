@@ -18,7 +18,7 @@ using McOptions = MockMcOptions<double>;
 }  // namespace dca
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"

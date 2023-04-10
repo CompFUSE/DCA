@@ -12,6 +12,14 @@
 // channels based on the relation between the particle-hole longitudinal up-up and up-down channels,
 // and the particle-hole magnetic and charge channels.
 
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
@@ -19,24 +27,24 @@
 #include <limits>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
 constexpr char input_file[] = INPUT_DIR "input_tp_accumulator_particle_hole_test.json";
 
+using Scalar = double;
+
 using TpAccumulatorTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;
-  using Real = TpAccumulatorType::Real;
-  using ConfigGenerator = dca::testing::AccumulationTest<Real>;
+  using ConfigGenerator = dca::testing::AccumulationTest<Scalar>;
   using Configuration = ConfigGenerator::Configuration;
   using Sample = ConfigGenerator::Sample;
 
@@ -84,14 +92,14 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   TpAccumulatorType::TpGreensFunction G4_ph_long_up_down_check;
 
   for (int l = 0; l < G4_ph_long_up_up_check.size(); ++l) {
-    G4_ph_long_up_up_check(l) = Real(0.5) * (G4_ph_charge(l) + G4_ph_magnetic(l));
+    G4_ph_long_up_up_check(l) = Scalar(0.5) * (G4_ph_charge(l) + G4_ph_magnetic(l));
 
-    G4_ph_long_up_down_check(l) = Real(0.5) * (G4_ph_charge(l) - G4_ph_magnetic(l));
+    G4_ph_long_up_down_check(l) = Scalar(0.5) * (G4_ph_charge(l) - G4_ph_magnetic(l));
   }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);
-  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::TpPrecision>::epsilon());
 
   const auto diff_up_down = dca::func::util::difference(G4_ph_long_up_down, G4_ph_long_up_down_check);
-  EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<TpAccumulatorType::Real>::epsilon());
+  EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<TpAccumulatorType::TpPrecision>::epsilon());
 }

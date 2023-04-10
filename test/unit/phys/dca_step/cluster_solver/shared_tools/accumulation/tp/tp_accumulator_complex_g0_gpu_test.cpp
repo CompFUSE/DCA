@@ -10,12 +10,23 @@
 // This file implements a no-change test for the two particles accumulation on the GPU with
 // the Rashba model.
 
+#include "dca/config/profiler.hpp"
+#include <complex>
+using Scalar = std::complex<double>;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
 #include <functional>
 #include <string>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
@@ -36,7 +47,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorComplexG0GpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeRashba, dca::phys::solver::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeRashba, dca::ClusterSolverId::CT_AUX, input_file>;
 
 uint loop_counter = 0;
 
@@ -51,13 +62,13 @@ TEST_F(TpAccumulatorComplexG0GpuTest, Accumulate) {
                                         parameters_.get_beta(), n);
 
   using namespace dca::phys;
-  parameters_.set_four_point_channels(std::vector<FourPointType>{PARTICLE_PARTICLE_UP_DOWN});
+  parameters_.set_four_point_channels(std::vector<FourPointType>{FourPointType::PARTICLE_PARTICLE_UP_DOWN});
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU> accumulatorHost(
       data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU> accumulatorDevice(
       data_->G0_k_w_cluster_excluded, parameters_);
-  const int sign = 1;
+  const int8_t sign = 1;
 
   accumulatorDevice.resetAccumulation(loop_counter);
   accumulatorDevice.accumulate(M, config, sign);
@@ -69,9 +80,10 @@ TEST_F(TpAccumulatorComplexG0GpuTest, Accumulate) {
 
   ++loop_counter;
 
-  for (std::size_t channel = 0; channel < accumulatorHost.get_sign_times_G4().size(); ++channel) {
-    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4()[channel],
-                                                  accumulatorDevice.get_sign_times_G4()[channel]);
+  for (std::size_t channel = 0; channel < accumulatorHost.num_channels(); ++channel) {
+    const auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
+                                                  accumulatorDevice.get_G4()[channel]);
     EXPECT_GT(5e-7, diff.l_inf);
   }
 }
+

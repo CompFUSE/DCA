@@ -402,9 +402,9 @@ else()
 endif()
 
 if (DCA_WITH_SINGLE_PRECISION_TP_MEASUREMENTS)
-  set(TP_ACCUMULATION_SCALAR float)
+  set(TP_ACCUMULATION_PRECISION float)
 else()
-  set(TP_ACCUMULATION_SCALAR double)
+  set(TP_ACCUMULATION_PRECISION double)
 endif()
 
 

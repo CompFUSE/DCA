@@ -15,16 +15,9 @@
 #include <memory>
 #include <iostream>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
-
-#include "test/mock_mcconfig.hpp"
-namespace dca {
-namespace config {
-using McOptions = MockMcOptions<double>;
-}  // namespace config
-}  // namespace dca
 
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"

@@ -9,12 +9,21 @@
 //
 // Unit tests for the device version of the cached_ndft class.
 
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 
 #include <complex>
 #include <limits>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/function/util/difference.hpp"

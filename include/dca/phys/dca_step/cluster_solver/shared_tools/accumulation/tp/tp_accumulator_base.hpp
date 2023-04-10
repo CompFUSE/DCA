@@ -127,6 +127,8 @@ public:
   auto get_n_pos_frqs() {
     return n_pos_frqs_;
   }
+
+  int num_channels() { return channels_.size(); }
 protected:
   void initializeG0();
 

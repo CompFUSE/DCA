@@ -11,7 +11,7 @@
 
 #include "dca/math/statistical_testing/function_cut.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 

@@ -25,7 +25,7 @@ namespace config {
 struct McOptions {
   using MC_REAL = @MC_REAL@;
 
-  using TPAccumulationPrecision = @TP_ACCUMULATION_SCALAR@;
+  using TPAccumulationPrecision = @TP_ACCUMULATION_PRECISION@;
 
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
 

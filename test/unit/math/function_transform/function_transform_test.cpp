@@ -11,7 +11,7 @@
 
 #include "dca/math/function_transform/function_transform.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include <string>
 
 #include "dca/io/json/json_reader.hpp"

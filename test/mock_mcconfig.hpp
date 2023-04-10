@@ -26,7 +26,7 @@ namespace config {
 template <typename Scalar>
 struct MockMcOptions {
   using MC_REAL = dca::util::RealAlias<Scalar>;
-  using TPAccumulationPrecision = Scalar;
+  using TPAccumulationPrecision = dca::util::RealAlias<Scalar>;
   static constexpr bool memory_savings = false;
 #ifdef DCA_HAVE_GPU
   template <typename T>

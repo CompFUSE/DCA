@@ -15,7 +15,7 @@
 
 #include <complex>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/linalg/matrix.hpp"

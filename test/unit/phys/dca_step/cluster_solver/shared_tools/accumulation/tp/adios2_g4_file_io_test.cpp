@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/adios2/adios2_writer.hpp"
 #include "dca/io/adios2/adios2_reader.hpp"
@@ -26,6 +26,15 @@
 #include "dca/phys/four_point_type.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 #define INPUT_DIR \

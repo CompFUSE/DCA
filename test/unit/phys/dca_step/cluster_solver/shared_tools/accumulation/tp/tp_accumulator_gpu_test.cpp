@@ -11,6 +11,16 @@
 // This file implements unit tests for two particles accumulation on the GPU.
 
 #include "dca/config/profiler.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
@@ -18,7 +28,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/util/integer_division.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -48,7 +58,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeKagome, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeKagome, dca::ClusterSolverId::CT_AUX, input_file>;
 
 uint loop_counter = 0;
 
@@ -75,7 +85,7 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
       accumulatorHost(data_->G0_k_w_cluster_excluded, parameters_);
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU>
       accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
-  const int sign = 1;
+  const int8_t sign = 1;
 
   accumulatorDevice.resetAccumulation(loop_counter);
   accumulatorDevice.accumulate(M, config, sign);
@@ -147,7 +157,7 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   };
 
   const std::array<int, 2> n{3, 4};
-  const int sign = -1;
+  const int8_t sign = -1;
   Sample M1, M2;
   Configuration config1, config2;
   prepare_configuration(config1, M1, n);

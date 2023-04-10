@@ -12,9 +12,18 @@
 // the free Green's functions, G_0(i\omega) and G_0(\tau), and the interacting Green's function,
 // G(i\omega), against their analytic result.
 
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/ed_cluster_solver.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"

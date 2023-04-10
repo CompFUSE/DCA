@@ -9,10 +9,19 @@
 //
 // This file tests momentum_exchange_domain.hpp.
 
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 
 #include <numeric>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/math/util/vector_operations.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"

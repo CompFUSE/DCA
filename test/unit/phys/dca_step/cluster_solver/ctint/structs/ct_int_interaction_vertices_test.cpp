@@ -9,11 +9,20 @@
 // This file tests the InteractionElement class in the contest of a density-density interaction
 // model.
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 
 #include "dca/math/random/random.hpp"
+
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 TEST(InteractionVerticesTest, InsertElement) {

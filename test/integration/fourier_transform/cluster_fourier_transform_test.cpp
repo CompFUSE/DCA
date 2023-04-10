@@ -13,7 +13,7 @@
 #include <array>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
