@@ -191,7 +191,9 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
       thread_id_(thread_id),
       multiple_accumulators_(pars.get_accumulators() > 1),
       beta_(pars.get_beta()),
+      G_("tp_acc_base::G_"),
       channels_(pars.get_four_point_channels()),
+      G0_("tp_acc_base::G0_"),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
       n_pos_frqs_(WTpExtPosDmn::dmn_size()) {
 

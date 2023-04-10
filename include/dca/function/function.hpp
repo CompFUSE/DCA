@@ -429,6 +429,12 @@ function<scalartype, domain, DT>::function(const std::string& name)
   }
   start_ = 0;
   end_ = dmn.get_size();
+  // If the function is more than 256 megs report it.
+  if (end_ > 268435456) {
+    std::cerr << "function " << name << " allocates " << sizeof(scalartype) * end_ / 1024 / 1024 << " MB" << '\n';
+    if (name_ == "no-name")
+      std::cerr << "large functions need names give yourself a chance.\n";
+  }
   // will zero real or complex values
   fnc_values_.resize(dmn.get_size(), {});
 }
