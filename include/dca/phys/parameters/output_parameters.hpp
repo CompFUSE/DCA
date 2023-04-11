@@ -155,6 +155,7 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(directory_);
   buffer_size += concurrency.get_buffer_size(autoresume_);
   buffer_size += concurrency.get_buffer_size(output_format_);
+  buffer_size += concurrency.get_buffer_size(g4_output_format_);
   buffer_size += concurrency.get_buffer_size(filename_g4_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
   buffer_size += concurrency.get_buffer_size(filename_analysis_);
@@ -179,6 +180,7 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, directory_);
   concurrency.pack(buffer, buffer_size, position, autoresume_);
   concurrency.pack(buffer, buffer_size, position, output_format_);
+  concurrency.pack(buffer, buffer_size, position, g4_output_format_);
   concurrency.pack(buffer, buffer_size, position, filename_g4_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
   concurrency.pack(buffer, buffer_size, position, filename_analysis_);
@@ -201,6 +203,7 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, directory_);
   concurrency.unpack(buffer, buffer_size, position, autoresume_);
   concurrency.unpack(buffer, buffer_size, position, output_format_);
+  concurrency.unpack(buffer, buffer_size, position, g4_output_format_);
   concurrency.unpack(buffer, buffer_size, position, filename_g4_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
   concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
@@ -234,7 +237,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try_to_read_or_write("autoresume", autoresume_);
     try_to_read_or_write("output-format", output_format_);
     try_to_read_or_write("g4-output-format", g4_output_format_);
-    try_to_read_or_write("filename-g4-", filename_g4_);
+    try_to_read_or_write("filename-g4", filename_g4_);
     try_to_read_or_write("filename-dca", filename_dca_);
     try_to_read_or_write("filename-analysis", filename_analysis_);
     try_to_read_or_write("directory-config-read", directory_config_read_);

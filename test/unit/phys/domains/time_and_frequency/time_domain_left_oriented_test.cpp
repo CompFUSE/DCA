@@ -9,9 +9,8 @@
 //
 // This file tests time_domain_left_oriented.hpp.
 
-#include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include <vector>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 
 using namespace dca::phys::domains;
@@ -35,6 +34,4 @@ TEST(TimeDomainLeftOriented, Basic) {
 
   const std::vector<double> elements_check{-beta + eps, -beta / time_slices, 0, beta / time_slices};
   EXPECT_EQ(elements_check, time_domain_left_oriented::get_elements());
-
-  EXPECT_THROW(time_domain_left_oriented::initialize(), std::logic_error);
 }

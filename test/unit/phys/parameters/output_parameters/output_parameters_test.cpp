@@ -11,16 +11,24 @@
 //
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
+
+#include "dca/config/haves_defines.hpp"
 #include "dca/phys/parameters/output_parameters.hpp"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/io/json/json_reader.hpp"
 
 TEST(OutputParametersTest, DefaultValues) {
   dca::phys::params::OutputParameters pars;
 
+
   EXPECT_EQ("./", pars.get_directory());
+#ifdef DCA_HAVE_ADIOS2
   EXPECT_EQ("ADIOS2", pars.get_output_format());
   EXPECT_EQ("ADIOS2", pars.get_g4_output_format());
+#else
+  EXPECT_EQ("HDF5", pars.get_output_format());
+  EXPECT_EQ("", pars.get_g4_output_format());
+#endif
   EXPECT_FALSE(pars.autoresume());
   EXPECT_EQ("", pars.get_directory_config_read());
   EXPECT_EQ("", pars.get_directory_config_write());
@@ -72,6 +80,7 @@ TEST(OutputParametersTest, ReadAll) {
   // default.
   EXPECT_EQ("./T=0.5", pars.get_directory());
   EXPECT_EQ("JSON", pars.get_output_format());
+  EXPECT_EQ("JSON", pars.get_g4_output_format());
   EXPECT_EQ(true, pars.autoresume());
   EXPECT_EQ("configuration", pars.get_directory_config_read());
   EXPECT_EQ("configuration", pars.get_directory_config_write());

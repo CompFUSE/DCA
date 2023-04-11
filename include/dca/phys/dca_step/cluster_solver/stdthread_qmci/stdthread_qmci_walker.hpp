@@ -81,7 +81,7 @@ private:
 template <class QmciWalker, class DATA>
 StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(
     Parameters& parameters, DATA& data_ref, Rng& rng, int concurrency_id, int id,
-    const std::shared_ptr<io::Writer<Concurrency>>& writer, G0Interpolation<device, Real>& g0)
+    const std::shared_ptr<io::Writer<Concurrency>>& writer, [[maybe_unused]]G0Interpolation<device, Real>& g0)
     : QmciWalker(parameters, data_ref, rng, id),
       // QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
       stamping_period_(parameters.stamping_period()),

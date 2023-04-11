@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 using dca::phys::domains::frequency_domain;
 
