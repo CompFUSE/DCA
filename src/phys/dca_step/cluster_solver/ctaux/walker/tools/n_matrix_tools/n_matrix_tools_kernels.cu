@@ -15,6 +15,7 @@
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"

@@ -26,7 +26,7 @@ namespace details {
 
 using util::castGPUType;
 using util::CudaComplex;
-using util::IsComplex_t;
+using util::IsCudaComplex_t;
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
   assert(i > 0 && j > 0);
@@ -50,7 +50,7 @@ __global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  if constexpr (IsComplex_t<Scalar>::value)
+  if constexpr (IsCudaComplex_t<Scalar>::value)
     sorted_M[id_i + lds * id_j] = M[inp_i + ldm * inp_j];
   else {
     sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];

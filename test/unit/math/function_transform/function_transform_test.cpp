@@ -45,7 +45,9 @@ using Model =
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::ClusterSolverId::CT_AUX>;
+                                  Model, void, dca::ClusterSolverId::CT_AUX,               dca::NumericalTraits<double,
+                                   typename dca::util::ScalarSelect<double,
+                                                                    Model::lattice_type::complex_g0>::type>>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 

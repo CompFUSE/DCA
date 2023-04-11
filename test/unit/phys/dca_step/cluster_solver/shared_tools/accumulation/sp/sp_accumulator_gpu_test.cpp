@@ -1,13 +1,23 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
-// This file implements a no-change test for the two particles accumulation on the GPU.
+// This file implements a comparison test for GPU vs host accumulation.
+
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
+
+#include <array>
+#include <limits>
+#include <vector>
+
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "dca/function/util/difference.hpp"
 
 using Scalar = double;
 
@@ -18,25 +28,17 @@ using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
-
-#include <array>
-#include <limits>
-#include <vector>
-
-#include "dca/testing/gtest_h_w_warning_blocking.h"
-#include "gtest/gtest.h"
-#include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 //using Scalar = typename dca::config::McOptions::MCScalar;
-using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
-
-using MatrixPair = SpAccumulatorGpuTest::Sample;
-using Configuration = SpAccumulatorGpuTest::Configuration;
-using Parameters = SpAccumulatorGpuTest::Parameters;
 
 TEST_F(SpAccumulatorGpuTest, Accumulate) {
+  using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
+
+  using MatrixPair = SpAccumulatorGpuTest::Sample;
+  using Configuration = SpAccumulatorGpuTest::Configuration;
+  using Parameters = SpAccumulatorGpuTest::Parameters;
+
   const std::array<int, 2> n{31, 28};
   MatrixPair M;
   Configuration config;

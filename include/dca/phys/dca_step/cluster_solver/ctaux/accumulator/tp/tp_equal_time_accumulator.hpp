@@ -33,7 +33,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
 #include "dca/util/plot.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {

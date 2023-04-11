@@ -10,19 +10,19 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
-#include "test/mock_mcconfig.hpp"
-namespace dca {
-namespace config {
-using McOptions = MockMcOptions<double>;
-}  // namespace config
-}  // namespace dca
-
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "walker_wrapper.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
 
 template <typename Scalar>
 using CtintWalkerTest =
@@ -158,7 +158,7 @@ TYPED_TEST(CtintWalkerTest, Inverse) {
     dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
     dca::linalg::Vector<Scalar, dca::linalg::CPU> work;
     dca::phys::solver::ctint::details::smallInverse(M, inv, det, ipiv, work);
-    constexpr Scalar tolerance = 100 * std::numeric_limits<Scalar>::epsilon();
+    constexpr Scalar tolerance = 100 * std::numeric_limits<dca::util::RealAlias<Scalar>>::epsilon();
     EXPECT_NEAR(1. / 7., inv(0, 0), tolerance);
     EXPECT_NEAR(2. / 7., inv(0, 1), tolerance);
     EXPECT_NEAR(3. / 7., inv(1, 0), tolerance);

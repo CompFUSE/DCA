@@ -16,10 +16,10 @@
 #ifdef DCA_HAVE_GPU
 
 #include "dca/platform/gpu_definitions.h"
-#include "dca/util/type_utils.hpp"
-#include "dca/util/dca_types.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
+//#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -35,23 +35,15 @@ public:
 
   /** Returns the interpolated g0 on the device
    */
-  __DEVICE__ dca::util::CudaScalar<Scalar> operator()(Real tau, int lindex) const {
-    using dca::util::castGPUType;
-    using dca::util::ComplexAlias;
-    using dca::util::RealAlias;
-    using dca::util::GPUTypeConversion;
-    using dca::util::IsComplex_t;
-    using dca::util::CudaComplex;
-    using dca::util::CudaScalar;
-    using dca::util::CUDATypeMap;
+  __DEVICE__ Scalar operator()(Real tau, int lindex) const {
     using namespace dca::linalg;
     assert(tau >= -beta_ && tau <= beta_);
 
     if (tau == 0)  // returns G0(tau = 0+)
-      return *castGPUType(g0_minus_ + lindex);
+      return *dca::util::castGPUType(g0_minus_ + lindex);
 
-    if constexpr (IsComplex_t<SignType>::value) {
-      CudaComplex<RealAlias<SignType>> factor;
+    if constexpr (dca::util::IsComplex_t<SignType>::value) {
+      dca::util::CudaComplex<dca::util::RealAlias<SignType>> factor;
       factor.x = 0.0;
       factor.y = 0.0;
 
@@ -68,8 +60,8 @@ public:
       const Real delta_tau = scaled_tau - tau_index;
 
       // Get the pointer to the first akima coeff.
-      const CUDATypeMap<Scalar>* coeff_ptr =
-          castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
+      const dca::util::CUDATypeMap<Scalar>* coeff_ptr =
+	dca::util::castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
 
       // Return akima interpolation.
       return factor *
@@ -92,12 +84,12 @@ public:
       const Real delta_tau = scaled_tau - tau_index;
 
       // Get the pointer to the first akima coeff.
-      const CUDATypeMap<Scalar>* coeff_ptr =
-          castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
+      const dca::util::CUDATypeMap<Scalar>* coeff_ptr =
+	dca::util::castGPUType(values_) + (tau_index * coeff_size_ + lindex * stride_);
 
       // Return akima interpolation.
       return factor *
-             static_cast<Scalar>(
+	static_cast<Scalar>(
                  coeff_ptr[0] +
                  delta_tau * (coeff_ptr[1] + delta_tau * (coeff_ptr[2] + delta_tau * coeff_ptr[3])));
     }

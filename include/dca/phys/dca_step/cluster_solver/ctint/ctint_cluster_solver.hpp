@@ -23,7 +23,7 @@
 // its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
 // included
 #include "dca/distribution/dist_types.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"

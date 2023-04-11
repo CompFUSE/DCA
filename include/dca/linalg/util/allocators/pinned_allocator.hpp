@@ -37,14 +37,14 @@ public:
   T* allocate(std::size_t n, const void* /*hint*/ = nullptr) {
     if (n == 0)
       return nullptr;
-    T* ptr;
-    cudaError_t ret = cudaHostAlloc((void**)&ptr, n * sizeof(T), cudaHostAllocDefault);
+    void* ptr;
+    cudaError_t ret = cudaHostAlloc(&ptr, n * sizeof(T), cudaHostAllocDefault);
     if (ret != cudaSuccess) {
       printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__,
                         "\t HOST size requested : " + std::to_string(n * sizeof(T)));
       throw(std::bad_alloc());
     }
-    return ptr;
+    return static_cast<T*>(ptr);
   }
 
   void deallocate(T*& ptr, std::size_t /*n*/ = 0) noexcept {

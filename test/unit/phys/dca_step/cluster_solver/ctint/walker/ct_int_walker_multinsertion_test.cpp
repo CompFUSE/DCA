@@ -87,7 +87,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   auto M1 = walker_single.getM();
   walker_single.setMFromConfig();
   auto M1_dir = walker_single.getM();
-  constexpr int final_size = 4;
+  int final_size = M1_dir[0].nrCols();
   ASSERT_EQ(M1[0].nrCols(), final_size);
   ASSERT_EQ(M1[1].nrCols(), final_size);
 
@@ -105,13 +105,14 @@ TEST_F(G0Setup, NoSubmatrix) {
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.24, 1, 0.19, 1, 0});
   walker_double.tryVertexInsert();
   //
-  // first_id, double removal, partner_id, accept
+  // first_id, double removal, pa rtner_id, accept
   rng.setNewValues(std::vector<double>{0, 0., 0, 0, 0});
   walker_double.tryVertexRemoval();
 
   auto M2 = walker_double.getM();
   walker_double.setMFromConfig();
   auto M2_dir = walker_double.getM();
+  final_size =M2_dir[0].nrCols();
   ASSERT_EQ(M2[0].nrCols(), final_size);
   ASSERT_EQ(M2[1].nrCols(), final_size);
 

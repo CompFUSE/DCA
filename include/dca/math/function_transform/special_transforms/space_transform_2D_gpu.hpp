@@ -19,6 +19,7 @@
 #include "dca/config/haves_defines.hpp"
 // its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
 // included
+#include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
@@ -33,11 +34,11 @@ template <class RDmn, class KDmn, typename Scalar = double>
 class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Scalar> {
 private:
   using Base = SpaceTransform2D<RDmn, KDmn, Scalar>;
-  using typename Base::Complex;
+  using Complex = dca::util::CudaScalar<typename Base::Complex>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
   using RMatrix =
-      linalg::ReshapableMatrix<Complex, linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>;
+    linalg::ReshapableMatrix<Complex, linalg::GPU, Complex>;
 
 public:
   // Constructor

@@ -39,7 +39,7 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/models/traits.hpp"
 #include "dca/phys/four_point_type.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {

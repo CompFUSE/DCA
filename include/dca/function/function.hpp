@@ -34,6 +34,7 @@
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/util/to_string.hpp"
 
 namespace dca {

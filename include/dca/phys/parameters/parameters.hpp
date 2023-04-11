@@ -54,6 +54,7 @@
 #include "dca/phys/models/traits.hpp"
 #include "dca/util/print_type.hpp"
 #include "dca/distribution/dist_types.hpp"
+#include "dca/phys/parameters/num_traits.hpp"
 
 namespace dca {
 namespace phys {
@@ -62,10 +63,7 @@ namespace params {
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name,
-          class NUMTRAITS =
-              dca::NumericalTraits<dca::config::McOptions::MC_REAL,
-                                   typename dca::util::ScalarSelect<dca::config::McOptions::MC_REAL,
-                                                                    Model::lattice_type::complex_g0>::type>>
+          class NUMTRAITS>
 class Parameters : public AnalysisParameters,
                    public DcaParameters,
                    public DomainsParameters,

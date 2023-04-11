@@ -17,7 +17,7 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {

@@ -28,7 +28,7 @@
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace linalg {

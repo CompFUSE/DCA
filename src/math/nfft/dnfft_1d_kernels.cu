@@ -16,6 +16,7 @@
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/math/nfft/nfft_helper.cuh"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"

@@ -11,7 +11,7 @@
 #ifndef DCA_TEST_MOCK_MCCONFIG_HPP
 #define DCA_TEST_MOCK_MCCONFIG_HPP
 
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/config/haves_defines.hpp"
 #ifdef DCA_HAVE_GPU
 #include "dca/linalg/util/allocators/device_allocator.hpp"

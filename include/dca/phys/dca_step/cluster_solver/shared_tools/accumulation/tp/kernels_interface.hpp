@@ -18,7 +18,7 @@
 #include "dca/phys/four_point_type.hpp"
 #include "dca/util/type_utils.hpp"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 
 // This amount of namespace nesting is really uncalled for
 // http://open-std.org/JTC1/SC22/WG21/docs/papers/2017/p0816r0.pdf

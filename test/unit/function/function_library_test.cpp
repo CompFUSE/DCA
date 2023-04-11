@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "dca/util/type_list.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 #include "function_testing.hpp"
 
 namespace dca {

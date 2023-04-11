@@ -1,21 +1,15 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
-// This test confronts a 2D space to momentum function transform executed on the GPU, with the same
+// This test compares a 2D space to momentum function transform executed on the GPU, with the same
 // transform executed on the CPU.
-
-#include "test/mock_mcconfig.hpp"
-namespace dca {
-namespace config {
-using McOptions = MockMcOptions<double>;
-}  // namespace config
-}  // namespace dca
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
@@ -29,56 +23,59 @@ using McOptions = MockMcOptions<double>;
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+#include "dca/util/type_help.hpp"
+dca::parallel::NoConcurrency* concurrency_ptr;
 
 using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
+
+template <typename SCALAR>
+using NumTraits = dca::NumericalTraits<dca::util::RealAlias<SCALAR>, SCALAR>;
+
 using Concurrency = dca::parallel::NoConcurrency;
-using Parameters =
-    dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::ClusterSolverId::CT_AUX>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using SDmn = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
-using KDmn = typename Parameters::KClusterDmn;
-using RDmn = typename Parameters::RClusterDmn;
 using WPosDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT_POSITIVE>>;
 using WDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
 
-void initialize() {
-  static bool initialized = false;
-  if (!initialized) {
-    Concurrency concurrency(0, nullptr);
-    Parameters pars("", concurrency);
-    pars.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
-    pars.update_model();
-    pars.update_domains();
-
-    dca::linalg::util::initializeMagma();
-    initialized = true;
-  }
-}
-
 template <typename Scalar, dca::linalg::DeviceType device>
 using RMatrix = dca::linalg::ReshapableMatrix<Scalar, device>;
 
+template<typename SCALAR>
+  using Parameters =
+      dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
+    Model, void, dca::ClusterSolverId::CT_AUX, NumTraits<SCALAR>>;
+
+
 template <typename Real>
 using SpaceTransform2DGpuTest = ::testing::Test;
-using TestTypes = ::testing::Types<float, double>;
+using TestTypes = ::testing::Types<float, double, std::complex<double>>;
 TYPED_TEST_CASE(SpaceTransform2DGpuTest, TestTypes);
 
 TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
-  initialize();
+  using Scalar = TypeParam;
+
+  Parameters<Scalar> pars("", *concurrency_ptr);
+
+  using KDmn = typename Parameters<Scalar>::KClusterDmn;
+  using RDmn = typename Parameters<Scalar>::RClusterDmn;
+
+  pars.template read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
+  pars.update_model();
+  pars.update_domains();
 
   using dca::func::dmn_variadic;
   using dca::func::function;
-  using Real = TypeParam;
+  using Real = dca::util::RealAlias<Scalar>;
   using Complex = std::complex<Real>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> M_in;
@@ -103,15 +100,15 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
 
   // Transform on the CPU.
   function<Complex, dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(f_in, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Scalar>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::config::McOptions::TpAllocator<Complex>>
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU, dca::util::ComplexAlias<Scalar>>
       M_dev(M_in);
 
   dca::linalg::util::MagmaQueue queue;
 
-  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real> transform_obj(nw, queue);
+  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, dca::util::CudaScalar<Scalar>> transform_obj(nw, queue);
   transform_obj.execute(M_dev);
 
   queue.getStream().sync();
@@ -131,4 +128,21 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
 
               EXPECT_LE(std::abs(val1 - val2), tolerance);
             }
+}
+
+
+int main(int argc, char** argv) {
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+
+  dca::linalg::util::initializeMagma();
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

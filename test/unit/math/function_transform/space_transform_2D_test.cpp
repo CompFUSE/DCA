@@ -6,8 +6,9 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
-// This tests scape_transform_2D.hpp
+// This tests space_transform_2D.hpp
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 
@@ -20,64 +21,57 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
-#include "test/mock_mcconfig.hpp"
-namespace dca {
-namespace config {
-using McOptions = MockMcOptions<double>;
-}  // namespace config
-}  // namespace dca
-
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
+dca::parallel::NoConcurrency* concurrency_ptr;
+
 using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
+template <typename SCALAR>
+using NumTraits = dca::NumericalTraits<dca::util::RealAlias<SCALAR>, SCALAR>;
+
 using Concurrency = dca::parallel::NoConcurrency;
-using Parameters =
-    dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::ClusterSolverId::CT_AUX>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using SDmn = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
-using KDmn = typename Parameters::KClusterDmn;
-using RDmn = typename Parameters::RClusterDmn;
 using WPosDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT_POSITIVE>>;
 using WDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
 
-void initialize() {
-  static bool initialized = false;
-  if (!initialized) {
-    Concurrency concurrency(0, nullptr);
-    Parameters pars("", concurrency);
-    pars.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
-    pars.update_model();
-    pars.update_domains();
+template<typename SCALAR>
+  using Parameters =
+      dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
+    Model, void, dca::ClusterSolverId::CT_AUX, NumTraits<SCALAR>>;
 
-    initialized = true;
-  }
-}
 
 // Perform the test in double and single precision.
 template <typename T>
 class SpaceTransform2DTest : public ::testing::Test {};
-using TestTypes = ::testing::Types<float, double>;
+using TestTypes = ::testing::Types<float, double, std::complex<double>>;
 TYPED_TEST_CASE(SpaceTransform2DTest, TestTypes);
 
 TYPED_TEST(SpaceTransform2DTest, Execute) {
-  using Real = TypeParam;
-  initialize();
+  using Scalar = TypeParam;
+
+  using KDmn = typename Parameters<Scalar>::KClusterDmn;
+  using RDmn = typename Parameters<Scalar>::RClusterDmn;
+
+  Parameters<Scalar> pars("", *concurrency_ptr);
+  pars.template read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
+  pars.update_model();
+  pars.update_domains();
 
   using dca::func::dmn_variadic;
   using dca::func::function;
+  using Real = dca::util::RealAlias<Scalar>;
   using Complex = std::complex<Real>;
-
   std::mt19937_64 rng(0);
   std::uniform_real_distribution<Real> distro(-1, 1);
 
@@ -88,7 +82,7 @@ TYPED_TEST(SpaceTransform2DTest, Execute) {
   auto f_in_cpy = f_in;
 
   dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Real>::execute(f_in_cpy, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Scalar>::execute(f_in_cpy, f_out);
 
   const auto im = std::complex<double>(0, 1);
 
@@ -124,4 +118,18 @@ TYPED_TEST(SpaceTransform2DTest, Execute) {
                 EXPECT_NEAR(expected.real(), f_out(b1, b2, s, k1, k2, w1, w2).real(), 1e-5);
                 EXPECT_NEAR(expected.imag(), f_out(b1, b2, s, k1, k2, w1, w2).imag(), 1e-5);
               }
+}
+
+int main(int argc, char** argv) {
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

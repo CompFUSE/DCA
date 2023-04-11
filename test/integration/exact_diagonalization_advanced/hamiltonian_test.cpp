@@ -56,10 +56,13 @@ Matrix referenceHamiltonian(const double t, const double U, const double mu) {
 }
 
 TEST(HamiltonianTest, ConstructHamiltonian) {
+  using Scalar = double;
   using Lattice = phys::models::square_lattice<phys::domains::D4>;
   using Model = phys::models::TightBindingModel<Lattice>;
-  using Parameters = phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void,
-                                              ClusterSolverId::CT_AUX>;  // CT_AUX is a placeholder.
+  using Parameters =
+      phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void, ClusterSolverId::CT_AUX,
+                               dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+
   using EdOptions = phys::solver::ed::Options<Parameters>;
 
   using OrbitalSpinDmn = func::dmn_variadic<func::dmn_0<phys::domains::electron_band_domain>,

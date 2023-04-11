@@ -44,11 +44,12 @@ TEST(ComputeBandStructureTest, Execute) {
   using PointGroup = phys::domains::D4;
   using Lattice = phys::models::square_lattice<PointGroup>;
   using Model = phys::models::TightBindingModel<Lattice>;
-
+  using NumTraits = dca::NumericalTraits<
+      double, typename dca::util::ScalarSelect<double, Model::lattice_type::complex_g0>::type>;
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
-      phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
-                               Model, void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
+      phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler, Model,
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX, NumTraits>;
 
   using b = func::dmn_0<phys::domains::electron_band_domain>;
   using s = func::dmn_0<phys::domains::electron_spin_domain>;
@@ -70,7 +71,7 @@ TEST(ComputeBandStructureTest, Execute) {
   std::ostringstream kcut_elements;
   phys::domains::brillouin_zone_cut_domain<101>::to_JSON(kcut_elements);
   std::cout << kcut_elements.str() << '\n';
-  
+
   // Check spin symmetry.
   for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
     for (int k_ind = 0; k_ind < k_domain_cut_dmn_type::dmn_size(); ++k_ind)

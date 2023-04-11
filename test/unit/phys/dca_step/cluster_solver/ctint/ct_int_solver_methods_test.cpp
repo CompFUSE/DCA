@@ -25,7 +25,7 @@ using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  ModelType, RngType, dca::ClusterSolverId::CT_INT>;
+                                  ModelType, RngType, dca::ClusterSolverId::CT_IN>;
 using Data = dca::phys::DcaData<Parameters>;
 
 struct SolverWrapper

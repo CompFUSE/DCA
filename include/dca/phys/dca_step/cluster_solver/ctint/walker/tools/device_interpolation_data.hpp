@@ -22,12 +22,12 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <typename Real>
+template <typename Scalar>
 class DeviceInterpolationData {
 public:
   DeviceInterpolationData(const DeviceInterpolationData& other) = default;
 
-  __DEVICE__ Real operator()(Real tau, int lindex) const {
+  __DEVICE__ Scalar operator()(Real tau, int lindex) const {
     assert(tau >= -beta_ && tau <= beta_);
 
     if (tau == 0)  // returns G0(tau = 0+)

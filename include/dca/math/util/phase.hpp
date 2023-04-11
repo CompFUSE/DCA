@@ -16,7 +16,7 @@
 #include <complex>
 #include <type_traits>
 
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca::math {
 

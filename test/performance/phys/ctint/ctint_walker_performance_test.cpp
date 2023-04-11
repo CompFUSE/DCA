@@ -55,8 +55,9 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
+using Scalar = double;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
-                                                 dca::ClusterSolverId::CT_INT>;
+                                                 dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
 

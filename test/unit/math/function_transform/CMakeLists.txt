@@ -4,7 +4,6 @@ dca_add_gtest(function_transform_test
         LIBS FFTW::Double ${DCA_LIBS})
 
 dca_add_gtest(space_transform_2D_test
-        GTEST_MAIN
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
         LIBS FFTW::Double ${DCA_LIBS})
 

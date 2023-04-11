@@ -25,7 +25,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/kernels_interface.hpp"
-#include "dca/util/dca_types.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {

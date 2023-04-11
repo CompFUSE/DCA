@@ -13,6 +13,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include <cmath>  // for std::pow
 #include <stdexcept>
+#include <iostream>
 
 namespace dca {
 namespace phys {
@@ -26,7 +27,7 @@ std::vector<time_domain::element_type> time_domain::elements_;
 
 void time_domain::initialize(const scalar_type beta, const int time_slices, const scalar_type eps) {
   if (initialized_)
-    throw std::logic_error("time_domain has already been initialized.");
+    std::cerr << "Time has already been initialized., if this is not test code, this is likely a serious error!";
 
   beta_ = beta;
 

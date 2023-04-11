@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Authors: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//          Peter W. Doak (doakpw@ornl.gov)
 //
 // This file implements the device methods of DMatrixBuilder.
 
@@ -13,12 +14,12 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 #include "dca/platform/dca_gpu.h"
 #include "dca/platform/gpu_definitions.h"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
 #include "dca/util/cuda_blocks.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
-#include "dca/util/dca_types.hpp"
 #include <complex>
 
 namespace dca {

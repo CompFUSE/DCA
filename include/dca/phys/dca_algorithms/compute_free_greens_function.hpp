@@ -19,7 +19,7 @@
 #include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {

@@ -19,14 +19,6 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
-
-#include "test/mock_mcconfig.hpp"
-namespace dca {
-namespace config {
-using McOptions = MockMcOptions<double>;
-}  // namespace config
-}  // namespace dca
-
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
@@ -39,16 +31,6 @@ using Concurrency = dca::parallel::NoConcurrency;
 using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
 
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, void, dca::ClusterSolverId::CT_AUX>;
-
-using Lattice = typename Parameters::lattice_type;
-
-using RClusterDmn = typename Parameters::RClusterDmn;
-using KClusterDmn = typename Parameters::KClusterDmn;
-using TDmn = typename Parameters::TDmn;
-using WDmn = typename Parameters::WDmn;
-
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
 using dca::func::function;
@@ -56,10 +38,21 @@ using BDmn = dmn_0<dca::phys::domains::electron_band_domain>;
 using SDmn = dmn_0<dca::phys::domains::electron_spin_domain>;
 using NuDmn = dmn_variadic<BDmn, SDmn>;
 
+template<typename T>
 class SymmetrizeTest : public ::testing::Test {
-public:
+protected:
+  using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
+						   Model, void, dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<T>, T>>;
+
+  using Lattice = typename Parameters::lattice_type;
+
+  using RClusterDmn = typename Parameters::RClusterDmn;
+  using KClusterDmn = typename Parameters::KClusterDmn;
+  using TDmn = typename Parameters::TDmn;
+  using WDmn = typename Parameters::WDmn;
+  
   SymmetrizeTest() : concurrency_(0, nullptr), parameters_("", concurrency_) {
-    parameters_.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
+    parameters_.template read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
     parameters_.update_model();
 
     static bool domain_initialized = false;
@@ -83,11 +76,18 @@ protected:
   function<int, dmn_variadic<NuDmn, NuDmn>> H_symmetry_;
 };
 
-TEST_F(SymmetrizeTest, G0_t) {
+using MyTypes = ::testing::Types<double, std::complex<double>>;
+TYPED_TEST_CASE(SymmetrizeTest, MyTypes);
+
+TYPED_TEST(SymmetrizeTest, G0_t) {
   // Compute the Green's functions in imaginary time.
+  using KClusterDmn = typename SymmetrizeTest<TypeParam>::KClusterDmn;
+  using RClusterDmn = typename SymmetrizeTest<TypeParam>::RClusterDmn;
+  using TDmn = typename SymmetrizeTest<TypeParam>::TDmn;
+  
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
 
-  dca::phys::compute_G0_k_t(H0_, parameters_.get_chemical_potential(), parameters_.get_beta(),
+  dca::phys::compute_G0_k_t(this->H0_, this->parameters_.get_chemical_potential(), this->parameters_.get_beta(),
                             G0_k_t);
 
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cmplx;
@@ -95,25 +95,33 @@ TEST_F(SymmetrizeTest, G0_t) {
   function<double, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
   G0_r_t = dca::func::util::real(G0_r_t_cmplx, dca::ImagCheck::FAIL);
 
+  using Parameters = typename SymmetrizeTest<TypeParam>::Parameters;
   // Test the symmetrization.
-  dca::phys::Symmetrize<Parameters>::execute(G0_k_t, H_symmetry_, true);
-  dca::phys::Symmetrize<Parameters>::execute(G0_r_t, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_t, this->H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_t, this->H_symmetry_, true);
 
   EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }
 
-TEST_F(SymmetrizeTest, G0_w) {
+TYPED_TEST(SymmetrizeTest, G0_w) {
+  using KClusterDmn = typename SymmetrizeTest<TypeParam>::KClusterDmn;
+  using RClusterDmn = typename SymmetrizeTest<TypeParam>::RClusterDmn;
+  using TDmn = typename SymmetrizeTest<TypeParam>::TDmn;
+  using WDmn = typename SymmetrizeTest<TypeParam>::WDmn;
+
   // Compute the Green's functions in imaginary time.
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
 
-  dca::phys::compute_G0_k_w(H0_, parameters_.get_chemical_potential(), 1, G0_k_w);
+  dca::phys::compute_G0_k_w(this->H0_, this->parameters_.get_chemical_potential(), 1, G0_k_w);
 
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
 
+  using Parameters = typename SymmetrizeTest<TypeParam>::Parameters;
   // Test the symmetrization.
-  dca::phys::Symmetrize<Parameters>::execute(G0_k_w, H_symmetry_, true);
-  dca::phys::Symmetrize<Parameters>::execute(G0_r_w, H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_k_w, this->H_symmetry_, true);
+  dca::phys::Symmetrize<Parameters>::execute(G0_r_w, this->H_symmetry_, true);
 
   EXPECT_FALSE(dca::phys::Symmetrize<Parameters>::differenceDetected());
 }
+

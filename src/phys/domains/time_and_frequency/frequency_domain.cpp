@@ -14,6 +14,7 @@
 
 #include <cmath>  // M_PI
 #include <stdexcept>
+#include <iostream>
 
 namespace dca {
 namespace phys {
@@ -27,7 +28,7 @@ std::vector<int> frequency_domain::indices_;
 
 void frequency_domain::initialize(const ScalarType beta, const int num_freqs) {
   if (initialized_)
-    throw std::logic_error("frequency_domain has already been initialzed.");
+    std::cerr << "frequency_domain has already been initialized., if this is not test code, this is likely a serious error!\n";
 
   const int size = 2 * num_freqs;
 

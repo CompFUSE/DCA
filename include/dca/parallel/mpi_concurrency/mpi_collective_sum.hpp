@@ -33,7 +33,7 @@
 #include "dca/linalg/vector.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace parallel {

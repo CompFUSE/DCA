@@ -17,7 +17,7 @@
 
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {
@@ -39,7 +39,7 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
   const int vertex_index = N_c - G_c;
 
   T the_one;
-  if constexpr (dca::util::IsComplex_t<T>::value)
+  if constexpr (dca::util::IsCudaComplex_t<T>::value)
     the_one = {1., 0};
   else
     the_one = 1;
@@ -52,7 +52,7 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
     if (configuration_e_spin_index_j < vertex_index) {
       T delta;
       if (configuration_e_spin_index_i == configuration_e_spin_index_j)
-        if constexpr (dca::util::IsComplex_t<T>::value)
+        if constexpr (dca::util::IsCudaComplex_t<T>::value)
           delta = {1., 0};
         else
           delta = 1;
