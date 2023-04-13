@@ -34,22 +34,41 @@ using NonDensityIntHamiltonian =
     func::function<Scalar,
                    func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, typename Parameters::RClusterDmn>>;
 
+// // Class to detect if class T implements the templated "initializeNonDensityInteraction" method.
+// template <class PARAMS>
+// class HasInitializeNonDensityInteractionMethod_t {
+// private:
+//   template <typename PARS>
+//   static auto test(const PARS& pars) ->
+//   decltype(PARS::lattice_type::initializeNonDensityInteraction(std::declval<NonDensityIntHamiltonian<double,
+//   PARS>>(), pars), std::true_type{});
+
+//   //  static std::false_type test(...);
+
+// public:
+//   using type = std::is_same<decltype(test(std::declval<PARAMS>())), std::false_type>;
+//   //decltype(test(std::declval<PARAMS>()));
+// };
+
 // Class to detect if class T implements the templated "initializeNonDensityInteraction" method.
-template <class Pars>
+template <class PARAMS>
 class HasInitializeNonDensityInteractionMethod {
 private:
-  template <typename U>
-  static std::true_type test(decltype(&U::lattice_type::template initializeNonDensityInteraction<U>));
-  template <typename U>
+  template <typename PARS>
+  static auto test(const PARS& pars) -> decltype(PARS::lattice_type::initializeNonDensityInteraction(
+      std::declval<NonDensityIntHamiltonian<typename PARS::Scalar, PARS>& >(), pars));  //, std::true_type{});
+
   static std::false_type test(...);
 
 public:
-  constexpr static bool value = decltype(test<Pars>(nullptr))::value;
+  constexpr static bool value =
+      !std::is_same_v<decltype(test(std::declval<PARAMS>())), std::false_type>;
 };
 
-template <typename Scalar, class Parameters>
+template <class Parameters>
 std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
-    NonDensityIntHamiltonian<Scalar, Parameters>& interaction, const Parameters& pars) {
+    NonDensityIntHamiltonian<typename Parameters::Scalar, Parameters>& interaction,
+    const Parameters& pars) {
   Parameters::lattice_type::initializeNonDensityInteraction(interaction, pars);
 }
 
@@ -64,7 +83,6 @@ std::enable_if_t<HasInitializeNonDensityInteractionMethod<Parameters>::value> in
 template <class Lattice, class HType, class Parameters>
 std::enable_if_t<!HasInitializeNonDensityInteractionMethod<Parameters>::value> initializeNonDensityInteraction(
     HType& /*interaction*/, const Parameters& /*pars*/) {}
-
 
 }  // namespace models
 }  // namespace phys

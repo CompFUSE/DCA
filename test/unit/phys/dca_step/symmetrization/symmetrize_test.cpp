@@ -106,7 +106,6 @@ TYPED_TEST(SymmetrizeTest, G0_t) {
 TYPED_TEST(SymmetrizeTest, G0_w) {
   using KClusterDmn = typename SymmetrizeTest<TypeParam>::KClusterDmn;
   using RClusterDmn = typename SymmetrizeTest<TypeParam>::RClusterDmn;
-  using TDmn = typename SymmetrizeTest<TypeParam>::TDmn;
   using WDmn = typename SymmetrizeTest<TypeParam>::WDmn;
 
   // Compute the Green's functions in imaginary time.

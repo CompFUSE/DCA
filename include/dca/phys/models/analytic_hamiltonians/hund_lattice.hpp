@@ -40,7 +40,7 @@ public:
   using BaseClass = bilayer_lattice<point_group_type>;
   constexpr static int BANDS = BaseClass::BANDS;
   constexpr static int DIMENSION = BaseClass::DIMENSION;
-
+  
   // Initializes the interaction Hamiltonian non density-density local term.
   template <typename Scalar, class Parameters>
   static void initializeNonDensityInteraction(
@@ -49,6 +49,13 @@ public:
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
+
+  template <class Parameters>
+  static void printNonDensityType([[maybe_unused]] Parameters& pars) {
+    dca::util::print_type<NonDensityIntHamiltonian<typename Parameters::Scalar, Parameters>> printer;
+    printer.print();
+  }
+  
 };
 
 template <typename point_group_type>
@@ -60,7 +67,7 @@ void HundLattice<point_group_type>::initializeNonDensityInteraction(
   const NuDmn nu;  // band-spin domain.
   constexpr int up(0), down(1);
 
-  non_density_interaction = 0.;
+  non_density_interaction = dca::util::TheZero<Scalar>::value;
   for (int b1 = 0; b1 < BANDS; b1++)
     for (int b2 = 0; b2 < BANDS; b2++) {
       if (b1 == b2)
