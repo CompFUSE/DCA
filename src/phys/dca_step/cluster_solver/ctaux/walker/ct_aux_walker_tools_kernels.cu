@@ -11,8 +11,10 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
 
+#include <type_traits>
+
 #include "dca/platform/dca_gpu.h"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 #include "dca/linalg/util/stream_functions.hpp"
@@ -26,6 +28,9 @@ namespace ctaux {
 namespace walkerkernels {
 // dca::phys::solver::ctaux::walkerkernels::
 
+  template<typename T>
+  using IsCudaComplex_t = dca::util::IsCudaComplex_t<T>;
+  
 template <class T>
 __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r,
                                      int N_c, int N_ld, const T* G, int G_r, int G_c, int G_ld,
@@ -38,13 +43,13 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
 
   const int vertex_index = N_c - G_c;
 
-  T the_one;
-  if constexpr (dca::util::IsCudaComplex_t<T>::value)
-    the_one = {1., 0};
-  else
-    the_one = 1;
-
-  
+    T the_one;
+    T the_zero{};
+    if constexpr (IsCudaComplex_t<T>::value)
+      the_one = T{1.0, 0.0};
+    else
+      the_one = 1.0;
+      
   if (i < Gamma_n and j < Gamma_n) {
     const int configuration_e_spin_index_i = random_vertex_vector[i];
     const int configuration_e_spin_index_j = random_vertex_vector[j];
@@ -73,7 +78,7 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
     Gamma[i + j * Gamma_ld] -= (gamma_k) / (gamma_k - the_one);
   }
 }
-
+    
 template <class T>
 void compute_Gamma(T* Gamma, int Gamma_n, int Gamma_ld, const T* N, int N_r, int N_c, int N_ld,
                    const T* G, int G_r, int G_c, int G_ld, const int* random_vertex_vector,

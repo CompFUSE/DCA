@@ -11,7 +11,6 @@
 //
 
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-#include "dca/testing/minimalist_printer.hpp"
 #include "dca/function/function.hpp"
 
 #include <array>
@@ -26,7 +25,8 @@
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/util/to_string.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "dca/testing/minimalist_printer.hpp"
 
 dca::parallel::MPIConcurrency* concurrency_ptr;
 

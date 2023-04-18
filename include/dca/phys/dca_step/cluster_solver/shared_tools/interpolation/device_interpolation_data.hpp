@@ -30,12 +30,13 @@ template <typename Scalar, typename SignType>
 class DeviceInterpolationData {
 public:
   using Real = dca::util::RealAlias<Scalar>;
-
+  using GPUScalar = dca::util::CUDATypeMap<Scalar>;
+  
   DeviceInterpolationData(const DeviceInterpolationData& other) = default;
 
   /** Returns the interpolated g0 on the device
    */
-  __DEVICE__ Scalar operator()(Real tau, int lindex) const {
+  __DEVICE__ GPUScalar operator()(Real tau, int lindex) const {
     using namespace dca::linalg;
     assert(tau >= -beta_ && tau <= beta_);
 

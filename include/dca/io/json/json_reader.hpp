@@ -16,6 +16,7 @@
 #include <stack>
 #include <string>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/io/json/details/json_group.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"

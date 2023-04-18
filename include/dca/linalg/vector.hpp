@@ -23,10 +23,11 @@
 #include <type_traits>
 #include <vector>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/util/copy.hpp"
-#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {

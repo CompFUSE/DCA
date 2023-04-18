@@ -73,6 +73,11 @@ public:
   template <DeviceType rhs_device_name>
   Matrix(const Matrix<ScalarType, rhs_device_name>& rhs, const std::string& = default_name_);
 
+  // Contructs a matrix with name name, size rhs.size() and a copy of the elements of rhs, where rhs
+  // elements are stored on a different device.
+  template <typename Scalar2, DeviceType rhs_device_name>
+  Matrix(const Matrix<Scalar2, rhs_device_name>& rhs, const std::string& = default_name_);
+
   ~Matrix();
 
   // Assignment operators:
@@ -88,6 +93,10 @@ public:
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
+  template <typename ScalarRhs, DeviceType rhs_device_name>
+  Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarRhs, rhs_device_name>& rhs);
+
+  
   // Returns true if this is equal to other, false otherwise.
   // Two matrices are equal, if they have the same size and contain the same elements. Name and
   // capacity are ignored.
@@ -289,6 +298,16 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name
 }
 
 template <typename ScalarType, DeviceType device_name>
+template <typename ScalarRhs, DeviceType rhs_device_name>
+Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarRhs, rhs_device_name>& rhs,
+                                        const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs));
+  data_ = Allocator::allocate(nrElements(capacity_));
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+}
+  
+template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
     : name_(name), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)) {
@@ -369,6 +388,19 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
   return *this;
 }
 
+#ifdef DCA_HAVE_GPU
+template <typename ScalarType, DeviceType device_name>
+template <typename ScalarRhs, DeviceType rhs_device_name>
+Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
+    const Matrix<ScalarRhs, rhs_device_name>& rhs) {
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs), "sizeof ScalarType and ScalarRhs are not equal");
+  resizeNoCopy(rhs.size_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
+}
+
+#endif
+  
 template <typename ScalarType, DeviceType device_name>
 bool Matrix<ScalarType, device_name>::operator==(const Matrix<ScalarType, device_name>& other) const {
   if (device_name == GPU)

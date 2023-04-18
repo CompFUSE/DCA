@@ -25,6 +25,7 @@
 // #endif
 // }  // namespace util
 // }  // namespace dca
+
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
@@ -93,7 +94,7 @@ template <typename T>
 struct ComplexAlias_impl<T, IsReal<T>> {
   using value_type = std::complex<T>;
 };
-  
+
 template <typename T>
 struct ComplexAlias_impl<T, IsComplex<T>> {
   using value_type = T;
@@ -105,11 +106,16 @@ struct ComplexAlias_impl<double2> {
   using value_type = cuDoubleComplex;
 };
 
+template <>
+struct ComplexAlias_impl<float2> {
+  using value_type = cuComplex;
+};
+
 template <typename T>
 struct ComplexAlias_impl<T, IsCudaComplex<T>> {
   using value_type = CudaComplex<std::remove_pointer<T*>>;
 };
-  
+
 template <typename T, typename = bool>
 struct CudaScalar_impl {};
 
@@ -151,39 +157,94 @@ struct ScalarSelect<REAL, true> {
 };
 
 template <typename T, typename = bool>
-struct TheOne {
-  static constexpr T value = 1;
+struct TheOne;
+template <typename T, typename = bool>
+struct TheZero;
+
+template <typename T>
+struct TheOne<T, IsReal<T>> {
+  static constexpr T value = 1.0;
 };
 
 template <typename T>
+struct TheZero<T, IsReal<T>> {
+  static constexpr T value = 0.0;
+};
+
+
+#ifdef DCA_HAVE_GPU
+template <typename T>
+struct TheOne<T, IsCudaComplex<T>> {
+  static constexpr T value{1.0, 0.0};
+};
+
+template <typename T>
+struct TheZero<T, IsCudaComplex<T>> {
+  static constexpr T value{0.0, 0.0};
+};
+
+template <typename T>
+std::enable_if_t<IsCudaComplex_t<T>::value, void> makeOne(T& one) {
+  one = T{1.0, 0.0};
+}
+
+template <typename T>
+std::enable_if_t<IsCudaComplex_t<T>::value, void> makeZero(T& zero) {
+  zero = T{0.0, 0.0};
+}
+
+#endif
+
+template <typename T>
+std::enable_if_t<std::is_floating_point<T>::value, void> makeOne(T& one) {
+  one = 1.0;
+}
+
+template <typename T>
+std::enable_if_t<IsComplex_t<T>::value, void> makeOne(T& one) {
+  one = T{1.0, 0.0};
+}
+
+template <typename T>
+std::enable_if_t<std::is_floating_point<T>::value, void> makeZero(T& zero) {
+  zero = 1.0;
+}
+
+template <typename T>
+std::enable_if_t<IsComplex_t<T>::value, void> makeZero(T& zero) {
+  zero = T{1.0, 0.0};
+}
+
+template <typename T>
 struct TheOne<T, IsComplex<T>> {
-  static constexpr T value = {1.0, 0.0};
+  static constexpr T value{1.0, 0.0};
 };
 
-template <typename T, typename = bool>
-struct TheZero {
-  static constexpr T value = 0;
-};
-
+  
 template <typename T>
 struct TheZero<T, IsComplex<T>> {
   static constexpr T value = {0.0, 0.0};
 };
 
-template <typename ARRAY, std::size_t... SIZE>
-auto Array2Tuple_impl(const ARRAY& a, std::index_sequence<SIZE...>) {
-  return std::make_tuple(a[SIZE]...);
-}
-
-template <typename T, std::size_t N, typename Indices = std::make_index_sequence<N>>
-auto Array2Tuple(const std::array<T, N>& a) {
-  return Array2Tuple_impl(a, Indices{});
+template <typename T, typename T2>
+auto makeMaybe(
+    T2 t2, typename std::enable_if_t<IsComplex_t<T>::value || std::is_floating_point<T>::value>* = 0) {
+  return T(t2);
 }
 
 #ifdef DCA_HAVE_GPU
+/** to handle making double2 and float2 values from Real in a generic way.
+ *  static cast required to deal with possibility of narrowing conversion from literal expressed as double.
+ */
+template <typename T, typename T2>
+auto makeMaybe(T2 t2, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
+  using Real = RealAlias<T>;
+  return T{static_cast<Real>(t2), 0.0};
+}
+
 template <typename T>
 inline auto GPUTypeConversion(T var, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
-  return CUDATypeMap<T>{var.x, var.y};
+  return HOSTTypeMap<T>{var.x, var.y};
 }
 
 template <typename T>
@@ -203,6 +264,16 @@ inline auto GPUTypeConversion(T var, typename std::enable_if_t<std::is_integral<
   return var;
 }
 #endif
+
+template <typename ARRAY, std::size_t... SIZE>
+auto Array2Tuple_impl(const ARRAY& a, std::index_sequence<SIZE...>) {
+  return std::make_tuple(a[SIZE]...);
+}
+
+template <typename T, std::size_t N, typename Indices = std::make_index_sequence<N>>
+auto Array2Tuple(const std::array<T, N>& a) {
+  return Array2Tuple_impl(a, Indices{});
+}
 
 template <typename T, typename = bool>
 struct SignType_impl {};

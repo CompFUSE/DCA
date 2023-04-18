@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -48,14 +49,15 @@ public:
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
 
-protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
 
   static bool hasPhaseFactors() {
     return SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor();
   }
-
   static const auto& getPhaseFactors();
+protected:
+
+
 };
 
 template <class RDmn, class KDmn, typename Scalar>

@@ -19,6 +19,8 @@
 
 #include "H5Cpp.h"
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/io/buffer.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"

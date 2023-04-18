@@ -13,7 +13,7 @@
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"

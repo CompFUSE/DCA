@@ -12,7 +12,7 @@
 #include "dca/math/statistics/autocorrelation.hpp"
 
 #include <random>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(AutocorrelationTest, All) {
   const std::vector<double> tau_exp_vals{1, 5, 3};

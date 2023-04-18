@@ -44,7 +44,7 @@ template <class Parameters>
 class SpAccumulator<Parameters, linalg::CPU> {
 public:
   using Profiler = typename Parameters::profiler_type;
-  using Real = dca::config::McOptions::MC_REAL;
+  using Real = Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
 
   using TDmn = func::dmn_0<domains::time_domain>;

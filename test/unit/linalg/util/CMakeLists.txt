@@ -19,3 +19,8 @@ dca_add_gtest(pinned_allocator_test
               GTEST_MAIN
               CUDA
               LIBS ${DCA_LIBS} ${DCA_GPU_LIBS})
+
+dca_add_gtest(copy_test
+  GTEST_MAIN
+  CUDA
+              LIBS ${DCA_LIBS})

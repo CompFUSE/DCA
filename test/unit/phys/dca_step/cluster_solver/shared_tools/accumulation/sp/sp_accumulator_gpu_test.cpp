@@ -10,13 +10,13 @@
 //
 // This file implements a comparison test for GPU vs host accumulation.
 
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
 #include <limits>
 #include <vector>
 
-#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/function/util/difference.hpp"
 
 using Scalar = double;

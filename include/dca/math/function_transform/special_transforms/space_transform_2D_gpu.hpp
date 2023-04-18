@@ -16,10 +16,12 @@
 #include <array>
 #include <memory>
 #include <complex>
-#include "dca/config/haves_defines.hpp"
+//#include "dca/config/haves_defines.hpp"
 // its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
 // included
-#include "dca/linalg/util/gpu_type_mapping.hpp"
+
+#include "space_transform_2D.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
@@ -31,14 +33,15 @@ namespace transform {
 // dca::math::transform::
 
 template <class RDmn, class KDmn, typename Scalar = double>
-class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Scalar> {
-private:
-  using Base = SpaceTransform2D<RDmn, KDmn, Scalar>;
-  using Complex = dca::util::CudaScalar<typename Base::Complex>;
+class SpaceTransform2DGpu : public SpaceTransform2D<RDmn, KDmn, Scalar> {
+protected:
+  // I guess the base type should use the host side scalar
+  using Base = SpaceTransform2D<RDmn, KDmn, dca::util::HOSTTypeMap<Scalar>>;
+  using Complex = dca::util::CUDATypeMap<Scalar>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
   using RMatrix =
-    linalg::ReshapableMatrix<Complex, linalg::GPU, Complex>;
+    linalg::ReshapableMatrix<Complex, linalg::GPU>;
 
 public:
   // Constructor
@@ -113,6 +116,11 @@ SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw_pos,
 
 template <class RDmn, class KDmn, typename Scalar>
 float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
+  Scalar the_one;
+  dca::util::makeOne(the_one);
+  Scalar the_zero;
+  dca::util::makeZero(the_zero);
+  
   float flop = 0.;
 
   auto& T_times_M = *(workspace_);
@@ -131,7 +139,7 @@ float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
     const int lda = T.leadingDimension();
     const int ldb = M.leadingDimension();
     const int ldc = T_times_M.leadingDimension();
-    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex(1), Complex(0), lda, ldb, ldc);
+    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, the_one, the_zero, lda, ldb, ldc);
     flop += n_trafo * 8. * nc_ * M.nrCols() * nc_;
   }
 
@@ -144,8 +152,8 @@ float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
     const int lda = T_times_M.leadingDimension();
     const int ldb = T.leadingDimension();
     const int ldc = T_times_M_times_T.leadingDimension();
-    const Complex norm(1. / nc_);
-    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
+    const Complex norm = dca::util::makeMaybe<Complex>(1.0 / nc_);
+    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, the_zero, lda, ldb, ldc);
     flop += n_trafo * 8. * M.nrRows() * nc_ * nc_;
   }
 
@@ -161,8 +169,8 @@ void SpaceTransform2DGpu<RDmn, KDmn, Scalar>::phaseFactorsAndRearrange(const RMa
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       Base::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
-  details::phaseFactorsAndRearrange(in.ptr(), in.leadingDimension(), out.ptr(),
-                                    out.leadingDimension(), n_bands_, nc_, nw_, phase_factors_ptr,
+  details::phaseFactorsAndRearrange(dca::util::castHostType(in.ptr()), in.leadingDimension(), dca::util::castHostType(out.ptr()),
+                                    out.leadingDimension(), n_bands_, nc_, nw_, dca::util::castHostType(phase_factors_ptr),
                                     queue_);
 }
 

@@ -54,13 +54,20 @@ public:
   template <DeviceType rhs_device_name, class AllocatorRhs>
   ReshapableMatrix(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
 
+  // Complex Case
+  template <typename ScalarTypeRhs, DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix(const ReshapableMatrix<ScalarTypeRhs, rhs_device_name, AllocatorRhs>& rhs);
+
   // Constructs a matrix with size rhs.size(). The elements of rhs are moved.
   ReshapableMatrix(ThisType&& rhs);
 
   // Resize the matrix to rhs.size() and copies the elements.
   ReshapableMatrix& operator=(const ThisType& rhs);
-  template <DeviceType rhs_device_name, class AllocatorRhs>
-  ReshapableMatrix& operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
+
+  // template <DeviceType rhs_device_name, class AllocatorRhs>
+  // ReshapableMatrix& operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
+  template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix& operator=(const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs);
 
   // Moves the elements of rhs into this matrix.
   ReshapableMatrix& operator=(ThisType&& rhs);
@@ -206,18 +213,36 @@ ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(const Thi
   *this = rhs;
 }
 
+#ifdef DCA_HAVE_GPU
+// Case for non matching GPU type complex
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
+    ScalarType, device_name,
+    Allocator>::operator=(const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs), "sizeof ScalarType and ScalarRhs are not equal");
+  if constexpr (device_name == rhs_device_name)
+    if (this != &rhs)
+      return *this;
+  resizeNoCopy(rhs.size_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
+    const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
+  *this = rhs;
+}  
+#endif
+
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name, class AllocatorRhs>
 ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
     const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
   *this = rhs;
-}
-
-template <typename ScalarType, DeviceType device_name, class Allocator>
-ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
-    ReshapableMatrix<ScalarType, device_name, Allocator>&& rhs)
-    : ReshapableMatrix<ScalarType, device_name, Allocator>() {
-  swap(rhs);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
@@ -232,16 +257,11 @@ ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-template <DeviceType rhs_device_name, class AllocatorRhs>
-ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
-    ScalarType, device_name,
-    Allocator>::operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
-  resizeNoCopy(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
-
-  return *this;
+ReshapableMatrix<
+    ScalarType, device_name, Allocator>::ReshapableMatrix(ThisType&& rhs) {
+  swap(rhs);
 }
-
+  
 template <typename ScalarType, DeviceType device_name, class Allocator>
 ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
     ScalarType, device_name, Allocator>::operator=(ThisType&& rhs) {

@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <vector>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains/dmn.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/function/domains/dmn_variadic.hpp"

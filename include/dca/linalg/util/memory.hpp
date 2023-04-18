@@ -18,11 +18,11 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "dca/platform/dca_gpu.h"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/ignore.hpp"
-
-#include "dca/platform/dca_gpu.h"
 
 namespace dca {
 namespace linalg {
@@ -44,8 +44,10 @@ struct Memory<CPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    std::complex<ScalarType> c_zero{0.0,0.0};
-    std::fill_n(ptr, size, c_zero); //memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
+    std::complex<ScalarType> c_zero{0.0, 0.0};
+    std::fill_n(
+        ptr, size,
+        c_zero);  // memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
@@ -63,6 +65,13 @@ template <>
 struct Memory<GPU> {
   // Sets the elements to 0. Only defined for arithmetic types and
   // std::complex of aritmetic types.
+
+  /// Specialization for float2, double2, cuComplex, cuDoubleComplex
+  template <typename ScalarType>
+  static std::enable_if_t<dca::util::IsCudaComplex_t<ScalarType>::value == true, void> setToZero(ScalarType ptr, size_t size) {
+    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+  }
+
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       ScalarType* ptr, size_t size) {
@@ -73,6 +82,7 @@ struct Memory<GPU> {
       std::complex<ScalarType>* ptr, size_t size) {
     cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
   }
+
 
   // Do nothing for non arithmetic types.
   template <typename ScalarType>
