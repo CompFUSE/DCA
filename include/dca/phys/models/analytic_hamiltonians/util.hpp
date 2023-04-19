@@ -53,9 +53,12 @@ void initializeSingleBandHint(
   for (const auto& vec : nn_vec) {
     std::vector<double> nn_vec_translated =
         domains::cluster_operations::translate_inside_cluster(vec, super_basis);
-    nn_index.push_back(
-        domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE));
+    int r = domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE);
+    int minus_r = RDmn::parameter_type::subtract(r, origin);
+    nn_index.push_back(r);
+    nn_index.push_back(minus_r);
   }
+  
 
   // Set all elements to zero.
   H_int = 0.;

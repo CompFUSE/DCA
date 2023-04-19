@@ -27,6 +27,7 @@
 // #include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
 // #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_altermagnet.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
@@ -49,6 +50,8 @@ class ModelParameters {};
 // #include "model_parameters_2d_4band.inc"
 
 #include "model_parameters_Kagome_hubbard.inc"
+
+#include "model_parameters_twoband_altermagnet.inc"
 
 // Specialization for square lattice bilayer Hubbard model
 #include "model_parameters_bilayer_hubbard.inc"
