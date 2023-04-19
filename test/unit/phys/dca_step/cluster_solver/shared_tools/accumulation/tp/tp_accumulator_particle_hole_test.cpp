@@ -12,6 +12,9 @@
 // channels based on the relation between the particle-hole longitudinal up-up and up-down channels,
 // and the particle-hole magnetic and charge channels.
 
+
+#include "dca/platform/dca_gpu.h"
+
 using Scalar = double;
 #include "test/mock_mcconfig.hpp"
 namespace dca {
@@ -19,6 +22,7 @@ namespace config {
 using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
+#include "dca/platform/dca_gpu.h"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
@@ -31,6 +35,7 @@ using McOptions = MockMcOptions<Scalar>;
 
 #include "dca/function/util/difference.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+#include "dca/util/type_help.hpp"
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"

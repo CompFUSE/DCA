@@ -26,7 +26,10 @@ public:
   using MC_measurement_scalar_type = AccumType;
   static constexpr bool complex_g0 = dca::util::IsComplex_t<AccumType>::value;
   using RClusterDmn = typename BaseTestSetup::RDmn;
-
+  using Scalar = AccumType;
+  using Real = dca::util::RealAlias<AccumType>;
+  
+  
   double get_beta() const {
     return beta_;
   }

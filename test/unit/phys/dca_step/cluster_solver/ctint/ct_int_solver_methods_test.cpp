@@ -1,9 +1,12 @@
 #include "dca/config/profiler.hpp"
 
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
+
+using Scalar = double;
 namespace dca {
 namespace config {
-using McOptions = MockMcOptions<double>;
+using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
 
@@ -25,7 +28,7 @@ using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  ModelType, RngType, dca::ClusterSolverId::CT_IN>;
+                                  ModelType, RngType, dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 
 struct SolverWrapper

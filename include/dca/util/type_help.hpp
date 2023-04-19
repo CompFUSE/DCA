@@ -101,20 +101,31 @@ struct ComplexAlias_impl<T, IsComplex<T>> {
 };
 
 #ifdef DCA_HAVE_GPU
-template <>
-struct ComplexAlias_impl<double2> {
-  using value_type = cuDoubleComplex;
-};
-
-template <>
-struct ComplexAlias_impl<float2> {
-  using value_type = cuComplex;
+template <typename T>
+struct ComplexAlias_impl<T, IsCudaComplex<T>> {
+  using value_type = T;
 };
 
 template <typename T>
-struct ComplexAlias_impl<T, IsCudaComplex<T>> {
-  using value_type = CudaComplex<std::remove_pointer<T*>>;
+struct ComplexAlias_impl<T*, IsCudaComplex<T>> {
+  using value_type = T*;
 };
+
+  template <typename T>
+struct ComplexAlias_impl<T**, IsCudaComplex<T>> {
+  using value_type = T**;
+};
+
+  
+/* template <> */
+/* struct ComplexAlias_impl<float2> { */
+/*   using value_type = cuComplex; */
+/* }; */
+
+/* template <typename T> */
+/* struct ComplexAlias_impl<T, IsCudaComplex<T>> { */
+/*   using value_type = CudaComplex<std::remove_pointer<T*>>; */
+/* }; */
 
 template <typename T, typename = bool>
 struct CudaScalar_impl {};

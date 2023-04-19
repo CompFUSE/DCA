@@ -9,6 +9,8 @@
 //
 // This file implements a no-change test for the two point accumulation on a single band lattice.
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>

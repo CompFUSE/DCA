@@ -37,11 +37,10 @@ class SpaceTransform2DGpu : public SpaceTransform2D<RDmn, KDmn, Scalar> {
 protected:
   // I guess the base type should use the host side scalar
   using Base = SpaceTransform2D<RDmn, KDmn, dca::util::HOSTTypeMap<Scalar>>;
-  using Complex = dca::util::CUDATypeMap<Scalar>;
+  using Complex = dca::util::ComplexAlias<Scalar>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
-  using RMatrix =
-    linalg::ReshapableMatrix<Complex, linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
 
 public:
   // Constructor
@@ -120,7 +119,7 @@ float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
   dca::util::makeOne(the_one);
   Scalar the_zero;
   dca::util::makeZero(the_zero);
-  
+
   float flop = 0.;
 
   auto& T_times_M = *(workspace_);
@@ -169,8 +168,9 @@ void SpaceTransform2DGpu<RDmn, KDmn, Scalar>::phaseFactorsAndRearrange(const RMa
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       Base::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
-  details::phaseFactorsAndRearrange(dca::util::castHostType(in.ptr()), in.leadingDimension(), dca::util::castHostType(out.ptr()),
-                                    out.leadingDimension(), n_bands_, nc_, nw_, dca::util::castHostType(phase_factors_ptr),
+  details::phaseFactorsAndRearrange(dca::util::castHostType(in.ptr()), in.leadingDimension(),
+                                    dca::util::castHostType(out.ptr()), out.leadingDimension(),
+                                    n_bands_, nc_, nw_, dca::util::castHostType(phase_factors_ptr),
                                     queue_);
 }
 
@@ -180,7 +180,7 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Scalar>::getPhaseFactors() {
     using dca::util::ComplexAlias;
     const auto& phase_factors = Base::getPhaseFactors();
     linalg::Vector<ComplexAlias<Scalar>, linalg::CPU> host_vector(phase_factors.size());
-    std::copy_n(phase_factors.values(), phase_factors.size(), host_vector.ptr());
+    std::copy_n(phase_factors.values(), phase_factors.size(), dca::util::castHostType(host_vector.ptr()));
     return VectorDev(host_vector);
   };
 

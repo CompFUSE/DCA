@@ -53,10 +53,14 @@ struct Memory<CPU> {
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
   }
-
   template <typename ScalarType>
   static void setToZero(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
+  }
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsCudaComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    std::memset(ptr, 0, sizeof(Scalar) * size);
   }
 };
 
@@ -83,6 +87,14 @@ struct Memory<GPU> {
     cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
   }
 
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsCudaComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    cudaMemset(ptr, 0, size * sizeof(Scalar));
+  }
+
+
+  
 
   // Do nothing for non arithmetic types.
   template <typename ScalarType>

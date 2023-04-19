@@ -10,7 +10,7 @@
 // model.
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
-
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 
 #include "dca/math/random/random.hpp"

@@ -9,6 +9,8 @@
 //
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
+#include "dca/platform/dca_gpu.h"
+
 using Scalar = double;
 
 #include "test/mock_mcconfig.hpp"

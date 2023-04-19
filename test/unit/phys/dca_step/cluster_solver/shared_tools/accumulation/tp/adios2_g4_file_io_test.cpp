@@ -10,6 +10,8 @@
 //
 // This file implements a write read of a largish G4 matrix
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>

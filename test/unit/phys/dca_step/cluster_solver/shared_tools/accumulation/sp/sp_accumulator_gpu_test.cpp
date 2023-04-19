@@ -11,6 +11,8 @@
 // This file implements a comparison test for GPU vs host accumulation.
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
@@ -31,10 +33,9 @@ using McOptions = MockMcOptions<Scalar>;
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 //using Scalar = typename dca::config::McOptions::MCScalar;
+using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
 
 TEST_F(SpAccumulatorGpuTest, Accumulate) {
-  using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
-
   using MatrixPair = SpAccumulatorGpuTest::Sample;
   using Configuration = SpAccumulatorGpuTest::Configuration;
   using Parameters = SpAccumulatorGpuTest::Parameters;
@@ -74,6 +75,7 @@ TEST_F(SpAccumulatorGpuTest, SumTo) {
 
   const std::array<int, 2> n{3, 4};
   const int sign = -1;
+  using MatrixPair = SpAccumulatorGpuTest::Sample;
   MatrixPair M1, M2;
   Configuration config1, config2;
   prepareConfiguration(config1, M1, n);

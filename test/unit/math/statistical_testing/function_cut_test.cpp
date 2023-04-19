@@ -9,6 +9,8 @@
 //
 // This file tests the utility provided by function_cut.hpp.
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/math/statistical_testing/function_cut.hpp"
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"

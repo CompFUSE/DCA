@@ -98,7 +98,7 @@ CUDARealAliasMap<T> realAliasGPU(T var) {
 
 template <typename T>
 struct IsCudaComplex_t : std::disjunction<std::is_same<float2, T>, std::is_same<double2, T>, std::false_type> {};
-  
+
 /* template <typename T> */
 /* struct IsCudaComplex_t : public std::false_type {}; */
 
@@ -109,7 +109,7 @@ struct IsCudaComplex_t : std::disjunction<std::is_same<float2, T>, std::is_same<
 /* struct IsCudaComplex_t<std::is_same<T, double2>> : public std::true_type {}; */
 
 template <typename T>
-using IsCudaComplex = std::enable_if_t<IsCudaComplex_t<std::decay<T>>::value, bool>;
+using IsCudaComplex = std::enable_if_t<IsCudaComplex_t<std::decay_t<T>>::value, bool>;
 
 template <typename Real>
 struct Real2CudaComplex;

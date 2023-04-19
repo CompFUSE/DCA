@@ -10,7 +10,7 @@
 
 #ifndef DCA_TEST_MOCK_MCCONFIG_HPP
 #define DCA_TEST_MOCK_MCCONFIG_HPP
-
+// dca_gpu.hpp needs be included before this is get proper help for types.
 #include "dca/util/type_help.hpp"
 #include "dca/config/haves_defines.hpp"
 #ifdef DCA_HAVE_GPU

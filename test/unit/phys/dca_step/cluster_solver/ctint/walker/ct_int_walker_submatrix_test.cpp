@@ -11,6 +11,7 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+#include "dca/platform/dca_gpu.h"
 using Scalar = double;
 #include "test/mock_mcconfig.hpp"
 namespace dca {

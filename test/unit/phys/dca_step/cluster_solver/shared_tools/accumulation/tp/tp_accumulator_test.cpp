@@ -9,6 +9,8 @@
 //
 // This file implements a no-change test for the two point accumulation of a mock configuration.
 
+#include "dca/platform/dca_gpu.h"
+
 using Scalar = double;
 #include "test/mock_mcconfig.hpp"
 namespace dca {
@@ -16,6 +18,8 @@ namespace config {
 using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
+
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 

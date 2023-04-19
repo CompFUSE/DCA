@@ -10,6 +10,7 @@
 //
 // This file tests the summation of equal time two particle results.
 
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

@@ -11,6 +11,7 @@
 // This class tests the GPU walker used by the ctint cluster solver by comparing it with the CPU
 // version.
 
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

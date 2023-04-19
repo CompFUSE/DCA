@@ -34,25 +34,49 @@ TEST(TypeHelpTest, IsCudaComplex) {
   EXPECT_TRUE(dca::util::IsCudaComplex_t<cuDoubleComplex>::value);
   EXPECT_TRUE(dca::util::IsCudaComplex_t<double2>::value);
   EXPECT_FALSE(dca::util::IsCudaComplex_t<std::complex<double>>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<double2*>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<double2**>::value);
 }
 #endif
+
+TEST(TypeHelpTest, ComplexAlias) {
+  bool is_same = std::is_same_v<dca::util::ComplexAlias<float>, std::complex<float>>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<std::complex<float>>, std::complex<float>>;
+  EXPECT_TRUE(is_same);
+#ifdef DCA_HAVE_GPU
+  is_same = std::is_same_v<dca::util::ComplexAlias<float2>, float2>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<float2*>, float2*>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<float2**>, float2**>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<double2>, double2>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<double2*>, double2*>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<double2**>, double2**>;
+  EXPECT_TRUE(is_same);
+#endif
+}  
 
 TEST(TypeHelpTest, LinalgConstants) {
   std::complex<double> one{1.0,0.0};
   std::complex<double> made_one;
   dca::util::makeOne(made_one);
   EXPECT_EQ(made_one, one);
+  double d_one{1.0};
+  double d_made_one;
+  dca::util::makeOne(d_made_one);
+  EXPECT_EQ(d_made_one, d_one);
+#ifdef DCA_HAVE_GPU
   double2 d2_one{1.0,0.0};
   double2 made_d2_one;
   dca::util::makeOne(made_d2_one);
   EXPECT_EQ(made_d2_one.x, d2_one.x);
   EXPECT_EQ(made_d2_one.y, d2_one.y);
-
-  double2 d2_zero{1.0,0.0};
+  double2 d2_zero{0.0,0.0};
   double2 made_d2_zero;
   dca::util::makeZero(made_d2_zero);
   EXPECT_EQ(made_d2_zero.x, d2_zero.x);
   EXPECT_EQ(made_d2_zero.y, d2_zero.y);
+  #endif
 }

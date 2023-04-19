@@ -11,6 +11,7 @@
 // This file implements unit tests for two particles accumulation on the GPU.
 
 #include "dca/config/profiler.hpp"
+#include "dca/platform/dca_gpu.h"
 
 using Scalar = double;
 
@@ -197,11 +198,11 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();
   
-  auto acc3_it = accumulator3.get_G4()[0].begin();
-  auto acc_sum_it = accumulator_sum.get_G4()[0].begin();
-  auto acc3_end = accumulator3.get_G4()[0].end();
+  // auto acc3_it = accumulator3.get_G4()[0].begin();
+  // auto acc_sum_it = accumulator_sum.get_G4()[0].begin();
+  // auto acc3_end = accumulator3.get_G4()[0].end();
 
-  int index = 0;
+  // int index = 0;
   // while(acc3_it != acc3_end) {
   //   EXPECT_NEAR(acc_sum_it->real(), acc3_it->real(), 1E-4) << "index = " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index));
   //   ++acc3_it;
