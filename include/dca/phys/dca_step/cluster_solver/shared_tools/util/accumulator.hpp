@@ -71,7 +71,12 @@ struct SampleType {
 };
 
 template <typename T>
-struct SampleType<T, typename std::enable_if_t<dca::math::IsPhase<T>::value, bool>> {
+struct SampleType<T, typename std::enable_if_t<(dca::math::IsPhase<T>::value && std::is_integral<decltype(std::declval<T>().getSign())>::value), bool>> {
+  using type = long long; //long long;
+};
+
+template <typename T>
+struct SampleType<T, typename std::enable_if_t<(dca::math::IsPhase<T>::value && ! std::is_integral<decltype(std::declval<T>().getSign())>::value), bool>> {
   using type = decltype(std::declval<T>().getSign());
 };
 

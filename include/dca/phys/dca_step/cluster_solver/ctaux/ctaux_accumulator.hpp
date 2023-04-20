@@ -58,11 +58,11 @@ namespace ctaux {
 // dca::phys::solver::ctaux::
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
-class CtauxAccumulator : public MC_accumulator_data<typename dca::util::ScalarSelect<typename dca::config::McOptions::MC_REAL,Parameters::complex_g0>::type> {
+class CtauxAccumulator : public MC_accumulator_data<typename Parameters::Scalar> {
 public:
   static constexpr ClusterSolverId solver_id{ClusterSolverId::CT_AUX};
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using this_type = CtauxAccumulator<device_t, Parameters, Data, DIST>;
   using TpAccumulator = accumulator::TpAccumulator<Parameters, DIST, device_t>;
   using ParametersType = Parameters;

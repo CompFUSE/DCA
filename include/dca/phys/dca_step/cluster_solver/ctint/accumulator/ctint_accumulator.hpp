@@ -244,7 +244,7 @@ void CtintAccumulator<Parameters, device, DIST>::measure() {
     throw(std::logic_error("No or invalid configuration to accumulate."));
   accumulated_phase_.addSample(current_phase_.getSign());
   accumulated_order_.addSample(order());
-  number_of_measurements_ += 1;
+  ++number_of_measurements_;
 
   sp_accumulator_.accumulate(M_, configuration_.get_sectors(), current_phase_.getSign());
   flop_ += measure_flops_;
@@ -259,7 +259,7 @@ template <class Parameters, linalg::DeviceType device, DistType DIST>
 void CtintAccumulator<Parameters, device, DIST>::sumTo(this_type& other_one) {
   other_one.accumulated_order_ += accumulated_order_;
   other_one.accumulated_phase_ += accumulated_phase_;
-
+  other_one.number_of_measurements_ += number_of_measurements_;
   sp_accumulator_.sumTo(other_one.sp_accumulator_);
   if (perform_tp_accumulation_) {
     assert(other_one.perform_tp_accumulation_);
