@@ -42,6 +42,10 @@ TEST(TypeHelpTest, ComplexAlias) {
   EXPECT_TRUE(is_same);
   is_same = std::is_same_v<dca::util::ComplexAlias<std::complex<float>>, std::complex<float>>;
   EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<double>, std::complex<double>>;
+  EXPECT_TRUE(is_same);
+  is_same = std::is_same_v<dca::util::ComplexAlias<std::complex<double>>, std::complex<double>>;
+  EXPECT_TRUE(is_same);
 #ifdef DCA_HAVE_GPU
   is_same = std::is_same_v<dca::util::ComplexAlias<float2>, float2>;
   EXPECT_TRUE(is_same);
@@ -57,6 +61,21 @@ TEST(TypeHelpTest, ComplexAlias) {
   EXPECT_TRUE(is_same);
 #endif
 }  
+
+TEST(TypeHelpTest, castHostType) {
+  std::complex<double> a_complex{1.0, 2.0};
+  std::complex<double>* p_a_complex = &a_complex;
+  std::complex<double>** pp_a_complex = &p_a_complex;
+
+  const std::complex<double>* c_p_a_complex = &a_complex;
+  const std::complex<double>** c_pp_a_complex = &c_p_a_complex;
+#ifdef DCA_HAVE_GPU
+  auto cast_pp_a_complex = dca::util::castHostType(pp_a_complex);
+  auto cast_c_pp_a_complex = dca::util::castHostType(c_pp_a_complex);
+  EXPECT_TRUE(**cast_pp_a_complex == **cast_c_pp_a_complex);
+#endif
+}  
+
 
 TEST(TypeHelpTest, LinalgConstants) {
   std::complex<double> one{1.0,0.0};

@@ -100,7 +100,8 @@ const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransfo
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
         const auto& k = KDmn::parameter_type::get_elements()[i];
-        T(i, j) = std::exp(dca::util::ComplexAlias<Scalar>(0, util::innerProduct(k, r)));
+	auto temp_exp = std::exp(dca::util::ComplexAlias<dca::util::RealAlias<Scalar>>{0, util::innerProduct(k, r)});
+        T(i, j) = typename decltype(T)::ValueType{temp_exp.real(), temp_exp.imag()};
       }
     }
     return T;
@@ -123,8 +124,12 @@ const auto& SpaceTransform2D<RDmn, KDmn, Scalar>::getPhaseFactors() {
 
     for (int k = 0; k < KDmn::dmn_size(); ++k) {
       const auto& k_vec = KDmn::get_elements()[k];
-      for (int b = 0; b < BDmn::dmn_size(); ++b)
-        phase_factors(b, k) = std::exp(Complex(0., util::innerProduct(k_vec, a_vecs[b])));
+      for (int b = 0; b < BDmn::dmn_size(); ++b) {
+	// Scalar could be cuComplex or cuDouableComplex so...
+	std::complex<dca::util::RealAlias<Scalar>> temp_phase{0., util::innerProduct(k_vec, a_vecs[b])};
+	temp_phase = std::exp(temp_phase);
+	phase_factors(b,k) = Complex{temp_phase.real(), temp_phase.imag()};
+      }
     }
   });
 

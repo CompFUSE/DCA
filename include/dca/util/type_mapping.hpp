@@ -27,6 +27,7 @@ template <typename T>
 struct default_type : std::true_type {
   using type = T;
 };
+
 }  // namespace util
 }  // namespace dca
 

@@ -20,7 +20,6 @@
 #include <memory>
 #include "dca/config/haves_defines.hpp"
 #include "dca/platform/dca_gpu_complex.h"
-#include <magma_v2.h>
 #include "dca/util/type_mapping.hpp"
 
 namespace dca {
@@ -32,28 +31,40 @@ namespace util {
  *  representations.
  */
 template <typename T>
-using HOSTTypeMap = typename std::disjunction<
-    OnTypesEqual<T, float, float>, OnTypesEqual<T, double, double>,
-    OnTypesEqual<T, const float, const float>, OnTypesEqual<T, const double, const double>,
-    OnTypesEqual<T, float2, std::complex<float>>, OnTypesEqual<T, double2, std::complex<double>>,
-  default_type<void>>::type;
+using HOSTTypeMap =
+    typename std::disjunction<OnTypesEqual<T, float, float>, OnTypesEqual<T, double, double>,
+                              OnTypesEqual<T, const float, const float>,
+                              OnTypesEqual<T, const double, const double>,
+                              OnTypesEqual<T, float2, std::complex<float>>,
+                              OnTypesEqual<T, double2, std::complex<double>>, default_type<void>>::type;
 
 /** Type maps to handle cast from of complex type pointers from GPU to std C++ representation
  *  representations.
  */
 template <typename T>
 using HOSTPointerMap = typename std::disjunction<
-    OnTypesEqual<T, float*, float*>, OnTypesEqual<T, double*, double*>,
-    OnTypesEqual<T, const float*, const float*>, OnTypesEqual<T, const double*, const double*>,
-    OnTypesEqual<T, float**, float**>, OnTypesEqual<T, double**, double**>,
-    OnTypesEqual<T, const float**, const float**>, OnTypesEqual<T, const double**, const double**>,
-    OnTypesEqual<T, std::complex<double>, cuDoubleComplex>,
+
+    OnTypesEqual<T, float, float>, OnTypesEqual<T, double, double>, OnTypesEqual<T, float*, float*>,
+    OnTypesEqual<T, double*, double*>, OnTypesEqual<T, const float*, const float*>,
+    OnTypesEqual<T, const double*, const double*>, OnTypesEqual<T, float**, float**>,
+    OnTypesEqual<T, double**, double**>, OnTypesEqual<T, const float**, const float**>,
+    OnTypesEqual<T, const double**, const double**>, OnTypesEqual<T, std::complex<double>, cuDoubleComplex>,
     OnTypesEqual<T, float2*, std::complex<float>*>, OnTypesEqual<T, double2*, std::complex<double>*>,
     OnTypesEqual<T, float2**, std::complex<float>**>, OnTypesEqual<T, double2**, std::complex<double>**>,
     OnTypesEqual<T, const float2*, const std::complex<float>*>,
     OnTypesEqual<T, const double2*, const std::complex<double>*>,
-      OnTypesEqual<T, const float2**, const std::complex<float>**>, OnTypesEqual<T, const double2**, const std::complex<double>**>,
-  default_type<void>>::type;
+    OnTypesEqual<T, const float2**, const std::complex<float>**>,
+    OnTypesEqual<T, const double2**, const std::complex<double>**>,
+    OnTypesEqual<T, std::complex<float>*, std::complex<float>*>,
+    OnTypesEqual<T, std::complex<double>*, std::complex<double>*>,
+    OnTypesEqual<T, std::complex<float>**, std::complex<float>**>,
+    OnTypesEqual<T, std::complex<double>**, std::complex<double>**>,
+    OnTypesEqual<T, const std::complex<float>*, const std::complex<float>*>,
+    OnTypesEqual<T, const std::complex<double>*, const std::complex<double>*>,
+    OnTypesEqual<T, const std::complex<float>**, const std::complex<float>**>,
+    OnTypesEqual<T, const std::complex<double>**, const std::complex<double>**>,
+
+    default_type<void>>::type;
 
 /** Type maps to handle conversion of complex types from std c++ to GPU representation
  *  representations.
@@ -63,7 +74,8 @@ using CUDATypeMap = typename std::disjunction<
     OnTypesEqual<T, float, float>, OnTypesEqual<T, double, double>, OnTypesEqual<T, float*, float*>,
     OnTypesEqual<T, double*, double*>, OnTypesEqual<T, const float*, const float*>,
     OnTypesEqual<T, const double*, const double*>, OnTypesEqual<T, float**, float**>,
-    OnTypesEqual<T, double**, double**>, OnTypesEqual<T, std::complex<double>, cuDoubleComplex>,
+    OnTypesEqual<T, const float**, const float**>, OnTypesEqual<T, double**, double**>,
+    OnTypesEqual<T, const double**, const double**>, OnTypesEqual<T, std::complex<double>, cuDoubleComplex>,
     OnTypesEqual<T, std::complex<float>, cuComplex>, OnTypesEqual<T, std::complex<double>, cuDoubleComplex>,
     OnTypesEqual<T, std::complex<double>*, cuDoubleComplex*>,
     OnTypesEqual<T, std::complex<float>**, cuComplex**>,
@@ -97,7 +109,8 @@ CUDARealAliasMap<T> realAliasGPU(T var) {
 }
 
 template <typename T>
-struct IsCudaComplex_t : std::disjunction<std::is_same<float2, T>, std::is_same<double2, T>, std::false_type> {};
+struct IsCudaComplex_t
+    : std::disjunction<std::is_same<float2, T>, std::is_same<double2, T>, std::false_type> {};
 
 /* template <typename T> */
 /* struct IsCudaComplex_t : public std::false_type {}; */
@@ -130,10 +143,10 @@ template <typename T>
 __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
   if constexpr (std::is_same_v<HOSTPointerMap<T>, T>)
     return var;
-  else if constexpr(std::is_pointer_v<T>)
+  else if constexpr (std::is_pointer_v<T>)
     return reinterpret_cast<HOSTPointerMap<T>>(var);
 }
-  
+
 #endif
 }  // namespace util
 }  // namespace dca

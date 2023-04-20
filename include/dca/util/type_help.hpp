@@ -33,7 +33,7 @@
 
 namespace dca {
 namespace util {
-
+  
 #ifdef DCA_HAVE_GPU
 template <typename Real>
 using CudaComplex = typename Real2CudaComplex<Real>::type;
@@ -87,6 +87,10 @@ struct RealAlias_impl<T, IsComplex<T>> {
 template <typename T>
 using RealAlias = typename RealAlias_impl<T>::value_type;
 
+/** default implementation
+ *  This will cause ComplexAlias to fail which is what we want if its not a floating
+ *  point scalar type expected, i.e. real floating point, std::complex, cu.*Complex.
+ */
 template <typename T, typename = bool>
 struct ComplexAlias_impl {};
 
@@ -152,6 +156,9 @@ struct CudaScalarStruct {
 template <typename T>
 using ComplexAlias = typename ComplexAlias_impl<T>::value_type;
 
+template <typename T>
+using HostComplexAlias = ComplexAlias<RealAlias<T>>;
+  
 template <typename REAL, bool complex>
 struct ScalarSelect {
   using type = REAL;
@@ -239,7 +246,7 @@ struct TheZero<T, IsComplex<T>> {
 
 template <typename T, typename T2>
 auto makeMaybe(
-    T2 t2, typename std::enable_if_t<IsComplex_t<T>::value || std::is_floating_point<T>::value>* = 0) {
+    const T2 t2, typename std::enable_if_t<IsComplex_t<T>::value || std::is_floating_point<T>::value>* = 0) {
   return T(t2);
 }
 
@@ -248,7 +255,7 @@ auto makeMaybe(
  *  static cast required to deal with possibility of narrowing conversion from literal expressed as double.
  */
 template <typename T, typename T2>
-auto makeMaybe(T2 t2, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
+auto makeMaybe(const T2 t2, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
   using Real = RealAlias<T>;
   return T{static_cast<Real>(t2), 0.0};
 }
@@ -264,6 +271,13 @@ inline auto GPUTypeConversion(
   return CUDATypeMap<T>{var.real(), var.imag()};
 }
 
+template <typename T>
+inline auto HOSTTypeConversion(
+    T var, typename std::enable_if_t<IsComplex_t<T>::value && (!IsCudaComplex_t<T>::value)>* = 0) {
+  return HOSTTypeMap<T>{var.x, var.y};
+}
+
+  
 template <typename T>
 inline auto GPUTypeConversion(T var,
                               typename std::enable_if_t<std::is_floating_point<T>::value>* = 0) {

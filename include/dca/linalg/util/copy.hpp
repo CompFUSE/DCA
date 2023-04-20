@@ -263,7 +263,7 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
-template <typename Scalar1, Scalar2>
+template <typename Scalar1, typename Scalar2>
 void memoryCopy(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
                 std::pair<int, int> size, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
   static_assert(sizeof(Scalar1) == sizeof(Scalar2));

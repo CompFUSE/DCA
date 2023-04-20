@@ -19,6 +19,7 @@
 
 #include "H5Cpp.h"
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/platform/dca_gpu.h"
 
 #include "dca/io/buffer.hpp"

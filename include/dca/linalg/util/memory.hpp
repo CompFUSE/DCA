@@ -57,11 +57,13 @@ struct Memory<CPU> {
   static void setToZero(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
   }
+#ifdef DCA_HAVE_GPU
   template <typename Scalar>
   static std::enable_if_t<dca::util::IsCudaComplex_t<Scalar>::value == true, void> setToZero(
       Scalar* ptr, size_t size) {
     std::memset(ptr, 0, sizeof(Scalar) * size);
   }
+#endif
 };
 
 #ifdef DCA_HAVE_GPU

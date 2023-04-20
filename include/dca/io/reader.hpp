@@ -17,6 +17,7 @@
 #include <string>
 #include <variant>
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/platform/dca_gpu.h"
 
 #include "dca/util/type_help.hpp"
