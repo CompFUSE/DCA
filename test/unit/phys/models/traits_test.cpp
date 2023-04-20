@@ -8,6 +8,7 @@
 //
 // This file tests model traits
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"

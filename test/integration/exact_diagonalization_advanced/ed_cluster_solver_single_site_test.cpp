@@ -13,7 +13,7 @@
 // G(i\omega), against their analytic result.
 
 using Scalar = double;
-
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

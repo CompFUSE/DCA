@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"

@@ -12,6 +12,7 @@
 #include <vector>
 #include <array>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"

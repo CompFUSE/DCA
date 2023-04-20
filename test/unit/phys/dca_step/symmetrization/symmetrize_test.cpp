@@ -9,6 +9,7 @@
 //
 // Test the symmetries of the non interacting Greens function.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"

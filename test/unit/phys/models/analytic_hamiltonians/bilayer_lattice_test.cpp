@@ -9,6 +9,7 @@
 //
 // This file tests bilayer_lattice.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 
 #include <cmath>

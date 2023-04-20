@@ -10,6 +10,7 @@
 // Performance test for CT-AUX walker.
 // Bilayer lattice with two bands and 36 sites.
 
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

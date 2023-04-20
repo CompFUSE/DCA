@@ -33,24 +33,27 @@ using McOptions = MockMcOptions<Scalar>;
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 //using Scalar = typename dca::config::McOptions::MCScalar;
-using SpAccumulatorGpuTest = dca::testing::AccumulationTest<Scalar, 1, 3, 128>;
+template <typename SCALAR>
+using SpAccumulatorGpuTest = dca::testing::AccumulationTest<SCALAR, 1, 3, 128>;
+using TestTypes = ::testing::Types<float, double, std::complex<double>>;
+TYPED_TEST_CASE(SpAccumulatorGpuTest, TestTypes);
 
-TEST_F(SpAccumulatorGpuTest, Accumulate) {
-  using MatrixPair = SpAccumulatorGpuTest::Sample;
-  using Configuration = SpAccumulatorGpuTest::Configuration;
-  using Parameters = SpAccumulatorGpuTest::Parameters;
-
+TYPED_TEST(SpAccumulatorGpuTest, Accumulate) {
+  using Scalar = TypeParam;
+  using MatrixPair = typename SpAccumulatorGpuTest<Scalar>::Sample;
+  using Configuration = typename SpAccumulatorGpuTest<Scalar>::Configuration;
+  using Parameters = typename SpAccumulatorGpuTest<Scalar>::Parameters;
   const std::array<int, 2> n{31, 28};
   MatrixPair M;
   Configuration config;
-  prepareConfiguration(config, M, n);
+  this->prepareConfiguration(config, M, n);
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-      parameters_);
+      this->parameters_);
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
-      parameters_);
+      this->parameters_);
 
-  const int sign = 1;
+  dca::util::SignType<Scalar> sign{1};
   accumulatorDevice.resetAccumulation();
   accumulatorDevice.accumulate(M, config, sign);
   accumulatorDevice.finalize();
@@ -62,24 +65,28 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
   const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_M_r_w(),
                                                 accumulatorDevice.get_sign_times_M_r_w());
 
-  EXPECT_GT(500 * std::numeric_limits<Parameters::MC_measurement_scalar_type>::epsilon(), diff.l_inf);
+  EXPECT_GT(500 * std::numeric_limits<typename Parameters::Real>::epsilon(), diff.l_inf);
 }
 
-TEST_F(SpAccumulatorGpuTest, SumTo) {
+TYPED_TEST(SpAccumulatorGpuTest, SumTo) {
+  using Scalar = TypeParam;
+  using Parameters = typename SpAccumulatorGpuTest<Scalar>::Parameters;
   using Accumulator =
       dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU>;
-  Accumulator accumulator1(parameters_);
-  Accumulator accumulator2(parameters_);
-  Accumulator accumulator_sum(parameters_);
-  Accumulator accumulator3(parameters_);
+  using Configuration = typename SpAccumulatorGpuTest<Scalar>::Configuration;
+
+  Accumulator accumulator1(this->parameters_);
+  Accumulator accumulator2(this->parameters_);
+  Accumulator accumulator_sum(this->parameters_);
+  Accumulator accumulator3(this->parameters_);
 
   const std::array<int, 2> n{3, 4};
   const int sign = -1;
-  using MatrixPair = SpAccumulatorGpuTest::Sample;
+  using MatrixPair = typename SpAccumulatorGpuTest<Scalar>::Sample;
   MatrixPair M1, M2;
   Configuration config1, config2;
-  prepareConfiguration(config1, M1, n);
-  prepareConfiguration(config2, M2, n);
+  this->prepareConfiguration(config1, M1, n);
+  this->prepareConfiguration(config2, M2, n);
 
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);

@@ -11,6 +11,7 @@
 //
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/io/json/json_reader.hpp"

@@ -11,6 +11,7 @@
 // This file tests the construction of the ED Hamiltonian on a two-site square-lattice Hubbard model
 // in the one-particle up-down sector.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 
 #include <complex>

@@ -9,6 +9,7 @@
 //
 // This file tests general_interaction.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/general_interaction.hpp"
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"

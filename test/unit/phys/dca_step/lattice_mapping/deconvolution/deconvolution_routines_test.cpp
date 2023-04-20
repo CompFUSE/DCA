@@ -9,6 +9,7 @@
 //
 // This file tests deconvolution_routines.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/lattice_mapping/deconvolution/deconvolution_routines.hpp"
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
@@ -43,7 +44,8 @@ TEST(DeconvolutionRoutinesTest, ProjectionOperator) {
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, Threading, profiling::NullProfiler, Model,
-                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX,
+                               dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using KSourceDmn = func::dmn_0<
       phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
                                     phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;

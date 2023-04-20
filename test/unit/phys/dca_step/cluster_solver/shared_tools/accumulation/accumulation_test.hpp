@@ -38,7 +38,6 @@ public:
   using Configuration = std::array<typename BaseClass::Configuration, 2>;
   using Sample = std::array<typename BaseClass::Matrix, 2>;
 
-protected:
   static void SetUpTestCase() {
     BaseClass::SetUpTestCase();
 

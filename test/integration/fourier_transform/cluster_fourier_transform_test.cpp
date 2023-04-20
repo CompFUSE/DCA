@@ -15,6 +15,7 @@
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"

@@ -10,7 +10,7 @@
 // Unit tests for the device version of the cached_ndft class.
 
 using Scalar = double;
-
+#include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

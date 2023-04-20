@@ -12,6 +12,9 @@
 
 #include "dca/config/profiler.hpp"
 #include <complex>
+
+#include "dca/platform/dca_gpu.h"
+
 using Scalar = std::complex<double>;
 
 #include "test/mock_mcconfig.hpp"
