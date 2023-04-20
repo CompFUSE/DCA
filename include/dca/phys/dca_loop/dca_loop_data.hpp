@@ -37,8 +37,8 @@ public:
   using expansion_dmn_t = func::dmn_0<func::dmn<32, int>>;
   using DCA_iteration_domain_type = func::dmn_0<domains::DCA_iteration_domain>;
 
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
