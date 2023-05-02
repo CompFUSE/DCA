@@ -128,6 +128,9 @@ private:
 
   bool verbose_;
 
+  /// work around for Legacy hdf5
+  bool is_legacy_ = false;
+
   int step_ = 0;
   bool in_step_ = false;
 };
