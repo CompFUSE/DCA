@@ -17,6 +17,9 @@
 #include <string>
 #include <variant>
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/io/io_types.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"

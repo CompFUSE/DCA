@@ -51,6 +51,8 @@ void ADIOS2Reader<CT>::close_file() {
   if (verbose_)
     std::cout << "\t ADIOS2Reader: Trying to close read file : " << file_name_ << "\n";
 
+  my_paths_.clear();
+  
   if (file_) {
     file_.Close();
     adios_.RemoveIO(io_name_);

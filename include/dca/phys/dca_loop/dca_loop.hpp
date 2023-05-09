@@ -165,8 +165,11 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
-  // We assume DCALoop write is called once at the end of the run and write its data in its own step.
-  output_file_->begin_step();
+  // We assume DCALoop write is called once at the end of the run and we leave a step open for it to
+  // write into.
+
+  //output_file_->begin_step();
+
   if (concurrency.id() == concurrency.first()) {
     // This should probably happen first not at the end
     parameters.write(*output_file_);
@@ -279,13 +282,12 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     if (L2_Sigma_difference <
         parameters.get_dca_accuracy()) {  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
-        output_file_->end_step();
       break;
     }
 
     // As long as this isn't the last iteration where this is handled by the finalize we want these here
     if (dca_iteration_ != parameters.get_dca_iterations() - 1) {
-      if (output_file_ && output_file_->isADIOS2()) {
+      if (output_file_ && (output_file_->isADIOS2() || output_file_->isHDF5())) {
         if (parameters.dump_every_iteration()) {
           if (concurrency.id() == concurrency.first()) {
             // This normally gets done in finalize before the dump.
@@ -296,9 +298,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
           }
         }
       }
+      output_file_->end_step();
     }
-
-    output_file_->end_step();
 
     if (parameters.do_not_update_sigma()) {
 	if (parameters.get_initial_self_energy() == "zero")

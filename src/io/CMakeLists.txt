@@ -10,4 +10,8 @@ if (DCA_HAVE_ADIOS2)
 endif()
 
 add_library(dca_io reader.cpp io_types.cpp)
+
+dca_gpu_runtime_link(dca_io)
+dca_gpu_blas_link(dca_io)
+
 target_link_libraries(dca_io PUBLIC ${DCA_IO_LIBS})
