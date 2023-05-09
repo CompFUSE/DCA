@@ -625,6 +625,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeGInit() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
+    // Doing subtraction with unsigned types...
     const int delta = n_max_[s] - n_init_[s];
 
     // f?  thanks

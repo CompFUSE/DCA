@@ -27,7 +27,7 @@ namespace details {
 
 __device__ __constant__ G4Helper g4_helper;
 
-void G4Helper::set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
+void G4Helper::set(unsigned int nb, unsigned int nk, unsigned int nw,
                    const std::vector<int>& delta_k, const std::vector<int>& delta_w,
                    const int* add_k, unsigned int lda, const int* sub_k, unsigned int lds) {
   static std::once_flag flag;
@@ -39,8 +39,7 @@ void G4Helper::set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
     G4Helper host_helper;
     host_helper.nb_ = nb;
     host_helper.nc_ = nk;
-    host_helper.nw_pos_ = nw_pos;
-    host_helper.nw_ = 2 * nw_pos;
+    host_helper.nw_ = nw;
     host_helper.n_k_ex_ = delta_k.size();
     host_helper.n_w_ex_ = delta_w.size();
 

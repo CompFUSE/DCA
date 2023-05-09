@@ -157,7 +157,7 @@ protected:
                                      bool cross_legs);
 
 protected:
-  const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
+  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
   const int thread_id_;

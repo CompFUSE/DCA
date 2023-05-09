@@ -627,3 +627,25 @@ TEST(MatrixGPUTest, setToZero) {
     for (int i = 0; i < mat_copy.nrRows(); ++i)
       EXPECT_EQ(0, mat_copy(i, j));
 }
+
+TEST(MatrixGPUTest, setTo) {
+  std::string name{"test_complex_matrix"};
+  auto size = std::make_pair(640, 2);
+  
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> mat_host(name, size);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> mat_dev(name, size);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> mat_host_ret(name, size);
+
+  auto el_value = [](int i, int j) ->std::complex<double> { return {3 * i - 2 * j, 2*i - 3*j}; };
+  for (int j = 0; j < mat_host.nrCols(); ++j)
+    for (int i = 0; i < mat_host.nrRows(); ++i)
+      mat_host(i,j) = el_value(i,j);
+
+  dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
+  mat_dev.set(mat_host, reset_stream);
+  mat_host_ret.set(mat_dev, reset_stream);
+
+  for (int j = 0; j < mat_host.nrCols(); ++j)
+    for (int i = 0; i < mat_host.nrRows(); ++i)
+      EXPECT_EQ(mat_host_ret(i,j), mat_host(i, j)); 
+}

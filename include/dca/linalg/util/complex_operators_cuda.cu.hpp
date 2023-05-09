@@ -206,25 +206,42 @@ __device__ __host__ static __inline__ CudaComplex<T>& operator*=(CudaComplex<T>&
 }
 
 template <typename T>
-__device__ __host__ void assign(T& a, const T b) {
+__device__ __host__ inline void assign(T& a, const T b) {
   a = b;
 }
 
+  // The contents of the cast come from en.cppreference.com/w/cpp/numeric/complex
 template <typename T>
-__device__ __host__ void assign(CudaComplex<T>& a, const std::complex<T>& b) {
-  a.x = reinterpret_cast<const T(&)[0]>(b)[0];
-  a.y = reinterpret_cast<const T(&)[1]>(b)[0];
+__device__ __host__ inline void assign(CudaComplex<T>& a, const std::complex<T>& b) {
+  a.x = reinterpret_cast<const T(&)[2]>(b)[0];
+  a.y = reinterpret_cast<const T(&)[2]>(b)[1];
 }
 
 template <typename T>
-__device__ __host__ void assign(std::complex<T>& a, const CudaComplex<T>& b) {
+__device__ __host__ inline void assign(std::complex<T>& a, const CudaComplex<T>& b) {
   reinterpret_cast<T(&)[2]>(a)[0] = b.x;
   reinterpret_cast<T(&)[2]>(a)[1] = b.y;
 }
 
 template <typename T>
-__device__ __host__ void assign(std::complex<T>& a, const T b) {
+__device__ __host__ inline void assign(std::complex<T>& a, const T b) {
   a = {b, 0.0};
+}
+
+template <typename T>
+__device__ __host__ inline void assign(CudaComplex<T>& a, const int8_t b) {
+  a.x = static_cast<T>(b);
+  a.y = 0.0;
+}
+
+__device__ __host__ inline void assign(double2& a, const int8_t b) {
+  a.x = static_cast<double>(b);
+  a.y = 0.0;
+}
+
+__device__ __host__ inline void assign(float2& a, const int8_t b) {
+  a.x = static_cast<float>(b);
+  a.y = 0.0;
 }
 
 #endif

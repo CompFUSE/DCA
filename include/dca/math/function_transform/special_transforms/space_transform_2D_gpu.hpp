@@ -44,9 +44,9 @@ protected:
 
 public:
   // Constructor
-  // In: nw_pos: number of extended positive frequencies.
+  // In: nw: number of extended frequencies.
   // In: queue: the magma queue on which execute will run.
-  SpaceTransform2DGpu(int nw_pos, const linalg::util::MagmaQueue& queue);
+  SpaceTransform2DGpu(int nw, const linalg::util::MagmaQueue& queue);
 
   // Performs the 2D fourier transform from real to momentum space in place and rearranges the
   // order of M's labels from (r, b, w) to (b, r, w).
@@ -102,10 +102,10 @@ private:
 };
 
 template <class RDmn, class KDmn, typename Scalar>
-SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw_pos,
+SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw,
                                                              const linalg::util::MagmaQueue& queue)
     : n_bands_(BDmn::dmn_size()),
-      nw_(2 * nw_pos),
+      nw_(nw),
       nc_(RDmn::dmn_size()),
       queue_(queue),
       plan1_(queue_),
@@ -113,13 +113,8 @@ SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw_pos,
   workspace_ = std::make_shared<RMatrix>();
 }
 
-template <class RDmn, class KDmn, typename Scalar>
-float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
-  Scalar the_one;
-  dca::util::makeOne(the_one);
-  Scalar the_zero;
-  dca::util::makeZero(the_zero);
-
+template <class RDmn, class KDmn, typename Real>
+float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
   float flop = 0.;
 
   auto& T_times_M = *(workspace_);
@@ -138,7 +133,7 @@ float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
     const int lda = T.leadingDimension();
     const int ldb = M.leadingDimension();
     const int ldc = T_times_M.leadingDimension();
-    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, the_one, the_zero, lda, ldb, ldc);
+    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex{1.0, 0.0}, Complex{0.0,0.0}, lda, ldb, ldc);
     flop += n_trafo * 8. * nc_ * M.nrCols() * nc_;
   }
 
@@ -152,7 +147,7 @@ float SpaceTransform2DGpu<RDmn, KDmn, Scalar>::execute(RMatrix& M) {
     const int ldb = T.leadingDimension();
     const int ldc = T_times_M_times_T.leadingDimension();
     const Complex norm = dca::util::makeMaybe<Complex>(1.0 / nc_);
-    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, the_zero, lda, ldb, ldc);
+    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex{0.0,0.0}, lda, ldb, ldc);
     flop += n_trafo * 8. * M.nrRows() * nc_ * nc_;
   }
 
@@ -179,7 +174,7 @@ const auto& SpaceTransform2DGpu<RDmn, KDmn, Scalar>::getPhaseFactors() {
   auto initialize = []() {
     using dca::util::ComplexAlias;
     const auto& phase_factors = Base::getPhaseFactors();
-    linalg::Vector<ComplexAlias<Scalar>, linalg::CPU> host_vector(phase_factors.size());
+    linalg::Vector<Complex, linalg::CPU> host_vector(phase_factors.size());
     std::copy_n(dca::util::castHostType(phase_factors.values()), phase_factors.size(), dca::util::castHostType(host_vector.ptr()));
     return VectorDev(host_vector);
   };

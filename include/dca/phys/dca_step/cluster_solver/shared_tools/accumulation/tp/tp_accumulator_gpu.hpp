@@ -101,7 +101,7 @@ public:
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulator(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
@@ -243,7 +243,7 @@ RingMessage{-1, -1, MPI_REQUEST_NULL}};
 
 template <class Parameters, DistType DT>
 TpAccumulator<Parameters, DT, linalg::GPU>::TpAccumulator(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+							  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : Base(G0, pars, thread_id), BaseGpu(G0, pars, Base::get_n_pos_frqs(), thread_id) {}
 

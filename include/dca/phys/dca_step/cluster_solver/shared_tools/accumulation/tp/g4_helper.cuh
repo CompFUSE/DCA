@@ -32,7 +32,7 @@ namespace details {
 
 class G4Helper {
 public:
-  static void set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
+  static void set(unsigned int nb, unsigned int nk, unsigned int nw,
                   const std::vector<int>& delta_k, const std::vector<int>& delta_w,
                   const int* add_k, unsigned int lda, const int* sub_k, unsigned int lds);
 
@@ -80,10 +80,9 @@ protected:
   const int* k_ex_indices_;
   unsigned ext_size_;
 
-  unsigned nw_pos_;
+  unsigned nw_;
   unsigned nb_;
   unsigned nc_;
-  unsigned nw_;
   unsigned n_k_ex_;
   unsigned n_w_ex_;
 };
@@ -113,40 +112,14 @@ inline __device__ int G4Helper::kMinus(const int k_idx) const {
   return solver::details::cluster_momentum_helper.minus(k_idx);
 }
 
-inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
-  const int n_w_ext_pos = ext_size_ + nw_pos_;
+inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {  
   w1 += ext_size_;
   w2 += ext_size_;
-  if (w1 >= n_w_ext_pos) {
-    if (w2 < 0)
-      w2 -= n_w_ext_pos;
-    w1 -= n_w_ext_pos;
-    return false;
-  }
-  else {
-    w1 = n_w_ext_pos - 1 - w1;
-    w2 = 2 * n_w_ext_pos - 1 - w2;
-    k1 = kMinus(k1);
-    k2 = kMinus(k2);
-    return true;
-  }
 }
 
 inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1 [[maybe_unused]], int& k2 [[maybe_unused]], int& w1, int& w2) const {
-  const int n_w_ext_pos = ext_size_ + nw_pos_;
   w1 += ext_size_;
   w2 += ext_size_;
-  if (w1 >= n_w_ext_pos) {
-    if (w2 < 0)
-      w2 -= n_w_ext_pos;
-    w1 -= n_w_ext_pos;
-    return false;
-  }
-  else {
-    w1 = n_w_ext_pos - 1 - w1;
-    w2 = 2 * n_w_ext_pos - 1 - w2;
-    return true;
-  }
 }
   
 inline __device__ void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,

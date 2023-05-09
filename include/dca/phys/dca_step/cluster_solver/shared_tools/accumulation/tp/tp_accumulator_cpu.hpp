@@ -144,6 +144,10 @@ protected:
 
   void computeGSingleband(int s, int k1, int k2, int w1, int w2);
 
+  /** Get a G_a or G_b
+   *  if beta != 0 the incoming value of G matters and is in accumulated in the returned value scaled by beta.
+   *  this is not a good smell.
+   */
   void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, TpComplex beta = 0) const;
 
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
@@ -161,8 +165,11 @@ protected:
                              const int k2_b, const int w1_b, const int w2_b, const SpScalar alpha,
                              const bool cross_legs);
 
+  /** Spin difference term.
+   *  by multiply the spin 0 term the sign controls the sign between G_a G_b
+   */
   template <typename SpScalar, typename SignType>
-  void inline updateG4SpinDifference(TpComplex* G4_ptr, const SignType factor,
+  void inline updateG4SpinDifference(TpComplex* G4_ptr, const SignType sign,
                                      const int k1_a, const int k2_a, const int w1_a, const int w2_a,
                                      const int k1_b, const int k2_b, const int w1_b, const int w2_b,
                                      const SpScalar alpha, const bool cross_legs);
@@ -240,6 +247,8 @@ float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
   // TODO: add the gflops here.
   math::transform::SpaceTransform2D<RDmn, KDmn, TpPrecision>::execute(M_r_r_w_w, G_);
 
+  
+  
   return flops;
 }
 
@@ -688,7 +697,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
 template <class Parameters, DistType DT>
 template <typename SpScalar, typename SignType>
 void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
-    TpComplex* G4_ptr, const SignType factor, const int k1_a, const int k2_a, const int w1_a,
+    TpComplex* G4_ptr, const SignType sign, const int k1_a, const int k2_a, const int w1_a,
     const int w2_a, const int k1_b, const int k2_b, const int w1_b, const int w2_b,
     const SpScalar alpha, const bool cross_legs) {
   // This function performs the following update for each band:
@@ -697,18 +706,25 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
   //                                + sign * G(down,k1_a, k2_a, w1_a, w2_a)]
   //                             * [G(up, k1_b, k2_b, w1_b, w2_b)
   //                               + sign * G(down, k1_b, k2_b, w1_b, w2_b)]
+
+  // updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+  //                        w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+  //                        w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+
+
   if (n_bands_ == 1) {
     *G4_ptr += alpha *
                (getGSingleband(0, k1_a, k2_a, w1_a, w2_a) +
-                static_cast<TpComplex>(factor) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
+                static_cast<TpComplex>(sign) * getGSingleband(1, k1_a, k2_a, w1_a, w2_a)) *
                (getGSingleband(0, k1_b, k2_b, w1_b, w2_b) +
-                static_cast<TpComplex>(factor) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
+                static_cast<TpComplex>(sign) * getGSingleband(1, k1_b, k2_b, w1_b, w2_b));
   }
   else {
+    // So G_a_ and G_b_ are accumulating over both spins for each band combination
     getGMultiband(0, k1_a, k2_a, w1_a, w2_a, G_a_);
-    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, factor);
+    getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign);
     getGMultiband(0, k1_b, k2_b, w1_b, w2_b, G_b_);
-    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, factor);
+    getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign);
 
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)

@@ -96,7 +96,6 @@ public:
   template <typename ScalarRhs, DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarRhs, rhs_device_name>& rhs);
 
-  
   // Returns true if this is equal to other, false otherwise.
   // Two matrices are equal, if they have the same size and contain the same elements. Name and
   // capacity are ignored.
@@ -306,7 +305,7 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarRhs, rhs_device_name>
   data_ = Allocator::allocate(nrElements(capacity_));
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
-  
+
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
@@ -393,14 +392,15 @@ template <typename ScalarType, DeviceType device_name>
 template <typename ScalarRhs, DeviceType rhs_device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarRhs, rhs_device_name>& rhs) {
-  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs), "sizeof ScalarType and ScalarRhs are not equal");
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs),
+                "sizeof ScalarType and ScalarRhs are not equal");
   resizeNoCopy(rhs.size_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
 }
 
 #endif
-  
+
 template <typename ScalarType, DeviceType device_name>
 bool Matrix<ScalarType, device_name>::operator==(const Matrix<ScalarType, device_name>& other) const {
   if (device_name == GPU)
@@ -460,8 +460,13 @@ template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
                                           int thread_id, int stream_id) {
   resize(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, thread_id,
-                   stream_id);
+  // This specialization is required since without unified memory CUDA doesn't known which memory locality the pointer has.
+  if constexpr (device_name == DeviceType::GPU && rhs_device_name == DeviceType::CPU)
+    util::memoryCopyH2D(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_,
+                        thread_id, stream_id);
+  else if constexpr (device_name == DeviceType::CPU && rhs_device_name == DeviceType::GPU)
+    util::memoryCopyD2H(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_,
+                        thread_id, stream_id);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -469,7 +474,10 @@ template <DeviceType rhs_device_name>
 void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
                                           const util::GpuStream& stream [[maybe_unused]]) {
   resize(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  if constexpr (device_name == DeviceType::GPU && rhs_device_name == DeviceType::CPU)
+    util::memoryCopyH2D(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  else if constexpr (device_name == DeviceType::CPU && rhs_device_name == DeviceType::GPU)
+    util::memoryCopyD2H(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name>

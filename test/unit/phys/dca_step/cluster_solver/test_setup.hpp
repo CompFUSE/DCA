@@ -100,6 +100,56 @@ struct G0Setup : public ::testing::Test {
   virtual void TearDown() {}
 };
 
+template <typename Scalar, class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
+          const char* input_name = default_input, DistType DT = DistType::NONE>
+struct G0SetupBare {
+  using LatticeType = Lattice;
+  using Model = phys::models::TightBindingModel<Lattice>;
+  using RngType = testing::StubRng;
+  using Concurrency = parallel::NoConcurrency;
+  using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
+    profiling::NullProfiler, Model, RngType, solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+  using Data = phys::DcaData<Parameters, DT>;
+
+  // Commonly used domains.
+  using RDmn = typename Parameters::RClusterDmn;
+  using KDmn = typename Parameters::KClusterDmn;
+  using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
+  using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
+  using NuDmn = func::dmn_variadic<BDmn, SDmn>;
+  using WDmn = func::dmn_0<phys::domains::frequency_domain>;
+  using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
+
+  Concurrency concurrency_;
+  Parameters parameters_;
+  std::unique_ptr<Data> data_;
+
+  G0SetupBare() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
+
+  void SetUp() {
+    try {
+      parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
+    }
+    catch (const std::exception& r_w) {
+      throw std::runtime_error(r_w.what());
+    }
+    catch (...) {
+      throw std::runtime_error("Input parsing failed!");
+    }
+    parameters_.update_model();
+    static bool domain_initialized = false;
+    if (!domain_initialized) {
+      parameters_.update_domains();
+      domain_initialized = true;
+    }
+    data_ = std::make_unique<Data>(parameters_);
+    data_->initialize();
+  }
+
+  void TearDown() {}
+};
+
+  
 }  // namespace testing
 }  // namespace dca
 

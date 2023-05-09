@@ -88,8 +88,8 @@ protected:
   void synchronizeStreams();
   void initializeG0();
 
-  template <class Configuration, typename RealIn>
-  float computeM(const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
+  template <class Configuration, typename SpScalar>
+  float computeM(const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
@@ -112,7 +112,7 @@ protected:
 
   using NdftType = CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
-  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, TpComplex>;
+  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, TpPrecision>;
   std::array<DftType, 2> space_trsf_objs_;
 
   constexpr static int n_ndft_queues_ = config::McOptions::memory_savings ? 1 : 2;
@@ -168,6 +168,7 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
+    // Currently WTpPosDmn should always be == WTpDmn
     details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
                            sub_mat.leadingDimension());
@@ -204,9 +205,9 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
 }
 
 template <class Parameters, DistType DT>
-template <class Configuration, typename RealIn>
+template <class Configuration, typename SpScalar>
 float TpAccumulatorGpuBase<Parameters, DT>::computeM(
-    const std::array<linalg::Matrix<RealIn, linalg::GPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_queues_ == 1 ? 0 : s; };
 
