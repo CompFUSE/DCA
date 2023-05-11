@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,10 +7,12 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file implements hdf5_reader.hpp.
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
+#include "ModernStringUtils.hpp"
 #include "hdf5.h"
 #include <fstream>
 #include <stdexcept>
@@ -28,24 +30,26 @@ std::size_t HDF5Reader::getStepCount() {
   std::size_t steps;
   bool has_steps = execute("steps", steps);
   if (!has_steps) {
+    is_legacy_ = true;
     std::cerr << "Legacy DCA hdf5 with no step data read.\n";
     return 0;
   }
   return steps;
 }
-  
+
 void HDF5Reader::open_file(std::string file_name) {
   {  // check whether the file exists ...
     std::wifstream tmp(file_name.c_str());
 
     try {
       if (!tmp or !tmp.good() or tmp.bad()) {
-	throw std::runtime_error("Cannot open file : " + file_name);
+        throw std::runtime_error("Cannot open file : " + file_name);
       }
       else if (verbose_) {
-	std::cout << "\n\n\topening file : " << file_name << "\n";
+        std::cout << "\n\n\topening file : " << file_name << "\n";
       }
-    } catch ( const std::exception& ex ) {
+    }
+    catch (const std::exception& ex) {
       throw std::runtime_error("Cannot open file : " + file_name);
     }
   }
@@ -55,10 +59,13 @@ void HDF5Reader::open_file(std::string file_name) {
 
 void HDF5Reader::close_file() {
   file_->close();
-  file_.release();
+  file_.reset();
+  in_step_ = false;
+  step_ = 0;
+  paths_.clear();
 }
 
-std::string HDF5Reader::get_path() {
+std::string HDF5Reader::get_path() const {
   std::string path = "/";
 
   for (size_t i = 0; i < paths_.size(); i++) {
@@ -72,6 +79,8 @@ std::string HDF5Reader::get_path() {
 }
 
 void HDF5Reader::begin_step() {
+  if (is_legacy_)
+    return;
   if (in_step_)
     throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
   in_step_ = true;
@@ -80,6 +89,8 @@ void HDF5Reader::begin_step() {
 }
 
 void HDF5Reader::end_step() {
+  if (is_legacy_)
+    return;
   if (!in_step_)
     throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
   paths_.clear();
@@ -87,14 +98,9 @@ void HDF5Reader::end_step() {
 }
 
 bool HDF5Reader::execute(const std::string& name, std::string& value) {
-  std::string full_name = get_path();
-  if (full_name.size() < 1)
-    full_name += name;
-  else
-    full_name += "/" + name;
-  if (!exists(full_name)) {
+  std::string full_name;
+  if (!buildCheckedFullName(name, full_name))
     return false;
-  }
 
   H5::DataSet dataset = file_->openDataSet(full_name.c_str());
   const auto type = dataset.getDataType();
@@ -145,7 +151,24 @@ void HDF5Reader::read(const std::string& name, H5::DataType type, void* data) co
 }
 
 bool HDF5Reader::exists(const std::string& name) const {
+  // can't supress exception from C++ library if more than one group level is checked at once.
   return file_->nameExists(name);
+}
+
+bool HDF5Reader::buildCheckedFullName(const std::string& name, std::string& full_name) const {
+  full_name = get_path();
+  auto parts = modernstrutil::split(name, "/");				    
+  std::string part_wise_name;
+  bool is_found = false;
+  for(auto part : parts) {
+    part_wise_name += std::string{"/"} + std::string{part};
+    std::string tmp_string = full_name + part_wise_name;
+    is_found = exists(tmp_string);
+    if(!is_found)
+      return false;
+  }
+  full_name += part_wise_name;
+  return true;
 }
 
 std::vector<hsize_t> HDF5Reader::readSize(const std::string& name) const {

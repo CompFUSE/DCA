@@ -29,3 +29,6 @@ target_link_libraries(signals PUBLIC json dca_hdf5 ${DCA_CONCURRENCY_LIB})
 if (DCA_WITH_ADIOS2)
   target_link_libraries(signals PUBLIC dca_adios2)
 endif ()
+
+add_library(modern_string_utils STATIC ModernStringUtils.cpp)
+target_include_directories(modern_string_utils PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

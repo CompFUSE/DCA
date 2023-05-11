@@ -2,6 +2,7 @@
     "output": {
         "directory": "./T=0.5",
         "output-format": "JSON",
+	"g4-output-format": "JSON",
         "autoresume" : true,
         "directory-config-read" : "configuration",
         "directory-config-write" : "configuration",
@@ -13,6 +14,7 @@
         "dump-lattice-self-energy": true,
         "dump-cluster-Greens-functions": true,
         "dump-Gamma-lattice": true,
-        "dump-chi-0-lattice": true
+        "dump-chi-0-lattice": true,
+        "dump-every-iteration": false
     }
 }
