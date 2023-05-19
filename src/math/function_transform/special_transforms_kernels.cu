@@ -47,7 +47,7 @@ __global__ void phaseFactorsAndRearrangeKernel(const Scalar* in, const int ldi,
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
 
   const int cols = nb * nk * nw;
-  const int rows = cols / 2;
+  const int rows = cols;
   if (id_i >= rows || id_j >= cols)
     return;
 
@@ -80,7 +80,7 @@ void phaseFactorsAndRearrange(const std::complex<Real>* in, const int ldi, std::
                               const int ldo, const int nb, const int nk, const int nw,
                               const std::complex<Real>* phase_factors, const cudaStream_t stream) {
   const int size = nk * nb * nw;
-  auto const blocks = getBlockSize(size / 2, size);
+  auto const blocks = getBlockSize(size, size);
 
   phaseFactorsAndRearrangeKernel<<<blocks[0], blocks[1], 0, stream>>>(
       castGPUType(in), ldi, castGPUType(out), ldo, nb, nk, nw, castGPUType(phase_factors));

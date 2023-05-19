@@ -20,6 +20,7 @@
 #include "dca/io/json/details/json_group.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 
 namespace dca::io {
 
@@ -67,6 +68,8 @@ public:
   bool execute(const std::string& name, const func::function<Scalar, Domain, DT>& f) noexcept;
   template <class Scalar>
   bool execute(const std::string& name, const linalg::Matrix<Scalar, dca::linalg::CPU>& m) noexcept;
+  template <typename Scalar>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A) noexcept;
   template <class T>
   bool execute(const std::string& name, const std::unique_ptr<T>& ptr) noexcept {
     if (ptr)
@@ -77,6 +80,7 @@ public:
   bool execute(const T& f) noexcept {
     return execute(f.get_name(), f);
   }
+
   template <class T>
   bool execute(const std::unique_ptr<T>& f) noexcept {
     if (f)
@@ -135,6 +139,28 @@ bool JSONWriter::execute(const std::string& name,
   return true;
 }
 
+template <class Scalar>
+bool JSONWriter::execute(const std::string& name,
+                         const linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& m) noexcept {
+  open_group(name);
+
+  std::vector<std::vector<Scalar>> data(m.nrRows());
+  for (int i = 0; i < m.nrRows(); ++i) {
+    data[i].resize(m.nrCols());
+    for (int j = 0; j < m.nrCols(); ++j) {
+      data[i][j] = m(i, j);
+    }
+  }
+
+  execute("name", name);
+  execute("size", m.size());
+  execute("data", data);
+
+  close_group();
+  return true;
+}
+
+  
 }  // namespace dca::io
 
 #endif  // DCA_IO_JSON_JSON_WRITER_HPP

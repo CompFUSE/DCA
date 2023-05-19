@@ -28,6 +28,7 @@
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {
@@ -99,6 +100,9 @@ public:
   template <typename Scalar>
   bool execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
+  template <typename Scalar>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A);
+  
   template <typename Scalar>
   bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
     return execute(A.get_name(), A);
@@ -287,6 +291,24 @@ bool HDF5Writer::execute(const std::string& name,
   return true;
 }
 
+template <typename Scalar>
+bool HDF5Writer::execute(const std::string& name,
+                         const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A) {
+  std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
+  std::vector<Scalar> linearized(dims[0] * dims[1]);
+
+  int linindex = 0;
+  // Note: Matrices are row major, while HDF5 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[linindex++] = A(i, j);
+  const std::string full_name{makeFullName(name)};
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  addAttribute(dataset, "name", name);
+  return true;
+}
+  
 template <class T>
 bool HDF5Writer::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)

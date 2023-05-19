@@ -28,6 +28,7 @@
 #include "dca/io/buffer.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
 #include "dca/config/haves_defines.hpp"
@@ -134,6 +135,9 @@ public:
   bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
     return execute(A.get_name(), A);
   }
+
+  template <typename Scalar>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A);
 
   template <class T>
   bool execute(const std::string& name, const std::unique_ptr<T>& obj);
@@ -549,6 +553,26 @@ bool ADIOS2Writer<CT>::execute(const std::string& name,
   return true;
 }
 
+template <class CT>
+template <typename Scalar>
+bool ADIOS2Writer<CT>::execute(const std::string& name,
+                               const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A) {
+  std::vector<size_t> dims{size_t(A.nrRows()), size_t(A.nrCols())};
+  std::vector<Scalar> linearized(dims[0] * dims[1]);
+
+  int linindex = 0;
+  // Note: Matrices are row major, while ADIOS2 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[linindex++] = A(i, j);
+
+  std::string full_name = get_path(name);
+  write<Scalar>(full_name, dims, linearized.data());
+
+  addAttribute(full_name, "name", name);
+  return true;
+}
+  
 template <class CT>
 template <class T>
 bool ADIOS2Writer<CT>::execute(const std::string& name, const std::unique_ptr<T>& obj) {
