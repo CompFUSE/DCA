@@ -72,7 +72,7 @@ protected:
   using Base::non_density_density_;
   using Base::n_bands_;
   using Base::extension_index_offset_;
-  using Base::n_pos_frqs_;
+  // using Base::n_pos_frqs_;
   using Base::G4_;
   using Base::channels_;
   using Base::G0_;
@@ -90,9 +90,8 @@ public:
   // In: G0: non interacting greens function.
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
-  TpAccumulator(
-      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-      const Parameters& pars, int thread_id = 0);
+  TpAccumulator(const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+                const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
   void resetAccumulation(unsigned int /*dca_loop*/ = 0);
@@ -145,8 +144,8 @@ protected:
   void computeGSingleband(int s, int k1, int k2, int w1, int w2);
 
   /** Get a G_a or G_b
-   *  if beta != 0 the incoming value of G matters and is in accumulated in the returned value scaled by beta.
-   *  this is not a good smell.
+   *  if beta != 0 the incoming value of G matters and is in accumulated in the returned value
+   * scaled by beta. this is not a good smell.
    */
   void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, TpComplex beta = 0) const;
 
@@ -167,11 +166,12 @@ protected:
 
   /** Spin difference term.
    *  by multiply the spin 0 term the sign controls the sign between G_a G_b
+   *  this sign has nothing to do with the phase factor/sign from the sample.
    */
   template <typename SpScalar, typename SignType>
-  void inline updateG4SpinDifference(TpComplex* G4_ptr, const SignType sign,
-                                     const int k1_a, const int k2_a, const int w1_a, const int w2_a,
-                                     const int k1_b, const int k2_b, const int w1_b, const int w2_b,
+  void inline updateG4SpinDifference(TpComplex* G4_ptr, const SignType sign, const int k1_a,
+                                     const int k2_a, const int w1_a, const int w2_a, const int k1_b,
+                                     const int k2_b, const int w1_b, const int w2_b,
                                      const SpScalar alpha, const bool cross_legs);
 
 protected:
@@ -234,7 +234,8 @@ float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
     const std::array<Configuration, 2>& configs) {
   float flops = 0.;
 
-  func::function<TpComplex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>> M_r_r_w_w;
+  func::function<TpComplex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>>
+      M_r_r_w_w;
 
   for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
     Profiler prf_a("Frequency FT", "tp-accumulation", __LINE__, thread_id_);
@@ -247,8 +248,6 @@ float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
   // TODO: add the gflops here.
   math::transform::SpaceTransform2D<RDmn, KDmn, TpPrecision>::execute(M_r_r_w_w, G_);
 
-  
-  
   return flops;
 }
 
@@ -334,7 +333,6 @@ template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, int k2, int w1,
                                                                int w2, Matrix& G,
                                                                const TpComplex beta) const {
-
   const int w2_ext = w2 + extension_index_offset_;
   const int w1_ext = w1 + extension_index_offset_;
   // Real opt was complicated
@@ -342,8 +340,9 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
       G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
-      if (std::abs(G(b1,b2).imag()) > 10)  //std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
-        std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << "," << G(b1, b2) << "*G_ptr" << G_ptr->real() << " + " << G_ptr->imag() << "\n";
+      if (std::abs(G(b1, b2).imag()) > 10)  // std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
+        std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << ","
+                  << G(b1, b2) << "*G_ptr" << G_ptr->real() << " + " << G_ptr->imag() << "\n";
     }
 }
 
@@ -381,11 +380,16 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   auto channel = channels_[channel_id];
 
   // Because there aren't multiplcation operators between signed char and std::complex<floats>
-  TpComplex complex_factor{0.0,0.0};
+  TpComplex complex_factor{0.0, 0.0};
   if constexpr (std::is_integral<decltype(factor)>::value)
     complex_factor.real(static_cast<TpPrecision>(factor));
   else
     complex_factor = factor;
+
+#ifndef NDEBUG
+        TpComplex G4_FromSpinDifference{0.0, 0.0};
+        TpComplex G4_DirectDifference{0.0, 0.0};
+#endif
   
   if constexpr (Base::spin_symmetric_) {
     switch (channel) {
@@ -426,17 +430,35 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                     TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
+#ifndef NDEBUG
+                    TpComplex G4_before = *G4_ptr;
+#endif
                     updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
                                            w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                            w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-                    for (int s = 0; s < 2; ++s)
+#ifndef NDEBUG
+                    G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
+#endif
+                    for (int s = 0; s < 2; ++s) {
+#ifndef NDEBUG
+                      G4_before = *G4_ptr;
+#endif
                       updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
                                      momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
                                      w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+#ifndef NDEBUG
+                      G4_DirectDifference += std::abs(*G4_ptr - G4_before);
+#endif
+                    }
                   }
           }
         }
+
         flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
+#ifndef NDEBUG
+        std::cout << "G4 PHM from spin:" << G4_FromSpinDifference << '\n';
+        std::cout << "G4 PHM from direct:" << G4_DirectDifference << '\n';
+#endif
         break;
 
       case FourPointType::PARTICLE_HOLE_CHARGE:
@@ -644,7 +666,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   }
 
   return 1e-9 * flops;
-}
+}  // namespace accumulator
 
 template <class Parameters, DistType DT>
 template <typename SpScalar>
@@ -670,11 +692,11 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-	      TpComplex tcomp_alpha{0.0, 0.0};
-	      tcomp_alpha += alpha;
-	      auto Gprod = G_a_(b1, b3) * G_b_(b2, b4);
-              *G4_ptr += tcomp_alpha * Gprod; //G_a_(b1, b3) * G_b_(b2, b4);
-	      assert(!(std::isnan(G4_ptr->real()) || std::isnan(G4_ptr->imag()) ));
+              TpComplex tcomp_alpha{0.0, 0.0};
+              tcomp_alpha += alpha;
+              auto Gprod = G_a_(b1, b3) * G_b_(b2, b4);
+              *G4_ptr += tcomp_alpha * Gprod;  // G_a_(b1, b3) * G_b_(b2, b4);
+              assert(!(std::isnan(G4_ptr->real()) || std::isnan(G4_ptr->imag())));
               ++G4_ptr;
             }
     else
@@ -682,13 +704,13 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-	      TpComplex tcomp_alpha{0.0, 0.0};
-	      tcomp_alpha += alpha;
-	      auto Gprod = G_a_(b1, b4) * G_b_(b2, b3);
-              *G4_ptr += tcomp_alpha * Gprod; //G_a_(b1, b3) * G_b_(b2, b4);
+              TpComplex tcomp_alpha{0.0, 0.0};
+              tcomp_alpha += alpha;
+              auto Gprod = G_a_(b1, b4) * G_b_(b2, b3);
+              *G4_ptr += tcomp_alpha * Gprod;  // G_a_(b1, b3) * G_b_(b2, b4);
 
               //*G4_ptr += alpha * G_a_(b1, b4) * G_b_(b2, b3);
-	      assert(!(std::isnan(G4_ptr->real()) || std::isnan(G4_ptr->imag()) ));
+              assert(!(std::isnan(G4_ptr->real()) || std::isnan(G4_ptr->imag())));
               ++G4_ptr;
             }
   }
@@ -710,7 +732,6 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
   // updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
   //                        w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
   //                        w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-
 
   if (n_bands_ == 1) {
     *G4_ptr += alpha *

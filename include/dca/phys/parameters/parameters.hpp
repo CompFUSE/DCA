@@ -91,7 +91,7 @@ public:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
   constexpr static int lattice_dimension = Model::lattice_type::DIMENSION;
   using CDA = ClusterDomainAliases<lattice_dimension>;

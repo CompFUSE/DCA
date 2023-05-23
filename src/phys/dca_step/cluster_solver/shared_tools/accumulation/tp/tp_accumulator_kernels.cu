@@ -56,11 +56,11 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
 template <typename Real>
 __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
                                          const CudaComplex<Real>* __restrict__ G0, int nk,
-                                         int nw_pos, const Real beta) {
+                                         int nw_freq, const Real beta) {
   // Computes G = -G0(w1) * M(w1, w2) * G(w2) + (w1 == w2) * beta * G0(w1).
 
-  const int n_rows = nk * nw_pos;
-  const int n_cols = n_rows * 2;
+  const int n_rows = nk * nw_freq;
+  const int n_cols = n_rows;
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   if (id_i >= n_rows || id_j >= n_cols)
@@ -74,23 +74,23 @@ __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int 
   get_indices(id_i, k1, w1);
   get_indices(id_j, k2, w2);
 
-  const CudaComplex<Real> G0_w1 = G0[k1 + nk * (w1 + nw_pos)];
+  const CudaComplex<Real> G0_w1 = G0[k1 + nk * w1];
   const CudaComplex<Real> G0_w2 = G0[k2 + nk * w2];
 
   G[id_i + ldg * id_j] *= -G0_w1 * G0_w2;
-  if (k1 == k2 && w1 + nw_pos == w2) {
+  if (k1 == k2 && w1 == w2) {
     G[id_i + ldg * id_j] += G0_w1 * beta;
   }
 }
 
 template <typename Real>
 void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int nk,
-                        int nw_pos, const Real beta, cudaStream_t stream) {
-  const int n_rows = nk * nw_pos;
+                        int nw_freq, const Real beta, cudaStream_t stream) {
+  const int n_rows = nk * nw_freq;
   auto blocks = getBlockSize(n_rows, n_rows);
 
   computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(castGPUType(G), ldg,
-                                                                castGPUType(G0), nk, nw_pos, beta);
+                                                                castGPUType(G0), nk, nw_freq, beta);
 }
 
 template <typename Real>
@@ -168,41 +168,41 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
       castGPUType(G), ldg, castGPUType(G0), ldg0, nb, nk, nw, beta);
 }
 
-template <typename Complex>
-__device__ Complex getG(const Complex* __restrict__ G, const int ldg, int k1, int k2, int w1,
-                        int w2, const int b1, const int b2) {
-  const bool is_conj = g4_helper.extendGIndices(k1, k2, w1, w2);
+// template <typename Complex>
+// __device__ Complex getG(const Complex* __restrict__ G, const int ldg, int k1, int k2, int w1,
+//                         int w2, const int b1, const int b2) {
+//   const bool is_conj = g4_helper.extendGIndices(k1, k2, w1, w2);
 
-  const unsigned nb = g4_helper.get_bands();
-  const unsigned nk = g4_helper.get_cluster_size();
-  const unsigned no = nb * nk;
+//   const unsigned nb = g4_helper.get_bands();
+//   const unsigned nk = g4_helper.get_cluster_size();
+//   const unsigned no = nb * nk;
 
-  unsigned i_idx = b1 + nb * k1 + no * w1;
-  unsigned j_idx = b2 + nb * k2 + no * w2;
+//   unsigned i_idx = b1 + nb * k1 + no * w1;
+//   unsigned j_idx = b2 + nb * k2 + no * w2;
 
-  auto val = G[i_idx + ldg * j_idx];
+//   auto val = G[i_idx + ldg * j_idx];
 
-  if (!is_conj)
-    return val;
-  else {
-    // For Moire model G_up(-k, -wn) = conj(G_dn(k, wn))
-    // but for a given configuration, SU(2) symmetry is broken by the auxialary spin field
-    // This mean the following code is incorrect and we must extend the calculation to all
-    // frequencies w1, w2, including negative w1.
-    i_idx = 1 - b2 + nb * k1 + no * w1;
-    j_idx = 1 - b1 + nb * k2 + no * w2;
-    val = conj(G[i_idx + ldg * j_idx]);
-    // if (b1==b2)
-    //     return conj(val);
-    // else {
-    //     i_idx = b2 + nb * k1 + no * w1;
-    //     j_idx = b1 + nb * k2 + no * w2;
-    //     val = -conj(G[i_idx + ldg * j_idx]);
-    return val;
-    // }
-  }
-  // return is_conj ? conj(val) : val;
-}
+//   if (!is_conj)
+//     return val;
+//   else {
+//     // For Moire model G_up(-k, -wn) = conj(G_dn(k, wn))
+//     // but for a given configuration, SU(2) symmetry is broken by the auxialary spin field
+//     // This mean the following code is incorrect and we must extend the calculation to all
+//     // frequencies w1, w2, including negative w1.
+//     i_idx = 1 - b2 + nb * k1 + no * w1;
+//     j_idx = 1 - b1 + nb * k2 + no * w2;
+//     val = conj(G[i_idx + ldg * j_idx]);
+//     // if (b1==b2)
+//     //     return conj(val);
+//     // else {
+//     //     i_idx = b2 + nb * k1 + no * w1;
+//     //     j_idx = b1 + nb * k2 + no * w2;
+//     //     val = -conj(G[i_idx + ldg * j_idx]);
+//     return val;
+//     // }
+//   }
+//   // return is_conj ? conj(val) : val;
+// }
 
 template <typename Scalar, FourPointType type, typename SignType>
 __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
@@ -298,7 +298,8 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int w2_a(g4_helper.addWex(w1, w_ex));
     int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(w2);
-    
+
+    // conj_a in this case just tells us whether to swap the band axes additions or not
     bool conj_a = false;
     if (g4_helper.get_bands() == 1)
       conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);

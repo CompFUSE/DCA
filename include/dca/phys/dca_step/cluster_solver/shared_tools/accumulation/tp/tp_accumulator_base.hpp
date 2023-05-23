@@ -194,8 +194,8 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
       G_("tp_acc_base::G_"),
       channels_(pars.get_four_point_channels()),
       G0_("tp_acc_base::G0_"),
-      extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
-      n_pos_frqs_(WTpExtPosDmn::dmn_size()) {
+      extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2) {
+      //n_pos_frqs_(WTpExtPosDmn::dmn_size()) {
 
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));

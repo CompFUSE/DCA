@@ -81,7 +81,7 @@ protected:
 public:
   TpAccumulatorGpuBase(
       const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-      const Parameters& pars, int n_pos_frqs, int thread_id);
+      const Parameters& pars, int n_freq, int thread_id);
 
 protected:
   void initializeG4Helpers() const;
@@ -98,7 +98,7 @@ protected:
   const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
-  const int n_pos_frqs_ = -1;
+  //const int n_pos_frqs_ = -1;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
   linalg::util::GpuEvent event_;
@@ -134,12 +134,12 @@ protected:
 template <class Parameters, DistType DT>
 TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
     const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
-    const Parameters& pars, const int n_pos_frqs, int thread_id)
+    const Parameters& pars, const int n_freq, int thread_id)
     : G0_ptr_(&G0),
-      n_pos_frqs_(n_pos_frqs),
+      //n_pos_frqs_(n_pos_frqs),
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
-      space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])},
+      space_trsf_objs_{DftType(n_freq, queues_[0]), DftType(n_freq, queues_[1])},
 
       nr_accumulators_(pars.get_accumulators()),
       thread_id_(thread_id) {

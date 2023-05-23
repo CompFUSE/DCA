@@ -187,7 +187,7 @@ protected:
   using Base::G4_;
   using Base::multiple_accumulators_;
   using Base::n_bands_;
-  using Base::n_pos_frqs_;
+  //using Base::n_pos_frqs_;
 
   using Base::non_density_density_;
   using Base::thread_id_;
@@ -245,7 +245,7 @@ template <class Parameters, DistType DT>
 TpAccumulator<Parameters, DT, linalg::GPU>::TpAccumulator(
 							  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : Base(G0, pars, thread_id), BaseGpu(G0, pars, Base::get_n_pos_frqs(), thread_id) {}
+  : Base(G0, pars, thread_id), BaseGpu(G0, pars, WTpExtDmn::dmn_size(), thread_id) {}
 
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::resetAccumulation(const unsigned int dca_loop, dca::util::OncePerLoopFlag& flag) {
@@ -362,7 +362,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::computeG() {
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::computeGSingleband(const int s) {
   details::computeGSingleband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
-                              KDmn::dmn_size(), n_pos_frqs_, beta_, queues_[s]);
+                              KDmn::dmn_size(), WTpExtDmn::dmn_size(), beta_, queues_[s]);
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
@@ -370,7 +370,7 @@ template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::computeGMultiband(const int s) {
   details::computeGMultiband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
                              get_G0()[s].leadingDimension(), n_bands_, KDmn::dmn_size(),
-                             n_pos_frqs_, beta_, queues_[s]);
+                             WTpExtDmn::dmn_size(), beta_, queues_[s]);
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
