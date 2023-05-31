@@ -414,15 +414,6 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 
 ################################################################################
-# Symmetrization
-option(DCA_SYMMETRIZE "Apply cluster, time and frequency symmetries to single particle functions."
-       ON)
-
-if(DCA_SYMMETRIZE)
-  add_compile_definitions(DCA_WITH_SYMMETRIZATION)
-endif()
-
-################################################################################
 # Workarounds
 option(DCA_FIX_BROKEN_MPICH "Re-define MPI_CXX_* datatypes as the corresponding MPI_C_* datatypes when mpich is the mpi provider."
        OFF)
