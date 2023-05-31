@@ -267,7 +267,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       case io::IOType::HDF5:
         break;
       case io::IOType::JSON:
-        throw std::runtime_error("JSON output format support dump-ever-iteration.");
+        throw std::runtime_error("JSON output format does not support dump-ever-iteration.");
     }
   }
 }
