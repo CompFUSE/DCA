@@ -631,10 +631,11 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     io::Reader reader(concurrency_, sigma_file_io);
     int hdf5_last_iteration = -1;
     reader.open_file(filename);
-    std::size_t step_count = reader.getStepCount();
+    long step_count = reader.getStepCount();
     // Work around odd way hdf5 steps get written
     int completed_iteration = 0;
-    for (std::size_t i = 0; i < step_count; ++i) {
+    if (step_count >= 0) {
+    for (long i = 0; i < step_count; ++i) {
       reader.begin_step();
       std::cerr << "current step " << i << '\n';
       bool has_iteration =
@@ -652,6 +653,7 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
 	reader.end_step();
     }
     reader.begin_step();
+    }
     readSigmaFile(reader);
     reader.close_file();
   }

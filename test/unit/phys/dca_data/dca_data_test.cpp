@@ -87,8 +87,8 @@ struct DCADataSetup {
 }  // namespace dca
 
 template <const char* INPUTFILE = dca::testing::dca_data_test_input>
-using DCADSetup =
-  dca::testing::DCADataSetup<double, Concurrency ,dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, INPUTFILE>;
+using DCADSetup = dca::testing::DCADataSetup<double, Concurrency, dca::testing::LatticeSquare,
+                                             dca::ClusterSolverId::CT_AUX, INPUTFILE>;
 
 template <class DCADATASETUP>
 struct DCADataTestWrapper : public ::testing::Test {
@@ -109,10 +109,16 @@ using DCADataTest = DCADataTestWrapper<DCADSetup<read_sigma_input_file>>;
 TEST_F(DCADataTest, ReadSigma) {
   dca_setup_.data_->initialize();
   std::cout << "initial_self_energy:" << dca_setup_.parameters_->get_initial_self_energy();
-  dca_setup_.data_->initializeSigma(
-				    "dca_data_test.hdf5");
+  dca_setup_.data_->initializeSigma("dca_data_test.hdf5");
   EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 3.0);
 }
+
+TEST_F(DCADataTest, ReadSigmaLegacy) {
+  dca_setup_.data_->initialize();
+  dca_setup_.data_->initializeSigma("dca_data_test_legacy.hdf5");
+  EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 4.0);
+}
+
 
 int main(int argc, char** argv) {
 #ifdef DCA_HAVE_MPI
@@ -148,19 +154,34 @@ int main(int argc, char** argv) {
     dca_data.data_->write(writer);
     dca_data.loop_data_->write(writer, *concurrency_ptr);
     writer.end_step();
-	dca_data.loop_data_->chemical_potential(1) = 2.0;
+    dca_data.loop_data_->chemical_potential(1) = 2.0;
     dca_data.loop_data_->last_completed_iteration = 1;
     writer.begin_step();
     dca_data.data_->write(writer);
     dca_data.loop_data_->write(writer, *concurrency_ptr);
     writer.end_step();
-	dca_data.loop_data_->chemical_potential(2) = 3.0;
+    dca_data.loop_data_->chemical_potential(2) = 3.0;
     dca_data.loop_data_->last_completed_iteration = 2;
     writer.begin_step();
     dca_data.data_->write(writer);
     dca_data.loop_data_->write(writer, *concurrency_ptr);
     writer.end_step();
     writer.close_file();
+
+	// Fake legacy hdf5 file by omitting steps
+    dca::io::Writer<Concurrency> writer_legacy(
+#ifdef DCA_HAVE_ADIOS2
+        *adios_ptr,
+#endif
+        *concurrency_ptr, format);
+    writer_legacy.open_file("dca_data_test_legacy.hdf5", true);
+    dca_data.loop_data_->chemical_potential(3) = 4.0;
+    dca_data.loop_data_->last_completed_iteration = 3;
+    dca_data.data_->write(writer_legacy);
+    dca_data.loop_data_->write(writer_legacy, *concurrency_ptr);
+    auto& hdf5_writer = std::get<dca::io::HDF5Writer>(writer_legacy.getUnderlying());
+    // this writes without a top level steps variable
+    hdf5_writer.legacy_close_file();
   }
   int result = RUN_ALL_TESTS();
   return result;

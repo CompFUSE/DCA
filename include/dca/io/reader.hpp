@@ -109,7 +109,7 @@ public:
     std::visit([&](auto& var) { var.close_group(); }, reader_);
   }
 
-  std::size_t getStepCount() {
+  long getStepCount() {
     return std::visit([&](auto& var) ->std::size_t { return var.getStepCount(); }, reader_);
   }
   

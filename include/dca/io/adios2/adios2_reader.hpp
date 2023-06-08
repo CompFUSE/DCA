@@ -77,7 +77,7 @@ public:
    *  file may have multiple iterations in it.
    *  Each iteration is a step in the adios file for many variables.
    */
-  std::size_t getStepCount() { return file_.Steps(); }
+  long getStepCount() { return file_.Steps(); }
   
   // `execute` returns true if the object is read correctly.
 

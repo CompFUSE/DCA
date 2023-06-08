@@ -50,6 +50,15 @@ void HDF5Writer::close_file() {
   }
 }
 
+void HDF5Writer::legacy_close_file() {
+  if (file_) {
+    my_paths_.clear();
+    file_->close();
+    file_.reset(nullptr);
+  }
+}
+
+  
 bool HDF5Writer::open_group(std::string name) {
   my_paths_.push_back(name);
   const std::string path = get_path();

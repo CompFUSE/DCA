@@ -26,13 +26,13 @@ HDF5Reader::~HDF5Reader() {
     close_file();
 }
 
-std::size_t HDF5Reader::getStepCount() {
-  std::size_t steps;
+long HDF5Reader::getStepCount() {
+  long steps;
   bool has_steps = execute("steps", steps);
   if (!has_steps) {
     is_legacy_ = true;
     std::cerr << "Legacy DCA hdf5 with no step data read.\n";
-    return 0;
+    return -1;
   }
   return steps;
 }
