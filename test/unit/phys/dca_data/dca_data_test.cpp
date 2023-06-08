@@ -108,6 +108,10 @@ using DCADataTest = DCADataTestWrapper<DCADSetup<read_sigma_input_file>>;
 
 TEST_F(DCADataTest, ReadSigma) {
   dca_setup_.data_->initialize();
+  std::cout << "initial_self_energy:" << dca_setup_.parameters_->get_initial_self_energy();
+  dca_setup_.data_->initializeSigma(
+				    "dca_data_test.hdf5");
+  EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 3.0);
 }
 
 int main(int argc, char** argv) {

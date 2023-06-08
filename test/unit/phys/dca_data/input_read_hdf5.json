@@ -44,7 +44,7 @@
     "frequency-transfer": 2
   },
   "Monte-Carlo-integration" : {
-    "Sigma-file" : "dca_data_test.hdf5",
+    "initial-self-energy" : "dca_data_test.hdf5",
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
     "measurements" : 500,
