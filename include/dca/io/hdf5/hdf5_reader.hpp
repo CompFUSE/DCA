@@ -68,7 +68,7 @@ public:
 
   std::string get_path() const;
 
-  std::size_t getStepCount();
+  long getStepCount();
   
   template <typename arbitrary_struct_t>
   static void from_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);

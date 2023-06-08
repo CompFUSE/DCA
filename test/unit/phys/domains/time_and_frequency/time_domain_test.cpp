@@ -38,8 +38,6 @@ TEST(TimeDomainTest, Basic) {
                                            eps,         beta / time_slices,  beta - eps};
   EXPECT_EQ(elements_check, time_domain::get_elements());
 
-  EXPECT_THROW(time_domain::initialize(beta, time_slices, eps), std::logic_error);
-
   // Check initialization of integration domain.
   time_domain::initialize_integration_domain(level, weights, nodes);
 

@@ -51,7 +51,8 @@ public:
 
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
-
+  void legacy_close_file();
+  
   bool open_group(std::string new_path);
   void close_group();
 

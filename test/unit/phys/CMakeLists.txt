@@ -1,6 +1,7 @@
 # test/unit/phys
 
 add_subdirectory(dca_algorithms)
+add_subdirectory(dca_data)
 add_subdirectory(dca_step)
 add_subdirectory(domains)
 add_subdirectory(models)

@@ -631,27 +631,29 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     io::Reader reader(concurrency_, sigma_file_io);
     int hdf5_last_iteration = -1;
     reader.open_file(filename);
-    std::size_t step_count = reader.getStepCount();
+    long step_count = reader.getStepCount();
     // Work around odd way hdf5 steps get written
     int completed_iteration = 0;
-  find_step:
-    for (std::size_t i = 0; i < step_count; ++i) {
+    if (step_count >= 0) {
+    for (long i = 0; i < step_count; ++i) {
       reader.begin_step();
       std::cerr << "current step " << i << '\n';
       bool has_iteration =
           reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
       std::cerr << "completed_iteration " << completed_iteration << '\n';
-      if (has_iteration && (i >= completed_iteration)) {
-	std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
+      if (has_iteration)
 	hdf5_last_iteration = completed_iteration;
-	reader.close_file();
-	reader.open_file(filename);
-	step_count = hdf5_last_iteration;
-	goto find_step;	
-      }
       reader.end_step();
     }
+    reader.close_file();
+    reader.open_file(filename);
+
+    for (std::size_t i = 0; i < hdf5_last_iteration; ++i) {
+	reader.begin_step();
+	reader.end_step();
+    }
     reader.begin_step();
+    }
     readSigmaFile(reader);
     reader.close_file();
   }
@@ -664,10 +666,10 @@ void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   reader.open_group("DCA-loop-functions");
   std::vector<double> chemical_potentials;
   bool chemical_potential_present = reader.execute("chemical-potential", chemical_potentials);
-  int completed_iteration;
-  bool has_iteration = reader.execute("completed-iteration", completed_iteration);
-  
+  std::vector<int> completed_iterations;
+  bool has_iteration = reader.execute("completed-iteration", completed_iterations);
   if (chemical_potential_present && has_iteration) {
+    int completed_iteration = *std::max_element(completed_iterations.begin(), completed_iterations.end());
     std::cout << "chemical-potential from Sigma file: " << chemical_potentials[completed_iteration]
               << '\n';
     parameters_.get_chemical_potential() = chemical_potentials[completed_iteration];

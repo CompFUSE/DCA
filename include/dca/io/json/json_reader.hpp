@@ -42,7 +42,7 @@ public:
   // the root group.
   bool close_group() noexcept;
 
-  std::size_t getStepCount() { return 0; }
+  long getStepCount() { return 0; }
 
   std::string get_path() { return {}; }
   

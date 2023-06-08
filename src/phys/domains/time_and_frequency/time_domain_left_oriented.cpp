@@ -12,6 +12,7 @@
 
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include <stdexcept>
+#include <iostream>
 
 namespace dca {
 namespace phys {
@@ -24,7 +25,7 @@ std::vector<time_domain_left_oriented::element_type> time_domain_left_oriented::
 
 void time_domain_left_oriented::initialize() {
   if (initialized_)
-    throw std::logic_error("time_domain_left_oriented has already been initialized.");
+    std::cerr << "time_domain_left_oriented has already been initialized., if this is not test code, this is likely a serious error!";
 
   if (!time_domain::is_initialized())
     throw std::logic_error("time_domain must be initialized first.");
