@@ -63,7 +63,6 @@ public:
   using k_HOST =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-
   using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type =
       clustermapping::double_counting_correction<ParametersType, DcaDataType>;

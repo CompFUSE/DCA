@@ -131,7 +131,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     double n_lb = lower_bound.second;
     double n_ub = upper_bound.second;
 
-    parameters.get_chemical_potential() = get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub);
+    parameters.set_chemical_potential(get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub));
 
     dens = compute_density();
 
