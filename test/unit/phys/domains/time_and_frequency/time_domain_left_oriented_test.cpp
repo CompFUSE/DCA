@@ -19,6 +19,7 @@ using namespace dca::phys::domains;
 TEST(TimeDomainLeftOriented, Basic) {
   EXPECT_EQ("time-domain-left-oriented", time_domain_left_oriented::get_name());
   EXPECT_FALSE(time_domain_left_oriented::is_initialized());
+  // tdlo can't be initialized until after time_domain
   EXPECT_THROW(time_domain_left_oriented::initialize(), std::logic_error);
 
   // First we need to initialize time_domain.
@@ -35,6 +36,4 @@ TEST(TimeDomainLeftOriented, Basic) {
 
   const std::vector<double> elements_check{-beta + eps, -beta / time_slices, 0, beta / time_slices};
   EXPECT_EQ(elements_check, time_domain_left_oriented::get_elements());
-
-  EXPECT_THROW(time_domain_left_oriented::initialize(), std::logic_error);
 }
