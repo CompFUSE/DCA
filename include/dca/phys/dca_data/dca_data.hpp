@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This class contains all functions needed for the MOMS DCA calculation.
 //
@@ -637,10 +638,8 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     if (step_count >= 0) {
     for (long i = 0; i < step_count; ++i) {
       reader.begin_step();
-      std::cerr << "current step " << i << '\n';
       bool has_iteration =
           reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
-      std::cerr << "completed_iteration " << completed_iteration << '\n';
       if (has_iteration)
 	hdf5_last_iteration = completed_iteration;
       reader.end_step();
