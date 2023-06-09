@@ -26,7 +26,7 @@ namespace details {
 
 using VertexTypeList = dca::util::RandomAccessSet<std::size_t, 16>;
 
-std::size_t getRandomElement(const std::vector<const VertexTypeList*>& v_ptrs,
+long getRandomElement(const std::vector<const VertexTypeList*>& v_ptrs,
                           double rand) noexcept;
 
 }  // namespace details

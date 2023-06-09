@@ -32,7 +32,7 @@ public:
   }
 
   double operator()() {
-    if (index_ == val_.size()) {
+    if (index_ >= val_.size()) {
       throw(std::out_of_range("No more values."));
     }
     return val_[index_++];

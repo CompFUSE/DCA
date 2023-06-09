@@ -43,7 +43,7 @@ public:
   SolverConfiguration(const SolverConfiguration& other) = default;
   SolverConfiguration(SolverConfiguration&& other) = default;
   SolverConfiguration(double beta, int n_bands, const InteractionVertices& H_int,
-                      double double_move_prob = 0);
+                      double double_insertion_prob = 0);
 
   SolverConfiguration& operator=(const SolverConfiguration& other) = delete;
   SolverConfiguration& operator=(SolverConfiguration&& other) = delete;
@@ -130,9 +130,6 @@ private:
   const InteractionElement& coordinates(int v_idx) const;
   void addSectorSizes(int idx, std::array<int, 2>& sizes) const;
 
-  template <class Rng>
-  bool doDoubleUpdate(Rng& rng) const;
-
   // This was const but can't be unless the default operator= assigns are given up.
   double double_insertion_prob_ = 0;
 
@@ -177,16 +174,6 @@ void SolverConfiguration::insertRandom(Rng& rng) {
     last_insertion_size_ = 1;
   }
   assert(2 * size() == getSector(0).size() + getSector(1).size());
-}
-
-template <class Rng>
-bool SolverConfiguration::doDoubleUpdate(Rng& rng) const {
-  if (double_insertion_prob_ == 0)
-    return false;
-  else if (double_insertion_prob_ == 1)
-    return true;
-  else
-    return rng() < double_insertion_prob_;
 }
 
 template <class Alloc>

@@ -35,12 +35,24 @@ std::array<int, 2> SolverConfiguration::randomRemovalCandidate(const std::array<
   const std::size_t index = rvals[0] * anhilatable_indices_.size();
   candidates[0] = anhilatable_indices_.findByIndex(index)->second;
 
-  if (rvals[1] < double_insertion_prob_ &&
+  // This double_insertion_prob_ != 0 is a bad smell.  But the best temporary fix for now.
+  // CTintWalker<linalg::CPU...> sets n_removal_rngs_ at construction depending on whether double_insertion_prob_ == 0 or > 0.
+  // when its 0 only the first value of rvals is valid, the other can easily be negative and therefore less than 0.
+  // From there terrible things happen that doen't always cause visible problems in release!
+  if (double_insertion_prob_ != 0 && rvals[1] < double_insertion_prob_ &&
       (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id.size()) {  // Double removal.
     partners_lists_.clear();
-    for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id)
+    for (const auto& partner_id : (*H_int_)[vertices_[candidates[0]].interaction_id].partners_id) {
+      #ifndef NDEBUG
+      if (!(partner_id < existing_.size())) {
+	std::ostringstream out;
+	out << "partner_id " << partner_id << " out of bounds for size " << existing_.size() << " existing_.!\n";
+	throw std::runtime_error(out.str());
+      }
+      #endif
       partners_lists_.push_back(&existing_[partner_id]);
-
+    }
+    
     const auto tag = details::getRandomElement(partners_lists_, rvals[2]);
     if (tag != -1) {
       candidates[1] = findTag(tag);
