@@ -20,6 +20,7 @@
 #include <string>
 
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/La3Ni2O7_bilayer.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp"
@@ -52,6 +53,9 @@ class ModelParameters {};
 
 // Specialization for square lattice bilayer Hubbard model
 #include "model_parameters_bilayer_hubbard.inc"
+
+// Specialization for square lattice two-orbital bilayer Hubbard model for La3Ni2O7
+#include "model_parameters_La3Ni2O7_bilayer.inc"
 
 // Specialization for FeAs superconducting model.
 #include "model_parameters_fe_as.inc"
