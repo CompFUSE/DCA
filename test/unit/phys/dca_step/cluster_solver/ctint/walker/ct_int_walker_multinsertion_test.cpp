@@ -68,9 +68,9 @@ TEST_F(G0Setup, NoSubmatrix) {
   walker_single.tryVertexInsert();
 
   // interaction, accept
-  rng.setNewValues(std::vector<double>{0, 0, 0, 0}
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
   walker_single.tryVertexRemoval();
-  rng.setNewValues(std::vector<double>{0, 0, 0, 0}
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
   walker_single.tryVertexRemoval();
 
   auto M1 = walker_single.getM();
