@@ -170,18 +170,24 @@ void La3Ni2O7_bilayer<point_group_type>::initializeHInteraction(
   const double V = parameters.get_V();  // Inter-orbital interaction.
   const double J = parameters.get_J();  // Spin-spin interaction.
 
-  for (int b1 = 0; b1 < BANDS; ++b1)
-    for (int b2 = 0; b2 < BANDS; ++b2)
-      for (int s1 = 0; s1 < 2; ++s1)
-        for (int s2 = 0; s2 < 2; s2++) {
-          // Coulomb repulsion and contribution from -J S_z*S_z interaction.
-          if (b1 == b2 and s1 != s2)
-            H_interaction(b1, s1, b2, s2, origin) = U;
-          else if (b1 != b2 and s1 == s2)
-            H_interaction(b1, s1, b2, s2, origin) = V - J;
-          else if (b1 != b2 and s1 != s2)
-            H_interaction(b1, s1, b2, s2, origin) = V + J;
-        }
+  // Basis: 0=dx2-y2,l1; 1=d3z2,l1; 2=dx2-y2,l1; 3=dz2,l2
+  for (int b = 0; b < BANDS; ++b) {
+        H_interaction(b, 0, b, 1, origin) = U;
+        H_interaction(b, 1, b, 0, origin) = U;
+  }
+  for (int s = 0; s < 2; ++s) {
+        H_interaction(0, s, 1, s, origin) = V - J;
+        H_interaction(1, s, 0, s, origin) = V - J;
+        H_interaction(2, s, 3, s, origin) = V - J;
+        H_interaction(3, s, 2, s, origin) = V - J;
+
+        H_interaction(0, s, 1, 1-s, origin) = V + J;
+        H_interaction(1, s, 0, 1-s, origin) = V + J;
+        H_interaction(2, s, 3, 1-s, origin) = V + J;
+        H_interaction(3, s, 2, 1-s, origin) = V + J;
+  }
+
+        
 }
 
 template <typename point_group_type>
