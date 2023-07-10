@@ -340,9 +340,11 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
       G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+#ifndef NDEBUG
       if (std::abs(G(b1, b2).imag()) > 10)  // std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
         std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << ","
                   << G(b1, b2) << "*G_ptr" << G_ptr->real() << " + " << G_ptr->imag() << "\n";
+#endif
     }
 }
 
@@ -387,10 +389,10 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
     complex_factor = factor;
 
 #ifndef NDEBUG
-        TpComplex G4_FromSpinDifference{0.0, 0.0};
-        TpComplex G4_DirectDifference{0.0, 0.0};
+  TpComplex G4_FromSpinDifference{0.0, 0.0};
+  TpComplex G4_DirectDifference{0.0, 0.0};
 #endif
-  
+
   if constexpr (Base::spin_symmetric_) {
     switch (channel) {
       case FourPointType::PARTICLE_HOLE_TRANSVERSE:
@@ -433,9 +435,9 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
 #ifndef NDEBUG
                     TpComplex G4_before = *G4_ptr;
 #endif
-                    updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+                    // updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+                    //                        w_plus_w_ex(w2, w_ex), momentum_sum(k2, k_ex), k2,
+                    //                        w_plus_w_ex(w1, w_ex), w2, sign_over_2, false);
 #ifndef NDEBUG
                     G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
 #endif
@@ -680,8 +682,9 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
   //
   // INTERNAL: would use __restrict__ pointer make sense?
   if (n_bands_ == 1) {
-    *G4_ptr += alpha * getGSingleband(s_a, k1_a, k2_a, w1_a, w2_a) *
-               getGSingleband(s_b, k1_b, k2_b, w1_b, w2_b);
+    auto G_a = getGSingleband(s_a, k1_a, k2_a, w1_a, w2_a);
+    auto G_b = getGSingleband(s_b, k1_b, k2_b, w1_b, w2_b);
+    *G4_ptr += alpha * G_a * G_b;
   }
   else {
     getGMultiband(s_a, k1_a, k2_a, w1_a, w2_a, G_a_);

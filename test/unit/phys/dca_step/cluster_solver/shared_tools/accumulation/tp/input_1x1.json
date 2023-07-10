@@ -35,8 +35,8 @@
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[4, 0],
-        [0, 4]]
+      "cluster": [[1, 0],
+        [0, 1]]
     },
 
     "imaginary-time": {
@@ -51,7 +51,6 @@
 
   "four-point": {
     "type": "NONE",
-    "momentum-transfer": [0., 3.1415],
     "frequency-transfer": 0
   },
 

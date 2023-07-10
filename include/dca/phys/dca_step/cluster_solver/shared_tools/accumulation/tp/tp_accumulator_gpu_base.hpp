@@ -162,18 +162,15 @@ auto TpAccumulatorGpuBase<Parameters, DT>::get_G0() -> G0DevType& {
 
 template <class Parameters, DistType DT>
 void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
-  static std::once_flag flag;
-  std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
     // Currently WTpPosDmn should always be == WTpDmn
-    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
+    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
                            sub_mat.leadingDimension());
     assert(cudaPeekAtLastError() == cudaSuccess);
-  });
 }
 
 template <class Parameters, DistType DT>
