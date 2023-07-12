@@ -23,7 +23,9 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
+#ifdef DCA_HAVE_ADIOS2
 adios2::ADIOS* adios_ptr;
+#endif
 #ifdef DCA_HAVE_MPI
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 dca::parallel::MPIConcurrency* concurrency_ptr;
@@ -156,9 +158,11 @@ int main(int argc, char** argv) {
   concurrency_ptr = &concurrency;
 #endif
 
+#ifdef DCA_HAVE_ADIOS2
   //ADIOS expects MPI_COMM pointer or nullptr
   adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
   adios_ptr = &adios;
+#endif
 
   ::testing::InitGoogleTest(&argc, argv);
 
