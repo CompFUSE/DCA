@@ -467,6 +467,9 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
   else if constexpr (device_name == DeviceType::CPU && rhs_device_name == DeviceType::GPU)
     util::memoryCopyD2H(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_,
                         thread_id, stream_id);
+  else if constexpr (device_name == DeviceType::CPU && rhs_device_name == DeviceType::CPU)
+    util::memoryCopyCpu(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_,
+                        thread_id, stream_id);
 }
 
 template <typename ScalarType, DeviceType device_name>

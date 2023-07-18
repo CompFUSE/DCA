@@ -89,7 +89,7 @@ protected:
   void initializeG0();
 
   template <class Configuration, typename SpScalar>
-  float computeM(const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
+  double computeM(const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
                  const std::array<Configuration, 2>& configs);
 
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
@@ -202,12 +202,12 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
 
 template <class Parameters, DistType DT>
 template <class Configuration, typename SpScalar>
-float TpAccumulatorGpuBase<Parameters, DT>::computeM(
+double TpAccumulatorGpuBase<Parameters, DT>::computeM(
     const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_queues_ == 1 ? 0 : s; };
 
-  float flop = 0.;
+  double flop = 0.;
 
   {
     [[maybe_unused]] Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);

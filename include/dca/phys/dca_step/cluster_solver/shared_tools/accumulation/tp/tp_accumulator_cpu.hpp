@@ -72,7 +72,6 @@ protected:
   using Base::non_density_density_;
   using Base::n_bands_;
   using Base::extension_index_offset_;
-  // using Base::n_pos_frqs_;
   using Base::G4_;
   using Base::channels_;
   using Base::G0_;
@@ -157,8 +156,8 @@ protected:
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
   template <class Configuration, typename SpScalar>
-  float computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
-                 const std::array<Configuration, 2>& configs);
+  double computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
+                  const std::array<Configuration, 2>& configs);
 
   template <typename SignType>
   double updateG4(int channel_index, SignType factor);
@@ -199,16 +198,9 @@ TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
   if constexpr (DT == DistType::BLOCKED) {
     std::cerr << "Blocked distribution is not supported in the CPU accumulator. "
               << "Reverting to no distribution.\n";
-    if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
-      throw(std::logic_error("The number of single particle frequencies is too small."));
-
-    // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
-    // We want to avoid copies because function's copy ctor does not copy the name (and because
-    // copies are expensive).
-    // for (int channel_id = 0; channel_id < channels_.size(); ++channel_id) {
-    //   G4_.emplace_back("G4_" + toString(channels_[channel_id]));
-    // }
   }
+  if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
+    throw(std::logic_error("The number of single particle frequencies is too small."));
 }
 
 template <class Parameters, DistType DT>
@@ -243,10 +235,10 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::accumulate(
 
 template <class Parameters, DistType DT>
 template <class Configuration, typename SpScalar>
-float TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
+double TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
     const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
-  float flops = 0.;
+  double flops = 0.;
 
   func::function<TpComplex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>>
       M_r_r_w_w;
@@ -305,7 +297,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGSingleband(const int s,
   const TpComplex M_val = G_(0, 0, s, k1, k2, w1, w2);
 #ifdef DEBUG_G4_CPU
   std::cout << M_val << " " << G0_w1 << " " << G0_w2 << " -- ";
-  #endif
+#endif
   // for real G0 this was
   // if (k2 == k1 && w2 == w1 + n_pos_frqs_)
   if (k2 == k1 && w2 == w1)
@@ -340,11 +332,11 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, 
 #ifndef NDEBUG
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
-      #ifdef DEBUG_G4_GPU
+#ifdef DEBUG_G4_GPU
       std::cout << b1 << " " << b2 << " " << s << " " << k1 << " " << k2 << " " << w1 << " " << w2
                 << " " << G_(b1, b2, s, k1, k2, w1, w2).real() << ','
                 << G_(b1, b2, s, k1, k2, w1, w2).imag() << '\n';
-      #endif
+#endif
     }
 #endif
 }
@@ -487,7 +479,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
           }
         }
         flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
-#ifdef NDEBUG
+#ifndef NDEBUG
         std::cout << "G4 PHM from spin:" << G4_FromSpinDifference << '\n';
         std::cout << "G4 PHM from direct:" << G4_DirectDifference << '\n';
 #endif
@@ -807,11 +799,13 @@ const std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensF
   return G4_;
 }
 
+#ifndef NDEBUG
 template <class Parameters, DistType DT>
 const typename TpAccumulator<Parameters, DT, linalg::CPU>::Base::SpGreenFunction& TpAccumulator<
     Parameters, DT, linalg::CPU>::get_G_Debug() const {
   return G_debug_;
 }
+#endif
 
 template <class Parameters, DistType DT>
 std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensFunction>& TpAccumulator<

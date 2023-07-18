@@ -314,6 +314,18 @@ void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int l
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
+template <typename Scalar1, typename Scalar2>
+void memoryCopyH2D(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  throw std::runtime_error("memoryCopyH2D should never be called in a non GPU build.");
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyD2H(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  throw std::runtime_error("memoryCopyH2D should never be called in a non GPU build.");
+}
+
 #endif  // DCA_HAVE_GPU
 
 }  // namespace util

@@ -142,9 +142,9 @@ protected:
 
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
-  template <class Configuration, typename SpScalar>
-  float computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
-                 const std::array<Configuration, 2>& configs);
+  // template <class Configuration, typename SpScalar>
+  // double computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
+  //                const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_id);
 
@@ -195,7 +195,6 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
       channels_(pars.get_four_point_channels()),
       G0_("tp_acc_base::G0_"),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2) {
-      //n_pos_frqs_(WTpExtPosDmn::dmn_size()) {
 
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));

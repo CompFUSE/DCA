@@ -390,6 +390,12 @@ void DcaData<Parameters, DT>::read(adios2::ADIOS& adios, std::string filename) {
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurrency_type>& reader) {
+
+  std::size_t step_count = reader.getStepCount();
+  for (std::size_t i = 0; i < step_count; ++i) {
+    reader.begin_step();
+  }
+  
   reader.open_group("parameters");
 
   reader.open_group("physics");
