@@ -104,7 +104,7 @@ __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
                                       CudaComplex<Real>* out, const int ldo) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
-  const int n_rows = nw / 2 * no;
+  const int n_rows = nw * no;
   const int n_cols = nw * no;
   if (id_i >= n_rows || id_j >= n_cols)
     return;
@@ -117,7 +117,7 @@ __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
   };
   int w1, w2, b1, b2, r1, r2;
 
-  get_indices(id_i, nw / 2, b1, r1, w1);
+  get_indices(id_i, nw, b1, r1, w1);
   get_indices(id_j, nw, b2, r2, w2);
 
   const int nr = no / nb;
@@ -131,7 +131,7 @@ template <typename Real>
 void rearrangeOutput(const int nw, const int no, const int nb, const std::complex<Real>* in,
                      const int ldi, std::complex<Real>* out, const int ldo,
                      const cudaStream_t stream) {
-  const int n_rows = nw / 2 * no;
+  const int n_rows = nw * no;
   const int n_cols = nw * no;
   auto const blocks = getBlockSize(n_rows, n_cols);
 

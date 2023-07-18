@@ -136,8 +136,8 @@ public:
     return execute(A.get_name(), A);
   }
 
-  template <typename Scalar>
-  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A);
+  template <typename Scalar, class ALLOCATOR>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A);
 
   template <class T>
   bool execute(const std::string& name, const std::unique_ptr<T>& obj);
@@ -189,7 +189,7 @@ private:
   template <typename Scalar>
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
              const std::vector<size_t>& start, const std::vector<size_t>& count);
-
+  
   template <typename T, typename... Args>
   void getVariable(const std::string& name, adios2::Variable<T>& var, const Args&... args);
 
@@ -554,9 +554,9 @@ bool ADIOS2Writer<CT>::execute(const std::string& name,
 }
 
 template <class CT>
-template <typename Scalar>
+template <typename Scalar, class ALLOCATOR>
 bool ADIOS2Writer<CT>::execute(const std::string& name,
-                               const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A) {
+                               const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A) {
   std::vector<size_t> dims{size_t(A.nrRows()), size_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
 

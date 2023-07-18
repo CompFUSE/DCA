@@ -113,6 +113,11 @@ public:
   // Returns the accumulated Green's function.
   const std::vector<TpGreensFunction>& get_G4() const;
 
+#ifndef NDEBUG
+  // Returns the accumulated Green's function.
+  const typename Base::SpGreenFunction& get_G_Debug() const;
+#endif
+
   // FOR TESTING: Returns the accumulated Green's function.
   std::vector<TpGreensFunction>& get_nonconst_G4();
 
@@ -177,6 +182,10 @@ protected:
 protected:
   CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
+#ifndef NDEBUG
+  typename Base::SpGreenFunction G_debug_;
+#endif
+
 private:
   // work spaces for computeGMultiband.
   Matrix G0_M_, G_a_, G_b_;
@@ -221,6 +230,11 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::accumulate(
 
   gflops += computeM(M_pair, configs);
   gflops += computeG();
+
+#ifndef NDEBUG
+  G_debug_ = G_;
+#endif
+
   for (int channel_index = 0; channel_index < G4_.size(); ++channel_index)
     gflops += updateG4(channel_index, factor);
 
@@ -262,6 +276,11 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::computeG() {
             switch (n_bands_) {
               case 1:
                 computeGSingleband(s, k1, k2, w1, w2);
+#ifdef DEBUG_G4_CPU
+                std::cout << s << " " << k1 << " " << k2 << " " << w1 << " " << w2 << " "
+                          << G_(0, 0, s, k1, k2, w1, w2).real() << ','
+                          << G_(0, 0, s, k1, k2, w1, w2).imag() << '\n';
+#endif
                 break;
               default:
                 computeGMultiband(s, k1, k2, w1, w2);
@@ -284,7 +303,9 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGSingleband(const int s,
   const TpComplex G0_w1 = G0_(0, 0, s, k1, w1);
   const TpComplex G0_w2 = G0_(0, 0, s, k2, w2);
   const TpComplex M_val = G_(0, 0, s, k1, k2, w1, w2);
-
+#ifdef DEBUG_G4_CPU
+  std::cout << M_val << " " << G0_w1 << " " << G0_w2 << " -- ";
+  #endif
   // for real G0 this was
   // if (k2 == k1 && w2 == w1 + n_pos_frqs_)
   if (k2 == k1 && w2 == w1)
@@ -316,6 +337,16 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, 
       for (int b1 = 0; b1 < n_bands_; ++b1)
         M_matrix(b1, b2) += G0_w1(b1, b2) * beta_;
   }
+#ifndef NDEBUG
+  for (int b2 = 0; b2 < n_bands_; ++b2)
+    for (int b1 = 0; b1 < n_bands_; ++b1) {
+      #ifdef DEBUG_G4_GPU
+      std::cout << b1 << " " << b2 << " " << s << " " << k1 << " " << k2 << " " << w1 << " " << w2
+                << " " << G_(b1, b2, s, k1, k2, w1, w2).real() << ','
+                << G_(b1, b2, s, k1, k2, w1, w2).imag() << '\n';
+      #endif
+    }
+#endif
 }
 
 template <class Parameters, DistType DT>
@@ -435,9 +466,9 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
 #ifndef NDEBUG
                     TpComplex G4_before = *G4_ptr;
 #endif
-                    // updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-                    //                        w_plus_w_ex(w2, w_ex), momentum_sum(k2, k_ex), k2,
-                    //                        w_plus_w_ex(w1, w_ex), w2, sign_over_2, false);
+                    updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+                                           w_plus_w_ex(w2, w_ex), momentum_sum(k2, k_ex), k2,
+                                           w_plus_w_ex(w1, w_ex), w2, sign_over_2, false);
 #ifndef NDEBUG
                     G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
 #endif
@@ -455,9 +486,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                   }
           }
         }
-
         flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
-#ifndef NDEBUG
+#ifdef NDEBUG
         std::cout << "G4 PHM from spin:" << G4_FromSpinDifference << '\n';
         std::cout << "G4 PHM from direct:" << G4_DirectDifference << '\n';
 #endif
@@ -775,6 +805,12 @@ const std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensF
   if (G4_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
   return G4_;
+}
+
+template <class Parameters, DistType DT>
+const typename TpAccumulator<Parameters, DT, linalg::CPU>::Base::SpGreenFunction& TpAccumulator<
+    Parameters, DT, linalg::CPU>::get_G_Debug() const {
+  return G_debug_;
 }
 
 template <class Parameters, DistType DT>

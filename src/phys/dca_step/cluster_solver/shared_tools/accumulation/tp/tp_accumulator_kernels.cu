@@ -56,7 +56,7 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
 template <typename Real>
 __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
                                          const CudaComplex<Real>* __restrict__ G0, int nk,
-                                         int nw_freq, const Real beta) {
+                                         int nw_freq, const Real beta, int spin) {
   // Computes G = -G0(w1) * M(w1, w2) * G(w2) + (w1 == w2) * beta * G0(w1).
 
   const int n_rows = nk * nw_freq;
@@ -78,20 +78,24 @@ __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int 
   const CudaComplex<Real> G0_w1 = G0[k1 + nk * w1];
   const CudaComplex<Real> G0_w2 = G0[k2 + nk * w2];
 
-  G[id_i + ldg * id_j] *= -G0_w1 * G0_w2;
+  const CudaComplex<Real> M_val  = G[id_i + ldg * id_j];
+  
+  G[id_i + ldg * id_j] = -G0_w1 * M_val * G0_w2;
   if (k1 == k2 && w1 == w2) {
     G[id_i + ldg * id_j] += G0_w1 * beta;
   }
+
+  printf("%f %f %f %f %f %f -- %d %d %d %d %f,%f\n", M_val, G0_w1, G0_w2, spin, k1, k2, w1, w2, G[id_i + ldg * id_j].x, G[id_i + ldg * id_j].y);
 }
 
 template <typename Real>
 void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int nk,
-                        int nw_freq, const Real beta, cudaStream_t stream) {
+                        int nw_freq, const Real beta, cudaStream_t stream, int spin) {
   const int n_rows = nk * nw_freq;
   auto blocks = getBlockSize(n_rows, n_rows);
 
   computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(castGPUType(G), ldg,
-                                                                castGPUType(G0), nk, nw_freq, beta);
+                                                                castGPUType(G0), nk, nw_freq, beta, spin);
 }
 
 template <typename Real>
@@ -139,12 +143,16 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   G_val.x = G_val.y = 0;
   for (int j = 0; j < nb; ++j) {
     const CudaComplex<Real> G0_w2_val = G0_w2[j + ldg0 * b2];
-    for (int i = 0; i < nb; ++i)
-      G_val -= G0_w1[b1 + ldg0 * i] * M[i + ldm * j] * G0_w2_val;
+    for (int i = 0; i < nb; ++i) {
+      const CudaComplex<Real> G_band = G0_w1[b1 + ldg0 * i] * M[i + ldm * j] * G0_w2_val;
+      G_val -= G_band;
+    }
   }
 
   if (G0_w1 == G0_w2)
     G_val += G0_w1[b1 + ldg0 * b2] * beta;
+
+  printf("%f %f %f %f %f %f -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2], G0_w1[b1 + ldg0 * b2], G0_w2[b1 + ldg0 * b2], b1, b2, k1, k2, w1, w2, G_val.x, G_val.y);
 }
 
 template <typename Real>
@@ -738,14 +746,14 @@ double updateG4(Scalar* G4, const Scalar* G_up, const int ldgu, const Scalar* G_
 // Explicit instantiation.
 template void computeGSingleband<float>(std::complex<float>* G, int ldg,
                                         const std::complex<float>* G0, int nk, int nw,
-                                        const float beta, cudaStream_t stream);
+                                        const float beta, cudaStream_t stream, int spin);
 template void computeGMultiband<float>(std::complex<float>* G, int ldg,
                                        const std::complex<float>* G0, int ldg0, int nb, int nk,
                                        int nw, float beta, cudaStream_t stream);
 
 template void computeGSingleband<double>(std::complex<double>* G, int ldg,
                                          const std::complex<double>* G0, int nk, int nw_pos,
-                                         const double beta, cudaStream_t stream);
+                                         const double beta, cudaStream_t stream, int spin);
 template void computeGMultiband<double>(std::complex<double>* G, int ldg,
                                         const std::complex<double>* G0, int ldg0, int nb, int nk,
                                         int nw_pos, double beta, cudaStream_t stream);

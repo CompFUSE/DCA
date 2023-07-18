@@ -100,8 +100,8 @@ public:
   template <typename Scalar>
   bool execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
-  template <typename Scalar>
-  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A);
+  template <typename Scalar, typename ALLOCATOR>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A);
   
   template <typename Scalar>
   bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
@@ -291,9 +291,9 @@ bool HDF5Writer::execute(const std::string& name,
   return true;
 }
 
-template <typename Scalar>
+template <typename Scalar, typename ALLOCATOR>
 bool HDF5Writer::execute(const std::string& name,
-                         const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU>& A) {
+                         const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
   std::vector<Scalar> linearized(dims[0] * dims[1]);
 

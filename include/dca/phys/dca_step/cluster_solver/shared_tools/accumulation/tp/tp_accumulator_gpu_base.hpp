@@ -63,9 +63,9 @@ public:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  //using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  //using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
 protected:
@@ -108,7 +108,7 @@ protected:
   // this is how this is defined in the all tp_accumulator_gpu, suspect?
   constexpr static bool non_density_density_ =
     models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
-  CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+  //CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   using NdftType = CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
@@ -140,7 +140,6 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_freq, queues_[0]), DftType(n_freq, queues_[1])},
-
       nr_accumulators_(pars.get_accumulators()),
       thread_id_(thread_id) {
   initializeG4Helpers();
@@ -220,7 +219,7 @@ float TpAccumulatorGpuBase<Parameters, DT>::computeM(
     for (int s = 0; s < 2; ++s)
       flop += space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }
-
+  
   return flop;
 }
 

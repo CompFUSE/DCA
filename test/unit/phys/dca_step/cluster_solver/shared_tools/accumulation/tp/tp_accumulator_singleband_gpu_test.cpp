@@ -111,6 +111,9 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
     data_->write(writer);
     data_->write(writer_h5);
 
+    // writer.execute("G_Device_0", accumulatorDevice.get_G_Debug()[0]);
+    // writer.execute("G_Device_1", accumulatorDevice.get_G_Debug()[1]);
+    // writer.execute("G_Host", accumulatorHost.get_G_Debug());
     for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
       std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
       writer.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);

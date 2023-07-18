@@ -392,5 +392,19 @@ std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::deviceFingerpr
     return 0;
 }
 
+template <typename ScalarType, DeviceType device_name, class Allocator>
+std::ostream& operator<<(std::ostream& ostr, const ReshapableMatrix<ScalarType, device_name, Allocator>& rmatrix)
+{
+  ostr << "{";
+  for(std::size_t i = 0; i < rmatrix.size().first; ++i) {
+    ostr << "{";
+    for(std::size_t j = 0; j < rmatrix.size().second; ++j)
+      ostr << rmatrix(i,j) << ",";
+    ostr << "},";
+  }
+  ostr << "}";
+  return ostr;
+}
+
 }  // namespace linalg
 }  // namespace dca

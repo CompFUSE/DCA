@@ -135,7 +135,7 @@ float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>:
   float flop = 0.;
 
   if (configuration.size() == 0) {  // The result is zero
-    M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
+    M_out.resizeNoCopy(std::make_pair(w_.size() * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(magma_queue_.getStream());
     return flop;
   }
@@ -148,7 +148,7 @@ float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>:
   // Allocate enough memory.
   const int nw = w_.size();
   const int order = std::max(config_dev_[0].size(), config_dev_[1].size());
-  const int g_first_size = nw / 2 * n_orbitals_;
+  const int g_first_size = nw * n_orbitals_;
   M_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
   workspace_->reserveNoCopy(std::max(order * order, 2 * g_first_size * g_first_size));
 
@@ -177,11 +177,11 @@ void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
 template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::computeT() {
   const int nw = w_.size();
-  const int nw_pos = nw / 2;
+  const int nw_pos = nw;
   const int k = indexed_config_[0].size();
   T_l_dev_.resizeNoCopy(std::make_pair(nw_pos, k));
   details::computeT(nw_pos, k, T_l_dev_.ptr(), T_l_dev_.leadingDimension(), config_dev_[0].ptr(),
-                    w_dev_.ptr() + nw_pos, false, magma_queue_.getStream());
+                    w_dev_.ptr(), false, magma_queue_.getStream());
 
   T_r_dev_.resizeNoCopy(std::make_pair(k, nw));
   details::computeT(k, nw, T_r_dev_.ptr(), T_r_dev_.leadingDimension(), config_dev_[1].ptr(),
@@ -199,7 +199,7 @@ double CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
   const int order = indexed_config_[0].size();
 
   auto& T_times_M = M_out;
-  bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw * n_orbitals_, order));
   dca::util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(magma_queue_.getStream());
@@ -215,17 +215,17 @@ double CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
       const int n_i = end_index_left_[i] - start_index_left_[i];
       if (!n_i)
         continue;
-      magma_plan1_.addGemm(nw / 2, order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
-                           M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M.ptr(i * nw / 2, 0),
+      magma_plan1_.addGemm(nw,  order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
+                           M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M.ptr(i * nw, 0),
                            ldc);
 
-      flop += 8. * nw / 2 * order * n_i;
+      flop += 8. * nw * order * n_i;
     }
     magma_plan1_.execute('N', 'N');
   }
 
   auto& T_times_M_times_T = *workspace_;
-  realloc = T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
+  realloc = T_times_M_times_T.resizeNoCopy(std::make_pair(nw * n_orbitals_, nw * n_orbitals_));
   assert(!realloc);
   T_times_M_times_T.setToZero(magma_queue_.getStream());
 
