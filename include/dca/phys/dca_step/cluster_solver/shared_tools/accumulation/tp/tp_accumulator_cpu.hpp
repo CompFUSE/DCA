@@ -459,8 +459,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                     TpComplex G4_before = *G4_ptr;
 #endif
                     updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-                                           w_plus_w_ex(w2, w_ex), momentum_sum(k2, k_ex), k2,
-                                           w_plus_w_ex(w1, w_ex), w2, sign_over_2, false);
+                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
 #ifndef NDEBUG
                     G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
 #endif
