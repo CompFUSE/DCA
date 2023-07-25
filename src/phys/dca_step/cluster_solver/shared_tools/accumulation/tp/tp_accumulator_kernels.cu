@@ -309,8 +309,8 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int k2_b = k2;
 
     int w1_a(w1);
-    int w2_a(g4_helper.addWex(w2, w_ex));
-    int w1_b(g4_helper.addWex(w1, w_ex));
+    int w2_a(g4_helper.addWex(w1, w_ex));
+    int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(w2);
 
     // conj_a in this case just tells us whether to swap the band axes additions or not
