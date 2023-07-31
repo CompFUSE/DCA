@@ -232,10 +232,10 @@ void La3Ni2O7_bilayer<point_group_type>::initializeH0(
     const auto val12 = 2. * t12 * (std::cos(k[0]) - std::cos(k[1]));
 
     for (int s = 0; s < 2; ++s) {
-      H_0(0, s, 0, s, k_ind) = val11;
-      H_0(1, s, 1, s, k_ind) = val22 + Delta;
-      H_0(2, s, 2, s, k_ind) = val11;
-      H_0(3, s, 3, s, k_ind) = val22 + Delta;
+      H_0(0, s, 0, s, k_ind) = val11 + Delta;
+      H_0(1, s, 1, s, k_ind) = val22;
+      H_0(2, s, 2, s, k_ind) = val11 + Delta;
+      H_0(3, s, 3, s, k_ind) = val22;
 
       H_0(0, s, 1, s, k_ind) = val12;
       H_0(1, s, 0, s, k_ind) = val12;
