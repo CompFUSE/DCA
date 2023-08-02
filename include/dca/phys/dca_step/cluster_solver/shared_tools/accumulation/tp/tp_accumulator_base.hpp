@@ -47,8 +47,6 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-using dca::util::RealAlias;
-  
 template <class Parameters, DistType DT = DistType::NONE, linalg::DeviceType device = linalg::CPU>
 class TpAccumulator {};
 
@@ -78,7 +76,7 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-  using SpGreenFunction =
+  using SpGreensFunction =
       func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
 
 public:
@@ -172,7 +170,7 @@ protected:
     models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
   //CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  SpGreenFunction G_;
+  SpGreensFunction G_;
 
   std::vector<TpGreensFunction> G4_;
   std::vector<FourPointType> channels_;

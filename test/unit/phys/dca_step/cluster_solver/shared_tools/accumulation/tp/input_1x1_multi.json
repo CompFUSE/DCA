@@ -1,0 +1,81 @@
+{
+  "output" :
+  {
+    "output-format"         : "HDF5",
+
+    "output-ED"  : "ed_results.hdf5",
+    "output-QMC" : "output_QMC.hdf5"
+  },
+
+  "physics" :
+  {
+    "beta"                      :  2,
+    "chemical-potential"        : 0
+  },
+
+  "bilayer-Hubbard-model":
+  {
+    "t"       : 1,
+    "U"       : 2
+  },
+
+  "Hund-model":
+  {
+    "t"       : 1,
+    "U"       : 1,
+    "V"       : 1,
+    "Jh"      : 2
+  },
+
+  "single-band-Hubbard-model":
+  {
+    "t"       : 1,
+    "U"       : 2
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[1, 0],
+        [0, 1]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 64
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 64,
+      "four-point-fermionic-frequencies" : 1
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_HOLE_MAGNETIC",
+    "momentum-transfer": [0.,0.],
+    "frequency-transfer": 0
+  },
+
+
+  "Monte-Carlo-integration" :
+  {
+    "Sigma-file" : "zero",
+
+    "warm-up-sweeps"         : 100,
+    "sweeps-per-measurement" : 1,
+    "measurements-per-process-and-accumulator" : 500,
+    "seed" : 0,
+
+      "threaded-solver" : {
+	  "walkers" : 1,
+	  "accumulators" : 1,
+	  "shared-walker-and-accumulator-thread" : true
+    }
+  },
+
+
+  "CT-INT" :
+  {
+    "initial-configuration-size" :5,
+    "alpha-dd-pos" : 0.51
+  }
+}

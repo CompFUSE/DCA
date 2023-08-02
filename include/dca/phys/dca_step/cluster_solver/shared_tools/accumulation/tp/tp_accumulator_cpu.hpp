@@ -47,6 +47,10 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
+// ifndef DEBUG_G4_CPU
+// define DEBUG_G4_CPU
+// endif
+
 using dca::util::SignType;
 
 template <class Parameters, DistType DT>
@@ -54,6 +58,8 @@ class TpAccumulator<Parameters, DT, linalg::CPU> : public TpAccumulatorBase<Para
 public:
   using Base = TpAccumulatorBase<Parameters, DT>;
 
+  using Real = typename Parameters::Real;
+  
   using typename Base::NuDmn;
   using typename Base::TpPrecision;
   using typename Base::TpComplex;
@@ -67,6 +73,7 @@ public:
   using typename Base::BDmn;
   using typename Base::SDmn;
   using typename Base::TpGreensFunction;
+  using typename Base::SpGreensFunction;
 
 protected:
   using Base::non_density_density_;
@@ -78,10 +85,8 @@ protected:
   using Base::G0_ptr_;
   using Base::G_;
   using Base::beta_;
-
   using Profiler = typename Parameters::profiler_type;
   using Base::thread_id_;
-
   using Matrix = linalg::Matrix<TpComplex, linalg::CPU>;
 
 public:
@@ -114,7 +119,7 @@ public:
 
 #ifndef NDEBUG
   // Returns the accumulated Green's function.
-  const typename Base::SpGreenFunction& get_G_Debug() const;
+  const typename Base::SpGreensFunction& get_G_Debug() const;
 #endif
 
   // FOR TESTING: Returns the accumulated Green's function.
@@ -143,7 +148,20 @@ public:
 protected:
   double computeG();
 
+  void computeGActl(SpGreensFunction& G);
+
   void computeGMultiband(int s, int k1, int k2, int w1, int w2);
+
+  using BandBlockView = linalg::MatrixView<TpComplex, linalg::CPU>;
+
+  /** pure function that does the band block G0_kw1 M G0_kw2 matrix multiply
+   *  param[in]       G0_kw1   matrix view G0 for k1 w1
+   *  param[in]       G0_kw2   matrix view G0 for k2 w2
+   *  param[in/out]   G_kkww   matrix view of G k1 k2 w1 w2 updated by function.
+   *  param[out]      G0_M_    workspace for G0_kw1 M product an optimization
+   */
+  static void matrixOperationsGMultiband(const BandBlockView& G0_kw1, const BandBlockView& G0_kw2,
+                                         BandBlockView& G_kkww, Matrix& G0_M_);
 
   void computeGSingleband(int s, int k1, int k2, int w1, int w2);
 
@@ -182,7 +200,7 @@ protected:
   CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
 #ifndef NDEBUG
-  typename Base::SpGreenFunction G_debug_;
+  typename Base::SpGreensFunction G_debug_;
 #endif
 
 private:
@@ -260,27 +278,31 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
 template <class Parameters, DistType DT>
 double TpAccumulator<Parameters, DT, linalg::CPU>::computeG() {
   Profiler prf("ComputeG", "tp-accumulation", __LINE__, thread_id_);
-  for (int w2 = 0; w2 < WTpExtDmn::dmn_size(); ++w2)
-    for (int w1 = 0; w1 < WTpExtPosDmn::dmn_size(); ++w1)
-      for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
-        for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1)
-          for (int s = 0; s < 2; ++s)
-            switch (n_bands_) {
-              case 1:
-                computeGSingleband(s, k1, k2, w1, w2);
-#ifdef DEBUG_G4_CPU
-                std::cout << s << " " << k1 << " " << k2 << " " << w1 << " " << w2 << " "
-                          << G_(0, 0, s, k1, k2, w1, w2).real() << ','
-                          << G_(0, 0, s, k1, k2, w1, w2).imag() << '\n';
-#endif
-                break;
-              default:
-                computeGMultiband(s, k1, k2, w1, w2);
-            }
+  computeGActl(G_);
   //  INTERNAL: the additional flops for w1==w2 are ignored.
   const double flops = 8 * std::pow(n_bands_, 3) * WTpExtPosDmn::dmn_size() *
                        WTpExtDmn::dmn_size() * std::pow(KDmn::dmn_size(), 2) * 2;
   return 1e-9 * flops;
+}
+
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::CPU>::computeGActl(SpGreensFunction& G) {
+  auto domain_sizes = G.getDomainSizes();
+  auto slow_order_it = domain_sizes.rbegin();
+  auto w2_size = *slow_order_it++;
+  auto w1_size = *slow_order_it++;
+  auto k2_size = *slow_order_it++;
+  auto k1_size = *slow_order_it++;
+  auto s_size = *slow_order_it++;
+  for (int w2 = 0; w2 < w2_size; ++w2)
+    for (int w1 = 0; w1 < w1_size; ++w1)
+      for (int k2 = 0; k2 < k2_size; ++k2)
+        for (int k1 = 0; k1 < k1_size; ++k1)
+          for (int s = 0; s < s_size; ++s)
+            if constexpr (n_bands_ > 1)
+              computeGMultiband(s, k1, k2, w1, w2);
+            else
+              computeGSingleband(s, k1, k2, w1, w2);
 }
 
 template <class Parameters, DistType DT>
@@ -315,30 +337,41 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, 
 
   // const linalg::MatrixView<Complex, linalg::CPU> G0_w1(&G0_(0, 0, s, k1, w1 + Base::n_pos_frqs_),
   //                                                      Base::n_bands_, Base::n_bands_);
-  const linalg::MatrixView<TpComplex, linalg::CPU> G0_w1(&G0_(0, 0, s, k1, w1), n_bands_, n_bands_);
-  const linalg::MatrixView<TpComplex, linalg::CPU> G0_w2(&G0_(0, 0, s, k2, w2), n_bands_, n_bands_);
-  linalg::MatrixView<TpComplex, linalg::CPU> M_matrix(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
+  const BandBlockView G0_w1(&G0_(0, 0, s, k1, w1), n_bands_, n_bands_);
+  const BandBlockView G0_w2(&G0_(0, 0, s, k2, w2), n_bands_, n_bands_);
+  // linalg::Matrix<TpComplex, linalg::CPU> M_matrix_copy(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
+  BandBlockView M_matrix(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
 
-  // G(w1, w2) <- -G0(w1) M(w1, w2) G0(w2)
-  linalg::matrixop::gemm(G0_w1, M_matrix, G0_M_);
-  linalg::matrixop::gemm(TpComplex(-1), G0_M_, G0_w2, TpComplex(0), M_matrix);
+  matrixOperationsGMultiband(G0_w1, G0_w2, M_matrix, G0_M_);
 
-  // G(w1, w2) += \delta(w1, w2) \delta(k1,k2) G0(w1)
+    // G(w1, w2) += \delta(w1, w2) \delta(k1,k2) G0(w1)
   if (G0_w1.ptr() == G0_w2.ptr()) {
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
         M_matrix(b1, b2) += G0_w1(b1, b2) * beta_;
   }
+
 #ifndef NDEBUG
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
-#ifdef DEBUG_G4_GPU
-      std::cout << b1 << " " << b2 << " " << s << " " << k1 << " " << k2 << " " << w1 << " " << w2
-                << " " << G_(b1, b2, s, k1, k2, w1, w2).real() << ','
-                << G_(b1, b2, s, k1, k2, w1, w2).imag() << '\n';
+#ifdef DEBUG_G4_CPU
+      std::cout << M_matrix(b1, b2).real() << ' ' << M_matrix(b1, b2).imag() << ' '
+                << G0_(b1, b2, s, k1, w1).real() << ' ' << G0_(b1, b2, s, k1, w1).imag() << ' '
+                << G0_(b1, b2, s, k1, w1).imag() << ' ' << G0_(b1, b2, s, k2, w2).real()
+                << "  CPU: " << b1 << " " << b2 << " " << s << " " << k1 << " " << k2 << " " << w1
+                << " " << w2 << " " << '\n';
 #endif
     }
 #endif
+}
+
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::CPU>::matrixOperationsGMultiband(const BandBlockView& G0_kw1, const BandBlockView& G0_kw2, BandBlockView& G_kkww, Matrix& G0_M_) {
+  // G(w1, w2) <- -G0(w1) M(w1, w2) G0(w2)
+  G0_M_.resize(G0_kw1.size());
+  linalg::matrixop::gemm(G0_kw1, G_kkww, G0_M_);
+  linalg::matrixop::gemm(TpComplex(-1), G0_M_, G0_kw2, TpComplex(0), G_kkww);
+
 }
 
 template <class Parameters, DistType DT>
@@ -801,7 +834,7 @@ const std::vector<typename TpAccumulator<Parameters, DT, linalg::CPU>::TpGreensF
 
 #ifndef NDEBUG
 template <class Parameters, DistType DT>
-const typename TpAccumulator<Parameters, DT, linalg::CPU>::Base::SpGreenFunction& TpAccumulator<
+const typename TpAccumulator<Parameters, DT, linalg::CPU>::Base::SpGreensFunction& TpAccumulator<
     Parameters, DT, linalg::CPU>::get_G_Debug() const {
   return G_debug_;
 }

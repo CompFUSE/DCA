@@ -250,7 +250,7 @@ protected:
 #endif
 
 #ifndef NDEBUG
-  std::array<linalg::ReshapableMatrix<TpComplex, linalg::CPU, config::McOptions::TpAllocator<TpComplex>>,2> G_debug_;
+  std::array<linalg::ReshapableMatrix<TpComplex, linalg::CPU, dca::linalg::util::PinnedAllocator<TpComplex>>,2> G_debug_;
 #endif
 
 #ifndef DCA_HAVE_GPU_AWARE_MPI

@@ -142,7 +142,7 @@ public:
 
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
   using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-  using PosFreqDmn = dca::func::dmn_0<PositiveFrq>;
+  using PosFreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;

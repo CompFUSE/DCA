@@ -40,7 +40,7 @@ using McOptions = MockMcOptions<Scalar>;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_4x4.json";
+constexpr char input_file[] = INPUT_DIR "input_1x1_multi.json";
 
 #ifdef DCA_HAVE_ADIOS2
 adios2::ADIOS* adios_ptr;
@@ -142,8 +142,16 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
     }
+    writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
+    writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
+    writer_h5.execute("accumulatorHOST_G", accumulatorHost.get_G_Debug());
     writer.close_file();
     writer_h5.close_file();
+
+    // writer_h5.open_file("tp_gpu_test_device_func.hdf5");    
+    // this->gpu_setup.parameters_.write(writer_h5);
+    // this->gpu_setup.data_->write(writer_h5);
+    // writer_h5.close_file();
   }
 #endif
 

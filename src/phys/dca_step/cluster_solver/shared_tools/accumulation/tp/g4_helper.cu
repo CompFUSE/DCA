@@ -93,9 +93,19 @@ __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) con
 
 __device__ bool G4Helper::extendGIndicesMultiBand(int& k1 [[maybe_unused]],
                                                   int& k2 [[maybe_unused]], int& w1, int& w2) const {
-  const int n_w_ext = ext_size_ + nw_;
-  w1 += ext_size_;
-  w2 += ext_size_;
+  const int extension_offset = ext_size_ / 2;
+  w1 += extension_offset;
+  w2 += extension_offset;
+  const int n_w_ext = nw_ + ext_size_ + 1;
+#ifndef NDEBUG
+  if (w1 >= n_w_ext || w2 >= n_w_ext) {
+    if (w1 >= n_w_ext)
+      bad_indicies_[threadIdx.x + threadIdx.y * 32] = w1;
+    else
+      bad_indicies_[threadIdx.x + threadIdx.y * 32] = w2;
+  }
+#endif
+  return false;
 }
 
 }  // namespace details

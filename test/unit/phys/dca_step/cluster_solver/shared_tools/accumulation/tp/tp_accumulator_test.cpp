@@ -47,7 +47,7 @@ dca::parallel::MPIConcurrency* concurrency_ptr;
 dca::parallel::NoConcurrency* concurrency_ptr;
 #endif
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
 constexpr bool write_G4s = true;
 
@@ -72,13 +72,15 @@ TEST_F(TpAccumulatorTest, Accumulate) {
   ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorTest::BDmn::dmn_size(),
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
-  dca::io::HDF5Writer writer;
+  dca::io::HDF5Writer baseline_writer;
   dca::io::HDF5Reader reader;
 
   const std::string baseline = INPUT_DIR "tp_accumulator_test_baseline.hdf5";
 
-  if (update_baseline)
-    writer.open_file(baseline);
+  if (update_baseline) {
+    baseline_writer.open_file(baseline);
+    baseline_writer.begin_step();
+  }
   else
     reader.open_file(baseline);
 
@@ -122,17 +124,20 @@ TEST_F(TpAccumulatorTest, Accumulate) {
     writer_h5.close_file();
   }
 
-  for(auto channel : four_point_channels) {
-    Data::TpGreensFunction G4_check(func_names[channel]);
-    reader.execute(G4_check);
-    const auto diff = dca::func::util::difference(G4[0], G4_check);
-    EXPECT_GT(1e-8, diff.l_inf);
+  if (update_baseline) {
+    data_->write(baseline_writer);
+    baseline_writer.close_file();
   }
-  
-  if (update_baseline)
-    writer.close_file();
-  else
-    reader.close_file();
+  else {
+    for (auto channel : four_point_channels) {
+      Data::TpGreensFunction G4_check(func_names[channel]);
+      reader.execute(G4_check);
+      const auto diff = dca::func::util::difference(G4[0], G4_check);
+      EXPECT_GT(1e-8, diff.l_inf);
+
+      reader.close_file();
+    }
+  }
 }
 
 int main(int argc, char** argv) {

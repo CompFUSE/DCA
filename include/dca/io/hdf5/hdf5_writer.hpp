@@ -277,13 +277,13 @@ template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
-  std::vector<Scalar> linearized(dims[0] * dims[1]);
+  std::vector<Scalar> linearized; //(dims[0] * dims[1]);
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
   for (int i = 0; i < A.nrRows(); ++i)
-    for (int j = 0; j < A.nrCols(); ++j)
-      linearized[linindex++] = A(i, j);
+    for (int j = 0; j < A.nrCols(); ++j, ++linindex)
+      linearized.push_back(A(i, j));
   const std::string full_name{makeFullName(name)};
   auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 
@@ -295,13 +295,13 @@ template <typename Scalar, typename ALLOCATOR>
 bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
-  std::vector<Scalar> linearized(dims[0] * dims[1]);
+  std::vector<Scalar> linearized(A.nrRows() * A.nrCols());
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
   for (int i = 0; i < A.nrRows(); ++i)
     for (int j = 0; j < A.nrCols(); ++j)
-      linearized[linindex++] = A(i, j);
+      linearized[j + i * A.nrCols()] = A(i, j);
   const std::string full_name{makeFullName(name)};
   auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 

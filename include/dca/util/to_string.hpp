@@ -49,6 +49,6 @@ std::string mapToString(CONTAINER const& container) {
   oss << "}\n";
   return oss.str();
 }
-
+  
 }  // namespace dca
 #endif
