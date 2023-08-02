@@ -17,5 +17,7 @@ module load essl
 module load adios2
 module load ninja
 
+module load papi
+
 export CC=mpicc
 export CXX=mpic++
