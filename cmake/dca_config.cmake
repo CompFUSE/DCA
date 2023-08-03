@@ -121,9 +121,9 @@ endif()
 
 # Lattice type
 set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
-Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn | La3Ni2O7_bilayer ")
+Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn | La3Ni2O7_bilayer | twoOrbital")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular Kagome hund twoband_Cu threeband
-  FeAs material_NiO material_FeSn La3Ni2O7_bilayer)
+  FeAs material_NiO material_FeSn La3Ni2O7_bilayer twoOrbital)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -134,6 +134,11 @@ elseif (DCA_LATTICE STREQUAL "La3Ni2O7_bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::La3Ni2O7_bilayer<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/La3Ni2O7_bilayer.hpp")
+
+elseif (DCA_LATTICE STREQUAL "twoOrbital")
+  set(DCA_LATTICE_TYPE dca::phys::models::twoOrbital<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/twoOrbital.hpp")
 
 elseif (DCA_LATTICE STREQUAL "square")
   set(DCA_LATTICE_TYPE dca::phys::models::square_lattice<PointGroup>)
@@ -179,7 +184,7 @@ elseif (DCA_LATTICE STREQUAL "material_FeSn")
       "dca/phys/models/material_hamiltonians/material_lattice.hpp")
   set(DCA_MODEL_IS_MATERIAL_LATTICE ON CACHE BOOL "is the model a material lattice")
 else()
-  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | La3Ni2O7_bilayer | square | triangular | Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn.")
+  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | La3Ni2O7_bilayer | twoOrbital | square | triangular | Kagome | hund | twoband_Cu | threeband | FeAs | material_NiO | material_FeSn.")
 endif()
 
 # Model type
