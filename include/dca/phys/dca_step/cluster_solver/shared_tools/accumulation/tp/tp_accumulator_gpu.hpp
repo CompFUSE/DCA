@@ -307,6 +307,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
       G4_channel.setStream(reset_stream);
       G4_channel.resizeNoCopy(G4_[0].size());
       G4_channel.setToZero(reset_stream);
+      
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";

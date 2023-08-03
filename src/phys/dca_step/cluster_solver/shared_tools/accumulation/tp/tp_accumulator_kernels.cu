@@ -135,7 +135,13 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   if (id_i >= nb * nk * nw || id_j >= nb * nk * nw)
     return;
 
-  const int no = nb * nk;
+  const int no = nk * nb;
+  // const int non_b = nw * nk;
+  // 		       b = id / non_b;
+  // 		       id -= b * nb;
+  // 		       k = id / nw;
+  // 		       w = id - k * nk;
+
   auto get_indices = [=](int id, int& b, int& k, int& w) {
     w = id / no;
     id -= w * no;
@@ -163,17 +169,17 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   CudaComplex<Real>& G_val = G[id_i + ldg * id_j];
   *(M + m_index) = G_val;
   __syncthreads();
-  CudaComplex<Real>& G_val_store = G[id_i + ldg * id_j];
+  CudaComplex<Real> G_val_store = G[id_i + ldg * id_j];
   
-  const CudaComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
-  const CudaComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
+  const CudaComplex<Real>* const G0_w1 = G0 + nw * k1 + no * w1;
+  const CudaComplex<Real>* const G0_w2 = G0 + nw * k2 + no * w2;
 
   G_val_store.x = 0;
   G_val_store.y = 0;
   for (int j = 0; j < nb; ++j) {
-    const CudaComplex<Real> G0_w2_val = G0_w2[b2 + ldg0 * j];
+    const CudaComplex<Real> G0_w2_val = G0_w2[j + ldg0 * b2];
     for (int i = 0; i < nb; ++i) {
-      const CudaComplex<Real> G_band = - G0_w2_val * M[j + ldm * i] * G0_w1[i + ldg0 * b1];
+      const CudaComplex<Real> G_band = - G0_w1[i + ldg0 * b1]  * M[j + ldm * i] * G0_w2[b2 + ldg0 * j];
       G_val_store += G_band;
     }
   }
@@ -184,6 +190,7 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   printf("%lf %lf %lf %lf %lf %lf -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2].x, M[b1 + ldm * b2].y, G0_w1[b1 + ldg0 * b2].x,  G0_w1[b1 + ldg0 * b2].y,
          G0_w2[b1 + ldg0 * b2].x, G0_w2[b1 + ldg0 * b2].y, b1, b2, k1, k2, w1, w2, G_val.x, G_val.y);
 #endif
+  G_val = G_val_store;
 }
 
 // template <typename Real>
@@ -324,7 +331,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
       static_cast<uint64_t>(threadIdx.x);
 
   const uint64_t g4_index = local_g4_index + start;
-
+  
   if (g4_index >= end) {  // out of domain.
     return;
   }
@@ -371,7 +378,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
-    condSwapAdd(i_a, j_a, b1, b4, conj_a);
+    condSwapAdd(i_a, j_a, b1, b4, true);
     const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
     const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
 
@@ -382,7 +389,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
-    condSwapAdd(i_b, j_b, b2, b3, conj_b);
+    condSwapAdd(i_b, j_b, b2, b3, true);
     const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
     const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
@@ -396,11 +403,11 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
     int k1_a = k1;
     int k2_a = g4_helper.addKex(k1, k_ex);
-    int k1_b = g4_helper.addKex(k2, k_ex);
-    int k2_b = k2;
-
     int w1_a(w1);
     int w2_a(g4_helper.addWex(w1, w_ex));
+
+    int k1_b = g4_helper.addKex(k2, k_ex);
+    int k2_b = k2;
     int w1_b(g4_helper.addWex(w2, w_ex));
     int w2_b(w2);
 
@@ -413,7 +420,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
     condSwapAdd(i_a, j_a, b1, b3, true);
-    CudaComplex<RealAlias<Scalar>> Ga = G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a];
+    CudaComplex<RealAlias<Scalar>> Ga = G_down[i_a + ldgu * j_a] - G_up[i_a + ldgd * j_a];
     // if (i_a == j_a)
     //   Ga += (G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a]) *
 
@@ -425,7 +432,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
     condSwapAdd(i_b, j_b, b2, b4, true);
-    CudaComplex<RealAlias<Scalar>> Gb = G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b];
+    CudaComplex<RealAlias<Scalar>> Gb = G_down[i_b + ldgu * j_b] - G_up[i_b + ldgd * j_b];
 
     contribution = sign_over_2 * (Ga * Gb);
 
@@ -447,7 +454,7 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     i_a = nb * k1_a + no * w1_a;
     j_a = nb * k2_a + no * w2_a;
     i_a += b1;
-    j_a += b3;
+    j_a += b4;
 
     CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     CudaComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
@@ -459,8 +466,8 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
 
     i_b = nb * k1_b + no * w1_b;
     j_b = nb * k2_b + no * w2_b;
-    i_b += b4;
-    j_b += b2;
+    i_b += b2;
+    j_b += b3;
     CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
     CudaComplex<RealAlias<Scalar>> Gb_2 = G_down[i_b + ldgd * j_b];
 
@@ -481,17 +488,11 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
         conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
       int i_a = nb * k1_a + no * w1_a;
       int j_a = nb * k2_a + no * w2_a;
-      if (conj_a) {
-        i_a += b4;
-        j_a += b1;
-      }
-      else {
-        i_a += b1;
-        j_a += b4;
-      }
+      // b1 , b4
+      condSwapAdd(i_a, j_a, b1, b4, true);
 
-      const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
+      const CudaComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
       int w1_b(g4_helper.addWex(w2, w_ex));
       int w2_b(g4_helper.addWex(w1, w_ex));
@@ -505,76 +506,56 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
 
       int i_b = nb * k1_b + no * w1_b;
       int j_b = nb * k2_b + no * w2_b;
-      if (conj_b) {
-        i_b += b3;
-        j_b += b2;
-      }
-      else {
-        i_b += b2;
-        j_b += b3;
-      }
+      // b2, b3
+      condSwapAdd(i_b, j_b, b2, b3, true);
 
-      const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-
-      const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
+      const CudaComplex<RealAlias<Scalar>> Gb_2 = G_down[i_b + ldgd * j_b];
 
       contribution = -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
     // Spin Difference Contribution
     // new scope to reuse local index variables
-    {
-      // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
-      // TODO: pull into function, index setting code is identical for Spin cases
-      int w1_a(w1);
-      int w2_a(g4_helper.addWex(w1, w_ex));
-      int k1_a = k1;
-      int k2_a = g4_helper.addKex(k1, k_ex);
-      bool conj_a = false;
-      if (g4_helper.get_bands() == 1)
-        conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-      else
-        conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+    // {
+    //   // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
+    //   // TODO: pull into function, index setting code is identical for Spin cases
+    //   int k1_a(k1);
+    //   int k2_a(g4_helper.addKex(k1, k_ex));
+    //   int w1_a(w1);
+    //   int w2_a(g4_helper.addWex(w1, w_ex));
 
-      int i_a = nb * k1_a + no * w1_a;
-      int j_a = nb * k2_a + no * w2_a;
-      if (conj_a) {
-        i_a += b1;
-        j_a += b2;
-      }
-      else {
-        i_a += b2;
-        j_a += b1;
-      }
+    //   bool conj_a = false;
+    //   if (g4_helper.get_bands() == 1)
+    //     conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    //   else
+    //     conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
 
-      const CudaComplex<RealAlias<Scalar>> Ga =
-          cond_conj(G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a], conj_a);
+    //   int i_a = nb * k1_a + no * w1_a;
+    //   int j_a = nb * k2_a + no * w2_a;
+    //   condSwapAdd(i_a, j_a, b1, b3, true);
 
-      int w1_b(g4_helper.addWex(w2, w_ex));
-      int w2_b(w2);
-      int k1_b = g4_helper.addKex(k2, k_ex);
-      int k2_b = k2;
-      bool conj_b = false;
-      if (g4_helper.get_bands() == 1)
-        conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-      else
-        conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+    //   const CudaComplex<RealAlias<Scalar>> Ga =
+    // 	G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a];
 
-      int i_b = nb * k1_b + no * w1_b;
-      int j_b = nb * k2_b + no * w2_b;
-      if (conj_b) {
-        i_b += b4;
-        j_b += b3;
-      }
-      else {
-        i_b += b3;
-        j_b += b4;
-      }
+    //   int k1_b(g4_helper.addKex(k2, k_ex));
+    //   int k2_b(k2);
+    //   int w1_b(g4_helper.addWex(w2, w_ex));
+    //   int w2_b(w2);
+    //   bool conj_b = false;
+    //   if (g4_helper.get_bands() == 1)
+    //     conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    //   else
+    //     conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      const CudaComplex<RealAlias<Scalar>> Gb =
-          cond_conj(G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b], conj_b);
+    //   int i_b = nb * k1_b + no * w1_b;
+    //   int j_b = nb * k2_b + no * w2_b;
+    //   condSwapAdd(i_a, j_a, b2, b4, true);
 
-      contribution += sign_over_2 * (Ga * Gb);
-    }
+    //   const CudaComplex<RealAlias<Scalar>> Gb =
+    //       G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b];
+
+    //   contribution = sign_over_2 * (Ga * Gb);
+    // }
   }
   else if constexpr (type == FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP) {
     // The PARTICLE_HOLE_LONGITUDINAL_UP_UP contribution is computed in two parts:

@@ -63,9 +63,7 @@ public:
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  //using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  //using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
 protected:
@@ -80,7 +78,7 @@ protected:
 
 public:
   TpAccumulatorGpuBase(
-      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+		       const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn >>& G0,
       const Parameters& pars, int n_freq, int thread_id);
 
 protected:
@@ -95,7 +93,7 @@ protected:
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
 
   // \todo is this violation of single source of truth necessary.
-  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
+  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn >>* const G0_ptr_ =
       nullptr;
 
   //const int n_pos_frqs_ = -1;
@@ -193,7 +191,7 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
       for (int k = 0; k < KDmn::dmn_size(); ++k)
         for (int b2 = 0; b2 < n_bands_; ++b2)
           for (int b1 = 0; b1 < n_bands_; ++b1)
-            G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
+            G0_host[s](bkw_dmn(b1, k, w),b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
     dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
     G0[s].set(G0_host[s], reset_stream);

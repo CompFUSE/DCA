@@ -166,10 +166,10 @@ protected:
   void computeGSingleband(int s, int k1, int k2, int w1, int w2);
 
   /** Get a G_a or G_b
-   *  if beta != 0 the incoming value of G matters and is in accumulated in the returned value
-   * scaled by beta. this is not a good smell.
+   *  if sign != 0 the incoming value of G is is summed over and into the G_ptr
+   *  This is fairly confusing.
    */
-  void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, TpComplex beta = 0) const;
+  void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, TpComplex sign = 0) const;
 
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
@@ -388,14 +388,14 @@ auto TpAccumulator<Parameters, DT, linalg::CPU>::getGSingleband(const int s, con
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, int k2, int w1,
                                                                int w2, Matrix& G,
-                                                               const TpComplex beta) const {
-  const int w2_ext = w2 + extension_index_offset_;
+                                                               const TpComplex sign) const {
   const int w1_ext = w1 + extension_index_offset_;
+  const int w2_ext = w2 + extension_index_offset_;
   // Real opt was complicated
   const auto* const G_ptr = &G_(0, 0, s, k1, k2, w1_ext, w2_ext);
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
-      G(b1, b2) = beta * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+      G(b1, b2) = sign * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
 #ifndef NDEBUG
       if (std::abs(G(b1, b2).imag()) > 10)  // std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
         std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << ","
@@ -533,9 +533,9 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                     TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
-                    updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
-                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+                    // updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
+                    //                        w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                    //                        w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
                     for (int s = 0; s < 2; ++s)
                       updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
                                      momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
@@ -745,6 +745,10 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
     getGMultiband(s_a, k1_a, k2_a, w1_a, w2_a, G_a_);
     getGMultiband(s_b, k1_b, k2_b, w1_b, w2_b, G_b_);
 
+    // Assuming 0 = down 1 = up
+    //G_a = G[s_a]
+    //G_b = G[d_b]
+      
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)
         for (int b3 = 0; b3 < n_bands_; ++b3)
@@ -802,9 +806,17 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
     // So G_a_ and G_b_ are accumulating over both spins for each band combination
     getGMultiband(0, k1_a, k2_a, w1_a, w2_a, G_a_);
     getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign);
+   
     getGMultiband(0, k1_b, k2_b, w1_b, w2_b, G_b_);
     getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign);
-
+    // Assuming 0 = down 1 = up
+    // If sign == 1
+    // G_a_ = G_down(k1_a, k2_a, w1_a, w2_a) + G_up(k1_a, k2_a, w1_a, w2_a)
+    // G_b_ = G_down(k1_b, k2_b, w1_b, w2_b) + G_up(k1_b, k2_b, w1_b, w2_b)
+    // if sign == -1
+    // G_a_ = G_down(k1_a, k2_a, w1_a, w2_a) - G_up(k1_a, k2_a, w1_a, w2_a)
+    // G_b_ = G_down(k1_b, k2_b, w1_b, w2_b) - G_up(k1_b, k2_b, w1_b, w2_b)
+    
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)
         for (int b3 = 0; b3 < n_bands_; ++b3)

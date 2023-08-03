@@ -205,7 +205,6 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
   for (auto channel : channels_) {
     G4_.emplace_back("G4_" + toString(channel), pars.get_concurrency());
   }
-
 }
 
 template <class Parameters, DistType DT>
