@@ -552,7 +552,7 @@ int    j_b = nb * k2_b + no * w2_b;
 
       int i_b = nb * k1_b + no * w1_b;
       int j_b = nb * k2_b + no * w2_b;
-      condSwapAdd(i_a, j_a, b2, b4, true);
+      condSwapAdd(i_b, j_b, b2, b4, true);
 
       const CudaComplex<RealAlias<Scalar>> Gb =
           G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b];
