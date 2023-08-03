@@ -128,7 +128,7 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
 
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
-  int ldm = blockDim.x;
+  int ldm = blockDim.y;
 
   if (id_i >= nb * nk * nw || id_j >= nb * nk * nw)
     return;
@@ -156,8 +156,8 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   // Note: cuda does not support templated shared memory.
   extern __shared__ char shared_mem[];
   CudaComplex<Real>* const M_block = reinterpret_cast<CudaComplex<Real>*>(shared_mem);
-  const int local_row_start = (threadIdx.x / nb) * nb;
-  const int local_col_start = (threadIdx.y / nb) * nb;
+  const int local_row_start = (threadIdx.y / nb) * nb;
+  const int local_col_start = (threadIdx.x / nb) * nb;
   CudaComplex<Real>* M = M_block;
   M += local_row_start + ldm * local_col_start;
   uint m_index = b1 + ldm * b2;
@@ -166,13 +166,12 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   __syncthreads();
   CudaComplex<Real> G_val_store = G[id_i + ldg * id_j];
 
-  const CudaComplex<Real>* const G0_w1 = G0 + nw * k1 + no * w1;
-  const CudaComplex<Real>* const G0_w2 = G0 + nw * k2 + no * w2;
+  const CudaComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
+  const CudaComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
 
   G_val_store.x = 0;
   G_val_store.y = 0;
   for (int j = 0; j < nb; ++j) {
-    const CudaComplex<Real> G0_w2_val = G0_w2[j + ldg0 * b2];
     for (int i = 0; i < nb; ++i) {
       const CudaComplex<Real> G_band = -G0_w1[i + ldg0 * b1] * M[j + ldm * i] * G0_w2[b2 + ldg0 * j];
       G_val_store += G_band;
