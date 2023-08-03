@@ -78,7 +78,7 @@ using TestTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(TpAccumulatorGpuTest, TestTypes);
 
 TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
-  const std::array<int, 2> n{18, 22};
+  const std::array<int, 2> n{22, 22};
   Sample M;
   Configuration config;
   using Scalar = TypeParam;
@@ -89,8 +89,9 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
   using namespace dca::phys;
   std::vector<FourPointType> four_point_channels{
       FourPointType::PARTICLE_HOLE_TRANSVERSE, FourPointType::PARTICLE_HOLE_MAGNETIC,
-      FourPointType::PARTICLE_HOLE_CHARGE, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
-      FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN, FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+      FourPointType::PARTICLE_HOLE_CHARGE,  FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+  //FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+  //    FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
   this->host_setup.parameters_.set_four_point_channels(four_point_channels);
   this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
 

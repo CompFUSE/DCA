@@ -44,10 +44,6 @@ using dca::util::RealAlias;
 using phys::FourPointType;
 using dca::util::SignType;
 
-#ifndef DEBUG_G4_GPU
-#define DEBUG_G4_GPU
-#endif
-
 std::string toString(const std::array<dim3, 2>& dims) {
   std::ostringstream oss;
   oss << "{{" << static_cast<int>((dims[0]).x) << "," << (dims[0]).y << "},{" << dims[1].x << ","
@@ -133,7 +129,7 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   int ldm = blockDim.x;
-  printf("%d %d %d %d %d\n", threadIdx.x, threadIdx.y, blockDim.x, blockDim.y, ldm);
+
   if (id_i >= nb * nk * nw || id_j >= nb * nk * nw)
     return;
 
@@ -164,11 +160,7 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   const int local_col_start = (threadIdx.y / nb) * nb;
   CudaComplex<Real>* M = M_block;
   M += local_row_start + ldm * local_col_start;
-  // printf("%d", ldm);
   uint m_index = b1 + ldm * b2;
-  printf("%d %d %d %p %p %d %p \n", ldm, local_row_start, local_col_start, shared_mem, M, m_index,
-         M + m_index);
-  // printf("%d %d %d %d mem %x %x ldm: %d %x\n", blockIdx.x, blockIdx.y, id_i, id_j, M_block, M, ldm, M + b1 + ldm * b2);
   CudaComplex<Real>& G_val = G[id_i + ldg * id_j];
   *(M + m_index) = G_val;
   __syncthreads();
@@ -197,67 +189,6 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   G_val = G_val_store;
 }
 
-// template <typename Real>
-// __global__ void altComputeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
-//                                         const CudaComplex<Real>* __restrict__ G0, int ldg0, int
-//                                         nb, int nk, int nw, Real beta) {
-//   // Computes G = -G0(w1) * M(w1, w2) * G(w2) + (w1 == w2) * beta * G0(w1).
-//   // The product is to be intended as matrix-matrix multiplication in band space.
-
-//   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
-//   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
-
-//   if (id_i >= nb * nk * nw || id_j >= nb * nk * nw)
-//     return;
-
-//   const int no = nb * nk;
-//   auto get_indices = [=](int id, int& b, int& k, int& w) {
-//     w = id / no;
-//     id -= w * no;
-//     k = id / nb;
-//     b = id - k * nb;
-//   };
-//   int w1, w2, k1, k2, b1, b2;
-//   get_indices(id_i, b1, k1, w1);
-//   get_indices(id_j, b2, k2, w2);
-
-//   // hmmm... in CPU we now just run over the entire extended range for w1 and w2
-//   // w1 += nw_pos;
-
-//   // Note: cuda does not support templated shared memory.
-
-//   thrust::device_vector<CudaComplex<Real>> M_block(nb * nb);
-//   extern __shared__ char shared_mem[];
-//   CudaComplex<Real>* const M_block = reinterpret_cast<CudaComplex<Real>*>(shared_mem);
-//   const int local_row_start = (threadIdx.y / nb) * nb;
-//   const int local_col_start = (threadIdx.x / nb) * nb;
-//   const int ldm = blockDim.y;
-//   CudaComplex<Real>* const M = M_block + local_row_start + ldm * local_col_start;
-
-//   CudaComplex<Real>& G_val = G[id_i + ldg * id_j];
-//   M[b1 + ldm * b2] = G_val;
-//   __syncthreads();
-
-//   const CudaComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
-//   const CudaComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
-
-//   G_val.x = G_val.y = 0;
-//   for (int j = 0; j < nb; ++j) {
-//     const CudaComplex<Real> G0_w2_val = G0_w2[j + ldg0 * b2];
-//     for (int i = 0; i < nb; ++i) {
-//       const CudaComplex<Real> G_band = G0_w1[b1 + ldg0 * i] * M[j + ldm * i] * G0_w2_val;
-//       G_val -= G_band;
-//     }
-//   }
-
-//   if (k1 == k2 && w1 == w2)  // G0_w1 == G0_w2)
-//     G_val += G0_w1[b1 + ldg0 * b2] * beta;
-// #ifdef DEBUG_G4_GPU
-//   printf("%f %f %f %f %f %f -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2].x, M[b1 + ldm * b2].y,
-//   G0_w1[b1 + ldg0 * b2].x,  G0_w1[b1 + ldg0 * b2].y,
-//          G0_w2[b1 + ldg0 * b2].x, G0_w2[b1 + ldg0 * b2].y, b1, b2, k1, k2, w1, w2, G_val.x, G_val.y);
-// #endif
-// }
 
 template <typename Real>
 void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int ldg0,
