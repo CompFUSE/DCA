@@ -727,47 +727,33 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int w2_a(w2);
     int k1_a(k1);
     int k2_a(k2);
-    bool conj_a = false;
+
     if (g4_helper.get_bands() == 1)
-      conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
     else
-      conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+      g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
-    if (conj_a) {
-      i_a += b4;
-      j_a += b2;
-    }
-    else {
-      i_a += b2;
-      j_a += b4;
-    }
-    const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    condSwapAdd(i_a, j_a, b1, b3, true);
+    const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
+    const CudaComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
     int w1_b(g4_helper.wexMinus(w1, w_ex));
     int w2_b(g4_helper.wexMinus(w2, w_ex));
     int k1_b = g4_helper.kexMinus(k1, k_ex);
     int k2_b = g4_helper.kexMinus(k2, k_ex);
-    bool conj_b = false;
+
     if (g4_helper.get_bands() == 1)
-      conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
     else
-      conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
-    if (conj_b) {
-      i_b += b1;
-      j_b += b3;
-    }
-    else {
-      i_b += b3;
-      j_b += b1;
-    }
+    condSwapAdd(i_b, j_b, b2, b4, true);
 
-    const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-    const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
+    const CudaComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
 
     contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
