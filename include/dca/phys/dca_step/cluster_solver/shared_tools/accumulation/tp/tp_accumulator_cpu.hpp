@@ -491,12 +491,12 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
 #ifndef NDEBUG
                     TpComplex G4_before = *G4_ptr;
 #endif
-                    updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-#ifndef NDEBUG
-                    G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
-#endif
+//                     updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+//                                            w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+//                                            w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+// #ifndef NDEBUG
+//                     G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
+// #endif
                     for (int s = 0; s < 2; ++s) {
 #ifndef NDEBUG
                       G4_before = *G4_ptr;
@@ -533,9 +533,9 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                     TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
-                    // updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
-                    //                        w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-                    //                        w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+                    updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
+                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
                     for (int s = 0; s < 2; ++s)
                       updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
                                      momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),

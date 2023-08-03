@@ -401,77 +401,80 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     // new scope to reuse local index variables
 
     // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
-    int k1_a = k1;
-    int k2_a = g4_helper.addKex(k1, k_ex);
-    int w1_a(w1);
-    int w2_a(g4_helper.addWex(w1, w_ex));
+    // int k1_a = k1;
+    // int k2_a = g4_helper.addKex(k1, k_ex);
+    // int w1_a(w1);
+    // int w2_a(g4_helper.addWex(w1, w_ex));
 
-    int k1_b = g4_helper.addKex(k2, k_ex);
-    int k2_b = k2;
-    int w1_b(g4_helper.addWex(w2, w_ex));
-    int w2_b(w2);
+    // int k1_b = g4_helper.addKex(k2, k_ex);
+    // int k2_b = k2;
+    // int w1_b(g4_helper.addWex(w2, w_ex));
+    // int w2_b(w2);
 
-    // conj_a in this case just tells us whether to swap the band axes additions or not
-    bool conj_a = false;
-    if (g4_helper.get_bands() == 1)
-      conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-    else
-      conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-    int i_a = nb * k1_a + no * w1_a;
-    int j_a = nb * k2_a + no * w2_a;
-    condSwapAdd(i_a, j_a, b1, b3, true);
-    CudaComplex<RealAlias<Scalar>> Ga = G_down[i_a + ldgu * j_a] - G_up[i_a + ldgd * j_a];
-    // if (i_a == j_a)
-    //   Ga += (G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a]) *
+    // // conj_a in this case just tells us whether to swap the band axes additions or not
+    // bool conj_a = false;
+    // if (g4_helper.get_bands() == 1)
+    //   conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    // else
+    //   conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+    // int i_a = nb * k1_a + no * w1_a;
+    // int j_a = nb * k2_a + no * w2_a;
+    // condSwapAdd(i_a, j_a, b1, b3, true);
+    // CudaComplex<RealAlias<Scalar>> Ga = G_down[i_a + ldgu * j_a] - G_up[i_a + ldgd * j_a];
+    // // if (i_a == j_a)
+    // //   Ga += (G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a]) *
 
-    bool conj_b = false;
-    if (g4_helper.get_bands() == 1)
-      conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-    else
-      conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
-    int i_b = nb * k1_b + no * w1_b;
-    int j_b = nb * k2_b + no * w2_b;
-    condSwapAdd(i_b, j_b, b2, b4, true);
-    CudaComplex<RealAlias<Scalar>> Gb = G_down[i_b + ldgu * j_b] - G_up[i_b + ldgd * j_b];
+    // bool conj_b = false;
+    // if (g4_helper.get_bands() == 1)
+    //   conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    // else
+    //   conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+    // int i_b = nb * k1_b + no * w1_b;
+    // int j_b = nb * k2_b + no * w2_b;
+    // condSwapAdd(i_b, j_b, b2, b4, true);
+    // CudaComplex<RealAlias<Scalar>> Gb = G_down[i_b + ldgu * j_b] - G_up[i_b + ldgd * j_b];
 
-    contribution = sign_over_2 * (Ga * Gb);
+    // contribution = sign_over_2 * (Ga * Gb);
 
     // direct contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-    k1_a = k1;
-    k2_a = k2;
-    k1_b = g4_helper.addKex(k2, k_ex);
-    k2_b = g4_helper.addKex(k1, k_ex);
-
-    w1_a = w1;
-    w2_a = w2;
-    w1_b = g4_helper.addWex(w2, w_ex);
-    w2_b = g4_helper.addWex(w1, w_ex);
+    {
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
 
     if (g4_helper.get_bands() == 1)
-      conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
     else
-      conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-    i_a = nb * k1_a + no * w1_a;
-    j_a = nb * k2_a + no * w2_a;
-    i_a += b1;
-    j_a += b4;
+      g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+int    i_a = nb * k1_a + no * w1_a;
+int    j_a = nb * k2_a + no * w2_a;
+    i_a += b4;
+    j_a += b1;
 
     CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     CudaComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
-    if (g4_helper.get_bands() == 1)
-      conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-    else
-      conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-    i_b = nb * k1_b + no * w1_b;
-    j_b = nb * k2_b + no * w2_b;
-    i_b += b2;
-    j_b += b3;
+    int w1_b(g4_helper.addWex(w2, w_ex));
+    int w2_b(g4_helper.addWex(w1, w_ex));
+    int k1_b = g4_helper.addKex(k2, k_ex);
+    int k2_b = g4_helper.addKex(k1, k_ex);
+
+    if (g4_helper.get_bands() == 1)
+      g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    else
+      g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+int    i_b = nb * k1_b + no * w1_b;
+int    j_b = nb * k2_b + no * w2_b;
+    i_b += b3;
+    j_b += b2;
     CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
     CudaComplex<RealAlias<Scalar>> Gb_2 = G_down[i_b + ldgd * j_b];
 
     contribution += -sign_over_2 * Ga_1 * Gb_1 - sign_over_2 * Ga_2 * Gb_2;
+    }
   }
   else if constexpr (type == FourPointType::PARTICLE_HOLE_CHARGE) {
     // The PARTICLE_HOLE_CHARGE contribution is computed in two parts:
@@ -516,46 +519,46 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     }
     // Spin Difference Contribution
     // new scope to reuse local index variables
-    // {
-    //   // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
-    //   // TODO: pull into function, index setting code is identical for Spin cases
-    //   int k1_a(k1);
-    //   int k2_a(g4_helper.addKex(k1, k_ex));
-    //   int w1_a(w1);
-    //   int w2_a(g4_helper.addWex(w1, w_ex));
+    {
+      // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
+      // TODO: pull into function, index setting code is identical for Spin cases
+      int k1_a(k1);
+      int k2_a(g4_helper.addKex(k1, k_ex));
+      int w1_a(w1);
+      int w2_a(g4_helper.addWex(w1, w_ex));
 
-    //   bool conj_a = false;
-    //   if (g4_helper.get_bands() == 1)
-    //     conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
-    //   else
-    //     conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+      bool conj_a = false;
+      if (g4_helper.get_bands() == 1)
+        conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+      else
+        conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
 
-    //   int i_a = nb * k1_a + no * w1_a;
-    //   int j_a = nb * k2_a + no * w2_a;
-    //   condSwapAdd(i_a, j_a, b1, b3, true);
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+      condSwapAdd(i_a, j_a, b1, b3, true);
 
-    //   const CudaComplex<RealAlias<Scalar>> Ga =
-    // 	G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a];
+      const CudaComplex<RealAlias<Scalar>> Ga =
+	G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a];
 
-    //   int k1_b(g4_helper.addKex(k2, k_ex));
-    //   int k2_b(k2);
-    //   int w1_b(g4_helper.addWex(w2, w_ex));
-    //   int w2_b(w2);
-    //   bool conj_b = false;
-    //   if (g4_helper.get_bands() == 1)
-    //     conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
-    //   else
-    //     conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+      int k1_b(g4_helper.addKex(k2, k_ex));
+      int k2_b(k2);
+      int w1_b(g4_helper.addWex(w2, w_ex));
+      int w2_b(w2);
+      bool conj_b = false;
+      if (g4_helper.get_bands() == 1)
+        conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      else
+        conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-    //   int i_b = nb * k1_b + no * w1_b;
-    //   int j_b = nb * k2_b + no * w2_b;
-    //   condSwapAdd(i_a, j_a, b2, b4, true);
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      condSwapAdd(i_a, j_a, b2, b4, true);
 
-    //   const CudaComplex<RealAlias<Scalar>> Gb =
-    //       G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b];
+      const CudaComplex<RealAlias<Scalar>> Gb =
+          G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b];
 
-    //   contribution = sign_over_2 * (Ga * Gb);
-    // }
+      contribution = sign_over_2 * (Ga * Gb);
+    }
   }
   else if constexpr (type == FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP) {
     // The PARTICLE_HOLE_LONGITUDINAL_UP_UP contribution is computed in two parts:
