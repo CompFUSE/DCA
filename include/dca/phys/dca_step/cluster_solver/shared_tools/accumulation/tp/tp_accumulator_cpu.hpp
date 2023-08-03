@@ -491,12 +491,12 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
 #ifndef NDEBUG
                     TpComplex G4_before = *G4_ptr;
 #endif
-//                     updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-//                                            w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-//                                            w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-// #ifndef NDEBUG
-//                     G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
-// #endif
+                    updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+#ifndef NDEBUG
+                    G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
+#endif
                     for (int s = 0; s < 2; ++s) {
 #ifndef NDEBUG
                       G4_before = *G4_ptr;
@@ -536,10 +536,10 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                     updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
                                            w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
                                            w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-                    // for (int s = 0; s < 2; ++s)
-                    //   updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
-                    //                  momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
-                    //                  w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                    for (int s = 0; s < 2; ++s)
+                      updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                                     momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                     w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                   }
           }
         }
