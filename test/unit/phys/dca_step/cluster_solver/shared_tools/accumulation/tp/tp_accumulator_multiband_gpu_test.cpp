@@ -12,6 +12,7 @@
 
 #include "dca/config/profiler.hpp"
 #include "dca/platform/dca_gpu.h"
+#include "dca/linalg/reshapable_matrix.hpp"
 
 using Scalar = double;
 
@@ -75,19 +76,18 @@ constexpr bool write_G4s = true;
 using TestTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(TpAccumulatorGpuTest, TestTypes);
 
-#define TYPING_PREFACE   using Scalar = TypeParam;\
-  using ConfigGenerator = dca::testing::AccumulationTest<Scalar>;\
-  using Configuration = typename ConfigGenerator::Configuration;\
+#define TYPING_PREFACE                                            \
+  using Scalar = TypeParam;                                       \
+  using ConfigGenerator = dca::testing::AccumulationTest<Scalar>; \
+  using Configuration = typename ConfigGenerator::Configuration;  \
   using Sample = typename ConfigGenerator::Sample;
-
 
 TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
   TYPING_PREFACE
-  
-  const std::array<int, 2> n{18, 22};
+
+  const std::array<int, 2> n{22, 22};
   Sample M;
   Configuration config;
-
 
   ConfigGenerator::prepareConfiguration(config, M,
                                         TpAccumulatorGpuTest<Scalar>::G0Setup::BDmn::dmn_size(),
@@ -120,7 +120,7 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
   ++loop_counter;
 
   // accumulatorDevice.synchronizeStreams();
-  
+
 #ifdef DCA_HAVE_ADIOS2
   if (write_G4s) {
     dca::io::Writer writer(*adios_ptr, *concurrency_ptr, "ADIOS2", true);
@@ -145,13 +145,48 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
     writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
     writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
     writer_h5.execute("accumulatorHOST_G", accumulatorHost.get_G_Debug());
+
+#ifndef NDEBUG
+    const auto& G_up = accumulatorDevice.get_G_Debug()[0];
+    const auto& G_down = accumulatorDevice.get_G_Debug()[1];
+    using Parameters = decltype(this->host_setup.parameters_);
+    using TpComplex = typename decltype(accumulatorDevice)::TpComplex;
+    using HostSpinSepG = dca::linalg::ReshapableMatrix<TpComplex, dca::linalg::CPU,
+                                                       dca::linalg::util::PinnedAllocator<TpComplex>>;
+    std::array<HostSpinSepG, 2> G_spin_separated{G_up.size(), G_down.size()};
+
+    using WTpExtDmn = dca::func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+    using KDmn = typename Parameters::KClusterDmn;
+    using BDmn = dca::func::dmn_0<domains::electron_band_domain>;
+    using SDmn = dca::func::dmn_0<domains::electron_spin_domain>;
+    auto& g_all = accumulatorHost.get_G_Debug();
+
+    for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
+      auto& g_this_spin = G_spin_separated[spin];
+      auto g_it = g_this_spin.begin();
+      for (int w1 = 0; w1 < WTpExtDmn::dmn_size(); ++w1)
+        for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1)
+          for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1)
+            for (int w2 = 0; w2 < WTpExtDmn::dmn_size(); ++w2)
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2, ++g_it)
+                  *g_it = g_all(b1, b2, spin, k2, k1, w2, w1);
+    }
+
+    writer_h5.execute("accumulatorHOST_G_0", G_spin_separated[0]);
+    writer_h5.execute("accumulatorHOST_G_1", G_spin_separated[1]);
+
+    for (int i = 0; i < G_up.size().first; ++i)
+      for (int j = 0; j < G_up.size().second; ++j) {
+        EXPECT_NEAR(G_up(i, j).real(), G_spin_separated[0](i, j).real(), 1E-12) << "( " << i << ", " << j << " )";
+        EXPECT_NEAR(G_up(i, j).imag(), G_spin_separated[0](i, j).imag(), 1E-12) << "( " << i << ", " << j << " )";
+        EXPECT_NEAR(G_down(i, j).real(), G_spin_separated[1](i, j).real(), 1E-12) << "( " << i << ", " << j << " )";
+	EXPECT_NEAR(G_down(i, j).imag(), G_spin_separated[1](i, j).imag(), 1E-12) << "( " << i << ", " << j << " )";
+      }
+#endif
+
     writer.close_file();
     writer_h5.close_file();
-
-    // writer_h5.open_file("tp_gpu_test_device_func.hdf5");    
-    // this->gpu_setup.parameters_.write(writer_h5);
-    // this->gpu_setup.data_->write(writer_h5);
-    // writer_h5.close_file();
   }
 #endif
 
@@ -212,7 +247,8 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //     for (int j = 0; j < M[s].nrRows(); ++j) {
 //       auto diff = M[s](i, j) - M_from_dev[s](i, j);
 //       auto diff_sq = diff * diff;
-//       EXPECT_GT(5e-7, diff_sq) << "M[" << s << "](i,j) !=  M_from_dev[" << s << "](i,j) for i:" << i << " j:" << j;
+//       EXPECT_GT(5e-7, diff_sq) << "M[" << s << "](i,j) !=  M_from_dev[" << s << "](i,j) for i:"
+//       << i << " j:" << j;
 //     }
 
 //   // accumulatorDevice.computeG();
@@ -228,10 +264,11 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   // auto leaf_domains = G_from_device.get_domain().get_leaf_domain_sizes();
 //   // std::cout << "SpGreensFunction leaf sizes:" << dca::vectorToString(leaf_domains) << '\n';
 //   // std::cout << "SpGreensFunction size:" << G_from_device.size() << '\n';
-  
+
 //   // using TpComplex = typename decltype(accumulatorHost)::Base::TpComplex;
-  
-//   // using RMatHost = dca::linalg::ReshapableMatrix<TpComplex, dca::linalg::CPU, dca::config::McOptions::TpAllocator<TpComplex>>;
+
+//   // using RMatHost = dca::linalg::ReshapableMatrix<TpComplex, dca::linalg::CPU,
+//   dca::config::McOptions::TpAllocator<TpComplex>>;
 //   // RMatHost rmat_up = accumulatorDevice.getG(0);
 //   // RMatHost rmat_down = accumulatorDevice.getG(1);
 //   // std::cout << "rmat nRows: " << rmat_up.nrRows() << " nCols: " << rmat_up.nrCols() << '\n';
@@ -251,7 +288,7 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   // 	}
 
 //   // auto G = accumulatorHost.getG();
-  
+
 //   // auto diff = dca::func::util::difference(G_from_device, G);
 //   // EXPECT_GT(5e-7, diff.l_inf);
 //   // ++loop_counter;

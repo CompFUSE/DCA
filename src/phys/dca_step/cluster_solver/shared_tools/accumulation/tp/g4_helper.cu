@@ -29,7 +29,7 @@ namespace details {
 __device__ __constant__ G4Helper g4_helper;
 
 void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
-                   const std::vector<int>& delta_w, const int* add_k, int lda, const int* sub_k,
+                   const std::vector<int>& delta_w, const int extension_offset, const int* add_k, int lda, const int* sub_k,
                    int lds) {
   // Initialize the reciprocal cluster if not done already.
   solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, true);
@@ -41,9 +41,9 @@ void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
   host_helper.n_k_ex_ = delta_k.size();
   host_helper.n_w_ex_ = delta_w.size();
 
-  host_helper.ext_size_ = 0;
-  for (const auto idx : delta_w)
-    host_helper.ext_size_ = std::max(host_helper.ext_size_, static_cast<int>(std::abs(idx)));
+  host_helper.ext_size_ = extension_offset;
+  // for (const auto idx : delta_w)
+  //   host_helper.ext_size_ = std::max(host_helper.ext_size_, static_cast<int>(std::abs(idx)));
 
   // compute strides
   const std::array<int, 10> sizes{nb,
@@ -76,7 +76,7 @@ void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
 }
 
 __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
-  const int extension_offset = ext_size_ / 2;
+  const int extension_offset = ext_size_;
   w1 += extension_offset;
   w2 += extension_offset;
   const int n_w_ext = nw_ + ext_size_ + 1;
@@ -93,7 +93,7 @@ __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) con
 
 __device__ bool G4Helper::extendGIndicesMultiBand(int& k1 [[maybe_unused]],
                                                   int& k2 [[maybe_unused]], int& w1, int& w2) const {
-  const int extension_offset = ext_size_ / 2;
+  const int extension_offset = ext_size_;
   w1 += extension_offset;
   w2 += extension_offset;
   const int n_w_ext = nw_ + ext_size_ + 1;

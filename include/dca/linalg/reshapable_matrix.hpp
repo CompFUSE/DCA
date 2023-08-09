@@ -100,6 +100,49 @@ public:
     return data_[i + j * leadingDimension()];
   }
 
+  struct Iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = ScalarType;
+    using pointer = ScalarType*;
+    using reference = ScalarType&;
+
+    Iterator(pointer ptr) : m_ptr(ptr) {}
+
+    reference operator*() const {
+      return *m_ptr;
+    }
+    pointer operator->() {
+      return m_ptr;
+    }
+
+    Iterator& operator++() {
+      m_ptr++;
+      return *this;
+    }
+    Iterator operator++(int) {
+      Iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+    friend bool operator==(const Iterator& a, const Iterator& b) {
+      return a.m_ptr == b.m_ptr;
+    };
+    friend bool operator!=(const Iterator& a, const Iterator& b) {
+      return a.m_ptr != b.m_ptr;
+    };
+
+  private:
+    pointer m_ptr;
+  };
+
+  Iterator begin() {
+    return Iterator(data_);
+  }
+  Iterator end() {
+    return Iterator(data_ + size_.first * size_.second);
+  }
+
   // Returns the pointer to the (0,0)-th element.
   ValueType* ptr() {
     return data_;
@@ -221,7 +264,8 @@ template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
 ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
     ScalarType, device_name,
     Allocator>::operator=(const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
-  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs), "sizeof ScalarType and ScalarRhs are not equal");
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs),
+                "sizeof ScalarType and ScalarRhs are not equal");
   if constexpr (device_name == rhs_device_name)
     if (this != &rhs)
       return *this;
@@ -235,7 +279,7 @@ template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
 ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
     const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
   *this = rhs;
-}  
+}
 #endif
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
@@ -257,11 +301,10 @@ ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-ReshapableMatrix<
-    ScalarType, device_name, Allocator>::ReshapableMatrix(ThisType&& rhs) {
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(ThisType&& rhs) {
   swap(rhs);
 }
-  
+
 template <typename ScalarType, DeviceType device_name, class Allocator>
 ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
     ScalarType, device_name, Allocator>::operator=(ThisType&& rhs) {
@@ -393,13 +436,13 @@ std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::deviceFingerpr
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-std::ostream& operator<<(std::ostream& ostr, const ReshapableMatrix<ScalarType, device_name, Allocator>& rmatrix)
-{
+std::ostream& operator<<(std::ostream& ostr,
+                         const ReshapableMatrix<ScalarType, device_name, Allocator>& rmatrix) {
   ostr << "{";
-  for(std::size_t i = 0; i < rmatrix.size().first; ++i) {
+  for (std::size_t i = 0; i < rmatrix.size().first; ++i) {
     ostr << "{";
-    for(std::size_t j = 0; j < rmatrix.size().second; ++j)
-      ostr << rmatrix(i,j) << ",";
+    for (std::size_t j = 0; j < rmatrix.size().second; ++j)
+      ostr << rmatrix(i, j) << ",";
     ostr << "},";
   }
   ostr << "}";

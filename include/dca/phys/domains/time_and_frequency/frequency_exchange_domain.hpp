@@ -16,6 +16,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace dca {
 namespace phys {
@@ -75,6 +76,7 @@ private:
 
 template <class Parameters>
 void FrequencyExchangeDomain::initialize(const Parameters& parameters) {
+  std::cout << parameters.get_four_point_frequency_transfer() << '\n';
   initialize(parameters.compute_all_transfers(),parameters.get_four_point_frequency_transfer());
 }
 

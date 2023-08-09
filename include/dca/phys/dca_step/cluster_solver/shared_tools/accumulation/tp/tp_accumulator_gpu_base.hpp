@@ -149,6 +149,8 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
+
+  std::cout << "WTpExtDmn Elements: " << vectorToString(WTpExtDmn::get_elements()) << '\n';
 }
 
 template <class Parameters, DistType DT>
@@ -163,8 +165,10 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-    // Currently WTpPosDmn should always be == WTpDmn
-    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices,
+    const auto extension_offset =   (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2;
+
+    // CurrentlyA WTpPosDmn should always be == WTpDmn
+    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices, extension_offset,
                            add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
                            sub_mat.leadingDimension());
     assert(cudaPeekAtLastError() == cudaSuccess);

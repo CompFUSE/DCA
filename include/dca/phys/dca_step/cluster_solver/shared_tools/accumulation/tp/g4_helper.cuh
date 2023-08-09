@@ -32,9 +32,12 @@ namespace details {
 
 class G4Helper {
 public:
+  /** pass a bunch of information into the G4Helper so it can help./
+   *  \param[in] extension_offset    (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2
+   */
   static void set(int nb, int nk, int nw,
                   const std::vector<int>& delta_k, const std::vector<int>& delta_w,
-                  const int* add_k, int lda, const int* sub_k, int lds);
+                  const int extension_offset, const int* add_k, int lda, const int* sub_k, int lds);
 
   __device__ auto get_bands() const {
     return nb_;

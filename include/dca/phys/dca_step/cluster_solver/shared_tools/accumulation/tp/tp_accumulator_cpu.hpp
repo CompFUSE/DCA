@@ -456,6 +456,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
         //                  = -1/2 sum_s G(k2+k_ex, k1+k_ex, s) G(k1, k2, -s)
         for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
           const int w_ex = exchange_frq[w_ex_idx];
+	  if(w_ex != 0)
+	    std::cout << "cpu w_ex: " << w_ex << '\n';
           for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
             const int k_ex = exchange_mom[k_ex_idx];
             for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
@@ -481,6 +483,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
         //                       - (s1 == s2) G(k2+k_ex, k1+k_ex, s1) G(k1, k2, s1)]
         for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
           const int w_ex = exchange_frq[w_ex_idx];
+	  if(w_ex != 0)
+	    std::cout << "cpu w_ex: " << w_ex << '\n';
           for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
             const int k_ex = exchange_mom[k_ex_idx];
             for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)

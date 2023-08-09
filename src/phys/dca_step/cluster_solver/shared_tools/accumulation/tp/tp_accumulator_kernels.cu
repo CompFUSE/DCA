@@ -188,7 +188,6 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   G_val = G_val_store;
 }
 
-
 template <typename Real>
 void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int ldg0,
                        int nb, int nk, int nw, Real beta, cudaStream_t stream) {
@@ -311,23 +310,30 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int w2_a(w2);
     int k1_a(k1);
     int k2_a(k2);
-    const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    if (g4_helper.get_bands() == 1)
+      g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+    else
+      g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
     condSwapAdd(i_a, j_a, b1, b4, true);
-    const CudaComplex<RealAlias<Scalar>> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-    const CudaComplex<RealAlias<Scalar>> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+    const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
+    const CudaComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
-    int w1_b(g4_helper.addWex(w2, w_ex));
-    int w2_b(g4_helper.addWex(w1, w_ex));
+    int w1_b = g4_helper.addWex(w2, w_ex);
+    int w2_b = g4_helper.addWex(w1, w_ex);
     int k1_b = g4_helper.addKex(k2, k_ex);
     int k2_b = g4_helper.addKex(k1, k_ex);
-    const bool conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    if (g4_helper.get_bands() == 1)
+      g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+    else
+      g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
     condSwapAdd(i_b, j_b, b2, b3, true);
-    const CudaComplex<RealAlias<Scalar>> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-    const CudaComplex<RealAlias<Scalar>> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+    const CudaComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
+    const CudaComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
 
     contribution = -sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
@@ -343,11 +349,10 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
       int w2_a(g4_helper.addWex(w1, w_ex));
 
       // conj_a in this case just tells us whether to swap the band axes additions or not
-      bool conj_a = false;
       if (g4_helper.get_bands() == 1)
-        conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
+        g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       else
-        conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+        g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
       int i_a = nb * k1_a + no * w1_a;
       int j_a = nb * k2_a + no * w2_a;
       condSwapAdd(i_a, j_a, b1, b3, true);
@@ -361,11 +366,10 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
       // if (i_a == j_a)
       //   Ga += (G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a]) *
 
-      bool conj_b = false;
       if (g4_helper.get_bands() == 1)
-        conj_b = g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+        g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
       else
-        conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+        g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
       int i_b = nb * k1_b + no * w1_b;
       int j_b = nb * k2_b + no * w2_b;
       condSwapAdd(i_b, j_b, b2, b4, true);
@@ -674,9 +678,9 @@ __global__ void updateG4Kernel(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
     int k2_b = g4_helper.kexMinus(k2, k_ex);
 
     if (g4_helper.get_bands() == 1)
-g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
+      g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
     else
-g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+      g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
