@@ -58,8 +58,8 @@ dca_add_gtest(tp_accumulator_gpu_test
   )
 
 dca_add_gtest(tp_accumulator_complex_g0_gpu_test
-        CUDA
-        GTEST_MAIN
+  FAST
+  CUDA
         INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
         LIBS     ${DCA_LIBS} ${KERNELS_LIB}
         )

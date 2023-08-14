@@ -40,6 +40,21 @@ using McOptions = MockMcOptions<Scalar>;
 
 constexpr bool update_baseline = false;
 
+constexpr bool write_G4s = true;
+
+#ifdef DCA_HAVE_ADIOS2
+adios2::ADIOS* adios_ptr;
+#endif
+
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+dca::parallel::MPIConcurrency* concurrency_ptr;
+#else
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+dca::parallel::NoConcurrency* concurrency_ptr;
+#endif
+
+
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
@@ -49,29 +64,55 @@ using ConfigGenerator = dca::testing::AccumulationTest<std::complex<double>>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
-using TpAccumulatorComplexG0GpuTest =
-  dca::testing::G0Setup<Scalar, dca::testing::LatticeRashba, dca::ClusterSolverId::CT_AUX, input_file>;
+template <typename SCALAR>
+struct TpAccumulatorComplexG0GpuTest : public ::testing::Test {
+  using G0Setup = dca::testing::G0SetupBare<SCALAR, dca::testing::LatticeRashba,
+                                            dca::ClusterSolverId::CT_AUX, input_file>;
+  virtual void SetUp() {
+    host_setup.SetUp();
+    gpu_setup.SetUp();
+  }
+
+  virtual void TearDown() {}
+  G0Setup host_setup;
+  G0Setup gpu_setup;
+};
+
 
 uint loop_counter = 0;
 
-TEST_F(TpAccumulatorComplexG0GpuTest, Accumulate) {
-  dca::linalg::util::initializeMagma();
+using TestTypes = ::testing::Types<std::complex<double>>;
+TYPED_TEST_CASE(TpAccumulatorComplexG0GpuTest, TestTypes);
 
-  const std::array<int, 2> n{35, 0};
+#define TYPING_PREFACE                                            \
+  using Scalar = TypeParam;                                       \
+  using ConfigGenerator = dca::testing::AccumulationTest<Scalar>; \
+  using Configuration = typename ConfigGenerator::Configuration;  \
+  using Sample = typename ConfigGenerator::Sample;
+
+TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
+  TYPING_PREFACE
+
+  const std::array<int, 2> n{18, 22};
   Sample M;
   Configuration config;
-  ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorComplexG0GpuTest::BDmn::dmn_size(),
-                                        TpAccumulatorComplexG0GpuTest::RDmn::dmn_size(),
-                                        parameters_.get_beta(), n);
+  using FourPointType = dca::phys::FourPointType;
+  
+  ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorComplexG0GpuTest<Scalar>::G0Setup::BDmn::dmn_size(),
+                                        TpAccumulatorComplexG0GpuTest<Scalar>::G0Setup::RDmn::dmn_size(),
+                                        this->host_setup.parameters_.get_beta(), n);
+  std::vector<FourPointType> four_point_channels{
+       FourPointType::PARTICLE_PARTICLE_UP_DOWN};
 
   using namespace dca::phys;
-  parameters_.set_four_point_channels(std::vector<FourPointType>{FourPointType::PARTICLE_PARTICLE_UP_DOWN});
+  this->host_setup.parameters_.set_four_point_channels(four_point_channels);
+  this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU> accumulatorHost(
-      data_->G0_k_w_cluster_excluded, parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU> accumulatorDevice(
-      data_->G0_k_w_cluster_excluded, parameters_);
-  const int8_t sign = 1;
+  dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_), dca::DistType::NONE, dca::linalg::CPU> accumulatorHost(
+      this->host_setup.data_->G0_k_w_cluster_excluded, this->host_setup.parameters_);
+  dca::phys::solver::accumulator::TpAccumulator<decltype(this->gpu_setup.parameters_), dca::DistType::NONE, dca::linalg::GPU> accumulatorDevice(
+      this->gpu_setup.data_->G0_k_w_cluster_excluded, this->gpu_setup.parameters_);
+  const std::complex<double> sign = {1.0, 0.0};
 
   accumulatorDevice.resetAccumulation(loop_counter);
   accumulatorDevice.accumulate(M, config, sign);
@@ -83,10 +124,107 @@ TEST_F(TpAccumulatorComplexG0GpuTest, Accumulate) {
 
   ++loop_counter;
 
-  for (std::size_t channel = 0; channel < accumulatorHost.num_channels(); ++channel) {
-    const auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
-                                                  accumulatorDevice.get_G4()[channel]);
-    EXPECT_GT(5e-7, diff.l_inf);
+  #ifdef DCA_HAVE_ADIOS2
+  if (write_G4s) {
+    dca::io::Writer writer(*adios_ptr, *concurrency_ptr, "ADIOS2", true);
+    dca::io::Writer writer_h5(*adios_ptr, *concurrency_ptr, "HDF5", true);
+
+    writer.open_file("tp_gpu_test_complex_G0_G4.bp");
+    writer_h5.open_file("tp_gpu_test_complex_G0_G4.hdf5");
+
+    this->host_setup.parameters_.write(writer);
+    this->host_setup.parameters_.write(writer_h5);
+    this->host_setup.data_->write(writer);
+    this->host_setup.data_->write(writer_h5);
+
+    for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
+      std::string channel_str =
+          dca::phys::toString(this->host_setup.parameters_.get_four_point_channels()[channel]);
+      writer.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
+      writer.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
+      writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
+      writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
+    }
+    writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
+    writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
+    writer_h5.execute("accumulatorHOST_G", accumulatorHost.get_G_Debug());
+
+#ifndef NDEBUG
+    const auto& G_up = accumulatorDevice.get_G_Debug()[0];
+    const auto& G_down = accumulatorDevice.get_G_Debug()[1];
+    using Parameters = decltype(this->host_setup.parameters_);
+    using TpComplex = typename decltype(accumulatorDevice)::TpComplex;
+    using HostSpinSepG = dca::linalg::ReshapableMatrix<TpComplex, dca::linalg::CPU,
+                                                       dca::linalg::util::PinnedAllocator<TpComplex>>;
+    std::array<HostSpinSepG, 2> G_spin_separated{G_up.size(), G_down.size()};
+
+    using WTpExtDmn = dca::func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+    using KDmn = typename Parameters::KClusterDmn;
+    using BDmn = dca::func::dmn_0<domains::electron_band_domain>;
+    using SDmn = dca::func::dmn_0<domains::electron_spin_domain>;
+    auto& g_all = accumulatorHost.get_G_Debug();
+
+    for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
+      auto& g_this_spin = G_spin_separated[spin];
+      auto g_it = g_this_spin.begin();
+      for (int w1 = 0; w1 < WTpExtDmn::dmn_size(); ++w1)
+        for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1)
+          for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1)
+            for (int w2 = 0; w2 < WTpExtDmn::dmn_size(); ++w2)
+              for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
+                for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2, ++g_it)
+                  *g_it = g_all(b1, b2, spin, k2, k1, w2, w1);
+    }
+
+    writer_h5.execute("accumulatorHOST_G_0", G_spin_separated[0]);
+    writer_h5.execute("accumulatorHOST_G_1", G_spin_separated[1]);
+
+    for (int i = 0; i < G_up.size().first; ++i)
+      for (int j = 0; j < G_up.size().second; ++j) {
+        EXPECT_NEAR(G_up(i, j).real(), G_spin_separated[0](i, j).real(), 1E-12) << "( " << i << ", " << j << " )";
+        EXPECT_NEAR(G_up(i, j).imag(), G_spin_separated[0](i, j).imag(), 1E-12) << "( " << i << ", " << j << " )";
+        EXPECT_NEAR(G_down(i, j).real(), G_spin_separated[1](i, j).real(), 1E-12) << "( " << i << ", " << j << " )";
+	EXPECT_NEAR(G_down(i, j).imag(), G_spin_separated[1](i, j).imag(), 1E-12) << "( " << i << ", " << j << " )";
+      }
+#endif
+
+    writer.close_file();
+    writer_h5.close_file();
+  }
+#endif
+
+  std::cout << "blocks: " << dca::util::ceilDiv(int(accumulatorHost.get_G4()[0].size()), 256) << '\n';
+
+  for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
+    auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
+                                            accumulatorDevice.get_G4()[channel]);
+    EXPECT_GT(5e-7, diff.l_inf) << "channel: " << dca::phys::toString(four_point_channels[channel]);
   }
 }
 
+
+int main(int argc, char** argv) {
+#ifdef DCA_HAVE_MPI
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+#else
+  dca::parallel::NoConcurrency concurrency(argc, argv);
+  concurrency_ptr = &concurrency;
+#endif
+
+  dca::linalg::util::initializeMagma();
+
+#ifdef DCA_HAVE_ADIOS2
+  // ADIOS expects MPI_COMM pointer or nullptr
+  adios2::ADIOS adios("", concurrency_ptr->get(), false);
+  adios_ptr = &adios;
+#endif
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
+}

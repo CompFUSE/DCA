@@ -744,7 +744,163 @@ double updateG4(Scalar* G4, const Scalar* G_up, const int ldgu, const Scalar* G_
       throw(std::logic_error("Invalid mode"));
   }
 }
+  
+template <typename Scalar, FourPointType type, typename SignType>
+__global__ void updateG4KernelNoSpin(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
+                                     const CudaComplex<RealAlias<Scalar>>* __restrict__ G_up,
+                                     const int ldgu,
+				     const SignType factor, const bool atomic,
+                                     const uint64_t start, const uint64_t end) {
+  // TODO: reduce code duplication.
+  // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
 
+  const uint64_t local_g4_index =
+      static_cast<uint64_t>(blockIdx.x) * static_cast<uint64_t>(blockDim.x) +
+      static_cast<uint64_t>(threadIdx.x);
+
+  const uint64_t g4_index = local_g4_index + start;
+
+  if (g4_index >= end) {  // out of domain.
+    return;
+  }
+
+  Scalar complex_factor;
+  dca::linalg::assign(complex_factor, factor);
+  const Scalar sign_over_2 = 0.5 * complex_factor;
+
+  int b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex;
+  g4_helper.unrollIndex(g4_index, b1, b2, b3, b4, k1, w1, k2, w2, k_ex, w_ex);
+
+  const int nb = g4_helper.get_bands();
+  const int nk = g4_helper.get_cluster_size();
+
+  CudaComplex<RealAlias<Scalar>> contribution;
+  const unsigned no = nk * nb;
+
+  // This code needs to be repeated over and over.  This happens in getGMultiband in the cpu
+  // implementation. The gpu code is structed differently so without signficant restructing this
+  // can't happen in the extendGIndiciesMultiBand routines.
+  auto condSwapAdd = [](int& ia, int& ib, const int ba, const int bb, const bool cond) {
+    if (cond) {
+      ia += bb;
+      ib += ba;
+    }
+    else {
+      ia += ba;
+      ib += bb;
+    }
+  };
+  // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
+  // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with
+  // the exchange momentum, implies the same operation is performed with the exchange frequency.
+  // See tp_accumulator.hpp for more details.
+  if constexpr (type == FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
+    {
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
+      g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+
+      int w1_b(g4_helper.wexMinus(w1, w_ex));
+      int w2_b(g4_helper.wexMinus(w2, w_ex));
+      int k1_b = g4_helper.kexMinus(k1, k_ex);
+      int k2_b = g4_helper.kexMinus(k2, k_ex);
+      g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+      condSwapAdd(i_a, j_a, b1, b3, true);
+
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      condSwapAdd(i_b, j_b, b2, b4, true);
+
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
+
+      contribution = complex_factor * (Ga_1 * Gb_1);
+    }
+    {
+      int w1_a(w1);
+      int w2_a(g4_helper.wexMinus(w2, w_ex));
+      int k1_a(k1);
+      int k2_a(g4_helper.kexMinus(k2, k_ex));
+      g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
+
+      int w1_b(g4_helper.wexMinus(w1, w_ex));
+      int w2_b(w2);
+      int k1_b(g4_helper.kexMinus(k1, k_ex));
+      int k2_b(k2);
+      g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
+
+      int i_a = nb * k1_a + no * w1_a;
+      int j_a = nb * k2_a + no * w2_a;
+      condSwapAdd(i_a, j_a, b1, b4, true);
+
+      int i_b = nb * k1_b + no * w1_b;
+      int j_b = nb * k2_b + no * w2_b;
+      condSwapAdd(i_b, j_b, b2, b3, true);
+
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
+
+      contribution -= complex_factor * (Ga_1 * Gb_1);
+    }
+  }
+  decltype(G4) const result_ptr = G4 + local_g4_index;
+  if (atomic)
+    dca::linalg::atomicAdd(result_ptr, contribution);
+  else
+    *result_ptr += contribution;
+}
+
+template <typename Scalar, FourPointType type, typename SignType>
+double updateG4NoSpin(Scalar* G4, const Scalar* G_up, const int ldgu, const SignType factor, bool atomic, cudaStream_t stream,
+                std::size_t start, std::size_t end) {
+  constexpr const std::size_t n_threads = 256;
+  const unsigned n_blocks = dca::util::ceilDiv(end - start, n_threads);
+
+  using dca::util::GPUTypeConversion;
+  updateG4KernelNoSpin<dca::util::CUDATypeMap<Scalar>, type><<<n_blocks, n_threads, 0, stream>>>(
+      castGPUType(G4), castGPUType(G_up), ldgu,
+      GPUTypeConversion(factor), atomic, start, end);
+
+  // Check for errors.
+  auto err = cudaPeekAtLastError();
+  if (err != cudaSuccess) {
+    linalg::util::printErrorMessage(err, __FUNCTION__, __FILE__, __LINE__);
+    throw(std::runtime_error("CUDA failed to launch the G4 kernel."));
+  }
+
+  const std::size_t n_updates = end - start;
+  switch (type) {
+      // Note: sign flips  are ignored and a single complex * real multiplication is
+      // present in all modes.
+    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
+      // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
+      return 26. * n_updates;
+    case FourPointType::PARTICLE_HOLE_CHARGE:
+      // Each update of a G4 entry involves 3 complex additions and 3 complex multiplications.
+      return 26. * n_updates;
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+      // Each update of a G4 entry involves 3 complex additions and 4 complex multiplications.
+      return 32 * n_updates;
+    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
+    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
+      // Each update of a G4 entry involves 2 complex additions and 2 complex multiplications.
+      return 18. * n_updates;
+    default:
+      throw(std::logic_error("Invalid mode"));
+  }
+}
+
+  
 // Explicit instantiation.
 template void computeGSingleband<float>(std::complex<float>* G, int ldg,
                                         const std::complex<float>* G0, int nk, int nw,
@@ -901,6 +1057,19 @@ double updateG4<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, 
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const std::complex<double> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
+
+// Non spin symmetric
+template double updateG4NoSpin<std::complex<float>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::complex<float>>(
+    std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
+    const std::complex<float> factor, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
+
+template double updateG4NoSpin<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::complex<double>>(
+    std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+    const std::complex<double> factor, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
+
+
 
 // template<> double updateG4< FourPointType::PARTICLE_HOLE_TRANSVERSE>(
 //   std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,

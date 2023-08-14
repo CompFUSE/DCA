@@ -647,8 +647,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                                   w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
                     // getGMultiband(0, k2, k1, w2, w1, G_a_);
                     // getGMultiband(0, q_minus_k(k2, k_ex), q_minus_k(k1, k_ex),
-                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_);
-                    for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_); 
+                   for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                           for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {

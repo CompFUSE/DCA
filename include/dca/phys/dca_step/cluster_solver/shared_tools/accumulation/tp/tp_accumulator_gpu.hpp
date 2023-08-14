@@ -195,6 +195,7 @@ protected:
   using Base::G4_;
   using Base::multiple_accumulators_;
   using Base::n_bands_;
+
   // using Base::n_pos_frqs_;
 
   using Base::non_density_density_;
@@ -250,7 +251,9 @@ protected:
 #endif
 
 #ifndef NDEBUG
-  std::array<linalg::ReshapableMatrix<TpComplex, linalg::CPU, dca::linalg::util::PinnedAllocator<TpComplex>>,2> G_debug_;
+  std::array<
+      linalg::ReshapableMatrix<TpComplex, linalg::CPU, dca::linalg::util::PinnedAllocator<TpComplex>>, 2>
+      G_debug_;
 #endif
 
 #ifndef DCA_HAVE_GPU_AWARE_MPI
@@ -307,7 +310,6 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::resetG4() {
       G4_channel.setStream(reset_stream);
       G4_channel.resizeNoCopy(G4_[0].size());
       G4_channel.setToZero(reset_stream);
-      
     }
     catch (std::bad_alloc& err) {
       std::cerr << "Failed to allocate G4 on device.\n";
@@ -332,7 +334,7 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::accumulate(
 
   // Base::phase_ = factor;
   flop += BaseGpu::computeM(M, configs);
-  
+
   computeG();
 
 #ifndef NDEBUG
@@ -419,40 +421,49 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
   uint64_t start = Base::G4_[0].get_start();
   uint64_t end =
       Base::G4_[0].get_end() + 1;  // because the kernel expects this to be one past the end index
-  switch (channel) {
-    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+  if constexpr (Base::spin_symmetric_) {
+    switch (channel) {
+      case FourPointType::PARTICLE_HOLE_TRANSVERSE:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    case FourPointType::PARTICLE_HOLE_MAGNETIC:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_MAGNETIC>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+      case FourPointType::PARTICLE_HOLE_MAGNETIC:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_MAGNETIC>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    case FourPointType::PARTICLE_HOLE_CHARGE:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_CHARGE>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+      case FourPointType::PARTICLE_HOLE_CHARGE:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_CHARGE>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+      case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+      case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
-      return details::updateG4<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
-          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+      case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
+        return details::updateG4<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-    default:
-      throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
+      default:
+        throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
+    }
   }
+  else {
+    if (channel == FourPointType::PARTICLE_PARTICLE_UP_DOWN )
+      return details::updateG4NoSpin<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
+          get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), factor,
+          multiple_accumulators_, queues_[0], start, end);
+  }
+  throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
 }
 
 template <class Parameters, DistType DT>
@@ -498,8 +509,7 @@ const std::vector<typename TpAccumulator<Parameters, DT, linalg::GPU>::Base::TpG
 
 #ifndef NDEBUG
 template <class Parameters, DistType DT>
-const auto& TpAccumulator<
-    Parameters, DT, linalg::GPU>::get_G_Debug() {
+const auto& TpAccumulator<Parameters, DT, linalg::GPU>::get_G_Debug() {
   if (G_debug_.empty())
     throw std::logic_error("There is no G4 stored in this class.");
 
