@@ -45,6 +45,7 @@ dca::testing::DcaMpiTestEnvironment* dca_test_env;
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
   // These names collide with type aliases in dca.hpp and this is not clever but
   // quite easy to break.
+  using Scalar = double;
   using RngType_test = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using DcaPointGroupType_test = dca::phys::domains::D4;
   using LatticeType_test = dca::phys::models::square_lattice<DcaPointGroupType_test>;
@@ -53,7 +54,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using ParametersType_test =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading_test,
                                     dca::profiling::NullProfiler, ModelType_test, RngType_test,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType_test = dca::phys::DcaData<ParametersType_test, dca::DistType::NONE>;
   using ClusterSolverType_test =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType_test, DcaDataType_test>;

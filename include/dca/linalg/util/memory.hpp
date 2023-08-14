@@ -24,6 +24,10 @@
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/ignore.hpp"
 
+#ifdef DCA_HAVE_GPU
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#endif
+
 namespace dca {
 namespace linalg {
 namespace util {
