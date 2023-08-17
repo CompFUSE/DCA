@@ -14,14 +14,18 @@
 
   "Rashba-Hubbard-model":
   {
-    "t"       : 1,
-    "U"       : 2
+      "t"       : 1,
+      "h"       : 0,
+      "lambda"  : 0.5,
+      "U"       : 6.0
   },
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[1, 0],
-        [0, 1]]
+      "cluster": [[2, 2],
+		  [2, -2]],
+	"sp-host": [[10, 10], [10, -10]],
+	"tp-host": [[4,4],[4,-4]]
     },
 
     "imaginary-time": {
@@ -30,7 +34,7 @@
 
     "imaginary-frequency": {
       "sp-fermionic-frequencies": 512,
-      "four-point-fermionic-frequencies" : 2
+      "four-point-fermionic-frequencies" : 1
     }
   },
 

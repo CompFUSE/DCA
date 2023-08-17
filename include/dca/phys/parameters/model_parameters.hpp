@@ -18,6 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
@@ -43,6 +44,12 @@ namespace params {
 // Empty class template
 template <typename Model>
 class ModelParameters {};
+
+template <typename T, typename = void>
+struct HasCustomSpin : std::false_type {};
+
+template <typename T>
+struct HasCustomSpin<T, decltype(std::declval<T>().SPIN, void())> : std::true_type{};
 
 // Specialization for 2D 2-band model
 // #include "model_parameters_2d_2band.inc"

@@ -37,7 +37,7 @@ public:
 
   static std::vector<e_spin_states_type>& get_elements() {
     static std::vector<e_spin_states_type> v = initialize_elements();
-    return v;
+    return elements_;
   }
 
   template <typename Writer>
@@ -45,8 +45,13 @@ public:
 
   static int to_coordinate(element_type spin);
 
+  template <typename Parameters>
+  static void initialize(const Parameters& parameters);
+
 private:
   static std::vector<e_spin_states_type> initialize_elements();
+  static void initialize_elements(std::vector<e_spin_states_type>& elements);
+  static inline std::vector<element_type> elements_;
 };
 
 template <typename Writer>
@@ -56,6 +61,18 @@ void electron_spin_domain::write(Writer& writer) {
   writer.close_group();
 }
 
+template <typename Parameters>
+void electron_spin_domain::initialize(const Parameters& /*parameters*/) {
+  using Lattice = typename Parameters::lattice_type;
+  int spins = 2;
+  if constexpr(Parameters::template HasCustomSpin<Parameters::Model::lattice_type::SPINS>::value) {
+    spins = Parameters::Model::lattice_type::SPINS;
+  }
+  elements_.resize(spins);
+  initialize_elements(elements_);
+}
+
+  
 }  // domains
 }  // phys
 }  // dca

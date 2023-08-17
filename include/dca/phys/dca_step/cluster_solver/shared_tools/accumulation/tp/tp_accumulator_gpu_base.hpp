@@ -186,7 +186,6 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
   const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
   static func::dmn_variadic<BDmn, KDmn, WTpExtDmn> bkw_dmn;
   std::array<MatrixHost, 2> G0_host;
-
   for (int s = 0; s < 2; ++s) {
     auto& G0 = get_G0();
 
@@ -194,9 +193,10 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
     for (int w = 0; w < WTpExtDmn::dmn_size(); ++w)
       for (int k = 0; k < KDmn::dmn_size(); ++k)
         for (int b2 = 0; b2 < n_bands_; ++b2)
-          for (int b1 = 0; b1 < n_bands_; ++b1)
+          for (int b1 = 0; b1 < n_bands_; ++b1) {
+	    assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
             G0_host[s](bkw_dmn(b1, k, w),b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
-
+	  }
     dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
     G0[s].set(G0_host[s], reset_stream);
   }

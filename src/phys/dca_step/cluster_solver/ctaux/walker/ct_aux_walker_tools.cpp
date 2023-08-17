@@ -90,7 +90,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
 
 template <typename Scalar>
 bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
-    int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max_ref, Real min_ref) {
+  int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max_ref, Real min_ref) {
   Real Gamma_val = std::abs(Gamma_LU(0, 0));
 
   Real max = Gamma_val;
@@ -106,12 +106,13 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
   if (std::fabs(max_ref - max) < 1.e-12 and std::fabs(min_ref - min) < 1.e-12)
     return true;
   else {
-    std::cout << __FUNCTION__ << std::endl;
+    std::cout << __FUNCTION__ << '\n';
+    std::cout << "Has failed!\n";
     std::cout.precision(16);
     std::cout << "\n\t n : " << n << "\n";
     std::cout << std::scientific;
-    std::cout << max << "\t" << max_ref << "\t" << std::fabs(max_ref - max) << std::endl;
-    std::cout << min << "\t" << min_ref << "\t" << std::fabs(min_ref - min) << std::endl;
+    std::cout << max << "\t" << max_ref << "\t" << std::fabs(max_ref - max) << '\n';
+    std::cout << min << "\t" << min_ref << "\t" << std::fabs(min_ref - min) << '\n';
     std::cout << std::endl;
 
     Gamma_LU.print();

@@ -11,6 +11,7 @@
 
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include <stdexcept>
+#include <cassert>
 
 namespace dca {
 namespace phys {
@@ -32,15 +33,20 @@ int electron_spin_domain::to_coordinate(element_type spin) {
   }
 }
 
-std::vector<e_spin_states_type> electron_spin_domain::initialize_elements() {
-  static std::vector<e_spin_states_type> v(0);
-
-  v.push_back(e_DN);
-  v.push_back(e_UP);
-
-  return v;
+void electron_spin_domain::initialize_elements(std::vector<e_spin_states_type>& elements) {
+  assert(elements.size() > 0 && elements.size() < 3);
+  for (int i_spin = 0; i_spin < elements.size(); ++i_spin) {
+    elements.push_back(i_spin ? e_DN : e_UP);
+  }
 }
 
-}  // domains
-}  // phys
-}  // dca
+std::vector<e_spin_states_type> electron_spin_domain::initialize_elements() {
+  if (elements_.empty()) {
+    elements_.push_back(e_DN);
+    elements_.push_back(e_UP);
+  }
+}
+
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca

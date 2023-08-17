@@ -139,7 +139,7 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   // 		       id -= b * nb;
   // 		       k = id / nw;
   // 		       w = id - k * nk;
-
+  
   auto get_indices = [=](int id, int& b, int& k, int& w) {
     w = id / no;
     id -= w * no;
@@ -166,8 +166,8 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   __syncthreads();
   CudaComplex<Real> G_val_store = G[id_i + ldg * id_j];
 
-  const CudaComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
-  const CudaComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
+  const CudaComplex<Real>* const G0_w1 = G0 + nb * k2 + no * w2;
+  const CudaComplex<Real>* const G0_w2 = G0 + nb * k1 + no * w1;
 
   G_val_store.x = 0;
   G_val_store.y = 0;
@@ -747,8 +747,8 @@ double updateG4(Scalar* G4, const Scalar* G_up, const int ldgu, const Scalar* G_
   
 template <typename Scalar, FourPointType type, typename SignType>
 __global__ void updateG4KernelNoSpin(CudaComplex<RealAlias<Scalar>>* __restrict__ G4,
-                                     const CudaComplex<RealAlias<Scalar>>* __restrict__ G_up,
-                                     const int ldgu,
+                                     const CudaComplex<RealAlias<Scalar>>* __restrict__ G_dn,
+                                     const int ldgd,
 				     const SignType factor, const bool atomic,
                                      const uint64_t start, const uint64_t end) {
   // TODO: reduce code duplication.
@@ -816,8 +816,8 @@ __global__ void updateG4KernelNoSpin(CudaComplex<RealAlias<Scalar>>* __restrict_
       int j_b = nb * k2_b + no * w2_b;
       condSwapAdd(i_b, j_b, b2, b4, true);
 
-      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
-      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
 
       contribution = complex_factor * (Ga_1 * Gb_1);
     }
@@ -842,8 +842,8 @@ __global__ void updateG4KernelNoSpin(CudaComplex<RealAlias<Scalar>>* __restrict_
       int j_b = nb * k2_b + no * w2_b;
       condSwapAdd(i_b, j_b, b2, b3, true);
 
-      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
-      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
+      const CudaComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
+      const CudaComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
 
       contribution -= complex_factor * (Ga_1 * Gb_1);
     }
@@ -856,14 +856,14 @@ __global__ void updateG4KernelNoSpin(CudaComplex<RealAlias<Scalar>>* __restrict_
 }
 
 template <typename Scalar, FourPointType type, typename SignType>
-double updateG4NoSpin(Scalar* G4, const Scalar* G_up, const int ldgu, const SignType factor, bool atomic, cudaStream_t stream,
+double updateG4NoSpin(Scalar* G4, const Scalar* G_dn, const int ldgd, const SignType factor, bool atomic, cudaStream_t stream,
                 std::size_t start, std::size_t end) {
   constexpr const std::size_t n_threads = 256;
   const unsigned n_blocks = dca::util::ceilDiv(end - start, n_threads);
 
   using dca::util::GPUTypeConversion;
   updateG4KernelNoSpin<dca::util::CUDATypeMap<Scalar>, type><<<n_blocks, n_threads, 0, stream>>>(
-      castGPUType(G4), castGPUType(G_up), ldgu,
+      castGPUType(G4), castGPUType(G_dn), ldgd,
       GPUTypeConversion(factor), atomic, start, end);
 
   // Check for errors.
