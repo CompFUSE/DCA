@@ -14,6 +14,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
+#include <complex>
 
 namespace dca {
 namespace phys {
@@ -103,7 +104,7 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
     min = Gamma_val < min ? Gamma_val : min;
   }
 
-  if (std::fabs(max_ref - max) < 1.e-12 and std::fabs(min_ref - min) < 1.e-12)
+  if (std::abs(max_ref - max) < 1.e-12 and std::fabs(min_ref - min) < 1.e-12)
     return true;
   else {
     std::cout << __FUNCTION__ << '\n';

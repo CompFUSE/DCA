@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.goc)
 //
 // This class provides routines for the deconvolution step.
 
@@ -21,6 +22,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/util/allocators/aligned_allocator.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
@@ -40,12 +42,20 @@ public:
   using trafo_r_to_k_type = math::transform::basis_transform<target_r_dmn_t, target_k_dmn_t>;
 
   using profiler_type = typename parameters_type::profiler_type;
+  template <typename T>
+  using AlignedAllocator = dca::linalg::util::AlignedAllocator<T>;
+  template <typename T>
+  using Matrix = dca::linalg::Matrix<T, dca::linalg::CPU, AlignedAllocator<T>>;
+
 public:
   deconvolution_routines(parameters_type& parameters_ref);
 
-  void compute_T_inv_matrix(double epsilon, dca::linalg::Matrix<double, dca::linalg::CPU>& T_eps);
-  void compute_T_inv_matrix(double epsilon,
-                            dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_eps);
+  /** compute inverse transformation matrix
+   *  \param[in] epsilon
+   *  \param[out] T_eps
+   */
+  void compute_T_inv_matrix(double epsilon, Matrix<double>& T_eps);
+  void compute_T_inv_matrix(double epsilon, Matrix<std::complex<double>>& T_eps);
 
   const auto& get_T() const {
     return T_;
@@ -123,9 +133,9 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
     const func::function<double, target_r_dmn_t>& phi_r, linalg::Matrix<double, dca::linalg::CPU>& T) {
   using trafo_r_to_lhs_k_type = math::transform::basis_transform<target_r_dmn_t, LhsKDomain>;
 
-  const linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
+  const linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  const linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
+  const linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_r_to_k =
       trafo_r_to_lhs_k_type::get_transformation_matrix();
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled(T_k_to_r,
@@ -157,23 +167,23 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_phi_inv(
-    double epsilon) {
+    const double epsilon) {
   for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
     phi_r_inv(i) = std::abs(phi_r_(i)) > epsilon ? 1. / phi_r_(i) : 0.;  // 1./epsilon;
 }
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(
-    double epsilon, dca::linalg::Matrix<double, dca::linalg::CPU>& T_eps) {
+    double epsilon, Matrix<double>& T_eps) {
   compute_phi_inv(epsilon);
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
+  Matrix<std::complex<double>> T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
+  Matrix<std::complex<double>> T_r_to_k =
       trafo_r_to_k_type::get_transformation_matrix();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
+  Matrix<std::complex<double>> T_k_to_r_scaled("T_k_to_r_scaled");
+  Matrix<std::complex<double>> T_k_to_k("T_k_to_r");
 
   T_k_to_k.resize(T_k_to_r.size());
   T_k_to_r_scaled = T_k_to_r;
@@ -191,15 +201,15 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(
-    double epsilon, dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_eps) {
+    double epsilon, Matrix<std::complex<double>>& T_eps) {
   compute_phi_inv(epsilon);
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
+  Matrix<std::complex<double>> T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
+  Matrix<std::complex<double>> T_r_to_k =
       trafo_r_to_k_type::get_transformation_matrix();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+  Matrix<std::complex<double>> T_k_to_r_scaled("T_k_to_r_scaled");
   T_k_to_r_scaled = T_k_to_r;
 
   for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
@@ -209,8 +219,8 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
   dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_eps);
 }
 
-}  // latticemapping
-}  // phys
-}  // dca
+}  // namespace latticemapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_ROUTINES_HPP

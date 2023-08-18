@@ -149,8 +149,6 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
     ndft_objs_[i].setWorkspace(workspaces_[i]);
     space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
-
-  std::cout << "WTpExtDmn Elements: " << vectorToString(WTpExtDmn::get_elements()) << '\n';
 }
 
 template <class Parameters, DistType DT>

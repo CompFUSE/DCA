@@ -59,7 +59,7 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
   using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
 
   constexpr static dca::linalg::DeviceType device = device_t;
   static constexpr bool is_complex = dca::util::IsComplex<Scalar>::value;
@@ -597,6 +597,8 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
 
   Gamma_up.setAsync(Gamma_up_CPU, thread_id, stream_id);
   Gamma_dn.setAsync(Gamma_dn_CPU, thread_id, stream_id);
+
+  linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -1606,8 +1608,16 @@ void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
     phase_.divide(phase);
   };
 
-  process_matrix(N_up);
-  process_matrix(N_dn);
+  if constexpr (decltype(N_up)::device == dca::linalg::DeviceType::GPU) {
+    linalg::Matrix<typename decltype(N_up)::ValueType, dca::linalg::DeviceType::CPU> N_up_CPU{N_up};
+    linalg::Matrix<typename decltype(N_dn)::ValueType, dca::linalg::DeviceType::CPU> N_dn_CPU{N_dn};
+    process_matrix(N_up_CPU);
+    process_matrix(N_dn_CPU);
+  }
+  else {
+    process_matrix(N_up);
+    process_matrix(N_dn);
+  }
 
   mc_log_weight_ += mc_log_weight_constant_ * configuration_.size();
 }

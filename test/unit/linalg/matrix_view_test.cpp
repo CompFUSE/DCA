@@ -22,7 +22,7 @@ TEST(MatrixViewTest, Constructors) {
   std::pair<int, int> size(4, 5);
   {
     dca::linalg::Matrix<float, dca::linalg::CPU> mat(size);
-    dca::linalg::MatrixView<float, dca::linalg::CPU> view(mat);
+    dca::linalg::MatrixView view(mat);
     EXPECT_EQ(mat.nrRows(), view.nrRows());
     EXPECT_EQ(mat.nrCols(), view.nrCols());
     EXPECT_EQ(mat.ptr(), view.ptr());

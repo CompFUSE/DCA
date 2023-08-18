@@ -345,9 +345,9 @@ private:
       std::cout << "\n default-transform (discrete -> expansion) " << DMN_INDEX << "  "
                 << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
-    matrix_type& T = basis_transformation_type::get_transformation_matrix();
+    matrix_type t_matrix = basis_transformation_type::get_transformation_matrix();
 
-    TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, T);
+    TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, t_matrix);
   }
 };
 

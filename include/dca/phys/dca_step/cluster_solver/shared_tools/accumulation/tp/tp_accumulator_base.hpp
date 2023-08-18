@@ -197,8 +197,6 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));
 
-  std::cout << "WTpExtDmn Elements: " << vectorToString(WTpExtDmn::get_elements()) << '\n';
-  
   initializeG0();
 
   // Reserve storage in advance such that we don't have to copy elements when we fill the vector.
