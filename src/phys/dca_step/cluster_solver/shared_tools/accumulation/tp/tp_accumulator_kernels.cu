@@ -37,6 +37,8 @@ namespace accumulator {
 namespace details {
 // dca::phys::solver::accumulator::details::
 
+#undef DEBUG_G4_GPU
+  
 using namespace linalg;
 using dca::util::ComplexAlias;
 using dca::util::castGPUType;
@@ -206,9 +208,9 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
   const auto blocks = getBlockSize(n_rows, n_rows, width);
 
 #ifndef NDEBUG
-  std::cout << "computeGMultiband for tp gpu with block size " << n_rows << "," << n_rows << ","
-            << width << '\n';
-  std::cout << "cuda block dims: " << toString(blocks) << '\n';
+  // std::cout << "computeGMultiband for tp gpu with block size " << n_rows << "," << n_rows << ","
+  //           << width << '\n';
+  // std::cout << "cuda block dims: " << toString(blocks) << '\n';
 #endif
 
   computeGMultibandKernel<<<blocks[0], blocks[1], width * width * sizeof(std::complex<Real>), stream>>>(

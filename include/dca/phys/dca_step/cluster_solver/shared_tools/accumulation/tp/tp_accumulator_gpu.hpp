@@ -396,7 +396,7 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::computeGSingleband(const int s)
 
 template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::GPU>::computeGMultiband(const int s) {
-  std::cout << "WTpExtDmn::dmn_size(): " << WTpExtDmn::dmn_size() << '\n';
+  // std::cout << "WTpExtDmn::dmn_size(): " << WTpExtDmn::dmn_size() << '\n';
   details::computeGMultiband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
                              get_G0()[s].leadingDimension(), n_bands_, KDmn::dmn_size(),
                              WTpExtDmn::dmn_size(), beta_, queues_[s]);
