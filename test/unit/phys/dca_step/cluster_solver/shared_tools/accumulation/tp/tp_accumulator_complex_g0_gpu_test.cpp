@@ -56,7 +56,7 @@ dca::parallel::NoConcurrency* concurrency_ptr;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_1x1_rashba.json";
+constexpr char input_file[] = INPUT_DIR "input_222-2_rashba.json";
 
 using ConfigGenerator = dca::testing::AccumulationTest<std::complex<double>>;
 using Configuration = ConfigGenerator::Configuration;

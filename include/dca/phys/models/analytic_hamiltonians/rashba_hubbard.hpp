@@ -40,7 +40,6 @@ public:
 
   const static int DIMENSION = 2;
 
-  const static int SPINS = 2;
   // The model is singleband, but up and down spins are stored in the same sector.
   const static int BANDS = 2;
 
@@ -59,7 +58,6 @@ public:
   // }
 
   static std::vector<int> flavors();
-  static std::vector<int> spins();
 
   static std::vector<std::vector<double>> aVectors();
 
@@ -101,16 +99,6 @@ template <typename PointGroup>
 const double* RashbaHubbard<PointGroup>::initializeRLDABasis() {
   static const std::array<double, 4> r_base{1, 0, 0, 1};
   return r_base.data();
-}
-
-template <typename PointGroup>
-std::vector<int> RashbaHubbard<PointGroup>::spins() {
-  static std::vector<int> spins(spins);
-
-  for (int i = 0; i < SPINS; i++)
-    spins[i] = i;
-
-  return spins;
 }
   
 template <typename PointGroup>
