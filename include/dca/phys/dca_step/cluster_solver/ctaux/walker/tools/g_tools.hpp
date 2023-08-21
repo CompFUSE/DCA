@@ -32,7 +32,7 @@ namespace ctaux {
 template <dca::linalg::DeviceType device_t, class Parameters>
 class G_TOOLS : public G_MATRIX_TOOLS<device_t, Parameters> {
   using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
 
   typedef vertex_singleton vertex_singleton_type;
 
@@ -173,7 +173,12 @@ void G_TOOLS<device_t, Parameters>::build_G_matrix(configuration_type& full_conf
                                                  G0.ptr(0, vertex_index), LD_G0, Scalar(0.),
                                                  G.ptr(0, 0), LD_G, thread_id, stream_id);
 
-    GFLOP += 2. * G.nrCols() * G.nrRows() * N.nrCols() * 1.e-9;
+    if constexpr (dca::util::IsComplex_t<Scalar>::value) {
+      GFLOP += (8.0 * G.nrCols() * G.nrRows() * N.nrCols() + 12.0 * (G.nrCols() * G.nrRows())) * 1.0e-9;
+    }
+    else {
+      GFLOP += 2. * G.nrCols() * G.nrRows() * N.nrCols() * 1.e-9;
+    }
   }
 }
 
@@ -259,7 +264,8 @@ inline void G_TOOLS<device_t, Parameters>::compute_col_on_Gamma_matrix(
 template <dca::linalg::DeviceType device_t, class Parameters>
 inline double G_TOOLS<device_t, Parameters>::compute_G_vertex_to_old_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    dca::linalg::Matrix<Scalar, device_t>& N, std::vector<vertex_singleton_type>& configuration_e_spin) {
+    dca::linalg::Matrix<Scalar, device_t>& N,
+    std::vector<vertex_singleton_type>& configuration_e_spin) {
   Scalar delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
 
   vertex_singleton_type& v_j = configuration_e_spin[configuration_e_spin_index_j];
