@@ -93,13 +93,11 @@ template <typename Scalar>
 bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
   int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max_ref, Real min_ref) {
   Real Gamma_val = std::abs(Gamma_LU(0, 0));
-
   Real max = Gamma_val;
   Real min = Gamma_val;
 
   for (int i = 1; i < n + 1; i++) {
     Gamma_val = std::abs(Gamma_LU(i, i));
-
     max = Gamma_val > max ? Gamma_val : max;
     min = Gamma_val < min ? Gamma_val : min;
   }
@@ -107,18 +105,19 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
   if (std::abs(max_ref - max) < 1.e-12 and std::fabs(min_ref - min) < 1.e-12)
     return true;
   else {
-    std::cout << __FUNCTION__ << '\n';
+    std::cout << __FUNCTION__ << " for Gamma_LU has failed!\n";
     std::cout << "Has failed!\n";
     std::cout.precision(16);
     std::cout << "\n\t n : " << n << "\n";
     std::cout << std::scientific;
+    std::cout << "max" << "\t" << "max_ref" << "\t" << "std::fabs(max_ref - max)" << '\n';
     std::cout << max << "\t" << max_ref << "\t" << std::fabs(max_ref - max) << '\n';
     std::cout << min << "\t" << min_ref << "\t" << std::fabs(min_ref - min) << '\n';
     std::cout << std::endl;
 
     Gamma_LU.print();
 
-    throw std::logic_error(__FUNCTION__);
+    return false;
   }
 }
 
@@ -149,8 +148,10 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma(
     min = Gamma_val;
   }
 
-  assert(test_max_min(n, Gamma_LU, max, min));
-
+#ifndef NDEBUG
+  if(!test_max_min(n, Gamma_LU, max, min))
+    throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+#endif
   Scalar phani_gamma = exp_delta_V - Real(1.);
   Scalar determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
@@ -370,7 +371,10 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
   }
 
   // std::cout << min << ", " << max << ")\t";
-  assert(test_max_min(n, Gamma_LU, max, min));
+#ifndef NDEBUG
+  if(!test_max_min(n, Gamma_LU, max, min))
+    throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+#endif
 
   auto phani_gamma = exp_delta_V - Real(1.);
   auto determinant_ratio = -phani_gamma * Gamma_LU_n_n;

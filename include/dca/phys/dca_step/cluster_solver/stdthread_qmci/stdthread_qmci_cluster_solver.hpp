@@ -655,6 +655,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
 
   finalizeWalker(walker, id);
 
+  accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
+
   Profiler::stop_threading(id);
 
   if (current_exception)

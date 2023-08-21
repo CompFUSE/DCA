@@ -63,7 +63,7 @@ private:
                                   e_spin_states_type e_spin);
 
   template <class configuration_type>
-  static void swap_and_remove_vertices(configuration_type& full_configuration,
+  static bool swap_and_remove_vertices(configuration_type& full_configuration,
                                        linalg::util::HostVector<int>& source_index,
                                        linalg::util::HostVector<int>& target_index,
                                        e_spin_states_type e_spin);
@@ -195,32 +195,28 @@ void SHRINK_TOOLS<Profiler, device_t, Real>::reorganize_configuration_test(
 
   swap_and_remove_vertices(full_configuration, source_index_up_, target_index_up_, e_UP);
   swap_and_remove_vertices(full_configuration, source_index_dn_, target_index_dn_, e_DN);
-
 #ifndef NDEBUG
   test_swap_vectors(source_index_up_, target_index_up_, N_up.size().first);
   test_swap_vectors(source_index_dn_, target_index_dn_, N_dn.size().first);
 #endif  // NDEBUG
-
   shrink_tools_algorithm_obj_.execute(source_index_up_, target_index_up_, N_up, G0_up,
                                       source_index_dn_, target_index_dn_, N_dn, G0_dn);
-
   erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_up, N_dn, G0_up, G0_dn);
   assert(full_configuration.assert_consistency());
 }
 
 template <class Profiler, dca::linalg::DeviceType device_t, typename Real>
 template <class configuration_type>
-void SHRINK_TOOLS<Profiler, device_t, Real>::swap_and_remove_vertices(configuration_type& full_configuration,
-                                                            HostVector& source_index,
-                                                            HostVector& target_index,
-                                                            e_spin_states_type e_spin) {
+bool SHRINK_TOOLS<Profiler, device_t, Real>::swap_and_remove_vertices(
+    configuration_type& full_configuration, HostVector& source_index, HostVector& target_index,
+    e_spin_states_type e_spin) {
   const auto death_condition = [](const vertex_singleton& v) { return v.get_HS_spin() == HS_ZERO; };
 
   std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
   if (configuration_size == 0) {
-    return;
+    return false;
   }
 
   int dead_spin = 0;
@@ -249,7 +245,7 @@ void SHRINK_TOOLS<Profiler, device_t, Real>::swap_and_remove_vertices(configurat
     }
 
     if (dead_spin >= living_spin) {
-      break;
+      return false;
     }
 
     assert(configuration_e_spin[dead_spin].get_HS_spin() == HS_ZERO);
@@ -270,6 +266,7 @@ void SHRINK_TOOLS<Profiler, device_t, Real>::swap_and_remove_vertices(configurat
     dead_spin++;
     living_spin--;
   }
+  return true;
 }
 
 template <class Profiler, linalg::DeviceType device_t, typename Real>

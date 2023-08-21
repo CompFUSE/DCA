@@ -74,6 +74,6 @@
   "CT-AUX" :
   {
     "initial-configuration-size" :5,
-    "max-submatrix-size":1
+    "max-submatrix-size":4
   }
 }
