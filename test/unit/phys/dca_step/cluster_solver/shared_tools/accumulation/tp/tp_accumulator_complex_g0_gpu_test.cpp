@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak     (doakpw@ornl.gov)
 //
 // This file implements a no-change test for the two particles accumulation on the GPU with
 // the Rashba model.
@@ -25,7 +26,9 @@ using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
 
+#include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/function/domains.hpp"
 
 #include <array>
 #include <functional>
@@ -81,6 +84,19 @@ uint loop_counter = 0;
 using TestTypes = ::testing::Types<std::complex<double>>;
 TYPED_TEST_CASE(TpAccumulatorComplexG0GpuTest, TestTypes);
 
+using namespace dca::phys;
+
+template <class Parameters>
+using k_DCA =
+  dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
+                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+template <class Parameters>
+using k_HOST =
+  dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+template <class Parameters, class k_DCA, class k_HOST>
+using LatticeMapSpType = latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST>;
+
 #define TYPING_PREFACE                                            \
   using Scalar = TypeParam;                                       \
   using ConfigGenerator = dca::testing::AccumulationTest<Scalar>; \
@@ -90,7 +106,7 @@ TYPED_TEST_CASE(TpAccumulatorComplexG0GpuTest, TestTypes);
 TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
   TYPING_PREFACE
 
-  const std::array<int, 2> n{18, 22};
+  const std::array<int, 2> n{23, 23};
   Sample M;
   Configuration config;
   using FourPointType = dca::phys::FourPointType;
@@ -104,6 +120,24 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
   using namespace dca::phys;
   this->host_setup.parameters_.set_four_point_channels(four_point_channels);
   this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
+
+  //this->host_setup.data_->initializeSigma("zero");
+  //this->gpu_setup.data_->initializeSigma("zero"); //this->gpu_setup.parameters_.get_initial_self_energy());
+
+  using ParametersHost = typename decltype(this->host_setup)::Parameters;
+  using ParametersGPU = typename decltype(this->gpu_setup)::Parameters;
+  
+  // LatticeMapSpType<ParametersHost,
+  // 		   k_DCA<ParametersHost>,
+  // 		   k_HOST<ParametersHost>> lattice_mapping_obj_host(this->host_setup.parameters_);
+  // auto& host_data = this->host_setup.data_;
+  // lattice_mapping_obj_host.execute(host_data->Sigma, host_data->Sigma_lattice_interpolated,
+  //                                  host_data->Sigma_lattice_coarsegrained, host_data->Sigma_lattice);
+
+  // LatticeMapSpType<ParametersGPU, k_DCA<ParametersGPU>, k_HOST<ParametersGPU>> lattice_mapping_obj_gpu(this->gpu_setup.parameters_);
+  // auto& gpu_data = this->gpu_setup.data_;
+  // lattice_mapping_obj_gpu.execute(gpu_data->Sigma, gpu_data->Sigma_lattice_interpolated,
+  //                                 gpu_data->Sigma_lattice_coarsegrained, gpu_data->Sigma_lattice);
 
   dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_),
                                                 dca::DistType::NONE, dca::linalg::CPU>
@@ -220,11 +254,10 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
       else {
         std::vector<int> success_index(host_G4.get_domain().get_leaf_domain_sizes().size());
         host_G4.linind_2_subind(i, success_index);
-        std::cout << "success-> " << dca::vectorToString(success_index) << '\n';
       }
     }
     if (fail_count > 0)
-      std::cout << "G4 " << fail_count << " of " << lin_size << " elements were incorrect\n"; 
+      std::cout << "G4 " << fail_count << " of " << lin_size << " elements were incorrect\n";
   }
 
   for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {

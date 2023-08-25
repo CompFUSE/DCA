@@ -137,11 +137,9 @@ struct G0SetupBare {
       throw std::runtime_error("Input parsing failed!");
     }
     parameters_.update_model();
-    static bool domain_initialized = false;
-    if (!domain_initialized) {
-      parameters_.update_domains();
-      domain_initialized = true;
-    }
+
+    parameters_.update_domains();
+
     data_ = std::make_unique<Data>(parameters_);
     data_->initialize();
   }

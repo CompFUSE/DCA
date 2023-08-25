@@ -297,7 +297,6 @@ bool HDF5Writer::execute(const std::string& name,
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
   std::vector<Scalar> linearized(A.nrRows() * A.nrCols());
 
-  int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
   for (int i = 0; i < A.nrRows(); ++i)
     for (int j = 0; j < A.nrCols(); ++j)

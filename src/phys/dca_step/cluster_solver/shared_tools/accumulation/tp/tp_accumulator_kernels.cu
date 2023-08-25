@@ -181,10 +181,10 @@ __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int l
   }
 
   if (k1 == k2 && w1 == w2)  // G0_w1 == G0_w2)
-    G_val_store += G0_w1[b1 + ldg0 * b2] * beta;
+    G_val_store += G0_w1[b2 + ldg0 * b1] * beta;
 #ifdef DEBUG_G4_GPU
   printf("%lf %lf %lf %lf %lf %lf -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2].x,
-         M[b1 + ldm * b2].y, G0_w1[b1 + ldg0 * b2].x, G0_w1[b1 + ldg0 * b2].y,
+         M[b1 + ldm * b2].y, G0_w1[b2 + ldg0 * b1].x, G0_w1[b2 + ldg0 * b1].y,
          G0_w2[b1 + ldg0 * b2].x, G0_w2[b1 + ldg0 * b2].y, b1, b2, k1, k2, w1, w2, G_val.x, G_val.y);
 #endif
   G_val = G_val_store;

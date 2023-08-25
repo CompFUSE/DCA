@@ -8,8 +8,10 @@
 
   "physics" :
   {
-    "beta"                      :  2,
-    "chemical-potential"        : 0
+      "beta"                      :  2,
+      "density"                 : 0.85,
+      "chemical-potential"        : 0,
+      "adjust-chemical-potential": true
   },
 
   "Rashba-Hubbard-model":
@@ -19,7 +21,19 @@
       "lambda"  : 0.5,
       "U"       : 6.0
   },
-
+    "DCA" : {
+		"iterations": 1,
+	"accuracy": 1.e-3,
+	"self-energy-mixing-factor": 0.8,
+	"interacting-orbitals": [0,1],
+	"coarse-graining": {
+	    "k-mesh-recursion": 3,
+	    "periods": 0,
+	    "quadrature-rule": 1,
+	    "threads": 1,
+	    "tail-frequencies": 10
+	}
+    },
   "domains": {
     "real-space-grids": {
       "cluster": [[2, 2],
