@@ -32,7 +32,7 @@ class StdThreadQmciAccumulator : public QmciAccumulator {
 public:
   using ThisType = StdThreadQmciAccumulator<QmciAccumulator, SpGreensFunction>;
   using Parameters = typename QmciAccumulator::ParametersType;
-  using Real = typename dca::config::McOptions::MC_REAL;
+  using Real = typename Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
   using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
   using Concurrency = typename Parameters::concurrency_type;

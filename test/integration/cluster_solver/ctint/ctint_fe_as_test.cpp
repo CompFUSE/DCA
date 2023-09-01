@@ -13,7 +13,16 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -38,8 +47,7 @@
 constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
-const std::string input_dir =
-    DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 TEST(squareLattice_Nc4_nn, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -49,7 +57,8 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, Model, RngType,
-                                    dca::ClusterSolverId::CT_INT>;
+                                    dca::ClusterSolverId::CT_INT,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 

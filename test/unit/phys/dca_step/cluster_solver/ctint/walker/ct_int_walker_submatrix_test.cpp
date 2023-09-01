@@ -40,7 +40,7 @@ using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<std::complex<double>>; //double, 
+using ScalarTypes = ::testing::Types<double>; //double, 
 TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the

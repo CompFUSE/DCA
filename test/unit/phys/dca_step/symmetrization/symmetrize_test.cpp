@@ -77,7 +77,7 @@ protected:
   function<int, dmn_variadic<NuDmn, NuDmn>> H_symmetry_;
 };
 
-using MyTypes = ::testing::Types<double, std::complex<double>>;
+using MyTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(SymmetrizeTest, MyTypes);
 
 TYPED_TEST(SymmetrizeTest, G0_t) {

@@ -45,8 +45,8 @@ using dca::util::SignType;
 template <class Parameters, class Data>
 class TpEqualTimeAccumulator {
 public:
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
   typedef vertex_singleton vertex_singleton_type;
 

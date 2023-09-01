@@ -34,6 +34,10 @@ public:
     return accumulated_phase_;
   }
 
+  const auto get_accumulated_phase() const {
+    return accumulated_phase_.sum();
+  }
+  
   auto get_number_of_measurements() const {
     return number_of_measurements_;
   }

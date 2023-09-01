@@ -27,6 +27,7 @@ using McOptions = MockMcOptions<double>;
 
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
@@ -41,7 +42,7 @@ dca::parallel::NoConcurrency* concurrency_ptr;
 #endif
 
 using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+    dca::phys::models::TightBindingModel<dca::phys::models::RashbaHubbard<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,

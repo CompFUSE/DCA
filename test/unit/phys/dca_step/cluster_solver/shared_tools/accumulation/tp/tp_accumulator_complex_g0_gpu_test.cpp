@@ -240,8 +240,8 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
     int fail_count = 0;
     auto& G4_domain_sizes = host_G4.get_domain().get_leaf_domain_sizes();
     for (std::size_t i = 0; i < lin_size; ++i) {
-      if ((host_G4(i).real() - device_G4(i).real()) > 10E-10 ||
-          (host_G4(i).imag() - device_G4(i).imag()) > 10E-10) {
+      if (std::abs(host_G4(i).real() - device_G4(i).real()) > 1E-12 ||
+          std::abs(host_G4(i).imag() - device_G4(i).imag()) > 1E-12) {
         std::vector<int> fail_index(host_G4.get_domain().get_leaf_domain_sizes().size());
         host_G4.linind_2_subind(i, fail_index);
         ADD_FAILURE() << "host (" << host_G4(i).real() << ", " << host_G4(i).imag()

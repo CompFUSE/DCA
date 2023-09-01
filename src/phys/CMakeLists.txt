@@ -4,4 +4,3 @@ add_subdirectory(dca_step)
 add_subdirectory(domains)
 add_subdirectory(models)
 
-#add_subdirectory(parameters)

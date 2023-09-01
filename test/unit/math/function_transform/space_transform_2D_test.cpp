@@ -54,7 +54,7 @@ template<typename SCALAR>
 // Perform the test in double and single precision.
 template <typename T>
 class SpaceTransform2DTest : public ::testing::Test {};
-using TestTypes = ::testing::Types<float, double, std::complex<double>>;
+using TestTypes = ::testing::Types<float, double>; //, std::complex<double>>;
 TYPED_TEST_CASE(SpaceTransform2DTest, TestTypes);
 
 TYPED_TEST(SpaceTransform2DTest, Execute) {

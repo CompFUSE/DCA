@@ -18,7 +18,16 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
 
-#include "gtest/gtest.h"
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -50,8 +59,10 @@ using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::ClusterSolverId::CT_AUX>;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler, Model,
+                                  RngType, dca::ClusterSolverId::CT_AUX,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
@@ -106,8 +117,8 @@ void performTest(const std::string& input, const std::string& baseline) {
       const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
       const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4()[0]);
 
-      using MCScalar = typename QmcSolver::MCScalar;
-      const auto tolerance = std::is_same<MCScalar, double>::value ? 5e-7 : 1e-5;
+      using Scalar = typename QmcSolver::Scalar;
+      const auto tolerance = std::is_same<Scalar, double>::value ? 5e-7 : 1e-5;
       EXPECT_GE(tolerance, err_g.l_inf);
       EXPECT_GE(tolerance, err_g4.l_inf);
     }

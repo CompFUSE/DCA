@@ -58,7 +58,7 @@ public:
 
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
-  using Real = typename dca::config::McOptions::MC_REAL;
+  using Real = typename Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
 
   constexpr static dca::linalg::DeviceType device = device_t;

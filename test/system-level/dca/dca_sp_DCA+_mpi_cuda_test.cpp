@@ -14,7 +14,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/util/difference.hpp"
@@ -26,6 +26,16 @@
 #include "dca/linalg/util/util_gpublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"

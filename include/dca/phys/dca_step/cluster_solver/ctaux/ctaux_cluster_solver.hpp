@@ -24,7 +24,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/config/mc_options.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -63,7 +62,7 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Real = typename dca::config::McOptions::MC_REAL;
+  using Real = typename Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
   using FPScalar = typename dca::util::ScalarSelect<double,Parameters::complex_g0>::type;
 

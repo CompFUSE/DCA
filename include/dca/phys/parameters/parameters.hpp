@@ -62,8 +62,7 @@ namespace params {
 // dca::phys::params::
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
-          typename RandomNumberGenerator, ClusterSolverId solver_name,
-          class NUMTRAITS>
+          typename RandomNumberGenerator, ClusterSolverId solver_name, class NUMTRAITS>
 class Parameters : public AnalysisParameters,
                    public DcaParameters,
                    public DomainsParameters,
@@ -159,10 +158,19 @@ private:
   concurrency_type& concurrency_;
 };
 
+template <class Parameters, typename = bool>
+struct CheckParametersNumericTypes : public std::false_type {};
+
+template <class Parameters>
+struct CheckParametersNumericTypes <Parameters,
+				    std::enable_if_t<std::is_same<typename Parameters::Scalar,
+								  typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>::value, bool>>
+    : public std::true_type {};
+
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name, NUMTRAITS>::Parameters(
-    const std::string& version_stamp, concurrency_type& concurrency)
+Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+           NUMTRAITS>::Parameters(const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(Model::DIMENSION),
       DcaParameters(Model::BANDS),
       DomainsParameters(Model::DIMENSION),
@@ -189,13 +197,17 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
 #ifdef __GNUC__
   compiler_ = __VERSION__;
 #endif
+
+  // check consistency between the value of the Parameters::complex_g0 and Parameters NUMTRAITS
+  static_assert(std::is_same_v<typename Parameters::Scalar,
+		typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
 template <typename Writer>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name, NUMTRAITS>::write(
-    Writer& writer) {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::write(Writer& writer) {
   writer.open_group("parameters");
   this->readWrite(writer);
   writer.close_group();
@@ -242,8 +254,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
 template <typename Reader>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
-                solver_name, NUMTRAITS>::read_input_and_broadcast(const std::string& filename) {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::read_input_and_broadcast(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     Reader read_obj;
     read_obj.open_file(filename);
@@ -256,15 +268,15 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
-                solver_name, NUMTRAITS>::update_model() {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::update_model() {
   Model::initialize(*this);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
-                solver_name, NUMTRAITS>::update_domains() {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::update_domains() {
   domains::DCA_iteration_domain::initialize(*this);
   domains::electron_band_domain::initialize(*this);
 
@@ -347,8 +359,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
-               solver_name, NUMTRAITS>::get_buffer_size(const Concurrency& concurrency) const {
+int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+               NUMTRAITS>::get_buffer_size(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += AnalysisParameters::getBufferSize(concurrency);
@@ -368,8 +380,9 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name, NUMTRAITS>::pack(
-    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
+                                 int& position) const {
   AnalysisParameters::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
   DomainsParameters::pack(concurrency, buffer, buffer_size, position);
@@ -385,8 +398,9 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name, NUMTRAITS>::unpack(
-    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
+                                   int& position) {
   AnalysisParameters::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
   DomainsParameters::unpack(concurrency, buffer, buffer_size, position);
@@ -403,8 +417,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
 template <typename ReaderOrWriter>
-void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name, NUMTRAITS>::readWrite(
-    ReaderOrWriter& reader_or_writer) {
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::readWrite(ReaderOrWriter& reader_or_writer) {
   if (ReaderOrWriter::is_writer) {
     reader_or_writer.execute("date", date_);
     reader_or_writer.execute("time", time_);
@@ -434,8 +448,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
-std::string Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
-                       solver_name, NUMTRAITS>::make_python_readable(std::string str) {
+std::string Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                       NUMTRAITS>::make_python_readable(std::string str) {
   {
     std::string tmp("\n\n");
     while (true) {

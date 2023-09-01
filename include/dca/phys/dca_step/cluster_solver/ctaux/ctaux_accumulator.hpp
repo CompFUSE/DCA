@@ -150,10 +150,6 @@ public:
     return current_phase_;
   }
 
-  const auto get_accumulated_phase() const {
-    return accumulated_phase_.sum();
-  }
-  
   const auto& get_sign_times_M_r_w() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w();
   }

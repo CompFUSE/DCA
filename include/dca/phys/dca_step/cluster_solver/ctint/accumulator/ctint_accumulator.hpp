@@ -37,7 +37,7 @@ namespace ctint {
 
 template <class Parameters, linalg::DeviceType device,
           DistType DIST = dca::DistType::NONE>
-class CtintAccumulator : public MC_accumulator_data<typename dca::util::ScalarSelect<typename dca::config::McOptions::MC_REAL,Parameters::complex_g0>::type> {
+class CtintAccumulator : public MC_accumulator_data<typename Parameters::Scalar> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
   using Real = typename dca::config::McOptions::MC_REAL;

@@ -53,7 +53,7 @@ namespace accumulator {
 template <class Parameters, DistType DT>
 class TpAccumulatorGpuBase {
 public:
-  using TpPrecision = typename dca::config::McOptions::TPAccumulationPrecision;
+  using TpPrecision = typename Parameters::TPAccumPrec;
   using TpComplex = std::complex<TpPrecision>;
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;

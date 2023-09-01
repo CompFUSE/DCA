@@ -35,7 +35,7 @@ class QmciAutocorrelationData {
   using Parameters = typename Walker::parameters_type;
   using Data = DcaData<Parameters>;
   using Concurrency = typename Parameters::concurrency_type;
-  using Real = typename dca::config::McOptions::MC_REAL;
+  using Real = typename Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
 
   constexpr static auto device = Walker::device;

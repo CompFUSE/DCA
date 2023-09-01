@@ -1,0 +1,5 @@
+dca_add_gtest(test_rashba_lattice
+  EXTENSIVE
+  MPI MPI_NUMPROC 2
+  INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+  LIBS ${DCA_LIBS} ${DCA_GPU_LIBS})
