@@ -154,7 +154,7 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
 template <typename Scalar, class Vec, class ALLOC>
 inline void copyRows(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& i_x, Matrix<Scalar, CPU, ALLOC>& mat_y,
-                     const Vec& i_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+                     const Vec& i_y, const int /*thread_id*/ = 0, const int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
@@ -165,8 +165,8 @@ inline void copyRows(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& i_x, Ma
 #ifdef DCA_HAVE_GPU
 template <typename Scalar>
 inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i_x,
-                     Matrix<Scalar, GPU>& mat_y, const Vector<int, GPU>& i_y, int thread_id = 0,
-                     int stream_id = 0) {
+                     Matrix<Scalar, GPU>& mat_y, const Vector<int, GPU>& i_y, const int thread_id,
+                     const int stream_id) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
@@ -179,9 +179,9 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 // In/Out: mat_y
 // Preconditions: mat_x.nrCols() == mat_y.nrCols()
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size().
-template <typename Scalar, class ALLOC>
+template <typename Scalar>
 inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i_x,
-                     Matrix<Scalar, GPU>& mat_y, int thread_id = 0, int stream_id = 0) {
+                     Matrix<Scalar, GPU>& mat_y, const int thread_id, const int stream_id) {
   assert(mat_x.nrCols() == mat_y.nrCols());
 
   blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),

@@ -294,6 +294,7 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::updateM() {
     old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
     old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
 
+    assert(dca::linalg::util::getStream(thread_id_, s) == get_stream(s));
     move_indices_dev_[s].setAsync(move_indices_[s], get_stream(s));
     // Note: an event synchronization might be necessary if the order of operation is changed.
     linalg::matrixop::copyCols(G_dev_[s], move_indices_dev_[s], old_G, thread_id_, s);

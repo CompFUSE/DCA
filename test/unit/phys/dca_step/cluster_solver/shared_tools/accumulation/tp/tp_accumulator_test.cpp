@@ -81,10 +81,12 @@ TEST_F(TpAccumulatorTest, Accumulate) {
     baseline_writer.open_file(baseline);
     baseline_writer.begin_step();
   }
-  else
+  else {
     reader.open_file(baseline);
+    reader.begin_step();
+  }
 
-  using namespace dca::phys;
+  using FourPointType = dca::phys::FourPointType;
   std::vector<FourPointType> four_point_channels{
       FourPointType::PARTICLE_HOLE_TRANSVERSE, FourPointType::PARTICLE_HOLE_MAGNETIC,
       FourPointType::PARTICLE_HOLE_CHARGE, FourPointType::PARTICLE_PARTICLE_UP_DOWN};
@@ -101,6 +103,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
   func_names[dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
   const int sign = 1;
+  accumulator.resetAccumulation(0);
   accumulator.accumulate(M, config, sign);
   accumulator.finalize();
 
@@ -125,6 +128,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
   }
 
   if (update_baseline) {
+    baseline_writer.end_step();
     data_->write(baseline_writer);
     baseline_writer.close_file();
   }

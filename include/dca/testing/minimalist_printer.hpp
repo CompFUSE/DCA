@@ -13,7 +13,7 @@
 #ifndef DCA_TESTING_MINIMALIST_PRINTER_HPP
 #define DCA_TESTING_MINIMALIST_PRINTER_HPP
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 namespace dca {
 namespace testing {

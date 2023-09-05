@@ -50,7 +50,13 @@ public:
   Vector(size_t size, size_t capacity);
   Vector(const std::string& name, size_t size, size_t capacity);
 
-  Vector(const ThisType& rhs, const std::string& name = default_name_);
+  /** copy constructor except for name.
+   *  this is strange but for historical reasons is kept.
+   *  has needed to be explicit because with the `const ThisType&` somehow lead to an implicit conversion
+   *  from an int to a Vector& argument that landed here.
+   *  This occurred in Debug with 
+   */
+  explicit Vector(const ThisType& rhs, const std::string& name = default_name_);
 
   template <DeviceType device_name2, class Allocator2>
   Vector(const Vector<ScalarType, device_name2, Allocator2>& rhs,

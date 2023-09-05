@@ -106,7 +106,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   const int nb = BDmn::dmn_size();
   const int nr = RDmn::dmn_size();
   const int n_w = PosFreqDmn::dmn_size();
-  auto invert_w = [=](const int w) { return 2 * n_w - 1 - w; };
+  auto invert_w = [=](const int w) { return n_w - 1 - w; };
   for (int b2 = 0; b2 < nb; ++b2)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int r2 = 0; r2 < nr; ++r2)
@@ -114,8 +114,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
           for (int w2 = 0; w2 < FreqDmn::dmn_size(); ++w2)
             for (int w1 = 0; w1 < n_w; ++w1) {
               const auto val = result_host(r1 + b1 * nr + w1 * nr * nb, r2 + b2 * nr + w2 * nr * nb);
-              f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;
-              f_w(b1, b2, r1, r2, invert_w(w1 + n_w), invert_w(w2)) = std::conj(val);
+              f_w(b1, b2, r1, r2, w1, w2) = val;
             }
 
   dca::profiling::Duration duration(end_time, start_time);

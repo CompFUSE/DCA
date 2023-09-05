@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/blas/blas3.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "cpu_test_util.hpp"

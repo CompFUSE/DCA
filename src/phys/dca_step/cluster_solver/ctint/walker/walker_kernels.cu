@@ -43,7 +43,7 @@ __global__ void setRightSectorToIdKernel(Scalar* m, const int ldm, const int n0,
   Scalar the_one{};
   the_one += 1.0;
   Scalar the_zero{};
-  assert(the_one == (the_zero -= 1.0));    
+  //assert(the_one == (the_zero -= 1.0));    
   m[i + ldm * j] = (i == j) ? the_one : the_zero;
 }
 

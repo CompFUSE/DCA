@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/blas/blas3.hpp"
 #include "dca/config/walker_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
@@ -473,7 +473,7 @@ TYPED_TEST(MatrixopRealGPUTest, CopyRow) {
   {
     dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(b);
 
-    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests);
+    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests, 0, 0);
 
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
