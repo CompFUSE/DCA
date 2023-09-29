@@ -13,6 +13,7 @@
 #include <complex>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <dca/function/util/difference.hpp>
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
@@ -47,74 +48,82 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "rashba_lattice_setup.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/testing/dca_mpi_test_environment.hpp"
 
 constexpr bool update_baseline = false;
 
 #ifdef DCA_HAVE_ADIOS2
-adios2::ADIOS* adios_ptr;
+#include "dca/io/adios2/adios2_reader.hpp"
+#include "dca/io/adios2/adios2_writer.hpp"
+adios2::ADIOS* adios2_ptr;
 #endif
 
-#ifdef DCA_HAVE_MPI
-#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-dca::parallel::MPIConcurrency* concurrency_ptr;
-#else
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
-dca::parallel::NoConcurrency* concurrency_ptr;
-#endif
+dca::testing::DcaMpiTestEnvironment* dca_test_env;
+
+// #ifdef DCA_HAVE_MPI
+// #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+// dca::parallel::MPIConcurrency* concurrency_ptr;
+// #else
+// #include "dca/parallel/no_concurrency/no_concurrency.hpp"
+// dca::parallel::NoConcurrency* concurrency_ptr;
+// #endif
 
 using dca::linalg::DeviceType;
 
-template <typename SCALAR>
 struct RashbaLatticeIntegrationTest : public ::testing::Test {
+  using SCALAR = std::complex<double>;
   template <DeviceType DEVICE>
-
   using IntegrationSetupBare =
-      dca::testing::IntegrationSetupBare<SCALAR, DEVICE, dca::testing::LatticeRashba,
+    dca::testing::IntegrationSetupBare<SCALAR, DEVICE, dca::testing::DcaMpiTestEnvironment::ConcurrencyType, dca::testing::LatticeRashba,
                                          dca::ClusterSolverId::CT_AUX>;
-  virtual void SetUp() {
-    host_setup.SetUp();
-    gpu_setup.SetUp();
+  virtual void reallySetUp(Concurrency* concurrency) {
+    host_setup = std::make_unique<IntegrationSetupBare<dca::linalg::CPU>>(concurrency);
+    gpu_setup = std::make_unique<IntegrationSetupBare<dca::linalg::GPU>>(concurrency);
   }
 
   virtual void TearDown() {}
-  IntegrationSetupBare<dca::linalg::CPU> host_setup;
-  IntegrationSetupBare<dca::linalg::GPU> gpu_setup;
+
+  using CPUSetup = IntegrationSetupBare<dca::linalg::CPU>;
+  using GPUSetup = IntegrationSetupBare<dca::linalg::GPU>;
+  
+  std::unique_ptr<CPUSetup> host_setup;
+  std::unique_ptr<GPUSetup> gpu_setup;
 };
 
-using TestTypes = ::testing::Types<std::complex<double>>;
-TYPED_TEST_CASE(RashbaLatticeIntegrationTest, TestTypes);
 
-TYPED_TEST(RashbaLatticeIntegrationTest, SelfEnergy) {
-  if (concurrency_ptr->id() == concurrency_ptr->first()) {
+TEST_F(RashbaLatticeIntegrationTest, SelfEnergy) {
+  auto& concurrency = dca_test_env->concurrency;
+  if (concurrency.id() == concurrency.first()) {
     dca::util::GitVersion::print();
     dca::util::Modules::print();
   }
 
-  dca::phys::DcaLoopData<decltype(this->gpu_setup.parameters_)> dca_loop_data_gpu;
+  this->reallySetUp(&concurrency);
+  
+  dca::phys::DcaLoopData<decltype(this->gpu_setup->parameters_)> dca_loop_data_gpu;
 
   // dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w> >
   //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
-  using QMCSolverGPU = typename decltype(this->gpu_setup)::ThreadedSolver;
-  QMCSolverGPU qmc_solver_gpu(this->gpu_setup.parameters_, *(this->gpu_setup.data_), nullptr);
+  using QMCSolverGPU = typename RashbaLatticeIntegrationTest::GPUSetup::ThreadedSolver;
+  QMCSolverGPU qmc_solver_gpu(this->gpu_setup->parameters_, *(this->gpu_setup->data_), nullptr);
   qmc_solver_gpu.initialize(0);
   qmc_solver_gpu.integrate();
   qmc_solver_gpu.finalize(dca_loop_data_gpu);
 
-  using NuDmn = typename decltype(this->gpu_setup)::NuDmn;
-  using KDmnDCA = typename decltype(this->gpu_setup)::KDmnDCA;
-  using WDmn = typename decltype(this->gpu_setup)::WDmn;
+  using NuDmn =  RashbaLatticeIntegrationTest::GPUSetup::NuDmn;
+  using KDmnDCA = RashbaLatticeIntegrationTest::GPUSetup::KDmnDCA;
+  using WDmn = RashbaLatticeIntegrationTest::GPUSetup::WDmn;
 
   dca::func::function<std::complex<double>, dca::func::dmn_variadic<NuDmn, NuDmn, KDmnDCA, WDmn>> Sigma_QMC(
-      this->gpu_setup.data_->Sigma);
+      this->gpu_setup->data_->Sigma);
 
   // // Read QMC self-energy from check_data file and compare it with the newly
   // // computed QMC self-energy.
@@ -151,26 +160,36 @@ TYPED_TEST(RashbaLatticeIntegrationTest, SelfEnergy) {
 }
 
 int main(int argc, char** argv) {
-#ifdef DCA_HAVE_MPI
+  // #ifdef DCA_HAVE_MPI
+  //   dca::parallel::MPIConcurrency concurrency(argc, argv);
+  //   concurrency_ptr = &concurrency;
+  // #else
+  //   dca::parallel::NoConcurrency concurrency(argc, argv);
+  //   concurrency_ptr = &concurrency;
+  // #endif
+  ::testing::InitGoogleTest(&argc, argv);
+
   dca::parallel::MPIConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#else
-  dca::parallel::NoConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#endif
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
+      concurrency,  "rashba_lattice_stat_test.json");
+  testing::AddGlobalTestEnvironment(dca_test_env);
 
   dca::linalg::util::initializeMagma();
 
 #ifdef DCA_HAVE_ADIOS2
   // ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get(), false);
-  adios_ptr = &adios;
+  // std::string dummy("");
+  // adios2::ADIOS adios(dummy, concurrency.get(), false);
+  // adios2_ptr = &adios;
 #endif
-  ::testing::InitGoogleTest(&argc, argv);
 
-  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
   // delete listeners.Release(listeners.default_result_printer());
   // listeners.Append(new dca::testing::MinimalistPrinter);
+  if (dca_test_env->concurrency.id() != 0) {
+    delete listeners.Release(listeners.default_result_printer());
+    listeners.Append(new dca::testing::MinimalistPrinter);
+  }
 
   int result = RUN_ALL_TESTS();
   return result;

@@ -35,7 +35,6 @@
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
 namespace dca {
@@ -50,7 +49,7 @@ using dca::linalg::CPU;
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/rashba_lattice/";
 
-constexpr char default_input[] = DCA_SOURCE_DIR "rashba_lattice_stat_test.json";
+const std::string default_input(test_directory + "rashba_lattice_stat_test.json");
 
 using LatticeRashba = phys::models::RashbaHubbard<phys::domains::no_symmetry<2>>;
 
@@ -58,14 +57,13 @@ using dca::math::util::cutFrequency;
 
 using dca::linalg::DeviceType;
 
-template <typename Scalar, DeviceType DEVICE, class Lattice = LatticeRashba,
-          ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
-          const char* input_name = default_input, DistType DT = DistType::NONE>
+template <typename Scalar, DeviceType DEVICE, class CONCURRENCY, class Lattice = LatticeRashba,
+          ClusterSolverId solver_name = ClusterSolverId::CT_AUX, DistType DT = DistType::NONE>
 struct IntegrationSetupBare {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
   using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
-  using Concurrency = DcaMpiTestEnvironment::ConcurrencyType;
+  using Concurrency = CONCURRENCY;
   using Parameters =
       phys::params::Parameters<Concurrency, Threading, profiling::NullProfiler, Model,
                                RandomNumberGenerator, solver_name,
@@ -85,7 +83,6 @@ struct IntegrationSetupBare {
   struct ClusterSolverSelector<ClusterSolverId::CT_INT, PARAMETERS> {
     using type = dca::phys::solver::CtintClusterSolver<DEVICE, PARAMETERS, true>;
   };
-
 
   using QMCSolver = typename ClusterSolverSelector<solver_name, Parameters>::type;
   using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QMCSolver>;
@@ -107,13 +104,30 @@ struct IntegrationSetupBare {
   using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
   using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 
-  Concurrency concurrency_;
+  Concurrency* concurrency_;
   Parameters parameters_;
   std::unique_ptr<Data> data_;
 
-  IntegrationSetupBare() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
+  IntegrationSetupBare(Concurrency* concurrency, const std::string& input_file = default_input)
+      : concurrency_(concurrency), parameters_("", *concurrency_) {
+    try {
+      parameters_.template read_input_and_broadcast<io::JSONReader>(input_file);
+    }
+    catch (const std::exception& r_w) {
+      throw std::runtime_error(r_w.what());
+    }
+    catch (...) {
+      throw std::runtime_error("Input parsing failed!");
+    }
+    parameters_.update_model();
 
-  void SetUp() {
+    parameters_.update_domains();
+
+    data_ = std::make_unique<Data>(parameters_);
+    data_->initialize();
+  }
+
+  void SetUp(const std::string& input_name = default_input) {
     try {
       parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
     }

@@ -88,12 +88,12 @@ using namespace dca::phys;
 
 template <class Parameters>
 using k_DCA =
-  dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
-                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+    dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
+                                             domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 template <class Parameters>
 using k_HOST =
-  dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+    dca::func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                             domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 template <class Parameters, class k_DCA, class k_HOST>
 using LatticeMapSpType = latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST>;
 
@@ -121,12 +121,12 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
   this->host_setup.parameters_.set_four_point_channels(four_point_channels);
   this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
 
-  //this->host_setup.data_->initializeSigma("zero");
-  //this->gpu_setup.data_->initializeSigma("zero"); //this->gpu_setup.parameters_.get_initial_self_energy());
+  // this->host_setup.data_->initializeSigma("zero");
+  // this->gpu_setup.data_->initializeSigma("zero"); //this->gpu_setup.parameters_.get_initial_self_energy());
 
   using ParametersHost = typename decltype(this->host_setup)::Parameters;
   using ParametersGPU = typename decltype(this->gpu_setup)::Parameters;
-  
+
   // LatticeMapSpType<ParametersHost,
   // 		   k_DCA<ParametersHost>,
   // 		   k_HOST<ParametersHost>> lattice_mapping_obj_host(this->host_setup.parameters_);
@@ -134,8 +134,8 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
   // lattice_mapping_obj_host.execute(host_data->Sigma, host_data->Sigma_lattice_interpolated,
   //                                  host_data->Sigma_lattice_coarsegrained, host_data->Sigma_lattice);
 
-  // LatticeMapSpType<ParametersGPU, k_DCA<ParametersGPU>, k_HOST<ParametersGPU>> lattice_mapping_obj_gpu(this->gpu_setup.parameters_);
-  // auto& gpu_data = this->gpu_setup.data_;
+  // LatticeMapSpType<ParametersGPU, k_DCA<ParametersGPU>, k_HOST<ParametersGPU>>
+  // lattice_mapping_obj_gpu(this->gpu_setup.parameters_); auto& gpu_data = this->gpu_setup.data_;
   // lattice_mapping_obj_gpu.execute(gpu_data->Sigma, gpu_data->Sigma_lattice_interpolated,
   //                                 gpu_data->Sigma_lattice_coarsegrained, gpu_data->Sigma_lattice);
 
