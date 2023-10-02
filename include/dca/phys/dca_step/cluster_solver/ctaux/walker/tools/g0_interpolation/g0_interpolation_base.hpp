@@ -31,9 +31,12 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <typename Parameters, typename Real>
+template <typename Parameters>
 class G0InterpolationBase {
 public:
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+
   using t = func::dmn_0<domains::time_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -57,15 +60,15 @@ public:
 public:
   G0InterpolationBase(int id, const Parameters& parameters);
 
-  template <class MOMS_type>
-  void initialize(MOMS_type& MOMS);
+  template <class Data>
+  void initialize(Data& data);
 
 protected:
-  template <class MOMS_type>
-  void initialize_linear_coefficients(MOMS_type& MOMS);
+  template <class Data>
+  void initialize_linear_coefficients(Data& data);
 
-  template <class MOMS_type>
-  void initialize_akima_coefficients(MOMS_type& MOMS);
+  template <class Data>
+  void initialize_akima_coefficients(Data& data);
 
 protected:
   int thread_id;
@@ -75,19 +78,19 @@ protected:
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-  dca::linalg::Matrix<Real, dca::linalg::CPU> r1_minus_r0;
+  dca::linalg::Matrix<int, dca::linalg::CPU> r1_minus_r0;
 
-  func::function<Real, nu_nu_r_dmn_t_shifted_t> G0_r_t_shifted;
-  func::function<Real, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
+  func::function<Scalar, nu_nu_r_dmn_t_shifted_t> G0_r_t_shifted;
+  func::function<Scalar, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
 
-  func::function<Real, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+  func::function<Scalar, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
   int N_t, linind, t_ind;
   Real beta, N_div_beta, new_tau, scaled_tau, delta_tau, f_0, grad;
 };
 
-template <typename Parameters, typename Real>
-G0InterpolationBase<Parameters, Real>::G0InterpolationBase(int id, const Parameters& parameters_ref)
+template <typename Parameters>
+G0InterpolationBase<Parameters>::G0InterpolationBase(int id, const Parameters& parameters_ref)
     : thread_id(id),
 
       parameters(parameters_ref),
@@ -108,26 +111,26 @@ G0InterpolationBase<Parameters, Real>::G0InterpolationBase(int id, const Paramet
 /*!
  *  \brief  Set the functions 'G0_r_t_shifted' and 'grad_G0_r_t_shifted'
  */
-template <typename Parameters, typename Real>
-template <class MOMS_type>
-void G0InterpolationBase<Parameters, Real>::initialize(MOMS_type& MOMS) {
-  initialize_linear_coefficients(MOMS);
+template <typename Parameters>
+template <class Data>
+void G0InterpolationBase<Parameters>::initialize(Data& data) {
+  initialize_linear_coefficients(data);
 
-  initialize_akima_coefficients(MOMS);
+  initialize_akima_coefficients(data);
 }
 
-template <typename Parameters, typename Real>
-template <class MOMS_type>
-void G0InterpolationBase<Parameters, Real>::initialize_linear_coefficients(MOMS_type& MOMS) {
+template <typename Parameters>
+template <class Data>
+void G0InterpolationBase<Parameters>::initialize_linear_coefficients(Data& data) {
   for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++) {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < b::dmn_size() * s::dmn_size(); nu0_ind++) {
           G0_r_t_shifted(nu0_ind, nu1_ind, r_ind, t_ind) =
-              MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
+              data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
           grad_G0_r_t_shifted(nu0_ind, nu1_ind, r_ind, t_ind) =
-              (MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind + 1) -
-               MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind));
+              (data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind + 1) -
+               data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind));
         }
       }
     }
@@ -138,25 +141,25 @@ void G0InterpolationBase<Parameters, Real>::initialize_linear_coefficients(MOMS_
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < b::dmn_size() * s::dmn_size(); nu0_ind++) {
           G0_r_t_shifted(nu0_ind, nu1_ind, r_ind, t_ind - 1) =
-              MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
+              data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
           grad_G0_r_t_shifted(nu0_ind, nu1_ind, r_ind, t_ind - 1) =
-              (MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind + 1) -
-               MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind));
+              (data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind + 1) -
+               data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind));
         }
       }
     }
   }
 }
 
-template <typename Parameters, typename Real>
-template <class MOMS_type>
-void G0InterpolationBase<Parameters, Real>::initialize_akima_coefficients(MOMS_type& MOMS) {
+template <typename Parameters>
+template <class Data>
+void G0InterpolationBase<Parameters>::initialize_akima_coefficients(Data& data) {
   int size = t::dmn_size() / 2;
 
-  math::interpolation::akima_interpolation<Real> ai_obj(size);
+  math::interpolation::akima_interpolation<Scalar> ai_obj(size);
 
   std::vector<Real> x(size);
-  std::vector<Real> y(size);
+  std::vector<Scalar> y(size);
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -166,9 +169,9 @@ void G0InterpolationBase<Parameters, Real>::initialize_akima_coefficients(MOMS_t
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < b::dmn_size() * s::dmn_size(); nu0_ind++) {
           for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
-            y[t_ind] = MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
+            y[t_ind] = data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
 
-          ai_obj.initialize(x.data(), y.data());
+          ai_obj.initialize(x, y);
 
           for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++)
             for (int l = 0; l < 4; l++)
@@ -184,9 +187,9 @@ void G0InterpolationBase<Parameters, Real>::initialize_akima_coefficients(MOMS_t
         for (int nu0_ind = 0; nu0_ind < b::dmn_size() * s::dmn_size(); nu0_ind++) {
           for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size(); t_ind++)
             y[t_ind - t::dmn_size() / 2] =
-                MOMS.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
+                data.G0_r_t_cluster_excluded(nu0_ind, nu1_ind, r_ind, t_ind);
 
-          ai_obj.initialize(x.data(), y.data());
+          ai_obj.initialize(x, y);
 
           for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size() - 1; t_ind++)
             for (int l = 0; l < 4; l++)

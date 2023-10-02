@@ -10,12 +10,22 @@
 // This file implements a no-change test for the two particles accumulation on the GPU.
 
 #include "dca/config/profiler.hpp"
+#include "dca/platform/dca_gpu.h"
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
 #include <functional>
 #include <string>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
@@ -29,7 +39,7 @@
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_4x4.json";
+constexpr char input_file[] = INPUT_DIR "input_1x1.json";
 
 #ifdef DCA_HAVE_ADIOS2
 adios2::ADIOS* adios_ptr;
@@ -48,7 +58,7 @@ using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
 using TpAccumulatorGpuSinglebandTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+    dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 unsigned int loop_id = 0;
 
@@ -78,7 +88,7 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
       accumulatorHost(data_->G0_k_w_cluster_excluded, parameters_);
   dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU>
       accumulatorDevice(data_->G0_k_w_cluster_excluded, parameters_);
-  const int sign = 1;
+  const int8_t sign = 1;
 
   accumulatorDevice.resetAccumulation(0);
   accumulatorDevice.accumulate(M, config, sign);
@@ -101,6 +111,9 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
     data_->write(writer);
     data_->write(writer_h5);
 
+    // writer.execute("G_Device_0", accumulatorDevice.get_G_Debug()[0]);
+    // writer.execute("G_Device_1", accumulatorDevice.get_G_Debug()[1]);
+    // writer.execute("G_Host", accumulatorHost.get_G_Debug());
     for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
       std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
       writer.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);

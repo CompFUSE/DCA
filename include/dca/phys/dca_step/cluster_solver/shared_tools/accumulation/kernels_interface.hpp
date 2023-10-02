@@ -17,6 +17,7 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {
@@ -24,10 +25,14 @@ namespace solver {
 namespace details {
 // dca::phys::solver::details::
 
-template <typename Real>
-void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat,
-               DeviceInterpolationData<Real> g0, const Real* t_l, const int* b_l,
-               const int* r_l, const Real* t_r, const int* b_r, const int* r_r, cudaStream_t stream);
+  using dca::util::SignType;
+  
+template <typename Scalar, typename Real>
+void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
+               DeviceInterpolationData<Scalar, SignType<Scalar>> g0, const Real* t_l, const int* b_l,
+               const int* r_lf, const Real* t_r, const int* b_r, const int* r_r, const dca::linalg::util::GpuStream stream);
+
+  
 
 }  // namespace details
 }  // namespace solver

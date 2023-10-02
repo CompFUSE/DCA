@@ -21,20 +21,21 @@ namespace ctaux {
 namespace g0kernels {
 // dca::phys::solver::ctaux::g0kernels::
 
-template <typename Real>
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
-                                Real* t, Real* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, Real* r0_min_r1,
+
+template <typename Scalar, typename Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, const int* b,
+                                const int* r, const Real* t, Scalar* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, const int* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                Real* alpha, std::pair<int, int> alpha_cs,
+                                const Scalar* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs);
 
-template <typename Real>
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, int* b, int* r,
-                                Real* t, Real* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, Real* r0_min_r1,
+template <typename Scalar, typename Real>
+void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, Real beta, int Nc, int Nv, const int* b,
+                                const int* r, const Real* t, Scalar* G0, std::pair<int, int> G0_cs,
+                                std::pair<int, int> G0_gs, const int* r0_min_r1,
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                Real* alpha, std::pair<int, int> alpha_cs,
+                                const Scalar* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs, int thread_id, int stream_id);
 
 }  // namespace g0kernels

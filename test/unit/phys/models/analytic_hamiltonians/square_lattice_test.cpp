@@ -9,6 +9,7 @@
 //
 // This file tests square_lattice.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 
 #include <cmath>

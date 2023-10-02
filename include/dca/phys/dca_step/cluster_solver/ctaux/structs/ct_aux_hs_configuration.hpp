@@ -46,7 +46,7 @@ public:
   typedef vertex_pair<parameters_type> vertex_pair_type;
 
 public:
-  CT_AUX_HS_configuration(parameters_type& parameters_ref, rng_type& rng_ref);
+  CT_AUX_HS_configuration(const parameters_type& parameters_ref, rng_type& rng_ref);
 
   int size();
   vertex_pair_type& operator[](int index);
@@ -126,7 +126,7 @@ public:
   friend io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Pars>& config);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   rng_type& rng;
 
   std::vector<vertex_pair_type> configuration;
@@ -153,7 +153,7 @@ private:
 };
 
 template <class parameters_type>
-CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_type& parameters_ref,
+CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(const parameters_type& parameters_ref,
                                                                   rng_type& rng_ref)
     : parameters(parameters_ref),
       rng(rng_ref),

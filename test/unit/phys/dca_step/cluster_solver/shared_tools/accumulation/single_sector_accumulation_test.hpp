@@ -17,7 +17,7 @@
 #include <complex>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -27,9 +27,13 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+
+#include "dca/util/type_utils.hpp"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 namespace dca {
+
 namespace testing {
 
 class PositiveFrq {
@@ -126,18 +130,23 @@ namespace {
 bool single_sector_accumulator_test_initialized = false;
 }  // namespace
 
-template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
+template <typename Scalar = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
-  using Complex = std::complex<Real>;
+  template<typename T>
+  using ComplexAlias = dca::util::ComplexAlias<T>;
+  template<typename T>
+  using RealAlias = dca::util::ComplexAlias<T>;
+
+  using Complex = ComplexAlias<Scalar>;
 
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
   using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-  using PosFreqDmn = dca::func::dmn_0<PositiveFrq>;
+  using PosFreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
@@ -177,14 +186,26 @@ public:
                                    const double beta, const int n,
                                    const unsigned long long num_discard = 0);
 
+private:
+  static void makeRngM(Matrix& M, dca::math::random::StdRandomWrapper<std::ranlux48_base>& rng) {
+    auto sizes = M.size();
+    for (int j = 0; j < sizes.second; ++j)
+      for (int i = 0; i < sizes.first; ++i) {
+        if constexpr (dca::util::IsComplex_t<Scalar>::value)
+          M(i, j) = std::polar(2 * rng() - 1, rng() * 2 * M_PI - M_PI);
+        else
+          M(i, j) = 2 * rng() - 1.;
+      }
+  }
+
 protected:
   static constexpr double beta_ = 2.;
   Configuration configuration_;
   Matrix M_;
 };
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfiguration(
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+void SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::prepareConfiguration(
     Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n,
     const unsigned long long num_discard) {
   config.resize(n);
@@ -199,28 +220,25 @@ void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfig
     config[i] = Vertex{b, r, tau};
   }
 
-  for (int j = 0; j < n; ++j)
-    for (int i = 0; i < n; ++i) {
-      M(i, j) = 2 * rng() - 1.;
-    }
+  makeRngM(M, rng);
 }
 
-template <typename Real, int n_bands, int n_sites, int n_frqs>
-auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
+template <typename Scalar, int n_bands, int n_sites, int n_frqs>
+auto SingleSectorAccumulationTest<Scalar, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
     -> F_w_w {
   F_w_w f_w("2D frequency transform baseline.");
-  const std::complex<Real> imag(0, 1);
+  const ComplexAlias<Scalar> imag(0, 1);
 
   for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
-    const Real w_val2 = FreqDmn::get_elements()[w_ind2];
+    const RealAlias<Scalar> w_val2 = FreqDmn::get_elements()[w_ind2];
     for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
-      const Real w_val1 = FreqDmn::get_elements()[w_ind1];
+      const RealAlias<Scalar> w_val1 = FreqDmn::get_elements()[w_ind1];
       for (int j = 0; j < configuration_.size(); ++j) {
-        const Real t_val2 = configuration_[j].get_tau();
+        const RealAlias<Scalar> t_val2 = configuration_[j].get_tau();
         const int b2 = configuration_[j].b_;
         const int r2 = configuration_[j].r_;
         for (int i = 0; i < configuration_.size(); ++i) {
-          const Real t_val1 = configuration_[i].get_tau();
+          const RealAlias<Scalar> t_val1 = configuration_[i].get_tau();
           const int b1 = configuration_[i].b_;
           const int r1 = configuration_[i].r_;
 

@@ -75,9 +75,9 @@ int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<std::complex<ScalarTyp
 }
 // Returns optimal lwork and liwork for the symmetric eigensolver.
 // In: mat
-template <typename ScalarType>
+  template <typename ScalarType, template <typename> class ALLOC >
 std::tuple<int, int> getEigensolverSymmetricWorkSize(char jobv, char uplo,
-                                                     Matrix<ScalarType, CPU>& mat) {
+                                                     Matrix<ScalarType, CPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   ScalarType tmp1;

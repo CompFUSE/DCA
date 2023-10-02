@@ -35,6 +35,9 @@ namespace models {
 template <typename SymmetryGroup>
 class ThreebandHubbard {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   using LDA_point_group = domains::no_symmetry<2>;
   using DCA_point_group = SymmetryGroup;
   // typedef PointGroupType DCA_point_group;
@@ -45,11 +48,11 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 3;
 
-  static double* initializeRDCABasis();
-  static double* initializeKDCABasis();
+  static const double* initializeRDCABasis();
+  static const double* initializeKDCABasis();
 
-  static double* initializeRLDABasis();
-  static double* initializeKLDABasis();
+  static const double* initializeRLDABasis();
+  static const double* initializeKLDABasis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -126,24 +129,24 @@ int ThreebandHubbard<PointGroupType>::transformationSignOfK(int b1, int b2, int 
 }
 
 template <typename PointGroupType>
-double* ThreebandHubbard<PointGroupType>::initializeRDCABasis() {
+const double* ThreebandHubbard<PointGroupType>::initializeRDCABasis() {
   static std::array<double, 4> basis{1, 0, 0, 1};
   return basis.data();
 }
 template <typename PointGroupType>
-double* ThreebandHubbard<PointGroupType>::initializeKDCABasis() {
+const double* ThreebandHubbard<PointGroupType>::initializeKDCABasis() {
   static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
   return basis.data();
 }
 
 template <typename PointGroupType>
-double* ThreebandHubbard<PointGroupType>::initializeRLDABasis() {
+const double* ThreebandHubbard<PointGroupType>::initializeRLDABasis() {
   static std::array<double, 4> basis{1, 0, 0, 1};
   return basis.data();
 }
 
 template <typename PointGroupType>
-double* ThreebandHubbard<PointGroupType>::initializeKLDABasis() {
+const double* ThreebandHubbard<PointGroupType>::initializeKLDABasis() {
   static std::array<double, 4> basis{2 * M_PI, 0, 0, 2 * M_PI};
   return basis.data();
 }

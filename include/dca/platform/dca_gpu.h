@@ -10,6 +10,12 @@
 
 /** \file
  *  This file provides vender independent basic gpu headers.
+ *
+ *  This file turns our to be essential to make sure compilation units in libraries
+ *  include the same haves_defines.hpp and have the expected symbols defined.
+ *
+ *  Since having DCA_HAVE_GPU defined means at least basic GPU types need to be defined
+ *  this is more often included rather than haves_defines.hpp directly
  */
 #ifndef DCA_GPU_H
 #define DCA_GPU_H

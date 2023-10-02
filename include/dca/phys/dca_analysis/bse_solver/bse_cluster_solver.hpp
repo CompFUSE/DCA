@@ -132,9 +132,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -149,8 +149,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
-      symmetrize::execute(G_II, parameters.get_four_point_momentum_transfer());
-      symmetrize::execute(G_II_0, parameters.get_four_point_momentum_transfer());
+      Symmetrize<ParametersType>::execute(G_II, parameters.get_four_point_momentum_transfer());
+      Symmetrize<ParametersType>::execute(G_II_0, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {

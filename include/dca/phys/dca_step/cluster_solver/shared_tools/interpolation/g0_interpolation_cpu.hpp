@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <vector>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains/dmn.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/function/domains/dmn_variadic.hpp"
@@ -26,6 +27,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/shrink_G0.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/util/type_utils.hpp"
 
 namespace dca {
 namespace phys {
@@ -33,25 +35,24 @@ namespace solver {
 // dca::phys::solver::
 
 // void template
-template <linalg::DeviceType device_t, typename Real>
+template <linalg::DeviceType device_t, typename Scalar>
 class G0Interpolation {};
 
-/** Does an akima spline based interpolation of G0
- *  G0ParametersDomain is a collection of discrete labels not involving the time.
- */
-template <typename Real>
-class G0Interpolation<dca::linalg::CPU, Real> {
+// ParametersDomain is a collection of discrete labels not involving the time.
+template <typename Scalar>
+class G0Interpolation<linalg::CPU, Scalar> {
 protected:
   using Pdmn = G0ParametersDomain;
   using Pdmn0 = func::dmn_0<G0ParametersDomain>;
   using Tdmn = func::dmn_0<domains::time_domain>;
   using PTdmn = func::dmn_variadic<Pdmn0, Tdmn>;
+  using Real = dca::util::RealAlias<Scalar>;
 
 public:
   G0Interpolation() = default;
 
-  template <class InputDmn>
-  G0Interpolation(const func::function<double, InputDmn>& G0_func) {
+  template <class Dmn, typename Scalar2>
+  G0Interpolation(const func::function<Scalar2, Dmn>& G0_func) {
     initialize(G0_func);
   }
 
@@ -59,17 +60,23 @@ public:
 
   // In: G0_pars_t. Assumed to be a function of discrete labels and time (in this order) and to
   //             be antiperiodic in time.
-  template <class InputDmn>
-  void initialize(const func::function<double, InputDmn>& G0_func);
+  template <class Dmn>
+  void initialize(const func::function<Scalar, Dmn>& G0_func);
+
+  template <class Dmn, typename Scalar2>
+  void initialize(const func::function<Scalar2, Dmn>& G0_func) {
+    const func::function<Scalar, Dmn> cpy(G0_func);
+    initialize(cpy);
+  }
 
   // Initialize with only one spin sector.
-  template <int dim>
-  void initializeShrinked(const details::SpGreensFunction<dim>& g0_r_t) {
+  template <int dim, typename Scalar2>
+  void initializeShrinked(const details::SpGreensFunction<dim, Scalar2>& g0_r_t) {
     initialize(details::shrinkG0(g0_r_t));
   }
 
   // Returns cubic interpolation of G0(tau) in the spin-band-position defined by lindex.
-  Real operator()(Real tau, int lindex) const;
+  Scalar operator()(Real tau, int lindex) const;
 
   // Number of value if g0 stored per parameter value.
   int getTimeSlices() const {
@@ -79,32 +86,32 @@ public:
     return getTimeSlices() * COEFF_SIZE;
   }
 
-  friend class G0Interpolation<linalg::GPU, Real>;
+  friend class G0Interpolation<linalg::GPU, Scalar>;
 
   static constexpr int COEFF_SIZE = 4;
 
 private:
-  virtual void initialize(const FunctionProxy<double, PTdmn>& G0_pars_t);
+  virtual void initialize(const FunctionProxy<Scalar, PTdmn>& G0_pars_t);
 
 private:
   using CoeffDmn = func::dmn_0<func::dmn<COEFF_SIZE>>;
   using PTime0 = func::dmn_0<PositiveTimeDomain>;
   using InterpolationDmn = func::dmn_variadic<CoeffDmn, PTime0, Pdmn0>;
 
-  func::function<Real, InterpolationDmn> G0_coeff_;
+  func::function<Scalar, InterpolationDmn> G0_coeff_;
   Real beta_ = 0;
   // value at tau = 0
-  std::vector<Real> g0_minus_;
+  std::vector<Scalar> g0_minus_;
   // Spacing between time bins.
-  double n_div_beta_;
+  Real n_div_beta_;
 };
 
-template <typename Real>
-template <class InputDmn>
-void G0Interpolation<linalg::CPU, Real>::initialize(const func::function<double, InputDmn>& G0_func) {
+template <typename Scalar>
+template <class Dmn>
+void G0Interpolation<linalg::CPU, Scalar>::initialize(const func::function<Scalar, Dmn>& G0_func) {
   PositiveTimeDomain::initialize();
-  Pdmn::initialize(InputDmn::dmn_size() / Tdmn::dmn_size());
-  initialize(FunctionProxy<double, PTdmn>(G0_func));
+  Pdmn::initialize(Dmn::dmn_size() / Tdmn::dmn_size());
+  initialize(FunctionProxy<Scalar, PTdmn>(G0_func));
 }
 
 }  // namespace solver

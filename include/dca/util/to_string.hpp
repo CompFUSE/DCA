@@ -1,3 +1,4 @@
+#include <vector>
 #include <string>
 #include <sstream>
 #include <map>
@@ -49,6 +50,6 @@ std::string mapToString(CONTAINER const& container) {
   oss << "}\n";
   return oss.str();
 }
-
+  
 }  // namespace dca
 #endif

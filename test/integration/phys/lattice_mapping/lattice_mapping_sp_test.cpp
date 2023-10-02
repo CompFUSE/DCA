@@ -22,7 +22,16 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -54,7 +63,8 @@ protected:
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, Threading, profiling::NullProfiler, Model,
-                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX,
+                               dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using KClusterDmn = func::dmn_0<
       phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
                                     phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;

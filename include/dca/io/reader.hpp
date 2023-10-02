@@ -20,6 +20,7 @@
 #include "dca/config/haves_defines.hpp"
 #include "dca/platform/dca_gpu.h"
 
+#include "dca/util/type_help.hpp"
 #include "dca/io/io_types.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -53,15 +54,16 @@ public:
       case IOType::JSON:
         reader_.template emplace<io::JSONReader>(verbose);
         break;
-#ifdef DCA_HAVE_ADIOS2
       case IOType::ADIOS2:
+#ifdef DCA_HAVE_ADIOS2
         reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
-        break;
+
 #endif
+        break;
     }
   }
 
-  /** DEPRECATED -- Support for format type as string 
+  /** DEPRECATED -- Support for format type as string
    * \param[in] format        string representation of format, since parameters still use string
    *
    * \todo remove need for this constructor store IO format as enum class type.
@@ -112,7 +114,7 @@ public:
   long getStepCount() {
     return std::visit([&](auto& var) ->std::size_t { return var.getStepCount(); }, reader_);
   }
-  
+
   void begin_step() {
     std::visit([&](auto& var) { var.begin_step(); }, reader_);
   }
@@ -124,7 +126,7 @@ public:
   std::string get_path() {
     return std::visit([&](auto& var) -> std::string { return var.get_path(); }, reader_);
   }
-  
+
   template <class... Args>
   bool execute(Args&&... args) noexcept {
     return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },

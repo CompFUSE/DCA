@@ -29,58 +29,61 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-class G_TOOLS : public G_MATRIX_TOOLS<device_t, Parameters, Real> {
+template <dca::linalg::DeviceType device_t, class Parameters>
+class G_TOOLS : public G_MATRIX_TOOLS<device_t, Parameters> {
+  using Real = typename dca::config::McOptions::MC_REAL;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
+
   typedef vertex_singleton vertex_singleton_type;
 
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
 
 public:
-  G_TOOLS(int id, Parameters& parameters, CV<Parameters>& CV_obj_ref);
+  G_TOOLS(int id, const Parameters& parameters, CV<Parameters>& CV_obj_ref);
 
   double get_Gflop();
 
   template <class configuration_type>
   void build_G_matrix(configuration_type& full_configuration,
-                      const dca::linalg::Matrix<Real, device_t>& N,
-                      const dca::linalg::Matrix<Real, device_t>& G0,
-                      dca::linalg::Matrix<Real, device_t>& G, e_spin_states_type e_spin);
+                      const dca::linalg::Matrix<Scalar, device_t>& N,
+                      const dca::linalg::Matrix<Scalar, device_t>& G0,
+                      dca::linalg::Matrix<Scalar, device_t>& G, e_spin_states_type e_spin);
 
   double compute_G_matrix_element(int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-                                  dca::linalg::Matrix<Real, device_t>& N,
-                                  dca::linalg::Matrix<Real, device_t>& G_precomputed,
+                                  dca::linalg::Matrix<Scalar, device_t>& N,
+                                  dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
                                   std::vector<vertex_singleton_type>& configuration_e_spin);
 
   void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, device_t>& indices,
-                                   dca::linalg::Vector<Real, device_t>& exp_V,
-                                   dca::linalg::Matrix<Real, device_t>& N,
-                                   dca::linalg::Matrix<Real, device_t>& G_precomputed,
-                                   Real* result_ptr, int incr);
+                                   dca::linalg::Vector<Scalar, device_t>& exp_V,
+                                   dca::linalg::Matrix<Scalar, device_t>& N,
+                                   dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
+                                   Scalar* result_ptr, int incr);
 
   void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, device_t>& indices,
-                                   dca::linalg::Vector<Real, device_t>& exp_V,
-                                   dca::linalg::Matrix<Real, device_t>& N,
-                                   dca::linalg::Matrix<Real, device_t>& G_precomputed,
-                                   Real* result_ptr, int incr);
+                                   dca::linalg::Vector<Scalar, device_t>& exp_V,
+                                   dca::linalg::Matrix<Scalar, device_t>& N,
+                                   dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
+                                   Scalar* result_ptr, int incr);
 
   void compute_G_matrix_element(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
                                 dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
                                 dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
-                                dca::linalg::Vector<Real, dca::linalg::CPU>& exp_Vj,
-                                dca::linalg::Matrix<Real, device_t>& N,
-                                dca::linalg::Matrix<Real, device_t>& G_precomputed,
-                                Real* result_ptr, int incr);
+                                dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_Vj,
+                                dca::linalg::Matrix<Scalar, device_t>& N,
+                                dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
+                                Scalar* result_ptr, int incr);
 
 private:
   double compute_G_vertex_to_old_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
-                                        dca::linalg::Matrix<Real, device_t>& N,
+                                        dca::linalg::Matrix<Scalar, device_t>& N,
                                         std::vector<vertex_singleton_type>& configuration_e_spin);
 
   double compute_G_vertex_to_new_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
-                                        dca::linalg::Matrix<Real, device_t>& G);
+                                        dca::linalg::Matrix<Scalar, device_t>& G);
 
 private:
   int thread_id;
@@ -88,16 +91,16 @@ private:
 
   double GFLOP;
 
-  Parameters& parameters;
-  concurrency_type& concurrency;
+  const Parameters& parameters;
+  const concurrency_type& concurrency;
 
   CV<Parameters>& CV_obj;
 };
 
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-G_TOOLS<device_t, Parameters, Real>::G_TOOLS(int id, Parameters& parameters_ref,
-                                             CV<Parameters>& CV_obj_ref)
-    : G_MATRIX_TOOLS<device_t, Parameters, Real>(id, parameters_ref),
+template <dca::linalg::DeviceType device_t, class Parameters>
+G_TOOLS<device_t, Parameters>::G_TOOLS(int id, const Parameters& parameters_ref,
+                                       CV<Parameters>& CV_obj_ref)
+    : G_MATRIX_TOOLS<device_t, Parameters>(id, parameters_ref),
 
       thread_id(id),
       stream_id(0),
@@ -109,8 +112,8 @@ G_TOOLS<device_t, Parameters, Real>::G_TOOLS(int id, Parameters& parameters_ref,
 
       CV_obj(CV_obj_ref) {}
 
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-double G_TOOLS<device_t, Parameters, Real>::get_Gflop() {
+template <dca::linalg::DeviceType device_t, class Parameters>
+double G_TOOLS<device_t, Parameters>::get_Gflop() {
   double result = GFLOP;
   GFLOP = 0;
 
@@ -120,12 +123,13 @@ double G_TOOLS<device_t, Parameters, Real>::get_Gflop() {
   return result;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
+template <dca::linalg::DeviceType device_t, class Parameters>
 template <class configuration_type>
-void G_TOOLS<device_t, Parameters, Real>::build_G_matrix(
-    configuration_type& full_configuration, const dca::linalg::Matrix<Real, device_t>& N,
-    const dca::linalg::Matrix<Real, device_t>& G0, dca::linalg::Matrix<Real, device_t>& G,
-    e_spin_states_type e_spin) {
+void G_TOOLS<device_t, Parameters>::build_G_matrix(configuration_type& full_configuration,
+                                                   const dca::linalg::Matrix<Scalar, device_t>& N,
+                                                   const dca::linalg::Matrix<Scalar, device_t>& G0,
+                                                   dca::linalg::Matrix<Scalar, device_t>& G,
+                                                   e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "build_G_matrix", "CT-AUX", __LINE__);
 
   assert(full_configuration.assert_block_form(e_spin));
@@ -165,11 +169,16 @@ void G_TOOLS<device_t, Parameters, Real>::build_G_matrix(
     profiler_t profiler_2(ss.str().c_str(), __FILE__, __LINE__);
 #endif  // DCA_WITH_AUTOTUNING
 
-    dca::linalg::blas::UseDevice<device_t>::gemm("N", "N", m, n, k, Real(1.), N.ptr(0, 0), LD_N,
-                                                 G0.ptr(0, vertex_index), LD_G0, Real(0.),
+    dca::linalg::blas::UseDevice<device_t>::gemm("N", "N", m, n, k, Scalar(1.), N.ptr(0, 0), LD_N,
+                                                 G0.ptr(0, vertex_index), LD_G0, Scalar(0.),
                                                  G.ptr(0, 0), LD_G, thread_id, stream_id);
 
-    GFLOP += 2. * G.nrCols() * G.nrRows() * N.nrCols() * 1.e-9;
+    if constexpr (dca::util::IsComplex_t<Scalar>::value) {
+      GFLOP += (8.0 * G.nrCols() * G.nrRows() * N.nrCols() + 12.0 * (G.nrCols() * G.nrRows())) * 1.0e-9;
+    }
+    else {
+      GFLOP += 2. * G.nrCols() * G.nrRows() * N.nrCols() * 1.e-9;
+    }
   }
 }
 
@@ -179,10 +188,10 @@ void G_TOOLS<device_t, Parameters, Real>::build_G_matrix(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline double G_TOOLS<device_t, Parameters, Real>::compute_G_matrix_element(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline double G_TOOLS<device_t, Parameters>::compute_G_matrix_element(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    dca::linalg::Matrix<Real, device_t>& N, dca::linalg::Matrix<Real, device_t>& G_precomputed,
+    dca::linalg::Matrix<Scalar, device_t>& N, dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
     std::vector<vertex_singleton_type>& configuration_e_spin) {
   int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
@@ -204,15 +213,15 @@ inline double G_TOOLS<device_t, Parameters, Real>::compute_G_matrix_element(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline void G_TOOLS<device_t, Parameters, Real>::compute_G_matrix_element(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline void G_TOOLS<device_t, Parameters>::compute_G_matrix_element(
     dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
     dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
     dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
-    dca::linalg::Vector<Real, dca::linalg::CPU>& exp_Vj, dca::linalg::Matrix<Real, device_t>& N,
-    dca::linalg::Matrix<Real, device_t>& G_precomputed, Real* result_ptr, int incr) {
-  G_MATRIX_TOOLS<device_t, Parameters, Real>::read_G_matrix_elements(
-      i_index, j_index, is_Bennett, exp_Vj, N, G_precomputed, result_ptr, incr);
+    dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_Vj, dca::linalg::Matrix<Scalar, device_t>& N,
+    dca::linalg::Matrix<Scalar, device_t>& G_precomputed, Scalar* result_ptr, int incr) {
+  G_MATRIX_TOOLS<device_t, Parameters>::read_G_matrix_elements(i_index, j_index, is_Bennett, exp_Vj,
+                                                               N, G_precomputed, result_ptr, incr);
 }
 
 /*!
@@ -221,13 +230,13 @@ inline void G_TOOLS<device_t, Parameters, Real>::compute_G_matrix_element(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline void G_TOOLS<device_t, Parameters, Real>::compute_row_on_Gamma_matrix(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline void G_TOOLS<device_t, Parameters>::compute_row_on_Gamma_matrix(
     int row_index, dca::linalg::Vector<int, device_t>& indices,
-    dca::linalg::Vector<Real, device_t>& exp_V, dca::linalg::Matrix<Real, device_t>& N,
-    dca::linalg::Matrix<Real, device_t>& G_precomputed, Real* result_ptr, int incr) {
+    dca::linalg::Vector<Scalar, device_t>& exp_V, dca::linalg::Matrix<Scalar, device_t>& N,
+    dca::linalg::Matrix<Scalar, device_t>& G_precomputed, Scalar* result_ptr, int incr) {
   assert(row_index > -1 && row_index < indices.size());
-  G_MATRIX_TOOLS<device_t, Parameters, Real>::compute_row_on_Gamma_matrix(
+  G_MATRIX_TOOLS<device_t, Parameters>::compute_row_on_Gamma_matrix(
       row_index, indices, exp_V, N, G_precomputed, result_ptr, incr);
 }
 
@@ -237,13 +246,13 @@ inline void G_TOOLS<device_t, Parameters, Real>::compute_row_on_Gamma_matrix(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline void G_TOOLS<device_t, Parameters, Real>::compute_col_on_Gamma_matrix(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline void G_TOOLS<device_t, Parameters>::compute_col_on_Gamma_matrix(
     int col_index, dca::linalg::Vector<int, device_t>& indices,
-    dca::linalg::Vector<Real, device_t>& exp_V, dca::linalg::Matrix<Real, device_t>& N,
-    dca::linalg::Matrix<Real, device_t>& G_precomputed, Real* result_ptr, int incr) {
+    dca::linalg::Vector<Scalar, device_t>& exp_V, dca::linalg::Matrix<Scalar, device_t>& N,
+    dca::linalg::Matrix<Scalar, device_t>& G_precomputed, Scalar* result_ptr, int incr) {
   assert(col_index > -1 && col_index < indices.size());
-  G_MATRIX_TOOLS<device_t, Parameters, Real>::compute_col_on_Gamma_matrix(
+  G_MATRIX_TOOLS<device_t, Parameters>::compute_col_on_Gamma_matrix(
       col_index, indices, exp_V, N, G_precomputed, result_ptr, incr);
 }
 
@@ -252,16 +261,17 @@ inline void G_TOOLS<device_t, Parameters, Real>::compute_col_on_Gamma_matrix(
  *    G_{i,j} = (N_{ij} e^{V_j} - delta_{i,j})/(e^{V_j} -1) \mbox{  (eqn 33)}
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline double G_TOOLS<device_t, Parameters, Real>::compute_G_vertex_to_old_vertex(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline double G_TOOLS<device_t, Parameters>::compute_G_vertex_to_old_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    dca::linalg::Matrix<Real, device_t>& N, std::vector<vertex_singleton_type>& configuration_e_spin) {
-  Real delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
+    dca::linalg::Matrix<Scalar, device_t>& N,
+    std::vector<vertex_singleton_type>& configuration_e_spin) {
+  Scalar delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
 
   vertex_singleton_type& v_j = configuration_e_spin[configuration_e_spin_index_j];
 
-  Real exp_V = CV_obj.exp_V(v_j);
-  Real N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);
+  Scalar exp_V = CV_obj.exp_V(v_j);
+  Scalar N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);
 
   return (N_ij * exp_V - delta) / (exp_V - 1.);
 }
@@ -271,10 +281,10 @@ inline double G_TOOLS<device_t, Parameters, Real>::compute_G_vertex_to_old_verte
  *    G_{i,j} = \sum_l N(i,l)*G0(l,j)
  *  \f}
  */
-template <dca::linalg::DeviceType device_t, class Parameters, typename Real>
-inline double G_TOOLS<device_t, Parameters, Real>::compute_G_vertex_to_new_vertex(
+template <dca::linalg::DeviceType device_t, class Parameters>
+inline double G_TOOLS<device_t, Parameters>::compute_G_vertex_to_new_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    dca::linalg::Matrix<Real, device_t>& G) {
+    dca::linalg::Matrix<Scalar, device_t>& G) {
   return G(configuration_e_spin_index_i, configuration_e_spin_index_j);
 }
 

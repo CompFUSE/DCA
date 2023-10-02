@@ -23,7 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include "dca/config/mc_options.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -50,32 +49,34 @@ namespace solver {
 namespace cthyb {
 // dca::phys::solver::cthyb::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
 class SsCtHybWalker {
 public:
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   static constexpr DistType DT = MOMS_type::DT;
-  typedef typename parameters_type::random_number_generator rng_type;
+  typedef typename Parameters::random_number_generator rng_type;
 
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::profiler_type profiler_type;
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::concurrency_type concurrency_type;
+  typedef typename SsCtHybTypedefs<Parameters, MOMS_type>::profiler_type profiler_type;
+  typedef typename SsCtHybTypedefs<Parameters, MOMS_type>::concurrency_type concurrency_type;
 
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::vertex_vertex_matrix_type
+  typedef typename SsCtHybTypedefs<Parameters, MOMS_type>::vertex_vertex_matrix_type
       vertex_vertex_matrix_type;
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::configuration_type configuration_type;
+  typedef typename SsCtHybTypedefs<Parameters, MOMS_type>::configuration_type configuration_type;
 
   using t = func::dmn_0<domains::time_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, RClusterDmn, t>;
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type, DT> ss_hybridization_solver_routines_type;
-  typedef ss_hybridization_walker_routines<parameters_type, MOMS_type, configuration_type, rng_type>
+  typedef ss_hybridization_solver_routines<Parameters, DT> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_walker_routines<Parameters, MOMS_type, configuration_type, rng_type>
       ss_hybridization_walker_routines_type;
 
   typedef full_line_tools<ss_hybridization_walker_routines_type> full_line_tools_t;
@@ -85,9 +86,9 @@ public:
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
   constexpr static dca::linalg::DeviceType device = device_t;
-  using Scalar = typename dca::config::McOptions::MCScalar;
+
 public:
-  SsCtHybWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
+  SsCtHybWalker(const Parameters& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 
   /*!
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
@@ -177,7 +178,7 @@ private:
   void swap_random_orbitals();
 
 private:
-  const parameters_type& parameters;
+  const Parameters& parameters;
   MOMS_type& MOMS;
   const concurrency_type& concurrency;
 
@@ -220,8 +221,8 @@ private:
   double sweeps_per_measurement_ = 1.;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(const parameters_type& parameters_ref,
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+SsCtHybWalker<device_t, Parameters, MOMS_type>::SsCtHybWalker(const Parameters& parameters_ref,
                                                                    MOMS_type& MOMS_ref,
                                                                    rng_type& rng_ref, int id)
     : parameters(parameters_ref),
@@ -252,8 +253,8 @@ SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(const paramet
 
       sign(1) {}
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::printSummary() const {
   std::cout.unsetf(std::ios_base::floatfield);
   std::cout << "\n"
             << "Walker: process ID = " << concurrency.id() << ", thread ID = " << thread_id << "\n"
@@ -265,8 +266,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
   std::cout << std::scientific;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize(int iteration) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::initialize(int iteration) {
   ss_hybridization_solver_routines_obj.initialize_functions();
 
   ss_hybridization_walker_routines_obj.initialize_akima_coefficients(F_r_t);
@@ -303,8 +304,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize(int iterati
   sweeps_per_measurement_ = parameters.get_sweeps_per_measurement().at(iteration);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
   dca::util::Plot::plotBandsLinesPoints(F_r_t);
@@ -345,8 +346,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
   throw std::logic_error(__FUNCTION__);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::doSweep() {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::doSweep() {
   const double factor = thermalized ? sweeps_per_measurement_ : 1.;
 
   int nr_of_segments = std::max(16, configuration.size());
@@ -360,16 +361,16 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::doSweep() {
     do_step();
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-int SsCtHybWalker<device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+int SsCtHybWalker<device_t, Parameters, MOMS_type>::get_random_interacting_flavor() {
   int spin = s::dmn_size() * rng();
   int int_band = parameters.get_interacting_orbitals().size() * rng();
 
   return parameters.get_interacting_orbitals()[int_band] + spin * b::dmn_size();
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_step() {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::do_step() {
   double p = rng();
 
   int so_ind = get_random_interacting_flavor();
@@ -383,8 +384,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_step() {
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_insert_remove(int so_ind) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::do_insert_remove(int so_ind) {
   double rn = rng();
 
   if (configuration.get_vertices(so_ind).size() == 0) {
@@ -415,8 +416,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_insert_remove(int s
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_full_line(int j) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::insert_or_remove_full_line(int j) {
   nb_updates += 1;
 
   bool succes = full_line_tools_obj.insert_or_remove(j, mu(j));
@@ -424,8 +425,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_full_
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_anti_segment(int j) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::insert_or_remove_anti_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -437,8 +438,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_anti_
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_segment(int j) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::insert_or_remove_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -450,8 +451,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_segme
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::shift_segment(int j) {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::shift_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -463,8 +464,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::shift_segment(int j) {
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals() {
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::swap_random_orbitals() {
   nb_updates += 1;
 
   int i = get_random_interacting_flavor();
@@ -474,8 +475,8 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals()
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done,
+template <dca::linalg::DeviceType device_t, class Parameters, class MOMS_type>
+void SsCtHybWalker<device_t, Parameters, MOMS_type>::updateShell(const int done,
                                                                       const int total) {
   if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
     std::cout.unsetf(std::ios_base::floatfield);

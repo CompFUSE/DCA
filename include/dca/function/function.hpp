@@ -34,6 +34,7 @@
 #include "dca/util/pack_operations.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 #include "dca/util/to_string.hpp"
 
 namespace dca {
@@ -92,6 +93,9 @@ public:
   // Same as above, but with name change from name argument.
   function(const function<scalartype, domain, DT>& other, const std::string& name);
 
+  template <typename Scalar2>
+  function(const function<Scalar2, domain, DT>& other);
+  
   // Move constructor
   // Constructs the function with elements and name of other using move semantics.
   // Precondition: The other function has been resetted, if the domain had been initialized after
@@ -426,6 +430,12 @@ function<scalartype, domain, DT>::function(const std::string& name)
   }
   start_ = 0;
   end_ = dmn.get_size();
+  // If the function is more than 256 megs report it.
+  if (end_ > 268435456) {
+    std::cerr << "function " << name << " allocates " << sizeof(scalartype) * end_ / 1024 / 1024 << " MB" << '\n';
+    if (name_ == "no-name")
+      std::cerr << "large functions need names give yourself a chance.\n";
+  }
   // will zero real or complex values
   fnc_values_.resize(dmn.get_size(), {});
 }
@@ -455,6 +465,25 @@ function<scalartype, domain, DT>::function(const function<scalartype, domain, DT
       fnc_values_(other.fnc_values_) {
   start_ = other.start_;
   end_ = other.end_;
+}
+
+/** converting "copy" constructor
+ */
+template <typename scalartype, class domain, DistType DT>
+template <typename Scalar2>
+function<scalartype, domain, DT>::function(const function<Scalar2, domain, DT>& other)
+  : name_(other.get_name()),
+      function_type(__PRETTY_FUNCTION__),
+      dmn(),
+      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      fnc_values_(dmn.get_size()) {
+  if (size() != other.size()) {
+    // The other function has not been resetted after the domain was initialized.
+    throw std::logic_error("Copy construction from a not yet resetted function.");
+  }
+  start_ = other.get_start();
+  end_ = other.get_end();
+  std::copy(other.begin(), other.end(), begin());
 }
 
 /** move constructor */

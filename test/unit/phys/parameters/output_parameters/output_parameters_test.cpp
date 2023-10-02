@@ -20,6 +20,7 @@
 TEST(OutputParametersTest, DefaultValues) {
   dca::phys::params::OutputParameters pars;
 
+
   EXPECT_EQ("./", pars.get_directory());
 #ifdef DCA_HAVE_ADIOS2
   EXPECT_EQ("ADIOS2", pars.get_output_format());

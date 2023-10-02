@@ -21,6 +21,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
+
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600
 // Older devices do not have an hardware atomicAdd for double.
 // See
@@ -42,26 +43,26 @@ __device__ void inline atomicAdd(double* address, const double val) {
 }
 
 #else
-__device__ void inline atomicAdd(double* address, const double val) {
+__device__ void inline atomicAdd(double* address, double val) {
   ::atomicAdd(address, val);
 }
-#endif  // __CUDA_ARCH__
 
-__device__ void inline atomicAdd(cuComplex* address, const cuComplex val) {
+__device__ void inline atomicAdd(cuComplex* address, cuComplex val) {
   float* a_f = reinterpret_cast<float*>(address);
   ::atomicAdd(a_f, val.x);
   ::atomicAdd(a_f + 1, val.y);
 }
 
-__device__ void inline atomicAdd(float* address, const float val) {
+__device__ void inline atomicAdd(float* address, float val) {
   ::atomicAdd(address, val);
 }
 
-__device__ void inline atomicAdd(cuDoubleComplex* address, const cuDoubleComplex val) {
+__device__ void inline atomicAdd(cuDoubleComplex* address, cuDoubleComplex val) {
   double* a_d = reinterpret_cast<double*>(address);
   atomicAdd(a_d, val.x);
   atomicAdd(a_d + 1, val.y);
 }
+#endif  // __CUDA_ARCH__
 
 }  // linalg
 }  // dca

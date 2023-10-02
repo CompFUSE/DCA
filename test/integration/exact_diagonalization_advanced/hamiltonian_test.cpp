@@ -11,11 +11,12 @@
 // This file tests the construction of the ED Hamiltonian on a two-site square-lattice Hubbard model
 // in the one-particle up-down sector.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 
 #include <complex>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -25,6 +26,14 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/parameters/parameters.hpp"
 
 using namespace dca;
@@ -48,10 +57,13 @@ Matrix referenceHamiltonian(const double t, const double U, const double mu) {
 }
 
 TEST(HamiltonianTest, ConstructHamiltonian) {
+  using Scalar = double;
   using Lattice = phys::models::square_lattice<phys::domains::D4>;
   using Model = phys::models::TightBindingModel<Lattice>;
-  using Parameters = phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void,
-                                              ClusterSolverId::CT_AUX>;  // CT_AUX is a placeholder.
+  using Parameters =
+      phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void, ClusterSolverId::CT_AUX,
+                               dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+
   using EdOptions = phys::solver::ed::Options<Parameters>;
 
   using OrbitalSpinDmn = func::dmn_variadic<func::dmn_0<phys::domains::electron_band_domain>,

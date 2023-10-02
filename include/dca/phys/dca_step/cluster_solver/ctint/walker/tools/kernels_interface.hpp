@@ -14,6 +14,7 @@
 #ifdef DCA_HAVE_GPU
 
 #include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
@@ -25,11 +26,11 @@ namespace solver {
 namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
-
-template <typename Real>
-void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
+  
+template <typename Scalar, typename SignType>
+void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
+                   DeviceInterpolationData<Scalar, SignType> g0_interp, dca::linalg::util::GpuStream stream);
 
 }  // namespace details
 }  // namespace ctint

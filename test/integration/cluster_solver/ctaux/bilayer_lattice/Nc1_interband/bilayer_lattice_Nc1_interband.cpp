@@ -15,8 +15,9 @@
 #include <string>
 #include <dca/function/util/difference.hpp>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -51,10 +52,11 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   using LatticeType = dca::phys::models::bilayer_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::NoThreading;
+  using Scalar = double;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX,dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;

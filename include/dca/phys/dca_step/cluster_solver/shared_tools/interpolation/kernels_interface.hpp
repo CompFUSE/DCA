@@ -27,9 +27,9 @@ namespace solver {
 namespace details {
 // dca::phys::solver::details::
 
-template <typename Real>
-Real interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Real>& g0);
-
+template <typename Scalar, typename Real, typename SignType>
+Scalar interpolateSlow(Real tau, int linindex, const DeviceInterpolationData<Scalar, SignType>& g0);
+  
 }  // namespace details
 }  // namespace solver
 }  // namespace phys

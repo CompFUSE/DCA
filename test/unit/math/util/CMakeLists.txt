@@ -1,4 +1,6 @@
 # math/util unit tests
+dca_add_gtest(phase_test
+  GTEST_MAIN)
 
 dca_add_gtest(vector_operations_test
   GTEST_MAIN

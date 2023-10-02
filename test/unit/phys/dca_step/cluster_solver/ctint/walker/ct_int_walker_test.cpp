@@ -10,58 +10,67 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
-#include "gtest/gtest.h"
-
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "walker_wrapper.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-template <typename Real>
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
+template <typename Scalar>
 using CtintWalkerTest =
-    typename dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
+  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
 
 using namespace dca::phys::solver;
-template <typename Real>
-using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
-template <typename Real>
-using MatrixPair = std::array<Matrix<Real>, 2>;
+template <typename Scalar>
+using Matrix = dca::linalg::Matrix<Scalar, dca::linalg::CPU>;
+template <typename Scalar>
+using MatrixPair = std::array<Matrix<Scalar>, 2>;
 
 using dca::linalg::matrixop::determinantIP;
-template <typename Real>
-double computeDetRatio(MatrixPair<Real> a, MatrixPair<Real> b) {
+template <typename Scalar>
+double computeDetRatio(MatrixPair<Scalar> a, MatrixPair<Scalar> b) {
   double res = 1;
   res *= determinantIP(a[0]) / determinantIP(b[0]);
   res *= determinantIP(a[1]) / determinantIP(b[1]);
   return res;
 }
 
-template <typename Real>
-double determinant(MatrixPair<Real> a) {
+template <typename Scalar>
+double determinant(MatrixPair<Scalar> a) {
   return determinantIP(a[0]) * determinantIP(a[1]);
 }
 
-using FloatingPointTypes = ::testing::Types<float, double>;
+// Currently testing float isn't really possible due to the way the Scalar type is
+// carried through from mc_options. See test_setup.hpp PD
+using FloatingPointTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(CtintWalkerTest, FloatingPointTypes);
 
 TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
-  using Real = TypeParam;
+  using Scalar = TypeParam;
 
   // Setup
-  std::vector<double> rng_values(1000);
+  std::vector<Scalar> rng_values(1000);
   for (auto& x : rng_values)
-    x = Real(std::rand()) / RAND_MAX;
-  typename CtintWalkerTest<Real>::RngType rng(rng_values);
+    x = static_cast<Scalar>(std::rand()) / RAND_MAX;
+  typename CtintWalkerTest<Scalar>::RngType rng(rng_values);
 
-  auto& data = *CtintWalkerTest<Real>::data_;
-  auto& parameters = CtintWalkerTest<Real>::parameters_;
+  auto& data = *CtintWalkerTest<Scalar>::data_;
+  auto& parameters = CtintWalkerTest<Scalar>::parameters_;
 
-  G0Interpolation<dca::linalg::CPU, Real> g0(
+  G0Interpolation<dca::linalg::CPU, Scalar> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
-  typename CtintWalkerTest<Real>::LabelDomain label_dmn;
+  typename CtintWalkerTest<Scalar>::LabelDomain label_dmn;
 
-  using Parameters = typename CtintWalkerTest<Real>::Parameters;
-  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, Real>;
+  using Parameters = typename CtintWalkerTest<Scalar>::Parameters;
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
   Walker::setDMatrixBuilder(g0);
   Walker::setDMatrixAlpha(parameters.getAlphas(), 0);
   Walker::setInteractionVertices(data, parameters);
@@ -72,23 +81,23 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   // Test vertex removal ***********
   // *******************************
   // Set rng value to select: last vertex, unused, unused, accept
-  rng.setNewValues(std::vector<double>{0.95, -1, -1, 0.01});
-  MatrixPair<Real> old_M(walker.getM());
+  rng.setNewValues(std::vector<Scalar>{0.95, -1, -1, 0.01});
+  MatrixPair<Scalar> old_M(walker.getM());
   bool result = walker.tryVertexRemoval();
-  MatrixPair<Real> new_M(walker.getM());
+  MatrixPair<Scalar> new_M(walker.getM());
   ASSERT_EQ(true, result);
   //  ASSERT_EQ(old_M.nrCols(), new_M.nrCols() + 2);
   // Compute directly the new M.
   walker.setMFromConfig();
-  MatrixPair<Real> direct_M(walker.getM());
+  MatrixPair<Scalar> direct_M(walker.getM());
   for (int s = 0; s < 2; ++s)
     for (int j = 0; j < new_M[s].nrCols(); j++)
       for (int i = 0; i < new_M[s].nrRows(); i++)
-        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 10 * std::numeric_limits<Real>::epsilon());
+        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 10 * std::numeric_limits<Scalar>::epsilon());
   // Compute directly the determinant ratio. Note: M = D^-1.
-  Real det_ratio = computeDetRatio(old_M, new_M);
+  Scalar det_ratio = computeDetRatio(old_M, new_M);
 
-  EXPECT_NEAR(det_ratio, walker.getRatio(), 100 * std::numeric_limits<Real>::epsilon());
+  EXPECT_NEAR(det_ratio, walker.getRatio(), 100 * std::numeric_limits<Scalar>::epsilon());
 
   // *******************************
   // Test vertex insertion *********
@@ -106,9 +115,9 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   for (int s = 0; s < 2; ++s)
     for (int j = 0; j < new_M[s].nrCols(); j++)
       for (int i = 0; i < new_M[s].nrRows(); i++)
-        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 20 * std::numeric_limits<Real>::epsilon());
+        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 20 * std::numeric_limits<Scalar>::epsilon());
   det_ratio = computeDetRatio(old_M, new_M);
-  EXPECT_NEAR(det_ratio, walker.getRatio(), 100 * std::numeric_limits<Real>::epsilon());
+  EXPECT_NEAR(det_ratio, walker.getRatio(), 100 * std::numeric_limits<Scalar>::epsilon());
 
   // ****************************************
   // Test last vertex removal and insertion *
@@ -134,22 +143,22 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   for (int s = 0; s < 2; ++s)
     for (int j = 0; j < new_M[s].nrCols(); j++)
       for (int i = 0; i < new_M[s].nrRows(); i++)
-        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 10 * std::numeric_limits<Real>::epsilon());
+        EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 10 * std::numeric_limits<Scalar>::epsilon());
 }
 
 TYPED_TEST(CtintWalkerTest, Inverse) {
-  using Real = TypeParam;
+  using Scalar = TypeParam;
   {
-    Matrix<Real> M(std::make_pair(2, 2), std::make_pair(2, 2));
+    Matrix<Scalar> M(std::make_pair(2, 2), std::make_pair(2, 2));
     M(0, 0) = 1, M(0, 1) = 2;
     M(1, 0) = 3, M(1, 1) = -1;
 
-    Matrix<Real> inv(2, 3);
-    const Real det = dca::phys::solver::ctint::details::smallDeterminant(M);
+    Matrix<Scalar> inv(2, 3);
+    const Scalar det = dca::phys::solver::ctint::details::smallDeterminant(M);
     dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-    dca::linalg::Vector<Real, dca::linalg::CPU> work;
+    dca::linalg::Vector<Scalar, dca::linalg::CPU> work;
     dca::phys::solver::ctint::details::smallInverse(M, inv, det, ipiv, work);
-    constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
+    constexpr Scalar tolerance = 100 * std::numeric_limits<dca::util::RealAlias<Scalar>>::epsilon();
     EXPECT_NEAR(1. / 7., inv(0, 0), tolerance);
     EXPECT_NEAR(2. / 7., inv(0, 1), tolerance);
     EXPECT_NEAR(3. / 7., inv(1, 0), tolerance);
@@ -157,14 +166,14 @@ TYPED_TEST(CtintWalkerTest, Inverse) {
   }
   // 4x4 case
   {
-    Matrix<Real> M4(4);
+    Matrix<Scalar> M4(4);
     for (int j = 0; j < 4; ++j)
       for (int i = 0; i < 4; ++i)
         M4(i, j) = i + j * j;
 
-    const Real det = dca::phys::solver::ctint::details::smallDeterminant(M4);
+    const Scalar det = dca::phys::solver::ctint::details::smallDeterminant(M4);
     EXPECT_NEAR(dca::linalg::matrixop::determinantIP(M4), det,
-                10 * std::numeric_limits<Real>::epsilon());
+                10 * std::numeric_limits<Scalar>::epsilon());
   }
 }
 

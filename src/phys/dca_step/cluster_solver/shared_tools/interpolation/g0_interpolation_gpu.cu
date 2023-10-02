@@ -15,36 +15,53 @@
 
 #include "dca/util/cuda_blocks.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
-
+#include "dca/linalg/util/gpu_type_mapping.hpp"
 namespace dca {
 namespace phys {
 namespace solver {
 namespace details {
 
 // dca::phys::solver::ctint::details::
+using dca::util::CUDATypeMap;
+using dca::util::castGPUType;
+using dca::util::ComplexAlias;
+using dca::util::RealAlias;
+using dca::util::GPUTypeConversion;
+using dca::util::IsComplex_t;
+using dca::util::IsComplex;
+using dca::util::IsReal;
+using namespace dca::linalg;
+using dca::util::SignType;
+using dca::util::CudaComplex;
+using dca::util::CudaScalar;
 
-template <typename Real>
-__global__ void interpolateSlowKernel(Real tau, const int lindex, DeviceInterpolationData<Real> g0,
-                                      Real* result) {
+template <typename Scalar, typename Real, typename SignType>
+__global__ void interpolateSlowKernel(Real tau, const int lindex,
+                                      DeviceInterpolationData<Scalar, SignType> g0, CudaScalar<Scalar>* result) {
   *result = g0(tau, lindex);
 }
 
-template <typename Real>
-Real interpolateSlow(Real tau, int lindex, const DeviceInterpolationData<Real>& g0) {
-  Real* d_result;
-  Real result;
-  cudaMalloc((void**)&d_result, sizeof(Real));
+template <typename Scalar, typename Real, typename SignType>
+Scalar interpolateSlow(Real tau, int lindex,
+                                          const DeviceInterpolationData<Scalar, SignType>& g0) {
+  CudaScalar<Scalar>* d_result;
+  Scalar result;
+  cudaMalloc((void**)&d_result, sizeof(Scalar));
 
   interpolateSlowKernel<<<1, 1>>>(tau, lindex, g0, d_result);
 
   assert(cudaSuccess == cudaPeekAtLastError());
-  cudaMemcpy(&result, d_result, sizeof(Real), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&result, d_result, sizeof(Scalar), cudaMemcpyDeviceToHost);
   cudaFree(d_result);
   return result;
 }
 
-template float interpolateSlow(float, int, const DeviceInterpolationData<float>&);
-template double interpolateSlow(double, int, const DeviceInterpolationData<double>&);
+template float interpolateSlow(float, int, const DeviceInterpolationData<float, std::int8_t>&);
+template double interpolateSlow(double, int, const DeviceInterpolationData<double, std::int8_t>&);
+  template std::complex<float> interpolateSlow(
+    float, int, const DeviceInterpolationData<std::complex<float>, std::complex<float>>&);
+  template std::complex<double> interpolateSlow(
+    double, int, const DeviceInterpolationData<std::complex<double>, std::complex<double>>&);
 
 }  // namespace details
 }  // namespace solver

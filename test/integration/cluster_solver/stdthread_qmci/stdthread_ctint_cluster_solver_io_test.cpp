@@ -1,12 +1,12 @@
-// Copyright (C) 2022 ETH Zurich
-// Copyright (C) 2022 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 //  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
-//         Peter Doak (doakpw@ornl.gov)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // No-change test for CT-INT posix wrapper.
 
@@ -15,7 +15,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -25,6 +25,16 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/config/profiler.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -50,7 +60,7 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using StdThreading = dca::parallel::stdthread;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
-                                  Model, RngType, dca::ClusterSolverId::CT_INT>;
+                                  Model, RngType, dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;

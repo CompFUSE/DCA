@@ -9,10 +9,20 @@
 //
 // This file tests momentum_exchange_domain.hpp.
 
+using Scalar = double;
+
+#include "dca/platform/dca_gpu.h"
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 
 #include <numeric>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/math/util/vector_operations.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
@@ -20,9 +30,11 @@
 using dca::phys::domains::MomentumExchangeDomain;
 using dca::math::util::isSameVector;
 
+using Scalar = double;
+
 constexpr char input_file[] = DCA_SOURCE_DIR "/test/unit/phys/domains/cluster/input.json";
 using MomentumExchangeDomainTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 
 TEST_F(MomentumExchangeDomainTest, MultipleExchanges) {
