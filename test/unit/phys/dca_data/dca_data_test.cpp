@@ -43,13 +43,13 @@ constexpr char dca_data_test_input[] = DCA_SOURCE_DIR "/test/unit/phys/dca_data/
 
 template <typename Scalar, class Concurrency, class Lattice = LatticeSquare,
           ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
-          const char* input_name = dca_data_test_input, DistType DT = DistType::NONE>
+          const char* input_name = dca_data_test_input, DistType DT = DistType::NONE, class NUMTRAITS = dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>
 struct DCADataSetup {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
   using RngType = testing::StubRng;
   using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
-                                              profiling::NullProfiler, Model, RngType, solver_name>;
+                                              profiling::NullProfiler, Model, RngType, solver_name, NUMTRAITS>;
   using Data = phys::DcaData<Parameters, DT>;
   using LoopData = phys::DcaLoopData<Parameters>;
 
