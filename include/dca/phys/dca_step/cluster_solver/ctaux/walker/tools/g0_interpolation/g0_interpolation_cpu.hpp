@@ -26,7 +26,7 @@ namespace ctaux {
 template <typename Parameters>
 class G0Interpolation<dca::linalg::CPU, Parameters> : public G0InterpolationBase<Parameters> {
 public:
-  using Real = typename dca::config::McOptions::MC_REAL;
+  using Real = typename Parameters::Real;
   using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
 
   using vertex_singleton_type = vertex_singleton;

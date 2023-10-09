@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file implements the GPU kernels used by the Dnfft1D class.
 
@@ -32,7 +33,7 @@ namespace details {
 using dca::util::CUDATypeMap;
 using dca::util::castGPUType;
 using dca::util::GPUTypeConversion;
-  
+
 std::array<int, 2> getBlockSize(const int ni, const int block_size) {
   const int n_threads = std::min(block_size, ni);
   const int n_blocks = util::ceilDiv(ni, n_threads);
@@ -53,10 +54,9 @@ std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_si
 
 // TODO: consider constant or texture memory for the coefficients.
 template <int oversampling, int window_sampling, typename Scalar, typename Real, bool accumulate_m_sqr = false>
-__global__ void accumulateOnDeviceKernel(const Scalar* __restrict__ M, const int ldm,
-                                         Scalar factor, Scalar* __restrict__ out,
-                                         Scalar* __restrict__ out_sqr, int ldo,
-                                         const ConfigElem* __restrict__ config_left,
+__global__ void accumulateOnDeviceKernel(const Scalar* __restrict__ M, const int ldm, Scalar factor,
+                                         Scalar* __restrict__ out, Scalar* __restrict__ out_sqr,
+                                         int ldo, const ConfigElem* __restrict__ config_left,
                                          const ConfigElem* __restrict__ config_right,
                                          const Real* __restrict__ times,
                                          const Real* __restrict__ cubic_coeff, const int m_size) {
@@ -73,17 +73,33 @@ __global__ void accumulateOnDeviceKernel(const Scalar* __restrict__ M, const int
   const int m_i = thread_idx / conv_size;
   const int conv_idx = thread_idx - m_i * conv_size + 1;
 
-  // 2 flops
-  const Real tau = nfft_helper.computeTau(times[m_i], times[m_j]);
-
+  Real tau = 0.0;
   int t_idx, conv_coeff_idx;
   Real delta_t;
-  // 6 flops --> lots of mixed integer and fp math so maybe more
-  nfft_helper.computeInterpolationIndices<CUBIC, oversampling, window_sampling>(
-      tau, t_idx, conv_coeff_idx, delta_t);
+  int linindex = 0;
 
-  const int linindex = nfft_helper.computeLinearIndex(
+  // In the context of the legacy global device objects this saves us
+  // an inherited interface or variant.
+  // 2 flops
+  if constexpr (std::is_same_v<Real, double>) {
+    tau = nfft_helper_double.computeTau(times[m_i], times[m_j]);
+    nfft_helper_double.computeInterpolationIndices<CUBIC, oversampling, window_sampling>(
+        tau, t_idx, conv_coeff_idx, delta_t);
+ linindex = nfft_helper_double.computeLinearIndex(
       config_left[m_i].band, config_right[m_j].band, config_left[m_i].site, config_right[m_j].site);
+
+  }
+  else if constexpr (std::is_same_v<Real, float>) {
+    tau = nfft_helper_float.computeTau(times[m_i], times[m_j]);
+    nfft_helper_float.computeInterpolationIndices<CUBIC, oversampling, window_sampling>(
+        tau, t_idx, conv_coeff_idx, delta_t);
+     linindex = nfft_helper_float.computeLinearIndex(
+      config_left[m_i].band, config_right[m_j].band, config_left[m_i].site, config_right[m_j].site);
+
+  }
+
+  // 6 flops --> lots of mixed integer and fp math so maybe more
+
 
   auto f_val = M[m_i + ldm * m_j];
   const auto* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
@@ -109,15 +125,15 @@ void accumulateOnDevice(const Scalar* M, const int ldm, const Scalar factor, Sca
 
   if (out_sqr) {
     accumulateOnDeviceKernel<oversampling, window_sampling, CUDATypeMap<Scalar>, Real, true>
-        <<<blocks[0], blocks[1], 0, stream_>>>(castGPUType(M), ldm, GPUTypeConversion(factor), castGPUType(out),
-                                               castGPUType(out_sqr), ldo, config_left, config_right,
-                                               tau, cubic_coeff, size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castGPUType(M), ldm, GPUTypeConversion(factor),
+                                               castGPUType(out), castGPUType(out_sqr), ldo,
+                                               config_left, config_right, tau, cubic_coeff, size);
   }
   else {
     accumulateOnDeviceKernel<oversampling, window_sampling, CUDATypeMap<Scalar>, Real, false>
-        <<<blocks[0], blocks[1], 0, stream_>>>(castGPUType(M), ldm, GPUTypeConversion(factor), castGPUType(out),
-                                               castGPUType(out_sqr), ldo, config_left, config_right,
-                                               tau, cubic_coeff, size);
+        <<<blocks[0], blocks[1], 0, stream_>>>(castGPUType(M), ldm, GPUTypeConversion(factor),
+                                               castGPUType(out), castGPUType(out_sqr), ldo,
+                                               config_left, config_right, tau, cubic_coeff, size);
   }
 }
 
@@ -140,10 +156,17 @@ void sum(const ScalarType* in, const int ldi, ScalarType* out, const int ldo, co
   sumKernel<<<blocks[0], blocks[1], 0, stream>>>(castGPUType(in), ldi, castGPUType(out), ldo, n, m);
 }
 
-void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+template void initializeNfftHelper<double>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
                           double t0, double delta_t, double t0_window, double delta_t_window,
-                          double beta) {
-  NfftHelper::set(nb, nc, add_r, lda, sub_r, lds, t0, delta_t, t0_window, delta_t_window, beta);
+                          double beta);
+template void initializeNfftHelper<float>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+                          float t0, float delta_t, float t0_window, float delta_t_window,
+                          float beta);
+  
+template <typename REAL>
+void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+                          REAL t0, REAL delta_t, REAL t0_window, REAL delta_t_window, REAL beta) {
+  NfftHelper<REAL>::set(nb, nc, add_r, lda, sub_r, lds, t0, delta_t, t0_window, delta_t_window, beta);
 }
 
 // Explicit instantiation.

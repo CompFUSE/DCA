@@ -85,7 +85,7 @@ public:
   }
 
   static constexpr int window_sampling_ = 32;
-  static constexpr double window_function_sigma_ = 2.;
+  static constexpr Real window_function_sigma_ = 2.;
 
   using WindowFunction = kaiser_bessel_function;
 
@@ -131,6 +131,10 @@ private:
 
   void foldTimeDomainBack();
 
+  /** FTau to f_w transform
+   *  right now the fftw call wrapped by these functions  uses double precision
+   *  regardless of OutReal's precision
+   */
   template <class OutReal>
   void transformFTauToFW(func::function<std::complex<OutReal>, func::dmn_variadic<WDmn, PDmn>>& f_w) const;
   // Implementation for Real types
@@ -492,9 +496,9 @@ void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
   const int n = nfft_time_domain<LEFT_ORIENTED, ThisType>::get_size();
   const int padding = (n_padded - n) / 2;
 
-  std::vector<std::complex<double>> f_in(n);
+  std::vector<std::complex<Real>> f_in(n);
 
-  std::vector<std::complex<double>> f_out(n);
+  std::vector<std::complex<Real>> f_out(n);
   fftw_plan plan;
 
   {

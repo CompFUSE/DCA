@@ -111,7 +111,7 @@ private:
   using BaseClass::f_tau_;
   static inline auto& get_device_cubic_coeff();
 
-  const double beta_;
+  const Real beta_;
   const linalg::util::GpuStream& stream_;
   const bool accumulate_m_sqr_;
   linalg::Matrix<Scalar, linalg::GPU> accumulation_matrix_;

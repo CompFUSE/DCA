@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // Square lattice.
 
@@ -66,8 +67,9 @@ public:
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
   static void initializeHInteraction(
-      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      func::function<typename parameters_type::Real,
+                     func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                        func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
@@ -100,7 +102,7 @@ const double* RashbaHubbard<PointGroup>::initializeRLDABasis() {
   static const std::array<double, 4> r_base{1, 0, 0, 1};
   return r_base.data();
 }
-  
+
 template <typename PointGroup>
 std::vector<int> RashbaHubbard<PointGroup>::flavors() {
   static std::vector<int> flavors(BANDS);
@@ -125,8 +127,9 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> RashbaHubbard<
 template <typename PointGroup>
 template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
 void RashbaHubbard<PointGroup>::initializeHInteraction(
-    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    func::function<typename parameters_type::Real,
+                   func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                      func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
     const parameters_type& parameters) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Rashba lattice has 2 bands.");
@@ -192,7 +195,7 @@ void RashbaHubbard<PointGroup>::initializeH0(
     m(0, 1) = m(1, 0) = 2 * lambda * (-std::sin(k[1]));
 
     // Pauli matrix sigma_y
-    const auto val = 2 * lambda * std::sin(k[0]);
+    const ScalarType val = 2 * static_cast<typename ParametersType::Real>(lambda) * static_cast<typename ParametersType::Real>(std::sin(k[0]));
     m(0, 1) += +i * val;
     m(1, 0) += -i * val;
 

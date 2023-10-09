@@ -45,7 +45,7 @@ TEST(ComputeBandStructureTest, Execute) {
   using Lattice = phys::models::square_lattice<PointGroup>;
   using Model = phys::models::TightBindingModel<Lattice>;
   using NumTraits = dca::NumericalTraits<
-      double, typename dca::util::ScalarSelect<double, Model::lattice_type::complex_g0>::type>;
+    double, double>;
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
       phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler, Model,
@@ -66,7 +66,7 @@ TEST(ComputeBandStructureTest, Execute) {
   parameters.update_domains();
 
   func::function<double, nu_k_cut> band_structure;
-  phys::compute_band_structure::execute(parameters, band_structure);
+  phys::compute_band_structure<ParametersType>::execute(parameters, band_structure);
 
   std::ostringstream kcut_elements;
   phys::domains::brillouin_zone_cut_domain<101>::to_JSON(kcut_elements);

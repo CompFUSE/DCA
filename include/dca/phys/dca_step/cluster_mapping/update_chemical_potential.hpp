@@ -43,6 +43,7 @@ public:
   using Concurrency = typename Parameters::concurrency_type;
   constexpr static int spin_sectors = Parameters::lattice_type::spin_symmetric ? 2 : 1;
 
+  using Real = typename Parameters::Real;
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
@@ -68,7 +69,7 @@ private:
   // Computes the new estimate for the chemical potential within the regula falsi method.
   double get_new_chemical_potential(double d_0, double mu_lb, double mu_ub, double n_lb, double n_ub);
 
-  void compute_density_correction(func::function<double, NuDmn>& result);
+  void compute_density_correction(func::function<Real, NuDmn>& result);
 
   void compute_density_coefficients(
       func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>>& A,
@@ -224,7 +225,7 @@ void update_chemical_potential<Parameters, Data, Coarsegraining>::search_bounds(
 template <typename Parameters, typename Data, typename Coarsegraining>
 double update_chemical_potential<Parameters, Data, Coarsegraining>::compute_density() {
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, static_cast<typename Parameters::Real>(parameters.get_chemical_potential()),
                   parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   else if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.Sigma_lattice, MOMS.G_k_w);
@@ -267,7 +268,7 @@ double update_chemical_potential<Parameters, Data, Coarsegraining>::compute_dens
  */
 template <typename Parameters, typename Data, typename Coarsegraining>
 void update_chemical_potential<Parameters, Data, Coarsegraining>::compute_density_correction(
-    func::function<double, NuDmn>& result) {
+											     func::function<Real, NuDmn>& result) {
   std::complex<double> I(0, 1);
 
   double N_k = KClusterDmn::dmn_size();

@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This class implements the lattice mapping for single-particle functions.
 
@@ -34,7 +35,9 @@ class lattice_mapping_sp {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Lattice = typename parameters_type::lattice_type;
-
+  using Scalar = typename parameters_type::Scalar;
+  using Real = typename parameters_type::Real;
+  
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -53,22 +56,22 @@ public:
   lattice_mapping_sp(/*const*/ parameters_type& parameters_ref);
 
   void execute(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
   template <typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
   void execute_with_HTS_approximation(
       MOMS_type& HTS_MOMS, HTS_solver_type& HTS_solver, coarsegraining_sp_type& cluster_mapping_obj,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
 private:
   template <typename k_dmn_t>
-  void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
+  void plot_function(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
   /*const*/ parameters_type& parameters;
@@ -77,10 +80,10 @@ private:
   interpolation_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
   deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
 
-  func::function<double, nu> Sigma_shift;
+  func::function<Real, nu> Sigma_shift;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_cluster;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_cluster;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -96,10 +99,10 @@ lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
   Symmetrize<parameters_type>::execute(f_source);
 
   // plot_function(f_source);
@@ -110,8 +113,20 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 
   Symmetrize<parameters_type>::execute(f_interp);
 
-  deconvolution_obj.execute(f_source, f_interp, f_approx, f_target);
-
+  if constexpr(std::is_same_v<std::complex<Real>, std::complex<double>>)
+    deconvolution_obj.execute(f_source, f_interp, f_approx, f_target);
+  else {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>> f_source_dbl{f_source};
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>> f_interp_dbl(f_interp);
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>> f_approx_dbl(f_approx);
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>> f_target_dbl(f_target);
+    deconvolution_obj.execute(f_source_dbl, f_interp_dbl, f_approx_dbl, f_target_dbl);
+    // not sure if any of these except f_target really need to be assigned back
+    f_source = f_source_dbl;
+    f_interp = f_interp_dbl;
+    f_approx = f_approx_dbl;
+    f_target = f_target_dbl;
+  }
   // plot_function(f_target);
 
   Symmetrize<parameters_type>::execute(f_target);
@@ -121,10 +136,10 @@ template <typename parameters_type, typename source_k_dmn_t, typename target_k_d
 template <typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_with_HTS_approximation(
     MOMS_type& HTS_MOMS, HTS_solver_type& HTS_solver, coarsegraining_sp_type& cluster_mapping_obj,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
   {
     HTS_solver.initialize(0);
 
@@ -162,12 +177,12 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f) {
-  std::vector<double> x(0);
-  std::vector<double> y(0);
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f) {
+  std::vector<Real> x(0);
+  std::vector<Real> y(0);
 
-  std::vector<double> z_re(0);
-  std::vector<double> z_im(0);
+  std::vector<Real> z_re(0);
+  std::vector<Real> z_im(0);
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     x.push_back(k_dmn_t::get_elements()[k_ind][0]);

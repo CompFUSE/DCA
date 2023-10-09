@@ -54,7 +54,9 @@ public:
   using concurrency_type = typename ParametersType::concurrency_type;
 
   using Lattice = typename ParametersType::lattice_type;
+  using Real = typename ParametersType::Real;
 
+  
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using k_DCA =
@@ -361,7 +363,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
 
   // Finite-size QMC
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, static_cast<Real>(parameters.get_chemical_potential()),
                   parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   // DCA+
   else if (parameters.do_dca_plus())

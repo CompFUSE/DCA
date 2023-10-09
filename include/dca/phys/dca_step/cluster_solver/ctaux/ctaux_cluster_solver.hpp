@@ -22,6 +22,7 @@
 #include <complex>
 #include <iostream>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include "dca/distribution/dist_types.hpp"
@@ -63,9 +64,10 @@ public:
   using Concurrency = typename Parameters::concurrency_type;
 
   using Real = typename Parameters::Real;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename Parameters::Scalar;
   using FPScalar = typename dca::util::ScalarSelect<double,Parameters::complex_g0>::type;
-
+  using TpComplex = typename Data::TpComplex;
+  
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
   using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data, DIST>;
   using SpGreensFunction = typename Data::SpGreensFunction;
@@ -128,12 +130,12 @@ private:
   double compute_S_k_w_from_G_k_w();
 
   void compute_G_k_w_new(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& M_k_w_new,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new) const;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& M_k_w_new,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new) const;
 
   void compute_S_k_w_new(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& S_k_w_new);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& S_k_w_new);
 
   void set_non_interacting_bands_to_zero();
 
@@ -284,7 +286,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 template <typename dca_info_struct_t>
 double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  collect_measurements();
+  //collect_measurements();
   symmetrize_measurements();
 
   // Compute new Sigma.
@@ -404,15 +406,15 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RDmn, w>> M_r_w_new("M_r_w_new");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>> M_k_w_new("M_k_w_new");
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, RDmn, w>> M_r_w_new("M_r_w_new");
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> M_k_w_new("M_k_w_new");
 
   accumulator_.finalize();
 
   M_r_w_new = accumulator_.get_sign_times_M_r_w();
-  M_r_w_new /= accumulator_.get_accumulated_phase();
+  M_r_w_new /= static_cast<typename decltype(M_r_w_new)::this_scalar_type>(accumulator_.get_accumulated_phase());
 
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_new, M_k_w_new);
 
@@ -433,7 +435,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /=
-	parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign().sum();
+	TpComplex{parameters_.get_beta() * parameters_.get_beta()} * TpComplex{accumulator_.get_accumulated_sign().sum()};
       concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
     }
   }
@@ -456,7 +458,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     concurrency_.delayedSum(accumulator_.get_Gflop());
     accumulated_sign_ = accumulator_.get_accumulated_phase();
     collect_delayed(accumulated_sign_);
-
+    static_assert(std::is_same_v<decltype(M_r_w_), std::decay_t<decltype(accumulator_.get_sign_times_M_r_w())>>);
     M_r_w_ = accumulator_.get_sign_times_M_r_w();
     collect_delayed(M_r_w_);
 
@@ -479,6 +481,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
       for (int channel = 0; channel < data_.get_G4().size(); ++channel) {
         auto& G4 = data_.get_G4()[channel];
         // function operator = will reset this G4 size to other G4 size if they are not equal
+	static_assert(std::is_same_v<std::remove_reference_t<decltype(G4)>,std::decay_t<decltype(accumulator_.get_sign_times_G4()[channel])>>);
         G4 = accumulator_.get_sign_times_G4()[channel];
         if (parameters_.get_g4_distribution() != DistType::NONE) {
           // do nothing, no accumulation should be performed as G4 size cannot fit into one GPU
@@ -500,18 +503,21 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     concurrency_.resolveSums();
   }
 
-  M_r_w_ /= accumulated_sign_;
-  M_r_w_squared_ /= accumulated_sign_;
+  M_r_w_ /= static_cast<typename decltype(M_r_w_)::this_scalar_type>(accumulated_sign_);
+  M_r_w_squared_ /= static_cast<typename decltype(M_r_w_squared_)::this_scalar_type>(accumulated_sign_);
   if (accumulator_.perform_tp_accumulation()) {
     for (auto& G4 : data_.get_G4())
-      G4 /= accumulated_sign_ * parameters_.get_beta() * parameters_.get_beta();
+      G4 /= static_cast<typename std::remove_reference<decltype(G4)>::type::this_scalar_type>(accumulated_sign_) * static_cast<Real>(parameters_.get_beta() * parameters_.get_beta());
   }
 
   if (accumulator_.perform_equal_time_accumulation()) {
-    accumulator_.get_G_r_t() /= accumulated_sign_;
+    accumulator_.get_G_r_t() /= static_cast<typename std::remove_reference_t<decltype(accumulator_.get_G_r_t())>::this_scalar_type>(accumulated_sign_);
+    static_assert(std::is_same_v<decltype(data_.G_r_t), std::remove_reference_t<decltype(accumulator_.get_G_r_t())>>);
     data_.G_r_t = accumulator_.get_G_r_t();
-    accumulator_.get_G_r_t_stddev() /=
-        accumulated_sign_ * std::sqrt(parameters_.get_measurements()[dca_iteration_]);
+    auto stddev_normalization = accumulated_sign_ * static_cast<typename std::decay_t<decltype(accumulator_.get_G_r_t_stddev())>::this_scalar_type>(std::sqrt(static_cast<Real>(parameters_.get_measurements()[dca_iteration_])));
+    accumulator_.get_G_r_t_stddev() /= stddev_normalization;
+      
+    
     accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
     accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
     accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
@@ -668,8 +674,8 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_S_k_w_from_
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_new(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& M_k_w_new,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new) const {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& M_k_w_new,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new) const {
   //     if(concurrency_.id()==0)
   //       std::cout << "\n\t\t compute-G_k_w_new\t" << dca::util::print_time() << "\n\n";
 
@@ -703,8 +709,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_new(
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_S_k_w_new(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>>& S_k_w_new) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& G_k_w_new,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>>& S_k_w_new) {
   //     if(concurrency_.id()==0)
   //       std::cout << "\n\t\t start compute-S_k_w\t" << dca::util::print_time() << "\n\n";
 

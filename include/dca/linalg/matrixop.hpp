@@ -294,6 +294,7 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
 // Out: ipiv, work
 // Preconditions: mat is a square matrix.
 // Postconditions: ipiv and work are resized to the needed dimension.
+// \todo consider doing inverse at full precision reguardless of incoming Scalar precision
 template <typename Scalar, DeviceType device_name, template <typename, DeviceType> class MatrixType>
 void inverse(MatrixType<Scalar, device_name>& mat, Vector<int, CPU>& ipiv,
              Vector<Scalar, device_name>& work) {
@@ -310,6 +311,7 @@ void inverse(MatrixType<Scalar, device_name>& mat, Vector<int, CPU>& ipiv,
   lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
                                         work.ptr(), lwork);
 }
+
 template <typename Scalar, DeviceType device_name, template <typename, DeviceType> class MatrixType>
 void inverse(MatrixType<Scalar, device_name>& mat) {
   Vector<int, CPU> ipiv;

@@ -114,6 +114,7 @@ const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransfo
 template <class RDmn, class KDmn, typename Scalar>
 const auto& SpaceTransform2D<RDmn, KDmn, Scalar>::getPhaseFactors() {
   static func::function<Complex, func::dmn_variadic<BDmn, KDmn>> phase_factors("Phase factors.");
+  using Real = dca::util::RealAlias<Scalar>;
   static std::once_flag flag;
 
   // Initialize the phase factors Exp[i k a[b]].
@@ -126,7 +127,7 @@ const auto& SpaceTransform2D<RDmn, KDmn, Scalar>::getPhaseFactors() {
       const auto& k_vec = KDmn::get_elements()[k];
       for (int b = 0; b < BDmn::dmn_size(); ++b) {
 	// Scalar could be cuComplex or cuDoubleComplex so...
-	std::complex<dca::util::RealAlias<Scalar>> temp_phase{0., util::innerProduct(k_vec, a_vecs[b])};
+	std::complex<Real> temp_phase{0., static_cast<Real>(util::innerProduct(k_vec, a_vecs[b]))};
 	temp_phase = std::exp(temp_phase);
 	phase_factors(b,k) = Complex{temp_phase.real(), temp_phase.imag()};
       }

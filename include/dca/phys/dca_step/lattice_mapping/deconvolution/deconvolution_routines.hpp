@@ -35,6 +35,8 @@ namespace latticemapping {
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class deconvolution_routines {
 public:
+  using Real = typename parameters_type::Real;
+
   using target_k_cluster_type = typename target_k_dmn_t::parameter_type;
   using target_r_cluster_type = typename target_k_cluster_type::dual_type;
   using target_r_dmn_t = func::dmn_0<target_r_cluster_type>;
@@ -75,23 +77,23 @@ private:
   void compute_phi_inv(double epsilon);
 
   template <typename LhsKDomain>
-  void initializeProjectionOperator(const func::function<double, target_r_dmn_t>& phi_r,
-                                    linalg::Matrix<double, dca::linalg::CPU>& projection_op);
+  void initializeProjectionOperator(const func::function<Real, target_r_dmn_t>& phi_r,
+                                    linalg::Matrix<Real, dca::linalg::CPU>& projection_op);
 
 private:
   parameters_type& parameters;
 
 protected:
-  func::function<double, target_r_dmn_t> phi_r_inv;
+  func::function<Real, target_r_dmn_t> phi_r_inv;
 
 private:
-  func::function<double, target_r_dmn_t> phi_r_;
+  func::function<Real, target_r_dmn_t> phi_r_;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> T_;
-  dca::linalg::Matrix<double, dca::linalg::CPU> T_symmetrized_;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> T_;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> T_symmetrized_;
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> T_source_;
-  dca::linalg::Matrix<double, dca::linalg::CPU> T_source_symmetrized_;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> T_source_;
+  dca::linalg::Matrix<Real, dca::linalg::CPU> T_source_symmetrized_;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -130,21 +132,21 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename LhsKDomain>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::initializeProjectionOperator(
-    const func::function<double, target_r_dmn_t>& phi_r, linalg::Matrix<double, dca::linalg::CPU>& T) {
+													   const func::function<typename parameters_type::Real, target_r_dmn_t>& phi_r, linalg::Matrix<typename parameters_type::Real, dca::linalg::CPU>& T) {
   using trafo_r_to_lhs_k_type = math::transform::basis_transform<target_r_dmn_t, LhsKDomain>;
 
-  const linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r =
+  const linalg::Matrix<std::complex<Real>, dca::linalg::CPU> T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  const linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_r_to_k =
+  const linalg::Matrix<std::complex<Real>, dca::linalg::CPU> T_r_to_k =
       trafo_r_to_lhs_k_type::get_transformation_matrix();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled(T_k_to_r,
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> T_k_to_r_scaled(T_k_to_r,
                                                                               "T_k_to_r_scaled");
   for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
     for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
       T_k_to_r_scaled(i, j) *= phi_r(i);
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k(
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> T_k_to_k(
       "T_k_to_k", std::make_pair(LhsKDomain::dmn_size(), target_k_dmn_t::dmn_size()));
 
   linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);

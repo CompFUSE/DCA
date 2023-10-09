@@ -27,8 +27,8 @@ template <dca::linalg::DeviceType device_t, typename Parameters>
 class CtauxWalkerData {
 protected:
   const static int MAX_VERTEX_SINGLETS = 2;
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
 public:
   CtauxWalkerData(const Parameters& parameters, int id);

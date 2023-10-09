@@ -115,7 +115,7 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
   {
     ProfilerType prof("compute-band-structure", "input", __LINE__);
-    compute_band_structure::execute(parameters_, dca_data_.band_structure);
+    compute_band_structure<ParametersType>::execute(parameters_, dca_data_.band_structure);
   }
 }
 

@@ -303,7 +303,8 @@ template <typename ScalarRhs, DeviceType rhs_device_name, class rhs_ALLOC>
 Matrix<ScalarType, device_name,  ALLOC>::Matrix(const Matrix<ScalarRhs, rhs_device_name, rhs_ALLOC>& rhs,
                                         const std::string& name)
     : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
-  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs));
+  if (sizeof(ScalarType) != sizeof(ScalarRhs))
+    throw std::runtime_error("conversion of both type and location of Matrix not currently possible!");
   data_ = Allocator::allocate(nrElements(capacity_));
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }

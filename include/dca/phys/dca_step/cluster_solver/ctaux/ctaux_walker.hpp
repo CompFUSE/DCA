@@ -59,7 +59,7 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename CtauxTypedefs<Parameters, Data>::concurrency_type;
   using Real = typename Parameters::Real;
-  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
+  using Scalar = typename Parameters::Scalar;
 
   constexpr static dca::linalg::DeviceType device = device_t;
   static constexpr bool is_complex = dca::util::IsComplex<Scalar>::value;

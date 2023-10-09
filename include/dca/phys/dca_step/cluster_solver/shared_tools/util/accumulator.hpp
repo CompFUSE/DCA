@@ -49,37 +49,47 @@ struct MeanType<T, typename std::enable_if_t<std::is_integral<T>::value, bool>> 
 
 // Specialization for std::complex.
 template <typename T>
-struct MeanType<T,  dca::util::IsComplex<T>> {
+struct MeanType<T, dca::util::IsComplex<T>> {
   using type = T;
 };
 
 // Specialization for phase
 template <typename T>
 struct MeanType<T, typename std::enable_if_t<
-  std::conjunction<dca::math::IsPhase<T>, std::is_same<T, dca::math::PhaseImpl<true>>, std::true_type>::value, bool>> {
+                       std::conjunction<dca::math::IsPhase<T>,
+                                        std::is_same<T, dca::math::PhaseImpl<true>>, std::true_type>::value,
+                       bool>> {
   using type = std::complex<double>;
 };
 
 template <typename T>
-struct MeanType<T, typename std::enable_if_t<  std::conjunction<dca::math::IsPhase<T>, std::is_same<T, dca::math::PhaseImpl<false>>, std::true_type>::value, bool>> {
+struct MeanType<T, typename std::enable_if_t<
+                       std::conjunction<dca::math::IsPhase<T>,
+                                        std::is_same<T, dca::math::PhaseImpl<false>>, std::true_type>::value,
+                       bool>> {
   using type = double;
 };
 
 template <typename T, typename = bool>
-struct SampleType { 
+struct SampleType {
   using type = T;
 };
 
 template <typename T>
-struct SampleType<T, typename std::enable_if_t<(dca::math::IsPhase<T>::value && std::is_integral<decltype(std::declval<T>().getSign())>::value), bool>> {
-  using type = long long; //long long;
+struct SampleType<
+    T, typename std::enable_if_t<(dca::math::IsPhase<T>::value &&
+                                  std::is_integral<decltype(std::declval<T>().getSign())>::value),
+                                 bool>> {
+  using type = long long;  // long long;
 };
 
 template <typename T>
-struct SampleType<T, typename std::enable_if_t<(dca::math::IsPhase<T>::value && ! std::is_integral<decltype(std::declval<T>().getSign())>::value), bool>> {
+struct SampleType<
+    T, typename std::enable_if_t<(dca::math::IsPhase<T>::value &&
+                                  !std::is_integral<decltype(std::declval<T>().getSign())>::value),
+                                 bool>> {
   using type = decltype(std::declval<T>().getSign());
 };
-
 
 }  // namespace details
 
@@ -137,7 +147,6 @@ private:
   SampleType sum_;
 };
 
-  
 }  // namespace util
 }  // namespace solver
 }  // namespace phys

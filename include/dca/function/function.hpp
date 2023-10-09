@@ -95,7 +95,7 @@ public:
 
   template <typename Scalar2>
   function(const function<Scalar2, domain, DT>& other);
-  
+
   // Move constructor
   // Constructs the function with elements and name of other using move semantics.
   // Precondition: The other function has been resetted, if the domain had been initialized after
@@ -318,7 +318,6 @@ public:
     return fnc_values_[dmn(static_cast<int>(t), static_cast<int>(subindices)...)];
   }
 
-  
   void operator+=(const function<scalartype, domain, DT>& other);
   void operator-=(const function<scalartype, domain, DT>& other);
   void operator*=(const function<scalartype, domain, DT>& other);
@@ -367,7 +366,6 @@ public:
   template <typename new_scalartype>
   void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, const new_scalartype* fnc_vals);
 
-  
   //
   // Methods for printing
   //
@@ -432,7 +430,8 @@ function<scalartype, domain, DT>::function(const std::string& name)
   end_ = dmn.get_size();
   // If the function is more than 256 megs report it.
   if (end_ > 268435456) {
-    std::cerr << "function " << name << " allocates " << sizeof(scalartype) * end_ / 1024 / 1024 << " MB" << '\n';
+    std::cerr << "function " << name << " allocates " << sizeof(scalartype) * end_ / 1024 / 1024
+              << " MB" << '\n';
     if (name_ == "no-name")
       std::cerr << "large functions need names give yourself a chance.\n";
   }
@@ -472,7 +471,7 @@ function<scalartype, domain, DT>::function(const function<scalartype, domain, DT
 template <typename scalartype, class domain, DistType DT>
 template <typename Scalar2>
 function<scalartype, domain, DT>::function(const function<Scalar2, domain, DT>& other)
-  : name_(other.get_name()),
+    : name_(other.get_name()),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
@@ -669,7 +668,23 @@ template <typename Scalar, class domain, DistType DT>
 template <typename Scalar2>
 inline function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
     const function<Scalar2, domain, DT>& other) {
-  if (this != &other) {
+  if constexpr (std::is_same_v<decltype(*this), decltype(other)>) {
+    if (this != &other) {
+      if constexpr (dist == DistType::NONE) {
+        if (size() != other.size()) {
+          throw(std::logic_error("Function size does not match."));
+        }
+      }
+      else if constexpr (dist == DistType::LINEAR || dist == DistType::BLOCKED) {
+        Nb_sbdms = other.dmn.get_leaf_domain_sizes().size();
+        start_ = other.start_;
+        end_ = other.end_;
+        fnc_values_.resize(other.size(), {});
+      }
+      fnc_values_ = other.fnc_values_;
+    }
+  }
+  else {
     if constexpr (dist == DistType::NONE) {
       if (size() != other.size()) {
         throw(std::logic_error("Function size does not match."));
@@ -681,7 +696,16 @@ inline function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
       end_ = other.end_;
       fnc_values_.resize(other.size(), {});
     }
-    fnc_values_ = other.fnc_values_;
+    auto kConvert = [](auto& kvec) -> std::vector<Scalar> {
+      std::vector<Scalar> k_converted(kvec.size());
+      std::transform(kvec.begin(), kvec.end(), k_converted.begin(),
+                     [](auto& val) -> typename decltype(k_converted)::value_type {
+                       return static_cast<typename decltype(k_converted)::value_type>(val);
+                     });
+      return k_converted;
+    };
+
+    fnc_values_ = kConvert(other.getValues());
   }
   return *this;
 }

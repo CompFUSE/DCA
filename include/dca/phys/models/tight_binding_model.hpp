@@ -59,7 +59,7 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initializeHInteraction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
                                      parameters_type& parameters);
 
   template <class domain>
@@ -141,7 +141,7 @@ std::vector<std::vector<double>> TightBindingModel<Lattice>::aVectors() {
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initializeHInteraction(func::function<double, domain>& H_interaction,
+void TightBindingModel<Lattice>::initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
                                                         parameters_type& parameters) {
   Lattice::initializeHInteraction(H_interaction, parameters);
 }
