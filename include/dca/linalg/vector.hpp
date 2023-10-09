@@ -34,7 +34,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-template <typename ScalarType, DeviceType device_name,
+  template <typename ScalarType, DeviceType device_name = DeviceType::CPU,
           class Allocator = util::DefaultAllocator<ScalarType, device_name>>
 class Vector : public Allocator {
 public:

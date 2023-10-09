@@ -40,13 +40,15 @@ template <typename ParametersType, typename DcaDataType>
 class BseSolverExt {
 public:
   using CDA = ClusterDomainAliases<ParametersType::lattice_type::DIMENSION>;
-  using ScalarType = double;
+  using Scalar = typename ParametersType::Scalar;
+  using Real = typename ParametersType::Real;
+  using Complex = typename std::complex<typename ParametersType::Real>;
 
   using ProfilerType = typename ParametersType::profiler_type;
   using ConcurrencyType = typename ParametersType::concurrency_type;
 
-  using BseClusterSolverType = BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>;
-  using BseLatticeSolverType = BseLatticeSolverExt<ParametersType, DcaDataType, ScalarType>;
+  using BseClusterSolverType = BseClusterSolverExt<ParametersType, DcaDataType, Scalar>;
+  using BseLatticeSolverType = BseLatticeSolverExt<ParametersType, DcaDataType, Scalar>;
   using LeadingEigDmn = typename BseLatticeSolverType::LeadingEigDmn;
   using LatticeEigenvectorDmn = typename BseLatticeSolverType::LatticeEigenvectorDmn;
 
@@ -88,7 +90,7 @@ private:
   BseLatticeSolverType bse_lattice_solver_;
 
   func::function<std::string, HarmonicsDmn> wave_functions_names_;
-  func::function<std::complex<ScalarType>, func::dmn_variadic<TpHostKDmn, HarmonicsDmn>> harmonics_;
+  func::function<std::complex<Scalar>, func::dmn_variadic<TpHostKDmn, HarmonicsDmn>> harmonics_;
 };
 
 template <typename ParametersType, typename DcaDataType>
@@ -114,7 +116,7 @@ BseSolverExt<ParametersType, DcaDataType>::BseSolverExt(ParametersType& paramete
 
   {
     ProfilerType prof("compute-band-structure", "input", __LINE__);
-    compute_band_structure::execute(parameters_, dca_data_.band_structure);
+    compute_band_structure<ParametersType>::execute(parameters_, dca_data_.band_structure);
   }
 }
 
@@ -169,7 +171,7 @@ void BseSolverExt<ParametersType, DcaDataType>::initialize_wave_functions() {
   wave_functions_names_(2) = "d-wave";  // cos(kx)-cos(ky)
 
   {  // s-wave
-    std::complex<ScalarType> norm_psi = 0;
+    std::complex<Scalar> norm_psi = 0;
 
     for (int k_ind = 0; k_ind < TpHostKDmn::dmn_size(); k_ind++)
       harmonics_(k_ind, 0) = 1.;
@@ -182,10 +184,10 @@ void BseSolverExt<ParametersType, DcaDataType>::initialize_wave_functions() {
   }
 
   {  // p-wave
-    std::complex<ScalarType> norm_psi = 0;
+    Complex norm_psi = 0;
 
-    ScalarType alpha_x = 1;  // host_vertex_cluster_type::get_r_basis()[0][0];
-    ScalarType alpha_y = 1;  // host_vertex_cluster_type::get_r_basis()[1][1];
+    Scalar alpha_x = 1;  // host_vertex_cluster_type::get_r_basis()[0][0];
+    Scalar alpha_y = 1;  // host_vertex_cluster_type::get_r_basis()[1][1];
 
     for (int k_ind = 0; k_ind < TpHostKDmn::dmn_size(); k_ind++)
       harmonics_(k_ind, 1) = (cos(alpha_x * TpHostKDmn::get_elements()[k_ind][0]) +
@@ -199,10 +201,10 @@ void BseSolverExt<ParametersType, DcaDataType>::initialize_wave_functions() {
   }
 
   {  // d-wave
-    std::complex<ScalarType> norm_psi = 0;
+    Complex norm_psi = 0;
 
-    ScalarType alpha_x = 1;  // host_vertex_cluster_type::get_r_basis()[0][0];
-    ScalarType alpha_y = 1;  // host_vertex_cluster_type::get_r_basis()[1][1];
+    Scalar alpha_x = 1;  // host_vertex_cluster_type::get_r_basis()[0][0];
+    Scalar alpha_y = 1;  // host_vertex_cluster_type::get_r_basis()[1][1];
 
     for (int k_ind = 0; k_ind < TpHostKDmn::dmn_size(); k_ind++)
       harmonics_(k_ind, 2) = (cos(alpha_x * TpHostKDmn::get_elements()[k_ind][0]) -

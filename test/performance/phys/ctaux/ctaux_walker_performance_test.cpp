@@ -10,6 +10,7 @@
 // Performance test for CT-AUX walker.
 // Bilayer lattice with two bands and 36 sites.
 
+#include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/platform/dca_gpu.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
@@ -18,6 +19,7 @@ using McOptions = MockMcOptions<double>;
 }  // namespace config
 }  // namespace dca
 
+#include "dca/linalg/vector.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
 
 #include <iostream>
