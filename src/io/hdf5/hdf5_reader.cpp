@@ -82,7 +82,7 @@ void HDF5Reader::begin_step() {
   if (is_legacy_)
     return;
   if (in_step_)
-    throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
+    throw std::runtime_error("HDF5Reader::begin_step() called while already in step!");
   in_step_ = true;
   std::string step_group{"step_" + std::to_string(++step_ - 1)};
   paths_.push_back(step_group);
@@ -92,7 +92,7 @@ void HDF5Reader::end_step() {
   if (is_legacy_)
     return;
   if (!in_step_)
-    throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
+    throw std::runtime_error("HDF5Reader::end_step() called while not in step!");
   paths_.clear();
   in_step_ = false;
 }

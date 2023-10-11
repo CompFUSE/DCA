@@ -649,29 +649,35 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     long step_count = reader.getStepCount();
     // Work around odd way hdf5 steps get written
     int completed_iteration = 0;
+    std::cout << step_count << " steps found.\n";
     if (step_count >= 0) {
-      for (long i = 0; i < step_count; ++i) {
+    find_step:
+      for (std::size_t i = 0; i < step_count; ++i) {
         reader.begin_step();
         std::cerr << "current step " << i << '\n';
         bool has_iteration =
             reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
         std::cerr << "completed_iteration " << completed_iteration << '\n';
-        if (has_iteration && (i >= completed_iteration)) {
+        if (has_iteration && (i > completed_iteration)) {
           std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
-          hdf5_last_iteration = completed_iteration;
+          hdf5_last_iteration = i;
           reader.close_file();
           reader.open_file(filename);
           step_count = hdf5_last_iteration;
+          goto find_step;
         }
-        reader.end_step();
+        if (i < step_count - 1)
+          reader.end_step();
       }
-      reader.begin_step();
       readSigmaFile(reader);
-      reader.close_file();
+      reader.end_step();
     }
-    concurrency_.broadcast(parameters_.get_chemical_potential());
-    concurrency_.broadcast(Sigma);
+    else {
+      readSigmaFile(reader);
+    }
   }
+  concurrency_.broadcast(parameters_.get_chemical_potential());
+  concurrency_.broadcast(Sigma);
 }
 
 template <class Parameters, DistType DT>
@@ -768,14 +774,13 @@ void DcaData<Parameters, DT>::compute_Sigma_bands() {
       }
       for (int k_ind = 0; k_ind < KCutDmn::dmn_size(); ++k_ind) {
         auto kcut_slice = kConvert(KCutDmn::get_elements()[k_ind]);
-        auto k_vec = domains::cluster_operations::translate_inside_cluster(
-            kcut_slice, ksuper_basis);
+        auto k_vec = domains::cluster_operations::translate_inside_cluster(kcut_slice, ksuper_basis);
 
         for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); ++K_ind) {
-	  auto kdmn_slice = kConvert(KClusterDmn::get_elements()[K_ind]);
+          auto kdmn_slice = kConvert(KClusterDmn::get_elements()[K_ind]);
           length_and_distance[K_ind].second = K_ind;
-          length_and_distance[K_ind].first = domains::cluster_operations::minimal_distance(
-              k_vec, kdmn_slice, ksuper_basis);
+          length_and_distance[K_ind].first =
+              domains::cluster_operations::minimal_distance(k_vec, kdmn_slice, ksuper_basis);
         }
         std::sort(length_and_distance.begin(), length_and_distance.end());
 
@@ -789,108 +794,105 @@ void DcaData<Parameters, DT>::compute_Sigma_bands() {
         }
       }
     }
-      else {
-        for (int k_ind = 0; k_ind < KCutDmn::dmn_size(); ++k_ind) {
-          std::vector<double> k_vec = domains::cluster_operations::translate_inside_cluster(
-              KCutDmn::get_elements()[k_ind], KClusterType::get_super_basis_vectors());
+    else {
+      for (int k_ind = 0; k_ind < KCutDmn::dmn_size(); ++k_ind) {
+        std::vector<double> k_vec = domains::cluster_operations::translate_inside_cluster(
+            KCutDmn::get_elements()[k_ind], KClusterType::get_super_basis_vectors());
 
-          for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); ++K_ind) {
-            length_and_distance[K_ind].second = K_ind;
+        for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); ++K_ind) {
+          length_and_distance[K_ind].second = K_ind;
 
-            length_and_distance[K_ind].first = domains::cluster_operations::minimal_distance(
-                k_vec, KClusterDmn::get_elements()[K_ind], KClusterType::get_super_basis_vectors());
-          }
+          length_and_distance[K_ind].first = domains::cluster_operations::minimal_distance(
+              k_vec, KClusterDmn::get_elements()[K_ind], KClusterType::get_super_basis_vectors());
+        }
 
-          std::sort(length_and_distance.begin(), length_and_distance.end());
+        std::sort(length_and_distance.begin(), length_and_distance.end());
 
-          int result_ind = length_and_distance[0].second;
+        int result_ind = length_and_distance[0].second;
 
-          for (int nu_ind = 0; nu_ind < 2 * BDmn::dmn_size(); ++nu_ind) {
-            Sigma_band_structure(nu_ind, k_ind) =
-                Sigma(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
-            Sigma_cluster_band_structure(nu_ind, k_ind) =
-                Sigma_cluster(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
-          }
+        for (int nu_ind = 0; nu_ind < 2 * BDmn::dmn_size(); ++nu_ind) {
+          Sigma_band_structure(nu_ind, k_ind) =
+              Sigma(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
+          Sigma_cluster_band_structure(nu_ind, k_ind) =
+              Sigma_cluster(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
         }
       }
     }
+  }
 
-    Sigma_lattice_band_structure.reset();
-    if (parameters_.do_dca_plus()) {
-      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
-
-      for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
-        for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
-          for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
-            S_k_dmn(b_ind, s_ind, k_ind) =
-                Sigma_lattice(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
-
-      domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
-          S_k_dmn, Sigma_lattice_band_structure, -1. / 2.);
-    }
-
-    Sigma_band_structure_interpolated.reset();
-
+  Sigma_lattice_band_structure.reset();
+  if (parameters_.do_dca_plus()) {
     func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
       for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
         for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
           S_k_dmn(b_ind, s_ind, k_ind) =
-              Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
+              Sigma_lattice(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
 
     domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
-        S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
-
-    Sigma_band_structure_coarsegrained.reset();
-    if (parameters_.do_dca_plus()) {
-      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
-
-      for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
-        for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
-          for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
-            S_k_dmn(b_ind, s_ind, k_ind) =
-                Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
-
-      domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
-          S_k_dmn, Sigma_band_structure_coarsegrained, -1. / 2.);
-    }
+        S_k_dmn, Sigma_lattice_band_structure, -1. / 2.);
   }
 
-  template <class Parameters, DistType DT>
-  void DcaData<Parameters, DT>::print_Sigma_QMC_versus_Sigma_cg() {
-    if (concurrency_.id() == concurrency_.first() /*and parameters_.do_dca_plus()*/) {
-      if (DIMENSION == 2) {
-        std::cout << "\n\n";
-        std::cout
-            << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "
-               "  Im[Sigma_cg] \n";
-        std::cout
-            << "-------------------------------------------------------------------------------"
-               "---------------\n";
-      }
+  Sigma_band_structure_interpolated.reset();
 
-      if (DIMENSION == 3) {
-        std::cout << "\n\n";
-        std::cout << "                K-vectors                       || Re[Sigma_QMC]   "
-                     "Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
-        std::cout
-            << "-------------------------------------------------------------------------------"
-               "---------------------------------\n";
-      }
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
-      for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); ++k_ind) {
-        math::util::print(KClusterDmn::get_elements()[k_ind]);
-        std::cout << real(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
-                  << imag(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t";
-        std::cout << real(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
-                  << imag(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\n";
-      }
+  for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
+    for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+      for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
+        S_k_dmn(b_ind, s_ind, k_ind) =
+            Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
+
+  domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
+      S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
+
+  Sigma_band_structure_coarsegrained.reset();
+  if (parameters_.do_dca_plus()) {
+    func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
+
+    for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
+      for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+        for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
+          S_k_dmn(b_ind, s_ind, k_ind) =
+              Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
+
+    domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
+        S_k_dmn, Sigma_band_structure_coarsegrained, -1. / 2.);
+  }
+}
+
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::print_Sigma_QMC_versus_Sigma_cg() {
+  if (concurrency_.id() == concurrency_.first() /*and parameters_.do_dca_plus()*/) {
+    if (DIMENSION == 2) {
       std::cout << "\n\n";
+      std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "
+                   "  Im[Sigma_cg] \n";
+      std::cout << "-------------------------------------------------------------------------------"
+                   "---------------\n";
     }
+
+    if (DIMENSION == 3) {
+      std::cout << "\n\n";
+      std::cout << "                K-vectors                       || Re[Sigma_QMC]   "
+                   "Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
+      std::cout << "-------------------------------------------------------------------------------"
+                   "---------------------------------\n";
+    }
+
+    for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); ++k_ind) {
+      math::util::print(KClusterDmn::get_elements()[k_ind]);
+      std::cout << real(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
+                << imag(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t";
+      std::cout << real(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
+                << imag(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\n";
+    }
+    std::cout << "\n\n";
   }
+}
 
 }  // namespace phys
-}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP
