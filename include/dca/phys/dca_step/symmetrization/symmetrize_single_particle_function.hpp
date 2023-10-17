@@ -102,7 +102,7 @@ public:
 
 template <class Parameters>
 std::enable_if_t<HasClusterSymmetrySpecial<Parameters>::value> clusterSymmetrySpecial(
-    int b0, int b1, int k_ind, int& k_new, int& b0_new, int& b1_new, double& sign) {
+    int b0, int b1, int k_ind, int& k_new, int& b0_new, int& b1_new, typename Parameters::Real& sign) {
   Parameters::lattice_type::clusterSymmetrySpecial(b0, b1, k_ind, k_new,
                                                    b0_new, b1_new, sign);
 }
@@ -111,7 +111,7 @@ template <class Parameters>
 std::enable_if_t<!HasClusterSymmetrySpecial<Parameters>::value> clusterSymmetrySpecial(
     [[maybe_unused]] int b0, [[maybe_unused]] int b1, [[maybe_unused]] int k_ind,
     [[maybe_unused]] int& k_new, [[maybe_unused]] int& b0_new, [[maybe_unused]] int& b1_new,
-    [[maybe_unused]] double& sign) {}
+    [[maybe_unused]] typename Parameters::Real& sign) {}
 
 template <class Parameters>
 class SymmetrizeSingleParticleFunction {
@@ -126,6 +126,8 @@ public:
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
 
+  using Real = typename Parameters::Real;
+  
   using Lattice = typename Parameters::lattice_type;
   constexpr static bool symmetrize_spin = Lattice::spin_symmetric;
 
@@ -455,7 +457,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::execute(func::function<Scalar
                                                            bool do_diff) {
   int shift = TDmn::dmn_size() / 2;
 
-  double max = 0;
+  Real max = 0;
   for (int i = 0; i < TDmn::dmn_size() / 2; i++) {
     max = std::max(max, abs((f(i) + f(i + shift)) / 2.));
 
@@ -482,7 +484,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
     for (int c_ind = 0; c_ind < ClusterDmn::dmn_size(); ++c_ind) {
       for (int b0 = 0; b0 < BDmn::dmn_size(); ++b0) {
         for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
-          Scalar tmp = (f(b0, b1, c_ind, t_ind) - f(b0, b1, c_ind, t_ind + t_0)) / 2.;
+          Scalar tmp = (f(b0, b1, c_ind, t_ind) - f(b0, b1, c_ind, t_ind + t_0)) / static_cast<Real>(2.);
 
           f_new(b0, b1, c_ind, t_ind) = tmp;
           f_new(b0, b1, c_ind, t_ind + t_0) = -tmp;
@@ -491,7 +493,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
     }
   }
 
-  double max = 0;
+  Real max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, std::abs(f(ind) - f_new(ind)));
   }
@@ -506,7 +508,7 @@ template <class Parameters>
 template <typename Scalar>
 void SymmetrizeSingleParticleFunction<Parameters>::execute(func::function<Scalar, WDmn>& f,
                                                            bool do_diff) {
-  double max = 0;
+  Real max = 0;
   for (int i = 0; i < WDmn::dmn_size() / 2; i++) {
     max = std::max(max, abs((f(i) - std::conj(f(WDmn::dmn_size() - i - 1))) / 2.));
 
@@ -555,7 +557,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
             const auto tmp1 = f(b0, b1, c_ind, w_ind);
             const auto tmp2 = f(b1, b0, new_c_idx, w_0 - w_ind);  // F(w) = conj(F^t(-w))
 
-            const auto tmp = (tmp1 + std::conj(tmp2)) / 2.;
+            const auto tmp = (tmp1 + std::conj(tmp2)) / static_cast<Real>(2.);
 
             f_new(b0, b1, c_ind, w_ind) = tmp;
             f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);
@@ -569,7 +571,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
   }
 
   if (do_diff) {
-    double max = 0;
+    Real max = 0;
     for (std::size_t ind = 0; ind < f.size(); ++ind) {
       max = std::max(max, abs(f(ind) - f_new(ind)));
     }
@@ -593,7 +595,7 @@ template <class Parameters>
 template <typename Scalar>
 void SymmetrizeSingleParticleFunction<Parameters>::execute(func::function<Scalar, WVertexDmn>& f,
                                                            bool do_diff) {
-  double max = 0;
+  Real max = 0;
   for (int i = 0; i < WVertexDmn::dmn_size() / 2; i++) {
     max = std::max(max, abs((f(i) - std::conj(f(WVertexDmn::dmn_size() - i - 1))) / 2.));
 
@@ -611,7 +613,7 @@ template <class Parameters>
 template <typename Scalar>
 void SymmetrizeSingleParticleFunction<Parameters>::execute(func::function<Scalar, WVertexExtDmn>& f,
                                                            bool do_diff) {
-  double max = 0;
+  Real max = 0;
   for (int i = 0; i < WVertexExtDmn::dmn_size() / 2; i++) {
     max = std::max(max, abs((f(i) - std::conj(f(WVertexExtDmn::dmn_size() - i - 1))) / 2.));
 
@@ -653,11 +655,11 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
   }
 
   if (sym_super_cell_dmn_t::dmn_size() > 0)
-    f_new /= double(sym_super_cell_dmn_t::dmn_size());
+    f_new /= static_cast<Real>(sym_super_cell_dmn_t::dmn_size());
   else
     throw std::logic_error(__FUNCTION__);
 
-  double max = 0;
+  Real max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, std::abs(f(ind) - f_new(ind)));
 
@@ -689,14 +691,14 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
   for (int r_ind = 0; r_ind < RDmn::dmn_size(); ++r_ind) {
     for (int b0 = 0; b0 < BDmn::dmn_size(); ++b0) {
       for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
-        double norm = 0.;
+        Real norm = 0.;
         for (int s_ind = 0; s_ind < SymDmn::dmn_size(); ++s_ind) {
           int R_new_ind = r_symmetry_matrix(r_ind, 0, s_ind).first;
 
           int b0_new = r_symmetry_matrix(r_ind, b0, s_ind).second;
           int b1_new = r_symmetry_matrix(0, b1, s_ind).second;
 
-          double sign = Lattice::transformationSignOfR(b0, b1, s_ind);
+          Real sign = Lattice::transformationSignOfR(b0, b1, s_ind);
           norm += std::abs(sign);
 
           if (b0 != b1) {
@@ -714,7 +716,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
     }
   }
 
-  double max = 0;
+  Real max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, std::abs(f(ind) - f_new(ind)));
 
@@ -751,11 +753,11 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
   }
 
   if (SymDmn::dmn_size() > 0)
-    f_new /= double(SymDmn::dmn_size());
+    f_new /= static_cast<Real>(SymDmn::dmn_size());
   else
     throw std::logic_error(__FUNCTION__);
 
-  double max = 0;
+  Real max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, abs(f(ind) - f_new(ind)));
 
@@ -788,14 +790,14 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
     for (int b0 = 0; b0 < BDmn::dmn_size(); ++b0) {
       for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
-        double norm = 0.;
+        Real norm = 0.;
         for (int s_ind = 0; s_ind < sym_super_cell_dmn_t::dmn_size(); ++s_ind) {
           int k_new = k_symmetry_matrix(k_ind, b0, s_ind).first;  // FIXME: b0 -> b1
 
           int b0_new = k_symmetry_matrix(k_ind, b0, s_ind).second;
           int b1_new = k_symmetry_matrix(k_ind, b1, s_ind).second;
 
-          double sign = Lattice::transformationSignOfK(b0, b1, s_ind);
+          Real sign = Lattice::transformationSignOfK(b0, b1, s_ind);
           norm += std::abs(sign);
 
           clusterSymmetrySpecial<Parameters>(b0, b1, k_ind, k_new, b0_new,
@@ -809,7 +811,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeCluster(
     }
   }
 
-  double max = 0;
+  Real max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, std::abs(f(ind) - f_new(ind)));
 

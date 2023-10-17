@@ -34,7 +34,7 @@ class G_TOOLS : public G_MATRIX_TOOLS<device_t, Parameters> {
   using Real = typename Parameters::Real;
   using Scalar = typename Parameters::Scalar;
 
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton = vertex_singleton<Real>;
 
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
@@ -53,7 +53,7 @@ public:
   double compute_G_matrix_element(int configuration_e_spin_index_i, int configuration_e_spin_index_j,
                                   dca::linalg::Matrix<Scalar, device_t>& N,
                                   dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
-                                  std::vector<vertex_singleton_type>& configuration_e_spin);
+                                  std::vector<VertexSingleton>& configuration_e_spin);
 
   void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, device_t>& indices,
                                    dca::linalg::Vector<Scalar, device_t>& exp_V,
@@ -79,7 +79,7 @@ private:
   double compute_G_vertex_to_old_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
                                         dca::linalg::Matrix<Scalar, device_t>& N,
-                                        std::vector<vertex_singleton_type>& configuration_e_spin);
+                                        std::vector<VertexSingleton>& configuration_e_spin);
 
   double compute_G_vertex_to_new_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
@@ -134,7 +134,7 @@ void G_TOOLS<device_t, Parameters>::build_G_matrix(configuration_type& full_conf
 
   assert(full_configuration.assert_block_form(e_spin));
 
-  std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = full_configuration.get(e_spin);
   int configuration_size(configuration_e_spin.size());
 
   // All interaction pairs are of the same spin type, which leads to a zero configuration size for
@@ -192,7 +192,7 @@ template <dca::linalg::DeviceType device_t, class Parameters>
 inline double G_TOOLS<device_t, Parameters>::compute_G_matrix_element(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
     dca::linalg::Matrix<Scalar, device_t>& N, dca::linalg::Matrix<Scalar, device_t>& G_precomputed,
-    std::vector<vertex_singleton_type>& configuration_e_spin) {
+    std::vector<VertexSingleton>& configuration_e_spin) {
   int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
   double result;
@@ -265,10 +265,10 @@ template <dca::linalg::DeviceType device_t, class Parameters>
 inline double G_TOOLS<device_t, Parameters>::compute_G_vertex_to_old_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
     dca::linalg::Matrix<Scalar, device_t>& N,
-    std::vector<vertex_singleton_type>& configuration_e_spin) {
+    std::vector<VertexSingleton>& configuration_e_spin) {
   Scalar delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
 
-  vertex_singleton_type& v_j = configuration_e_spin[configuration_e_spin_index_j];
+  VertexSingleton& v_j = configuration_e_spin[configuration_e_spin_index_j];
 
   Scalar exp_V = CV_obj.exp_V(v_j);
   Scalar N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);

@@ -13,6 +13,8 @@
 template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<3, parameters_type, k_dmn_t> {
 public:
+  using Real = typename parameters_type::Real;
+
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -26,7 +28,7 @@ public:
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
   using sp_function_type =
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -39,14 +41,14 @@ public:
   }
 
   void execute_on_cluster(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   template <typename Writer>
   void write(Writer& writer);
 
 private:
-  void execute_RPA(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_VC(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_RPA(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_VC(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   int subtract_freq_fb(int, int);
 
@@ -58,9 +60,9 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_RPA;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_VC;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_RPA;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_VC;
 };
 
 template <class parameters_type, class k_dmn_t>
@@ -85,7 +87,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_on_cluster(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
   std::cout << "\t U : " << U(0, 0, 0, 1) << std::endl;
@@ -100,10 +102,10 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_RPA(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_RPA = 0.;
 
@@ -126,16 +128,16 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_RPA(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_RPA(0, 1, 0, 1, k_ind, w_ind) = Sigma_RPA(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value;
   Sigma_RPA *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_VC(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_VC = 0.;
 
@@ -161,7 +163,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_VC(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_VC(0, 1, 0, 1, k_ind, w_ind) = Sigma_VC(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value;
   Sigma_VC *= factor;
 }
 

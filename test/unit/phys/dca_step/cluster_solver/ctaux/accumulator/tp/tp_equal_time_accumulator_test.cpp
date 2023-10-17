@@ -29,11 +29,12 @@ constexpr char input_file[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctaux/accumulator/tp/input.json";
 
 using Scalar = double;
+using Real = double;
 
 using TpEqualTimeAccumulatorTest =
   dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
-using Configuration = std::array<std::vector<dca::phys::solver::ctaux::vertex_singleton>, 2>;
+using Configuration = std::array<std::vector<dca::phys::solver::ctaux::vertex_singleton<Real>>, 2>;
 using Sample = std::array<dca::linalg::Matrix<Scalar, dca::linalg::CPU>, 2>;
 
 void buildConfiguration(Configuration& config, Sample& sample, int b_size, int r_size, double beta,

@@ -56,8 +56,8 @@ class CtintClusterSolver {
 public:
   static constexpr ClusterSolverId solver_type{ClusterSolverId::CT_INT};
 
-  using Real = typename config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using Concurrency = typename Parameters::concurrency_type;
 
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;

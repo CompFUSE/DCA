@@ -55,7 +55,7 @@ public:
   using FTau = typename BaseClass::FTau;
   using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn;
   using Real = dca::util::RealAlias<Scalar>;
-  Dnfft1DGpu(double beta, const linalg::util::GpuStream& stream, bool accumulate_m_sqr = false);
+  Dnfft1DGpu(Real beta, const linalg::util::GpuStream& stream, bool accumulate_m_sqr = false);
 
   // Resets the accumulated quantities. To be called before each DCA iteration.
   void resetAccumulation();
@@ -130,7 +130,7 @@ private:
 };
 
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
-Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double beta,
+Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const Real beta,
                                                                 const linalg::util::GpuStream& stream,
                                                                 const bool accumulate_m_sqr)
     : BaseClass(), beta_(beta), stream_(stream), accumulate_m_sqr_(accumulate_m_sqr) {

@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -231,14 +231,14 @@ private:
     int Gamma_index_HS_field_DN;
     int Gamma_index_HS_field_UP;
 
-    Scalar exp_V_HS_field_DN;
-    Scalar exp_V_HS_field_UP;
+    Real exp_V_HS_field_DN;
+    Real exp_V_HS_field_UP;
 
-    Scalar exp_delta_V_HS_field_DN;
-    Scalar exp_delta_V_HS_field_UP;
+    Real exp_delta_V_HS_field_DN;
+    Real exp_delta_V_HS_field_UP;
 
-    Scalar exp_minus_delta_V_HS_field_UP;
-    Scalar exp_minus_delta_V_HS_field_DN;
+    Real exp_minus_delta_V_HS_field_UP;
+    Real exp_minus_delta_V_HS_field_DN;
   };
 
 private:
@@ -259,7 +259,7 @@ private:
   N_TOOLS<device_t, Parameters> N_tools_obj;
   G_TOOLS<device_t, Parameters> G_tools_obj;
 
-  SHRINK_TOOLS<Profiler, device_t, Scalar> SHRINK_tools_obj;
+  SHRINK_TOOLS<Profiler, device_t, Real, Scalar> SHRINK_tools_obj;
 
   using CtauxWalkerData<device_t, Parameters>::N_up;
   using CtauxWalkerData<device_t, Parameters>::N_dn;
@@ -889,7 +889,7 @@ void CtauxWalker<device_t, Parameters, Data>::finalizeDelayedSpins() {
     if (delayed_spins[i].e_spin_HS_field_DN == e_UP) {
       delayed_spins[i].Gamma_index_HS_field_DN = Gamma_up_size++;
 
-      const vertex_singleton& v_j =
+      const vertex_singleton<Real>& v_j =
           configuration_.get(e_UP)[delayed_spins[i].configuration_e_spin_index_HS_field_DN];
 
       delayed_spins[i].exp_V_HS_field_DN = CV_obj.exp_V(v_j);
@@ -901,7 +901,7 @@ void CtauxWalker<device_t, Parameters, Data>::finalizeDelayedSpins() {
     else {
       delayed_spins[i].Gamma_index_HS_field_DN = Gamma_dn_size++;
 
-      const vertex_singleton& v_j =
+      const vertex_singleton<Real>& v_j =
           configuration_.get(e_DN)[delayed_spins[i].configuration_e_spin_index_HS_field_DN];
 
       delayed_spins[i].exp_V_HS_field_DN = CV_obj.exp_V(v_j);
@@ -913,7 +913,7 @@ void CtauxWalker<device_t, Parameters, Data>::finalizeDelayedSpins() {
     if (delayed_spins[i].e_spin_HS_field_UP == e_UP) {
       delayed_spins[i].Gamma_index_HS_field_UP = Gamma_up_size++;
 
-      const vertex_singleton& v_j =
+      const vertex_singleton<Real>& v_j =
           configuration_.get(e_UP)[delayed_spins[i].configuration_e_spin_index_HS_field_UP];
 
       delayed_spins[i].exp_V_HS_field_UP = CV_obj.exp_V(v_j);
@@ -925,7 +925,7 @@ void CtauxWalker<device_t, Parameters, Data>::finalizeDelayedSpins() {
     else {
       delayed_spins[i].Gamma_index_HS_field_UP = Gamma_dn_size++;
 
-      const vertex_singleton& v_j =
+      const vertex_singleton<Real>& v_j =
           configuration_.get(e_DN)[delayed_spins[i].configuration_e_spin_index_HS_field_UP];
 
       delayed_spins[i].exp_V_HS_field_UP = CV_obj.exp_V(v_j);
@@ -1423,7 +1423,7 @@ void CtauxWalker<device_t, Parameters, Data>::update_N_matrix_with_Gamma_matrix(
   Profiler profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   // kills Bennett-spins and puts the interacting vertices all in the left part of the configuration_
-  SHRINK_TOOLS<Profiler, device_t, Scalar>::shrink_Gamma(configuration_, Gamma_up, Gamma_dn);
+  SHRINK_TOOLS<Profiler, device_t, Real, Scalar>::shrink_Gamma(configuration_, Gamma_up, Gamma_dn);
 
   N_tools_obj.rebuild_N_matrix_via_Gamma_LU(configuration_, N_up, Gamma_up, G_up, e_UP);
   N_tools_obj.rebuild_N_matrix_via_Gamma_LU(configuration_, N_dn, Gamma_dn, G_dn, e_DN);
@@ -1498,7 +1498,7 @@ bool CtauxWalker<device_t, Parameters, Data>::assert_exp_delta_V_value(
       int configuration_e_spin_index_HS_field_DN =
           configuration_[random_vertex_ind].get_configuration_e_spin_indices().first;
 
-      vertex_singleton& v_j =
+      vertex_singleton<Real>& v_j =
           configuration_.get(e_spin_HS_field_DN)[configuration_e_spin_index_HS_field_DN];
 
       if (std::abs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {
@@ -1512,7 +1512,7 @@ bool CtauxWalker<device_t, Parameters, Data>::assert_exp_delta_V_value(
       int configuration_e_spin_index_HS_field_UP =
           configuration_[random_vertex_ind].get_configuration_e_spin_indices().second;
 
-      vertex_singleton& v_j =
+      vertex_singleton<Real>& v_j =
           configuration_.get(e_spin_HS_field_UP)[configuration_e_spin_index_HS_field_UP];
 
       if (std::abs(CV_obj.exp_delta_V(v_j, new_HS_spin_value) - exp_delta_V) > 1.e-6) {

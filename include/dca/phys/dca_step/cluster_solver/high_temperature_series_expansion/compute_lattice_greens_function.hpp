@@ -33,15 +33,16 @@ class compute_lattice_Greens_function {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
+  using Real = typename parameters_type::Real;
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using k_HOST =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+      func::dmn_0<domains::cluster_domain<Real, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using function_type = func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>>;
+  using function_type = func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_HOST, w>>;
 
 public:
   compute_lattice_Greens_function(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -60,8 +61,8 @@ private:
   concurrency_type& concurrency;
   MOMS_type& MOMS;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>> G_k_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>> G0_k_w;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>> G_k_w;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>> G0_k_w;
 };
 
 template <class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
@@ -76,15 +77,15 @@ compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_t>::c
 
 template <class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
 void compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_t>::execute() {
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
 
   // Allocate the work space for inverse only once.
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  dca::linalg::Vector<std::complex<Real>, dca::linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-    std::complex<double> i_wm_plus_mu;
+    std::complex<Real> i_wm_plus_mu;
 
     i_wm_plus_mu.real(parameters.get_chemical_potential());
     i_wm_plus_mu.imag(w::get_elements()[w_ind]);

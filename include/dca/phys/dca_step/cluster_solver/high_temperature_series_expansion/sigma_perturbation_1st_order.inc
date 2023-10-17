@@ -20,7 +20,7 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  typedef func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> function_type;
+  typedef func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> function_type;
 
 public:
   sigma_perturbation(parameter_type& parameters_ref, compute_interaction& interaction_obj);
@@ -39,8 +39,8 @@ protected:
 
   U_type& U;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu>> d_matrix;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu>> d_matrix;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
 };
 
 template <class parameter_type, class k_dmn_t>

@@ -48,7 +48,7 @@ public:
   using Real = typename Parameters::Real;
   using Scalar = typename Parameters::Scalar;
 
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton = vertex_singleton<Real>;
 
   typedef typename Parameters::profiler_type profiler_type;
   typedef typename Parameters::concurrency_type Concurrency;
@@ -134,7 +134,7 @@ private:
   void interpolate(func::function<Scalar, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
                    func::function<Scalar, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
 
-  int find_first_non_interacting_spin(const std::vector<vertex_singleton_type>& configuration_e_spin);
+  int find_first_non_interacting_spin(const std::vector<VertexSingleton>& configuration_e_spin);
 
   template <class configuration_type>
   void compute_G0_matrix(e_spin_states e_spin, const configuration_type& configuration,
@@ -756,7 +756,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulate_dwave_pp_correlator(Sc
 
 template <class Parameters, class Data>
 int TpEqualTimeAccumulator<Parameters, Data>::find_first_non_interacting_spin(
-    const std::vector<vertex_singleton_type>& configuration_e_spin) {
+    const std::vector<VertexSingleton>& configuration_e_spin) {
   int configuration_size = configuration_e_spin.size();
 
   int vertex_index = 0;
@@ -782,7 +782,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::compute_G0_matrix(
 
   int configuration_size = find_first_non_interacting_spin(configuration);
   for (int j = 0; j < configuration_size; j++) {
-    const vertex_singleton_type& configuration_e_spin_j = configuration[j];
+    const VertexSingleton& configuration_e_spin_j = configuration[j];
 
     b_j = configuration_e_spin_j.get_band();
     r_j = configuration_e_spin_j.get_r_site();
@@ -814,7 +814,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::compute_G0_matrix_left(
 
   int configuration_size = find_first_non_interacting_spin(configuration);
   for (int j = 0; j < configuration_size; j++) {
-    const vertex_singleton_type& configuration_e_spin_j = configuration[j];
+    const VertexSingleton& configuration_e_spin_j = configuration[j];
 
     b_j = configuration_e_spin_j.get_band();
     r_j = configuration_e_spin_j.get_r_site();
@@ -852,7 +852,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::compute_G0_matrix_right(
     t_j = fixed_configuration[j].t_val;
 
     for (int i = 0; i < configuration_size; i++) {
-      const vertex_singleton_type& configuration_e_spin_i = configuration[i];
+      const VertexSingleton& configuration_e_spin_i = configuration[i];
 
       b_i = configuration_e_spin_i.get_band();
       r_i = configuration_e_spin_i.get_r_site();

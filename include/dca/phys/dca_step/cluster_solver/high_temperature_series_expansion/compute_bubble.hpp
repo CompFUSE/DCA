@@ -45,6 +45,8 @@ public:
   using ThisType = compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>;
   using Threading = typename parameters_type::ThreadingType;
 
+  using Real = typename parameters_type::Real;
+  
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
 
@@ -54,9 +56,9 @@ public:
   using b_b = func::dmn_variadic<b, b>;
 
   using G_function_type =
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>;
   using function_type =
-      func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, WVertexBosonicDmn>>;
+      func::function<std::complex<Real>, func::dmn_variadic<b_b, b_b, k_dmn_t, WVertexBosonicDmn>>;
 
 public:
   compute_bubble(parameters_type& parameters_ref);
@@ -87,7 +89,7 @@ private:
   concurrency_type& concurrency;
 
 protected:
-  func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, WVertexBosonicDmn>> chi;
+  func::function<std::complex<Real>, func::dmn_variadic<b_b, b_b, k_dmn_t, WVertexBosonicDmn>> chi;
 
 private:
   struct bubble_data {
@@ -163,7 +165,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
   concurrency.sum(chi);
 
-  double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
+  Real factor = static_cast<Real>(-1.) / (static_cast<Real>(parameters.get_beta()) * k_dmn_t::dmn_size());
 
   chi *= factor;
 }
@@ -202,7 +204,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
     }
   }
 
-  double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
+  Real factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
   chi *= factor;
 }
 
@@ -216,7 +218,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
   std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
-    double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
+    Real percentage = Real(q_ind - q_bounds.first) / Real(q_bounds.second - q_bounds.first);
 
     if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()
@@ -277,7 +279,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
     }
   }
 
-  double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
+  Real factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
   chi *= factor;
 }
 
@@ -291,7 +293,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
   std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
-    double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
+    Real percentage = Real(q_ind - q_bounds.first) / Real(q_bounds.second - q_bounds.first);
 
     if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()

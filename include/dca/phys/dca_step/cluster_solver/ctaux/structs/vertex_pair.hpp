@@ -35,14 +35,15 @@ template <class parameters_type>
 class vertex_pair {
 public:
   using rng_type = typename parameters_type::random_number_generator;
-
+  using Real = typename parameters_type::Real;
+  
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
 
   typedef RClusterDmn r_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton = vertex_singleton<Real>;
   typedef vertex_pair<parameters_type> this_type;
 
 public:
@@ -55,8 +56,8 @@ public:
     return id_;
   }
 
-  vertex_singleton_type first();
-  vertex_singleton_type second();
+  VertexSingleton first();
+  VertexSingleton second();
 
   void set_random_interacting();
   void set_random_noninteracting();
@@ -80,8 +81,8 @@ public:
   HS_spin_states_type& get_HS_spin();
   HS_spin_states_type get_HS_spin() const;
   int& get_delta_r();
-  double& get_tau();
-  const double& get_tau() const {
+  Real& get_tau();
+  const Real& get_tau() const {
     return tau;
   }
 
@@ -216,15 +217,15 @@ vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
 }
 
 template <class parameters_type>
-vertex_singleton vertex_pair<parameters_type>::first() {
-  return vertex_singleton_type(bands.first, e_spins.first, spin_orbitals.first,
+typename vertex_pair<parameters_type>::VertexSingleton vertex_pair<parameters_type>::first() {
+  return VertexSingleton(bands.first, e_spins.first, spin_orbitals.first,
                                spin_orbitals.second, r_sites.first, delta_r, tau, HS_spin,
                                HS_FIELD_DN, configuration_index);
 }
 
 template <class parameters_type>
-vertex_singleton vertex_pair<parameters_type>::second() {
-  return vertex_singleton_type(bands.second, e_spins.second, spin_orbitals.second,
+typename vertex_pair<parameters_type>::VertexSingleton vertex_pair<parameters_type>::second() {
+  return VertexSingleton(bands.second, e_spins.second, spin_orbitals.second,
                                spin_orbitals.first, r_sites.second, delta_r, tau, HS_spin,
                                HS_FIELD_UP, configuration_index);
 }
@@ -311,7 +312,7 @@ int& vertex_pair<parameters_type>::get_delta_r() {
 }
 
 template <class parameters_type>
-double& vertex_pair<parameters_type>::get_tau() {
+typename vertex_pair<parameters_type>::Real& vertex_pair<parameters_type>::get_tau() {
   return tau;
 }
 

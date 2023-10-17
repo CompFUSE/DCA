@@ -50,7 +50,6 @@ public:
   using ThisType = Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>;
   using Real = dca::util::RealAlias<Scalar>;
 
-
   Dnfft1D();
   Dnfft1D(ThisType&& other) = default;
 
@@ -421,6 +420,7 @@ template <typename Scalar, typename WDmn, typename PDmn, int oversampling, NfftM
 template <typename OutReal>
 void Dnfft1D<Scalar, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
     func::function<std::complex<OutReal>, func::dmn_variadic<WDmn, PDmn>>& f_w) const {
+  static_assert(std::is_same_v<dca::util::RealAlias<Scalar>, OutReal>);
   transformFTauToFW(f_w, dca::util::IsComplex_t<Scalar>());
 }
 

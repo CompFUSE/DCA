@@ -70,7 +70,7 @@ public:
   using BaseClass = MC_accumulator_data<Scalar>;
   
   typedef vertex_pair<Parameters> vertex_pair_type;
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton = vertex_singleton<Real>;
 
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
@@ -116,7 +116,7 @@ public:
 
   void finalize();
 
-  std::vector<vertex_singleton_type>& get_configuration(e_spin_states_type e_spin = e_UP);
+  std::vector<VertexSingleton>& get_configuration(e_spin_states_type e_spin = e_UP);
 
   func::function<Real, func::dmn_0<domains::numerical_error_domain>>& get_error_distribution() {
     return error;
@@ -226,7 +226,7 @@ protected:
 
   const bool compute_std_deviation_;
 
-  std::array<std::vector<vertex_singleton_type>, 2> hs_configuration_;
+  std::array<std::vector<VertexSingleton>, 2> hs_configuration_;
 
   std::array<dca::linalg::Matrix<Scalar, device_t>, 2> M_;
   std::array<dca::linalg::Matrix<Scalar, linalg::CPU>, 2> M_host_;
@@ -338,7 +338,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::finalize() {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
-std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, DIST>::get_configuration(
+std::vector<typename CtauxAccumulator<device_t, Parameters, Data, DIST>::VertexSingleton>& CtauxAccumulator<device_t, Parameters, Data, DIST>::get_configuration(
     e_spin_states_type e_spin) {
   if (e_spin == e_UP)
     return hs_configuration_[0];

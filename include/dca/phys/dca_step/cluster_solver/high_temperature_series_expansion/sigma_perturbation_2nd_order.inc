@@ -17,6 +17,7 @@ public:
   using Threading = typename parameters_type::ThreadingType;
   using ThisType = sigma_perturbation<2, parameters_type, k_dmn_t>;
 
+  using Real = typename parameters_type::Real;
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -30,7 +31,7 @@ public:
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
   using sp_function_type =
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -43,11 +44,11 @@ public:
   }
 
   void execute_on_cluster(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
   void threaded_execute_on_cluster(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
-  // void execute_on_cluster_2(func::function<std::complex<double>, func::dmn_variadic<nu,nu,
+  // void execute_on_cluster_2(func::function<std::complex<Real>, func::dmn_variadic<nu,nu,
   // k_dmn_t,
   // w> >&
   // G);
@@ -56,8 +57,8 @@ public:
   void write(Writer& writer);
 
 private:
-  void execute_2A(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_2B(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_2A(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_2B(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   void threaded_execute_2B(int id, int num_threads, sp_function_type& S, const sp_function_type& G,
                            const chi_function_type& chi) const;
@@ -73,7 +74,7 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  func::function<std::complex<double>, func::dmn_variadic<b, b, k_dmn_t, WVertexBosonicDmn>> U_chi_U;
+  func::function<std::complex<Real>, func::dmn_variadic<b, b, k_dmn_t, WVertexBosonicDmn>> U_chi_U;
 
   sp_function_type Sigma;
 
@@ -119,7 +120,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
@@ -135,17 +136,17 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
   Sigma += Sigma_2B;
 
   if (true) {
-    std::complex<double> I(0, 1);
+    std::complex<Real> I(0, 1);
     for (int b_ind = 0; b_ind < 2 * b::dmn_size(); ++b_ind) {
       for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
         int wc_ind = w::dmn_size() / 8;
 
-        double wc = w::get_elements()[wc_ind];
+        Real wc = w::get_elements()[wc_ind];
 
-        std::complex<double> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
+        std::complex<Real> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
 
-        double alpha = real(Sigma_wc);
-        double beta = imag(Sigma_wc * wc);
+        Real alpha = real(Sigma_wc);
+        Real beta = imag(Sigma_wc * wc);
 
         for (int w_ind = 0; w_ind < wc_ind; ++w_ind) {
           Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / w::get_elements()[w_ind];
@@ -159,11 +160,11 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_2A = 0.;
 
@@ -200,7 +201,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_2A(0, 1, 0, 1, k_ind, w_ind) = Sigma_2A(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
+  Real factor = 1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
                         k_dmn_t::dmn_size()) *
                   U_value * U_value;
   Sigma_2A *= factor;
@@ -208,11 +209,11 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_2B = 0.;
 
@@ -237,13 +238,13 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_2B(0, 1, 0, 1, k_ind, w_ind) = Sigma_2B(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
   Sigma_2B *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t\t second-order Self-energy \n\n" << std::endl;
 
@@ -257,8 +258,8 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   threads.execute(nr_threads, task);
 
   {
-    double U_value = U(0, 0, 0, 1);
-    double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
+    Real U_value = U(0, 0, 0, 1);
+    Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
     Sigma_2B *= factor;
 
     concurrency.sum(Sigma_2B);
@@ -267,22 +268,22 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   Sigma = Sigma_2B;
 
   if (true) {
-    std::complex<double> I(0, 1);
+    std::complex<Real> I(0, 1);
     for (int b_ind = 0; b_ind < 2 * b::dmn_size(); ++b_ind) {
       for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
         int wc_ind = w::dmn_size() / 8;
 
-        double wc = w::get_elements()[wc_ind];
+        Real wc = w::get_elements()[wc_ind];
 
-        std::complex<double> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
+        std::complex<Real> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
 
-        double alpha = real(Sigma_wc);
-        double beta = imag(Sigma_wc * wc);
+        Real alpha = real(Sigma_wc);
+        Real beta = imag(Sigma_wc * wc);
 
         for (int w_ind = 0; w_ind < wc_ind; ++w_ind) {
-          Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / w::get_elements()[w_ind];
+          Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / static_cast<const Real>(w::get_elements()[w_ind]);
           Sigma(b_ind, b_ind, k_ind, w::dmn_size() - 1 - w_ind) =
-              alpha - beta * I / w::get_elements()[w_ind];
+	    alpha - beta * I / static_cast<const Real>(w::get_elements()[w_ind]);
         }
       }
     }
@@ -300,7 +301,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(
   std::pair<int, int> k_bounds = dca::parallel::util::getBounds(id, nr_threads, k_dmn);
 
   for (int k_ind = k_bounds.first; k_ind < k_bounds.second; k_ind++) {
-    double percentage = double(k_ind - k_bounds.first) / double(k_bounds.second - k_bounds.first);
+    Real percentage = Real(k_ind - k_bounds.first) / Real(k_bounds.second - k_bounds.first);
 
     if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()

@@ -40,8 +40,8 @@ template <class Parameters, linalg::DeviceType device,
 class CtintAccumulator : public MC_accumulator_data<typename Parameters::Scalar> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using Base = MC_accumulator_data<Scalar>;
   using this_type = CtintAccumulator<Parameters, device, DIST>;
   using Base::accumulated_phase_;

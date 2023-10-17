@@ -52,7 +52,7 @@ class N_TOOLS : public N_MATRIX_TOOLS<device_t, Parameters> {
 
   using Real = typename Parameters::Real;
   using Scalar = typename Parameters::Scalar;
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton =  vertex_singleton<Real>;
 
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;
@@ -94,7 +94,7 @@ public:
 private:
   void compute_d_vector(const HostVector<int>& permutation,
                         std::vector<HS_spin_states_type>& spin_values,
-                        std::vector<vertex_singleton_type>& configuration_e_spin,
+                        std::vector<VertexSingleton>& configuration_e_spin,
                         dca::linalg::Vector<Scalar, dca::linalg::CPU>& d_inv);
 
   template <class configuration_type>
@@ -197,7 +197,7 @@ void N_TOOLS<device_t, Parameters>::build_N_matrix(configuration_type& configura
                                                    dca::linalg::Matrix<Scalar, device_t>& N,
                                                    const dca::linalg::Matrix<Scalar, device_t>& G0,
                                                    e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size(configuration_e_spin.size());
 
   // All interaction pairs are of the same spin type, which leads to a zero configuration size for
@@ -247,7 +247,7 @@ void N_TOOLS<device_t, Parameters>::update_N_matrix(configuration_type& configur
                                                     e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "update_N_matrix", "CT-AUX", __LINE__, true);
 
-  std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
   // All interaction pairs are of the same spin type, which leads to a zero configuration size for
@@ -352,7 +352,7 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
   if (Gamma_size == 0)
     return;
 
-  std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = full_configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();  // What happens if configuration_size = 0?
 
   std::vector<HS_spin_states_type>& spin_values =
@@ -463,7 +463,7 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
 template <dca::linalg::DeviceType device_t, typename Parameters>
 inline void N_TOOLS<device_t, Parameters>::compute_d_vector(
     const HostVector<int>& permutation, std::vector<HS_spin_states_type>& spin_values,
-    std::vector<vertex_singleton_type>& configuration_e_spin,
+    std::vector<VertexSingleton>& configuration_e_spin,
     dca::linalg::Vector<Scalar, dca::linalg::CPU>& d_inv) {
   int spin_orbital, spin_orbital_paired;
   int delta_r;
@@ -491,7 +491,7 @@ inline void N_TOOLS<device_t, Parameters>::compute_d_vector(
     if (old_HS_spin == HS_ZERO) {
       exp_delta_V = CV_obj.exp_delta_V(spin_orbital, spin_orbital_paired, new_HS_spin, old_HS_spin,
                                        HS_field_sign, delta_r);
-      d_inv[i] = 1. / exp_delta_V;
+      d_inv[i] = static_cast<Real>(1.) / exp_delta_V;
     }
     else {
       d_inv[i] = 0;
@@ -514,7 +514,7 @@ template <class configuration_type>
 bool N_TOOLS<device_t, Parameters>::assert_that_there_are_no_Bennett_spins(
     configuration_type& full_configuration) {
   {
-    std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_UP);
+    std::vector<VertexSingleton>& configuration_e_spin = full_configuration.get(e_UP);
     auto& permutation = full_configuration.get_changed_spin_indices_e_spin(e_UP);
 
     for (size_t i = 0; i < permutation.size(); i++) {
@@ -526,7 +526,7 @@ bool N_TOOLS<device_t, Parameters>::assert_that_there_are_no_Bennett_spins(
   }
 
   {
-    std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_DN);
+    std::vector<VertexSingleton>& configuration_e_spin = full_configuration.get(e_DN);
     auto& permutation = full_configuration.get_changed_spin_indices_e_spin(e_DN);
 
     for (size_t i = 0; i < permutation.size(); i++) {

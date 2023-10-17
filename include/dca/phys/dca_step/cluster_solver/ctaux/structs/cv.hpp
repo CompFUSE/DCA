@@ -45,6 +45,8 @@ public:
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
 
+  using Real = typename parameters_type::Real;
+  
   typedef RClusterDmn r_dmn_t;
 
   typedef HS_spin_domain HS_spin_domain_type;
@@ -63,7 +65,7 @@ public:
   template <class stream_type>
   void to_JSON(stream_type& ss);
 
-  static func::function<double, nu_nu_r_dmn_t>& get_H_interaction();
+  static func::function<Real, nu_nu_r_dmn_t>& get_H_interaction();
 
   int nu_nu_HS_s_HS_f_r_DCA_dmn_index(int spin_orbital_1, int spin_orbital_2,
                                       HS_spin_states_type HS_spin, HS_field_sign_type HS_field_sign,
@@ -76,9 +78,9 @@ public:
    *   --> e^{- \gamma \sigma_{HS}}
    */
   template <typename vertex_singleton_t>
-  double get_QMC_factor(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
+  Real get_QMC_factor(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
 
-  double exp_V(int linind);
+  Real exp_V(int linind);
 
   /*!
    *   \f{eqnarray}{
@@ -87,7 +89,7 @@ public:
    *   \f}
    */
   template <typename vertex_singleton_t>
-  double exp_V(vertex_singleton_t& v);
+  Real exp_V(vertex_singleton_t& v);
 
   /*!
    *   \f{eqnarray}{
@@ -95,21 +97,21 @@ public:
    * r)\:\sigma_{HS}\:\sigma_{HF}}
    *   \f}
    */
-  double exp_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin,
+  Real exp_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin,
                HS_field_sign_type HS_field_sign, int site);
 
-  double exp_delta_V(int linind);
+  Real exp_delta_V(int linind);
 
   template <typename vertex_singleton_t>
-  double exp_delta_V(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
+  Real exp_delta_V(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
 
   template <typename vertex_singleton_t>
-  double exp_minus_delta_V(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
+  Real exp_minus_delta_V(vertex_singleton_t& v, HS_spin_states_type new_HS_spin);
 
-  double exp_delta_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin_1,
+  Real exp_delta_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin_1,
                      HS_spin_states_type HS_spin_2, HS_field_sign_type HS_field_sign, int site);
 
-  double exp_minus_delta_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin_1,
+  Real exp_minus_delta_V(int spin_orbital_1, int spin_orbital_2, HS_spin_states_type HS_spin_1,
                            HS_spin_states_type HS_spin_2, HS_field_sign_type HS_field_sign, int site);
 
   template <typename MOMS_type>
@@ -123,20 +125,20 @@ private:
 private:
   const parameters_type& parameters;
 
-  double BETA;
-  double K_CT_AUX;
-  double BANDS;
-  double FULL_CLUSTER_SIZE;
-  double CORRELATED_ORBITALS;
+  Real BETA;
+  Real K_CT_AUX;
+  Real BANDS;
+  Real FULL_CLUSTER_SIZE;
+  Real CORRELATED_ORBITALS;
 
   nu_nu_HS_s_HS_f_r_dmn_t nu_nu_HS_s_HS_f_r_dmn;
 
-  func::function<double, nu_nu_r_dmn_t> H_interaction;
+  func::function<Real, nu_nu_r_dmn_t> H_interaction;
 
-  func::function<double, nu_nu_r_dmn_t> gamma_function;
-  func::function<double, nu_nu_HS_s_HS_f_r_dmn_t> exp_V_function;
+  func::function<Real, nu_nu_r_dmn_t> gamma_function;
+  func::function<Real, nu_nu_HS_s_HS_f_r_dmn_t> exp_V_function;
 
-  func::function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
+  func::function<Real, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
 };
 
 template <typename parameters_type>
@@ -165,8 +167,8 @@ void CV<parameters_type>::to_JSON(stream_type& ss) {
 }
 
 template <typename parameters_type>
-func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction() {
-  static func::function<double, nu_nu_r_dmn_t> H;
+func::function<typename parameters_type::Real, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction() {
+  static func::function<Real, nu_nu_r_dmn_t> H;
   return H;
 }
 
@@ -183,13 +185,13 @@ inline int CV<parameters_type>::nu_nu_HS_s_HS_f_r_DCA_dmn_index(int spin_orbital
 }
 
 template <typename parameters_type>
-inline double CV<parameters_type>::exp_V(int linind) {
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_V(int linind) {
   return exp_V_function(linind);
 }
 
 template <typename parameters_type>
 template <typename vertex_singleton_t>
-inline double CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v,
+inline typename CV<parameters_type>::Real CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v,
                                                   HS_spin_states_type new_HS_spin) {
   std::pair<int, int> spin_orbitals = v.get_spin_orbitals();
   int delta_r = v.get_delta_r();
@@ -211,7 +213,7 @@ inline double CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v,
 
 template <typename parameters_type>
 template <typename vertex_singleton_t>
-inline double CV<parameters_type>::exp_V(vertex_singleton_t& v) {
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_V(vertex_singleton_t& v) {
   HS_spin_states_type HS_spin = v.get_HS_spin();
   HS_field_sign_type HS_field = v.get_HS_field();
 
@@ -224,7 +226,7 @@ inline double CV<parameters_type>::exp_V(vertex_singleton_t& v) {
 }
 
 template <typename parameters_type>
-inline double CV<parameters_type>::exp_V(int spin_orbital_1, int spin_orbital_2,
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_V(int spin_orbital_1, int spin_orbital_2,
                                          HS_spin_states_type HS_spin,
                                          HS_field_sign_type HS_field_sign, int site) {
   int HS_spin_ind = HS_spin_domain::to_coordinate(HS_spin);
@@ -234,13 +236,13 @@ inline double CV<parameters_type>::exp_V(int spin_orbital_1, int spin_orbital_2,
 }
 
 template <typename parameters_type>
-inline double CV<parameters_type>::exp_delta_V(int linind) {
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_delta_V(int linind) {
   return exp_delta_V_function(linind);
 }
 
 template <typename parameters_type>
 template <typename vertex_singleton_t>
-inline double CV<parameters_type>::exp_delta_V(vertex_singleton_t& v,
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_delta_V(vertex_singleton_t& v,
                                                HS_spin_states_type new_HS_spin) {
   int spin_orbital_1 = v.get_spin_orbital();
   int spin_orbital_2 = v.get_paired_spin_orbital();
@@ -256,7 +258,7 @@ inline double CV<parameters_type>::exp_delta_V(vertex_singleton_t& v,
 
 template <typename parameters_type>
 template <typename vertex_singleton_t>
-inline double CV<parameters_type>::exp_minus_delta_V(vertex_singleton_t& v,
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_minus_delta_V(vertex_singleton_t& v,
                                                      HS_spin_states_type new_HS_spin) {
   int spin_orbital_1 = v.get_spin_orbital();
   int spin_orbital_2 = v.get_paired_spin_orbital();
@@ -271,7 +273,7 @@ inline double CV<parameters_type>::exp_minus_delta_V(vertex_singleton_t& v,
 }
 
 template <typename parameters_type>
-inline double CV<parameters_type>::exp_delta_V(int spin_orbital_1, int spin_orbital_2,
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_delta_V(int spin_orbital_1, int spin_orbital_2,
                                                HS_spin_states_type HS_spin_1,
                                                HS_spin_states_type HS_spin_2,
                                                HS_field_sign_type HS_field_sign, int site) {
@@ -284,7 +286,7 @@ inline double CV<parameters_type>::exp_delta_V(int spin_orbital_1, int spin_orbi
 }
 
 template <typename parameters_type>
-inline double CV<parameters_type>::exp_minus_delta_V(int spin_orbital_1, int spin_orbital_2,
+inline typename CV<parameters_type>::Real CV<parameters_type>::exp_minus_delta_V(int spin_orbital_1, int spin_orbital_2,
                                                      HS_spin_states_type HS_spin_1,
                                                      HS_spin_states_type HS_spin_2,
                                                      HS_field_sign_type HS_field_sign, int site) {
@@ -337,9 +339,9 @@ void CV<parameters_type>::initialize_gamma() {
   for (int nu_ind_i = 0; nu_ind_i < 2 * BANDS; nu_ind_i++) {
     for (int nu_ind_j = 0; nu_ind_j < 2 * BANDS; nu_ind_j++) {
       for (int r = 0; r < FULL_CLUSTER_SIZE; r++) {
-        double U_i_j_r = std::abs(H_interaction(nu_ind_i, nu_ind_j, r));
+        Real U_i_j_r = std::abs(H_interaction(nu_ind_i, nu_ind_j, r));
 
-        double coshgamma = 1. + U_i_j_r * BETA * CORRELATED_ORBITALS / (2. * K_CT_AUX);
+        Real coshgamma = 1. + U_i_j_r * BETA * CORRELATED_ORBITALS / (2. * K_CT_AUX);
 
         gamma_function(nu_ind_i, nu_ind_j, r) = acosh(coshgamma);
       }

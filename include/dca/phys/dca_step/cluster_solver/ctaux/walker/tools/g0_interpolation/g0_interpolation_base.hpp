@@ -34,8 +34,8 @@ namespace ctaux {
 template <typename Parameters>
 class G0InterpolationBase {
 public:
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
   using t = func::dmn_0<domains::time_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;

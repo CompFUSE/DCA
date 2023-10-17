@@ -20,10 +20,11 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-vertex_singleton::vertex_singleton(int band_in, e_spin_states_type e_spin_in, int spin_orbital_in,
+template <typename REAL>
+vertex_singleton<REAL>::vertex_singleton(int band_in, e_spin_states_type e_spin_in, int spin_orbital_in,
 
                                    int paired_spin_orbital_in, int r_site_in, int delta_r_in,
-                                   double tau_in,
+                                   REAL tau_in,
 
                                    HS_spin_states_type HS_spin_in, HS_field_sign_type HS_field_in,
                                    int configuration_index_in)
@@ -40,7 +41,8 @@ vertex_singleton::vertex_singleton(int band_in, e_spin_states_type e_spin_in, in
       HS_field(HS_field_in),
       configuration_index(configuration_index_in) {}
 
-vertex_singleton::vertex_singleton(const vertex_singleton& other_vertex_couple)
+template <typename REAL>
+vertex_singleton<REAL>::vertex_singleton(const vertex_singleton<REAL>& other_vertex_couple)
     : band(other_vertex_couple.get_band()),
       e_spin(other_vertex_couple.get_e_spin()),
       spin_orbital(other_vertex_couple.get_spin_orbital()),
@@ -54,7 +56,8 @@ vertex_singleton::vertex_singleton(const vertex_singleton& other_vertex_couple)
       HS_field(other_vertex_couple.get_HS_field()),
       configuration_index(other_vertex_couple.get_configuration_index()) {}
 
-vertex_singleton& vertex_singleton::operator=(vertex_singleton& other_vertex_couple) {
+template <typename REAL>
+vertex_singleton<REAL>& vertex_singleton<REAL>::operator=(vertex_singleton<REAL>& other_vertex_couple) {
   band = other_vertex_couple.get_band();
   e_spin = other_vertex_couple.get_e_spin();
   spin_orbital = other_vertex_couple.get_spin_orbital();
@@ -71,7 +74,8 @@ vertex_singleton& vertex_singleton::operator=(vertex_singleton& other_vertex_cou
   return *this;
 }
 
-vertex_singleton& vertex_singleton::operator=(const vertex_singleton& other_vertex_couple) {
+template <typename REAL>
+vertex_singleton<REAL>& vertex_singleton<REAL>::operator=(const vertex_singleton<REAL>& other_vertex_couple) {
   band = other_vertex_couple.get_band();
   e_spin = other_vertex_couple.get_e_spin();
   spin_orbital = other_vertex_couple.get_spin_orbital();
@@ -88,7 +92,8 @@ vertex_singleton& vertex_singleton::operator=(const vertex_singleton& other_vert
   return *this;
 }
 
-bool vertex_singleton::operator==(const dca::phys::solver::ctaux::vertex_singleton& rhs) const {
+template <typename REAL>
+bool vertex_singleton<REAL>::operator==(const dca::phys::solver::ctaux::vertex_singleton<REAL>& rhs) const {
   return band == rhs.get_band() && e_spin == rhs.get_e_spin() &&
          spin_orbital == rhs.get_spin_orbital()
 
@@ -108,6 +113,8 @@ bool vertex_singleton::operator==(const dca::phys::solver::ctaux::vertex_singlet
   //  return result;
 }
 
+template class vertex_singleton<double>;
+template class vertex_singleton<float>;  
 }  // ctaux
 }  // solver
 }  // phys

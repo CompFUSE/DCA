@@ -73,7 +73,7 @@ public:
   // Postcondition: f_k is shifted and inverted.
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void wannierInterpolationWithAlphaTransform(
-      int K_ind, double alpha,
+					      int K_ind, const dca::util::RealAlias<scalar_type> alpha,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const;
 
@@ -193,7 +193,7 @@ coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(paramet
 template <class Parameters, typename K_dmn>
 template <typename ScalarType, typename KDmn, typename QDmn>
 void coarsegraining_routines<Parameters, K_dmn>::wannierInterpolationWithAlphaTransform(
-    const int k_ind, const double alpha,
+											const int k_ind, const dca::util::RealAlias<ScalarType> alpha,
     func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, KDmn>>& f_k,
     func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, QDmn>>& f_q) const {
   latticemapping::transform_to_alpha::forward(alpha, f_k);
@@ -499,8 +499,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
         quadrature_integration_G_q_w_mt(nr_threads, I_q, H_q, S_q, G_q);
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_ROUTINES_HPP

@@ -65,7 +65,6 @@ public:
 
   using Real = typename Parameters::Real;
   using Scalar = typename Parameters::Scalar;
-  using FPScalar = typename dca::util::ScalarSelect<double,Parameters::complex_g0>::type;
   using TpComplex = typename Data::TpComplex;
   
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
@@ -165,7 +164,7 @@ private:
   func::function<std::complex<Real>, NuNuKClusterWDmn> Sigma_old_;
   func::function<std::complex<Real>, NuNuKClusterWDmn> Sigma_new_;
 
-  FPScalar accumulated_sign_;
+  Scalar accumulated_sign_;
   func::function<std::complex<Real>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<Real>, NuNuRClusterWDmn> M_r_w_squared_;
 
@@ -435,7 +434,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /=
-	TpComplex{parameters_.get_beta() * parameters_.get_beta()} * TpComplex{accumulator_.get_accumulated_sign().sum()};
+	TpComplex{parameters_.get_beta()  * parameters_.get_beta()} * TpComplex{accumulator_.get_accumulated_sign().sum()};
       concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
     }
   }
@@ -581,7 +580,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeG_k_w(const Sp
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_r_w() {
-  func::function<std::complex<double>, NuNuKClusterWDmn> M_k_w;
+  func::function<std::complex<Real>, NuNuKClusterWDmn> M_k_w;
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_, M_k_w);
 
   const std::size_t matrix_size = b::dmn_size() * s::dmn_size();
@@ -607,7 +606,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_
       // -G_matrix / beta + G0_cluster_excluded_matrix --> G_matrix
       for (int j = 0; j < matrix_size; ++j)
         for (int i = 0; i < matrix_size; ++i)
-          G_matrix(i, j) = -G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
+          G_matrix(i, j) = -G_matrix(i, j) / static_cast<Real>(parameters_.get_beta()) + G0_matrix(i, j);
     }
   }
 
@@ -622,13 +621,13 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_S_k_w_from_
 
   int matrix_dim = b::dmn_size() * s::dmn_size();
 
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
       matrix_dim);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> sigma_matrix(matrix_dim);
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> sigma_matrix(matrix_dim);
 
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  dca::linalg::Vector<std::complex<Real>, dca::linalg::CPU> work;
 
   // Sigma = 1/G0 - 1/G
 

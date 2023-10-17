@@ -252,7 +252,7 @@ const typename SpAccumulator<Parameters, linalg::CPU>::MFunction& SpAccumulator<
   // single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
   //  assuming this is faster than the allocation.
   std::fill(single_measurement_M_r_w_->begin(), single_measurement_M_r_w_->end(),
-            std::complex<double>{0.0, 0.0});
+            std::complex<Real>{0.0, 0.0});
   finalizeFunction(single_measurement_M_r_t_device_, *single_measurement_M_r_w_, false);
   return *single_measurement_M_r_w_;
 }

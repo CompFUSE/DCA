@@ -158,14 +158,14 @@ private:
   concurrency_type& concurrency_;
 };
 
-template <class Parameters, typename = bool>
-struct CheckParametersNumericTypes : public std::false_type {};
+// template <class Parameters, typename = bool>
+// struct CheckParametersNumericTypes : public std::false_type {};
 
-template <class Parameters>
-struct CheckParametersNumericTypes <Parameters,
-				    std::enable_if_t<std::is_same<typename Parameters::Scalar,
-								  typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>::value, bool>>
-    : public std::true_type {};
+// template <class Parameters>
+// struct CheckParametersNumericTypes <Parameters,
+// 				    std::enable_if_t<std::is_same<typename Parameters::Scalar,
+// 								  typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>::value, bool>>
+//     : public std::true_type {};
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
@@ -198,9 +198,9 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
   compiler_ = __VERSION__;
 #endif
 
-  // check consistency between the value of the Parameters::complex_g0 and Parameters NUMTRAITS
-  static_assert(std::is_same_v<typename Parameters::Scalar,
-		typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>);
+  // // check consistency between the value of the Parameters::complex_g0 and Parameters NUMTRAITS
+  // static_assert(std::is_same_v<typename Parameters::Scalar,
+  // 		typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

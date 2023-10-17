@@ -11,10 +11,10 @@
 // Shrink tools algorithms class.
 // Template specialization for GPU.
 
-template <typename Real>
-class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, Real> {
+template <typename SCALAR>
+class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, SCALAR> {
   using HostVector = linalg::util::HostVector<int>;
-
+  using Scalar = SCALAR;
 public:
   SHRINK_TOOLS_ALGORITHMS(int id)
       : thread_id(id),
@@ -29,10 +29,10 @@ public:
         SHRINK_TOOLS_ALGORITHMS_CPU_obj(id) {}
 
   void execute(HostVector& source_index_up, HostVector& target_index_up,
-               dca::linalg::Matrix<Real, dca::linalg::GPU>& N_up,
-               dca::linalg::Matrix<Real, dca::linalg::GPU>& G0_up, HostVector& source_index_dn,
-               HostVector& target_index_dn, dca::linalg::Matrix<Real, dca::linalg::GPU>& N_dn,
-               dca::linalg::Matrix<Real, dca::linalg::GPU>& G0_dn) {
+               dca::linalg::Matrix<Scalar, dca::linalg::GPU>& N_up,
+               dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G0_up, HostVector& source_index_dn,
+               HostVector& target_index_dn, dca::linalg::Matrix<Scalar, dca::linalg::GPU>& N_dn,
+               dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G0_dn) {
     assert(source_index_up.size() == target_index_up.size());
     assert(source_index_dn.size() == target_index_dn.size());
 
@@ -112,14 +112,16 @@ private:
   dca::linalg::Vector<int, dca::linalg::GPU> i_s_up;
   dca::linalg::Vector<int, dca::linalg::GPU> i_t_up;
 
-  dca::linalg::Matrix<Real, dca::linalg::CPU> N_dn_CPU;
-  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_dn_CPU;
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> N_dn_CPU;
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> G0_dn_CPU;
 
-  dca::linalg::Matrix<Real, dca::linalg::CPU> N_up_CPU;
-  dca::linalg::Matrix<Real, dca::linalg::CPU> G0_up_CPU;
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> N_up_CPU;
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> G0_up_CPU;
 
-  SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, Real> SHRINK_TOOLS_ALGORITHMS_CPU_obj;
+  SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, Scalar> SHRINK_TOOLS_ALGORITHMS_CPU_obj;
 };
 
 template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, float>;
 template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, double>;
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, std::complex<float>>;
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU, std::complex<double>>;

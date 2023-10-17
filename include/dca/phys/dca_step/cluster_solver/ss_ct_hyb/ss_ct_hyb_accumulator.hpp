@@ -74,8 +74,7 @@ public:
 
   typedef double scalar_type;
 
-  typedef typename SsCtHybTypedefs<Parameters, DataType>::vertex_vertex_matrix_type
-      vertex_vertex_matrix_type;
+  using vertex_vertex_matrix_type = typename SsCtHybTypedefs<Parameters, DataType>::vertex_vertex_matrix_type;
   typedef typename SsCtHybTypedefs<Parameters, DataType>::orbital_configuration_type
       orbital_configuration_type;
 

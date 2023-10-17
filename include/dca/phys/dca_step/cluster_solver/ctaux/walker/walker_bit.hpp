@@ -35,17 +35,15 @@ namespace ctaux {
 
 template <class Parameters, class Data>
 class WalkerBIT {
-  typedef vertex_singleton vertex_singleton_type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
+  using VertexSingleton = vertex_singleton<Real>;
   typedef CT_AUX_HS_configuration<Parameters> configuration_type;
 
   using rng_type = typename Parameters::random_number_generator;
 
   typedef typename CtauxTypedefs<Parameters, Data>::profiler_type profiler_type;
   typedef typename CtauxTypedefs<Parameters, Data>::concurrency_type concurrency_type;
-
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
-
 public:
   WalkerBIT(const Parameters& parameters_ref, Data& MOMS_ref, int id);
   ~WalkerBIT();

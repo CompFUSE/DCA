@@ -23,10 +23,11 @@ public:
   typedef typename parameters_type::concurrency_type concurrency_type;
   typedef typename parameters_type::profiler_type profiler_type;
 
+  using Real = typename parameters_type::Real;
   // Types that define the scalar type and matrix type.
-  typedef double scalartype;
+  using Scalar = typename parameters_type::Scalar;
   // typedef resizeable_square_matrix<scalartype> vertex_vertex_matrix_type;
-  typedef dca::linalg::Matrix<scalartype, dca::linalg::CPU> vertex_vertex_matrix_type;
+  typedef dca::linalg::Matrix<Real, dca::linalg::CPU> vertex_vertex_matrix_type;
 
   // Types that define the vertex and configuration type.
   typedef SS_CT_HYB_configuration configuration_type;

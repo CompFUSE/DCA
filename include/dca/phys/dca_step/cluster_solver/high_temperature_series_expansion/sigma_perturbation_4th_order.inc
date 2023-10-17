@@ -16,6 +16,7 @@ public:
   using profiler_t = typename parameters_type::profiler_type;
   using concurrency_t = typename parameters_type::concurrency_type;
 
+  using Real = typename parameters_type::Real;
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexBosonicDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -29,7 +30,7 @@ public:
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
   using sp_function_type =
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -45,27 +46,27 @@ public:
   void to_JSON(stream_type& ss);
 
   void execute_on_cluster(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
 
   template <typename Writer>
   void write(Writer& writer);
 
 private:
-  void execute_4A(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4C(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4D(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4E(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4F(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4G(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4H(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4J_old(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4J(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4K(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_4L(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4A(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4C(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4D(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4E(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4F(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4G(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4H(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4J_old(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4J(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4K(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4L(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   int subtract_freq_fb(int, int);  // boson-fermion
   int subtract_freq_bf(int, int);  // fermion-boson
@@ -82,17 +83,17 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4A;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4C;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4D;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4E;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4F;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4G;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4H;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4J;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4K;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4L;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4A;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4C;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4D;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4E;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4F;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4G;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4H;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4J;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4K;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4L;
 };
 
 template <class parameters_type, class k_dmn_t>
@@ -167,8 +168,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_on_cluster(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   std::cout << __FUNCTION__ << std::endl;
 
   std::cout << "\t U : " << U(0, 0, 0, 1) << std::endl;
@@ -201,11 +202,11 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4A = 0.;
 
@@ -230,18 +231,18 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4A(0, 1, 0, 1, k_ind, w_ind) = Sigma_4A(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor =
+  Real factor =
       1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value * U_value;
   Sigma_4A *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4C(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4C = 0.;
 
@@ -267,19 +268,19 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4C(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4C(0, 1, 0, 1, k_ind, w_ind) = Sigma_4C(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor =
+  Real factor =
       1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value * U_value * U_value;
   Sigma_4C *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4D(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4D = 0.;
 
@@ -305,18 +306,18 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4D(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4D(0, 1, 0, 1, k_ind, w_ind) = Sigma_4D(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
   Sigma_4D *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4E(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4E = 0.;
 
@@ -342,18 +343,18 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4E(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4E(0, 1, 0, 1, k_ind, w_ind) = Sigma_4E(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
   Sigma_4E *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4F(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4F = 0.;
 
@@ -379,17 +380,17 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4F(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4F(0, 1, 0, 1, k_ind, w_ind) = Sigma_4F(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
+  Real factor = 1. / (parameters.get_beta() * k_dmn_t::dmn_size()) * U_value * U_value;
   Sigma_4F *= factor;
 }
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4G = 0.;
 
@@ -443,7 +444,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4G(0, 1, 0, 1, k_ind, w_ind) = Sigma_4G(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
+  Real factor = 1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
                         k_dmn_t::dmn_size()) *
                   U_value * U_value * U_value * U_value;
   Sigma_4G *= factor;
@@ -451,11 +452,11 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4H = 0.;
 
@@ -509,7 +510,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4H(0, 1, 0, 1, k_ind, w_ind) = Sigma_4H(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = -1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
+  Real factor = -1. / (parameters.get_beta() * parameters.get_beta() * k_dmn_t::dmn_size() *
                          k_dmn_t::dmn_size()) *
                   U_value * U_value * U_value * U_value;
   Sigma_4H *= factor;
@@ -518,12 +519,12 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 /*
   template<class parameters_type, class k_dmn_t>
   void sigma_perturbation<4, parameters_type,
-  k_dmn_t>::execute_4J_old(func::function<std::complex<double>, func::dmn_variadic<nu,nu,
+  k_dmn_t>::execute_4J_old(func::function<std::complex<Real>, func::dmn_variadic<nu,nu,
   k_dmn_t, w> >& G)
   {
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0,0,0,1);
+  Real U_value = U(0,0,0,1);
 
   Sigma_4J = 0.;
 
@@ -570,7 +571,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
   Sigma_4J(0,1, 0,1, k_ind, w_ind) = Sigma_4J(0,0, 0,0, k_ind, w_ind);
 
 
-  double factor = 1./(parameters.get_beta()*parameters.get_beta()*parameters.get_beta()
+  Real factor = 1./(parameters.get_beta()*parameters.get_beta()*parameters.get_beta()
   *k_dmn_t::dmn_size()*k_dmn_t::dmn_size()*k_dmn_t::dmn_size())
   *U_value*U_value*U_value*U_value;
   Sigma_4J *= factor;
@@ -579,15 +580,15 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4J = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
   func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
@@ -658,7 +659,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4J(0, 1, 0, 1, k_ind, w_ind) = Sigma_4J(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
+  Real factor = 1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
                         k_dmn_t::dmn_size() * k_dmn_t::dmn_size() * k_dmn_t::dmn_size()) *
                   U_value * U_value * U_value * U_value;
   Sigma_4J *= factor;
@@ -666,15 +667,15 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4K = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
   func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
@@ -745,7 +746,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4K(0, 1, 0, 1, k_ind, w_ind) = Sigma_4K(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = 1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
+  Real factor = 1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
                         k_dmn_t::dmn_size() * k_dmn_t::dmn_size() * k_dmn_t::dmn_size()) *
                   U_value * U_value * U_value * U_value;
   Sigma_4K *= factor;
@@ -753,15 +754,15 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
-  double U_value = U(0, 0, 0, 1);
+  Real U_value = U(0, 0, 0, 1);
 
   Sigma_4L = 0.;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, WVertexBosonicDmn>>
       F;  // Calculating part independent of k
 
   func::dmn_variadic<WVertexBosonicDmn, k_dmn_t> dmn;
@@ -832,7 +833,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
     for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind)
       Sigma_4L(0, 1, 0, 1, k_ind, w_ind) = Sigma_4L(0, 0, 0, 0, k_ind, w_ind);
 
-  double factor = -1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
+  Real factor = -1. / (parameters.get_beta() * parameters.get_beta() * parameters.get_beta() *
                          k_dmn_t::dmn_size() * k_dmn_t::dmn_size() * k_dmn_t::dmn_size()) *
                   U_value * U_value * U_value * U_value;
 

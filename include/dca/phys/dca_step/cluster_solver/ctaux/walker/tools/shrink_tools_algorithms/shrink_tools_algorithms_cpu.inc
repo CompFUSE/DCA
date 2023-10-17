@@ -10,16 +10,17 @@
 // Shrink tools algorithms class.
 // Template specialization for CPU.
 
-template <typename Real>
-class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, Real> {
+template <typename SCALAR>
+class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, SCALAR> {
   using HostVector = linalg::util::HostVector<int>;
-
+  using Scalar = SCALAR;
+  
 public:
   SHRINK_TOOLS_ALGORITHMS(int id) : thread_id(id), stream_id(0) {}
 
   void execute(std::vector<int>& source_index, std::vector<int>& target_index,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0) {
+               dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+               dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0) {
     assert(source_index.size() == target_index.size());
 
     assert(N.nrRows() == G0.nrRows());
@@ -33,10 +34,10 @@ public:
   }
 
   void execute(HostVector& source_index_up, HostVector& target_index_up,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& N_up,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_up, HostVector& source_index_dn,
-               HostVector& target_index_dn, dca::linalg::Matrix<Real, dca::linalg::CPU>& N_dn,
-               dca::linalg::Matrix<Real, dca::linalg::CPU>& G0_dn) {
+               dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N_up,
+               dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0_up, HostVector& source_index_dn,
+               HostVector& target_index_dn, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N_dn,
+               dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0_dn) {
     assert(source_index_up.size() == target_index_up.size());
     assert(source_index_dn.size() == target_index_dn.size());
 
@@ -71,3 +72,5 @@ private:
 
 template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, float>;
 template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, double>;
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, std::complex<float>>;
+template class SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU, std::complex<double>>;

@@ -37,8 +37,9 @@ class SeriesExpansionSigma {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
+  using Real = typename parameters_type::Real;
   using k_HOST =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+      func::dmn_0<domains::cluster_domain<Real, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_dmn_t = k_HOST;
 
@@ -48,7 +49,7 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using sigma_function_t =
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
 
 public:
   SeriesExpansionSigma(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
@@ -70,7 +71,7 @@ private:
   concurrency_type& concurrency;
   MOMS_type& MOMS;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
 
   compute_interaction interaction_obj;
 
@@ -111,7 +112,7 @@ void SeriesExpansionSigma<parameters_type, MOMS_type>::execute(bool /*do_not_adj
 
   compute_lattice_Greens_function_obj.execute();
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>>& G_k_w =
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, k_HOST, w>>& G_k_w =
       compute_lattice_Greens_function_obj.get_G_k_w();
 
   ph_bubble.threaded_execute_on_cluster(G_k_w);
@@ -126,22 +127,22 @@ void SeriesExpansionSigma<parameters_type, MOMS_type>::execute(bool /*do_not_adj
   Sigma += sigma_perturbation_2_obj.get_function();
 
   if (true) {
-    std::complex<double> I(0, 1);
+    std::complex<Real> I(0, 1);
     for (int b_ind = 0; b_ind < 2 * b::dmn_size(); ++b_ind) {
       for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
         int wc_ind = w::dmn_size() / 8;
 
-        double wc = w::get_elements()[wc_ind];
+        Real wc = w::get_elements()[wc_ind];
 
-        std::complex<double> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
+        std::complex<Real> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
 
-        double alpha = real(Sigma_wc);
-        double beta = imag(Sigma_wc * wc);
+        Real alpha = real(Sigma_wc);
+        Real beta = imag(Sigma_wc * wc);
 
         for (int w_ind = 0; w_ind < wc_ind; ++w_ind) {
-          Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / w::get_elements()[w_ind];
+          Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / static_cast<const Real>(w::get_elements()[w_ind]);
           Sigma(b_ind, b_ind, k_ind, w::dmn_size() - 1 - w_ind) =
-              alpha - beta * I / w::get_elements()[w_ind];
+	    alpha - beta * I / static_cast<const Real>(w::get_elements()[w_ind]);
         }
       }
     }

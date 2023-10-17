@@ -39,10 +39,10 @@ class CT_AUX_HS_configuration {
 public:
   using rng_type = typename parameters_type::random_number_generator;
   using Concurrency = typename parameters_type::concurrency_type;
-  
+  using Real = typename parameters_type::Real;
   typedef HS_spin_states_type spin_state_type;
 
-  typedef vertex_singleton vertex_singleton_type;
+  using VertexSingleton = vertex_singleton<Real>;
   typedef vertex_pair<parameters_type> vertex_pair_type;
 
 public:
@@ -51,8 +51,8 @@ public:
   int size();
   vertex_pair_type& operator[](int index);
 
-  std::vector<vertex_singleton_type>& get(e_spin_states_type e_spin_type);
-  const std::vector<vertex_singleton_type>& get(e_spin_states_type e_spin_type) const;
+  std::vector<VertexSingleton>& get(e_spin_states_type e_spin_type);
+  const std::vector<VertexSingleton>& get(e_spin_states_type e_spin_type) const;
 
   void reset();
 
@@ -113,7 +113,7 @@ public:
   std::size_t find(uint64_t vertex_id) const;
 
   auto get_matrix_configuration() const {
-    return std::array<std::vector<vertex_singleton_type>, 2>{configuration_e_UP, configuration_e_DN};
+    return std::array<std::vector<VertexSingleton>, 2>{configuration_e_UP, configuration_e_DN};
   }
 
   bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
@@ -131,8 +131,8 @@ private:
 
   std::vector<vertex_pair_type> configuration;
 
-  std::vector<vertex_singleton_type> configuration_e_UP;  // = { configuration | e_spin == e_UP}
-  std::vector<vertex_singleton_type> configuration_e_DN;  // = { configuration | e_spin == e_DN}
+  std::vector<VertexSingleton> configuration_e_UP;  // = { configuration | e_spin == e_UP}
+  std::vector<VertexSingleton> configuration_e_DN;  // = { configuration | e_spin == e_DN}
 
   unsigned current_Nb_of_annihilatable_spins_ = 0;
 
@@ -196,7 +196,7 @@ void CT_AUX_HS_configuration<parameters_type>::remove_HS_spin(int index) {
 }
 
 template <class parameters_type>
-std::vector<vertex_singleton>& CT_AUX_HS_configuration<parameters_type>::get(e_spin_states_type e_spin) {
+std::vector<typename CT_AUX_HS_configuration<parameters_type>::VertexSingleton>& CT_AUX_HS_configuration<parameters_type>::get(e_spin_states_type e_spin) {
   if (e_spin == e_UP)
     return configuration_e_UP;
   else
@@ -204,7 +204,7 @@ std::vector<vertex_singleton>& CT_AUX_HS_configuration<parameters_type>::get(e_s
 }
 
 template <class parameters_type>
-const std::vector<vertex_singleton>& CT_AUX_HS_configuration<parameters_type>::get(
+const std::vector<typename CT_AUX_HS_configuration<parameters_type>::VertexSingleton>& CT_AUX_HS_configuration<parameters_type>::get(
     e_spin_states_type e_spin) const {
   if (e_spin == e_UP)
     return configuration_e_UP;
@@ -291,7 +291,7 @@ void CT_AUX_HS_configuration<parameters_type>::update_configuration_e_spin(
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::get_first_non_interacting_spin_index(
     e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& spin_configuration = get(e_spin);
+  std::vector<VertexSingleton>& spin_configuration = get(e_spin);
 
   // FIXME: What and when to return if configuration_size = 0?
   // Note: should be handled by the caller
@@ -520,7 +520,7 @@ int CT_AUX_HS_configuration<parameters_type>::get_number_of_interacting_HS_spins
 
 template <class parameters_type>
 bool CT_AUX_HS_configuration<parameters_type>::assert_block_form(e_spin_states_type e_spin) /*const*/ {
-  const std::vector<vertex_singleton_type>& configuration_e_spin = get(e_spin);
+  const std::vector<VertexSingleton>& configuration_e_spin = get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
   int vertex_index = 0;
@@ -607,7 +607,7 @@ bool CT_AUX_HS_configuration<parameters_type>::assert_consistency() /*const*/ {
 
   {  // assert internal pointers
     for (int i = 0; i < (int)configuration_e_UP.size(); i++) {
-      const vertex_singleton_type& partner = configuration_e_UP[i].get_partner(*this);
+      const VertexSingleton& partner = configuration_e_UP[i].get_partner(*this);
       // assert( partner.get_configuration_index() ==
       // configuration_e_UP[i].get_configuration_index());
       if (partner.get_configuration_index() != configuration_e_UP[i].get_configuration_index())
@@ -615,7 +615,7 @@ bool CT_AUX_HS_configuration<parameters_type>::assert_consistency() /*const*/ {
     }
 
     for (int i = 0; i < (int)configuration_e_DN.size(); i++) {
-      const vertex_singleton_type& partner = configuration_e_DN[i].get_partner(*this);
+      const VertexSingleton& partner = configuration_e_DN[i].get_partner(*this);
       // assert( partner.get_configuration_index() ==
       // configuration_e_DN[i].get_configuration_index());
       if (partner.get_configuration_index() != configuration_e_DN[i].get_configuration_index())

@@ -22,15 +22,17 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
+template <typename REAL>
 class vertex_singleton {
 public:
-  typedef vertex_singleton this_type;
+  using Real = REAL;
+  using this_type = vertex_singleton<REAL>;
 
 public:
   vertex_singleton() {}
 
   vertex_singleton(int band_in, e_spin_states_type e_spin_in, int spin_orbital_in,
-                   int paired_spin_orbital_in, int r_site_in, int delta_r_in, double tau_in,
+                   int paired_spin_orbital_in, int r_site_in, int delta_r_in, Real tau_in,
                    HS_spin_states_type HS_spin_in, HS_field_sign_type HS_field_in,
                    int configuration_index_in);
 
@@ -104,7 +106,7 @@ private:
 
   int r_site;
   int delta_r;
-  double tau;
+  Real tau;
 
   HS_spin_states_type HS_spin;  // Auxiliary spin.
   HS_field_sign_type HS_field;  // Marker to denote if it is the first or second singleton of a pair.
@@ -112,8 +114,9 @@ private:
   int configuration_index;
 };
 
+template <typename Real>
 template <class configuration_type>
-const vertex_singleton& vertex_singleton::get_partner(configuration_type& configuration) const {
+const vertex_singleton<Real>& vertex_singleton<Real>::get_partner(configuration_type& configuration) const {
   e_spin_states_type e_spin;
   int configuration_e_spin;
 
@@ -130,6 +133,9 @@ const vertex_singleton& vertex_singleton::get_partner(configuration_type& config
 
   return configuration.get(e_spin)[configuration_e_spin];
 }
+
+extern template class vertex_singleton<double>;
+extern template class vertex_singleton<float>;
 
 }  // namespace ctaux
 }  // namespace solver

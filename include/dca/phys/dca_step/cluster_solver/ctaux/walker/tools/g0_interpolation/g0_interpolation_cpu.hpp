@@ -27,9 +27,9 @@ template <typename Parameters>
 class G0Interpolation<dca::linalg::CPU, Parameters> : public G0InterpolationBase<Parameters> {
 public:
   using Real = typename Parameters::Real;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename Parameters::Scalar;
 
-  using vertex_singleton_type = vertex_singleton;
+  using VertexSingleton = vertex_singleton<Real>;
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
 
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
@@ -52,7 +52,7 @@ public:
   void build_G0_matrix(configuration_type& configuration,
                        dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0, e_spin_states_type spin);
 
-  void build_G0_matrix(std::vector<vertex_singleton_type>& configuration,
+  void build_G0_matrix(std::vector<VertexSingleton>& configuration,
                        dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0);
 
   template <class configuration_type>
@@ -110,7 +110,7 @@ template <class configuration_type>
 void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
     configuration_type& configuration, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0_e_spin,
     e_spin_states_type e_spin) {
-  std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
   // All interaction pairs are of the same spin type, which leads to a zero configuration size for
@@ -122,11 +122,11 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
   G0_e_spin.resizeNoCopy(configuration_size);
 
   for (int j = 0; j < configuration_size; j++) {
-    vertex_singleton_type& v_j = configuration_e_spin[j];
+    VertexSingleton& v_j = configuration_e_spin[j];
 
     {  // i < j
       for (int i = 0; i < j; i++) {
-        vertex_singleton_type& v_i = configuration_e_spin[i];
+        VertexSingleton& v_i = configuration_e_spin[i];
 
         G0_e_spin(i, j) = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                             r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -140,7 +140,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
 
     {  // j > i
       for (int i = j + 1; i < configuration_size; i++) {
-        vertex_singleton_type& v_i = configuration_e_spin[i];
+        VertexSingleton& v_i = configuration_e_spin[i];
 
         G0_e_spin(i, j) = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                             r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -152,7 +152,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
 
 template <typename Parameters>
 void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
-    std::vector<vertex_singleton_type>& configuration,
+    std::vector<VertexSingleton>& configuration,
     dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G0) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
 
@@ -167,11 +167,11 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
   G0.resizeNoCopy(configuration_size);
 
   for (int j = 0; j < configuration_size; j++) {
-    vertex_singleton_type& v_j = configuration[j];
+    VertexSingleton& v_j = configuration[j];
 
     {  // i < j
       for (int i = 0; i < j; i++) {
-        vertex_singleton_type& v_i = configuration[i];
+        VertexSingleton& v_i = configuration[i];
 
         G0(i, j) = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                      r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -185,7 +185,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::build_G0_matrix(
 
     {  // j > i
       for (int i = j + 1; i < configuration_size; i++) {
-        vertex_singleton_type& v_i = configuration[i];
+        VertexSingleton& v_i = configuration[i];
 
         G0(i, j) = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                      r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -202,7 +202,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
     e_spin_states_type e_spin) {
   // profiler_t profiler("G0-matrix (update)", "CT-AUX", __LINE__);
 
-  std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
+  std::vector<VertexSingleton>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
   // All interaction pairs are of the same spin type, which leads to a zero configuration size for
@@ -218,12 +218,12 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
   for (int j = 0; j < first_shuffled_index; j++) {
     Scalar* G0_ptr = G0.ptr(0, j);
 
-    vertex_singleton_type& v_j = configuration_e_spin[j];
+    VertexSingleton& v_j = configuration_e_spin[j];
 
     for (int i = first_shuffled_index; i < configuration_size; i++) {
       assert(i >= first_shuffled_index || j >= first_shuffled_index);
 
-      vertex_singleton_type& v_i = configuration_e_spin[i];
+      VertexSingleton& v_i = configuration_e_spin[i];
 
       G0_ptr[i] = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                     r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -234,13 +234,13 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
   for (int j = first_shuffled_index; j < configuration_size; j++) {
     Scalar* G0_ptr = G0.ptr(0, j);
 
-    vertex_singleton_type& v_j = configuration_e_spin[j];
+    VertexSingleton& v_j = configuration_e_spin[j];
 
     // i<j
     for (int i = 0; i < j; i++) {
       assert(i >= first_shuffled_index || j >= first_shuffled_index);
 
-      vertex_singleton_type& v_i = configuration_e_spin[i];
+      VertexSingleton& v_i = configuration_e_spin[i];
 
       G0_ptr[i] = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                     r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -255,7 +255,7 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
     for (int i = j + 1; i < configuration_size; i++) {
       assert(i >= first_shuffled_index || j >= first_shuffled_index);
 
-      vertex_singleton_type& v_i = configuration_e_spin[i];
+      VertexSingleton& v_i = configuration_e_spin[i];
 
       G0_ptr[i] = interpolate_akima(v_i.get_spin_orbital(), v_j.get_spin_orbital(),
                                     r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
@@ -268,12 +268,12 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
 
     double* G0_ptr = G0.ptr(0,j);
 
-    vertex_singleton_type& v_j = configuration_e_spin[j];
+    VertexSingleton& v_j = configuration_e_spin[j];
 
     for(int i=0; i<configuration_size; i++){
     assert(i >= first_shuffled_index || j >= first_shuffled_index);
 
-    vertex_singleton_type& v_i = configuration_e_spin[i];
+    VertexSingleton& v_i = configuration_e_spin[i];
 
     G0_ptr[i] = interpolate(v_i.get_spin_orbital(),v_j.get_spin_orbital(),
     r1_minus_r0(v_j.get_r_site(), v_i.get_r_site()),
