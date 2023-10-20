@@ -140,7 +140,7 @@ private:
 
   void adjust_self_energy_for_double_counting();
 
-  double mix_self_energy(double alpha);
+  double mix_self_energy(Real alpha);
 
 protected:
   Parameters& parameters_;
@@ -555,7 +555,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeG_k_w(const Sp
                                                                         const SpGreensFunction& M_k_w,
                                                                         SpGreensFunction& G_k_w) const {
   const int matrix_dim = nu::dmn_size();
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_times_M_matrix(
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> G0_times_M_matrix(
       "GO_M_matrix", matrix_dim, matrix_dim);
 
   const char op = 'N';
@@ -829,12 +829,12 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::adjust_self_energy_fo
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
-double CtauxClusterSolver<device_t, Parameters, Data, DIST>::mix_self_energy(double alpha) {
+double CtauxClusterSolver<device_t, Parameters, Data, DIST>::mix_self_energy(Real alpha) {
   Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
   Symmetrize<Parameters>::execute(data_.Sigma_cluster, data_.H_symmetry);
 
   for (int l = 0; l < data_.Sigma.size(); l++)
-    data_.Sigma(l) = alpha * data_.Sigma(l) + (1. - alpha) * data_.Sigma_cluster(l);
+    data_.Sigma(l) = alpha * data_.Sigma(l) + (static_cast<Real>(1.) - alpha) * data_.Sigma_cluster(l);
 
   int offset = std::min(1, w::dmn_size() / 2);
 
@@ -851,7 +851,7 @@ double CtauxClusterSolver<device_t, Parameters, Data, DIST>::mix_self_energy(dou
     }
   }
 
-  double error_infty_norm = 0;
+  Real error_infty_norm = 0;
   offset = std::min(10, w::dmn_size() / 2);
   for (int w_ind = w::dmn_size() / 2; w_ind < w::dmn_size() / 2 + offset; w_ind++) {
     for (int k_ind = 0; k_ind < KDmn::dmn_size(); k_ind++) {

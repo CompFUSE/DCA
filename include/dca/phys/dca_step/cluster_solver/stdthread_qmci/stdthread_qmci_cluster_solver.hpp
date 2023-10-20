@@ -94,7 +94,7 @@ public:
    */
   MFuncAndSign getSingleMFunc(StdThreadAccumulatorType& accumulator) const {
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
-    return {mfunc, accumulator.get_sign().getSign()};
+    return {mfunc, static_cast<SignType>(accumulator.get_sign().getSign())};
   };
 
   struct MFuncTimeAndSign {
@@ -108,7 +108,7 @@ public:
    */
   MFuncTimeAndSign getSingleMFuncTime(StdThreadAccumulatorType& accumulator) const {
     const FTauPair& mfunc(accumulator.get_single_measurement_sign_times_MFunction_time());
-    return {mfunc, accumulator.get_sign().getSign()};
+    return {mfunc, static_cast<SignType>(accumulator.get_sign().getSign())};
   };
 
   auto transformMFunction(const MFuncAndSign& mfs) const;
@@ -182,7 +182,7 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
       accumulators_queue_(),
 
       config_dump_(nr_walkers_)
-      //autocorrelation_data_(parameters_, 0, BaseClass::g0_)
+// autocorrelation_data_(parameters_, 0, BaseClass::g0_)
 {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
@@ -639,7 +639,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
   catch (...) {
     throw std::runtime_error("something mysterious  went wrong in walker thread!");
   }
-			     
+
   ++walk_finished_;
   if (BaseClass::writer_ && BaseClass::writer_->isADIOS2())
     BaseClass::writer_->flush();

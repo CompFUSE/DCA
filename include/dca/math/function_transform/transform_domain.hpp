@@ -347,7 +347,23 @@ private:
 
     matrix_type t_matrix = basis_transformation_type::get_transformation_matrix();
 
-    TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, t_matrix);
+    if constexpr (std::is_same_v<scalartype_input, std::complex<float>> && std::is_same_v<typename decltype(t_matrix)::ValueType, std::complex<double>> &&
+                  std::is_same_v<scalartype_output, std::complex<float>>) {
+      using transform_type = typename decltype(t_matrix)::ValueType;
+      func::function<transform_type, domain_input> f_in_temp(f_input);
+      func::function<transform_type, domain_output> f_out_temp(f_output);
+      TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_in_temp, f_out_temp, t_matrix);
+      f_output = f_out_temp;
+    }
+    else if constexpr (std::is_same_v<scalartype_input, std::complex<float>> && std::is_same_v<scalartype_output, float>)  {
+      using transform_type = typename decltype(t_matrix)::ValueType;
+      func::function<transform_type, domain_input> f_in_temp(f_input);
+      func::function<dca::util::RealAlias<transform_type>, domain_output> f_out_temp;
+      TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_in_temp, f_out_temp, t_matrix);
+      f_output = f_out_temp;
+    } else {
+      TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, t_matrix);
+    }
   }
 };
 

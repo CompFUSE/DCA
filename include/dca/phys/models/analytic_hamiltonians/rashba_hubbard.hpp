@@ -65,12 +65,12 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
-  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename PARAMETERS>
   static void initializeHInteraction(
-      func::function<typename parameters_type::Real,
+      func::function<typename PARAMETERS::Real,
                      func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                         func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-      const parameters_type& parameters);
+      const PARAMETERS& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
@@ -125,12 +125,12 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> RashbaHubbard<
 }
 
 template <typename PointGroup>
-template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename PARAMETERS>
 void RashbaHubbard<PointGroup>::initializeHInteraction(
-    func::function<typename parameters_type::Real,
+    func::function<typename PARAMETERS::Real,
                    func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                       func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-    const parameters_type& parameters) {
+    const PARAMETERS& parameters) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Rashba lattice has 2 bands.");
   // if (SpinDmn::dmn_size() != 2)
@@ -195,7 +195,8 @@ void RashbaHubbard<PointGroup>::initializeH0(
     m(0, 1) = m(1, 0) = 2 * lambda * (-std::sin(k[1]));
 
     // Pauli matrix sigma_y
-    const ScalarType val = 2 * static_cast<typename ParametersType::Real>(lambda) * static_cast<typename ParametersType::Real>(std::sin(k[0]));
+    const ScalarType val = 2 * static_cast<typename ParametersType::Real>(lambda) *
+                           static_cast<typename ParametersType::Real>(std::sin(k[0]));
     m(0, 1) += +i * val;
     m(1, 0) += -i * val;
 

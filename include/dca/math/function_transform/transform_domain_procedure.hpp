@@ -53,6 +53,11 @@ public:
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(const func::function<std::complex<scalartype>, domain_input>& f_input,
+                        func::function<std::complex<scalartype>, domain_output>& f_output,
+                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T);
+
+  template <typename scalartype, class domain_input, class domain_output>
+  static void transform(const func::function<std::complex<scalartype>, domain_input>& f_input,
                         func::function<scalartype, domain_output>& f_output,
                         const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T);
 };
@@ -192,6 +197,49 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
   }
 }
 
+template <int DMN_INDEX>
+template <typename scalartype, class domain_input, class domain_output>
+void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
+    const func::function<std::complex<scalartype>, domain_input>& f_input,
+    func::function<std::complex<scalartype>, domain_output>& f_output,
+    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T) {
+  f_output = 0.;
+
+  func::function<scalartype, domain_input> f_in("f_in");
+  func::function<scalartype, domain_output> f_out("f_out");
+
+  linalg::Matrix<scalartype, linalg::CPU> T_tmp("T_tmp", T.size());
+
+  {
+    for (int i = 0; i < f_input.size(); i++)
+      f_in(i) = real(f_input(i));
+
+    for (int j = 0; j < T.size().second; j++)
+      for (int i = 0; i < T.size().first; i++)
+        T_tmp(i, j) = real(T(i, j));
+
+    transform(f_in, f_out, T_tmp);
+
+    for (int i = 0; i < f_output.size(); i++)
+      f_output(i) += f_out(i);
+  }
+
+  {
+    for (int i = 0; i < f_input.size(); i++)
+      f_in(i) = imag(f_input(i));
+
+    for (int j = 0; j < T.size().second; j++)
+      for (int i = 0; i < T.size().first; i++)
+        T_tmp(i, j) = imag(T(i, j));
+
+    transform(f_in, f_out, T_tmp);
+
+    for (int i = 0; i < f_output.size(); i++)
+      f_output(i) -= f_out(i);
+  }
+}
+
+  
 }  // namespace transform
 }  // namespace math
 }  // namespace dca

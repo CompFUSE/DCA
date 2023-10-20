@@ -150,7 +150,8 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
 
 template <typename Scalar1, typename Scalar2>
 void memoryCopy(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src, std::pair<int, int> size) {
-  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  if (sizeof(Scalar1) != sizeof(Scalar2))
+      throw std::runtime_error("memory copy of different sized types!");
   if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
     return;
   cudaError_t ret = cudaMemcpy2D(castToVoid(dest), ld_dest * sizeof(Scalar1), constCastToVoid(src),

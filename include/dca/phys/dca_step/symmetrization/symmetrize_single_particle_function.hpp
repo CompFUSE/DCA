@@ -388,7 +388,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::symmetrize_over_electron_spin
           f(i, 0, j, 1, ind_0, ind_1) = 0;
           f(i, 1, j, 0, ind_0, ind_1) = 0;
 
-          Scalar tmp = (f(i, 0, j, 0, ind_0, ind_1) + f(i, 1, j, 1, ind_0, ind_1)) / 2.;
+          Scalar tmp = (f(i, 0, j, 0, ind_0, ind_1) + f(i, 1, j, 1, ind_0, ind_1)) / Scalar{2.};
 
           f(i, 0, j, 0, ind_0, ind_1) = tmp;
           f(i, 1, j, 1, ind_0, ind_1) = tmp;
@@ -545,7 +545,7 @@ void SymmetrizeSingleParticleFunction<Parameters>::executeTimeOrFreq(
             const auto tmp3 = f(b0, b1, c_ind, w_0 - w_ind);      // F(w) = conj(F(-w))
             const auto tmp4 = f(b1, b0, new_c_idx, w_ind);        // F(w) = F^t(w)
 
-            const auto tmp = (tmp1 + std::conj(tmp2) + std::conj(tmp3) + tmp4) / 4.;
+            const auto tmp = (tmp1 + std::conj(tmp2) + std::conj(tmp3) + tmp4) / Scalar{4.};
 
             f_new(b0, b1, c_ind, w_ind) = tmp;
             f_new(b1, b0, new_c_idx, w_0 - w_ind) = std::conj(tmp);

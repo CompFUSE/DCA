@@ -101,7 +101,12 @@ TEST(TriangularLatticeTest, Initialize_H_interaction) {
   nn_index[2] = 1;  // Index of a1+a2 translated inside the cluster.
 
   func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
-  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
+
+  struct MockParameters : public phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> {
+    using Real = double;
+  };
+
+  MockParameters params;
 
   // Check on-site interaction.
   params.set_U(4);

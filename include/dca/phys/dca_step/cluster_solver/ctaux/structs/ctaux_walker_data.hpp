@@ -44,16 +44,12 @@ public:
 
   dca::linalg::Matrix<Scalar, device_t> N_up;
   dca::linalg::Matrix<Scalar, device_t> N_dn;
-
   dca::linalg::Matrix<Scalar, device_t> G0_up;
   dca::linalg::Matrix<Scalar, device_t> G0_dn;
-
   dca::linalg::Matrix<Scalar, device_t> Gamma_up;
   dca::linalg::Matrix<Scalar, device_t> Gamma_dn;
-
   dca::linalg::Matrix<Scalar, device_t> stored_Gamma_up;
   dca::linalg::Matrix<Scalar, device_t> stored_Gamma_dn;
-
   dca::linalg::Matrix<Scalar, device_t> G_up;
   dca::linalg::Matrix<Scalar, device_t> G_dn;
 };

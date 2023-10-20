@@ -254,7 +254,7 @@ void transform_to_alpha::forward(
 
   // Allocate the work space for inverse only once.
   linalg::Vector<int, linalg::CPU> ipiv;
-  linalg::Vector<std::complex<double>, linalg::CPU> work;
+  linalg::Vector<std::complex<Real>, linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
     linalg::MatrixView<std::complex<Real>, linalg::CPU> f_matrix(

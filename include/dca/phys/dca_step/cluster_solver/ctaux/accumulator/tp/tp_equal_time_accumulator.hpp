@@ -41,7 +41,7 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 using dca::util::SignType;
-  
+
 template <class Parameters, class Data>
 class TpEqualTimeAccumulator {
 public:
@@ -253,7 +253,7 @@ TpEqualTimeAccumulator<Parameters, Data>::TpEqualTimeAccumulator(const Parameter
 
       G_r_t("G_r_t"),
       G_r_t_stddev("G_r_t_stddev"),
-      
+
       G_r_t_accumulated("G_r_t_accumulated"),
       G_r_t_accumulated_squared("G_r_t_accumulated_squared"),
 

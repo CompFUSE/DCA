@@ -138,7 +138,7 @@ void SHRINK_TOOLS<Profiler, device_t, REAL, SCALAR>::shrink_Gamma_matrix(configu
   std::vector<HS_spin_states_type>& changed_spin_values_e_spin =
       full_configuration.get_changed_spin_values_e_spin(e_spin);
 
-  for (int i = 0; i < Gamma.size();) {
+  for (int i = 0; i < Gamma.size().first;) {
     int configuration_index_e_spin = changed_spin_indices_e_spin[i];
     int configuration_index =
         configuration_e_spin[configuration_index_e_spin].get_configuration_index();

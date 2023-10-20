@@ -28,11 +28,11 @@ namespace util {
 // In: parameters
 //     nn_vec
 // Out: H_int
-template <typename ParametersType, typename BandDmn, typename SpinDmn, typename RDmn>
+template <typename PARAMETERS, typename BandDmn, typename SpinDmn, typename RDmn>
 void initializeSingleBandHint(
-    const ParametersType& parameters,
+    const PARAMETERS& parameters,
     const std::vector<typename RDmn::parameter_type::element_type>& nn_vec,
-    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+    func::function<typename PARAMETERS::Real, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                               func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_int) {
   if (BandDmn::dmn_size() != 1)
     throw std::logic_error("Band domain size must be 1.");

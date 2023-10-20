@@ -32,7 +32,7 @@ class square_lattice {
 public:
   static constexpr bool complex_g0 = false;
   static constexpr bool spin_symmetric = true;
-
+  
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
@@ -55,11 +55,12 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
-  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename PARAMETERS>
   static void initializeHInteraction(
-      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-      const parameters_type& parameters);
+      func::function<typename PARAMETERS::Real,
+                     func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                        func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      const PARAMETERS& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
@@ -76,8 +77,8 @@ public:
   static void initializeH0WithQ(
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-      func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q);
-
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0,
+      typename KDmn::element_type& q);
 };
 
 template <typename point_group_type>
@@ -128,11 +129,12 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> square_lattice<
 }
 
 template <typename point_group_type>
-template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename PARAMETERS>
 void square_lattice<point_group_type>::initializeHInteraction(
-    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
-    const parameters_type& parameters) {
+    func::function<typename PARAMETERS::Real,
+                   func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                      func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    const PARAMETERS& parameters) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Square lattice has one band.");
   if (SpinDmn::dmn_size() != 2)
@@ -164,17 +166,18 @@ template <typename ParametersType, typename ScalarType, typename BandDmn, typena
 void square_lattice<point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
   typename KDmn::element_type default_q;
   initializeH0WithQ(parameters, H_0, default_q);
 }
-  
+
 template <typename point_group_type>
 template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void square_lattice<point_group_type>::initializeH0WithQ(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q [[maybe_unused]]) {
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0,
+    typename KDmn::element_type& q [[maybe_unused]]) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Square lattice has one band.");
   if (SpinDmn::dmn_size() != 2)
