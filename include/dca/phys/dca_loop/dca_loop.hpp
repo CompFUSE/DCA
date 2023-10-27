@@ -241,7 +241,6 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     else
 #endif
       MOMS.initializeSigma(parameters.get_initial_self_energy());
-
     perform_lattice_mapping();
   }
 

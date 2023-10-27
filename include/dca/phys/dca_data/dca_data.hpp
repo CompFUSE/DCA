@@ -113,12 +113,15 @@ public:
 
   DcaData(Parameters& parameters_ref);
 
+  /** These reads are used by analysis programs only for now.
+   */
   void read(const std::string& filename);
 #ifdef DCA_HAVE_ADIOS2
   void read(adios2::ADIOS& adios, std::string filename);
 #endif
 
   /** prefer this as it allows for more sensible handling of appendable files like bp4.
+   *  currently this is used by chi_q_omega only.
    */
   void read(dca::io::Reader<Concurrency>& reader);
 
@@ -345,14 +348,14 @@ DcaData<Parameters, DT>::DcaData(/*const*/ Parameters& parameters_ref)
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::read(const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t starts reading \n\n";
-  dca::io::Reader<typename Parameters::concurrency_type> reader(concurrency_,
-                                                                parameters_.get_output_format());
-  reader.open_file(filename);
-  read(reader);
-  reader.close_file();
-
+    dca::io::Reader<typename Parameters::concurrency_type> reader(concurrency_,
+                                                                  parameters_.get_output_format());
+    reader.open_file(filename);
+    read(reader);
+    reader.close_file();
+  }
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast_object(Sigma);
 
@@ -367,15 +370,16 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
 #ifdef DCA_HAVE_ADIOS2
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::read(adios2::ADIOS& adios, std::string filename) {
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t starts reading \n\n";
 
-  dca::io::Reader<typename Parameters::concurrency_type> reader(adios, concurrency_,
-                                                                parameters_.get_output_format());
-  reader.open_file(filename);
-  read(reader);
-  reader.close_file();
-
+    dca::io::Reader<typename Parameters::concurrency_type> reader(adios, concurrency_,
+                                                                  parameters_.get_output_format());
+    reader.open_file(filename);
+    read(reader);
+    reader.close_file();
+  }
+  // realize that if you need anyting else from the prior data that you need to add its broadcast here.
   concurrency_.broadcast(parameters_.get_chemical_potential());
   concurrency_.broadcast_object(Sigma);
 
@@ -406,8 +410,6 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
   reader.open_group("functions");
 
   reader.execute(Sigma);
-  reader.execute(Sigma_lattice);
-  reader.execute(Sigma_lattice_interpolated);
 
   if (parameters_.isAccumulatingG4()) {
     std::cout << "Trying to read Gkw since we are accumulating G4\n";

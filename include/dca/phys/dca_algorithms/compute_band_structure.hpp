@@ -76,58 +76,98 @@ private:
 template <typename PARAMETERS>
 void compute_band_structure<PARAMETERS>::execute(const Parameters& parameters,
                                                  func::function<Real, nu_k_cut>& band_structure) {
-  std::vector<std::vector<Real>> collection_k_vecs;
+  if constexpr (std::is_same_v<double, Real>) {
+    std::vector<std::vector<double>> collection_k_vecs;
 
-  std::string coordinate_type;
-  std::vector<std::vector<Real>> brillouin_zone_vecs;
+    std::string coordinate_type;
+    std::vector<std::vector<double>> brillouin_zone_vecs;
 
-  // Construct the path in the Brilluoin zone.
-  high_symmetry_line<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs);
-  construct_path<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs,
-                                                collection_k_vecs);
+    // Construct the path in the Brilluoin zone.
+    high_symmetry_line<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs);
+    construct_path<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs,
+                                                      collection_k_vecs);
 
-  // brillouin_zone_cut_domain_type is global state. yuck.
-  brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
-  // so we are going to need to widen the kvectors I guess.
-  auto k2Double = [](auto& kvec) -> std::vector<double> {
-    std::vector<double> k_converted(kvec.size());
-    std::transform(kvec.begin(), kvec.end(), k_converted.begin(),
-                   [](auto& val) -> typename decltype(k_converted)::value_type {
-                     return static_cast<typename decltype(k_converted)::value_type>(val);
-                   });
-    return k_converted;
-  };
+    brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
+    brillouin_zone_cut_domain_type::get_elements() = collection_k_vecs;
 
-  std::vector<std::vector<double>> coll_k_vecs_dbl(collection_k_vecs.size());
+    band_structure.reset();
 
-  for (int i = 0; i < collection_k_vecs.size(); ++i) {
-    coll_k_vecs_dbl[i] = k2Double(collection_k_vecs[i]);
+    // Compute H(k).
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
+        "H_k");
+    Parameters::lattice_type::initializeH0(parameters, H_k);
+
+    // Compute the bands.
+    dca::linalg::Vector<double, dca::linalg::CPU> L_vec(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_mat(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> V_mat(nu::dmn_size());
+
+    for (int l = 0; l < int(collection_k_vecs.size()); l++) {
+      for (int i = 0; i < nu::dmn_size(); i++)
+        for (int j = 0; j < nu::dmn_size(); j++)
+          H_mat(i, j) = H_k(i, j, l);
+
+      dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
+
+      for (int i = 0; i < b::dmn_size(); i++)
+        for (int j = 0; j < s::dmn_size(); j++)
+          band_structure(i, j, l) = L_vec[2 * i + j];
+    }
   }
+  else {
+    std::vector<std::vector<Real>> collection_k_vecs;
 
-  brillouin_zone_cut_domain_type::get_elements() = coll_k_vecs_dbl;
+    std::string coordinate_type;
+    std::vector<std::vector<Real>> brillouin_zone_vecs;
 
-  band_structure.reset();
+    // Construct the path in the Brilluoin zone.
+    high_symmetry_line<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs);
+    construct_path<Parameters::lattice_dimension>(coordinate_type, brillouin_zone_vecs,
+                                                  collection_k_vecs);
 
-  // Compute H(k).
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
-      "H_k");
-  Parameters::lattice_type::initializeH0(parameters, H_k);
+    // brillouin_zone_cut_domain_type is global state. yuck.
+    brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
+    // so we are going to need to widen the kvectors I guess.
+    auto k2Double = [](auto& kvec) -> std::vector<double> {
+      std::vector<double> k_converted(kvec.size());
+      std::transform(kvec.begin(), kvec.end(), k_converted.begin(),
+                     [](auto& val) -> typename decltype(k_converted)::value_type {
+                       return static_cast<typename decltype(k_converted)::value_type>(val);
+                     });
+      return k_converted;
+    };
 
-  // Compute the bands.
-  dca::linalg::Vector<Real, dca::linalg::CPU> L_vec(nu::dmn_size());
-  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> H_mat(nu::dmn_size());
-  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> V_mat(nu::dmn_size());
+    std::vector<std::vector<double>> coll_k_vecs_dbl(collection_k_vecs.size());
 
-  for (int l = 0; l < int(collection_k_vecs.size()); l++) {
-    for (int i = 0; i < nu::dmn_size(); i++)
-      for (int j = 0; j < nu::dmn_size(); j++)
-        H_mat(i, j) = H_k(i, j, l);
+    for (int i = 0; i < collection_k_vecs.size(); ++i) {
+      coll_k_vecs_dbl[i] = k2Double(collection_k_vecs[i]);
+    }
 
-    dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
+    brillouin_zone_cut_domain_type::get_elements() = coll_k_vecs_dbl;
 
-    for (int i = 0; i < b::dmn_size(); i++)
-      for (int j = 0; j < s::dmn_size(); j++)
-        band_structure(i, j, l) = L_vec[2 * i + j];
+    band_structure.reset();
+
+    // Compute H(k).
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
+        "H_k");
+    Parameters::lattice_type::initializeH0(parameters, H_k);
+
+    // Compute the bands.
+    dca::linalg::Vector<Real, dca::linalg::CPU> L_vec(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> H_mat(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> V_mat(nu::dmn_size());
+
+    for (int l = 0; l < int(collection_k_vecs.size()); l++) {
+      for (int i = 0; i < nu::dmn_size(); i++)
+        for (int j = 0; j < nu::dmn_size(); j++)
+          H_mat(i, j) = H_k(i, j, l);
+
+      dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
+
+      for (int i = 0; i < b::dmn_size(); i++)
+        for (int j = 0; j < s::dmn_size(); j++)
+          band_structure(i, j, l) = L_vec[2 * i + j];
+    }
   }
 }
 
