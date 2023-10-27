@@ -286,7 +286,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 template <typename dca_info_struct_t>
 double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  //collect_measurements();
+  collect_measurements();
   symmetrize_measurements();
 
   // Compute new Sigma.

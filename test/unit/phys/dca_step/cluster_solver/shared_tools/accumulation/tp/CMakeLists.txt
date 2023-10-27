@@ -13,13 +13,14 @@ if (DCA_HAVE_ADIOS2)
     INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
     LIBS     ${DCA_LIBS}
     )
-endif()
-
 dca_add_gtest(tp_accumulator_test
   FAST
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
   )
+
+  endif()
+
 
 dca_add_gtest(tp_accumulator_test_complex
   FAST

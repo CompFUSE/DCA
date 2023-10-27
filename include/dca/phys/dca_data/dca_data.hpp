@@ -587,14 +587,13 @@ void DcaData<Parameters, DT>::initialize_G0() {
 
     util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
 
-    Real chemical_potential = parameters_.get_chemical_potential();
-    Real beta = parameters_.get_beta();
     // Compute G0_k_w.
-    compute_G0_k_w(H_DCA, chemical_potential, parameters_.get_coarsegraining_threads(), G0_k_w);
+    compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(),
+                   parameters_.get_coarsegraining_threads(), G0_k_w);
     Symmetrize<Parameters>::execute(G0_k_w, H_symmetry, true);
 
     // Compute G0_k_t.
-    compute_G0_k_t(H_DCA, chemical_potential, beta, G0_k_t);
+    compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
     Symmetrize<Parameters>::execute(G0_k_t, H_symmetry, true);
 
     // Compute G0_r_w.
