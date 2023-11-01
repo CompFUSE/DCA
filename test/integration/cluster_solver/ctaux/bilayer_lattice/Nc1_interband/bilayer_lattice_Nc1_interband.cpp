@@ -16,7 +16,6 @@
 #include <dca/function/util/difference.hpp>
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
-
 #include "dca/config/mc_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -59,7 +58,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
                                     dca::ClusterSolverId::CT_AUX,dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
-      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
+    dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType, dca::DistType::NONE>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

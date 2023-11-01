@@ -110,6 +110,7 @@ std::pair<short, short> InteractionVertices::getInsertionIndices(Rng& rng,
   auto do_double = [&]() -> bool {
     if (double_update_prob == 0)
       return 0;
+    // this is problematic in that fewer rng than might be expected are consumed if prob==1
     else if (double_update_prob == 1)
       return 1;
     else

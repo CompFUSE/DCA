@@ -64,6 +64,7 @@ TEST_F(G0Setup, NoSubmatrix) {
 
   parameters_.setDoubleUpdateProbability(0);
   Walker walker_single(parameters_, rng);
+  walker_single.setInteractionVertices(*data_, parameters_);
 
   // interaction, tau, aux, accept
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0.41, 0, 0});
@@ -97,6 +98,8 @@ TEST_F(G0Setup, NoSubmatrix) {
   ASSERT_EQ(M1[1].nrCols(), final_size);
 
   parameters_.setDoubleUpdateProbability(1);
+
+  Walker::setInteractionVertices(*data_, parameters_);
   Walker walker_double(parameters_, rng);
 
   ////////////////////////////////
@@ -104,13 +107,13 @@ TEST_F(G0Setup, NoSubmatrix) {
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0});
   walker_double.tryVertexInsert();
   // interaction, partner tau, aux, tau, aux, accept
-  rng.setNewValues(std::vector<double>{getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0});
+  rng.setNewValues(std::vector<double>{getVertexRng(7), 0.8, 0.34, 0, 0.36, 0, 0});
   walker_double.tryVertexInsert();
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.24, 1, 0.19, 1, 0});
   walker_double.tryVertexInsert();
   // //
   // // first_id, double removal, pa rtner_id, accept
-  rng.setNewValues(std::vector<double>{0, 0., 0, 0, 0});
+  rng.setNewValues(std::vector<double>{0, 0., 0, 0., 0.});
   walker_double.tryVertexRemoval();
 
   auto M2 = walker_double.getM();
@@ -145,47 +148,51 @@ TEST_F(G0Setup, Submatrix) {
   G0Setup::RngType rng(std::vector<double>{});
   G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
-  // G0Setup::LabelDomain label_dmn;
-  // Walker::setDMatrixBuilder(g0);
-  // Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
-  // Walker::setInteractionVertices(*data_, parameters_);
-  // parameters_.setDoubleUpdateProbability(1);
+  G0Setup::LabelDomain label_dmn;
+  Walker::setDMatrixBuilder(g0);
+  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
+  parameters_.setDoubleUpdateProbability(1);
+  Walker::setInteractionVertices(*data_, parameters_);
 
-  // Walker walker(parameters_, rng);
+  Walker walker(parameters_, rng);
 
-  // // interaction, partner, tau, aux, tau, aux, accept
-  // rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0});
-  // walker.tryVertexInsert();
-  // rng.setNewValues(std::vector<double>{getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0});
-  // walker.tryVertexInsert();
-  // // first idx, double rem, second partner, accept
-  // rng.setNewValues(std::vector<double>{0, 0, 0, 0});
-  // walker.tryVertexRemoval();
+  // interaction, partner, tau, aux, tau, aux, accept
+  rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0});
+  walker.tryVertexInsert();
+  rng.setNewValues(std::vector<double>{getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0});
+  walker.tryVertexInsert();
+  // first idx, double rem, second partner, accept
+  rng.setNewValues(std::vector<double>{0, 0, 0, 0});
+  walker.tryVertexRemoval();
 
-  // auto M1 = walker.getM();
-  // const double prob1 = walker.getAcceptanceProbability();
+  auto M1 = walker.getM();
+  const double prob1 = walker.getAcceptanceProbability();
 
-  // /////////////////////////////
+  /////////////////////////////
 
-  // WalkerSubmatrix::setDMatrixBuilder(g0);
-  // WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
-  // WalkerSubmatrix::setInteractionVertices(*data_, parameters_);
+  WalkerSubmatrix::setDMatrixBuilder(g0);
+  WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
+  WalkerSubmatrix::setInteractionVertices(*data_, parameters_);
 
-  // WalkerSubmatrix walker_subm(parameters_, rng);
+  WalkerSubmatrix walker_subm(parameters_, rng);
 
-  // std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
-  //                                 0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0, 0, getVertexRng(7),
-  //                                 0.9, 0.34, 0, 0.36, 0, 0,
-  //                                 // remove, first_id, double_removal, second_id, accept
-  //                                 1, 0, 0, 0, 0};
+  std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
+    0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0,
+    0, getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0,
+                                  // with remov, first_id, double_removal, second_id, accept
+                                  1, 0, 0, 0, 0};
 
-  // rng.setNewValues(random_vals);
-  // walker_subm.doStep(3);
+  rng.setNewValues(random_vals);
+  walker_subm.doStep(3);
 
-  // auto M2 = walker_subm.getM();
-  // const double prob2 = walker_subm.getAcceptanceProbability();
+  auto M2 = walker_subm.getM();
+  const double prob2 = walker_subm.getAcceptanceProbability();
 
-  // EXPECT_NEAR(prob1, prob2, 1e-7);
-  // for (int s = 0; s < 2; ++s)
-  //   EXPECT_TRUE(dca::linalg::matrixop::areNear(M1[s], M2[s], 1e-7));
+//  EXPECT_NEAR(prob1, prob2, 1e-7);
+  for (int s = 0; s < 2; ++s) {
+    EXPECT_EQ(M1[s].size(), M2[s].size());
+    EXPECT_TRUE(dca::linalg::matrixop::areNear(M1[s], M2[s], 1e-7));
+    M1[s].print();
+    M2[s].print();
+  }
 }

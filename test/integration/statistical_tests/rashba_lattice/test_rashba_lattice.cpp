@@ -111,7 +111,7 @@ TEST_F(RashbaLatticeIntegrationTest, SelfEnergy) {
   //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
-  using QMCSolverGPU = typename RashbaLatticeIntegrationTest::GPUSetup::ThreadedSolver;
+  using QMCSolverGPU = typename GPUSetup::ThreadedSolver;
 
   QMCSolverGPU qmc_solver_gpu(this->gpu_setup->parameters_, *(this->gpu_setup->data_), nullptr);
   qmc_solver_gpu.initialize(0);

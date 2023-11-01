@@ -368,6 +368,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
 
   std::vector<int> aux_spin_type, new_aux_spin_type, move_band;
 
+  acceptance_prob_ = 1.0;
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     current_move_ = &delayed_moves_[delay_ind];
     const auto move_type = current_move_->move_type;
@@ -460,7 +461,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
 
     // Compute acceptance probability.
     auto [acceptance_prob, mc_weight_ratio] = computeAcceptanceProbability();
-    acceptance_prob_ = acceptance_prob;
+    acceptance_prob_ *= acceptance_prob;
 
     // Note: acceptance and rejection can be forced for testing with the appropriate "acceptance_rng".
     const bool accepted =
