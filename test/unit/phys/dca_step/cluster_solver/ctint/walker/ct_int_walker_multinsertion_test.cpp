@@ -30,7 +30,6 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 
-
 // This file MUST have
 //   -"double-update-probability": 0
 //   -"initial-configuration-size": 0
@@ -40,10 +39,10 @@ constexpr char input_name[] =
 
 using Scalar = double;
 
-using G0Setup =
-  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeHund, dca::ClusterSolverId::CT_INT, input_name>;
+using G0Setup = typename dca::testing::G0Setup<Scalar, dca::testing::LatticeHund,
+                                               dca::ClusterSolverId::CT_INT, input_name>;
 using namespace dca::phys::solver;
-using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar,G0Setup::Parameters>;
+using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, G0Setup::Parameters>;
 using Matrix = Walker::Matrix;
 using MatrixPair = std::array<Matrix, 2>;
 
@@ -97,6 +96,8 @@ TEST_F(G0Setup, NoSubmatrix) {
   ASSERT_EQ(M1[0].nrCols(), final_size);
   ASSERT_EQ(M1[1].nrCols(), final_size);
 
+  const double prob_single = walker_single.getAcceptanceProbability();
+  
   parameters_.setDoubleUpdateProbability(1);
 
   Walker::setInteractionVertices(*data_, parameters_);
@@ -137,13 +138,16 @@ TEST_F(G0Setup, NoSubmatrix) {
     std::sort(el1.begin(), el1.end());
     std::sort(el2.begin(), el2.end());
 
+    const double prob_double = walker_single.getAcceptanceProbability();
+    EXPECT_NEAR(prob_single, prob_double, 1e-7);
     for (int i = 0; i < el1.size(); ++i)
       EXPECT_NEAR(el1[i], el2[i], 1e-5);
   }
 }
 
 // Compare the double insertion probability of a submatrix walker with a non-submatrix one.
-using WalkerSubmatrix = testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar,G0Setup::Parameters>;
+using WalkerSubmatrix =
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, G0Setup::Parameters>;
 TEST_F(G0Setup, Submatrix) {
   G0Setup::RngType rng(std::vector<double>{});
   G0Interpolation<dca::linalg::CPU, double> g0(
@@ -177,8 +181,8 @@ TEST_F(G0Setup, Submatrix) {
   WalkerSubmatrix walker_subm(parameters_, rng);
 
   std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
-    0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0,
-    0, getVertexRng(7), 0.9, 0.34, 0, 0.36, 0, 0,
+                                  0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0, 0, getVertexRng(7),
+                                  0.9, 0.34, 0, 0.36, 0, 0,
                                   // with remov, first_id, double_removal, second_id, accept
                                   1, 0, 0, 0, 0};
 
@@ -188,7 +192,7 @@ TEST_F(G0Setup, Submatrix) {
   auto M2 = walker_subm.getM();
   const double prob2 = walker_subm.getAcceptanceProbability();
 
-//  EXPECT_NEAR(prob1, prob2, 1e-7);
+  EXPECT_NEAR(prob1, prob2, 1e-7);
   for (int s = 0; s < 2; ++s) {
     EXPECT_EQ(M1[s].size(), M2[s].size());
     EXPECT_TRUE(dca::linalg::matrixop::areNear(M1[s], M2[s], 1e-7));
