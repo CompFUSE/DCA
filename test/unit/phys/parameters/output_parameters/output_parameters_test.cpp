@@ -25,14 +25,15 @@ TEST(OutputParametersTest, DefaultValues) {
 #ifdef DCA_HAVE_ADIOS2
   EXPECT_EQ("ADIOS2", pars.get_output_format());
   EXPECT_EQ("ADIOS2", pars.get_g4_output_format());
+  EXPECT_EQ("dca.bp", pars.get_filename_dca());
 #else
   EXPECT_EQ("HDF5", pars.get_output_format());
   EXPECT_EQ("", pars.get_g4_output_format());
+  EXPECT_EQ("dca.hdf5", pars.get_filename_dca());
 #endif
   EXPECT_FALSE(pars.autoresume());
   EXPECT_EQ("", pars.get_directory_config_read());
   EXPECT_EQ("", pars.get_directory_config_write());
-  EXPECT_EQ("dca.bp", pars.get_filename_dca());
   EXPECT_EQ("sofqomega.bp", pars.get_filename_analysis());
   EXPECT_EQ("ed.hdf5", pars.get_filename_ed());
   EXPECT_EQ("qmc.hdf5", pars.get_filename_qmc());
