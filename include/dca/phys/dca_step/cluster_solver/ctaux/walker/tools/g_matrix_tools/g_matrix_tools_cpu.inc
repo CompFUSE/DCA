@@ -15,8 +15,8 @@ class G_MATRIX_TOOLS<dca::linalg::CPU, Parameters> {
   using Concurrency = typename Parameters::concurrency_type;
   using Profiler = typename Parameters::profiler_type;
 
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
 public:
   G_MATRIX_TOOLS(int id, const Parameters& parameters_ref)

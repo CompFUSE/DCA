@@ -14,8 +14,8 @@ template <class Parameters>
 class N_MATRIX_TOOLS<dca::linalg::GPU, Parameters> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
   typedef typename Parameters::concurrency_type concurrency_type;
   typedef typename Parameters::profiler_type profiler_t;

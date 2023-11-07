@@ -65,7 +65,10 @@ public:
   static constexpr bool is_complex = dca::util::IsComplex<Scalar>::value;
 
 public:
-  CtauxWalker(const Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
+  /** constructor
+   *  param[in] id    thread id?
+   */
+  CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
 
   void initialize(int iteration);
 
@@ -204,12 +207,37 @@ private:
 
   void recomputeMCWeight();
 
+  protected:
+  // for testing
+  auto& getNUp() { return N_up; }
+  auto& getNDown() { return N_dn; }
+
 private:
   using WalkerBIT<Parameters, Data>::check_G0_matrices;
   using WalkerBIT<Parameters, Data>::check_N_matrices;
   using WalkerBIT<Parameters, Data>::check_G_matrices;
 
-private:
+protected:
+  const Parameters& parameters_;
+  Data& data_;
+  const Concurrency& concurrency_;
+
+  int thread_id;
+  int stream_id;
+
+  CV<Parameters> CV_obj;
+
+  CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar> ctaux_tools;
+
+  Rng& rng;
+  Configuration configuration_;
+
+  G0Interpolation<device_t, Parameters> G0_tools_obj;
+  N_TOOLS<device_t, Parameters> N_tools_obj;
+  G_TOOLS<device_t, Parameters> G_tools_obj;
+
+  SHRINK_TOOLS<Profiler, device_t, Scalar> SHRINK_tools_obj;
+
   struct delayed_spin_struct {
     int delayed_spin_index;
 
@@ -242,25 +270,11 @@ private:
   };
 
 private:
-  const Parameters& parameters_;
-  Data& data_;
-  const Concurrency& concurrency_;
 
-  int thread_id;
-  int stream_id;
+  
+  
 
-  CV<Parameters> CV_obj;
-  CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar> ctaux_tools;
-
-  Rng& rng;
-  Configuration configuration_;
-
-  G0Interpolation<device_t, Parameters> G0_tools_obj;
-  N_TOOLS<device_t, Parameters> N_tools_obj;
-  G_TOOLS<device_t, Parameters> G_tools_obj;
-
-  SHRINK_TOOLS<Profiler, device_t, Scalar> SHRINK_tools_obj;
-
+  
   using CtauxWalkerData<device_t, Parameters>::N_up;
   using CtauxWalkerData<device_t, Parameters>::N_dn;
 
@@ -326,20 +340,19 @@ private:
   std::array<linalg::Vector<Scalar, device_t>, 2> exp_v_minus_one_dev_;
   std::array<linalg::util::GpuEvent, 2> m_computed_events_;
 
-  bool config_initialized_;
-
   double sweeps_per_measurement_ = 1.;
   unsigned long n_steps_ = 0;
   linalg::util::GpuEvent sync_streams_event_;
+  bool config_initialized_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxWalker<device_t, Parameters, Data>::CtauxWalker(const Parameters& parameters_ref,
+CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref,
                                                      Data& MOMS_ref, Rng& rng_ref, int id)
     : WalkerBIT<Parameters, Data>(parameters_ref, MOMS_ref, id),
       CtauxWalkerData<device_t, Parameters>(parameters_ref, id),
-
       parameters_(parameters_ref),
+
       data_(MOMS_ref),
       concurrency_(parameters_.get_concurrency()),
 

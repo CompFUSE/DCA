@@ -74,6 +74,7 @@ public:
                        dca::linalg::Matrix<Scalar, device_t>& G0,
                        dca::linalg::Matrix<Scalar, device_t>& N, e_spin_states_type e_spin);
 
+  
   template <class configuration_type>
   void rebuild_N_matrix_via_Gamma_LU(configuration_type& full_configuration,
                                      dca::linalg::Matrix<Scalar, device_t>& N,
@@ -114,7 +115,9 @@ private:
   dca::linalg::Vector<Scalar, dca::linalg::CPU> exp_gamma_s, one_min_exp_gamma_s;
   std::array<dca::linalg::Vector<Scalar, dca::linalg::CPU>, 2> d_inv, exp_V_minus_one_val;
 
+  /// Workspace for G
   dca::linalg::Matrix<Scalar, device_t> G;
+  /// Workspace for N update
   dca::linalg::Matrix<Scalar, device_t> N_new_spins;
   dca::linalg::Matrix<Scalar, device_t> G0_times_exp_V_minus_one;
 
@@ -339,6 +342,13 @@ void N_TOOLS<device_t, Parameters>::update_N_matrix(configuration_type& configur
   }
 }
 
+/** do trsm solve and update N
+ *  \param[inout] N
+ *  \param[in] Gamma
+ *  side effects:
+ *      N_new_spins mutated
+ *      G
+ */
 template <dca::linalg::DeviceType device_t, typename Parameters>
 template <class configuration_type>
 void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
@@ -398,7 +408,7 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
 
   {  // do N - G*Gamma_inv_times_N_new_spins --> N  || DGEMM --> work-horsegg
     // profiler_t profiler(concurrency, "(d) dgemm", __FUNCTION__, __LINE__, true);
-
+    // N gets updated here.
     dca::linalg::matrixop::gemm(Scalar(-1.), G, N_new_spins, Scalar(1.), N, thread_id, stream_id);
 
     GFLOP +=

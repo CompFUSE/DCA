@@ -165,6 +165,8 @@ template void multiplyByInverseFFactor(const MatrixView<std::complex<float>, GPU
                                        cudaStream_t);
 template void multiplyByInverseFFactor(const MatrixView<double, GPU>&, MatrixView<double, GPU>&,
                                        const double*, cudaStream_t);
+template void multiplyByInverseFFactor(const MatrixView<std::complex<double>, GPU>&, MatrixView<std::complex<double>, GPU>&,
+                                       const double*, cudaStream_t);
 
 template <typename Scalar, typename Real>
 __global__ void divideByGammaFactorKernel(MatrixView<Scalar, GPU> m,

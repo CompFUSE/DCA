@@ -51,15 +51,17 @@ using LatticeKagome = phys::models::KagomeHubbard<phys::domains::no_symmetry<2>>
 using LatticeRashba = phys::models::RashbaHubbard<phys::domains::no_symmetry<2>>;
 using LatticeMoireHubbard = phys::models::moire_hubbard<phys::domains::no_symmetry<2>>;
 
-template <typename Scalar, class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
+template <typename Scalar, class Lattice = LatticeSquare,
+          ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
           const char* input_name = default_input, DistType DT = DistType::NONE>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
   using RngType = testing::StubRng;
   using Concurrency = parallel::NoConcurrency;
-  using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
-    profiling::NullProfiler, Model, RngType, solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+  using Parameters =
+      phys::params::Parameters<Concurrency, parallel::NoThreading, profiling::NullProfiler, Model, RngType,
+                               solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = phys::DcaData<Parameters, DT>;
 
   // Commonly used domains.
@@ -98,17 +100,24 @@ struct G0Setup : public ::testing::Test {
   }
 
   virtual void TearDown() {}
+
+  auto& getParameters() {
+      return parameters_;
+  }
+
 };
 
-template <typename Scalar, class Lattice = LatticeSquare, ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
+template <typename Scalar, class Lattice = LatticeSquare,
+          ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
           const char* input_name = default_input, DistType DT = DistType::NONE>
 struct G0SetupBare {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
   using RngType = testing::StubRng;
   using Concurrency = parallel::NoConcurrency;
-  using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
-    profiling::NullProfiler, Model, RngType, solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+  using Parameters =
+      phys::params::Parameters<Concurrency, parallel::NoThreading, profiling::NullProfiler, Model, RngType,
+                               solver_name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = phys::DcaData<Parameters, DT>;
 
   // Commonly used domains.
@@ -145,9 +154,9 @@ struct G0SetupBare {
   }
 
   void TearDown() {}
+
 };
 
-  
 }  // namespace testing
 }  // namespace dca
 

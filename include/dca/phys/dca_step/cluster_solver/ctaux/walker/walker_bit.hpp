@@ -43,8 +43,8 @@ class WalkerBIT {
   typedef typename CtauxTypedefs<Parameters, Data>::profiler_type profiler_type;
   typedef typename CtauxTypedefs<Parameters, Data>::concurrency_type concurrency_type;
 
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
 public:
   WalkerBIT(const Parameters& parameters_ref, Data& MOMS_ref, int id);

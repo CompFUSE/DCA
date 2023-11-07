@@ -304,7 +304,7 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::updateM() {
     // Note: the following resize is safe as it does not deallocate.
     tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
     linalg::matrixop::gemm(Gamma_inv_dev_[s], old_M, tmp, thread_id_, s);
-    linalg::matrixop::gemm(Real(-1.), old_G, tmp, Real(1.), M_dev_[s], thread_id_, s);
+    linalg::matrixop::gemm(Scalar(-1.), old_G, tmp, Scalar(1.), M_dev_[s], thread_id_, s);
     flop_ += 2 * Gamma_inv_dev_[s].nrRows() * Gamma_inv_dev_[s].nrCols() * old_M.nrCols();
     flop_ += 2 * old_G.nrRows() * old_G.nrCols() * tmp.nrCols();
 

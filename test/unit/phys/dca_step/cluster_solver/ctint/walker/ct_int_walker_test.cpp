@@ -57,9 +57,9 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   using Scalar = TypeParam;
 
   // Setup
-  std::vector<Scalar> rng_values(1000);
+  std::vector<double> rng_values(1000);
   for (auto& x : rng_values)
-    x = static_cast<Scalar>(std::rand()) / RAND_MAX;
+    x = static_cast<double>(std::rand()) / RAND_MAX;
   typename CtintWalkerTest<Scalar>::RngType rng(rng_values);
 
   auto& data = *CtintWalkerTest<Scalar>::data_;

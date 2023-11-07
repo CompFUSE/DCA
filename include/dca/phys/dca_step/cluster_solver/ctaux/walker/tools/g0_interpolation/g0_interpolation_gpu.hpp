@@ -30,8 +30,8 @@ namespace ctaux {
 template <typename Parameters>
 class G0Interpolation<dca::linalg::GPU, Parameters> : public G0InterpolationBase<Parameters> {
 public:
-  using Real = typename dca::config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using vertex_singleton_type = vertex_singleton;
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
   using b = func::dmn_0<domains::electron_band_domain>;
