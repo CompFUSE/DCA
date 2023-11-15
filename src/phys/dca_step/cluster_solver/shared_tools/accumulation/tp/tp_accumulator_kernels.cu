@@ -602,8 +602,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_a = nb * k1_a + no * w1_a;
     int j_a = nb * k2_a + no * w2_a;
     if (conj_a) {
-      i_a += b1;
-      j_a += b3;
+      i_a += b3;
+      j_a += b1;
     }
     else {
       i_a += b1;
@@ -625,8 +625,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     int i_b = nb * k1_b + no * w1_b;
     int j_b = nb * k2_b + no * w2_b;
     if (conj_b) {
-      i_b += b2;
-      j_b += b4;
+      i_b += b4;
+      j_b += b2;
     }
     else {
       i_b += b2;

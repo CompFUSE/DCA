@@ -354,7 +354,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
     /*     &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext)); */
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
+        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b2 + b1 * n_bands_]);
   }
 }
 
