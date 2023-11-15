@@ -64,7 +64,7 @@ public:
   using typename Base::BDmn;
   using typename Base::SDmn;
   using typename Base::TpGreensFunction;
-  
+
 protected:
   using Base::non_density_density_;
   using Base::n_bands_;
@@ -76,10 +76,10 @@ protected:
   using Base::G0_ptr_;
   using Base::G_;
   using Base::beta_;
-  
+
   using Profiler = typename Parameters::profiler_type;
   using Base::thread_id_;
-  
+
   using Matrix = linalg::Matrix<Complex, linalg::CPU>;
 
 public:
@@ -163,6 +163,7 @@ protected:
   CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   int sign_;
+
 private:
   // work spaces for computeGMultiband.
   Matrix G0_M_, G_a_, G_b_;
@@ -172,15 +173,11 @@ template <class Parameters, DistType DT>
 TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
     const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : Base(G0, pars, thread_id),
-      G0_M_(n_bands_),
-      G_a_(n_bands_),
-      G_b_(n_bands_) {
+    : Base(G0, pars, thread_id), G0_M_(n_bands_), G_a_(n_bands_), G_b_(n_bands_) {
   if constexpr (DT == DistType::BLOCKED) {
     std::cerr << "Blocked distribution is not supported in the CPU accumulator. "
               << "Reverting to no distribution.\n";
   }
-
 }
 
 template <class Parameters, DistType DT>
@@ -281,7 +278,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, 
 
   const linalg::MatrixView<Complex, linalg::CPU> G0_w1(&G0_(0, 0, s, k1, w1 + Base::n_pos_frqs_),
                                                        Base::n_bands_, Base::n_bands_);
-  const linalg::MatrixView<Complex, linalg::CPU> G0_w2(&G0_(0, 0, s, k2, w2), Base::n_bands_, Base::n_bands_);
+  const linalg::MatrixView<Complex, linalg::CPU> G0_w2(&G0_(0, 0, s, k2, w2), Base::n_bands_,
+                                                       Base::n_bands_);
   linalg::MatrixView<Complex, linalg::CPU> M_matrix(&G_(0, 0, s, k1, k2, w1, w2), Base::n_bands_);
 
   // G(w1, w2) <- -G0(w1) M(w1, w2) G0(w2)
@@ -350,13 +348,13 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
     }
   }
   else {
-    // const Complex* const G_ptr =
-    //     &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
     const Complex* const G_ptr =
-        &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext));
+        &G_(0, 0, s, minus_k(k1), minus_k(k2), minus_w1(w1_ext), minus_w2(w2_ext));
+    /* const Complex* const G_ptr = */
+    /*     &G_(0, 0, s, k1, k2, minus_w1(w1_ext), minus_w2(w2_ext)); */
     for (int b2 = 0; b2 < n_bands_; ++b2)
       for (int b1 = 0; b1 < n_bands_; ++b1)
-        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b2 + b1 * n_bands_]);
+        G(b1, b2) = beta * G(b1, b2) + std::conj(G_ptr[b1 + b2 * n_bands_]);
   }
 }
 
@@ -371,7 +369,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
   Profiler profiler("updateG4", "tp-accumulation", __LINE__, thread_id_);
 
   double flops(0);
- 
+
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(k, q); };
   // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
