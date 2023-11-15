@@ -574,8 +574,8 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
         for (int b3 = 0; b3 < n_bands_; ++b3)
           for (int b2 = 0; b2 < n_bands_; ++b2)
             for (int b1 = 0; b1 < n_bands_; ++b1) {
-              // *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
-              *G4_ptr += alpha * G_a_(b2, b4) * G_b_(b3, b1);
+              *G4_ptr += alpha * G_a_(b1, b3) * G_b_(b2, b4);
+              /* *G4_ptr += alpha * G_a_(b2, b4) * G_b_(b3, b1); */
               ++G4_ptr;
             }
     else
