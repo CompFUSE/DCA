@@ -125,6 +125,7 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       ASSERT_EQ(config1.size(), config2.size());
       for (int i = 0; i < config1.size(); ++i)
         EXPECT_EQ(config1[i], config2[i]);
+      EXPECT_EQ(walker_cpu.get_sign(), walker_gpu.get_sign());
     }
   }
 }

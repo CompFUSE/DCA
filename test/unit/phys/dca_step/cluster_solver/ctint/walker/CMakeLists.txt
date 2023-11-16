@@ -30,5 +30,12 @@ dca_add_gtest(ct_int_walker_submatrix_gpu_test
         GTEST_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
         LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${KERNELS_LIB}
+      )
+
+dca_add_gtest(ct_int_walker_submatrix_gpu_complex_test
+        CUDA
+        FAST
+        GTEST_MAIN
+        INCLUDE_DIRS ${TEST_INCLUDES}
+        LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${KERNELS_LIB}
         )
-        #;blas_kernels;mc_kernels

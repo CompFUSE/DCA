@@ -64,7 +64,7 @@
     "Sigma-file" : "zero",
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements" : 1500,
+    "measurements" : 500,
     "seed" : 0,
     "threaded-solver" : {"walkers" : 4,
 			 "accumulators" : 4,
