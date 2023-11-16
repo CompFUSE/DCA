@@ -238,6 +238,7 @@ public:
   // Returns the allocated device memory in bytes.
   std::size_t deviceFingerprint() const;
 
+  std::string toStr() const;
 private:
   static std::pair<int, int> capacityMultipleOfBlockSize(std::pair<int, int> size);
   inline static size_t nrElements(std::pair<int, int> size) {
@@ -527,6 +528,25 @@ void Matrix<ScalarType, device_name,  ALLOC>::print() const {
   std::cout << ss.str() << std::endl;
 }
 
+template <typename ScalarType, DeviceType device_name, class ALLOC>
+std::string Matrix<ScalarType, device_name,  ALLOC>::toStr() const {
+  if (device_name == GPU)
+    return Matrix<ScalarType, CPU>(*this).toStr();
+
+  std::stringstream ss;
+  ss.precision(16);
+  ss << std::scientific;
+
+  ss << "\n";
+  for (int i = 0; i < nrRows(); ++i) {
+    for (int j = 0; j < nrCols(); ++j)
+      ss << "\t" << operator()(i, j);
+    ss << "\n";
+  }
+
+  return ss.str();
+}
+  
 template <typename ScalarType, DeviceType device_name, class ALLOC>
 void Matrix<ScalarType, device_name,  ALLOC>::printFingerprint() const {
   std::stringstream ss;

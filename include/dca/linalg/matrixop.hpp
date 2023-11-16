@@ -197,9 +197,9 @@ inline void copyRows(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& i
 template <typename Scalar, class ALLOC>
 auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, ALLOC>& b,
                 double diff_threshold = 1e-3) {
+  auto max_diff = std::abs(Scalar(0));
   assert(a.size() == b.size());
 
-  auto max_diff = std::abs(Scalar(0));
 
   for (int j = 0; j < a.nrCols(); ++j) {
     for (int i = 0; i < a.nrRows(); ++i) {
@@ -222,7 +222,7 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
     s << std::endl;
     std::cout << s.str();
 #endif  // NDEBUG
-
+    std::cerr << "matrix difference in excess of threshold!\n";
     throw std::logic_error(__FUNCTION__);
   }
 
