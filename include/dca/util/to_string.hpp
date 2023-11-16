@@ -50,6 +50,13 @@ std::string mapToString(CONTAINER const& container) {
   oss << "}\n";
   return oss.str();
 }
-  
+
+namespace addt_str_oper {
+template <typename T>
+std::ostream& operator<<(std::ostream& ostr, const std::pair<T, T>& pair) {
+  ostr << "( " << pair.first << ", " << pair.second << ")";
+  return ostr;
+}
+}  // namespace addt_str_oper
 }  // namespace dca
 #endif

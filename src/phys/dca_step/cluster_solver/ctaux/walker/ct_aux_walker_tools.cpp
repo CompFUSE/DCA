@@ -62,7 +62,8 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::compute_Gamma(
 
       if (i == j) {
         Scalar gamma_k = exp_delta_V[j];
-        Gamma(i, j) -= (gamma_k) / (gamma_k - Real(1.));
+	Scalar inter_gamma = (gamma_k) / (gamma_k - Real(1.));
+        Gamma(i, j) -= inter_gamma; //(gamma_k) / (gamma_k - Real(1.));
       }
     }
   }

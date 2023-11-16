@@ -89,6 +89,12 @@ public:
   // In/Out: single_spin_updates_todo
   void doStep(int& single_spin_updates_todo);
 
+  /// Factored out of read_Gamma_matrices to make this computation testable.
+  void calcExpVandPushVertexIndices(e_spin_states e_spin);
+
+  /// Do significant just in time computation prior to moving data off of "device"
+  void read_Gamma_matrices(e_spin_states e_spin);
+
   // Computes M(N).
   // Out: Ms.
   // Returns: pointer to the event marking the end of the computation.
@@ -144,11 +150,41 @@ public:
     return mc_log_weight_;
   }
 
-private:
   void addNonInteractingSpinsToMatrices();
+
+  void clean_up_the_configuration();
+
+  /// Actually doesn't seem to "compute the Gamma" but adds spins and calls solve_Gamma_blocked
+  void compute_Gamma_matrices();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  void actually_download_from_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> download_from_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> download_from_device();
 
   void generate_delayed_spins(int& single_spin_updates_todo);
 
+  void update_N_matrix_with_Gamma_matrix();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> upload_to_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> upload_to_device();
+
+  // for testing
+  auto& getNUp() {
+    return N_up;
+  }
+  auto& getNDown() {
+    return N_dn;
+  }
+
+private:
   // Generates delayed single spin updates.
   // Returns the total number of proposed single spin updates including "static" steps.
   // Version that aborts when a Bennett spin is proposed for removal.
@@ -158,10 +194,6 @@ private:
   int generateDelayedSpinsNeglectBennett(int single_spin_updates_todo);
 
   void finalizeDelayedSpins();
-
-  void read_Gamma_matrices(e_spin_states e_spin);
-
-  void compute_Gamma_matrices();
 
   void add_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size);
 
@@ -173,23 +205,7 @@ private:
 
   void neutralize_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size);
 
-  template <dca::linalg::DeviceType dev_t = device_t>
-  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> download_from_device();
-
-  template <dca::linalg::DeviceType dev_t = device_t>
-  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> download_from_device();
-
-  template <dca::linalg::DeviceType dev_t = device_t>
-  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> upload_to_device();
-
-  template <dca::linalg::DeviceType dev_t = device_t>
-  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> upload_to_device();
-
   void add_delayed_spins();
-
-  void update_N_matrix_with_Gamma_matrix();
-
-  void clean_up_the_configuration();
 
   HS_vertex_move_type get_new_HS_move();
 
@@ -199,20 +215,14 @@ private:
   // INTERNAL: Unused.
   HS_spin_states_type get_new_spin_value(HS_vertex_move_type HS_current_move);
 
-  auto calculate_acceptace_ratio(Scalar ratio, HS_vertex_move_type HS_current_move,
-                                 Real QMC_factor) const;
+  auto calculate_acceptance_ratio(Scalar ratio, HS_vertex_move_type HS_current_move,
+                                  Real QMC_factor) const;
 
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, Scalar exp_delta_V);
 
   void recomputeMCWeight();
 
-  protected:
-  // for testing
-  auto& getNUp() { return N_up; }
-  auto& getNDown() { return N_dn; }
-
-private:
   using WalkerBIT<Parameters, Data>::check_G0_matrices;
   using WalkerBIT<Parameters, Data>::check_N_matrices;
   using WalkerBIT<Parameters, Data>::check_G_matrices;
@@ -227,6 +237,7 @@ protected:
 
   CV<Parameters> CV_obj;
 
+  // So actually GPU CT_AUX_WALKER_TOOLS are not currently used.
   CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar> ctaux_tools;
 
   Rng& rng;
@@ -269,12 +280,13 @@ protected:
     Scalar exp_minus_delta_V_HS_field_DN;
   };
 
-private:
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> Gamma_up_CPU;
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> Gamma_dn_CPU;
 
-  
-  
+  int warm_up_sweeps_done_;
+  util::Accumulator<std::size_t> warm_up_expansion_order_;
+  util::Accumulator<std::size_t> num_delayed_spins_;
 
-  
   using CtauxWalkerData<device_t, Parameters>::N_up;
   using CtauxWalkerData<device_t, Parameters>::N_dn;
 
@@ -287,9 +299,12 @@ private:
   using CtauxWalkerData<device_t, Parameters>::G_up;
   using CtauxWalkerData<device_t, Parameters>::G_dn;
 
-  dca::linalg::Matrix<Scalar, dca::linalg::CPU> Gamma_up_CPU;
-  dca::linalg::Matrix<Scalar, dca::linalg::CPU> Gamma_dn_CPU;
+  std::vector<Scalar> exp_V_CPU;
+  dca::linalg::Vector<Scalar, device_t> exp_V;
+  dca::linalg::Vector<Scalar, device_t> exp_delta_V;
+  dca::linalg::Vector<int, device_t> vertex_indixes;
 
+private:
   Real Gamma_up_diag_max;
   Real Gamma_up_diag_min;
   Real Gamma_dn_diag_max;
@@ -303,12 +318,7 @@ private:
   std::vector<HS_spin_states_type> new_HS_spin_value_vector;
 
   std::vector<int> vertex_indixes_CPU;
-  std::vector<Scalar> exp_V_CPU;
   std::vector<Scalar> exp_delta_V_CPU;
-
-  dca::linalg::Vector<int, device_t> vertex_indixes;
-  dca::linalg::Vector<Scalar, device_t> exp_V;
-  dca::linalg::Vector<Scalar, device_t> exp_delta_V;
 
   std::vector<delayed_spin_struct> delayed_spins;
   std::vector<delayed_spin_struct> bennett_spins;
@@ -329,9 +339,6 @@ private:
   Real mc_log_weight_ = 0.;
   const Real mc_log_weight_constant_;
 
-  int warm_up_sweeps_done_;
-  util::Accumulator<std::size_t> warm_up_expansion_order_;
-  util::Accumulator<std::size_t> num_delayed_spins_;
   int currently_proposed_creations_ = 0;
   int currently_proposed_annihilations_ = 0;
 
@@ -347,8 +354,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref,
-                                                     Data& MOMS_ref, Rng& rng_ref, int id)
+CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref,
+                                                     Rng& rng_ref, int id)
     : WalkerBIT<Parameters, Data>(parameters_ref, MOMS_ref, id),
       CtauxWalkerData<device_t, Parameters>(parameters_ref, id),
       parameters_(parameters_ref),
@@ -376,6 +383,10 @@ CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref,
       Gamma_up_CPU("Gamma_up_CPU", Gamma_up.size(), Gamma_up.capacity()),
       Gamma_dn_CPU("Gamma_dn_CPU", Gamma_dn.size(), Gamma_dn.capacity()),
 
+      warm_up_sweeps_done_(0),
+      warm_up_expansion_order_(),
+      num_delayed_spins_(),
+
       Gamma_up_diag_max(1),
       Gamma_up_diag_min(1),
       Gamma_dn_diag_max(1),
@@ -395,10 +406,6 @@ CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref,
       Bennett(false),
       mc_log_weight_constant_(
           std::log(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta()))),
-
-      warm_up_sweeps_done_(0),
-      warm_up_expansion_order_(),
-      num_delayed_spins_(),
 
       config_initialized_(false) {
   if (concurrency_.id() == 0 and thread_id == 0) {
@@ -556,6 +563,7 @@ void CtauxWalker<device_t, Parameters, Data>::doStep(int& single_spin_updates_to
 
   download_from_device();
 
+  // This is strange since CTAUX_TOOLS::computeGamma gets called as a side effect of the download_from_device!
   compute_Gamma_matrices();
 
   upload_to_device();
@@ -568,6 +576,20 @@ void CtauxWalker<device_t, Parameters, Data>::doStep(int& single_spin_updates_to
     warm_up_expansion_order_.addSample(configuration_.get_number_of_interacting_HS_spins());
 }
 
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+template <dca::linalg::DeviceType dev_t>
+void CtauxWalker<device_t, Parameters, Data>::actually_download_from_device() {
+  if constexpr (device_t == dca::linalg::GPU) {
+    Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
+    Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
+    linalg::util::syncStream(thread_id, stream_id);
+  }
+  else if constexpr (device_t == dca::linalg::CPU) {
+    Gamma_up_CPU.swap(Gamma_up);
+    Gamma_dn_CPU.swap(Gamma_dn);
+  }
+}
+
 // In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <dca::linalg::DeviceType dev_t>
@@ -575,13 +597,16 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
     device_t, Parameters, Data>::download_from_device() {
   Profiler profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
+  calcExpVandPushVertexIndices(e_UP);
   read_Gamma_matrices(e_UP);
+  calcExpVandPushVertexIndices(e_DN);
   read_Gamma_matrices(e_DN);
 
-  Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
-  Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
+  actually_download_from_device<device_t>();
+  // Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
+  // Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
 
-  linalg::util::syncStream(thread_id, stream_id);
+  // linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -594,11 +619,15 @@ std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> CtauxW
   assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
   assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
 
+  calcExpVandPushVertexIndices(e_UP);
   read_Gamma_matrices(e_UP);
+  calcExpVandPushVertexIndices(e_DN);
   read_Gamma_matrices(e_DN);
 
-  Gamma_up_CPU.swap(Gamma_up);
-  Gamma_dn_CPU.swap(Gamma_dn);
+  actually_download_from_device<device_t>();
+
+  // Gamma_up_CPU.swap(Gamma_up);
+  // Gamma_dn_CPU.swap(Gamma_dn);
 }
 
 // In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
@@ -950,35 +979,35 @@ void CtauxWalker<device_t, Parameters, Data>::finalizeDelayedSpins() {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxWalker<device_t, Parameters, Data>::calcExpVandPushVertexIndices(e_spin_states e_spin) {
+  exp_V_CPU.resize(0);
+  exp_delta_V_CPU.resize(0);
+  vertex_indixes_CPU.resize(0);
+
+  for (size_t i = 0; i < delayed_spins.size(); ++i) {
+    if (delayed_spins[i].e_spin_HS_field_DN == e_spin) {
+      exp_V_CPU.push_back(delayed_spins[i].exp_V_HS_field_DN);
+      exp_delta_V_CPU.push_back(delayed_spins[i].exp_delta_V_HS_field_DN);
+      vertex_indixes_CPU.push_back(delayed_spins[i].configuration_e_spin_index_HS_field_DN);
+    }
+
+    if (delayed_spins[i].e_spin_HS_field_UP == e_spin) {
+      exp_V_CPU.push_back(delayed_spins[i].exp_V_HS_field_UP);
+      exp_delta_V_CPU.push_back(delayed_spins[i].exp_delta_V_HS_field_UP);
+      vertex_indixes_CPU.push_back(delayed_spins[i].configuration_e_spin_index_HS_field_UP);
+    }
+  }
+
+  vertex_indixes.setAsync(vertex_indixes_CPU, thread_id, stream_id);
+  exp_V.setAsync(exp_V_CPU, thread_id, stream_id);
+  exp_delta_V.setAsync(exp_delta_V_CPU, thread_id, stream_id);
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::read_Gamma_matrices(e_spin_states e_spin) {
   // std::cout << __FUNCTION__ << "\n";
 
   // Profiler profiler(concurrency_, __FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
-
-  {
-    exp_V_CPU.resize(0);
-    exp_delta_V_CPU.resize(0);
-    vertex_indixes_CPU.resize(0);
-
-    for (size_t i = 0; i < delayed_spins.size(); ++i) {
-      if (delayed_spins[i].e_spin_HS_field_DN == e_spin) {
-        exp_V_CPU.push_back(delayed_spins[i].exp_V_HS_field_DN);
-        exp_delta_V_CPU.push_back(delayed_spins[i].exp_delta_V_HS_field_DN);
-        vertex_indixes_CPU.push_back(delayed_spins[i].configuration_e_spin_index_HS_field_DN);
-      }
-
-      if (delayed_spins[i].e_spin_HS_field_UP == e_spin) {
-        exp_V_CPU.push_back(delayed_spins[i].exp_V_HS_field_UP);
-        exp_delta_V_CPU.push_back(delayed_spins[i].exp_delta_V_HS_field_UP);
-        vertex_indixes_CPU.push_back(delayed_spins[i].configuration_e_spin_index_HS_field_UP);
-      }
-    }
-
-    vertex_indixes.setAsync(vertex_indixes_CPU, thread_id, stream_id);
-    exp_V.setAsync(exp_V_CPU, thread_id, stream_id);
-    exp_delta_V.setAsync(exp_delta_V_CPU, thread_id, stream_id);
-  }
-
   switch (e_spin) {
     case e_DN:
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
@@ -1224,21 +1253,33 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
   }
 
   const auto determinant_ratio = ratio_HS_field_UP * ratio_HS_field_DN;
-  const Scalar acceptance_ratio =
-      calculate_acceptace_ratio(determinant_ratio, delayed_spins[delayed_index].HS_current_move,
-                                delayed_spins[delayed_index].QMC_factor);
+  // std::cout << "ratio up: " << std::setprecision(16) << ratio_HS_field_UP
+  //          << "  ratio down: " << std::setprecision(16) << ratio_HS_field_DN << '\n';
+  // std::cout << "determinant_ratio: " << determinant_ratio << '\n';
+  auto acceptance_ratio =
+      calculate_acceptance_ratio(determinant_ratio, delayed_spins[delayed_index].HS_current_move,
+                                 delayed_spins[delayed_index].QMC_factor);
+
+  // std::cout << "determinant_ratio: " << determinant_ratio << '\n';
+  // if constexpr (dca::util::IsComplex_t<decltype(acceptance_ratio)>::value)
+  //   acceptance_ratio.imag(0.0);
+
+  // std::cout << "acceptance_ratio: " << acceptance_ratio << '\n';
 
   if (std::abs(acceptance_ratio) >= rng()) {
     delayed_spins[delayed_index].is_accepted_move = true;
 
     // Update Monte Carlo weight.
     mc_log_weight_ += std::log(std::abs(determinant_ratio));
+    // std::cout << "mc_log_weight: " << mc_log_weight_ << '\n';
     if (delayed_spins[delayed_index].HS_current_move == CREATION)
       mc_log_weight_ += mc_log_weight_constant_;
     else
       mc_log_weight_ -= mc_log_weight_constant_;
 
+    // std::cout << "phase: " << phase_.getSign() << '\n';
     phase_.multiply(determinant_ratio);
+    // std::cout << "phase: " << phase_.getSign() << '\n';
 
     assert(delayed_spins[delayed_index].delayed_spin_index == delayed_index);
 
@@ -1488,7 +1529,7 @@ HS_spin_states_type CtauxWalker<device_t, Parameters, Data>::get_new_spin_value(
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-auto CtauxWalker<device_t, Parameters, Data>::calculate_acceptace_ratio(
+auto CtauxWalker<device_t, Parameters, Data>::calculate_acceptance_ratio(
     Scalar determinant_ratio, HS_vertex_move_type HS_current_move, Real QMC_factor) const {
   Real N = number_of_interacting_spins;
   Real K = parameters_.get_expansion_parameter_K();
@@ -1617,6 +1658,7 @@ void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
       return;
 
     const auto [log_det, phase] = linalg::matrixop::logDeterminant(m);
+    std::cout << "phase: " << phase.getSign() << '\n';
     mc_log_weight_ -= log_det;  // MC weight is proportional to det(N^-1)
     phase_.divide(phase);
   };

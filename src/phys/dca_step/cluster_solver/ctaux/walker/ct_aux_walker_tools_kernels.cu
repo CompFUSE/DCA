@@ -48,9 +48,9 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
     const int configuration_e_spin_index_j = random_vertex_vector[j];
 
     if (configuration_e_spin_index_j < vertex_index) {
-      T delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? the_one : the_zero;
+      dca::util::RealAlias<T> delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.; //the_one : the_zero;
       const auto N_ij = N[configuration_e_spin_index_i + configuration_e_spin_index_j * N_ld];
-      Gamma[i + j * Gamma_ld] = (N_ij * exp_V[j] - delta) / (exp_V[j] - the_one);
+      Gamma[i + j * Gamma_ld] = (N_ij * exp_V[j] - delta) / (exp_V[j] - dca::util::RealAlias<T>(1.0));
     }
     else
       Gamma[i + j * Gamma_ld] =
@@ -59,7 +59,8 @@ __global__ void compute_Gamma_kernel(T* Gamma, int Gamma_n, int Gamma_ld, const 
 
   if (i < Gamma_n and j < Gamma_n and i == j) {
     const auto gamma_k = exp_delta_V[j];
-    Gamma[i + j * Gamma_ld] -= (gamma_k) / (gamma_k - the_one);
+    auto inter_gamma = (gamma_k) / (gamma_k - the_one);
+    Gamma[i + j * Gamma_ld] -= inter_gamma; // (gamma_k) / (gamma_k - dca::util::RealAlias<T>(1.0));
   }
 }
 
