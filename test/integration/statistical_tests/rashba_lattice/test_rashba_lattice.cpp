@@ -39,6 +39,7 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation_gpu.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -87,7 +88,10 @@ struct RashbaLatticeIntegrationTest : public ::testing::Test {
     gpu_setup = std::make_unique<IntegrationSetupBare<dca::linalg::GPU>>(concurrency);
   }
 
-  virtual void TearDown() {}
+  virtual void TearDown() {
+    cpu_setup.reset();
+    gpu_setup.reset();
+  }
 
   using CPUSetup = IntegrationSetupBare<dca::linalg::CPU>;
   using GPUSetup = IntegrationSetupBare<dca::linalg::GPU>;
@@ -105,39 +109,65 @@ TEST_F(RashbaLatticeIntegrationTest, SelfEnergy) {
 
   this->reallySetUp(&concurrency);
 
-  dca::phys::DcaLoopData<decltype(this->gpu_setup->parameters_)> dca_loop_data_gpu;
-
-  // dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w> >
-  //   Sigma_ED(dca_data_imag.Sigma);
-
   // Do one QMC iteration
   using QMCSolverGPU = typename GPUSetup::ThreadedSolver;
 
   QMCSolverGPU qmc_solver_gpu(this->gpu_setup->parameters_, *(this->gpu_setup->data_), nullptr);
   qmc_solver_gpu.initialize(0);
-  qmc_solver_gpu.integrate();
-  qmc_solver_gpu.finalize(dca_loop_data_gpu);
+
+  using QMCSolverCPU = typename RashbaLatticeIntegrationTest::CPUSetup::ThreadedSolver;
+  QMCSolverCPU qmc_solver_cpu(this->cpu_setup->parameters_, *(this->cpu_setup->data_), nullptr);
+  qmc_solver_cpu.initialize(0);
 
   using NuDmn = RashbaLatticeIntegrationTest::GPUSetup::NuDmn;
   using KDmnDCA = RashbaLatticeIntegrationTest::GPUSetup::KDmnDCA;
   using WDmn = RashbaLatticeIntegrationTest::GPUSetup::WDmn;
 
+  auto& cpu_parameters = this->cpu_setup->parameters_;
+  auto& gpu_parameters = this->gpu_setup->parameters_;
+
+  // compare what?
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> gpu_akima_coefficients_CPU;
+  // G0Interpolation<dca::linalg::GPU, Parameters> g0_gpu(0, gpu_parameters);
+  // gpu_akima_coefficients_CPU.setAsyncw(qmc_solver_gpu.getG0().getAkimaCoefficients(), 0, 0);
+  dca::linalg::Matrix<Scalar, dca::linalg::CPU> cpu_akima_coefficients_CPU;
+  auto& gpu_akima_coeff_func = qmc_solver_gpu.getG0().getAkimaCoefficients();
+  auto& cpu_akima_coeff_func = qmc_solver_cpu.getG0().getAkimaCoefficients();
+  EXPECT_EQ(cpu_akima_coeff_func, gpu_akima_coeff_func);
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> gpu_G0_coeff_on_dev;
+  gpu_G0_coeff_on_dev.setAsync(qmc_solver_gpu.getG0().getG0Dev(), 0);
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> host_coeff;
+  std::copy_n(cpu_akima_coeff_func.data(), host_coeff.size(), host_coeff.data());
+  dca::linalg::util::syncStream(0, 0);
+  EXPECT_EQ(gpu_G0_coeff_on_dev, host_coeff);
+
+  auto& gpu_gkw = this->gpu_setup->data_->G_k_w;
+  auto& cpu_gkw = this->cpu_setup->data_->G_k_w;
+  auto diff_Gkw = dca::func::util::difference(gpu_gkw, cpu_gkw);
+
+  dca::phys::DcaLoopData<decltype(this->gpu_setup->parameters_)> dca_loop_data_gpu;
+  qmc_solver_gpu.integrate();
+  auto L2_sigma_diff_gpu = qmc_solver_gpu.finalize(dca_loop_data_gpu);
+
+  dca::phys::DcaLoopData<decltype(this->cpu_setup->parameters_)> dca_loop_data_cpu;
+  qmc_solver_cpu.integrate();
+  auto L2_sigma_diff_cpu = qmc_solver_cpu.finalize(dca_loop_data_cpu);
+
+  std::cout << "L2s: " << L2_sigma_diff_gpu << " " << L2_sigma_diff_cpu << '\n';
+
+  this->gpu_setup->performLatticeMapping();
+  this->cpu_setup->performLatticeMapping();
+
   dca::func::function<std::complex<double>, dca::func::dmn_variadic<NuDmn, NuDmn, KDmnDCA, WDmn>>
       Sigma_QMC_gpu(this->gpu_setup->data_->Sigma);
 
-  dca::phys::DcaLoopData<decltype(this->cpu_setup->parameters_)> dca_loop_data_cpu;
-
-  using QMCSolverCPU = typename RashbaLatticeIntegrationTest::CPUSetup::ThreadedSolver;
-  QMCSolverCPU qmc_solver_cpu(this->cpu_setup->parameters_, *(this->cpu_setup->data_), nullptr);
-  qmc_solver_cpu.initialize(0);
-  qmc_solver_cpu.integrate();
-  qmc_solver_cpu.finalize(dca_loop_data_cpu);
-
   dca::func::function<std::complex<double>, dca::func::dmn_variadic<NuDmn, NuDmn, KDmnDCA, WDmn>>
       Sigma_QMC_cpu(this->cpu_setup->data_->Sigma);
+  dca::linalg::util::syncStream(0, 0);
 
   auto diff = dca::func::util::difference(Sigma_QMC_gpu, Sigma_QMC_cpu);
   EXPECT_LT(diff.l_inf, 1E-10);
+
   // // Read QMC self-energy from check_data file and compare it with the newly
   // // computed QMC self-energy.
   // const std::string filename = DCA_SOURCE_DIR

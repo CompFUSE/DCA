@@ -24,13 +24,19 @@
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
+#include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
+#include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/math/random/random.hpp"
+#include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
+#include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
@@ -99,15 +105,27 @@ struct IntegrationSetupBare {
   using KDmnDCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
       double, LatticeType::DIMENSION, dca::phys::domains::CLUSTER,
       dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
+  using KHost = dca::func::dmn_0<dca::phys::domains::cluster_domain<
+      double, LatticeType::DIMENSION, dca::phys::domains::LATTICE_SP,
+      dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
 
   using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
   using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
   using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 
+  using coarsegraining_sp_type = dca::phys::clustermapping::CoarsegrainingSp<Parameters>;
+  using lattice_map_sp_type =
+      dca::phys::latticemapping::lattice_mapping_sp<Parameters, KDmnDCA, KHost>;
+  using update_chemical_potential_type =
+      dca::phys::clustermapping::update_chemical_potential<Parameters, Data, coarsegraining_sp_type>;
+
   Concurrency* concurrency_;
   Parameters parameters_;
   std::unique_ptr<Data> data_;
 
+  std::unique_ptr<lattice_map_sp_type> lattice_mapping_obj_;
+  std::unique_ptr<coarsegraining_sp_type> cluster_mapping_obj_;
+  std::unique_ptr<update_chemical_potential_type> update_chemical_potential_obj_;
   IntegrationSetupBare(Concurrency* concurrency, const std::string& input_file = default_input)
       : concurrency_(concurrency), parameters_("", *concurrency_) {
     try {
@@ -125,27 +143,27 @@ struct IntegrationSetupBare {
 
     data_ = std::make_unique<Data>(parameters_);
     data_->initialize();
+    cluster_mapping_obj_ = std::make_unique<coarsegraining_sp_type>(parameters_);
+    update_chemical_potential_obj_ =
+        std::make_unique<update_chemical_potential_type>(parameters_, *data_, *cluster_mapping_obj_);
+    update_chemical_potential_obj_->execute();
+    data_->Sigma_cluster = data_->Sigma;
+    cluster_mapping_obj_->compute_G_K_w(data_->Sigma, data_->G_k_w);
+    lattice_mapping_obj_ = std::make_unique<lattice_map_sp_type>(parameters_);
+    // lattice_mapping_obj_->execute(data_->Sigma, data_->Sigma_lattice_interpolated,
+    //                               data_->Sigma_lattice_coarsegrained, data_->Sigma_lattice);
   }
 
-  void SetUp(const std::string& input_name = default_input) {
-    try {
-      parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
-    }
-    catch (const std::exception& r_w) {
-      throw std::runtime_error(r_w.what());
-    }
-    catch (...) {
-      throw std::runtime_error("Input parsing failed!");
-    }
-    parameters_.update_model();
-
-    parameters_.update_domains();
-
-    data_ = std::make_unique<Data>(parameters_);
-    data_->initialize();
+  void performLatticeMapping() {
+    lattice_mapping_obj_->execute(data_->Sigma, data_->Sigma_lattice_interpolated,
+                                  data_->Sigma_lattice_coarsegrained, data_->Sigma_lattice);
   }
 
-  void TearDown() {}
+  void computeSigmaEtc() {
+    data_.Sigma_cluster = data_.Sigma;
+    data_.compute_Sigma_bands();
+    data_.compute_single_particle_properties();
+  }
 };
 
 }  // namespace testing

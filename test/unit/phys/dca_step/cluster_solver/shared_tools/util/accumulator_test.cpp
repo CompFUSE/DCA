@@ -116,4 +116,14 @@ TEST(AccumulatorTest, Phase) {
   acc.addSample(phase.getSign());
   EXPECT_NEAR(1.0, std::imag(acc.sum()), 1E-4);
 
+  dca::math::Phase<std::complex<float>> phase2;
+  phase2.multiply(std::polar(mag, M_PI * 1));
+  acc.addSample(phase2.getSign());
+  EXPECT_NEAR(1.0, std::imag(acc.sum()), 1E-4);
+
+  phase2.multiply(std::polar(mag, M_PI * 0.5));
+  acc.addSample(phase2.getSign());
+  EXPECT_NEAR(0.0, std::imag(acc.sum()), 1E-4);
+
+  EXPECT_EQ(acc.count(), 3);
 }

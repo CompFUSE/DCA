@@ -1658,7 +1658,6 @@ void CtauxWalker<device_t, Parameters, Data>::recomputeMCWeight() {
       return;
 
     const auto [log_det, phase] = linalg::matrixop::logDeterminant(m);
-    std::cout << "phase: " << phase.getSign() << '\n';
     mc_log_weight_ -= log_det;  // MC weight is proportional to det(N^-1)
     phase_.divide(phase);
   };

@@ -63,6 +63,8 @@ public:
     return 0;
   }
 
+  /// For testing
+  auto& getAkimaCoefficients() { return Base::akima_coefficients; }
 private:
   auto interpolate(int nu_0, int nu_1, int delta_r, Real delta_time) -> Scalar const;
 

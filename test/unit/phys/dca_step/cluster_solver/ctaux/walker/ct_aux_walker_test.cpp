@@ -243,7 +243,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   // This difference can just not reduced the (gamma_k) / (gamma_k - 1) division
   // is just limited to this precision.
   auto diff = dca::linalg::matrixop::difference(Gamma_dn_CPU, Gamma_dn_GPU);
-  EXPECT_LT(diff, 1E-15) << Gamma_dn_CPU.toStr() << " == " << Gamma_dn_GPU.toStr() << '\n';
+  EXPECT_LT(diff, 1E-31) << Gamma_dn_CPU.toStr() << " == " << Gamma_dn_GPU.toStr() << '\n';
 
   // EXPECT_TRUE(Gamma_up_CPU == Gamma_up_GPU);
   // EXPECT_TRUE(Gamma_dn_CPU == Gamma_dn_GPU);
@@ -270,7 +270,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   diff = dca::linalg::matrixop::difference(Gamma_dn_CPU, Gamma_dn_GPU);
   // even though both seem to be calculated on the CPU the tiny difference inthe initialized Gamma
   // becomes much larger, it it still insignificant?
-  EXPECT_LT(diff, 1E-15) << Gamma_dn_CPU.toStr() << " == " << Gamma_dn_GPU.toStr() << '\n';
+  EXPECT_LT(diff, 1E-31) << Gamma_dn_CPU.toStr() << " == " << Gamma_dn_GPU.toStr() << '\n';
   stepAfterComputeGamma(cpu_walker, false);
   // cpu_walker.doStep(cpu_steps);
 

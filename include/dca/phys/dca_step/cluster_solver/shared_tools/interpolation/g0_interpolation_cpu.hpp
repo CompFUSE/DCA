@@ -86,6 +86,9 @@ public:
     return getTimeSlices() * COEFF_SIZE;
   }
 
+  /// for testing
+  auto& getAkimaCoefficients() { return G0_coeff_; }
+
   friend class G0Interpolation<linalg::GPU, Scalar>;
 
   static constexpr int COEFF_SIZE = 4;

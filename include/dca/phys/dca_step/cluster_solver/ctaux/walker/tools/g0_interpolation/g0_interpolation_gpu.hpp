@@ -64,7 +64,9 @@ public:
            r1_minus_r0.deviceFingerprint();
   }
 
-private:
+  /// for testing
+  auto& getAkimaCoefficients() { return akima_coefficients_CPU; }
+ private:
   template <class Configuration>
   void uploadConfiguration(const Configuration& configuration);
 
@@ -156,6 +158,7 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::initialize(MOMS_type& MOMS) 
   G0_r_t_GPU = G0_r_t_CPU;
   grad_G0_r_t_GPU = grad_G0_r_t_CPU;
 
+  // this is the rearrangement for the GPU
   for (int t_ind = 0; t_ind < shifted_t::dmn_size(); t_ind++)
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++)
       for (int nu1_ind = 0; nu1_ind < b::dmn_size(); nu1_ind++)

@@ -112,6 +112,8 @@ public:
 
   void setSampleConfiguration(const io::Buffer&) {}
 
+  /** used for testing */
+  auto& getG0() { return g0_; };
 protected:
   void warmUp(Walker& walker);
 

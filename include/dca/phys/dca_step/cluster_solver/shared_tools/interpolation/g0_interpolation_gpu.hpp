@@ -59,6 +59,8 @@ public:
 
   using HostInterpolation::COEFF_SIZE;
 
+  /// for testing
+  auto& getG0Dev() { return G0_coeff_; }
 private:
   using typename HostInterpolation::CoeffDmn;
   using typename HostInterpolation::PTime0;

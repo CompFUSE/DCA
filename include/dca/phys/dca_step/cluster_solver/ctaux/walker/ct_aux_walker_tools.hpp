@@ -100,6 +100,8 @@ private:
   bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
                     Real min);
 
+  static Scalar consistentScalarInv(Scalar gamma_k);
+
 private:
   dca::linalg::Vector<Scalar, dca::linalg::CPU> r;
   dca::linalg::Vector<Scalar, dca::linalg::CPU> c;
