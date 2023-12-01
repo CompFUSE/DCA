@@ -43,6 +43,26 @@ inline double computeAcceptanceProbability(const int order_change, const double 
                                   : det_ratio * combinatorial_factor / strength_factor;
 }
 
+template <typename Scalar>
+Scalar consistentScalarDiv(Scalar x, Scalar y) {
+  if constexpr (dca::util::IsComplex_t<Scalar>::value) {
+    Scalar quot;
+    using LocalReal = typename dca::util::RealAlias<Scalar>;
+    LocalReal s = (std::fabs(y.real()) + (std::fabs(y.imag())));
+    LocalReal oos = 1.0 / s;
+    LocalReal ars = x.real() * oos;
+    LocalReal ais = x.imag() * oos;
+    LocalReal brs = y.real() * oos;
+    LocalReal bis = y.imag() * oos;
+    s = (brs * brs) + (bis * bis);
+    oos = 1.0 / s;
+    quot = {((ars * brs) + (ais * bis)) * oos, ((ais * brs) - (ars * bis)) * oos};
+    return quot;
+  }
+  else
+    return x / y;
+}
+
 template <class MatrixA>
 inline void smallInverse(MatrixA& m) {
   assert(m.is_square());
@@ -55,10 +75,10 @@ inline void smallInverse(MatrixA& m) {
     case 2: {
       const typename MatrixA::ValueType det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
       std::swap(m(0, 0), m(1, 1));
-      m(0, 0) /= det;
-      m(1, 0) /= -det;
-      m(0, 1) /= -det;
-      m(1, 1) /= det;
+      m(0, 0) = consistentScalarDiv(m(0, 0), det);
+      m(1, 0) = consistentScalarDiv(m(1, 0), -det);
+      m(0, 1) = consistentScalarDiv(m(0, 1), -det);
+      m(1, 1) = consistentScalarDiv(m(1, 1), det);
     } break;
     default:
       linalg::matrixop::inverse(m);
@@ -126,10 +146,10 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
       assert(std::abs(det));
       {
         const Real tmp = m(0, 0);
-        m(0, 0) = m(1, 1) / det;
-        m(1, 0) /= -det;
-        m(0, 1) /= -det;
-        m(1, 1) = tmp / det;
+        m(0, 0) = consistentScalarDiv(m(1, 1), det);
+        m(1, 0) = consistentScalarDiv(m(1, 0), -det);
+        m(0, 1) = consistentScalarDiv(m(0, 1), -det);
+        m(1, 1) = consistentScalarDiv(tmp, det);
       }
       break;
     default:

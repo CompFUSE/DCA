@@ -50,7 +50,7 @@ public:
   using typename BaseClass::GpuStream;
   using typename BaseClass::Real;
   using typename BaseClass::Scalar;
-  
+
   CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
@@ -479,7 +479,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
 
       // Are we capturing the avg sign properly wrt multiple delayed moves
       phase_.multiply(acceptance_prob_);
-      
+
       // Update GammaInv if necessary.
       if (!at_least_one_recently_added)
         for (int s = 0; s < 2; ++s)
@@ -788,9 +788,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateM() {
 
       p = 0;
       for (auto& i : move_indices_[s]) {
-        for (int j = 0; j < n_max_[s]; ++j) {
+        for (int j = 0; j < n_max_[s]; ++j)
           M_[s](i, j) /= 1.0 + gamma_[s][p];
-        }
         ++p;
       }
     }
