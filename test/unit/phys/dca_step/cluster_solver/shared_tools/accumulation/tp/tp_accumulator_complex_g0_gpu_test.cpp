@@ -178,11 +178,11 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
     }
+
+#ifndef NDEBUG
     writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
     writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
     writer_h5.execute("accumulatorHOST_G", accumulatorHost.get_G_Debug());
-
-#ifndef NDEBUG
     const auto& G_up = accumulatorDevice.get_G_Debug()[0];
     const auto& G_down = accumulatorDevice.get_G_Debug()[1];
     using Parameters = decltype(this->host_setup.parameters_);
