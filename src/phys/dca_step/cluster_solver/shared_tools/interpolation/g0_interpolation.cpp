@@ -16,17 +16,18 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <typename Real>
-void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, PTdmn>& G0_pars_t) {
+template <typename Scalar>
+void G0Interpolation<linalg::CPU, Scalar>::initialize(const FunctionProxy<Scalar, PTdmn>& G0_pars_t) {
   beta_ = PositiveTimeDomain::get_elements().back();
   n_div_beta_ = Real(PositiveTimeDomain::get_size() - 1) / beta_;
 
   const int t_pos_size = PositiveTimeDomain::get_size();
-  dca::math::interpolation::akima_interpolation<Real> akima_obj(t_pos_size);
+  dca::math::interpolation::akima_interpolation<Scalar> akima_obj(t_pos_size);
   G0_coeff_.reset();
   g0_minus_.resize(Pdmn::get_size());
 
-  std::vector<Real> y(t_pos_size), x(t_pos_size);
+  std::vector<Real> x(t_pos_size);
+  std::vector<Scalar> y(t_pos_size);
   // The abscissa is scaled to integer steps
   for (int i = 0; i < x.size(); i++)
     x[i] = i;
@@ -39,7 +40,7 @@ void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, 
     for (int t = 0; t < t_pos_size; t++)
       y[t] = G0_pars_t(p, t + t_pos_size);
     // INTERNAL initialize or initialize_periodic ?
-    akima_obj.initialize(x.data(), y.data());
+    akima_obj.initialize(x, y);
     // Store coefficients:
     for (int t = 0; t < t_pos_size - 1; t++) {
       for (int l = 0; l < 4; l++)
@@ -50,13 +51,13 @@ void G0Interpolation<linalg::CPU, Real>::initialize(const FunctionProxy<double, 
   }
 }
 
-template <typename Real>
-Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const {
+template <typename Scalar>
+Scalar G0Interpolation<linalg::CPU, Scalar>::operator()(Real tau, int lindex) const {
   assert(beta_ != 0);
   if (tau == 0)  // returns G0(tau = 0+)
     return g0_minus_[lindex];
 
-  short int factor = 1;
+  Real factor = 1;
   if (tau < 0) {
     tau += beta_;
     factor = -1;
@@ -70,7 +71,7 @@ Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const 
   const Real delta_tau = scaled_tau - tau_index;
 
   // Get the pointer to the first akima coeff.
-  const Real* const coeff_ptr = &G0_coeff_(0, tau_index, lindex);
+  const Scalar* const coeff_ptr = &G0_coeff_(0, tau_index, lindex);
   // Return akima interpolation.
   return factor *
          (coeff_ptr[0] +
@@ -80,6 +81,8 @@ Real G0Interpolation<linalg::CPU, Real>::operator()(Real tau, int lindex) const 
 // Instantation
 template class G0Interpolation<linalg::CPU, float>;
 template class G0Interpolation<linalg::CPU, double>;
+template class G0Interpolation<linalg::CPU, std::complex<float>>;
+template class G0Interpolation<linalg::CPU, std::complex<double>>;
 
 }  // namespace solver
 }  // namespace phys

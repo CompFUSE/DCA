@@ -10,7 +10,7 @@
 // This file tests serial_processor_grouping.hpp.
 
 #include "dca/parallel/no_concurrency/serial_processor_grouping.hpp"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(SerialProcessorGroupingTest, All) {
   dca::parallel::SerialProcessorGrouping grouping;

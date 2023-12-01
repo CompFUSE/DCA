@@ -9,6 +9,8 @@
 //
 // This file implements a no-change test for the two point accumulation on a single band lattice.
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
@@ -16,12 +18,21 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 constexpr bool update_baseline = false;
@@ -35,8 +46,10 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
+using Scalar = double;
+
 using TpAccumulatorSinglebandTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   const std::array<int, 2> n{17, 17};

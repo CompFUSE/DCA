@@ -9,6 +9,7 @@
 //
 // This file tests triangular_lattice.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp"
 
 #include <cmath>

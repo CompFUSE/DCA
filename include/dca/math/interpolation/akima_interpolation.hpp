@@ -21,147 +21,125 @@ namespace math {
 namespace interpolation {
 // dca::math::interpolation::
 
-template <typename scalartype>
+template <typename Scalar>
 class akima_interpolation {
 public:
-  akima_interpolation(int n);
-  ~akima_interpolation();
+  akima_interpolation(size_t n);
+  ~akima_interpolation() = default;
 
-  void initialize(scalartype* x, scalartype* y);
-  void initialize_periodic(scalartype* x, scalartype* y);
+  void initialize(const std::vector<Scalar>& x, const std::vector<Scalar>& y);
+  void initialize_periodic(const std::vector<Scalar>& x, const std::vector<Scalar>& y);
 
-  scalartype evaluate(scalartype x);
+  Scalar evaluate(const Scalar x) const;
 
-  scalartype get_alpha(int l, int i);
+  Scalar get_alpha(int l, int i) const;
+
+  std::size_t size() const {
+    return size_;
+  }
 
 private:
-  void compute_coefficients(scalartype* x_array, scalartype* y_array);
+  void compute_coefficients(const std::vector<Scalar>& x, const std::vector<Scalar>& y);
 
-  int size;
+  std::size_t size_;
 
-  scalartype* X;
-  scalartype* Y;
+  std::vector<Scalar> X;
+  std::vector<Scalar> Y;
 
-  scalartype* a;
-  scalartype* b;
-  scalartype* c;
-  scalartype* d;
+  std::vector<Scalar> a;
+  std::vector<Scalar> b;
+  std::vector<Scalar> c;
+  std::vector<Scalar> d;
 
-  scalartype* m;
-  scalartype* _m;
+  std::vector<Scalar> m_data;
+  Scalar* m;
 };
 
-template <typename scalartype>
-akima_interpolation<scalartype>::akima_interpolation(int n)
-    : size(n),
+template <typename Scalar>
+akima_interpolation<Scalar>::akima_interpolation(size_t n)
+    : size_(n),
 
-      X(nullptr),
-      Y(nullptr),
+      X(n),
+      Y(n),
 
-      a(nullptr),
-      b(nullptr),
-      c(nullptr),
-      d(nullptr),
+      a(n),
+      b(n),
+      c(n),
+      d(n),
 
-      m(nullptr),
-      _m(nullptr) {
-  X = new scalartype[size];
-  Y = new scalartype[size];
-
-  a = new scalartype[size];
-  b = new scalartype[size];
-  c = new scalartype[size];
-  d = new scalartype[size];
-
-  _m = new scalartype[size + 4];
+      m_data(n + 4) {
+  m = m_data.data() + 2; /* offset so we can address the -1,-2 components */
 }
 
-template <typename scalartype>
-akima_interpolation<scalartype>::~akima_interpolation() {
-  if (X != nullptr)
-    delete[] X;
-  if (Y != nullptr)
-    delete[] Y;
+template <typename Scalar>
+void akima_interpolation<Scalar>::initialize(const std::vector<Scalar>& x_array,
+                                             const std::vector<Scalar>& y_array) {
+  assert(size() == x_array.size());
+  assert(size() == y_array.size());
 
-  if (a != nullptr)
-    delete[] a;
-  if (b != nullptr)
-    delete[] b;
-  if (c != nullptr)
-    delete[] c;
-  if (d != nullptr)
-    delete[] d;
-
-  if (_m != nullptr)
-    delete[] _m;
-}
-
-template <typename scalartype>
-void akima_interpolation<scalartype>::initialize(scalartype* x_array, scalartype* y_array) {
-  for (int i = 0; i < size; i++) {
+  for (int i = 0; i < size_; i++) {
     X[i] = x_array[i];
     Y[i] = y_array[i];
   }
 
-  m = _m + 2; /* offset so we can address the -1,-2 components */
-
-  for (int i = 0; i <= size - 2; i++)
+  for (int i = 0; i <= size_ - 2; i++)
     m[i] = (y_array[i + 1] - y_array[i]) / (x_array[i + 1] - x_array[i]);
 
   /* non-periodic boundary conditions */
   m[-2] = 3.0 * m[0] - 2.0 * m[1];
   m[-1] = 2.0 * m[0] - m[1];
-  m[size - 1] = 2.0 * m[size - 2] - m[size - 3];
-  m[size] = 3.0 * m[size - 2] - 2.0 * m[size - 3];
+  m[size_ - 1] = 2.0 * m[size_ - 2] - m[size_ - 3];
+  m[size_] = 3.0 * m[size_ - 2] - 2.0 * m[size_ - 3];
 
   compute_coefficients(x_array, y_array);
 }
 
-template <typename scalartype>
-void akima_interpolation<scalartype>::initialize_periodic(scalartype* x_array, scalartype* y_array) {
-  m = _m + 2; /* offset so we can address the -1,-2 components */
+template <typename Scalar>
+void akima_interpolation<Scalar>::initialize_periodic(const std::vector<Scalar>& x_array, const std::vector<Scalar>& y_array) {
+  assert(size() == x_array.size());
+  assert(size() == y_array.size());
 
-  for (int i = 0; i <= size - 2; i++)
+  for (int i = 0; i <= size_ - 2; i++)
     m[i] = (y_array[i + 1] - y_array[i]) / (x_array[i + 1] - x_array[i]);
 
   /* periodic boundary conditions */
-  m[-2] = m[size - 1 - 2];
-  m[-1] = m[size - 1 - 1];
-  m[size - 1] = m[0];
-  m[size] = m[1];
+  m[-2] = m[size_ - 1 - 2];
+  m[-1] = m[size_ - 1 - 1];
+  m[size_ - 1] = m[0];
+  m[size_] = m[1];
 
   compute_coefficients(x_array, y_array);
 }
 
-template <typename scalartype>
-scalartype akima_interpolation<scalartype>::evaluate(scalartype x) {
+template <typename Scalar>
+Scalar akima_interpolation<Scalar>::evaluate(Scalar x) const {
   if (x < X[0] + 1.e-6)
     return Y[0];
 
-  if (x >= X[size - 1] - 1.e-6)
-    return Y[size - 1];
+  if (x >= X[size_ - 1] - 1.e-6)
+    return Y[size_ - 1];
 
   int index = -1;
-  for (int i = 0; i < size - 1; ++i)
+  for (int i = 0; i < size_ - 1; ++i)
     if (X[i] <= x and x < X[i + 1])
       index = i;
 
-  assert(index > -1 and index < size);
+  assert(index > -1 and index < size_);
 
-  const scalartype x_lo = X[index];
-  const scalartype delx = x - x_lo;
+  const Scalar x_lo = X[index];
+  const Scalar delx = x - x_lo;
 
-  const scalartype a0 = a[index];
-  const scalartype a1 = b[index];
-  const scalartype a2 = c[index];
-  const scalartype a3 = d[index];
+  const Scalar a0 = a[index];
+  const Scalar a1 = b[index];
+  const Scalar a2 = c[index];
+  const Scalar a3 = d[index];
 
   return a0 + delx * (a1 + delx * (a2 + a3 * delx));
 }
 
-template <typename scalartype>
-scalartype akima_interpolation<scalartype>::get_alpha(int l, int i) {
-  assert(i > -1 and i < size - 1);
+template <typename Scalar>
+Scalar akima_interpolation<Scalar>::get_alpha(int l, int i) const {
+  assert(i > -1 and i < size_ - 1);
 
   switch (l) {
     case 0:
@@ -181,12 +159,12 @@ scalartype akima_interpolation<scalartype>::get_alpha(int l, int i) {
   }
 }
 
-template <typename scalartype>
-void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, scalartype* y_array) {
-  for (int i = 0; i < (size - 1); i++) {
+template <typename Scalar>
+void akima_interpolation<Scalar>::compute_coefficients(const std::vector<Scalar>& x_array, const std::vector<Scalar>& y_array) {
+  for (int i = 0; i < (size_ - 1); i++) {
     a[i] = y_array[i];
 
-    const scalartype NE = std::abs(m[i + 1] - m[i]) + fabs(m[i - 1] - m[i - 2]);
+    const Scalar NE = std::abs(m[i + 1] - m[i]) + fabs(m[i - 1] - m[i - 2]);
 
     if (NE == 0.0) {
       b[i] = m[i];
@@ -194,12 +172,12 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
       d[i] = 0.0;
     }
     else {
-      const scalartype h_i = x_array[i + 1] - x_array[i];
-      const scalartype NE_next = std::abs(m[i + 2] - m[i + 1]) + fabs(m[i] - m[i - 1]);
-      const scalartype alpha_i = std::abs(m[i - 1] - m[i - 2]) / NE;
+      const Scalar h_i = x_array[i + 1] - x_array[i];
+      const Scalar NE_next = std::abs(m[i + 2] - m[i + 1]) + fabs(m[i] - m[i - 1]);
+      const Scalar alpha_i = std::abs(m[i - 1] - m[i - 2]) / NE;
 
-      scalartype alpha_ip1;
-      scalartype tL_ip1;
+      Scalar alpha_ip1;
+      Scalar tL_ip1;
 
       if (NE_next == 0.0) {
         tL_ip1 = m[i];
@@ -216,8 +194,59 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
   }
 }
 
-}  // interpolation
-}  // math
-}  // dca
+template <typename Scalar>
+class akima_interpolation<std::complex<Scalar>> {
+public:
+  akima_interpolation(size_t n);
+  ~akima_interpolation() = default;
+
+  void initialize(const std::vector<Scalar>& x, const std::vector<std::complex<Scalar>>& y);
+
+  std::complex<Scalar> evaluate(const Scalar x) const;
+
+  std::complex<Scalar> get_alpha(int l, int i) const;
+
+  std::size_t size() const {
+    return interpolations_[0].size();
+  }
+
+private:
+  std::array<akima_interpolation<Scalar>, 2> interpolations_;
+};
+
+template <typename Scalar>
+akima_interpolation<std::complex<Scalar>>::akima_interpolation(size_t n) : interpolations_{n, n} {}
+
+template <typename Scalar>
+void akima_interpolation<std::complex<Scalar>>::initialize(const std::vector<Scalar>& x_array,
+                                                           const std::vector<std::complex<Scalar>>& y_array) {
+  std::array<std::vector<Scalar>, 2> y;
+  const auto n = size();
+  for (int re_im = 0; re_im < 2; ++re_im) {
+    y[re_im].resize(n);
+  }
+
+  for (std::size_t i = 0; i < n; ++i) {
+    y[0][i] = std::real(y_array[i]);
+    y[1][i] = std::imag(y_array[i]);
+  }
+
+  for (int re_im = 0; re_im < 2; ++re_im)
+    interpolations_[re_im].initialize(x_array, y[re_im]);
+}
+
+template <typename Scalar>
+std::complex<Scalar> akima_interpolation<std::complex<Scalar>>::evaluate(Scalar x) const {
+  return {interpolations_[0].evaluate(x), interpolations_[1].evaluate(x)};
+}
+
+template <typename Scalar>
+std::complex<Scalar> akima_interpolation<std::complex<Scalar>>::get_alpha(int l, int i) const {
+  return {interpolations_[0].get_alpha(l, i), interpolations_[1].get_alpha(l, i)};
+}
+
+}  // namespace interpolation
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_INTERPOLATION_AKIMA_INTERPOLATION_HPP

@@ -45,8 +45,8 @@ public:
   SolverConfiguration(double beta, int n_bands, const InteractionVertices& H_int,
                       double double_move_prob = 0);
 
-  SolverConfiguration& operator=(const SolverConfiguration& other) = delete;
-  SolverConfiguration& operator=(SolverConfiguration&& other) = delete;
+  SolverConfiguration& operator=(const SolverConfiguration& other) = default;
+  SolverConfiguration& operator=(SolverConfiguration&& other) = default;
 
   bool operator==(const SolverConfiguration& rhs) const;
 

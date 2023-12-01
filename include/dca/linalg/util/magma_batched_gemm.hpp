@@ -13,7 +13,6 @@
 #define DCA_LINALG_UTIL_MAGMA_BATCHED_GEMM_HPP
 #include "dca/platform/dca_gpu.h"
 
-
 #include <cassert>
 #include <vector>
 
@@ -22,6 +21,7 @@
 #include "dca/linalg/util/gpu_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/linalg/vector.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace linalg {
@@ -107,9 +107,11 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
   copied_.record(queue_);
 
   const int n_batched = a_ptr_.size();
-  magma::magmablas_gemm_batched(transa, transb, m, n, k, alpha, a_ptr_dev_.ptr(), lda,
-                                b_ptr_dev_.ptr(), ldb, beta, c_ptr_dev_.ptr(), ldc, n_batched,
-                                queue_);
+  magma::magmablas_gemm_batched(transa, transb, m, n, k, *dca::util::castHostType(&alpha),
+                                  dca::util::castHostType(a_ptr_dev_.ptr()), lda,
+				dca::util::castHostType(b_ptr_dev_.ptr()), ldb, *dca::util::castHostType(&beta),
+                                  dca::util::castHostType(c_ptr_dev_.ptr()), ldc, n_batched, queue_);
+
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 

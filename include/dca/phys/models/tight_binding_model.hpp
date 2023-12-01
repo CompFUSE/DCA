@@ -47,11 +47,11 @@ public:
   static const int DIMENSION = Lattice::DIMENSION;
   static const int BANDS = Lattice::BANDS;
 
-  static double* get_r_DCA_basis();
-  static double* get_k_DCA_basis();
+  static const double* get_r_DCA_basis();
+  static const double* get_k_DCA_basis();
 
-  static double* get_r_LDA_basis();
-  static double* get_k_LDA_basis();
+  static const double* get_r_LDA_basis();
+  static const double* get_k_LDA_basis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -59,7 +59,7 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initializeHInteraction(func::function<double, domain>& H_interaction,
+  static void initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
                                      parameters_type& parameters);
 
   template <class domain>
@@ -106,9 +106,9 @@ std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_DCA_basis() {
-  if constexpr (std::is_same_v<decltype(Lattice::initializeRDCABasis()), double *>) {
-    static double* r_DCA = Lattice::initializeRDCABasis();
+const double* TightBindingModel<Lattice>::get_r_DCA_basis() {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRDCABasis()), const double *>) {
+    static const double* r_DCA = Lattice::initializeRDCABasis();
     return r_DCA;
   }
   else {
@@ -118,9 +118,9 @@ double* TightBindingModel<Lattice>::get_r_DCA_basis() {
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_LDA_basis() {
-  if constexpr (std::is_same_v<decltype(Lattice::initializeRLDABasis()), double *>) {
-    static double* r_LDA = Lattice::initializeRLDABasis();
+const double* TightBindingModel<Lattice>::get_r_LDA_basis() {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRLDABasis()), const double *>) {
+    static const double* r_LDA = Lattice::initializeRLDABasis();
     return r_LDA;
   }
   else {
@@ -141,7 +141,7 @@ std::vector<std::vector<double>> TightBindingModel<Lattice>::aVectors() {
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initializeHInteraction(func::function<double, domain>& H_interaction,
+void TightBindingModel<Lattice>::initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
                                                         parameters_type& parameters) {
   Lattice::initializeHInteraction(H_interaction, parameters);
 }

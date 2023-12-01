@@ -14,7 +14,7 @@
 #include <complex>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -30,6 +30,7 @@ using dca::func::dmn_variadic;
 constexpr int n_bands = 3;
 constexpr int n_sites = 5;
 constexpr int n_frequencies = 64;
+
 using Dnfft1DGpuTest =
     dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frequencies>;
 

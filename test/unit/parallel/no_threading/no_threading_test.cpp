@@ -13,7 +13,7 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 
 #include <functional>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(NoThreadingTest, Execute) {
   dca::parallel::NoThreading threading;

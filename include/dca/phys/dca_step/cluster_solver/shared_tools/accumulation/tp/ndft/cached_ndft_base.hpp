@@ -24,6 +24,8 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/triple.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {
@@ -31,7 +33,7 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdftBase {
 protected:
   CachedNdftBase();
@@ -40,14 +42,15 @@ protected:
   void sortConfiguration(const Configuration& configuration);
 
 protected:
+  using Real = dca::util::RealAlias<Scalar>;
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using BRDmn = func::dmn_variadic<BDmn, RDmn>;
-  using Triple = details::Triple<ScalarType>;
+  using Triple = details::Triple<Real>;
   template <class T>
   using HostVector = linalg::util::HostVector<T>;
 
-  HostVector<ScalarType> w_;
+  HostVector<Real> w_;
 
   std::array<HostVector<Triple>, 2> indexed_config_;
 
@@ -64,8 +67,8 @@ protected:
   const int n_orbitals_;
 };
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>::CachedNdftBase()
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>::CachedNdftBase()
     : w_(),
       config_left_(indexed_config_[0]),
       config_right_(non_density_density ? indexed_config_[1] : indexed_config_[0]),
@@ -75,7 +78,7 @@ CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>::CachedNdft
       end_index_right_(non_density_density ? end_index_[1] : end_index_[0]),
       n_orbitals_(BDmn::dmn_size() * RDmn::dmn_size()) {
   for (const auto elem : WDmn::parameter_type::get_elements())
-    w_.push_back(static_cast<ScalarType>(elem));
+    w_.push_back(static_cast<Real>(elem));
 
   start_index_left_.resize(n_orbitals_);
   start_index_right_.resize(n_orbitals_);
@@ -83,9 +86,9 @@ CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>::CachedNdft
   end_index_left_.resize(n_orbitals_);
 }
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
-void CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>::sortConfiguration(
+void CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>::sortConfiguration(
     const Configuration& configuration) {
   const int n_b = BDmn::dmn_size();
   const int n_v = configuration.size();
@@ -112,7 +115,7 @@ void CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>::sortC
     sort(config_side.begin(), config_side.end());
 
     for (int orb = 0; orb < n_orbitals_; ++orb) {
-      details::Triple<ScalarType> trp{orb, 0, 0};
+      details::Triple<Real> trp{orb, 0, 0};
 
       start_index_[side][orb] =
           lower_bound(config_side.begin(), config_side.end(), trp) - config_side.begin();

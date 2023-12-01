@@ -11,8 +11,9 @@
 //
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/parameters/model_parameters.hpp"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"

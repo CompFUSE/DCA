@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -32,9 +32,12 @@ namespace details {
 
 class G4Helper {
 public:
-  static void set(unsigned int nb, unsigned int nk, unsigned int nw_pos,
+  /** pass a bunch of information into the G4Helper so it can help./
+   *  \param[in] extension_offset    (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2
+   */
+  static void set(int nb, int nk, int nw,
                   const std::vector<int>& delta_k, const std::vector<int>& delta_w,
-                  const int* add_k, unsigned int lda, const int* sub_k, unsigned int lds);
+                  const int extension_offset, const int* add_k, int lda, const int* sub_k, int lds);
 
   __device__ auto get_bands() const {
     return nb_;
@@ -59,33 +62,35 @@ public:
   // k1, k2 mapped to minusK(k1), minus(k2)
   // In/Out: k1, k2, w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
-  __device__ inline bool extendGIndices(int& k1, int& k2, int& w1, int& w2) const;
+  __device__ bool extendGIndices(int& k1, int& k2, int& w1, int& w2) const;
 
   // Maps the indices w1 w2 from the compact frequency domain of G4,
   // to the extended (positive for w1) domain used by G.
   // In/Out: k1, k2, w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
-  __device__ inline bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
-  
+  __device__ bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
+
   // Unroll the linear index of G4 as a function of band, band, band, band,
   // k1, k2, k_ex, w1, w2, w_ex.
-  __device__ inline void unrollIndex(std::size_t index, unsigned& b1, unsigned& b2, unsigned& b3,
-                                     unsigned& b4, unsigned& k1, unsigned& w1, unsigned& k2,
-                                     unsigned& w2, unsigned& k_ex, unsigned& w_ex) const;
+  __device__ inline void unrollIndex(std::size_t index, int& b1, int& b2, int& b3,
+                                     int& b4, int& k1, int& w1, int& k2,
+                                     int& w2, int& k_ex, int& w_ex) const;
 
 protected:
   std::size_t sbdm_steps_[10];
 
   const int* w_ex_indices_;
   const int* k_ex_indices_;
-  unsigned ext_size_;
+  int ext_size_;
 
-  unsigned nw_pos_;
-  unsigned nb_;
-  unsigned nc_;
-  unsigned nw_;
-  unsigned n_k_ex_;
-  unsigned n_w_ex_;
+  int nw_;
+  int nb_;
+  int nc_;
+  int n_k_ex_;
+  int n_w_ex_;
+#ifndef NDEBUG
+  int* bad_indicies_;
+#endif
 };
 
 // Global instance to be used in the tp accumulation kernel.
@@ -113,48 +118,13 @@ inline __device__ int G4Helper::kMinus(const int k_idx) const {
   return solver::details::cluster_momentum_helper.minus(k_idx);
 }
 
-inline __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
-  const int n_w_ext_pos = ext_size_ + nw_pos_;
-  w1 += ext_size_;
-  w2 += ext_size_;
-  if (w1 >= n_w_ext_pos) {
-    if (w2 < 0)
-      w2 -= n_w_ext_pos;
-    w1 -= n_w_ext_pos;
-    return false;
-  }
-  else {
-    w1 = n_w_ext_pos - 1 - w1;
-    w2 = 2 * n_w_ext_pos - 1 - w2;
-    k1 = kMinus(k1);
-    k2 = kMinus(k2);
-    return true;
-  }
-}
 
-inline __device__ bool G4Helper::extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const {
-  const int n_w_ext_pos = ext_size_ + nw_pos_;
-  w1 += ext_size_;
-  w2 += ext_size_;
-  if (w1 >= n_w_ext_pos) {
-    if (w2 < 0)
-      w2 -= n_w_ext_pos;
-    w1 -= n_w_ext_pos;
-    return false;
-  }
-  else {
-    w1 = n_w_ext_pos - 1 - w1;
-    w2 = 2 * n_w_ext_pos - 1 - w2;
-    return true;
-  }
-}
-  
-inline __device__ void G4Helper::unrollIndex(std::size_t index, unsigned& b1, unsigned& b2,
-                                             unsigned& b3, unsigned& b4, unsigned& k1, unsigned& w1,
-                                             unsigned& k2, unsigned& w2, unsigned& k_ex,
-                                             unsigned& w_ex) const {
-  auto unroll = [&](const unsigned dimension) {
-    unsigned result = index / sbdm_steps_[dimension];
+inline __device__ void G4Helper::unrollIndex(std::size_t index, int& b1, int& b2,
+                                             int& b3, int& b4, int& k1, int& w1,
+                                             int& k2, int& w2, int& k_ex,
+                                             int& w_ex) const {
+  auto unroll = [&](const int dimension) {
+    int result = index / sbdm_steps_[dimension];
     index -= result * sbdm_steps_[dimension];
     return result;
   };

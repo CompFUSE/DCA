@@ -1,18 +1,21 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file tests accumulator.hpp.
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
+#include "dca/math/util/phase.hpp"
 
 #include <complex>
 #include <stdexcept>
+#include <cmath>
 
 #include "gtest/gtest.h"
 
@@ -101,4 +104,26 @@ TEST(AccumulatorTest, ComplexType) {
   EXPECT_EQ(1, acc.count());
   EXPECT_EQ(c, acc.sum());
   EXPECT_EQ(c, acc.mean());
+}
+
+TEST(AccumulatorTest, Phase) {
+  dca::phys::solver::util::Accumulator<dca::math::Phase<std::complex<float>>> acc;
+  EXPECT_EQ(0, acc.count());
+  dca::math::Phase<std::complex<float>> phase;
+
+  constexpr double mag{1.0};
+  phase.multiply(std::polar(mag, M_PI * 0.50));
+  acc.addSample(phase.getSign());
+  EXPECT_NEAR(1.0, std::imag(acc.sum()), 1E-4);
+
+  dca::math::Phase<std::complex<float>> phase2;
+  phase2.multiply(std::polar(mag, M_PI * 1));
+  acc.addSample(phase2.getSign());
+  EXPECT_NEAR(1.0, std::imag(acc.sum()), 1E-4);
+
+  phase2.multiply(std::polar(mag, M_PI * 0.5));
+  acc.addSample(phase2.getSign());
+  EXPECT_NEAR(0.0, std::imag(acc.sum()), 1E-4);
+
+  EXPECT_EQ(acc.count(), 3);
 }

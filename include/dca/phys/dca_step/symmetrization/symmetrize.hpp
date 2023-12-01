@@ -26,153 +26,126 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-class symmetrize : public symmetrize_single_particle_function,
+template <class Parameters>
+class Symmetrize : public SymmetrizeSingleParticleFunction<Parameters>,
                    public symmetrize_two_particle_function {
 public:
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = func::dmn_variadic<nu, nu>;
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
+  using NuNuDmn = func::dmn_variadic<NuDmn, NuDmn>;
 
-  template <typename scalartype, typename f_dmn_0>
-  static void execute(func::function<scalartype, f_dmn_0>& f, bool do_diff = false);
+  template <typename Scalar, typename FDmn0>
+  static void execute(func::function<Scalar, FDmn0>& f, bool do_diff = false);
 
-  template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0>
-  static void execute(func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0>>& f,
+  template <typename Scalar, typename FDmn0>
+  static void execute(func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0>>& f,
                       bool do_diff = false);
 
-  template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
-  static void execute(
-      func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1>>& f,
-      bool do_diff = false);
+  template <typename Scalar, typename FDmn0, typename f_dmn_1>
+  static void execute(func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0, f_dmn_1>>& f,
+                      bool do_diff = false);
 
-  template <class Lattice, typename scalartype, typename f_dmn_0, typename f_dmn_1>
-  static void execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
-                      func::function<int, nu_nu>& H_symmetry, bool do_diff = false);
+  template <typename Scalar, typename FDmn0, typename f_dmn_1>
+  static void execute(func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0, f_dmn_1>>& f,
+                      func::function<int, NuNuDmn>& H_symmetry, bool do_diff = false);
 
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
+  template <typename Scalar, typename KDmn, typename WDmn>
   static void execute(
-      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                    func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
+      func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                                func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>>>& f,
       std::vector<double> Q, bool do_diff = false);
 
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
+  template <typename Scalar, typename KDmn, typename WDmn>
   static void execute(
-      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                    func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
-      func::function<int, nu_nu>& H_symmetry, std::vector<double> Q, bool do_diff = false);
+      func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                                func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>>>& f,
+      func::function<int, NuNuDmn>& H_symmetry, std::vector<double> Q, bool do_diff = false);
 
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+  template <typename Scalar, typename KDmn, typename WDmn>
   static void execute(
-      func::function<scalartype,
-                     func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                           func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
-                                        KExDmn, WExDmn>>& f,
+      func::function<Scalar, func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, WDmn, WDmn>>& f,
       std::vector<double> Q, bool do_diff = false);
 
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
+  template <typename Scalar, typename KDmn, typename WDmn>
   static void execute(
-      func::function<scalartype,
-                     func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                           func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
-                                        KExDmn, WExDmn>>& f,
-      func::function<int, nu_nu>& H_symmetry, std::vector<double> Q, bool do_diff = false);
+      func::function<Scalar, func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, WDmn, WDmn>>& f,
+      func::function<int, NuNuDmn>& H_symmetry, std::vector<double> Q, bool do_diff = false);
 
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
+  template <typename Scalar, typename KDmn, typename WDmn>
   static void execute(
-      func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
-      std::vector<double> Q, bool do_diff = false);
-
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(
-      func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
-      func::function<int, nu_nu>& H_symmetry, std::vector<double> Q, bool do_diff = false);
-
-  template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(
-      func::function<scalartype,
-                     func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                        func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
+      func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                                func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>, KDmn>>& f,
       bool do_diff = false);
 };
 
-template <typename scalartype, typename f_dmn_0>
-void symmetrize::execute(func::function<scalartype, f_dmn_0>& f, bool do_diff) {
-  symmetrize_single_particle_function::execute(f, do_diff);
+template <class Parameters>
+template <typename Scalar, typename FDmn0>
+void Symmetrize<Parameters>::execute(func::function<Scalar, FDmn0>& f, bool do_diff) {
+  SymmetrizeSingleParticleFunction<Parameters>::execute(f, do_diff);
 }
 
-template <class Lattice, typename scalartype, typename f_dmn_0, typename f_dmn_1>
-void symmetrize::execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
-                         func::function<int, nu_nu>& H_symmetry, bool do_diff) {
-  symmetrize_single_particle_function::execute<Lattice>(f, H_symmetry, do_diff);
+template <class Parameters>
+template <typename Scalar, typename FDmn0, typename f_dmn_1>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0, f_dmn_1>>& f,
+    func::function<int, NuNuDmn>& H_symmetry, bool do_diff) {
+  SymmetrizeSingleParticleFunction<Parameters>::execute(f, H_symmetry, do_diff);
 }
 
-template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0>
-void symmetrize::execute(func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0>>& f,
-                         bool do_diff) {
-  symmetrize_single_particle_function::execute<Lattice>(f, do_diff);
+template <class Parameters>
+template <typename Scalar, typename FDmn0>
+void Symmetrize<Parameters>::execute(func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0>>& f,
+                                     bool do_diff) {
+  SymmetrizeSingleParticleFunction<Parameters>::execute(f, do_diff);
 }
 
-template <class Lattice, typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1>>& f,
-    bool do_diff) {
-  symmetrize_single_particle_function::execute<Lattice>(f, do_diff);
+template <class Parameters>
+template <typename Scalar, typename FDmn0, typename f_dmn_1>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, FDmn0, f_dmn_1>>& f, bool do_diff) {
+  SymmetrizeSingleParticleFunction<Parameters>::execute(f, do_diff);
 }
 
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
-    func::function<int, nu_nu>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
+template <class Parameters>
+template <typename Scalar, typename KDmn, typename WDmn>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, WDmn, WDmn>>& f,
+    func::function<int, NuNuDmn>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
   symmetrize_two_particle_function::execute(f, Q, do_diff);
 }
 
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                  func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
-    func::function<int, nu_nu>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
+template <class Parameters>
+template <typename Scalar, typename KDmn, typename WDmn>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                              func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>>>& f,
+    func::function<int, NuNuDmn>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
   symmetrize_two_particle_function::execute(f, Q, do_diff);
 }
 
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t, typename KExDmn, typename WExDmn>
-void symmetrize::execute(
-    func::function<scalartype,
-                   func::dmn_variadic<func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                         func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>,
-    KExDmn, WExDmn>>& f,
-    func::function<int, nu_nu>& /*H_symmetry*/, std::vector<double> Q, bool do_diff) {
-  for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); ++wex_ind)
-    for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); ++kex_ind) {
-      func::function<scalartype,
-		     func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-	func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>> independent_f_sub;
-      int subind[]{0,kex_ind, wex_ind};
-      f.slice(1,2, subind, static_cast<double*>(independent_f_sub.values()));
-      symmetrize_two_particle_function::execute(independent_f_sub, Q, do_diff);
-      // copy slice into f
-    }
-}
-
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
+template <class Parameters>
+template <typename Scalar, typename KDmn, typename WDmn>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, WDmn, WDmn>>& f,
     std::vector<double> Q, bool do_diff) {
   symmetrize_two_particle_function::execute(f, Q, do_diff);
 }
 
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                  func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
+template <class Parameters>
+template <typename Scalar, typename KDmn, typename WDmn>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                              func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>>>& f,
     std::vector<double> Q, bool do_diff) {
   symmetrize_two_particle_function::execute(f, Q, do_diff);
 }
 
-template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(
-    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
-                                                  func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
+template <class Parameters>
+template <typename Scalar, typename KDmn, typename WDmn>
+void Symmetrize<Parameters>::execute(
+    func::function<Scalar, func::dmn_variadic<func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>,
+                                              func::dmn_variadic<BDmn, BDmn, KDmn, WDmn>, KDmn>>& f,
     bool do_diff) {
   symmetrize_two_particle_function::execute(f, do_diff);
 }

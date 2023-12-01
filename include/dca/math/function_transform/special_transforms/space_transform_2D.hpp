@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -29,10 +30,10 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Real = double>
+template <class RDmn, class KDmn, typename Scalar = double>
 class SpaceTransform2D {
 protected:
-  using Complex = std::complex<Real>;
+  using Complex = dca::util::ComplexAlias<Scalar>;
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
   using SDmn = func::dmn_0<phys::domains::electron_spin_domain>;
 
@@ -48,19 +49,20 @@ public:
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
       func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
 
-protected:
   static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
 
   static bool hasPhaseFactors() {
     return SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor();
   }
-
   static const auto& getPhaseFactors();
+protected:
+
+
 };
 
-template <class RDmn, class KDmn, typename Real>
+template <class RDmn, class KDmn, typename Scalar>
 template <class W1Dmn, class W2Dmn>
-void SpaceTransform2D<RDmn, KDmn, Real>::execute(
+void SpaceTransform2D<RDmn, KDmn, Scalar>::execute(
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
     func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output) {
   assert(SDmn::dmn_size() == 2);
@@ -78,7 +80,7 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
             linalg::MatrixView<Complex, linalg::CPU> f_r_r(&f_input(0, 0, b1, b2, s, w1, w2), nc);
 
             // f(k1,k2) = \sum_{r1, r2} exp(i(k1 * r1 - k2 *r2)) f(r1, r2) / Nc
-            linalg::matrixop::gemm(T, f_r_r, tmp);
+            linalg::matrixop::gemm(T, f_r_r,tmp);
             linalg::matrixop::gemm('N', 'C', norm, tmp, T, Complex(0), f_r_r);
 
             // f(k1, k2) *= Exp[i (k1 a[b1] - k2 a[b2])]
@@ -89,8 +91,8 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
           }
 }
 
-template <class RDmn, class KDmn, typename Real>
-const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Real>::get_T_matrix() {
+template <class RDmn, class KDmn, typename Scalar>
+const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransform2D<RDmn, KDmn, Scalar>::get_T_matrix() {
   auto initialize_T_matrix = []() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
     linalg::Matrix<Complex, linalg::CPU> T(RDmn::dmn_size());
@@ -98,7 +100,8 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
         const auto& k = KDmn::parameter_type::get_elements()[i];
-        T(i, j) = std::exp(Complex(0, util::innerProduct(k, r)));
+	auto temp_exp = std::exp(dca::util::ComplexAlias<dca::util::RealAlias<Scalar>>{0, util::innerProduct(k, r)});
+        T(i, j) = typename decltype(T)::ValueType{temp_exp.real(), temp_exp.imag()};
       }
     }
     return T;
@@ -108,9 +111,10 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
   return T;
 }
 
-template <class RDmn, class KDmn, typename Real>
-const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
+template <class RDmn, class KDmn, typename Scalar>
+const auto& SpaceTransform2D<RDmn, KDmn, Scalar>::getPhaseFactors() {
   static func::function<Complex, func::dmn_variadic<BDmn, KDmn>> phase_factors("Phase factors.");
+  using Real = dca::util::RealAlias<Scalar>;
   static std::once_flag flag;
 
   // Initialize the phase factors Exp[i k a[b]].
@@ -121,8 +125,12 @@ const auto& SpaceTransform2D<RDmn, KDmn, Real>::getPhaseFactors() {
 
     for (int k = 0; k < KDmn::dmn_size(); ++k) {
       const auto& k_vec = KDmn::get_elements()[k];
-      for (int b = 0; b < BDmn::dmn_size(); ++b)
-        phase_factors(b, k) = std::exp(Complex(0., util::innerProduct(k_vec, a_vecs[b])));
+      for (int b = 0; b < BDmn::dmn_size(); ++b) {
+	// Scalar could be cuComplex or cuDoubleComplex so...
+	std::complex<Real> temp_phase{0., static_cast<Real>(util::innerProduct(k_vec, a_vecs[b]))};
+	temp_phase = std::exp(temp_phase);
+	phase_factors(b,k) = Complex{temp_phase.real(), temp_phase.imag()};
+      }
     }
   });
 

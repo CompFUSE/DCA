@@ -45,10 +45,9 @@ const std::vector<std::string> types{"JSON",
 
 const std::vector<std::string> stepped_types{
 #ifdef DCA_HAVE_ADIOS2
-                                     "ADIOS2",
+    "ADIOS2",
 #endif
-                                     "HDF5"};
-
+    "HDF5"};
 
 std::string toLower(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), [](char c) { return std::tolower(c); });
@@ -357,7 +356,7 @@ TEST(ReaderWriterTest, GroupOpenclose) {
     writer.close_group();
     writer.open_group("foo");
     writer.execute("c", 2);
-    
+
     writer.close_file();
 
 #ifdef DCA_HAVE_ADIOS2
@@ -395,7 +394,7 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
     writer.open_file(test_filename);
 
     writer.begin_step();
-    
+
     writer.open_group("foo");
     writer.execute("a", 0);
     writer.close_group();
@@ -421,7 +420,7 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
     writer.close_group();
     writer.open_group("foo");
     writer.execute("c", 4);
-    
+
     writer.close_file();
 
 #ifdef DCA_HAVE_ADIOS2
@@ -436,8 +435,8 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
 
     reader.begin_step();
 
-    std::cerr << "Reader step1 path: " <<  reader.get_path() << '\n';
-    
+    std::cerr << "Reader step1 path: " << reader.get_path() << '\n';
+
     reader.open_group("foo");
     reader.execute("a", i_val);
     EXPECT_EQ(0, i_val);
@@ -452,26 +451,45 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
 
     reader.end_step();
     reader.begin_step();
-    
-    std::cerr << "Reader step2 path: " <<  reader.get_path() << '\n';
-    reader.open_group("foo");    
+
+    std::cerr << "Reader step2 path: " << reader.get_path() << '\n';
+    reader.open_group("foo");
     reader.execute("a", i_val);
-    EXPECT_EQ(1, i_val); //  << "failing path: " << reader.get_path();
+    EXPECT_EQ(1, i_val);  //  << "failing path: " << reader.get_path();
     reader.close_group();
     reader.open_group("foo");
     reader.execute("b", i_val);
-    EXPECT_EQ(2, i_val); //  << "failing path: " << reader.get_path();
+    EXPECT_EQ(2, i_val);  //  << "failing path: " << reader.get_path();
     reader.close_group();
     reader.open_group("bar");
     reader.execute("b2", d_val);
-    EXPECT_NEAR(3.5, d_val, 1E-4); //  << "failing path: " << reader.get_path();
+    EXPECT_NEAR(3.5, d_val, 1E-4);  //  << "failing path: " << reader.get_path();
     reader.close_group();
     reader.open_group("foo");
     reader.execute("c", i_val);
-    EXPECT_EQ(4, i_val); //  << "failing path: " << reader.get_path();
+    EXPECT_EQ(4, i_val);  //  << "failing path: " << reader.get_path();
+
+    reader.close_file();
+
+    // insure step state is not retained.
+    // i.e. can be reused without surprise.
+    reader.open_file(test_filename);
+    reader.begin_step();
+
+    reader.open_group("foo");
+    reader.execute("a", i_val);
+    EXPECT_EQ(0, i_val);
+    reader.execute("b", i_val);
+    EXPECT_EQ(1, i_val);
+    reader.execute("c", i_val);
+    EXPECT_EQ(2, i_val);
+    reader.close_group();
+    reader.open_group("bar");
+    reader.execute("b2", d_val);
+    EXPECT_EQ(1.5, d_val);
+
   }
 }
-
 
 TEST(ReaderWriterTest, Overwrite) {
   for (auto type : types) {
@@ -505,6 +523,47 @@ TEST(ReaderWriterTest, Overwrite) {
   }
 }
 
+// Currently this is a special case for the HDF5 reading
+TEST(ReaderWriterTest, CompoundName) {
+  std::string type{"HDF5"};
+
+#ifdef DCA_HAVE_ADIOS2
+  dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
+#else
+  dca::io::Writer writer(*concurrency_ptr, type);
+#endif
+  writer.open_file("compound_names." + toLower(type), true);
+
+  // compound names are actually only supported by the reader for hdf5
+  writer.open_group("foo");
+  writer.open_group("extra_group");
+  writer.execute("a", 1);
+  writer.execute("b", 2);
+  writer.close_group();
+  writer.close_group();
+
+  // Try to write with different size.
+  // EXPECT_THROW(writer.execute("a", std::pair<int, int>(1, 1)), std::length_error);
+
+  writer.close_file();
+
+#ifdef DCA_HAVE_ADIOS2
+  dca::io::Reader reader(*concurrency_ptr, type);
+#else
+  dca::io::Reader reader(*concurrency_ptr, type);
+#endif
+  reader.open_file("compound_names." + toLower(type));
+
+  int i_val;
+  reader.open_group("foo");
+  bool found = reader.execute("extra_group/a", i_val);
+  EXPECT_TRUE(found);
+  EXPECT_EQ(1, i_val);
+  reader.execute("extra_group/b", i_val);
+  EXPECT_EQ(2, i_val);
+  EXPECT_FALSE(reader.execute("another_extra_group", i_val));
+}
+
 int main(int argc, char** argv) {
   // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
   // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
@@ -530,4 +589,3 @@ int main(int argc, char** argv) {
 
   return result;
 }
-

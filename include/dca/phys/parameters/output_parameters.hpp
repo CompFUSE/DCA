@@ -27,6 +27,7 @@ class OutputParameters {
 public:
   OutputParameters()
       : directory_("./"),
+	autoresume_(false),
 #ifdef DCA_HAVE_ADIOS2
         output_format_("ADIOS2"),
         g4_output_format_("ADIOS2"),
@@ -128,7 +129,7 @@ public:
 
 private:
   std::string directory_;
-  bool autoresume_ = false;
+  bool autoresume_; // = false;
   std::string output_format_;
   std::string g4_output_format_;
   std::string filename_g4_;

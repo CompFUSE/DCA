@@ -13,7 +13,7 @@
 #include "dca/testing/type_testing.hpp"
 #include <stdexcept>
 #include "dca/platform/dca_gpu.h"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(PinnedAllocatorTest, Allocator) {
   using dca::linalg::util::PinnedAllocator;

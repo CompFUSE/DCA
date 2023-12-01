@@ -22,6 +22,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/linalg/util/allocators/aligned_allocator.hpp"
 
 namespace dca {
 namespace phys {
@@ -78,7 +79,7 @@ void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
         Gamma_lattice_deconv) {
   int N = k_HOST_VERTEX::dmn_size();
 
-  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> phi_inv(
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU, dca::linalg::util::AlignedAllocator<std::complex<scalartype>>> phi_inv(
       "phi_inv", std::pair<int, int>(N, N));
 
   this->compute_T_inv_matrix(parameters.get_Gamma_deconvolution_cut_off(), phi_inv);

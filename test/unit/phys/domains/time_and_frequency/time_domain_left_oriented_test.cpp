@@ -9,9 +9,8 @@
 //
 // This file tests time_domain_left_oriented.hpp.
 
-#include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include <vector>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 
 using namespace dca::phys::domains;

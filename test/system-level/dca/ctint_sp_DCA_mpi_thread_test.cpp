@@ -12,9 +12,19 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/config/profiler.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 
 #include "dca/function/function.hpp"
@@ -49,7 +59,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::ClusterSolverId::CT_INT>;
+                                    dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<
       dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType>>;

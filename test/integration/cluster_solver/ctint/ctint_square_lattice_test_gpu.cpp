@@ -13,8 +13,16 @@
 #include <cuda_profiler_api.h>
 #include <iostream>
 #include <string>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
-#include "gtest/gtest.h"
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -42,8 +50,10 @@ using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::ClusterSolverId::CT_INT>;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, NoThreading, dca::profiling::NullProfiler, Model,
+                                  RngType, dca::ClusterSolverId::CT_INT,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 
 TEST(SquareLatticeTest, GpuSolver) {
@@ -60,7 +70,7 @@ TEST(SquareLatticeTest, GpuSolver) {
   Data data_gpu(parameters);
   data_gpu.initialize();
   dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters, true> qmc_solver_gpu(
-                                                                                           parameters, data_gpu, nullptr);
+      parameters, data_gpu, nullptr);
   qmc_solver_gpu.initialize(0);
   cudaProfilerStart();
   qmc_solver_gpu.integrate();

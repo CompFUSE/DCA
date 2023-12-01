@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -51,7 +51,8 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using StdThreading = dca::parallel::stdthread;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
-                                  Model, RngType, dca::ClusterSolverId::CT_INT>;
+                                  Model, RngType, dca::ClusterSolverId::CT_INT,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;

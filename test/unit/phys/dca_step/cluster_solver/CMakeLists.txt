@@ -1,4 +1,7 @@
 # test/unit/phys/dca_step/cluster_solver
+if (DCA_HAVE_GPU)
+  set(KERNELS_LIB mc_kernels)
+endif()
 
 add_subdirectory(ctaux)
 add_subdirectory(ctint)

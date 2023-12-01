@@ -12,7 +12,7 @@
 #include "dca/linalg/reshapable_matrix.hpp"
 #include <complex>
 #include <string>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "cpu_test_util.hpp"
 
 TEST(MatrixCPUTest, Constructor) {

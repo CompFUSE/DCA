@@ -18,6 +18,8 @@ std::string to_str(Material mat) {
       return "CuO2_1band";
     case Material::SrVO3:
       return "SrVO3";
+    default:
+      return "";
   }
 }
 

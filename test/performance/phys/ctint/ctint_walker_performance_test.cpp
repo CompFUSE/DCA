@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
@@ -20,6 +21,14 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/shrink_G0.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
@@ -39,7 +48,7 @@
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
 
-using Real = float;
+using Real = double;
 
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
@@ -47,12 +56,13 @@ using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
+using Scalar = double;
 using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
-                                                 dca::ClusterSolverId::CT_INT>;
+                                                 dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
 
-using Walker = dca::phys::solver::ctint::CtintWalkerChoice<device_t, Parameters, true, Real>;
+using Walker = dca::phys::solver::ctint::CtintWalkerChoice<device_t, Parameters, true>;
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = Parameters::RClusterDmn;
