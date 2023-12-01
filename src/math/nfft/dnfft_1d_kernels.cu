@@ -178,29 +178,29 @@ template void accumulateOnDevice<oversampling, window_sampling, double, double>(
     const ConfigElem* config_left, const ConfigElem* config_right, const double* tau,
     const double* cubic_coeff, const int size, cudaStream_t stream_);
 
-template void accumulateOnDevice<oversampling, window_sampling, float, float>(
-    const float* M, const int ldm, const float sign, float* out, float* out_sqr, const int ldo,
-    const ConfigElem* config_left, const ConfigElem* config_right, const float* tau,
-    const float* cubic_coeff, const int size, cudaStream_t stream_);
+// template void accumulateOnDevice<oversampling, window_sampling, float, float>(
+//     const float* M, const int ldm, const float sign, float* out, float* out_sqr, const int ldo,
+//     const ConfigElem* config_left, const ConfigElem* config_right, const float* tau,
+//     const float* cubic_coeff, const int size, cudaStream_t stream_);
 template void accumulateOnDevice<oversampling, window_sampling, std::complex<double>, double>(
     const std::complex<double>* M, const int ldm, const std::complex<double> sign,
     std::complex<double>* out, std::complex<double>* out_sqr, const int ldo,
     const ConfigElem* config_left, const ConfigElem* config_right, const double* tau,
     const double* cubic_coeff, const int size, cudaStream_t stream_);
-template void accumulateOnDevice<oversampling, window_sampling, std::complex<float>, float>(
-    const std::complex<float>* M, const int ldm, const std::complex<float> sign,
-    std::complex<float>* out, std::complex<float>* out_sqr, const int ldo,
-    const ConfigElem* config_left, const ConfigElem* config_right, const float* tau,
-    const float* cubic_coeff, const int size, cudaStream_t stream_);
+// template void accumulateOnDevice<oversampling, window_sampling, std::complex<float>, float>(
+//     const std::complex<float>* M, const int ldm, const std::complex<float> sign,
+//     std::complex<float>* out, std::complex<float>* out_sqr, const int ldo,
+//     const ConfigElem* config_left, const ConfigElem* config_right, const float* tau,
+//     const float* cubic_coeff, const int size, cudaStream_t stream_);
 
 template void sum(const double* in, const int ldi, double* out, const int ldo, const int n,
                   const int m, cudaStream_t stream);
-template void sum(const float* in, const int ldi, float* out, const int ldo, const int n,
-                  const int m, cudaStream_t stream);
+// template void sum(const float* in, const int ldi, float* out, const int ldo, const int n,
+//                   const int m, cudaStream_t stream);
 template void sum(const std::complex<double>* in, const int ldi, std::complex<double>* out,
                   const int ldo, const int n, const int m, cudaStream_t stream);
-template void sum(const std::complex<float>* in, const int ldi, std::complex<float>* out,
-                  const int ldo, const int n, const int m, cudaStream_t stream);
+// template void sum(const std::complex<float>* in, const int ldi, std::complex<float>* out,
+//                   const int ldo, const int n, const int m, cudaStream_t stream);
 
 }  // namespace details
 }  // namespace nfft

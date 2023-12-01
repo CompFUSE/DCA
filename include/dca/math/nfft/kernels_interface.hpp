@@ -49,9 +49,9 @@ void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* 
 extern template void initializeNfftHelper<double>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
                           double t0, double delta_t, double t0_window, double delta_t_window,
                           double beta);
-extern template void initializeNfftHelper<float>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
-                          float t0, float delta_t, float t0_window, float delta_t_window,
-                          float beta);
+// extern template void initializeNfftHelper<float>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+//                           float t0, float delta_t, float t0_window, float delta_t_window,
+//                           float beta);
   
 }  // namespace details
 }  // namespace nfft

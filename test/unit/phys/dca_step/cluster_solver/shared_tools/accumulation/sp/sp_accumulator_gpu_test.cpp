@@ -35,7 +35,7 @@ using McOptions = MockMcOptions<Scalar>;
 //using Scalar = typename dca::config::McOptions::MCScalar;
 template <typename SCALAR>
 using SpAccumulatorGpuTest = dca::testing::AccumulationTest<SCALAR, 1, 3, 128>;
-using TestTypes = ::testing::Types<float, double, std::complex<double>>;
+using TestTypes = ::testing::Types<double, std::complex<double>>;
 TYPED_TEST_CASE(SpAccumulatorGpuTest, TestTypes);
 
 TYPED_TEST(SpAccumulatorGpuTest, Accumulate) {
