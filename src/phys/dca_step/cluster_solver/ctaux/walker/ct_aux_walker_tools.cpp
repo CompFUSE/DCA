@@ -30,15 +30,14 @@ CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::CT_AUX_WALKER_TOOLS(int k_ph)
     : r(k_ph), c(k_ph), d(k_ph) {}
 
 template <typename Scalar>
-Scalar CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::consistentScalarInv(Scalar scalar) {
+Scalar CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::consistentScalarDiv(Scalar x, Scalar y) {
   if constexpr (dca::util::IsComplex_t<Scalar>::value) {
     Scalar quot;
-    auto y = scalar - dca::util::RealAlias<Scalar>(1.0);
     using LocalReal = typename dca::util::RealAlias<Scalar>;
     LocalReal s = (std::fabs(y.real()) + (std::fabs(y.imag())));
     LocalReal oos = 1.0 / s;
-    LocalReal ars = scalar.real() * oos;
-    LocalReal ais = scalar.imag() * oos;
+    LocalReal ars = x.real() * oos;
+    LocalReal ais = x.imag() * oos;
     LocalReal brs = y.real() * oos;
     LocalReal bis = y.imag() * oos;
     s = (brs * brs) + (bis * bis);
@@ -47,7 +46,7 @@ Scalar CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::consistentScalarInv(Scalar
     return quot;
   }
   else
-    return 1 / scalar;
+    return x / y;
 }
 
 template <typename Scalar>
@@ -102,7 +101,8 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::compute_Gamma(
         //   };
 
           Scalar gamma_k = exp_delta_V[j];
-          Scalar inter_gamma = consistentScalarInv(gamma_k);  //(gamma_k) / (gamma_k - Real(1.));
+	  auto y = gamma_k - dca::util::RealAlias<Scalar>(1.0);
+          Scalar inter_gamma = consistentScalarDiv(gamma_k, y);  //(gamma_k) / (gamma_k - Real(1.));
           Gamma(i, j) -= inter_gamma;                          //(gamma_k) / (gamma_k - Real(1.));
         // }
         // else {
@@ -331,8 +331,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_fast(int n, Scal
         for (int i = 0; i < j; i++)
           x_val -= x_ptr[i] * G_ptr[i];
 
-	auto invG = consistentScalarInv(G_ptr[j]);
-        x[j] = x_val * invG; //consistentScalarInv G_ptr[j];
+        x[j] = consistentScalarDiv(x_val, G_ptr[j]);
       }
     }
 
@@ -611,7 +610,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::apply_bennett_on_Gamma(
 
   Scalar ratio = 1.;
   for (int i = 0; i < n; ++i)
-    ratio *= (Gamma_LU(i, i) * consistentScalarInv(d_ptr[i]));
+    ratio *= consistentScalarDiv(Gamma_LU(i,i), d_ptr[i]);
 
   {
     Real Gamma_val = std::abs(Gamma_LU(0, 0));
@@ -631,7 +630,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::apply_bennett_on_Gamma(
   }
 
   const Scalar phani_gamma = exp_delta_V - Real(1.);
-  const Scalar det_ratio = -ratio * consistentScalarInv(phani_gamma);
+  const Scalar det_ratio = consistentScalarDiv(-ratio,phani_gamma);
 
   if (std::abs(std::imag(det_ratio)) > std::numeric_limits<Real>::epsilon() * 1000) {
     throw(std::logic_error("The determinant is complex."));

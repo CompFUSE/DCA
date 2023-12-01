@@ -100,7 +100,13 @@ private:
   bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
                     Real min);
 
-  static Scalar consistentScalarInv(Scalar gamma_k);
+  /** Return x/y.
+   *  nothing but that is done for real number but for complex division an implementation consistent with cuda
+   *  and magma libraries is used.
+   *  This is more overflow resistant than the std lib method.
+   *  But we need this for reasonable numerical agreement for testing.
+   */
+  static Scalar consistentScalarDiv(Scalar x, Scalar y);
 
 private:
   dca::linalg::Vector<Scalar, dca::linalg::CPU> r;
