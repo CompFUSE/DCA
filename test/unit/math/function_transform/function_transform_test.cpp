@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
   concurrency_ptr = &concurrency;
 #endif
 
-  #ifdef DCA_HAVE_ADIOS2
+#ifdef DCA_HAVE_ADIOS2
   //ADIOS expects MPI_COMM pointer or nullptr
   adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
   adios_ptr = &adios;

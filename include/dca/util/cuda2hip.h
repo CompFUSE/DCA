@@ -123,6 +123,7 @@
 #define cudaEventQuery                  hipEventQuery
 #define cudaEventRecord                 hipEventRecord
 #define cudaEventSynchronize            hipEventSynchronize
+#define cudaEventBlockingSync           hipEventBlockingSync
 #define cudaFilterModeLinear            hipFilterModeLinear
 #define cudaFree                        hipFree
 #define cudaFreeHost                    hipHostFree
@@ -173,6 +174,8 @@
 #define cudaStreamDestroy               hipStreamDestroy
 #define cudaStreamSynchronize           hipStreamSynchronize
 #define cudaStreamWaitEvent             hipStreamWaitEvent
+#define cudaStreamLegacy                hipStreamLegacy
+#define hipStreamLegacy 0
 #define cudaSuccess                     hipSuccess
 #define cuFloatComplex                  magmaFloatComplex
 #define cuDoubleComplex                 magmaDoubleComplex
