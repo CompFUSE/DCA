@@ -436,7 +436,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
       G4[channel] /= TpComplex{parameters_.get_beta() * parameters_.get_beta()} *
-                     TpComplex{accumulator_.get_accumulated_sign().sum()};
+										  TpComplex{static_cast<Real>(accumulator_.get_accumulated_sign().sum())};
       concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
     }
   }

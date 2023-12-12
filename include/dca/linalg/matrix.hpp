@@ -254,7 +254,7 @@ private:
 
   ValueType* data_ = nullptr;
 
-  template <class ScalarType2, DeviceType device_name2>
+  template <class ScalarType2, DeviceType device_name2, class ALLOC2>
   friend class dca::linalg::Matrix;
 };
 
