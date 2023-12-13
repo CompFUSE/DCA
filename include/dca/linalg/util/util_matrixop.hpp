@@ -33,8 +33,8 @@ namespace util {
 
 // Returns optimal lwork for inverse.
 // In: mat
-template <typename ScalarType,  template <typename, DeviceType> class MatrixType>
-int getInverseWorkSize(MatrixType<ScalarType, CPU>& mat) {
+  template <typename ScalarType, class ALLOC, template <typename, DeviceType, class> class MatrixType>
+int getInverseWorkSize(MatrixType<ScalarType, CPU, ALLOC>& mat) {
   assert(mat.is_square());
 
   ScalarType tmp;

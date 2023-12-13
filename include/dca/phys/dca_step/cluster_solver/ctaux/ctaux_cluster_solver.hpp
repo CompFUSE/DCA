@@ -113,7 +113,10 @@ public:
   void setSampleConfiguration(const io::Buffer&) {}
 
   /** used for testing */
-  auto& getG0() { return g0_; };
+  auto& getG0() {
+    return g0_;
+  };
+
 protected:
   void warmUp(Walker& walker);
 
@@ -435,8 +438,13 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
     std::vector<typename Data::TpGreensFunction> G4 = accumulator_.get_sign_times_G4();
 
     for (std::size_t channel = 0; channel < G4.size(); ++channel) {
-      G4[channel] /= TpComplex{parameters_.get_beta() * parameters_.get_beta()} *
-                     TpComplex{accumulator_.get_accumulated_sign().sum()};
+      if constexpr (dca::util::IsComplex_t<Scalar>::value)
+        G4[channel] /= TpComplex{parameters_.get_beta() * parameters_.get_beta()} *
+                       TpComplex{static_cast<Scalar>(accumulator_.get_accumulated_sign().sum())};
+      else
+        G4[channel] /= TpComplex{parameters_.get_beta() * parameters_.get_beta()} *
+                       TpComplex{static_cast<Real>(accumulator_.get_accumulated_sign().sum())};
+
       concurrency_.average_and_compute_stddev(G4[channel], data_.get_G4_stdv()[channel]);
     }
   }

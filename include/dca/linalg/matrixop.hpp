@@ -295,8 +295,8 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
 // Preconditions: mat is a square matrix.
 // Postconditions: ipiv and work are resized to the needed dimension.
 // \todo consider doing inverse at full precision reguardless of incoming Scalar precision
-template <typename Scalar, DeviceType device_name, template <typename, DeviceType> class MatrixType>
-void inverse(MatrixType<Scalar, device_name>& mat, Vector<int, CPU>& ipiv,
+  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  void inverse(MatrixType<Scalar, device_name, ALLOC>& mat, Vector<int, CPU>& ipiv,
              Vector<Scalar, device_name>& work) {
   assert(mat.is_square());
 
@@ -312,8 +312,8 @@ void inverse(MatrixType<Scalar, device_name>& mat, Vector<int, CPU>& ipiv,
                                         work.ptr(), lwork);
 }
 
-template <typename Scalar, DeviceType device_name, template <typename, DeviceType> class MatrixType>
-void inverse(MatrixType<Scalar, device_name>& mat) {
+  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  void inverse(MatrixType<Scalar, device_name, ALLOC>& mat) {
   Vector<int, CPU> ipiv;
   Vector<Scalar, device_name> work;
   inverse(mat, ipiv, work);
