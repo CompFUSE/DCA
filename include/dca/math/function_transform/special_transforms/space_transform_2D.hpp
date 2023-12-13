@@ -100,7 +100,8 @@ const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransfo
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
         const auto& k = KDmn::parameter_type::get_elements()[i];
-	auto temp_exp = std::exp(dca::util::ComplexAlias<dca::util::RealAlias<Scalar>>{0, util::innerProduct(k, r)});
+	using Real = dca::util::RealAlias<Scalar>;
+	auto temp_exp = std::exp(dca::util::ComplexAlias<Real>{0, static_cast<Real>(util::innerProduct(k, r))});
         T(i, j) = typename decltype(T)::ValueType{temp_exp.real(), temp_exp.imag()};
       }
     }
