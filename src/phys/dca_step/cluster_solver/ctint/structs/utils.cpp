@@ -21,11 +21,11 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-std::size_t getRandomElement(const std::vector<const VertexTypeList*>& container_ptrs,
+long getRandomElement(const std::vector<const VertexTypeList*>& container_ptrs,
                              const double rand) noexcept {
   assert(rand >= 0 && rand <= 1);
 
-  std::size_t size = 0;
+  long size = 0;
   for (auto c_ptr : container_ptrs)
     size += c_ptr->size();
 
@@ -33,7 +33,7 @@ std::size_t getRandomElement(const std::vector<const VertexTypeList*>& container
     return -1;
 
   // TODO: use binary search or other efficient scheme.
-  std::size_t idx = size * rand;
+  long idx = size * rand;
   for (auto c_ptr : container_ptrs) {
     if (idx < c_ptr->size())
       return (*c_ptr).findByIndex(idx);
