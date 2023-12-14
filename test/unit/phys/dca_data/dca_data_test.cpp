@@ -10,6 +10,7 @@
 // This file provides unit tests for dca_data, thus far these just cover specific cases where there
 // have been regressions
 
+#include <functional>
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
@@ -117,7 +118,41 @@ TEST_F(DCADataTest, ReadSigmaLegacy) {
   dca_setup_.data_->initialize();
   dca_setup_.data_->initializeSigma("dca_data_test_legacy.hdf5");
   EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 4.0);
+  decltype(dca_setup_.data_->Sigma) check_sigma("check_sigma");
+  check_sigma = 4.0;
+  EXPECT_EQ(dca_setup_.data_->Sigma, check_sigma);
 }
+
+#ifdef DCA_HAVE_ADIOS2
+TEST_F(DCADataTest, ReadSigmaAdios2) {
+  dca_setup_.data_->initialize();
+  dca_setup_.data_->initializeSigma("dca_data_test.bp");
+  EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 3.0);
+  decltype(dca_setup_.data_->Sigma) check_sigma("check_sigma");
+  check_sigma = 3.0;
+  EXPECT_EQ(dca_setup_.data_->Sigma, check_sigma);
+}
+
+TEST_F(DCADataTest, ReadSigmaAdios2ExtraPot) {
+  dca_setup_.data_->initialize();
+  dca_setup_.data_->initializeSigma("dca_data_test_extra_cpot.bp");
+  EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 3.0);
+  decltype(dca_setup_.data_->Sigma) check_sigma("check_sigma");
+  check_sigma = 3.0;
+  EXPECT_EQ(dca_setup_.data_->Sigma, check_sigma);
+}
+
+TEST_F(DCADataTest, ReadSigmaAdios2AnotherPot) {
+  dca_setup_.data_->initialize();
+  dca_setup_.data_->initializeSigma("dca_data_test_another_cpot.bp");
+  EXPECT_EQ(dca_setup_.parameters_->get_chemical_potential(), 4.0);
+  decltype(dca_setup_.data_->Sigma) check_sigma("check_sigma");
+  check_sigma = 4.0;
+  EXPECT_EQ(dca_setup_.data_->Sigma, check_sigma);
+}
+
+#endif
+
 
 
 int main(int argc, char** argv) {
