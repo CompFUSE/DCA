@@ -5,6 +5,6 @@ if(DCA_HAVE_GPU)
   add_library(gpu_utils STATIC ${srcs})
   dca_gpu_runtime_link(gpu_utils)
   dca_gpu_blas_link(gpu_utils)
-  target_link_libraries(gpu_utils PUBLIC magma::magma)
+  target_link_libraries(gpu_utils PUBLIC magma::magma) #"$<TARGET_PROPERTY:magma::magma,INTERFACE_LINK_LIBRARIES>")
 endif()
 

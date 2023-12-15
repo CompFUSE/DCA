@@ -30,7 +30,7 @@ if(MAGMA_FOUND)
       INTERFACE_COMPILE_DEFINITION "${MAGMA_DEFINITIONS}"
       IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
       IMPORTED_LOCATION "${MAGMA_LIBRARY}")
-    target_link_libraries(magma::magma INTERFACE BLAS::BLAS LAPACK::LAPACK)
+    target_link_libraries(magma::magma INTERFACE BLAS::BLAS LAPACK::LAPACK ${DCA_GPU_LIBS})
     message("Added magma::magma target")
   endif()
   if(NOT TARGET magma::sparse)
@@ -40,6 +40,7 @@ if(MAGMA_FOUND)
       INTERFACE_COMPILE_DEFINITION "${MAGMA_DEFINITIONS}"
       IMPORTED_LINK_INTERFACE_LANGUAGES "C;CXX"
       IMPORTED_LOCATION "${MAGMA_sparse_LIBRARY}")
+    target_link_libraries(magma::sparse INTERFACE ${DCA_GPU_LIBS})
     message("Added magma::sparse target")
   endif()  
 endif()
