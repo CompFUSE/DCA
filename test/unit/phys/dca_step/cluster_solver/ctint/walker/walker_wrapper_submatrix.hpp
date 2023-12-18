@@ -33,26 +33,28 @@ using dca::linalg::GPU;
 using dca::linalg::DeviceType;
 using dca::DistType;
 
-template <class Parameters, dca::linalg::DeviceType device, typename Real, DistType DIST = DistType::NONE>
+template <class Parameters, dca::linalg::DeviceType device, DistType DIST = DistType::NONE>
 struct WalkerSelector;
 
-template <class Parameters, typename Real, DistType DIST>
-struct WalkerSelector<Parameters, CPU, Real, DIST> {
+template <class Parameters, DistType DIST>
+struct WalkerSelector<Parameters, CPU, DIST> {
   // Fix rng order for testing.
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real, DIST>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, DIST>;
 };
 
 #ifdef DCA_HAVE_GPU
-template <class Parameters, typename Real, DistType DIST>
-struct WalkerSelector<Parameters, GPU, Real, DIST> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real, DIST>;
+template <class Parameters, DistType DIST>
+struct WalkerSelector<Parameters, GPU, DIST> {
+  using type = CtintWalkerSubmatrixGpu<Parameters, DIST>;
 };
 #endif  // DCA_HAVE_GPU
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, DeviceType device_t = CPU, typename Real = double, DistType DIST = DistType::NONE>
-struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real, DIST>::type {
-  using BaseClass = typename WalkerSelector<Parameters, device_t, Real, DIST>::type;
+  template <typename SCALAR, class Parameters, DeviceType device_t = CPU, DistType DIST = DistType::NONE>
+struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST>::type {
+  using BaseClass = typename WalkerSelector<Parameters, device_t, DIST>::type;
+  using Scalar = SCALAR;
+  using Real = dca::util::RealAlias<Scalar>;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
 
@@ -68,18 +70,18 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
     BaseClass::doStep(n_steps_to_delay);
   }
 
-  using Matrix = dca::linalg::Matrix<Real, CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 
   MatrixPair getM() {
-    std::array<dca::linalg::Matrix<Real, device_t>, 2> M;
+    std::array<dca::linalg::Matrix<Scalar, device_t>, 2> M;
 
     BaseClass::computeM(M);
 #ifdef DCA_HAVE_GPU
     cudaDeviceSynchronize();
 #endif
 
-    std::array<dca::linalg::Matrix<Real, CPU>, 2> M_copy{M[0], M[1]};
+    std::array<dca::linalg::Matrix<Scalar, CPU>, 2> M_copy{M[0], M[1]};
     return M_copy;
   }
 
@@ -89,7 +91,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real
     return BaseClass::configuration_;
   }
 
-  Real getAcceptanceProbability() const {
+  auto getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
 

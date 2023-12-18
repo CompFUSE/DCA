@@ -13,30 +13,39 @@
 #include <dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
+
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-template <typename Real>
+template <typename Scalar>
 using DMatrixBuilderGpuTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_INT>;
 using namespace dca::phys::solver;
 
 using dca::linalg::Matrix;
 using dca::linalg::CPU;
 using dca::linalg::GPU;
 
-using FloatingPointTypes = ::testing::Types<float, double>;
+using FloatingPointTypes = ::testing::Types<double>;
 TYPED_TEST_CASE(DMatrixBuilderGpuTest, FloatingPointTypes);
 
 TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   using Rng = typename TestFixture::RngType;
   using BDmn = typename TestFixture::BDmn;
   using RDmn = typename TestFixture::RDmn;
-  using Real = TypeParam;
+  using Scalar = TypeParam;
 
   // Setup rng values
   std::vector<double> rng_values(100);
@@ -51,22 +60,22 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   const auto& data = *TestFixture::data_;
 
   // Setup interpolation and matrix builder class.
-  G0Interpolation<dca::linalg::GPU, Real> g0(
+  G0Interpolation<dca::linalg::GPU, Scalar> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
   const int nb = BDmn::dmn_size();
 
-  ctint::DMatrixBuilder<dca::linalg::GPU, Real> builder(g0, nb, RDmn());
+  ctint::DMatrixBuilder<dca::linalg::GPU, Scalar> builder(g0, nb, RDmn());
   builder.setAlphas(parameters.getAlphas(), false);
 
-  ctint::DMatrixBuilder<dca::linalg::CPU, Real> builder_cpu(g0, nb, RDmn());
+  ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> builder_cpu(g0, nb, RDmn());
   builder_cpu.setAlphas(parameters.getAlphas(), false);
 
   ctint::InteractionVertices interaction_vertices;
   interaction_vertices.initializeFromHamiltonian(data.H_interactions);
 
-  Matrix<Real, CPU> G0;
-  Matrix<Real, GPU> G0_dev;
+  Matrix<Scalar, CPU> G0;
+  Matrix<Scalar, GPU> G0_dev;
   dca::linalg::util::GpuStream stream;
   
   const std::vector<int> sizes{1, 3, 8};
@@ -99,8 +108,8 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
       builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream.streamActually());
       cudaStreamSynchronize(stream.streamActually());
 
-      Matrix<Real, CPU> G0_dev_copy(G0_dev);
-      constexpr Real tolerance = 100 * std::numeric_limits<Real>::epsilon();
+      Matrix<Scalar, CPU> G0_dev_copy(G0_dev);
+      constexpr RealAlias<Scalar> tolerance = 100 * std::numeric_limits<RealAlias<Scalar>>::epsilon();
       EXPECT_TRUE(dca::linalg::matrixop::areNear(G0, G0_dev_copy, tolerance));
     }
   }

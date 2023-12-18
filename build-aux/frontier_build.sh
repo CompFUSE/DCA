@@ -26,3 +26,5 @@ cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH \
       -GNinja \
       ..
+=======
+cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON      -DFFTW_INCLUDE_DIR=${OLCF_FFTW_ROOT}/include       -DFFTW_LIBRARY=${OLCF_FFTW_ROOT}/lib/libfftw3.a       -DDCA_FIX_BROKEN_MPICH=ON       -GNinja       -DROCM_ROOT=${ROCM_PATH}       -DDCA_WITH_TESTS_FAST=ON -DTEST_RUNNER="srun"       -DGPU_TARGETS=gfx908       -DCMAKE_C_COMPILER=mpicc       -DCMAKE_CXX_COMPILER=mpic++ ..

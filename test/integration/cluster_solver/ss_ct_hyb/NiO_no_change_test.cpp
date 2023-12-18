@@ -9,7 +9,16 @@
 //
 // No change test for the CT-HYB solver using  a NiO lattice.
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/config/threading.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -45,11 +54,12 @@ TEST(Ni0NoChangeTest, GreensFunction) {
       dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
   using Rng = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using TestParameters =
-      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                    Model, Rng, dca::ClusterSolverId::SS_CT_HYB>;
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
+                                    Rng, dca::ClusterSolverId::SS_CT_HYB,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<TestParameters>;
   using ImpuritySolver = dca::phys::solver::StdThreadQmciClusterSolver<
-    dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data, dca::DistType::NONE>>;
+      dca::phys::solver::SsCtHybClusterSolver<dca::linalg::CPU, TestParameters, Data, dca::DistType::NONE>>;
 
   TestParameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(test_directory + "input_NiO.json");

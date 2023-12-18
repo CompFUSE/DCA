@@ -12,6 +12,7 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_HPP
 
+#include <stdexcept>
 #include "dca/config/haves_defines.hpp"
 #include "aligned_allocator.hpp"
 #include "dca/linalg/device_type.hpp"

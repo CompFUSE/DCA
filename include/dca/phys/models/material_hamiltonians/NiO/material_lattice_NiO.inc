@@ -28,6 +28,9 @@ using EnableNiO =
 template <Material MATERIAL, typename point_group_type>
 class material_lattice<MATERIAL, point_group_type, EnableNiO<MATERIAL, point_group_type>> {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = false;
+
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
 

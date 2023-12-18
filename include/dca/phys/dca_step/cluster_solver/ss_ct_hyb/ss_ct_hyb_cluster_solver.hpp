@@ -50,7 +50,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class DATA, DistTy
 class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<Parameters, DIST> {
 public:
   static constexpr ClusterSolverId solver_type{ClusterSolverId::SS_CT_HYB};
-  using Real = typename config::McOptions::MCScalar;
+  using Real = typename Parameters::Real;
   using ss_hybridization_solver_routines_type = cthyb::ss_hybridization_solver_routines<Parameters,DIST>;
 
   using w = func::dmn_0<domains::frequency_domain>;
@@ -69,7 +69,7 @@ public:
   
   using ParametersType = Parameters;
   using Data = DATA;
-  using Accumulator = cthyb::SsCtHybAccumulator<Parameters, dca::linalg::CPU, Real, DIST>;
+  using Accumulator = cthyb::SsCtHybAccumulator<device_t, Parameters, Data, DIST>;
   using MFunction = typename Accumulator::MFunction;
   using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, Parameters, DATA>;
 
@@ -385,7 +385,7 @@ void SsCtHybClusterSolver<device_t, Parameters, DATA, DIST>::computeErrorBars() 
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
   const int nb_measurements = accumulator_.get_number_of_measurements();
-  double sign = accumulator_.get_accumulated_sign() / double(nb_measurements);
+  double sign = accumulator_.get_accumulated_phase() / static_cast<double>(accumulator_.get_number_of_measurements());
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RDmn, w>> G_r_w(
       "G_r_w_tmp");
@@ -409,7 +409,7 @@ void SsCtHybClusterSolver<device_t, Parameters, DATA, DIST>::collect_measurement
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
   // sum the sign
-  int accumulated_sign = accumulator_.get_accumulated_sign();
+  auto accumulated_sign = accumulator_.get_accumulated_phase();
   concurrency_.sum(accumulated_sign);
 
   // sum G_r_w
@@ -429,9 +429,9 @@ void SsCtHybClusterSolver<device_t, Parameters, DATA, DIST>::symmetrize_measurem
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute<Lattice>(accumulator_.get_G_r_w(), data_.H_symmetry);
+  Symmetrize<Parameters>::execute(accumulator_.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(accumulator_.get_GS_r_w(), data_.H_symmetry);
+  Symmetrize<Parameters>::execute(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
   std::vector<int> flavors = Parameters::model_type::flavors();
   assert(flavors.size() == b::dmn_size());
@@ -483,7 +483,7 @@ double SsCtHybClusterSolver<device_t, Parameters, DATA, DIST>::compute_S_k_w_fro
 
   compute_Sigma_new(accumulator_.get_G_r_w(), accumulator_.get_GS_r_w());
 
-  symmetrize::execute<Lattice>(Sigma_new, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(Sigma_new, data_.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
@@ -514,7 +514,7 @@ double SsCtHybClusterSolver<device_t, Parameters, DATA, DIST>::compute_S_k_w_fro
     }
   }
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<Parameters>::execute(data_.Sigma, data_.H_symmetry);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;

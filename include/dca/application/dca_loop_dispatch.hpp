@@ -25,12 +25,16 @@ public:
     // Create and initialize the DCA data object.
     DcaDataType<DT> dca_data(parameters);
     dca_data.initialize();
+    if(concurrency.id() == concurrency.first())
+      std::cout << "dca_data initialized.\n";
     DcaLoopType<DT> dca_loop(parameters, dca_data, concurrency);
     {
       Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
 
       try {
         dca_loop.initialize();
+	if(concurrency.id() == concurrency.first())
+	  std::cout << "dca_loop initialized.\n";
       }
       catch (const std::exception& exc) {
         std::cout << "unhandled exception in dca_loop.initialize(): " << exc.what() << std::endl;
@@ -56,9 +60,10 @@ public:
       //      if (concurrency.id() == concurrency.first()) {
       // std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
       dca_loop.write();
-      std::cout << "final output written to file: " << parameters.get_filename_dca() << '\n';
-
-      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+      if(concurrency.id() == concurrency.first()) {
+	std::cout << "final output written to file: " << parameters.get_filename_dca() << '\n';
+	std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+      }
       //      }
     }
   }

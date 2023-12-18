@@ -59,8 +59,8 @@ public:
   using KClusterDmn = typename CDA::KClusterDmn;
   using KLatticeDmn = typename CDA::KSpHostDmn;
 
-  using ScalarType = double;
-  using Complex = std::complex<ScalarType>;
+  using Real = typename Parameters::Real;
+  using Complex = std::complex<Real>;
 
 private:
   using QDmn = func::dmn_0<coarsegraining_domain<KClusterDmn, K>>;
@@ -101,7 +101,7 @@ public:
 
   // Used exclusively by the analysis application with the DCA+ algorithm.
   template <typename RDmn>
-  void compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const;
+  void compute_phi_r(func::function<Real, RDmn>& phi_r) const;
 
 private:
   template <class SigmaType,
@@ -115,10 +115,10 @@ private:
   Concurrency& concurrency_;
   Gang gang_;
 
-  std::vector<func::function<std::complex<ScalarType>, NuNuDmn>> H0_q_;
+  std::vector<func::function<std::complex<Real>, NuNuDmn>> H0_q_;
 
   // gaussian q-points
-  func::function<ScalarType, QDmn> w_q_;
+  func::function<Real, QDmn> w_q_;
   double w_tot_;
 
   using SigmaInterpolatedType =
@@ -163,9 +163,9 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
 template <typename Parameters>
 bool CoarsegrainingSp<Parameters>::checkSpinSymmetry() const {
-  func::function<std::complex<ScalarType>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H0;
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H0;
   Parameters::model_type::initializeH0(parameters_, H0);
-  func::function<ScalarType, func::dmn_variadic<NuDmn, NuDmn, typename CDA::RClusterDmn>> H_int;
+  func::function<Real, func::dmn_variadic<NuDmn, NuDmn, typename CDA::RClusterDmn>> H_int;
   Parameters::model_type::initializeHInteraction(H_int, parameters_);
 
   constexpr int bands = Parameters::bands;
@@ -205,7 +205,7 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
       if (w >= LocalWDmn::get_physical_size())  // Padding region.
         break;
 
-      const auto w_val = LocalWDmn::get_elements().at(w);
+      const auto w_val = static_cast<Real>(LocalWDmn::get_elements().at(w));
       const auto& H0 = H0_q_[k];
 
       for (int q = 0; q < QDmn::dmn_size(); ++q)
@@ -218,7 +218,7 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, Cluster
                 G_inv(i, j) =
                     -H0(i, s, j, s, q) - (*Sigma_interpolated_)(i, s, j, s, q, k, w + w_offset);
               if (i == j)
-                G_inv(i, j) += im * w_val + parameters_.get_chemical_potential();
+                G_inv(i, j) += im * w_val + static_cast<Real>(parameters_.get_chemical_potential());
             }
 
           linalg::matrixop::smallInverse(G_inv, ipiv, work);
@@ -296,7 +296,7 @@ void CoarsegrainingSp<Parameters>::updateSigmaInterpolated(const LatticeFreqFunc
   Threading().execute(n_threads, [&](const int id, const int n_threads) {
     const auto bounds = parallel::util::getBounds(id, n_threads, external_bounds);
     LatticeFunction S_k;
-    func::function<std::complex<ScalarType>, func::dmn_variadic<NuDmn, NuDmn, QDmn>> S_q;
+    func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, QDmn>> S_q;
 
     int coor[2];
     for (int l = bounds.first; l < bounds.second; l++) {
@@ -318,7 +318,7 @@ void CoarsegrainingSp<Parameters>::updateSigmaInterpolated(const LatticeFreqFunc
 
 template <typename Parameters>
 template <typename RDmn>
-void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const {
+void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<Real, RDmn>& phi_r) const {
   phi_r = 0.;
 
   using KCluster = typename KClusterDmn::parameter_type;

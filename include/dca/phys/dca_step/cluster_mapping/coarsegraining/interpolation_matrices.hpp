@@ -113,10 +113,8 @@ auto interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
       throw(std::logic_error("Non matching NAME."));
     }
 
-    trafo_r_to_q_type::is_initialized() = false;
-
-    trafo_matrix_type& trafo_r_to_q = trafo_r_to_q_type::get_transformation_matrix();
-    trafo_matrix_type& trafo_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
+    trafo_matrix_type trafo_r_to_q = trafo_r_to_q_type::get_transformation_matrix();
+    trafo_matrix_type trafo_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
 
     dca::linalg::matrixop::gemm(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
 

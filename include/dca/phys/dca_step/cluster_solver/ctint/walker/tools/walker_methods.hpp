@@ -43,6 +43,26 @@ inline double computeAcceptanceProbability(const int order_change, const double 
                                   : det_ratio * combinatorial_factor / strength_factor;
 }
 
+template <typename Scalar>
+Scalar consistentScalarDiv(Scalar x, Scalar y) {
+  if constexpr (dca::util::IsComplex_t<Scalar>::value) {
+    Scalar quot;
+    using LocalReal = typename dca::util::RealAlias<Scalar>;
+    LocalReal s = (std::fabs(y.real()) + (std::fabs(y.imag())));
+    LocalReal oos = 1.0 / s;
+    LocalReal ars = x.real() * oos;
+    LocalReal ais = x.imag() * oos;
+    LocalReal brs = y.real() * oos;
+    LocalReal bis = y.imag() * oos;
+    s = (brs * brs) + (bis * bis);
+    oos = 1.0 / s;
+    quot = {((ars * brs) + (ais * bis)) * oos, ((ais * brs) - (ars * bis)) * oos};
+    return quot;
+  }
+  else
+    return x / y;
+}
+
 template <class MatrixA>
 inline void smallInverse(MatrixA& m) {
   assert(m.is_square());
@@ -53,12 +73,12 @@ inline void smallInverse(MatrixA& m) {
       m(0, 0) = 1. / m(0, 0);
       break;
     case 2: {
-      const double det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
+      const typename MatrixA::ValueType det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
       std::swap(m(0, 0), m(1, 1));
-      m(0, 0) /= det;
-      m(1, 0) /= -det;
-      m(0, 1) /= -det;
-      m(1, 1) /= det;
+      m(0, 0) = consistentScalarDiv(m(0, 0), det);
+      m(1, 0) = consistentScalarDiv(m(1, 0), -det);
+      m(0, 1) = consistentScalarDiv(m(0, 1), -det);
+      m(1, 1) = consistentScalarDiv(m(1, 1), det);
     } break;
     default:
       linalg::matrixop::inverse(m);
@@ -73,7 +93,7 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
       out(0, 0) = 1. / in(0, 0);
       break;
     case 2: {
-      const double det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
+      const auto det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
       out(0, 0) = in(1, 1) / det;
       out(0, 1) = -in(0, 1) / det;
       out(1, 0) = -in(1, 0) / det;
@@ -85,13 +105,13 @@ inline void smallInverse(const MatrixA& in, MatrixB& out) {
   }
 }
 
-template <class MatrixA, class MatrixB, typename Real>
-inline void smallInverse(const MatrixA& in, MatrixB& out, const Real det,
+template <class MatrixA, class MatrixB, typename Scalar>
+inline void smallInverse(const MatrixA& in, MatrixB& out, const Scalar det,
                          linalg::Vector<int, linalg::CPU>& ipiv,
-                         linalg::Vector<Real, linalg::CPU>& work) {
-  static_assert(std::is_same<std::remove_cv_t<typename MatrixA::ValueType>, Real>::value,
+                         linalg::Vector<Scalar, linalg::CPU>& work) {
+  static_assert(std::is_same<std::remove_cv_t<typename MatrixA::ValueType>, Scalar>::value,
                 "Scalar type MatrixA mismatch.");
-  static_assert(std::is_same<typename MatrixB::ValueType, Real>::value,
+  static_assert(std::is_same<typename MatrixB::ValueType, Scalar>::value,
                 "Scalar type MatrixB mismatch.");
 
   assert(in.size() == out.size());
@@ -123,13 +143,13 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
       m(0, 0) = 1. / m(0, 0);
       break;
     case 2:
-      assert(det);
+      assert(std::abs(det));
       {
         const Real tmp = m(0, 0);
-        m(0, 0) = m(1, 1) / det;
-        m(1, 0) /= -det;
-        m(0, 1) /= -det;
-        m(1, 1) = tmp / det;
+        m(0, 0) = consistentScalarDiv(m(1, 1), det);
+        m(1, 0) = consistentScalarDiv(m(1, 0), -det);
+        m(0, 1) = consistentScalarDiv(m(0, 1), -det);
+        m(1, 1) = consistentScalarDiv(tmp, det);
       }
       break;
     default:
@@ -138,7 +158,7 @@ inline void smallInverse(Matrix& m, const Real det, linalg::Vector<int, linalg::
 }
 
 template <class MatrixType>
-inline double smallDeterminant(const MatrixType& M) {
+typename MatrixType::ValueType smallDeterminant(const MatrixType& M) {
   static_assert(MatrixType::device == linalg::CPU, "GPU small inverse is not defined.");
   assert(M.is_square());
   switch (M.nrCols()) {
@@ -170,7 +190,7 @@ inline double smallDeterminant(const MatrixType& M) {
 }
 
 template <class Matrix, class Vector>
-inline double separateIndexDeterminant(const Matrix& M, const Vector& indices) {
+inline typename Matrix::ValueType separateIndexDeterminant(const Matrix& M, const Vector& indices) {
   switch (indices.size()) {
     case 1:
       return M(indices[0], indices[0]);

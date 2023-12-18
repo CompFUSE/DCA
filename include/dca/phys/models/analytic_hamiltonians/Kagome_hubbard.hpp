@@ -46,10 +46,10 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 3;
 
-  static double* initializeRDCABasis();
+  const static double* initializeRDCABasis();
   // static double* initializeKDCABasis();
 
-  static double* initializeRLDABasis();
+  const static double* initializeRLDABasis();
   // static double* initializeKLDABasis();
 
   static std::vector<int> flavors();
@@ -95,7 +95,7 @@ int KagomeHubbard<PointGroupType>::transformationSignOfK(int b1 [[maybe_unused]]
 }
 
 template <typename PointGroupType>
-double* KagomeHubbard<PointGroupType>::initializeRDCABasis() {
+const double* KagomeHubbard<PointGroupType>::initializeRDCABasis() {
   static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.),
                                      std::sin(-M_PI / 3.)};
   // static std::array<double, 4> basis{1, 0, 0.5, std::sin(M_PI / 3.)};
@@ -108,7 +108,7 @@ double* KagomeHubbard<PointGroupType>::initializeRDCABasis() {
 // }
 
 template <typename PointGroupType>
-double* KagomeHubbard<PointGroupType>::initializeRLDABasis() {
+const double* KagomeHubbard<PointGroupType>::initializeRLDABasis() {
   static std::array<double, 4> basis{std::cos(M_PI / 3.), std::sin(M_PI / 3.), std::cos(M_PI / 3.),
                                      std::sin(-M_PI / 3.)};
   // static std::array<double, 4> basis{1, 0, 0, std::sin(M_PI / 3.)};

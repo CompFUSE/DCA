@@ -17,7 +17,7 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -28,6 +28,16 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/config/profiler.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -46,8 +56,10 @@ using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::ClusterSolverId::CT_AUX>;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler, Model,
+                                  RngType, dca::ClusterSolverId::CT_AUX,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 
 using BaseSolverGpu = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
@@ -65,8 +77,7 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(
-      input_dir + "threaded_input.json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "threaded_input.json");
   parameters.update_model();
   parameters.update_domains();
 
@@ -87,15 +98,14 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   perform_integration(qmc_solver_cpu);
 
   RngType::resetCounter();  // Use the same seed for both solvers.
-  // i.e. assume that the consumption of random numbers is exactly the same in sequence for gpu and cpu.
-  // This will not be true unless walker and accumulator share a thread.
+  // i.e. assume that the consumption of random numbers is exactly the same in sequence for gpu and
+  // cpu. This will not be true unless walker and accumulator share a thread.
   std::cout << "Creating GPU solver\n";
   QmcSolverGpu qmc_solver_gpu(parameters, data_gpu, nullptr);
   perform_integration(qmc_solver_gpu);
 
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
-  const auto err_g4 =
-      dca::func::util::difference(data_cpu.get_G4()[0], data_gpu.get_G4()[0]);
+  const auto err_g4 = dca::func::util::difference(data_cpu.get_G4()[0], data_gpu.get_G4()[0]);
 
   EXPECT_GE(5e-7, err_g.l_inf);
   // Is this too large?

@@ -16,6 +16,10 @@ dca_add_gtest(model_parameters_material_test
   GTEST_MAIN
   LIBS function_transform json models)
 
+dca_add_gtest(model_parameters_rashba_hubbard_test
+  GTEST_MAIN
+  LIBS function_transform json)
+
 dca_add_gtest(model_parameters_single_band_hubbard_test
   GTEST_MAIN
   LIBS function_transform json)

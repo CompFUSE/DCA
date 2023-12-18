@@ -11,7 +11,7 @@
 
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include <vector>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 using namespace dca::phys::domains;
 

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
@@ -29,6 +30,8 @@
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Moire_Hubbard.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_Cu.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -41,6 +44,12 @@ namespace params {
 // Empty class template
 template <typename Model>
 class ModelParameters {};
+
+template <typename T, typename = void>
+struct HasCustomSpin : std::false_type {};
+
+template <typename T>
+struct HasCustomSpin<T, decltype(std::declval<T>().SPIN, void())> : std::true_type{};
 
 // Specialization for 2D 2-band model
 // #include "model_parameters_2d_2band.inc"
@@ -67,6 +76,12 @@ class ModelParameters {};
 
 // Specialization for twoband Cu model
 #include "twoband_Cu_parameters.inc"
+
+// Specialization for Rashba-Hubbard model
+#include "model_parameters_rashba_hubbard.inc"
+
+// Specialization for Moire-Hubbard model
+#include "model_parameters_moire_hubbard.inc"
 
 #include "model_parameters_singleband_chain.inc"
 #include "model_parameters_twoband_chain.inc"

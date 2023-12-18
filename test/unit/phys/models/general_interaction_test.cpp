@@ -9,10 +9,10 @@
 //
 // This file tests general_interaction.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/general_interaction.hpp"
 
-#include "gtest/gtest.h"
-
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"

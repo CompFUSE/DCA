@@ -12,54 +12,64 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP
 
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
 // dca::phys::solver::
 
+template <class Scalar>
 class MC_accumulator_data {
 public:
+  MC_accumulator_data() {
+    initialize(0);
+  }
+
   double& get_Gflop() {
-    return GFLOP;
+    return gflop_;
   }
 
-  int get_accumulated_sign() const {
-    return accumulated_sign;
+  auto get_accumulated_sign() const {
+    return accumulated_phase_;
   }
 
-  int get_number_of_measurements() const {
-    return number_of_measurements;
+  const auto get_accumulated_phase() const {
+    return accumulated_phase_.sum();
+  }
+  
+  auto get_number_of_measurements() const {
+    return number_of_measurements_;
   }
 
-  double get_average_sign() const {
-    return static_cast<double>(accumulated_sign) / static_cast<double>(number_of_measurements);
+  auto get_average_sign() const {
+    return accumulated_phase_.mean();
   }
 
   void initialize(int dca_iteration) {
-    // there are too many copies of dca_iteration.
-    DCA_iteration = dca_iteration;
+    dca_iteration_ = dca_iteration;
 
-    GFLOP = 0.;
+    gflop_ = 0.;
 
-    current_sign = 1;
-    accumulated_sign = 0;
+    current_phase_.reset();
+    accumulated_phase_.reset();
 
-    number_of_measurements = 0;
+    number_of_measurements_ = 0;
   }
 
 protected:
-  int DCA_iteration;
+  int dca_iteration_;
 
-  double GFLOP;
+  double gflop_;
 
-  int current_sign;
-  int accumulated_sign;
+  math::Phase<Scalar> current_phase_;
+  util::Accumulator<dca::math::Phase<Scalar>> accumulated_phase_;
 
-  int number_of_measurements;
+  long number_of_measurements_;
 };
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_ACCUMULATOR_DATA_HPP

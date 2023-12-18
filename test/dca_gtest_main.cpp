@@ -1,6 +1,6 @@
 
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #ifdef DCA_HAVE_HPX
 #include <hpx/hpx_start.hpp>

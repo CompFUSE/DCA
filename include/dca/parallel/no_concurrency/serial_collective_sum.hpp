@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"

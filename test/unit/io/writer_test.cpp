@@ -12,6 +12,7 @@
 
 #include "gtest/gtest.h"
 #include <memory>
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/domains/dmn_0.hpp"

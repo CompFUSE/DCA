@@ -14,7 +14,16 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -51,10 +60,11 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   using LatticeType = dca::phys::models::bilayer_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::NoThreading;
+  using Scalar = double;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;

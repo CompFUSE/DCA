@@ -15,7 +15,7 @@
 
   "Hund-model":
   {
-    "t"       : 0,
+    "t"       : 0.1,
     "U"       : 1,
     "V"       : 0,
     "Jh"      : 1
@@ -42,7 +42,6 @@
   "Monte-Carlo-integration" :
   {
     "Sigma-file" : "zero",
-
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
     "measurements" : 500,
@@ -54,6 +53,7 @@
     "initial-configuration-size" : 0,
     "alpha-dd-pos" : 0.51,
     "alpha-ndd" : 0.1,
-    "double-update-probability" : 1
+    "double-update-probability" : 0,
+    "all-sites-partnership": true
   }
 }

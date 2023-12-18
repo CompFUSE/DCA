@@ -2,3 +2,4 @@
 
 add_subdirectory(accumulator/tp)
 add_subdirectory(structs)
+add_subdirectory(walker)

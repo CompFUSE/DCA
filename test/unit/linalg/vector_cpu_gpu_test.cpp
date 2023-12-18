@@ -13,7 +13,7 @@
 #include <complex>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "gpu_test_util.hpp"
 
 TEST(VectorCPUTest, PointerMemoryType) {

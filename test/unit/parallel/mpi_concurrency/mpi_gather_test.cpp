@@ -11,6 +11,7 @@
 //
 // This test only passes for 8 MPI processes.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/parallel/mpi_concurrency/mpi_gather.hpp"
 
 #include <memory>

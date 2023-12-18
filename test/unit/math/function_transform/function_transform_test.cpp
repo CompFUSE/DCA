@@ -1,5 +1,5 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -11,18 +11,26 @@
 
 #include "dca/math/function_transform/function_transform.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include <string>
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
-
 #ifdef DCA_HAVE_ADIOS2
 adios2::ADIOS* adios_ptr;
 #endif
@@ -35,11 +43,13 @@ dca::parallel::NoConcurrency* concurrency_ptr;
 #endif
 
 using Model =
-    dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
+    dca::phys::models::TightBindingModel<dca::phys::models::RashbaHubbard<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::ClusterSolverId::CT_AUX>;
+                                  Model, void, dca::ClusterSolverId::CT_AUX,               dca::NumericalTraits<double,
+                                   typename dca::util::ScalarSelect<double,
+                                                                    Model::lattice_type::complex_g0>::type>>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 
@@ -163,7 +173,6 @@ int main(int argc, char** argv) {
   adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
   adios_ptr = &adios;
 #endif
-
   ::testing::InitGoogleTest(&argc, argv);
 
   // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

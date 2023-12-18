@@ -15,6 +15,9 @@
 template <typename point_group_type>
 class material_lattice<Material::FeSn, point_group_type, Is3D<point_group_type>> {
 public:
+  static constexpr bool complex_g0 = true;
+  static constexpr bool spin_symmetric = false;
+
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 15;
 

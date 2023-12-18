@@ -13,10 +13,20 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/function/function.hpp"
+#include "dca/distribution/dist_types.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
@@ -54,12 +64,13 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   using Concurrency = dca::parallel::NoConcurrency;
   using Parameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                    RngType, dca::ClusterSolverId::CT_INT>;
+                                    RngType, dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
 
-  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, double>;
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
+  using dca::DistType;
   using WalkerSubmatrix =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, double>;
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters>;
 
   Concurrency concurrency(0, nullptr);
   dca::util::GitVersion::print();

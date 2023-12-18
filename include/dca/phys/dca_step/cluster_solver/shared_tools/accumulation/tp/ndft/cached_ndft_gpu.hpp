@@ -25,7 +25,8 @@
 #include <complex>
 #include <memory>
 
-#include "dca/config/mc_options.hpp"
+// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
+// included
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/reshapable_matrix.hpp"
@@ -42,15 +43,16 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
-    : public CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+class CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
+    : public CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density> {
 public:
-  using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
+  using Base = CachedNdftBase<Scalar, RDmn, WDmn, WPosDmn, non_density_density>;
+  using typename Base::Real;
+  using Complex = dca::util::ComplexAlias<Scalar>;
+  using typename Base::BDmn;
+  using typename Base::SDmn;
 
-  using typename BaseClass::BDmn;
-
-  using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
   using RMatrix =
       linalg::ReshapableMatrix<Complex, dca::linalg::GPU, config::McOptions::TpAllocator<Complex>>;
@@ -62,8 +64,8 @@ public:
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // Out: M_r_r_w_w.
-  template <class Configuration, typename RealIn>
-  float execute(const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M,
+  template <class Configuration, typename ScalarIn>
+  float execute(const Configuration& configuration, const linalg::Matrix<ScalarIn, linalg::GPU>& M,
                 RMatrix& M_r_r_w_w);
 
   void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
@@ -81,24 +83,24 @@ public:
   std::size_t deviceFingerprint() const;
 
 private:
-  template <typename RealIn>
-  void sortM(const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_sorted) const;
+  template <typename ScalarIn>
+  void sortM(const linalg::Matrix<ScalarIn, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
   double performFT(RMatrix& work);
   void rearrangeOutput(RMatrix& output);
 
 private:
-  using BaseClass::config_left_;
-  using BaseClass::config_right_;
-  using BaseClass::end_index_;
-  using BaseClass::end_index_left_;
-  using BaseClass::end_index_right_;
-  using BaseClass::indexed_config_;
-  using BaseClass::n_orbitals_;
-  using BaseClass::start_index_;
-  using BaseClass::start_index_left_;
-  using BaseClass::start_index_right_;
-  using BaseClass::w_;
+  using Base::config_left_;
+  using Base::config_right_;
+  using Base::end_index_;
+  using Base::end_index_left_;
+  using Base::end_index_right_;
+  using Base::indexed_config_;
+  using Base::n_orbitals_;
+  using Base::start_index_;
+  using Base::start_index_left_;
+  using Base::start_index_right_;
+  using Base::w_;
 
   linalg::Vector<Real, linalg::GPU> w_dev_;
   const linalg::util::MagmaQueue& magma_queue_;
@@ -115,10 +117,10 @@ private:
   linalg::util::MagmaVBatchedGemm<Complex> magma_plan2_;
 };
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedNdft(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedNdft(
     const linalg::util::MagmaQueue& queue)
-    : BaseClass(),
+    : Base(),
       magma_queue_(queue),
       magma_plan1_(n_orbitals_, magma_queue_),
       magma_plan2_(n_orbitals_, magma_queue_) {
@@ -126,19 +128,19 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
   w_dev_.setAsync(w_, magma_queue_.getStream());
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration, typename RealIn>
-float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_out) {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <class Configuration, typename ScalarIn>
+float CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
+    const Configuration& configuration, const linalg::Matrix<ScalarIn, linalg::GPU>& M, RMatrix& M_out) {
   float flop = 0.;
 
   if (configuration.size() == 0) {  // The result is zero
-    M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
+    M_out.resizeNoCopy(std::make_pair(w_.size() * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(magma_queue_.getStream());
     return flop;
   }
 
-  BaseClass::sortConfiguration(configuration);
+  Base::sortConfiguration(configuration);
   config_dev_[0].setAsync(config_left_, magma_queue_.getStream());
   config_dev_[1].setAsync(config_right_, magma_queue_.getStream());
   assert(cudaPeekAtLastError() == cudaSuccess);
@@ -146,7 +148,7 @@ float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::e
   // Allocate enough memory.
   const int nw = w_.size();
   const int order = std::max(config_dev_[0].size(), config_dev_[1].size());
-  const int g_first_size = nw / 2 * n_orbitals_;
+  const int g_first_size = nw * n_orbitals_;
   M_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
   workspace_->reserveNoCopy(std::max(order * order, 2 * g_first_size * g_first_size));
 
@@ -160,10 +162,10 @@ float CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::e
   return flop;
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <typename RealIn>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
-    const linalg::Matrix<RealIn, linalg::GPU>& M, RMatrix& M_sorted) const {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+template <typename ScalarIn>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
+    const linalg::Matrix<ScalarIn, linalg::GPU>& M, RMatrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(),
@@ -172,14 +174,14 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::so
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::computeT() {
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::computeT() {
   const int nw = w_.size();
-  const int nw_pos = nw / 2;
+  const int nw_pos = nw;
   const int k = indexed_config_[0].size();
   T_l_dev_.resizeNoCopy(std::make_pair(nw_pos, k));
   details::computeT(nw_pos, k, T_l_dev_.ptr(), T_l_dev_.leadingDimension(), config_dev_[0].ptr(),
-                    w_dev_.ptr() + nw_pos, false, magma_queue_.getStream());
+                    w_dev_.ptr(), false, magma_queue_.getStream());
 
   T_r_dev_.resizeNoCopy(std::make_pair(k, nw));
   details::computeT(k, nw, T_r_dev_.ptr(), T_r_dev_.leadingDimension(), config_dev_[1].ptr(),
@@ -188,8 +190,8 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::co
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+double CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(
     RMatrix& M_out) {
   double flop = 0.;
   const auto& M_t_t = *workspace_;
@@ -197,7 +199,7 @@ double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
   const int order = indexed_config_[0].size();
 
   auto& T_times_M = M_out;
-  bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw * n_orbitals_, order));
   dca::util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(magma_queue_.getStream());
@@ -213,17 +215,17 @@ double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
       const int n_i = end_index_left_[i] - start_index_left_[i];
       if (!n_i)
         continue;
-      magma_plan1_.addGemm(nw / 2, order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
-                           M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M.ptr(i * nw / 2, 0),
+      magma_plan1_.addGemm(nw,  order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
+                           M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M.ptr(i * nw, 0),
                            ldc);
 
-      flop += 8. * nw / 2 * order * n_i;
+      flop += 8. * nw * order * n_i;
     }
     magma_plan1_.execute('N', 'N');
   }
 
   auto& T_times_M_times_T = *workspace_;
-  realloc = T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
+  realloc = T_times_M_times_T.resizeNoCopy(std::make_pair(nw * n_orbitals_, nw * n_orbitals_));
   assert(!realloc);
   T_times_M_times_T.setToZero(magma_queue_.getStream());
 
@@ -249,8 +251,8 @@ double CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::
   return flop;
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::rearrangeOutput(
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+void CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::rearrangeOutput(
     RMatrix& M_out) {
   const auto& M_w_w = *workspace_;
 
@@ -266,8 +268,8 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::re
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
-template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-std::size_t CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::deviceFingerprint()
+template <typename Scalar, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
+std::size_t CachedNdft<Scalar, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::deviceFingerprint()
     const {
   std::size_t res(0);
   if (workspace_.unique())

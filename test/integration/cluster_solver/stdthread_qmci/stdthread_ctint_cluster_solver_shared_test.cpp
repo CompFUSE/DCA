@@ -10,6 +10,16 @@
 //
 // No-change test for CT-INT posix wrapper.
 
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
+
 #include "stdthread_ctint_cluster_solver_test.hpp"
 
 TEST(PosixCtintClusterSolverTest, Shared) {

@@ -33,6 +33,30 @@ inline void memoryCopyCpu(ScalarType* dest, const ScalarType* src, size_t sz) {
   std::memcpy(dest, src, sz * sizeof(ScalarType));
 }
 
+template <typename T>
+const void* constCastToVoid(T t) {
+  static_assert(
+      std::is_const_v<typename std::remove_pointer<typename std::remove_reference<T>::type>::type>);
+  if constexpr (std::is_array_v<std::remove_pointer<T>>)
+    return static_cast<const void*>(&t[0]);
+  else
+    return static_cast<const void*>(t);
+}
+
+template <typename T>
+void* castToVoid(T t) {
+  if constexpr (std::is_array_v<typename std::remove_pointer<typename std::remove_reference<T>::type>::type>)
+    return (void*)t;
+  else
+    return static_cast<void*>(t);
+}
+
+template <typename Scalar1, typename Scalar2>
+inline void memoryCopyCpu(Scalar1* dest, const Scalar2* src, size_t sz) {
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2), "can't copy between unequally signed types");
+  std::memcpy(castToVoid(dest), constCastToVoid(src), sz * sizeof(Scalar1));
+}
+
 template <typename ScalarType>
 void memoryCopyCpu(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                    std::pair<int, int> size) {
@@ -58,6 +82,52 @@ void memoryCopy(ScalarType* dest, const ScalarType* src, size_t size) {
   checkRC(ret);
 }
 
+// Fully synchronous 1D memory copy, i.e. all operations in the GPU queue are executed before the
+// execution of this copy.
+// The host continues the execution of the program when the copy is terminated.
+template <typename Scalar1, typename Scalar2>
+void memoryCopy(Scalar1* dest, const Scalar2* src, size_t size) {
+  if (size == 0)
+    return;
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  cudaError_t ret =
+      cudaMemcpy(castToVoid(dest), constCastToVoid(src), size * sizeof(Scalar1), cudaMemcpyDefault);
+  checkRC(ret);
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyH2H(Scalar1* dest, const Scalar2* src, size_t size) {
+  if (size == 0)
+    return;
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  cudaError_t ret = cudaMemcpy(castToVoid(dest), constCastToVoid(src), size * sizeof(Scalar1),
+                               cudaMemcpyHostToHost);
+  checkRC(ret);
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyH2D(Scalar1* dest, const Scalar2* src, size_t size) {
+  if (size == 0)
+    return;
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  cudaError_t ret =
+      cudaMemcpy(castToVoid(dest), castToVoid(src), size * sizeof(Scalar1), cudaMemcpyHostToDevice);
+  checkRC(ret);
+}
+
+// Fully synchronous 1D memory copy, i.e. all operations in the GPU queue are executed before the
+// execution of this copy.
+// The host continues the execution of the program when the copy is terminated.
+template <typename Scalar1, typename Scalar2>
+void memoryCopyD2H(Scalar1* dest, const Scalar2* src, size_t size) {
+  if (size == 0)
+    return;
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  cudaError_t ret = cudaMemcpy(castToVoid(dest), constCastToVoid(src), size * sizeof(Scalar1),
+                               cudaMemcpyDeviceToHost);
+  checkRC(ret);
+}
+
 // Fully synchronous 2D memory copy, i.e. all operations in the GPU queue are executed before the
 // execution of this copy.
 // The host continues the execution of the program when the copy is terminated.
@@ -69,6 +139,59 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
     return;
   cudaError_t ret = cudaMemcpy2D(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                                  size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault);
+  try {
+    checkRC(ret);
+  }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopy(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src, std::pair<int, int> size) {
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
+    return;
+  cudaError_t ret = cudaMemcpy2D(castToVoid(dest), ld_dest * sizeof(Scalar1), constCastToVoid(src),
+                                 ld_src * sizeof(Scalar2), size.first * sizeof(Scalar1),
+                                 size.second, cudaMemcpyDefault);
+  try {
+    checkRC(ret);
+  }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyH2D(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
+    return;
+  cudaError_t ret = cudaMemcpy2D(castToVoid(dest), ld_dest * sizeof(Scalar1), constCastToVoid(src),
+                                 ld_src * sizeof(Scalar2), size.first * sizeof(Scalar1),
+                                 size.second, cudaMemcpyHostToDevice);
+  try {
+    checkRC(ret);
+  }
+  catch (...) {
+    std::cout << "Failed memorycopy!\n";
+    throw;
+  }
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyD2H(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
+  if (ld_dest == 0 || ld_src == 0 || (size.first == 0 && size.second == 0))
+    return;
+  cudaError_t ret = cudaMemcpy2D(castToVoid(dest), ld_dest * sizeof(Scalar1), constCastToVoid(src),
+                                 ld_src * sizeof(Scalar2), size.first * sizeof(Scalar1),
+                                 size.second, cudaMemcpyDeviceToHost);
   try {
     checkRC(ret);
   }
@@ -113,13 +236,12 @@ void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int l
       cudaMemcpy2DAsync(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
                         size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault, stream);
   try {
-  checkRC(ret);
-    }
+    checkRC(ret);
+  }
   catch (...) {
     std::cout << "Failed memorycopy!\n";
     throw;
   }
-
 }
 
 // Asynchronous 2D memory copy (stream = getStream(thread_id, stream_id)).
@@ -161,9 +283,22 @@ void memoryCopy(ScalarType* dest, const ScalarType* src, size_t sz, int /*thread
   memoryCopyCpu(dest, src, sz);
 }
 
+template <typename Scalar1, typename Scalar2>
+void memoryCopy(Scalar1* dest, const Scalar2* src, size_t sz, int /*thread_id*/ = 0,
+                int /*stream_id*/ = 0) {
+  memoryCopyCpu(dest, src, sz);
+}
+
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                 std::pair<int, int> size, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+  memoryCopyCpu(dest, ld_dest, src, ld_src, size);
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopy(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                std::pair<int, int> size, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+  static_assert(sizeof(Scalar1) == sizeof(Scalar2));
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
 }
 
@@ -177,6 +312,18 @@ template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                      std::pair<int, int> size, const util::GpuStream& /*s*/) {
   memoryCopyCpu(dest, ld_dest, src, ld_src, size);
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyH2D(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  throw std::runtime_error("memoryCopyH2D should never be called in a non GPU build.");
+}
+
+template <typename Scalar1, typename Scalar2>
+void memoryCopyD2H(Scalar1* dest, int ld_dest, const Scalar2* src, int ld_src,
+                   std::pair<int, int> size) {
+  throw std::runtime_error("memoryCopyH2D should never be called in a non GPU build.");
 }
 
 #endif  // DCA_HAVE_GPU

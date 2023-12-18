@@ -9,6 +9,7 @@
 //
 // This file tests compute_free_greens_function.hpp.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 
 #include <cmath>

@@ -10,5 +10,5 @@ dca_add_gtest(g0_interpolation_gpu_test
         CUDA
         GTEST_MAIN
         INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-        LIBS  mc_kernels g0_interpolation
+        LIBS  mc_kernels g0_interpolation mc_kernels
         )

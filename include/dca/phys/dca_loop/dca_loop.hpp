@@ -54,7 +54,9 @@ public:
   using concurrency_type = typename ParametersType::concurrency_type;
 
   using Lattice = typename ParametersType::lattice_type;
+  using Real = typename ParametersType::Real;
 
+  
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using k_DCA =
@@ -239,7 +241,6 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
     else
 #endif
       MOMS.initializeSigma(parameters.get_initial_self_energy());
-
     perform_lattice_mapping();
   }
 
@@ -348,7 +349,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 
   MOMS.print_Sigma_QMC_versus_Sigma_cg();
 
-  symmetrize::execute<Lattice>(MOMS.Sigma_cluster, MOMS.H_symmetry);
+  Symmetrize<ParametersType>::execute(MOMS.Sigma_cluster, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
@@ -361,7 +362,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
 
   // Finite-size QMC
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, static_cast<Real>(parameters.get_chemical_potential()),
                   parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   // DCA+
   else if (parameters.do_dca_plus())
@@ -370,7 +371,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.Sigma, MOMS.G_k_w);
 
-  symmetrize::execute<Lattice>(MOMS.G_k_w, MOMS.H_symmetry);
+  Symmetrize<ParametersType>::execute(MOMS.G_k_w, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>

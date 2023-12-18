@@ -13,7 +13,8 @@ template <class parameter_type, class k_dmn_t>
 class sigma_perturbation<1, parameter_type, k_dmn_t> {
 public:
   using U_type = typename compute_interaction::function_type;
-
+  using Real = typename parameter_type::Real;
+  
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -28,7 +29,7 @@ public:
     return Sigma;
   }
 
-  void execute_on_cluster(func::function<double, nu>& occupancy);
+  void execute_on_cluster(func::function<Real, nu>& occupancy);
 
   template <typename Writer>
   void write(Writer& /*writer*/) {}
@@ -54,7 +55,7 @@ sigma_perturbation<1, parameter_type, k_dmn_t>::sigma_perturbation(parameter_typ
 
 template <class parameter_type, class k_dmn_t>
 void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(
-    func::function<double, nu>& occupancy) {
+									func::function<Real, nu>& occupancy) {
   Sigma = 0.;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {

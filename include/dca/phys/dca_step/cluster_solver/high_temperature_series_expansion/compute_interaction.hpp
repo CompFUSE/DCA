@@ -34,8 +34,8 @@ public:
 public:
   compute_interaction() {}
 
-  template <class r_dmn_t>
-  void execute(func::function<double, func::dmn_variadic<nu, nu, r_dmn_t>>& H_interation) {
+  template <class r_dmn_t, typename REAL>
+  void execute(func::function<REAL, func::dmn_variadic<nu, nu, r_dmn_t>>& H_interation) {
     for (int nu0 = 0; nu0 < 2 * b::dmn_size(); ++nu0)
       for (int nu1 = 0; nu1 < 2 * b::dmn_size(); ++nu1)
         U(nu0, nu1) = H_interation(nu0, nu1, 0);

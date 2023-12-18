@@ -12,6 +12,7 @@
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_CLUSTER_SYMMETRY_HPP
 #define DCA_PHYS_DOMAINS_CLUSTER_CLUSTER_SYMMETRY_HPP
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
