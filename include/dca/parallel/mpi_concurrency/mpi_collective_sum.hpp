@@ -624,8 +624,23 @@ inline void MPICollectiveSum::resolveSums() {
     return resolveSumsImplementation<double>();
   else if (current_type_ == MPI_FLOAT)
     return resolveSumsImplementation<float>();
+  else if (current_type_ == MPI_CHAR)
+    return resolveSumsImplementation<char>();
+  //else if (current_type_ == MPI_BYTE)
+  else if (current_type_ == MPI_UNSIGNED_CHAR)
+    return resolveSumsImplementation<std::uint8_t>();
+  else if (current_type_ == MPI_SHORT)
+    return resolveSumsImplementation<short>();
+  else if (current_type_ == MPI_INT)
+    return resolveSumsImplementation<int>();
+  else if (current_type_ == MPI_UNSIGNED)
+    return resolveSumsImplementation<unsigned int>();
+  else if (current_type_ == MPI_LONG)
+    return resolveSumsImplementation<long int>();
   else if (current_type_ == MPI_UNSIGNED_LONG)
     return resolveSumsImplementation<unsigned long int>();
+  else if (current_type_ == MPI_LONG_LONG_INT)
+    return resolveSumsImplementation<long long int>();
   else
     throw(std::logic_error("Type not supported."));
 }

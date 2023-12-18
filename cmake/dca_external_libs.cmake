@@ -33,14 +33,20 @@ if (NOT DCA_HAVE_BLAS)
   find_package(BLAS REQUIRED)
 endif()
 
-mark_as_advanced(LAPACK_LIBRARIES)
-message("LAPACK_LIBRARIES: ${LAPACK_FOUND} ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${LAPACK95_LIBRARIES}")
-list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
+mark_as_advanced(BLAS_LIBRARIES)
+message("BLAS_LIBRARIES: ${BLAS_FOUND} ${BLAS_LINKER_FLAGS} ${BLAS_LIBRARIES} ${BLAS_LIBRARIES}")
+list(APPEND DCA_EXTERNAL_LIBS ${BLAS_LIBRARIES})
 
 ################################################################################
 # HDF5
 
-find_package(HDF5 REQUIRED COMPONENTS C CXX)
+if (NOT HDF5_LIBRARIES)
+  message("Trying to find HDF5 library")
+  set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE true)
+  find_package(HDF5 REQUIRED COMPONENTS C CXX)
+  message("HDF5: ${HDF5_FOUND} ${HDF5_LIBRARIES}")
+  mark_as_advanced(HDF5_LIBRARIES)
+endif()
 
 ################################################################################
 # ADIOS2

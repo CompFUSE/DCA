@@ -20,7 +20,7 @@
 #include "dca/linalg/util/error_cuda.hpp"
 #elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
-#include <hipblas.h>
+#include <hipblas/hipblas.h>
 #include <hip/hip_complex.h>
 #include "dca/util/cuda2hip.h"
 #include "dca/linalg/util/error_hip.hpp"
