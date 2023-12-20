@@ -15,8 +15,6 @@
 #include <cassert>
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 
@@ -145,8 +143,6 @@ __global__ void moveUp(int m, int n, Type* a, int lda) {
       a[i + idx + lda * j] = work[idx + ldw * j];
   }
 }
-
-using dca::linalg::operator*=;
 
 template <typename Type>
 __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a,

@@ -25,9 +25,11 @@ dca_add_gtest(copy_test
   CUDA
   LIBS ${DCA_LIBS})
 
+if(DCA_HAVE_CUDA)
 dca_add_gtest(complex_op_cuda_test
   GTEST_MAIN
   CUDA
   LIBS)
 
 dca_gpu_runtime_link(complex_op_cuda_test)
+endif()

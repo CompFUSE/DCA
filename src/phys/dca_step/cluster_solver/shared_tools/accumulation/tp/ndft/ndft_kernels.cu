@@ -27,7 +27,9 @@ namespace details {
 using util::castGPUType;
 using util::CudaComplex;
 using util::IsCudaComplex_t;
-
+using util::GPUComplex;
+using util::IsMagmaComplex_t;  
+  
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
   assert(i > 0 && j > 0);
   const int n_threads_i = std::min(32, i);
@@ -40,7 +42,7 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
 
 template <typename Scalar, typename Real>
 __global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
-                            CudaComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
+                            GPUComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
                             const Triple<Real>* config2) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -50,7 +52,7 @@ __global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  if constexpr (IsCudaComplex_t<Scalar>::value)
+  if constexpr (IsCudaComplex_t<Scalar>::value || IsMagmaComplex_t<Scalar>::value)
     sorted_M[id_i + lds * id_j] = M[inp_i + ldm * inp_j];
   else {
     sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];

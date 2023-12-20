@@ -190,7 +190,7 @@ struct TheZero<T, IsReal<T>> {
 };
 
 
-#ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_CUDA
 template <typename T>
 struct TheOne<T, IsCudaComplex<T>> {
   static constexpr T value{1.0, 0.0};
@@ -210,9 +210,38 @@ template <typename T>
 std::enable_if_t<IsCudaComplex_t<T>::value, void> makeZero(T& zero) {
   zero = T{0.0, 0.0};
 }
+#endif
+
+#ifdef DCA_HAVE_HIP
+template <typename T>
+struct TheOne<T, IsMagmaComplex<T>> {
+  static constexpr T value{1.0, 0.0};
+};
+
+template <typename T>
+struct TheZero<T, IsMagmaComplex<T>> {
+  static constexpr T value{0.0, 0.0};
+};
+
+template <typename T>
+struct ComplexAlias_impl<T, IsMagmaComplex<T>> {
+  using value_type = T;
+};
+
+template <typename T>
+struct ComplexAlias_impl<T*, IsMagmaComplex<T>> {
+  using value_type = T*;
+};
+
+  template <typename T>
+struct ComplexAlias_impl<T**, IsMagmaComplex<T>> {
+  using value_type = T**;
+};
 
 #endif
 
+
+  
 template <typename T>
 std::enable_if_t<std::is_floating_point<T>::value, void> makeOne(T& one) {
   one = 1.0;
@@ -260,6 +289,13 @@ auto makeMaybe(const T2 t2, typename std::enable_if_t<IsCudaComplex_t<T>::value>
   return T{static_cast<Real>(t2), 0.0};
 }
 
+template <typename T, typename T2>
+auto makeMaybe(const T2 t2, typename std::enable_if_t<IsMagmaComplex_t<T>::value>* = 0) {
+  using Real = RealAlias<T>;
+  return T{static_cast<Real>(t2), 0.0};
+}
+
+  
 template <typename T>
 inline auto GPUTypeConversion(T var, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
   return HOSTTypeMap<T>{var.x, var.y};

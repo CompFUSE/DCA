@@ -67,6 +67,13 @@ struct Memory<CPU> {
       Scalar* ptr, size_t size) {
     std::memset(ptr, 0, sizeof(Scalar) * size);
   }
+
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsMagmaComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    std::memset(ptr, 0, sizeof(Scalar) * size);
+  }
+
 #endif
 };
 

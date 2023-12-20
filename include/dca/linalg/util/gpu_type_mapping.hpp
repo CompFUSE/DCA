@@ -55,6 +55,14 @@ using HOSTPointerMap = typename std::disjunction<
     OnTypesEqual<T, const double2*, const std::complex<double>*>,
     OnTypesEqual<T, const float2**, const std::complex<float>**>,
     OnTypesEqual<T, const double2**, const std::complex<double>**>,
+    OnTypesEqual<T, const magmaFloatComplex*, const std::complex<float>*>,
+    OnTypesEqual<T, const magmaDoubleComplex*, const std::complex<double>*>,
+    OnTypesEqual<T, const magmaFloatComplex**, const std::complex<float>**>,
+    OnTypesEqual<T, const magmaDoubleComplex**, const std::complex<double>**>,
+    OnTypesEqual<T,  magmaFloatComplex*,  std::complex<float>*>,
+    OnTypesEqual<T,  magmaDoubleComplex*,  std::complex<double>*>,
+    OnTypesEqual<T,  magmaFloatComplex**,  std::complex<float>**>,
+    OnTypesEqual<T,  magmaDoubleComplex**,  std::complex<double>**>,
     OnTypesEqual<T, std::complex<float>*, std::complex<float>*>,
     OnTypesEqual<T, std::complex<double>*, std::complex<double>*>,
     OnTypesEqual<T, std::complex<float>**, std::complex<float>**>,
@@ -111,7 +119,7 @@ CUDARealAliasMap<T> realAliasGPU(T var) {
 template <typename T>
 struct IsCudaComplex_t
     : std::disjunction<std::is_same<float2, T>, std::is_same<double2, T>, std::false_type> {};
-
+  
 /* template <typename T> */
 /* struct IsCudaComplex_t : public std::false_type {}; */
 
@@ -123,7 +131,7 @@ struct IsCudaComplex_t
 
 template <typename T>
 using IsCudaComplex = std::enable_if_t<IsCudaComplex_t<std::decay_t<T>>::value, bool>;
-
+  
 template <typename Real>
 struct Real2CudaComplex;
 
@@ -138,6 +146,35 @@ struct Real2CudaComplex<float> {
 
 template <typename Real>
 using CudaComplex = typename Real2CudaComplex<Real>::type;
+
+template <typename T>
+struct IsMagmaComplex_t
+    : std::disjunction<std::is_same<magmaFloatComplex,T>, std::is_same<magmaDoubleComplex, T>, std::false_type> {};
+
+template <typename T>
+using IsMagmaComplex = std::enable_if_t<IsMagmaComplex_t<std::decay_t<T>>::value, bool>;
+
+template <typename Real>
+struct Real2MagmaComplex;
+
+template <>
+struct Real2MagmaComplex<double> {
+  using type = magmaDoubleComplex;
+};
+template <>
+struct Real2MagmaComplex<float> {
+  using type = magmaFloatComplex;
+};
+
+#ifdef DCA_HAVE_CUDA
+<typename Real>
+using GPUComplex = typename Real2CudaComplex<Real>::type;
+
+#elif defined DCA_HAVE_HIP
+template <typename Real>
+using GPUComplex = typename Real2MagmaComplex<Real>::type;
+#endif
+
 
 template <typename T>
 __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
