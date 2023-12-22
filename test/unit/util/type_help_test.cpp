@@ -86,7 +86,7 @@ TEST(TypeHelpTest, LinalgConstants) {
   double d_made_one;
   dca::util::makeOne(d_made_one);
   EXPECT_EQ(d_made_one, d_one);
-#ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_CUDA
   double2 d2_one{1.0,0.0};
   double2 made_d2_one;
   dca::util::makeOne(made_d2_one);
@@ -97,5 +97,18 @@ TEST(TypeHelpTest, LinalgConstants) {
   dca::util::makeZero(made_d2_zero);
   EXPECT_EQ(made_d2_zero.x, d2_zero.x);
   EXPECT_EQ(made_d2_zero.y, d2_zero.y);
-  #endif
+#endif
+  //For the HIP build we only makeOne and makeZero for magma complex types
+#ifdef DCA_HAVE_HIP
+  magmaDoubleComplex d2_one{1.0,0.0};
+  magmaDoubleComplex made_d2_one;
+  dca::util::makeOne(made_d2_one);
+  EXPECT_EQ(made_d2_one.x, d2_one.x);
+  EXPECT_EQ(made_d2_one.y, d2_one.y);
+  magmaDoubleComplex d2_zero{0.0,0.0};
+  magmaDoubleComplex made_d2_zero;
+  dca::util::makeZero(made_d2_zero);
+  EXPECT_EQ(made_d2_zero.x, d2_zero.x);
+  EXPECT_EQ(made_d2_zero.y, d2_zero.y);
+#endif
 }

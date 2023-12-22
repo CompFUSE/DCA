@@ -36,7 +36,7 @@ if (DCA_HAVE_GPU)
   dca_gpu_blas_link(mc_kernels)
 
   # This is circular and if public has caused double symbol issues with the hip toolchain
-  target_link_libraries(mc_kernels PRIVATE ctint)
+  # target_link_libraries(mc_kernels PRIVATE ctint)
 endif()
 
 add_subdirectory(shared_tools)

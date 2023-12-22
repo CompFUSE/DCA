@@ -10,6 +10,8 @@ include(CMakeParseArguments)
 include(ProcessorCount)
 ProcessorCount(CPUS)
 
+include(dca_linking)
+
 if(DCA_HAVE_HPX)
   set(test_thread_option HPX)
 endif()
@@ -144,6 +146,10 @@ function(dca_add_gtest name)
 
   if (DCA_HAVE_HIP)
     target_link_libraries(${name} PUBLIC hip::host)
+    if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)
+      dca_gpu_runtime_link(${name})
+      dca_gpu_blas_link(${name})
+    endif()
   endif()
 
   if (DCA_ADD_GTEST_CUDA OR DCA_ADD_GTEST_CUDA_MPI)

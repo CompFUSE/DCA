@@ -187,17 +187,11 @@ if (DCA_HAVE_GPU)
     EXECUTE_PROCESS(COMMAND bash -c "rocm-smi -i | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
                     OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   endif()
-  list(APPEND DCA_LIBS
-    blas_kernels
-    lapack_kernels
-    mc_kernels
-    special_transform_kernels
-    ${DCA_GPU_LIBS})
+  #special transform kernels are purposefully omitted since they are publicly linked via function transform
   set(DCA_KERNEL_LIBS
     blas_kernels
     lapack_kernels
     mc_kernels
-    special_transform_kernels
 )  
 endif()
 

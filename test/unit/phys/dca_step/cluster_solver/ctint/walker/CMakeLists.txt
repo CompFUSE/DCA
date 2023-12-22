@@ -7,7 +7,7 @@ dca_add_gtest(ct_int_walker_test
     FAST
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS     FFTW::Double ${TEST_LIBS} g0_interpolation ${KERNELS_LIB}
+    LIBS     FFTW::Double ${TEST_LIBS} g0_interpolation ${DCA_KERNEL_LIBS}
     )
 
 dca_add_gtest(ct_int_walker_submatrix_test
@@ -29,7 +29,7 @@ dca_add_gtest(ct_int_walker_submatrix_gpu_test
         FAST
         GTEST_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
-        LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${KERNELS_LIB}
+        LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${DCA_KERNEL_LIBS}
       )
 
 dca_add_gtest(ct_int_walker_submatrix_gpu_complex_test
@@ -37,5 +37,5 @@ dca_add_gtest(ct_int_walker_submatrix_gpu_complex_test
         FAST
         GTEST_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
-        LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${KERNELS_LIB}
+        LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${DCA_KERNEL_LIBS}
         )

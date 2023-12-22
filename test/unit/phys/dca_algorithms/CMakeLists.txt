@@ -4,7 +4,7 @@ dca_add_gtest(compute_band_structure_test
   GTEST_MAIN
   INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
   LIBS FFTW::Double dca_io json function cluster_domains enumerations time_and_frequency_domains quantum_domains ${UTIL_LIBS}
-  ${LAPACK_LIBRARIES} ${DCA_GPU_LIBS})
+  ${LAPACK_LIBRARIES})
 
 if (DCA_HAVE_ADIOS2)
   set(optional_io_lib dca_io)

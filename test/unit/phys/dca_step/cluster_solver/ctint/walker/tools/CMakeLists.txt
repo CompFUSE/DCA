@@ -11,5 +11,5 @@ dca_add_gtest(d_matrix_builder_gpu_test
     CUDA
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS     ${THIS_TEST_LIBS} g0_interpolation
+    LIBS     ${THIS_TEST_LIBS} g0_interpolation ctint ${DCA_KERNEL_LIBS}
     )

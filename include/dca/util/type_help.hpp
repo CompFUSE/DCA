@@ -238,6 +238,16 @@ struct ComplexAlias_impl<T**, IsMagmaComplex<T>> {
   using value_type = T**;
 };
 
+template <typename T>
+std::enable_if_t<IsMagmaComplex_t<T>::value, void> makeOne(T& one) {
+  one = T{1.0, 0.0};
+}
+
+template <typename T>
+std::enable_if_t<IsMagmaComplex_t<T>::value, void> makeZero(T& zero) {
+  zero = T{0.0, 0.0};
+}
+
 #endif
 
 

@@ -95,7 +95,7 @@ __device__ __host__ inline void assign(std::complex<double>& a, const magmaDoubl
 
 namespace dca {
 namespace linalg {
-
+#ifdef DCA_HAVE_GPU
   // The contents of the cast come from en.cppreference.com/w/cpp/numeric/complex
 template <typename T>
 __device__ __host__ inline void assign(std::complex<T>& a, const T b) {
@@ -111,7 +111,7 @@ __device__ __host__ inline void assign(float2& a, const int8_t b) {
   a.x = static_cast<float>(b);
   a.y = 0.0;
 }
-
+#endif
 }  // namespace linalg
 }  // namespace dca
 
