@@ -25,6 +25,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
+
+#define HIP_SYMBOL(x) x
+
 #elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
 #include "dca/util/cuda2hip.h"

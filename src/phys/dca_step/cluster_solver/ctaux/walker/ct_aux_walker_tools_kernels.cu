@@ -14,9 +14,7 @@
 #include <type_traits>
 
 #include "dca/platform/dca_gpu.h"
-#include "dca/platform/dca_gpu_complex.h"
-#include "dca/util/type_help.hpp"
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#include "dca/platform/dca_gpu_types.hpp"
 
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"

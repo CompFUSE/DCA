@@ -13,7 +13,8 @@
 
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #include <cassert>
-#include "dca/platform/dca_gpu_complex.h"
+#include "dca/util/type_help.hpp"
+//#include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"

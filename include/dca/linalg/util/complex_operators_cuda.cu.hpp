@@ -17,7 +17,6 @@
 #define DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP
 
 #include "dca/config/haves_defines.hpp"
-#include "dca/platform/dca_gpu.h"
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
 
@@ -27,6 +26,50 @@ namespace linalg {
 
 // magma_operators.h defines these operators
 #ifdef DCA_HAVE_CUDA
+
+template <typename T>
+__device__ __host__ inline void assign(T& a, const T b) {
+  a = b;
+}
+
+__device__ __host__ inline void assign(cuComplex& a, const std::complex<float>& b) {
+  a.x = reinterpret_cast<const float(&)[2]>(b)[0];
+  a.y = reinterpret_cast<const float(&)[2]>(b)[1];
+}
+
+__device__ __host__ inline void assign(std::complex<float>& a, const cuComplex& b) {
+  reinterpret_cast<float(&)[2]>(a)[0] = b.x;
+  reinterpret_cast<float(&)[2]>(a)[1] = b.y;
+}
+
+__device__ __host__ inline void assign(cuDoubleComplex& a, const std::complex<double>& b) {
+  a.x = reinterpret_cast<const double(&)[2]>(b)[0];
+  a.y = reinterpret_cast<const double(&)[2]>(b)[1];
+}
+
+__device__ __host__ inline void assign(std::complex<double>& a, const cuDoubleComplex& b) {
+  reinterpret_cast<double(&)[2]>(a)[0] = b.x;
+  reinterpret_cast<double(&)[2]>(a)[1] = b.y;
+}
+
+// template <typename T>
+// __device__ __host__ inline void assign(dca::util::GPUComplex<T>& a, const std::complex<T>& b) {
+//   a.x = reinterpret_cast<const T(&)[2]>(b)[0];
+//   a.y = reinterpret_cast<const T(&)[2]>(b)[1];
+// }
+
+// template <typename T>
+// __device__ __host__ inline void assign(std::complex<T>& a, const dca::util::CUDAComplex<T>& b) {
+//   reinterpret_cast<T(&)[2]>(a)[0] = b.x;
+//   reinterpret_cast<T(&)[2]>(a)[1] = b.y;
+// }
+
+// template <typename T>
+// __device__ __host__ inline void assign(dca::util::CUDAComplex<T>& a, const int8_t b) {
+//   a.x = static_cast<T>(b);
+//   a.y = 0.0;
+// }
+
 __device__ __host__ static __inline__ cuComplex operator+(const cuComplex a, const cuComplex b) {
   return cuCaddf(a, b);
 }
@@ -190,19 +233,38 @@ __device__ __host__ static __inline__ bool operator==(cuDoubleComplex a, cuDoubl
   return (a.x == b.x) && (a.y == b.y);
 }
 
-using dca::util::CudaComplex;
+template <typename Real>
+struct Real2CudaComplex;
+
+template <>
+struct Real2CudaComplex<double> {
+  using type = cuDoubleComplex;
+};
+template <>
+struct Real2CudaComplex<float> {
+  using type = cuComplex;
+};
+
+template <typename Real>
+using GPUComplex = typename Real2CudaComplex<Real>::type;
+template <typename Real>
+using CUDAComplex = typename Real2CudaComplex<Real>::type;
+
+  
+template <class T>
+__device__ __host__ static __inline__ CUDAComplex<T>& operator/=(CUDAComplex<T>& a, const T& b) {
+  a = {a.x / b, a.y / b};
+  return a;
+}
 
 template <class T>
-__device__ __host__ static __inline__ CudaComplex<T>& operator/=(CudaComplex<T>& a, const T& b) {
-  return a = a / b;
-}
-template <class T>
-__device__ __host__ static __inline__ CudaComplex<T>& operator*=(CudaComplex<T>& a, const T& b) {
-  return a = a * b;
+__device__ __host__ static __inline__ CUDAComplex<T>& operator*=(CUDAComplex<T>& a, const T& b) {
+  a = {a.x * b, a.y * b};
+  return a;
 }
 
 #endif
-}
-}
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP

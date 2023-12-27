@@ -4,7 +4,7 @@ dca_add_gtest(stdthread_ctaux_gpu_tp_test
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS ${DCA_LIBS}
+  LIBS ${DCA_LIBS};${DCA_KERNEL_LIBS}
   )
 
 dca_add_gtest(stdthread_ctint_gpu_tp_test
@@ -12,5 +12,5 @@ dca_add_gtest(stdthread_ctint_gpu_tp_test
   CUDA
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS ${DCA_LIBS}
+  LIBS ${DCA_LIBS};${DCA_KERNEL_LIBS}
   )

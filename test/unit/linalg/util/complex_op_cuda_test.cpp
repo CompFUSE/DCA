@@ -32,5 +32,17 @@ TEST(ComplexOpCuda, Assign) {
   EXPECT_EQ(c2.imag(),c1.imag());
 
   std::int8_t i81 = 1;
-  dca::linalg::assign<double>(d1_a, i81);
+  dca::linalg::assign(d1_a, i81);
+}
+
+TEST(ComplexOpCuda, MultAssign) {
+  using namespace dca::linalg;
+  cuDoubleComplex d1_a{1.0, 0.2};
+  double f1 = 6.0;
+  d1_a *= f1;
+  EXPECT_NEAR(d1_a.x, 6.0, 1E-15);
+  EXPECT_NEAR(d1_a.y, 1.2, 1E-15);
+  d1_a /= f1;
+  EXPECT_NEAR(d1_a.x, 1.0, 1E-15);
+  EXPECT_NEAR(d1_a.y, 0.2, 1E-15);
 }

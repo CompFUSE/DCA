@@ -15,7 +15,7 @@
 
 
 #ifdef DCA_HAVE_GPU
-#include "dca/platform/dca_gpu_complex.h"
+#include "dca/platform/dca_gpu_types.hpp"
 #endif
 
 TEST(TypeHelpTest, IsComplex) {
@@ -28,12 +28,12 @@ TEST(TypeHelpTest, IsComplex) {
 }  
 
 #ifdef DCA_HAVE_GPU
-TEST(TypeHelpTest, IsCudaComplex) {
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<cuComplex>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<float2>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<cuDoubleComplex>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<double2>::value);
-  EXPECT_FALSE(dca::util::IsCudaComplex_t<std::complex<double>>::value);
+TEST(TypeHelpTest, IsCUDAComplex) {
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuComplex>::value);
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<float2>::value);
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuDoubleComplex>::value);
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<double2>::value);
+  EXPECT_FALSE(dca::util::IsCUDAComplex_t<std::complex<double>>::value);
 }
 #endif
 

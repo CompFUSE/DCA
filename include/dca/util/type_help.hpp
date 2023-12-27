@@ -26,6 +26,8 @@
 // }  // namespace util
 // }  // namespace dca
 
+#include "dca/util/type_fundamentals.hpp"
+
 #ifdef DCA_HAVE_GPU
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
@@ -33,33 +35,7 @@
 
 namespace dca {
 namespace util {
-  
-#ifdef DCA_HAVE_GPU
-template <typename Real>
-using CudaComplex = typename Real2CudaComplex<Real>::type;
-#endif
 
-template <typename T>
-struct IsComplex_t : public std::false_type {};
-template <typename T>
-struct IsComplex_t<std::complex<T>> : public std::true_type {};
-
-// template <typename T>
-// using IsComplex_t< CudaComplex<T>> : public std::true_type {};
-
-template <typename T>
-using IsComplex = std::enable_if_t<IsComplex_t<T>::value, bool>;
-
-template <typename T>
-using IsReal = std::enable_if_t<std::is_floating_point<T>::value, bool>;
-
-template <typename T, typename = bool>
-struct RealAlias_impl {};
-
-template <typename T>
-struct RealAlias_impl<T, IsReal<T>> {
-  using value_type = T;
-};
 
 #ifdef DCA_HAVE_GPU
 template <>
@@ -105,60 +81,58 @@ struct ComplexAlias_impl<T, IsComplex<T>> {
 };
 
 #ifdef DCA_HAVE_GPU
+template <typename T, typename = bool>
+struct CUDAScalar_impl {};
+
 template <typename T>
-struct ComplexAlias_impl<T, IsCudaComplex<T>> {
+struct CUDAScalar_impl<T, IsReal<T>> {
   using value_type = T;
 };
 
 template <typename T>
-struct ComplexAlias_impl<T*, IsCudaComplex<T>> {
+struct CUDAScalar_impl<T, IsComplex<T>> {
+  using value_type = dca::util::CUDAComplex<RealAlias<T>>;
+};
+
+template <typename T>
+using CUDAScalar = typename CUDAScalar_impl<T>::value_type;
+
+template <typename T>
+struct CUDAScalarStruct {
+  typename CUDAScalar_impl<T>::value_type value;
+};  
+
+  template <typename T>
+struct ComplexAlias_impl<T, IsCUDAComplex<T>> {
+  using value_type = T;
+};
+
+template <typename T>
+struct ComplexAlias_impl<T*, IsCUDAComplex<T>> {
   using value_type = T*;
 };
 
-  template <typename T>
-struct ComplexAlias_impl<T**, IsCudaComplex<T>> {
+template <typename T>
+struct ComplexAlias_impl<T**, IsCUDAComplex<T>> {
   using value_type = T**;
 };
-
-  
+#endif
 /* template <> */
 /* struct ComplexAlias_impl<float2> { */
 /*   using value_type = cuComplex; */
 /* }; */
 
 /* template <typename T> */
-/* struct ComplexAlias_impl<T, IsCudaComplex<T>> { */
+/* struct ComplexAlias_impl<T, IsCUDAComplex<T>> { */
 /*   using value_type = CudaComplex<std::remove_pointer<T*>>; */
 /* }; */
-
-template <typename T, typename = bool>
-struct CudaScalar_impl {};
-
-template <typename T>
-struct CudaScalar_impl<T, IsReal<T>> {
-  using value_type = T;
-};
-
-template <typename T>
-struct CudaScalar_impl<T, IsComplex<T>> {
-  using value_type = dca::util::CudaComplex<RealAlias<T>>;
-};
-
-template <typename T>
-using CudaScalar = typename CudaScalar_impl<T>::value_type;
-
-template <typename T>
-struct CudaScalarStruct {
-  typename CudaScalar_impl<T>::value_type value;
-};
-#endif
 
 template <typename T>
 using ComplexAlias = typename ComplexAlias_impl<T>::value_type;
 
 template <typename T>
 using HostComplexAlias = ComplexAlias<RealAlias<T>>;
-  
+
 template <typename REAL, bool complex>
 struct ScalarSelect {
   using type = REAL;
@@ -174,11 +148,6 @@ struct ScalarSelect<REAL, true> {
   using type = std::complex<REAL>;
 };
 
-template <typename T, typename = bool>
-struct TheOne;
-template <typename T, typename = bool>
-struct TheZero;
-
 template <typename T>
 struct TheOne<T, IsReal<T>> {
   static constexpr T value = 1.0;
@@ -189,27 +158,8 @@ struct TheZero<T, IsReal<T>> {
   static constexpr T value = 0.0;
 };
 
-
 #ifdef DCA_HAVE_CUDA
-template <typename T>
-struct TheOne<T, IsCudaComplex<T>> {
-  static constexpr T value{1.0, 0.0};
-};
 
-template <typename T>
-struct TheZero<T, IsCudaComplex<T>> {
-  static constexpr T value{0.0, 0.0};
-};
-
-template <typename T>
-std::enable_if_t<IsCudaComplex_t<T>::value, void> makeOne(T& one) {
-  one = T{1.0, 0.0};
-}
-
-template <typename T>
-std::enable_if_t<IsCudaComplex_t<T>::value, void> makeZero(T& zero) {
-  zero = T{0.0, 0.0};
-}
 #endif
 
 #ifdef DCA_HAVE_HIP
@@ -233,7 +183,7 @@ struct ComplexAlias_impl<T*, IsMagmaComplex<T>> {
   using value_type = T*;
 };
 
-  template <typename T>
+template <typename T>
 struct ComplexAlias_impl<T**, IsMagmaComplex<T>> {
   using value_type = T**;
 };
@@ -250,8 +200,6 @@ std::enable_if_t<IsMagmaComplex_t<T>::value, void> makeZero(T& zero) {
 
 #endif
 
-
-  
 template <typename T>
 std::enable_if_t<std::is_floating_point<T>::value, void> makeOne(T& one) {
   one = 1.0;
@@ -277,7 +225,6 @@ struct TheOne<T, IsComplex<T>> {
   static constexpr T value{1.0, 0.0};
 };
 
-  
 template <typename T>
 struct TheZero<T, IsComplex<T>> {
   static constexpr T value = {0.0, 0.0};
@@ -285,7 +232,8 @@ struct TheZero<T, IsComplex<T>> {
 
 template <typename T, typename T2>
 auto makeMaybe(
-    const T2 t2, typename std::enable_if_t<IsComplex_t<T>::value || std::is_floating_point<T>::value>* = 0) {
+    const T2 t2,
+    typename std::enable_if_t<IsComplex_t<T>::value || std::is_floating_point<T>::value>* = 0) {
   return T(t2);
 }
 
@@ -294,36 +242,36 @@ auto makeMaybe(
  *  static cast required to deal with possibility of narrowing conversion from literal expressed as double.
  */
 template <typename T, typename T2>
-auto makeMaybe(const T2 t2, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
+auto makeMaybe(const T2 t2, typename std::enable_if_t<IsCUDAComplex_t<T>::value>* = 0) {
   using Real = RealAlias<T>;
   return T{static_cast<Real>(t2), 0.0};
 }
 
+#ifdef DCA_HAVE_HIP
 template <typename T, typename T2>
 auto makeMaybe(const T2 t2, typename std::enable_if_t<IsMagmaComplex_t<T>::value>* = 0) {
   using Real = RealAlias<T>;
   return T{static_cast<Real>(t2), 0.0};
 }
+#endif
 
-  
 template <typename T>
-inline auto GPUTypeConversion(T var, typename std::enable_if_t<IsCudaComplex_t<T>::value>* = 0) {
+inline auto GPUTypeConversion(T var, typename std::enable_if_t<IsCUDAComplex_t<T>::value>* = 0) {
   return HOSTTypeMap<T>{var.x, var.y};
 }
 
 template <typename T>
 inline auto GPUTypeConversion(
-    T var, typename std::enable_if_t<IsComplex_t<T>::value && (!IsCudaComplex_t<T>::value)>* = 0) {
+    T var, typename std::enable_if_t<IsComplex_t<T>::value && (!IsCUDAComplex_t<T>::value)>* = 0) {
   return CUDATypeMap<T>{var.real(), var.imag()};
 }
 
 template <typename T>
 inline auto HOSTTypeConversion(
-    T var, typename std::enable_if_t<IsComplex_t<T>::value && (!IsCudaComplex_t<T>::value)>* = 0) {
+    T var, typename std::enable_if_t<IsComplex_t<T>::value && (!IsCUDAComplex_t<T>::value)>* = 0) {
   return HOSTTypeMap<T>{var.x, var.y};
 }
 
-  
 template <typename T>
 inline auto GPUTypeConversion(T var,
                               typename std::enable_if_t<std::is_floating_point<T>::value>* = 0) {

@@ -12,10 +12,13 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
 
 #include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_complex.h"
 
 #include "dca/util/cuda_blocks.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/device_interpolation_data.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
+
+#include "dca/util/type_help.hpp"
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -32,19 +35,19 @@ using dca::util::IsComplex;
 using dca::util::IsReal;
 using namespace dca::linalg;
 using dca::util::SignType;
-using dca::util::CudaComplex;
-using dca::util::CudaScalar;
+using dca::util::CUDAComplex;
+using dca::util::CUDAScalar;
 
 template <typename Scalar, typename Real, typename SignType>
 __global__ void interpolateSlowKernel(Real tau, const int lindex,
-                                      DeviceInterpolationData<Scalar, SignType> g0, CudaScalar<Scalar>* result) {
+                                      DeviceInterpolationData<Scalar, SignType> g0, CUDAScalar<Scalar>* result) {
   *result = g0(tau, lindex);
 }
 
 template <typename Scalar, typename Real, typename SignType>
 Scalar interpolateSlow(Real tau, int lindex,
                                           const DeviceInterpolationData<Scalar, SignType>& g0) {
-  CudaScalar<Scalar>* d_result;
+  CUDAScalar<Scalar>* d_result;
   Scalar result;
   cudaMalloc((void**)&d_result, sizeof(Scalar));
 

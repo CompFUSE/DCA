@@ -18,15 +18,13 @@
 #include <sstream>
 
 #include "dca/platform/dca_gpu.h"
-
+#include "dca/platform/dca_gpu_types.hpp"
 #include <thrust/device_vector.h>
 
 #include "dca/parallel/util/get_workload.hpp"
 #include "dca/util/integer_division.hpp"
-#include "dca/util/type_help.hpp"
 #include "dca/util/type_utils.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/four_point_type.hpp"
 

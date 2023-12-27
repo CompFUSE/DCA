@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Confront GPU and CPU runs with CT-INT.
+// Compare GPU and CPU runs with CT-INT.
 // Model: square lattice with single band and double occupancy repulsion U.
 
 #include <cuda_profiler_api.h>
@@ -17,6 +17,7 @@
 
 using Scalar = double;
 
+#include "dca/platform/dca_gpu_complex.h"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {

@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/util/type_help.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
