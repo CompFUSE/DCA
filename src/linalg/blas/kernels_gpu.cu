@@ -356,7 +356,7 @@ void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, i
               int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     const int threads_x = std::min(kernels::swap_block_size_x, n_rows);
-    const int threads_y = 1024 / threads_x;
+    const int threads_y = std::min(kernels::swap_block_size_y, 1024 / threads_x);
     const dim3 threads(threads_x, threads_y);
 
     const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
@@ -384,10 +384,11 @@ void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, i
               int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    const int bl_x = dca::util::ceilDiv(col_size, kernels::swap_block_size_x);
-    const int bl_y = dca::util::ceilDiv(n_cols, kernels::swap_block_size_y);
-
-    dim3 threads(kernels::swap_block_size_x, kernels::swap_block_size_y);
+    const int threads_x = std::min(kernels::swap_block_size_x, n_cols);
+    const int threads_y = std::min(kernels::swap_block_size_y, 1024 / threads_x);
+    dim3 threads(threads_x, threads_y);
+    const int bl_x = dca::util::ceilDiv(col_size, threads_x);
+    const int bl_y = dca::util::ceilDiv(n_cols, threads_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
