@@ -19,10 +19,12 @@
 
 #if defined(DCA_HAVE_CUDA)
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#endif
 
 namespace dca {
 namespace util {
 
+#ifdef DCA_HAVE_CUDA
 template <typename T>
 struct IsMagmaComplex_t : std::disjunction<std::is_same<magmaFloatComplex, T>,
                                            std::is_same<magmaDoubleComplex, T>, std::false_type> {};

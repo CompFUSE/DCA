@@ -136,8 +136,11 @@ struct Real2CudaComplex<float> {
   using type = cuComplex;
 };
 
+#ifdef DCA_HAVE_CUDA
 template <typename Real>
 using GPUComplex = typename Real2CudaComplex<Real>::type;
+#endif
+
 template <typename Real>
 using CUDAComplex = typename Real2CudaComplex<Real>::type;
 

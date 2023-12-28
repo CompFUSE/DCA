@@ -29,9 +29,11 @@ TEST(TypeHelpTest, IsComplex) {
 
 #ifdef DCA_HAVE_GPU
 TEST(TypeHelpTest, IsCUDAComplex) {
+#ifdef DCA_HAVE_CUDA
   EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuComplex>::value);
-  EXPECT_TRUE(dca::util::IsCUDAComplex_t<float2>::value);
   EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuDoubleComplex>::value);
+#endif
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<float2>::value);
   EXPECT_TRUE(dca::util::IsCUDAComplex_t<double2>::value);
   EXPECT_FALSE(dca::util::IsCUDAComplex_t<std::complex<double>>::value);
 }
