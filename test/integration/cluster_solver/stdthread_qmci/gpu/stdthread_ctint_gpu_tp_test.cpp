@@ -14,6 +14,7 @@
 
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"

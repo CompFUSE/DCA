@@ -15,7 +15,7 @@
 
 
 #ifdef DCA_HAVE_GPU
-#include "dca/platform/dca_gpu_complex.h"
+#include "dca/platform/dca_gpu_types.hpp"
 #endif
 
 TEST(TypeHelpTest, IsComplex) {
@@ -28,12 +28,14 @@ TEST(TypeHelpTest, IsComplex) {
 }  
 
 #ifdef DCA_HAVE_GPU
-TEST(TypeHelpTest, IsCudaComplex) {
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<cuComplex>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<float2>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<cuDoubleComplex>::value);
-  EXPECT_TRUE(dca::util::IsCudaComplex_t<double2>::value);
-  EXPECT_FALSE(dca::util::IsCudaComplex_t<std::complex<double>>::value);
+TEST(TypeHelpTest, IsCUDAComplex) {
+#ifdef DCA_HAVE_CUDA
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuComplex>::value);
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<cuDoubleComplex>::value);
+#endif
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<float2>::value);
+  EXPECT_TRUE(dca::util::IsCUDAComplex_t<double2>::value);
+  EXPECT_FALSE(dca::util::IsCUDAComplex_t<std::complex<double>>::value);
 }
 #endif
 
@@ -86,7 +88,7 @@ TEST(TypeHelpTest, LinalgConstants) {
   double d_made_one;
   dca::util::makeOne(d_made_one);
   EXPECT_EQ(d_made_one, d_one);
-#ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_CUDA
   double2 d2_one{1.0,0.0};
   double2 made_d2_one;
   dca::util::makeOne(made_d2_one);
@@ -97,5 +99,18 @@ TEST(TypeHelpTest, LinalgConstants) {
   dca::util::makeZero(made_d2_zero);
   EXPECT_EQ(made_d2_zero.x, d2_zero.x);
   EXPECT_EQ(made_d2_zero.y, d2_zero.y);
-  #endif
+#endif
+  //For the HIP build we only makeOne and makeZero for magma complex types
+#ifdef DCA_HAVE_HIP
+  magmaDoubleComplex d2_one{1.0,0.0};
+  magmaDoubleComplex made_d2_one;
+  dca::util::makeOne(made_d2_one);
+  EXPECT_EQ(made_d2_one.x, d2_one.x);
+  EXPECT_EQ(made_d2_one.y, d2_one.y);
+  magmaDoubleComplex d2_zero{0.0,0.0};
+  magmaDoubleComplex made_d2_zero;
+  dca::util::makeZero(made_d2_zero);
+  EXPECT_EQ(made_d2_zero.x, d2_zero.x);
+  EXPECT_EQ(made_d2_zero.y, d2_zero.y);
+#endif
 }

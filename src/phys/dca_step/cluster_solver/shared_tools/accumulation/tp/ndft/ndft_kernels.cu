@@ -14,9 +14,8 @@
 #include <array>
 #include <cassert>
 #include "dca/platform/dca_gpu.h"
-
+#include "dca/platform/dca_gpu_types.hpp"
 #include "dca/util/integer_division.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
 
 namespace dca {
 namespace phys {
@@ -25,8 +24,10 @@ namespace accumulator {
 namespace details {
 
 using util::castGPUType;
-using util::CudaComplex;
-using util::IsCudaComplex_t;
+using util::CUDAComplex;
+using util::IsCUDAComplex_t;
+using util::GPUComplex;
+  using dca::util::IsMagmaComplex_t;  
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
   assert(i > 0 && j > 0);
@@ -40,7 +41,7 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
 
 template <typename Scalar, typename Real>
 __global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
-                            CudaComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
+                            GPUComplex<Real>* sorted_M, int lds, const Triple<Real>* config1,
                             const Triple<Real>* config2) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -50,7 +51,7 @@ __global__ void sortMKernel(const int size, const Scalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  if constexpr (IsCudaComplex_t<Scalar>::value)
+  if constexpr (IsCUDAComplex_t<Scalar>::value || IsMagmaComplex_t<Scalar>::value)
     sorted_M[id_i + lds * id_j] = M[inp_i + ldm * inp_j];
   else {
     sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];
@@ -72,7 +73,7 @@ void sortM(const int size, const Scalar* M, const int ldm, std::complex<Real>* s
 }
 
 template <typename Real>
-__global__ void computeTKernel(const int n, const int m, CudaComplex<Real>* T, int ldt,
+__global__ void computeTKernel(const int n, const int m, CUDAComplex<Real>* T, int ldt,
                                const Triple<Real>* config, const Real* w, const bool transposed) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -100,8 +101,8 @@ void computeT(const int n, const int m, std::complex<Real>* T, int ldt, const Tr
 
 template <typename Real>
 __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
-                                      const CudaComplex<Real>* in, const int ldi,
-                                      CudaComplex<Real>* out, const int ldo) {
+                                      const CUDAComplex<Real>* in, const int ldi,
+                                      CUDAComplex<Real>* out, const int ldo) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   const int n_rows = nw * no;

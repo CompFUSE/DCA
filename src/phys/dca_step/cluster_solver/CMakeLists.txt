@@ -27,15 +27,16 @@ if (DCA_HAVE_GPU)
     shared_tools/accumulation/tp/g4_helper.cu
     
     # Sp tools
-    ../../../math/nfft/dnfft_1d_kernels.cu
     ../../../math/nfft/nfft_helper.cu
+    ../../../math/nfft/dnfft_1d_kernels.cu
     )
   add_library(mc_kernels ${kernel_sources})
   dca_gpu_device_link(mc_kernels)
   dca_gpu_runtime_link(mc_kernels)
   dca_gpu_blas_link(mc_kernels)
-  
-  target_link_libraries(mc_kernels PUBLIC ctint)
+
+  # This is circular and if public has caused double symbol issues with the hip toolchain
+  # target_link_libraries(mc_kernels PRIVATE ctint)
 endif()
 
 add_subdirectory(shared_tools)

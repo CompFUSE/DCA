@@ -26,7 +26,7 @@ dca_add_gtest(tp_accumulator_test_complex
   FAST
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
+  LIBS     ${DCA_LIBS}
   )
 
 dca_add_gtest(tp_accumulator_singleband_test
@@ -55,21 +55,21 @@ dca_add_gtest(tp_accumulator_gpu_test
   FAST
   CUDA
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS} ${KERNELS_LIB}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
   )
 
 dca_add_gtest(tp_accumulator_complex_g0_gpu_test
   FAST
   CUDA
         INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-        LIBS     ${DCA_LIBS} ${KERNELS_LIB}
+        LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
         )
 
 dca_add_gtest(tp_accumulator_singleband_gpu_test
   FAST
   CUDA
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
   )
   #;mc_kernels;lapack;lapack_kernels;blas_kernels;gpu_utils;magma::magma;magma::sparse;
 
@@ -77,7 +77,7 @@ dca_add_gtest(tp_accumulator_multiband_gpu_test
   FAST
   CUDA
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS} ${DCA_GPU_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
   )
 
 add_subdirectory(ndft)

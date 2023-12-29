@@ -13,12 +13,10 @@
 
 #include <cassert>
 #include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_types.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-#include "dca/linalg/util/gpu_type_mapping.hpp"
-#include "dca/util/type_help.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/util/type_utils.hpp"
-#include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 
 namespace dca {
 namespace phys {

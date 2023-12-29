@@ -44,7 +44,7 @@ public:
       return *dca::util::castGPUType(g0_minus_ + lindex);
 
     if constexpr (dca::util::IsComplex_t<SignType>::value) {
-      dca::util::CudaComplex<dca::util::RealAlias<SignType>> factor;
+      dca::util::CUDAComplex<dca::util::RealAlias<SignType>> factor;
       factor.x = 0.0;
       factor.y = 0.0;
 

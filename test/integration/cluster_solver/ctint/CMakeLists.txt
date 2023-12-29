@@ -13,7 +13,7 @@ dca_add_gtest(ctint_square_lattice_test_gpu
     CUDA
     GTEST_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
-    LIBS     ${TEST_LIBS};mc_kernels;ctint;mc_kernels
+    LIBS     ${TEST_LIBS};${DCA_KERNEL_LIBS};ctint
     )
 
 dca_add_gtest(ctint_hund_lattice_test

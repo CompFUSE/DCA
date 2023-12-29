@@ -24,6 +24,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/platform/dca_gpu_complex.h"
 
 namespace dca {
 namespace phys {

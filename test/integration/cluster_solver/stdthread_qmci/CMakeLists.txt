@@ -2,7 +2,7 @@ dca_add_gtest(stdthread_ctaux_tp_test
   EXTENSIVE
   GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS         ${DCA_LIBS}
+  LIBS         ${DCA_LIBS};${DCA_KERNEL_LIBS}
   )
 
 # nonshared threading not currently support for ctint

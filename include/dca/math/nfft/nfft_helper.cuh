@@ -51,12 +51,13 @@ private:
   Real t0_, delta_t_, t0_window_, delta_t_window_, one_div_delta_, one_div_delta_t_window_,
       tau_scale_;
 };
-
+  
 /** Global instances
  *  type tagged
  */
 extern __device__ __constant__ NfftHelper<double> nfft_helper_double;
 extern __device__ __constant__ NfftHelper<float> nfft_helper_float;
+
 extern template void NfftHelper<double>::set(int nb, const int nc, const int* add_r, int lda,
                                              const int* sub_r, int lds, double t0, double delta_t,
                                              const double t0_window, const double delta_t_window,

@@ -63,10 +63,18 @@ struct Memory<CPU> {
   }
 #ifdef DCA_HAVE_GPU
   template <typename Scalar>
-  static std::enable_if_t<dca::util::IsCudaComplex_t<Scalar>::value == true, void> setToZero(
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<Scalar>::value == true, void> setToZero(
       Scalar* ptr, size_t size) {
     std::memset(ptr, 0, sizeof(Scalar) * size);
   }
+
+#ifdef DCA_HAVE_HIP
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsMagmaComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    std::memset(ptr, 0, sizeof(Scalar) * size);
+  }
+#endif
 #endif
 };
 
@@ -78,7 +86,7 @@ struct Memory<GPU> {
 
   /// Specialization for float2, double2, cuComplex, cuDoubleComplex
   template <typename ScalarType>
-  static std::enable_if_t<dca::util::IsCudaComplex_t<ScalarType>::value == true, void> setToZero(ScalarType ptr, size_t size) {
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<ScalarType>::value == true, void> setToZero(ScalarType ptr, size_t size) {
     cudaMemset(ptr, 0, size * sizeof(ScalarType));
   }
 
@@ -94,7 +102,7 @@ struct Memory<GPU> {
   }
 
   template <typename Scalar>
-  static std::enable_if_t<dca::util::IsCudaComplex_t<Scalar>::value == true, void> setToZero(
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<Scalar>::value == true, void> setToZero(
       Scalar* ptr, size_t size) {
     cudaMemset(ptr, 0, size * sizeof(Scalar));
   }
