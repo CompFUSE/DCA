@@ -636,7 +636,7 @@ TEST(MatrixGPUTest, setTo) {
   dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> mat_dev(name, size);
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> mat_host_ret(name, size);
 
-  auto el_value = [](int i, int j) ->std::complex<double> { return {3 * i - 2 * j, 2*i - 3*j}; };
+  auto el_value = [](int i, int j) ->std::complex<double> { return {static_cast<double>(3 * i - 2 * j), static_cast<double>(2*i - 3*j)}; };
   for (int j = 0; j < mat_host.nrCols(); ++j)
     for (int i = 0; i < mat_host.nrRows(); ++i)
       mat_host(i,j) = el_value(i,j);

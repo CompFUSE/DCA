@@ -87,24 +87,24 @@ struct Memory<GPU> {
   /// Specialization for float2, double2, cuComplex, cuDoubleComplex
   template <typename ScalarType>
   static std::enable_if_t<dca::util::IsCUDAComplex_t<ScalarType>::value == true, void> setToZero(ScalarType ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(ScalarType)));
   }
 
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       ScalarType* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(ScalarType)));
   }
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>)));
   }
 
   template <typename Scalar>
   static std::enable_if_t<dca::util::IsCUDAComplex_t<Scalar>::value == true, void> setToZero(
       Scalar* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(Scalar));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(Scalar)));
   }
 
 
@@ -117,7 +117,7 @@ struct Memory<GPU> {
 
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& stream) {
-    cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
+    checkRC(cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream));
   }
 
   template <typename ScalarType>

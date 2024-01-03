@@ -106,7 +106,7 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
 
       builder_cpu.computeG0(G0, configuration.getSector(s), n_init, size, right_sector);
       builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream.streamActually());
-      cudaStreamSynchronize(stream.streamActually());
+      checkRC(cudaStreamSynchronize(stream.streamActually()));
 
       Matrix<Scalar, CPU> G0_dev_copy(G0_dev);
       constexpr RealAlias<Scalar> tolerance = 100 * std::numeric_limits<RealAlias<Scalar>>::epsilon();

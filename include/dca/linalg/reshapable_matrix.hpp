@@ -395,7 +395,7 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 void ReshapableMatrix<ScalarType, device_name, Allocator>::setToZero(cudaStream_t stream) {
-  cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
+  checkRC(cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream));
 }
 
 #else  // DCA_HAVE_GPU

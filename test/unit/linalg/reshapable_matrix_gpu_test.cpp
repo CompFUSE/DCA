@@ -127,7 +127,7 @@ TEST(MatrixCPUTest, SetAsync) {
 
   mat_gpu.setAsync(mat_cpu, stream);
   mat_cpu_out.setAsync(mat_gpu, stream);
-  cudaStreamSynchronize(stream);
+  checkRC(cudaStreamSynchronize(stream));
 
   EXPECT_EQ(mat_cpu, mat_cpu_out);
 }

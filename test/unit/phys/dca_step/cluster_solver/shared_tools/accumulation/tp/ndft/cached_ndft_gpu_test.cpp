@@ -96,7 +96,7 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M_dev, result_device);
-  cudaStreamSynchronize(nft_obj.get_stream());
+  checkRC(cudaStreamSynchronize(nft_obj.get_stream()));
   dca::profiling::WallTime end_time;
 
   dca::linalg::ReshapableMatrix<std::complex<Real>, dca::linalg::CPU> result_host(result_device);
@@ -106,7 +106,6 @@ double computeWithFastNDFT(const typename CachedNdftGpuTest<Real>::Configuration
   const int nb = BDmn::dmn_size();
   const int nr = RDmn::dmn_size();
   const int n_w = PosFreqDmn::dmn_size();
-  auto invert_w = [=](const int w) { return n_w - 1 - w; };
   for (int b2 = 0; b2 < nb; ++b2)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int r2 = 0; r2 < nr; ++r2)

@@ -150,7 +150,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   dca::linalg::Matrix<Scalar, dca::linalg::CPU> G0_dn_GPU;
   G0_up_GPU.setAsync(gpu_walker.getG0Up(), 0, 0);
   G0_dn_GPU.setAsync(gpu_walker.getG0Dn(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
 
   EXPECT_TRUE(G0_up_GPU == cpu_walker.getG0Up());
   EXPECT_TRUE(G0_dn_GPU == cpu_walker.getG0Dn())
@@ -160,7 +160,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   dca::linalg::Matrix<Scalar, dca::linalg::CPU> G_dn_GPU;
   G_up_GPU.setAsync(gpu_walker.getGUp(), 0, 0);
   G_dn_GPU.setAsync(gpu_walker.getGDn(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
 
   EXPECT_TRUE(G_up_GPU == cpu_walker.getGUp());
   EXPECT_TRUE(G_dn_GPU == cpu_walker.getGDn())
@@ -170,7 +170,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   dca::linalg::Matrix<Scalar, dca::linalg::CPU> N_dn_GPU;
   N_up_GPU.setAsync(gpu_walker.getNUp(), 0, 0);
   N_dn_GPU.setAsync(gpu_walker.getNDn(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
 
   EXPECT_TRUE(N_up_GPU == cpu_walker.getNUp());
   EXPECT_TRUE(N_dn_GPU == cpu_walker.getNDn())
@@ -186,21 +186,21 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   dca::linalg::Vector<Scalar, dca::linalg::CPU> expV_GPU;
   expV_CPU.setAsync(cpu_walker.getExpV(), 0, 0);
   expV_GPU.setAsync(gpu_walker.getExpV(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(expV_CPU, expV_GPU);
 
   dca::linalg::Vector<Scalar, dca::linalg::CPU> expDeltaV_CPU;
   dca::linalg::Vector<Scalar, dca::linalg::CPU> expDeltaV_GPU;
   expV_CPU.setAsync(cpu_walker.getExpDeltaV(), 0, 0);
   expV_GPU.setAsync(gpu_walker.getExpDeltaV(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(expDeltaV_CPU, expDeltaV_GPU);
 
   dca::linalg::Vector<int, dca::linalg::CPU> vertex_ind_CPU;
   dca::linalg::Vector<int, dca::linalg::CPU> vertex_ind_GPU;
   vertex_ind_CPU.setAsync(cpu_walker.getVertexInd(), 0, 0);
   vertex_ind_GPU.setAsync(gpu_walker.getVertexInd(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(vertex_ind_CPU, vertex_ind_GPU);
 
   cpu_walker.read_Gamma_matrices(dca::phys::e_UP);
@@ -213,18 +213,18 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
 
   expV_CPU.setAsync(cpu_walker.getExpV(), 0, 0);
   expV_GPU.setAsync(gpu_walker.getExpV(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
 
   EXPECT_EQ(expV_CPU, expV_GPU);
 
   expV_CPU.setAsync(cpu_walker.getExpDeltaV(), 0, 0);
   expV_GPU.setAsync(gpu_walker.getExpDeltaV(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(expDeltaV_CPU, expDeltaV_GPU);
 
   vertex_ind_CPU.setAsync(cpu_walker.getVertexInd(), 0, 0);
   vertex_ind_GPU.setAsync(gpu_walker.getVertexInd(), 0, 0);
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   EXPECT_EQ(vertex_ind_CPU, vertex_ind_GPU);
 
   cpu_walker.read_Gamma_matrices(dca::phys::e_DN);
@@ -261,7 +261,7 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   cpu_walker.compute_Gamma_matrices();
   gpu_walker.compute_Gamma_matrices();
 
-  cudaStreamSynchronize(0);
+  checkRC(cudaStreamSynchronize(0));
   auto expected_size = std::pair<int, int>{0, 0};
   EXPECT_TRUE(Gamma_up_CPU.size() == expected_size);
   EXPECT_EQ(Gamma_up_CPU.size(), Gamma_up_GPU.size());

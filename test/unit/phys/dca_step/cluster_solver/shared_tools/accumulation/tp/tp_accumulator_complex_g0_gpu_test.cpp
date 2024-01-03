@@ -121,24 +121,6 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
   this->host_setup.parameters_.set_four_point_channels(four_point_channels);
   this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
 
-  // this->host_setup.data_->initializeSigma("zero");
-  // this->gpu_setup.data_->initializeSigma("zero"); //this->gpu_setup.parameters_.get_initial_self_energy());
-
-  using ParametersHost = typename decltype(this->host_setup)::Parameters;
-  using ParametersGPU = typename decltype(this->gpu_setup)::Parameters;
-
-  // LatticeMapSpType<ParametersHost,
-  // 		   k_DCA<ParametersHost>,
-  // 		   k_HOST<ParametersHost>> lattice_mapping_obj_host(this->host_setup.parameters_);
-  // auto& host_data = this->host_setup.data_;
-  // lattice_mapping_obj_host.execute(host_data->Sigma, host_data->Sigma_lattice_interpolated,
-  //                                  host_data->Sigma_lattice_coarsegrained, host_data->Sigma_lattice);
-
-  // LatticeMapSpType<ParametersGPU, k_DCA<ParametersGPU>, k_HOST<ParametersGPU>>
-  // lattice_mapping_obj_gpu(this->gpu_setup.parameters_); auto& gpu_data = this->gpu_setup.data_;
-  // lattice_mapping_obj_gpu.execute(gpu_data->Sigma, gpu_data->Sigma_lattice_interpolated,
-  //                                 gpu_data->Sigma_lattice_coarsegrained, gpu_data->Sigma_lattice);
-
   dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_),
                                                 dca::DistType::NONE, dca::linalg::CPU>
       accumulatorHost(this->host_setup.data_->G0_k_w_cluster_excluded, this->host_setup.parameters_);
