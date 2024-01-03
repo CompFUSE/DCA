@@ -6,7 +6,7 @@
 FFTW_PATH=/sw/frontier/spack-envs/base/opt/cray-sles15-zen3/gcc-11.2.0/fftw-3.3.10-njtwalw5xctv6e3fshucadlgu32jb4k6
 MAGMA_ROOT=/lustre/orion/world-shared/cph102/epd/gcc-11.2.0/magma-2.7.2-c5m5kzaz7irix5hk5zzf3mrwwlij43is
 OPENBLAS_ROOT=/lustre/orion/world-shared/cph102/epd/gcc-11.2.0/openblas-0.3.25-scaywvuh5zsm5u7smg54plj2oyf7nekv
-HDF5_ROOT=/lustre/orion/cph102/proj-shared/epd/spack/opt/spack/linux-sles15-zen3/gcc-11.2.0/hdf5-1.14.3-mjg4476nl2cfrmk5qmcrmvo7ryg2bdwd
+HDF5_ROOT=/lustre/orion/world-shared/cph102/epd/gcc-11.2.0/hdf5-1.14.3-mjg4476nl2cfrmk5qmcrmvo7ryg2bdwd
 cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DFFTW_ROOT=$FFTW_PATH \
       -DDCA_FIX_BROKEN_MPICH=ON \
