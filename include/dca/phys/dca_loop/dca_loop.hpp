@@ -209,6 +209,7 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   auto& autoresume_filename = parameters.get_autoresume_filename();
   if (parameters.autoresume()) {
 #ifdef DCA_HAVE_ADIOS2
+    io::IOType iotype = io::extensionToIOType(autoresume_filename);
     if (iotype == io::IOType::ADIOS2)
       last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
                                                 concurrency, concurrency.get_adios());
