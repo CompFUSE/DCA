@@ -27,7 +27,10 @@
 
 #if defined(DCA_HAVE_HIP)
 // hipComplex types are faulty so we use the magma complex types and operators
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <magma_operators.h>
+#pragma GCC diagnostic pop
 #include "dca/util/cuda2hip.h"
 
 namespace dca {

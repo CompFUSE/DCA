@@ -151,8 +151,8 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::synchronize() const {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
-  cudaStreamSynchronize(get_stream(0));
-  cudaStreamSynchronize(get_stream(1));
+  checkRC(cudaStreamSynchronize(get_stream(0)));
+  checkRC(cudaStreamSynchronize(get_stream(1)));
 }
 
 template <class Parameters, DistType DIST>

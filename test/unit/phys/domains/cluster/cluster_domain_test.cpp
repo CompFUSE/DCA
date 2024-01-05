@@ -43,7 +43,6 @@ protected:
 
 TEST(ClusterDomainsTest, initializeKDmn) {
   dca::io::JSONReader reader;
-  const int dimension = 2;
   using DomainsParameters = dca::phys::params::DomainsParameters;
   using AnalysisParameters = dca::phys::params::AnalysisParameters;
   using Model = ClusterDomainsTest::Model;
@@ -59,7 +58,6 @@ TEST(ClusterDomainsTest, initializeKDmn) {
   };
 
   ClusterDomainsTestParameters pars;
-  //DmnParameters pars(dimension);
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/domains/cluster/input.json");

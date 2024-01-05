@@ -152,11 +152,11 @@ Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double bet
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
 void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::getDeviceData(
     const linalg::Matrix<Scalar, linalg::GPU>& data) {
-  cudaMemcpy2DAsync(f_tau_.values(), f_tau_[0] * sizeof(Scalar),
+  checkRC(cudaMemcpy2DAsync(f_tau_.values(), f_tau_[0] * sizeof(Scalar),
                     data.ptr(), data.leadingDimension() * sizeof(Scalar),
                     data.nrRows() * sizeof(Scalar), data.nrCols(), cudaMemcpyDeviceToHost,
-                    stream_);
-  cudaStreamSynchronize(stream_.streamActually());
+			    stream_));
+  checkRC(cudaStreamSynchronize(stream_.streamActually()));
 }
 
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
@@ -174,8 +174,8 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCoeffi
     const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
     auto& dev_coeff = get_device_cubic_coeff();
     dev_coeff.resizeNoCopy(host_coeff.size());
-    cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(Real),
-               cudaMemcpyHostToDevice);
+    checkRC(cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(Real),
+		       cudaMemcpyHostToDevice));
 
     const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
     const auto& add_matrix = RDmn::parameter_type::get_add_matrix();
@@ -237,10 +237,10 @@ template <typename OtherScalar>
 void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::finalize(
     func::function<std::complex<OtherScalar>, func::dmn_variadic<WDmn, PDmn>>& f_w, bool get_square) {
   auto get_device_data = [&](const linalg::Matrix<Scalar, linalg::GPU>& data) {
-    cudaMemcpy2DAsync(f_tau_.values(), f_tau_[0] * sizeof(Scalar), data.ptr(),
+    checkRC(cudaMemcpy2DAsync(f_tau_.values(), f_tau_[0] * sizeof(Scalar), data.ptr(),
                       data.leadingDimension() * sizeof(Scalar), data.nrRows() * sizeof(Scalar),
-                      data.nrCols(), cudaMemcpyDeviceToHost, stream_);
-    cudaStreamSynchronize(stream_);
+			      data.nrCols(), cudaMemcpyDeviceToHost, stream_));
+    checkRC(cudaStreamSynchronize(stream_));
   };
 
   if (!get_square)
@@ -254,7 +254,7 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::finalize(
 template <typename Scalar, typename WDmn, typename RDmn, int oversampling>
 Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>& Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling,
                                                                 CUBIC>::operator+=(ThisType& other) {
-  cudaStreamSynchronize(other.stream_);
+  checkRC(cudaStreamSynchronize(other.stream_));
 
   details::sum(other.accumulation_matrix_.ptr(), other.accumulation_matrix_.leadingDimension(),
                accumulation_matrix_.ptr(), accumulation_matrix_.leadingDimension(),
@@ -265,7 +265,7 @@ Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>& Dnfft1DGpu<Scalar, WDmn, RD
                  accumulation_matrix_sqr_.leadingDimension(), accumulation_matrix_sqr_.nrRows(),
                  accumulation_matrix_sqr_.nrCols(), stream_);
 
-  cudaStreamSynchronize(stream_);
+  checkRC(cudaStreamSynchronize(stream_));
   return *this;
 }
 

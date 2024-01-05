@@ -78,7 +78,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
 
     BaseClass::computeM(M);
 #ifdef DCA_HAVE_GPU
-    cudaDeviceSynchronize();
+    checkRC(cudaDeviceSynchronize());
 #endif
 
     std::array<dca::linalg::Matrix<Scalar, CPU>, 2> M_copy{M[0], M[1]};
