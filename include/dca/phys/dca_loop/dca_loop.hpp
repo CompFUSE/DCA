@@ -236,7 +236,6 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   }
   else if (parameters.get_initial_self_energy() != "zero") {
 #ifdef DCA_HAVE_ADIOS2
-    io::IOType iotype = io::extensionToIOType(autoresume_filename);
     if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
       MOMS.initializeSigma(concurrency.get_adios(), parameters.get_initial_self_energy());
     else
