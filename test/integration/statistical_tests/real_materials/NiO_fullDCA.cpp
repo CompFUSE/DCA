@@ -22,6 +22,14 @@
 #include "dca/util/git_version.hpp"
 #include "dca/distribution/dist_types.hpp"
 #include "dca_loop_wrapper.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "NiO_setup.hpp"
 
 constexpr auto SOLVER = dca::ClusterSolverId::CT_INT;
@@ -51,7 +59,7 @@ struct MakeOutput;
 
 template <class DCACALC, class Parameters>
 struct MakeOutput<DCACALC, Parameters, dca::ClusterSolverId::CT_INT>{
-  void operator()(DCACALC& calculation, Parameters& parameters, Concurrency& concurrency) {
+  void operator()(DCACALC& calculation, Parameters& parameters [[maybe_unused]], Concurrency& concurrency) {
     
     const int n_frequencies = 10;
     auto G_k_cut = dca::math::util::bandDiagonal(
