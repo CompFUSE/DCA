@@ -521,7 +521,8 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::local_G_k_w(
   SpGreensFunction M;
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r, M);
 
-  const double sign = accumulator_.get_accumulated_sign();
+  // This phase can be a long long if we're dealing with real Scalars and immense iterations.
+  const long double sign = accumulator_.get_accumulated_phase();
 
   M /= sign;
   SpGreensFunction G_k_w("G_k_w");

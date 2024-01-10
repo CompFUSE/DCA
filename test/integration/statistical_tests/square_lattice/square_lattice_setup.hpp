@@ -62,7 +62,7 @@ using dca::ClusterSolverId;
 template <ClusterSolverId CS_NAME = ClusterSolverId::CT_AUX>
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, CS_NAME>;
+                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, CS_NAME, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 
 template <ClusterSolverId name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;

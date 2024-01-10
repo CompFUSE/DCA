@@ -4,7 +4,7 @@ if(DCA_WITH_TESTS_STOCHASTIC)
   #  leave it to break the build if its not maintained.  I found it completely inoperable after 4 years of not being built.
   add_executable(NiO_fullDCA NiO_fullDCA.cpp)
   target_link_libraries(NiO_fullDCA ${DCA_LIBS} ${DCA_THREADING_LIBS})
-  target_include_directories(NiO_fullDCA PRIVATE ${DCA_INCLUDE_DIRS})
+  target_include_directories(NiO_fullDCA PRIVATE ${DCA_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR})
   target_compile_definitions(NiO_fullDCA PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/")
   target_compile_definitions(NiO_fullDCA PRIVATE DCA_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 

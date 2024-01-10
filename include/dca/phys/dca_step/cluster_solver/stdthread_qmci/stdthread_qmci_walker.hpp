@@ -45,7 +45,7 @@ public:
                       G0Interpolation<device, Real>& g0);
 
   void initialize(int iteration_);
-  void doSweep();
+  void doSweep() override;
 
   void markThermalized() {
     //    QmciAutocorrelationData<QmciWalker>::markThermalized();
