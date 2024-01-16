@@ -7,12 +7,8 @@
 # Usage: source frontier_load_modules.sh
 
 module reset
-module load gcc/11.2.0
-module load openblas
-module load hdf5
-module load rocm/5.4.0
-module load fftw
-module load cmake
+module load gcc/12.2.0
+module load rocm/5.7.0
 module load ninja
 
 # After 2 weeks of digging through opaque linking and runtime errors,

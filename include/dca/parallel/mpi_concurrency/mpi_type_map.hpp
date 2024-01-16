@@ -18,6 +18,7 @@
 
 #include <complex>
 #include <cstdlib>
+#include <cstdint>
 #include <type_traits>
 #include "dca_mpi.h"
 
