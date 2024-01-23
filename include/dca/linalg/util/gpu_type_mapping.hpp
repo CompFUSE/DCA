@@ -168,8 +168,6 @@ struct Real2MagmaComplex<float> {
 
 template <typename Real>
 using GPUComplex = typename Real2MagmaComplex<Real>::type;
-#endif
-
 
 template <typename T>
 __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
@@ -178,6 +176,7 @@ __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
   else if constexpr (std::is_pointer_v<T>)
     return reinterpret_cast<HOSTPointerMap<T>>(var);
 }
+#endif
 
 }  // namespace util
 }  // namespace dca
