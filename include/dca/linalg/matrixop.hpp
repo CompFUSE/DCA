@@ -208,24 +208,23 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
   }
 
   if (max_diff > diff_threshold) {
-#ifndef NDEBUG
-    std::stringstream s;
-    for (int i = 0; i < a.nrRows(); ++i) {
-      for (int j = 0; j < a.nrCols(); ++j) {
-        if (std::abs(a(i, j) - b(i, j)) <= diff_threshold)
-          s << 0. << "\t";
-        else
-          s << a(i, j) - b(i, j) << "\t";
-      }
-      s << "\n";
-    }
-    s << std::endl;
-    std::cout << s.str();
-#endif  // NDEBUG
-    std::cerr << "matrix difference in excess of threshold!\n";
+    std::stringstream estr;
+    estr << "matrix difference in excess of threshold!\n";
+    // #ifndef NDEBUG
+    //     for (int i = 0; i < a.nrRows(); ++i) {
+    //       for (int j = 0; j < a.nrCols(); ++j) {
+    //         if (std::abs(a(i, j) - b(i, j)) <= diff_threshold)
+    //           s << 0. << "\t";
+    //         else
+    //           s << a(i, j) - b(i, j) << "\t";
+    //       }
+    //       s << "\n";
+    //     }
+    //     s << std::endl;
+    //     std::cout << s.str();
+    // #endif  // NDEBUG
     throw std::logic_error(__FUNCTION__);
   }
-
   return max_diff;
 }
   template <typename Scalar, DeviceType device_name, class ALLOC>
@@ -295,8 +294,8 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
 // Preconditions: mat is a square matrix.
 // Postconditions: ipiv and work are resized to the needed dimension.
 // \todo consider doing inverse at full precision reguardless of incoming Scalar precision
-  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
-  void inverse(MatrixType<Scalar, device_name, ALLOC>& mat, Vector<int, CPU>& ipiv,
+template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
+void inverse(MatrixType<Scalar, device_name, ALLOC>& mat, Vector<int, CPU>& ipiv,
              Vector<Scalar, device_name>& work) {
   assert(mat.is_square());
 
