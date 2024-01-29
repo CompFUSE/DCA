@@ -9,18 +9,13 @@
 export CMAKE_PREFIX_PATH=/lustre/orion/cph102/proj-shared/epd/spack/opt/spack/linux-sles15-zen3/gcc-12.2.0/fftw-3.3.10-tajdtzkealhold4bmpuq7wiwzurnclr4:/lustre/orion/cph102/proj-shared/epd/spack/opt/spack/linux-sles15-zen3/gcc-12.2.0/hdf5-1.14.3-3so3g5x2roywum3edvjun7jbhwisei6p:/lustre/orion/cph102/proj-shared/epd/spack/opt/spack/linux-sles15-zen3/gcc-12.2.0/magma-2.7.2-n5sjmunbzqcm5d4rsp2mrkxxvxd6lnfd:/lustre/orion/cph102/proj-shared/epd/spack/opt/spack/linux-sles15-zen3/gcc-12.2.0/openblas-0.3.25-t62dxdtaqba6lzrwoy4uddswlprgma6n
 
 cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-     -DROCM_ROOT=${ROCM_PATH} \
+      -DROCM_ROOT=${ROCM_PATH} \
       -DDCA_WITH_TESTS_FAST=ON \
       -DTEST_RUNNER="srun" \
-     -DGPU_TARGETS=gfx90a \
+      -DGPU_TARGETS=gfx90a \
       -DAMDGPU_TARGETS=gfx90a \
-     -DCMAKE_HIP_COMPILER=/opt/rocm-5.6.0/llvm/bin/clang++ \
-     -GNinja ..
-#      -DCMAKE_INSTALL_PREFIX=$INST \
-#      -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" \
-#      -GNinja \
-      #      -DBLAS_ROOT=${OPENBLAS_ROOT} \
- #      -DCMAKE_C_COMPILER=mpicc \
-#      -DCMAKE_CXX_COMPILER=mpic++ \
-      #
-#
+      -DCMAKE_HIP_COMPILER=/opt/rocm-5.6.0/llvm/bin/clang++ \
+      -DDCA_FIX_BROKEN_MPICH=1 \
+      -DCMAKE_C_COMPILER=mpicc \
+      -DCMAKE_CXX_COMPILER=mpic++ \
+      -GNinja ..
