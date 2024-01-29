@@ -302,14 +302,21 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
 
   ipiv.resizeNoCopy(mat.nrRows());
 
+  // This pivot vector has long been a host side vector which seems wrong,
+  // but this had no apparent effect on the frontier segfault issue
+  Vector<int,device_name> device_ipiv;
+  device_ipiv.resizeNoCopy(mat.nrRows());
+
   lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
-                                        mat.leadingDimension(), ipiv.ptr());
+                                        mat.leadingDimension(), device_ipiv.ptr());
   // Get optimal worksize.
   int lwork = util::getInverseWorkSize(mat);
   work.resizeNoCopy(lwork);
 
-  lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
+  lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), device_ipiv.ptr(),
                                         work.ptr(), lwork);
+
+  ipiv = device_ipiv;
 }
 
   template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
