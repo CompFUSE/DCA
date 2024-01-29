@@ -305,6 +305,7 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
   // This pivot vector has long been a host side vector which seems wrong,
   // but this had no apparent effect on the frontier segfault issue
   Vector<int,device_name> device_ipiv;
+  device_ipiv = ipiv;
   device_ipiv.resizeNoCopy(mat.nrRows());
 
   lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
