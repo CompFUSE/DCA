@@ -170,7 +170,7 @@ template <typename Real>
 using GPUComplex = typename Real2MagmaComplex<Real>::type;
 #endif
 
-
+#ifdef DCA_HAVE_GPU
 template <typename T>
 __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
   if constexpr (std::is_same_v<HOSTPointerMap<T>, T>)
@@ -178,6 +178,7 @@ __device__ __host__ HOSTPointerMap<T> castHostType(T var) {
   else if constexpr (std::is_pointer_v<T>)
     return reinterpret_cast<HOSTPointerMap<T>>(var);
 }
+#endif
 
 }  // namespace util
 }  // namespace dca

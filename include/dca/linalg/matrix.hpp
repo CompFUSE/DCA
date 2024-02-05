@@ -345,9 +345,12 @@ Matrix<ScalarType, device_name,  ALLOC>::~Matrix() {
 
 template <typename ScalarType, DeviceType device_name, class ALLOC>
 void Matrix<ScalarType, device_name,  ALLOC>::resize(std::pair<int, int> new_size) {
-  assert(new_size.first >= 0 && new_size.second >= 0);
-  if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
+  if (new_size.first == 0 || new_size.second ==0) {
+    size_ = new_size;
+    return;
+  } else if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
+
     ValueType* new_data = nullptr;
     new_data = Allocator::allocate(nrElements(new_capacity));
     // hip memorycpy2D routines don't tolerate leadingDimension = 0

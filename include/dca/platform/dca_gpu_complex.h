@@ -22,7 +22,9 @@
 #include <cuComplex.h>
 #endif
 
+#ifdef DCA_HAVE_GPU
 #include <magma_types.h>
+#endif
 #include "dca/util/type_fundamentals.hpp"
 
 #if defined(DCA_HAVE_HIP)
