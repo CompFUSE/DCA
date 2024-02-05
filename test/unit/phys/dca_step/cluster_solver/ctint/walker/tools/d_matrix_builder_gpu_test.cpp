@@ -77,8 +77,11 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
   Matrix<Scalar, CPU> G0;
   Matrix<Scalar, GPU> G0_dev;
   dca::linalg::util::GpuStream stream;
-  
-  const std::vector<int> sizes{1, 3, 8};
+
+  // Should d_matrices_be_buildable for delta >= sizes? I don't think so but
+  // I don't know that we have any guarantee such won't occur the code related to that in ctint is hard to audit.
+
+  const std::vector<int> sizes{4, 5, 11};
   const std::vector<int> deltas{1, 2, 3};
   int s(0);
   bool right_sector = true;
