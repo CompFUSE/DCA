@@ -145,7 +145,7 @@ TEST(Function, FingerPrint) {
 
   std::cout << result.str();
   EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/fingerprint.txt",
-                                            result.str()));
+                                            result.str())) << result.str();
 }
 
 TEST(Function, PrintElements) {
