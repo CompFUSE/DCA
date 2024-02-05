@@ -30,36 +30,49 @@
 #include "dca/util/type_list.hpp"
 #include "dca/util/type_help.hpp"
 #include "function_testing.hpp"
+#include <ModernStringUtils.hpp>
 
 namespace dca {
 namespace testing {
 // dca::testing::
 
+/** basically this ignores whitespace for comparing output of the type ouput.
+ *  this is necessary because libc++ inserts spaces between trailing template type brackets which is
+ * legal and was required by some older c++ stds.
+ */
+bool checkTypeLine(const std::string_view& expected, const std::string_view& test) {
+  auto expected_tokens = modernstrutil::split(expected, " \t");
+  auto test_tokens = modernstrutil::split(test, " \t");
+  if (expected_tokens.size() != test_tokens.size())
+    return false;
+  for (int i = 0; i < expected_tokens.size(); ++i)
+    if (expected_tokens[i] != test_tokens[i])
+      return false;
+  return true;
+}
+
 bool compare_to_file(const std::string& filename, const std::string& check) {
   // Open the file.
   std::ifstream known_result(filename);
-
+  auto test_lines = modernstrutil::split(check, "\n");
   if (known_result.good()) {
-    std::string contents;
-
-    // Get the right size to reserve it.
-    known_result.seekg(0, std::ios::end);
-    contents.reserve(known_result.tellg());
-
-    known_result.seekg(0, std::ios::beg);
-
-    // Read contents into string directly.
-    contents.assign((std::istreambuf_iterator<char>(known_result)), std::istreambuf_iterator<char>());
-
-    return (contents == check);
+    std::string expected_line;
+    auto test_line = test_lines.begin();
+    while (std::getline(known_result, expected_line)) {
+      if (test_line == test_lines.end())
+        return false;
+      else if (!checkTypeLine(expected_line, *test_line))
+        return false;
+      ++test_line;
+      return true;
+    }
   }
-
   else {
     std::ofstream new_result(filename);
+    auto test_line = test_lines.begin();
     new_result << check.c_str();
     std::cout << "No baseline file exists, writing new one " << filename.c_str() << std::endl;
   }
-
   return false;
 }
 
@@ -145,7 +158,8 @@ TEST(Function, FingerPrint) {
 
   std::cout << result.str();
   EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/fingerprint.txt",
-                                            result.str())) << result.str();
+                                            result.str()))
+      << result.str();
 }
 
 TEST(Function, PrintElements) {
