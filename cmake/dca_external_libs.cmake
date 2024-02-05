@@ -41,13 +41,13 @@ list(APPEND DCA_EXTERNAL_LIBS ${BLAS_LIBRARIES})
 # HDF5
 
 if (NOT HDF5_LIBRARIES)
-  message("Trying to find HDF5 library")
-  set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE false)
-  set(HDF5_PREFER_PARALLEL false)
-  find_package(HDF5 REQUIRED COMPONENTS C CXX)
-  message("HDF5: ${HDF5_FOUND} ${HDF5_LIBRARIES}")
-  mark_as_advanced(HDF5_LIBRARIES)
+set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE true)
+set(HDF5_PREFER_PARALLEL false)
+find_package(HDF5 REQUIRED COMPONENTS C CXX)
+message("HDF5: ${HDF5_FOUND} ${HDF5_LIBRARIES}")
+mark_as_advanced(HDF5_LIBRARIES)
 endif()
+
 
 ################################################################################
 # ADIOS2
