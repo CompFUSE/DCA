@@ -93,24 +93,24 @@ Domain16v dummy2;
 
 TEST(Function, TestDomain4a) {
   try {
-    std::cout << "Leaf indexing \n";
+    // std::cout << "Leaf indexing \n";
     int index = 0;
     for (int i0 = 0; i0 < 1; ++i0) {
       for (int i1 = 0; i1 < 2; ++i1) {
         for (int i2 = 0; i2 < 4; ++i2) {
           for (int i3 = 0; i3 < 8; ++i3) {
-            std::cout << i0 << "," << i1 << "," << i2 << "," << i3 << "\n";
+            // std::cout << i0 << "," << i1 << "," << i2 << "," << i3 << "\n";
             dca::testing::function_4a.operator()(i0, i1, i2, i3) = index++;
             // dca::testing::function_4a.operator()(i3,i2,i1,i0) = index; bad ordering
           }
         }
       }
     }
-    std::cout << "Branch indexing \n";
+    // std::cout << "Branch indexing \n";
     index = 0;
     for (int i0 = 0; i0 < 2; ++i0) {
       for (int i1 = 0; i1 < 32; ++i1) {
-        std::cout << i0 << "," << i1 << "\n";
+        // std::cout << i0 << "," << i1 << "\n";
         dca::testing::function_4a.operator()(i0, i1) = index++;
       }
     }
@@ -494,9 +494,9 @@ TEST(FunctionTest, BranchIndexingAndAssignment) {
   int size_domain2c = Domain2c::dmn_size();
   EXPECT_EQ(size_domain2c, 32);
   auto& branched_steps = branched_function.get_domain().get_branch_domain_steps();
-  std::cout << "branched_steps: " << vectorToString(branched_steps) << '\n';
+  // std::cout << "branched_steps: " << vectorToString(branched_steps) << '\n';
   auto& branch_sizes = branched_function.get_domain().get_branch_domain_sizes();
-  std::cout << "branched_sizes: " << vectorToString(branch_sizes) << '\n';
+  // std::cout << "branched_sizes: " << vectorToString(branch_sizes) << '\n';
   auto get_steps = [](const std::vector<unsigned long>& sbdm_sizes) {
     std::vector<unsigned long> sbdm_steps(sbdm_sizes.size(), 1);
     for (int i = 1; i < sbdm_steps.size(); ++i)
@@ -519,8 +519,8 @@ TEST(FunctionTest, BranchIndexingAndAssignment) {
 
   EXPECT_EQ(branched_function.size(), 4096);
   EXPECT_EQ(branched_function.getValues().size(), 4096);
-  std::cout << vectorToString(branched_function.getValues()) << '\n';
-  std::cout << vectorToString(branched_function_test.f.getValues()) << '\n';
+  // std::cout << vectorToString(branched_function.getValues()) << '\n';
+  // std::cout << vectorToString(branched_function_test.f.getValues()) << '\n';
 }
 
 TEST(FunctionTest, ArrayBasedIndexing) {
@@ -545,8 +545,6 @@ TEST(FunctionTest, ArrayBasedIndexing) {
         f2c0c0c.linind_2_subind(
             i2c + c2 * Domain2c::dmn_size() + c1 * Domain0c::dmn_size() * Domain2c::dmn_size(),
             subind);
-        if (subind[2] > 0)
-          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];
@@ -572,8 +570,6 @@ TEST(FunctionTest, ArrayBasedIndexing) {
     for (int c2 = 0; c2 < Domain0a::dmn_size(); c2++)
       for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
         f2c0a0c.linind_2_subind(linind++, subind);
-        if (subind[2] > 0)
-          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];
