@@ -152,6 +152,7 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
       reader_or_writer.execute("U", U_);
     }
     catch (const std::exception& r_e) {
+    }
     try {
       reader_or_writer.execute("Delta-U", Delta_U_);
     }
