@@ -166,7 +166,8 @@ void bilayer_lattice<point_group_type>::initializeHInteraction(
 
   const int origin = RDmn::parameter_type::origin_index();
 
-  const double U = parameters.get_U();              // Same band, opposite spin.
+  const double U = parameters.get_U();              // Same orbital (layer), opposite spin.
+  const double Delta_U = parameters.get_Delta_U();  // Difference in U between layers.
   const double V = parameters.get_V();              // Different band, opposite spin.
   const double V_prime = parameters.get_V_prime();  // Different band, same spin.
 
@@ -176,8 +177,10 @@ void bilayer_lattice<point_group_type>::initializeHInteraction(
     for (int s1 = 0; s1 < 2; s1++) {
       for (int b2 = 0; b2 < BANDS; b2++) {
         for (int s2 = 0; s2 < 2; s2++) {
-          if (b1 == b2 && s1 != s2)
-            H_interaction(b1, s1, b2, s2, origin) = U;
+          if (b1 == 0 && b2 == 0 && s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = U + 0.5 * Delta_U;
+          if (b1 == 1 && b2 == 1 && s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = U - 0.5 * Delta_U;
 
           if (b1 != b2 && s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = V;
