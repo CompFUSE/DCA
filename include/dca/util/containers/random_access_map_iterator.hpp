@@ -12,6 +12,8 @@
 #ifndef DCA_UTIL_TYPE_RANDOM_ACCESS_MAP_ITERATOR_HPP
 #define DCA_UTIL_TYPE_RANDOM_ACCESS_MAP_ITERATOR_HPP
 
+#include <cstdint>
+
 namespace dca {
 namespace util {
 namespace details {
