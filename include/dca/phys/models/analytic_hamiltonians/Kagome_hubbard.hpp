@@ -187,6 +187,13 @@ void KagomeHubbard<PointGroupType>::initializeH0(
   const auto& k_vecs = KDmn::get_elements();
 
   const auto t = parameters.get_t();
+  auto t1 = parameters.get_t1();
+  auto t2 = parameters.get_t2();
+
+  if (t1 == 0 && t2 == 0) {
+    t1 = t;
+    t2 = t;
+  }
 
   H_0 = ScalarType(0);
 
@@ -196,13 +203,13 @@ void KagomeHubbard<PointGroupType>::initializeH0(
     const auto& k = k_vecs[k_ind];
 
     for (int s = 0; s < 2; s++) {
-      H_0(0, s, 1, s, k_ind) = -2. * t * std::cos(0.5 * k[0]);
-      H_0(0, s, 2, s, k_ind) = -2. * t * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
-      H_0(1, s, 2, s, k_ind) = -2. * t * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
+      H_0(0, s, 1, s, k_ind) = - (t1 + t2) * std::cos(0.5 * k[0]) - I * (t1 - t2) * std::sin(0.5 * k[0]);
+      H_0(0, s, 2, s, k_ind) = - (t1 + t2) * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]) - I * (t1 - t2) * std::sin(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
+      H_0(1, s, 2, s, k_ind) = - (t1 + t2) * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]) - I * (t1 - t2) * std::sin(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
 
-      H_0(1, s, 0, s, k_ind) = -2. * t * std::cos(0.5 * k[0]);
-      H_0(2, s, 0, s, k_ind) = -2. * t * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
-      H_0(2, s, 1, s, k_ind) = -2. * t * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
+      H_0(1, s, 0, s, k_ind) = - (t1 + t2) * std::cos(0.5 * k[0]) - I * (t1 - t2) * std::sin(0.5 * k[0]);
+      H_0(2, s, 0, s, k_ind) = - (t1 + t2) * std::cos(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]) - I * (t1 - t2) * std::sin(0.25 * k[0] + 0.25 * sqrt(3.) * k[1]);
+      H_0(2, s, 1, s, k_ind) = - (t1 + t2) * std::cos(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]) - I * (t1 - t2) * std::sin(0.25 * k[0] - 0.25 * sqrt(3.) * k[1]);
     }
   }
 }

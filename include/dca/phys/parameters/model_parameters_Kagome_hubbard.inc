@@ -30,6 +30,20 @@ public:
     t_ = t;
   }
 
+  double get_t1() const {
+    return t1_;
+  }
+  void set_t1(double t1) {
+    t1_ = t1;
+  }
+
+  double get_t2() const {
+    return t2_;
+  }
+  void set_t2(double t2) {
+    t2_ = t2;
+  }
+
   double get_U() const {
     return U_;
   }
@@ -38,6 +52,8 @@ public:
   }
 private:
   double t_ = 0;
+  double t1_ = 0;
+  double t2_ = 0;
   double U_ = 0;
 };
 
@@ -48,6 +64,8 @@ int ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>>
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(t_);
+  buffer_size += concurrency.get_buffer_size(t1_);
+  buffer_size += concurrency.get_buffer_size(t2_);
   buffer_size += concurrency.get_buffer_size(U_);
 
   return buffer_size;
@@ -58,6 +76,8 @@ template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>>>::pack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
+  concurrency.pack(buffer, buffer_size, position, t1_);
+  concurrency.pack(buffer, buffer_size, position, t2_);
   concurrency.pack(buffer, buffer_size, position, U_);
 }
 
@@ -66,6 +86,8 @@ template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>>>::unpack(
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
+  concurrency.unpack(buffer, buffer_size, position, t1_);
+  concurrency.unpack(buffer, buffer_size, position, t2_);
   concurrency.unpack(buffer, buffer_size, position, U_);
 }
 
@@ -81,6 +103,16 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
   }
     try {
       reader_or_writer.execute("t", t_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("t1", t1_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("t2", t2_);
     }
     catch (const std::exception& r_e) {
     }

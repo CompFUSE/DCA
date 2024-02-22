@@ -16,7 +16,8 @@ set(gtest_DIR "${CMAKE_CURRENT_LIST_DIR}/../libs/gmock-1.7.0/gtest/"
 
 # HDF5
 # CMake 3.6 does not properly find HDF5 if HDF5_ROOT is not set.
-set(HDF5_ROOT "/opt/homebrew/Cellar/hdf5/1.14.3/" CACHE PATH "Path to HDF5 installation directory.")
+set(HDF5_ROOT "/opt/homebrew/Cellar/hdf5@1.10/1.10.11/" CACHE PATH "Path to HDF5 installation directory.")
+# set(HDF5_ROOT "/opt/homebrew/Cellar/hdf5/1.14.3/" CACHE PATH "Path to HDF5 installation directory.")
 # set(HDF5_LIBRARIES "/opt/homebrew/Cellar/hdf5/1.14.3/lib/" CACHE PATH "Path to HDF5 libraries.")
 # set(HDF5_ROOT "/usr/local/anaconda3/pkgs/hdf5-1.10.6-hdbbcd12_0/" CACHE PATH "Path to HDF5 installation directory.")
 
