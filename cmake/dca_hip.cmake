@@ -73,10 +73,10 @@ if (CMAKE_HIP_COMPILER)
   list(APPEND DCA_GPU_LIBS hip::host roc::hipblas roc::hipsparse)
   set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx908,gfx90a")
   set(CMAKE_HIP_STANDARD 17)
-
   list(APPEND HIP_HIPCC_FLAGS "-fPIC")
   # doesn't appear to work
   set(CMAKE_HIP_SOURCE_FILE_EXTENSIONS cu)
+  message("Enabled HIP as a language")
   # NOTE: this is solved by dca_linking.cmake: dca_gpu_device_link()
   # alternative method (same issue)
   #file(GLOB_RECURSE CUDA_KERNELS_SRC ${PROJECT_SOURCE_DIR} *.cu)
@@ -112,7 +112,7 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # I have built magma without openmp for
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
-  target_link_libraries(magma::magma INTERFACE roc::hipblas roc::hipsparse)
+  target_link_libraries(magma::magma INTERFACE roc::hipblas roc::hipsparse LAPACK::LAPACK BLAS::BLAS)
   target_link_libraries(magma::sparse INTERFACE magma::magma)
   list(APPEND DCA_GPU_LIBS ${MAGMA_LIBRARY} roc::hipsparse roc::hipblas)
 endif()

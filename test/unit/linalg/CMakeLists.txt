@@ -22,9 +22,8 @@ dca_add_gtest(matrix_cpu_gpu_test
               LIBS ${DCA_LIBS})
 
 dca_add_gtest(matrix_gpu_test
-              GTEST_MAIN
               CUDA
-              LIBS ${DCA_LIBS})
+              LIBS ${DCA_LIBS} ${DCA_KERNEL_LIBS})
 
 # dca_add_gtest(matrixop_complex_cpu_test
 #               GTEST_MAIN

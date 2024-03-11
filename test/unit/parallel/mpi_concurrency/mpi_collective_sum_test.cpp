@@ -198,8 +198,9 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   // Non-trivial case
   const double d = 42.1;
   const double r = 1.4;
-  f(0) = std::complex<double>(rank_, rank_ + r);
-  f(1) = std::complex<double>(rank_, d);
+  int rank = rank_ + 1;
+  f(0) = std::complex<double>(rank, rank + r);
+  f(1) = std::complex<double>(rank, d);
 
   std::vector<double> rank_obs_real;
   std::vector<double> rank_obs_imag;
@@ -420,10 +421,11 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
 
   std::vector<double> momenta(orders.size());
 
+  int rank = rank_ + 1;
+  
   for (int i = 0; i < f.size(); i++) {
     f(i) = rank_ * (i + 1);
   }
-
 
   std::vector<std::vector<double>> m_momenta;
   for (int i = 0; i < orders.size(); ++i)
@@ -445,6 +447,7 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
       f_mean[i] += ir * (i + 1);
     }
   }
+
   for (int i = 0; i < f.size(); ++i)
     f_mean[i] /= size_;
 
@@ -455,6 +458,7 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
 
     unormalizedMomenta(samples, f_mean);
   }
+
   std::vector<double> expected_momenta_avg(orders.size(), 0.0);
   for (int i = 0; i < f.size(); ++i) {
     const double var = std::sqrt(var2[i] / size_);

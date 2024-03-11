@@ -33,8 +33,8 @@ namespace util {
 
 // Returns optimal lwork for inverse.
 // In: mat
-  template <typename ScalarType, class ALLOC, template <typename, DeviceType, class> class MatrixType>
-int getInverseWorkSize(MatrixType<ScalarType, CPU, ALLOC>& mat) {
+  template <typename ScalarType, template <typename> class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  int getInverseWorkSize(MatrixType<ScalarType, CPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   ScalarType tmp;
@@ -42,8 +42,8 @@ int getInverseWorkSize(MatrixType<ScalarType, CPU, ALLOC>& mat) {
   return lapack::util::getWorkSize(tmp);
 }
 #ifdef DCA_HAVE_GPU
-template <typename ScalarType,  template <typename, DeviceType> class MatrixType>
-int getInverseWorkSize(const MatrixType<ScalarType, GPU>& mat) {
+  template <typename ScalarType,  template<typename> class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  int getInverseWorkSize(const MatrixType<ScalarType, GPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   return mat.nrRows() * magma::get_getri_nb<ScalarType>(mat.nrRows());

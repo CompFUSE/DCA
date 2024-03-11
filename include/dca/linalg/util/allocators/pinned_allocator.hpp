@@ -17,7 +17,7 @@
 #include "dca/platform/dca_gpu.h"
 #else
 #error "This file requires GPU support."
-#endif 
+#endif
 
 namespace dca {
 namespace linalg {
@@ -34,11 +34,22 @@ public:
   using const_pointer = const T*;
   using value_type = T;
 
+  /** Allocates pinned memory through the GPU runtime.
+   *  It does this in the crudest way possible on HIP which is to just always allocate as many 4k
+   * blocks as the allocation can minimally fit, the rest of the memory is wasted.  We have no way
+   * of knowing if this was what the runtime always did or not.
+   */
   T* allocate(std::size_t n, const void* /*hint*/ = nullptr) {
     if (n == 0)
       return nullptr;
+#ifdef DCA_HAVE_HIP
+    std::size_t actual_size = ((n * sizeof(T)) / 4096 + 1) * 4096;
+#else
+    std::size_t actual_size = n * sizeof(T);
+#endif
     void* ptr;
-    cudaError_t ret = cudaHostAlloc(&ptr, n * sizeof(T), cudaHostAllocDefault);
+    cudaError_t ret =
+        cudaHostAlloc(&ptr, actual_size, hipHostMallocPortable);  // cudaHostAllocDefault
     if (ret != cudaSuccess) {
       printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__,
                         "\t HOST size requested : " + std::to_string(n * sizeof(T)));
@@ -48,14 +59,19 @@ public:
   }
 
   void deallocate(T*& ptr, std::size_t /*n*/ = 0) noexcept {
+    //    assert(ptr == host_ptr_);
     cudaError_t ret = cudaFreeHost(ptr);
     if (ret != cudaSuccess) {
       printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
       std::terminate();
     }
+    //host_ptr_ = nullptr;
     ptr = nullptr;
   }
 
+private:
+  //std::size_t actual_size_ = 0;
+  //T* host_ptr_{nullptr};
 };
 
 // These are part of the requirements for a C++ Allocator however these are insufficient
@@ -63,12 +79,16 @@ public:
 // They are part of what's needed to do a std::move on a PinnedAllocator backed object
 // and avoid deallocation and reallocation.
 template <class T, class U>
-bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return true; }
+bool operator==(const PinnedAllocator<T>&, const PinnedAllocator<U>&) {
+  return true;
+}
 template <class T, class U>
-bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) { return false; }
+bool operator!=(const PinnedAllocator<T>&, const PinnedAllocator<U>&) {
+  return false;
+}
 
-}  // util
-}  // linalg
-}  // dca
+}  // namespace util
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_ALLOCATORS_PINNED_ALLOCATOR_HPP

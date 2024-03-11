@@ -436,7 +436,7 @@ function<scalartype, domain, DT>::function(const std::string& name)
       std::cerr << "large functions need names give yourself a chance.\n";
   }
   // will zero real or complex values
-  fnc_values_.resize(dmn.get_size(), {});
+  fnc_values_.resize(dmn.get_size());
 }
 
 /** copy constructor
@@ -512,7 +512,7 @@ function<scalartype, domain, DT>::function(std::initializer_list<scalartype> ini
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()) {
   start_ = 0;
   end_ = dmn.get_size();
-  fnc_values_.resize(dmn.get_size(), {});
+  fnc_values_.resize(dmn.get_size());
   std::copy_n(init_list.begin(), init_list.size(), fnc_values_.begin());
 }
 
@@ -657,7 +657,7 @@ function<scalartype, domain, DT>& function<scalartype, domain, DT>::operator=(
       Nb_sbdms = other.dmn.get_leaf_domain_sizes().size();
       start_ = other.start_;
       end_ = other.end_;
-      fnc_values_.resize(other.size(), {});
+      fnc_values_.resize(other.size());
     }
     fnc_values_ = other.fnc_values_;
   }
@@ -679,7 +679,7 @@ inline function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
         Nb_sbdms = other.dmn.get_leaf_domain_sizes().size();
         start_ = other.start_;
         end_ = other.end_;
-        fnc_values_.resize(other.size(), {});
+        fnc_values_.resize(other.size());
       }
       fnc_values_ = other.fnc_values_;
     }
@@ -694,7 +694,7 @@ inline function<Scalar, domain, DT>& function<Scalar, domain, DT>::operator=(
       Nb_sbdms = other.dmn.get_leaf_domain_sizes().size();
       start_ = other.start_;
       end_ = other.end_;
-      fnc_values_.resize(other.size(), {});
+      fnc_values_.resize(other.size());
     }
     auto kConvert = [](auto& kvec) -> std::vector<Scalar> {
       std::vector<Scalar> k_converted(kvec.size());
