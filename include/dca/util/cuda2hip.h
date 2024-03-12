@@ -136,6 +136,7 @@
 #define cudaHostAlloc                   hipHostMalloc
 #define cudaHostAllocMapped             hipHostMallocMapped
 #define cudaHostAllocDefault            hipHostMallocDefault
+#define cudaHostAllocPortable           hipHostMallocPortable
 #define cudaIpcGetMemHandle             hipIpcGetMemHandle
 #define cudaIpcMemHandle_t              hipIpcMemHandle_t
 #define cudaIpcMemLazyEnablePeerAccess  hipIpcMemLazyEnablePeerAccess

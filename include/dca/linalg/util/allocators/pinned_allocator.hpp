@@ -49,7 +49,7 @@ public:
 #endif
     void* ptr;
     cudaError_t ret =
-        cudaHostAlloc(&ptr, actual_size, hipHostMallocPortable);  // cudaHostAllocDefault
+        cudaHostAlloc(&ptr, actual_size, cudaHostAllocPortable);  // cudaHostAllocDefault
     if (ret != cudaSuccess) {
       printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__,
                         "\t HOST size requested : " + std::to_string(n * sizeof(T)));

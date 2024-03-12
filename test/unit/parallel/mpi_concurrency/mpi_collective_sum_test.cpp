@@ -206,8 +206,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   std::vector<double> rank_obs_imag;
 
   for (int i = 0; i < size_; ++i) {
-    rank_obs_real.push_back(i);
-    rank_obs_imag.push_back(i + r);
+    rank_obs_real.push_back(i + 1);
+    rank_obs_imag.push_back(i + r + 1);
     //      rank_obs.push_back(d);
   }
 
@@ -250,7 +250,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   // Overwrite the jackknife estimates with their average.
   auto err_overwriting = sum_interface_.jackknifeError(f, true);
 
-  const double rank_avg = double(size_ - 1) / 2.;
+  const double rank_avg = double(size_) / 2.;
 
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, rank_avg + r).real(), f(0).real());
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, d).real(), f(1).real());
