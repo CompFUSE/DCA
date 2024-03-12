@@ -198,16 +198,15 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   // Non-trivial case
   const double d = 42.1;
   const double r = 1.4;
-  int rank = rank_ + 1;
-  f(0) = std::complex<double>(rank, rank + r);
-  f(1) = std::complex<double>(rank, d);
+  f(0) = std::complex<double>(rank_, rank_ + r);
+  f(1) = std::complex<double>(rank_, d);
 
   std::vector<double> rank_obs_real;
   std::vector<double> rank_obs_imag;
 
   for (int i = 0; i < size_; ++i) {
-    rank_obs_real.push_back(i + 1);
-    rank_obs_imag.push_back(i + r + 1);
+    rank_obs_real.push_back(i);
+    rank_obs_imag.push_back(i + r);
     //      rank_obs.push_back(d);
   }
 
@@ -250,7 +249,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   // Overwrite the jackknife estimates with their average.
   auto err_overwriting = sum_interface_.jackknifeError(f, true);
 
-  const double rank_avg = double(size_) / 2.;
+  const double rank_avg = double(size_ - 1) / 2.;
 
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, rank_avg + r).real(), f(0).real());
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, d).real(), f(1).real());
