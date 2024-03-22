@@ -16,7 +16,6 @@
 #include <functional>
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_reader.hpp"
-adios2::ADIOS* adios_ptr;
 #endif
 #include <vector>
 #include "gtest/gtest.h"
@@ -29,9 +28,8 @@ class ReaderTest : public ::testing::Test {};
 
 #ifdef DCA_HAVE_MPI
 using Concurrency = dca::parallel::MPIConcurrency;
-#ifdef DCA_HAVE_ADIOS2
-adios2::ADIOS* adios2_uptr;
-#endif
+#else
+using Concurrency = dca::parallel::NoConcurrency;
 #endif
 
 
@@ -45,7 +43,7 @@ using ReaderTypes = ::testing::Types<dca::io::CSVReader, dca::io::HDF5Reader, dc
 
 TYPED_TEST_CASE(ReaderTest, ReaderTypes);
 
-Concurrency* concurrency_ptr;
+std::unique_ptr<Concurrency> concurrency_ptr;
 
 TEST(JSONReaderTest, Vector) {
   dca::io::JSONReader reader;
@@ -112,13 +110,7 @@ TEST(ADIOS2ReaderTest, Vector) {
 #endif
 
 int main(int argc, char** argv) {
-#ifdef DCA_HAVE_MPI
-  concurrency_ptr = new Concurrency(argc, argv);
-#ifdef DCA_HAVE_ADIOS2
-  adios2_uptr = &(concurrency_ptr->get_adios());
-#endif
-#endif
-
+  concurrency_ptr = std::make_unique<Concurrency>(argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
 
   // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

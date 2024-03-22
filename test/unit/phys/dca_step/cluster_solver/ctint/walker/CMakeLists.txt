@@ -5,7 +5,7 @@ set(TEST_LIBS     ${DCA_LIBS})
 
 dca_add_gtest(ct_int_walker_test
     FAST
-    GTEST_MAIN
+    GTEST_MPI_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
     LIBS     FFTW::Double ${TEST_LIBS} g0_interpolation ${DCA_KERNEL_LIBS}
     )

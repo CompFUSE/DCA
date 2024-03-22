@@ -4,6 +4,7 @@ dca_add_gtest(buffer_test
   GTEST_MAIN)
 
 dca_add_gtest(reader_test
+  MPI
   LIBS function ${DCA_LIBS} dca_io)
 
 dca_add_gtest(writer_test
