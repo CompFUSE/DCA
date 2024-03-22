@@ -123,8 +123,8 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 
 #ifdef DCA_HAVE_ADIOS2
   if (write_G4s) {
-    dca::io::Writer writer(*adios_ptr, *concurrency_ptr, "ADIOS2", true);
-    dca::io::Writer writer_h5(*adios_ptr, *concurrency_ptr, "HDF5", true);
+    dca::io::Writer writer(*concurrency_ptr, "ADIOS2", true);
+    dca::io::Writer writer_h5(*concurrency_ptr, "HDF5", true);
 
     writer.open_file("tp_gpu_test_G4.bp");
     writer_h5.open_file("tp_gpu_test_G4.hdf5");
@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
 
 #ifdef DCA_HAVE_ADIOS2
   // ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get(), false);
+  adios2::ADIOS adios("", concurrency_ptr->get());
   adios_ptr = &adios;
 #endif
   ::testing::InitGoogleTest(&argc, argv);

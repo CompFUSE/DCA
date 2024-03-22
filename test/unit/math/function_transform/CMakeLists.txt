@@ -1,12 +1,11 @@
 # unit/math/function_transform
 dca_add_gtest(function_transform_test
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
-        LIBS FFTW::Double ${DCA_LIBS})
+        LIBS FFTW::Double ${DCA_LIBS} parallel_no_concurrency)
 
 dca_add_gtest(space_transform_2D_test
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
-        LIBS FFTW::Double ${DCA_LIBS})
-
+        LIBS FFTW::Double ${DCA_LIBS} parallel_no_concurrency)
 
 dca_add_gtest(space_transform_2D_gpu_test
     CUDA

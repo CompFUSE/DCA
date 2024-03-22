@@ -87,15 +87,18 @@ public:
 
 #ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS& get_adios() {
-    return adios_;
+    return *adios_;
   }
 #endif
 
+  //friend class adios2_reader<MPIConcurrency>;
+  
 private:
   constexpr static char parallel_type_str_[] = "MPIConcurrency";
 
+public:
 #ifdef DCA_HAVE_ADIOS2
-  adios2::ADIOS adios_;
+  std::unique_ptr<adios2::ADIOS> adios_;
 #endif
 };
 

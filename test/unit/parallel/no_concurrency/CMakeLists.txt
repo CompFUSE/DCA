@@ -10,6 +10,8 @@ dca_add_gtest(no_concurrency_test
   GTEST_MAIN
   LIBS function
   ${optional_io_lib}
+  ${DCA_LIBS}
+  parallel_no_concurrency
   )
 
 dca_add_gtest(serial_collective_sum_test

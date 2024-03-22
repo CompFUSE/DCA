@@ -171,6 +171,7 @@ set(DCA_LIBS
   signals
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
+  parallel_no_concurrency
   ${DCA_THREADING_LIBS}
   lapack
   models

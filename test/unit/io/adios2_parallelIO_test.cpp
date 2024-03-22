@@ -101,7 +101,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
   const std::string fname("ADIOS2ParallelIOTest_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(*adios_ptr, concurrency_ptr, false);
+    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(concurrency_ptr);
     writer.open_file(fname, true);
 
     // Because the caller needs to know if its function is distributed or not we will assume this is
@@ -120,7 +120,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
       std::cout << " Read back data with 3D selection " << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, false);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
@@ -193,7 +193,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
 
   const std::string fname("ADIOS2ParallelIOTest_ImplicitSubIndices_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
 
     writer.execute(f1);
@@ -207,7 +207,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
       std::cout << " Read back data with 3D selection from " << fname << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
@@ -256,7 +256,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
 
   const std::string fname("ADIOS2ParallelIOTest_linear_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
 
     // Because the caller needs to know if its function is distributed or not we will assume this is
@@ -273,7 +273,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     if (!rank) {
       std::cout << " Read back data with linear 1D selection " << std::endl;
     }
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
@@ -332,7 +332,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
 
   const std::string fname("ADIOS2ParallelIOTest_linear_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
 
     // Because the caller needs to know if its function is distributed or not we will assume this is
@@ -349,7 +349,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
     if (!rank) {
       std::cout << " Read back data with linear 1D selection " << std::endl;
     }
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);

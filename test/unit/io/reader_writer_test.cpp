@@ -16,11 +16,13 @@
 
 #ifdef DCA_HAVE_MPI
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-dca::parallel::MPIConcurrency* concurrency_ptr = nullptr;
+using Concurrency = dca::parallel::MPIConcurrency;
 #else
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-dca::parallel::NoConcurrency* concurrency_ptr;
+using Concurrency = parallel::NoConcurrency;
 #endif
+
+Concurrency* concurrency_ptr = nullptr;
 
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
@@ -63,11 +65,7 @@ TEST(ReaderWriterTest, RAIIDestructor) {
 
     const int i = 42;
     {
-#ifdef DCA_HAVE_ADIOS2
-      dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type, true);
-#else
       dca::io::Writer writer(*concurrency_ptr, type);
-#endif
       writer.open_file(test_file_name);
       writer.open_group(group_name_1);
       writer.open_group(group_name_2);
@@ -93,19 +91,18 @@ TEST(ReaderWriterTest, VectorReadWrite) {
         std::complex<double>(1., 0.), std::complex<double>(0., 1.), std::complex<double>(23.4, -1.5)};
 
     // Create test file.
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file(file_name);
+    writer.begin_step();
     writer.execute(object_name, a_vector);
+    writer.end_step();
     writer.close_file();
 
     // Read test file.
     dca::io::Reader reader(*concurrency_ptr, type);
     std::vector<std::complex<double>> vector_read;
     reader.open_file(file_name);
+    reader.begin_step();
     EXPECT_TRUE(reader.execute(object_name, vector_read));
 
     ASSERT_EQ(a_vector.size(), vector_read.size());
@@ -125,22 +122,22 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
     const std::vector<std::vector<double>> data_unequal_size{{0, 0, 2}, {1}, {1, 0}, {}, {0, 0}};
 
     // Create test file.
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file(file_name);
+    writer.begin_step();
     writer.execute(object_name, data_unequal_size);
+    writer.end_step();
     writer.close_file();
 
     // Read test file.
     dca::io::Reader reader(*concurrency_ptr, type);
     std::vector<std::vector<double>> data_read;
     reader.open_file(file_name);
+    reader.begin_step();
     EXPECT_TRUE(reader.execute(object_name, data_read));
-
+    
     EXPECT_EQ(data_unequal_size, data_read);
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -153,11 +150,7 @@ TEST(ReaderWriterTest, VectorOfArraysReadWrite) {
     std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}};
 
 // Create test file.
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file(file_name);
     writer.execute(object_name, data);
     writer.close_file();
@@ -179,11 +172,7 @@ TEST(ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
     const std::string filename = "test_vec_of_strings" + toLower(type);
 
 // Create test file.
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file(filename);
     writer.execute("single-string", s1);
     writer.execute("strings", s_vec1);
@@ -221,11 +210,7 @@ TYPED_TEST(ReaderWriterTest, FunctionReadWrite) {
     for (auto& x : f1)
       x = ++val;
     {
-#ifdef DCA_HAVE_ADIOS2
-      dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
       dca::io::Writer writer(*concurrency_ptr, type);
-#endif
       writer.open_file("test_func." + toLower(type), true);
       writer.execute(f1);
     }
@@ -258,11 +243,7 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
         m1(i, j) = ++val;
 
     {
-#ifdef DCA_HAVE_ADIOS2
-      dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
       dca::io::Writer writer(*concurrency_ptr, type);
-#endif
       writer.open_file(filename, true);
       EXPECT_TRUE(writer.execute(m1));
       writer.close_file();
@@ -282,21 +263,13 @@ TYPED_TEST(ReaderWriterTest, MatrixReadWrite) {
 
 TEST(ReaderWriterTest, NonAccessibleFile) {
   for (auto type : types) {
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     H5::Exception::dontPrint();
     // Exception type doesn't seem portable
     if (type != "ADIOS2")
       EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
 
-#ifdef DCA_HAVE_ADIOS2
     dca::io::Reader reader(*concurrency_ptr, type);
-#else
-    dca::io::Reader reader(*concurrency_ptr, type);
-#endif
     // Exception type doesn't seem portable
     EXPECT_ANY_THROW(reader.open_file("not_existing_file.txt"));
   }
@@ -308,11 +281,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     dca::func::function<int, Dmn> present("present");
     present = 1;
 
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file("missing_func." + toLower(type));
     writer.execute(present);
     writer.close_file();
@@ -320,11 +289,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
     dca::func::function<int, Dmn> not_present("not_present");
     present = 0;
 
-#ifdef DCA_HAVE_ADIOS2
     dca::io::Reader reader(*concurrency_ptr, type);
-#else
-    dca::io::Reader reader(*concurrency_ptr, type);
-#endif
     reader.open_file("missing_func." + toLower(type));
     EXPECT_FALSE(reader.execute(not_present));
     EXPECT_TRUE(reader.execute(present));
@@ -338,11 +303,7 @@ TEST(ReaderWriterTest, FunctionNotPresent) {
 
 TEST(ReaderWriterTest, GroupOpenclose) {
   for (auto type : types) {
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file("group_open_close" + toLower(type));
 
     writer.open_group("foo");
@@ -359,11 +320,7 @@ TEST(ReaderWriterTest, GroupOpenclose) {
 
     writer.close_file();
 
-#ifdef DCA_HAVE_ADIOS2
     dca::io::Reader reader(*concurrency_ptr, type);
-#else
-    dca::io::Reader reader(*concurrency_ptr, type);
-#endif
     reader.open_file("group_open_close" + toLower(type));
 
     int i_val;
@@ -385,11 +342,7 @@ TEST(ReaderWriterTest, GroupOpenclose) {
 
 TEST(ReaderWriterTest, SteppedGroupOpenclose) {
   for (auto type : stepped_types) {
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     std::string test_filename{"group_open_close_stepped." + toLower(type)};
     writer.open_file(test_filename);
 
@@ -423,11 +376,7 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
 
     writer.close_file();
 
-#ifdef DCA_HAVE_ADIOS2
     dca::io::Reader reader(*concurrency_ptr, type);
-#else
-    dca::io::Reader reader(*concurrency_ptr, type);
-#endif
     reader.open_file(test_filename);
 
     int i_val;
@@ -493,11 +442,7 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
 
 TEST(ReaderWriterTest, Overwrite) {
   for (auto type : types) {
-#ifdef DCA_HAVE_ADIOS2
-    dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
     dca::io::Writer writer(*concurrency_ptr, type);
-#endif
     writer.open_file("test" + toLower(type), true);
 
     writer.open_group("foo");
@@ -509,11 +454,7 @@ TEST(ReaderWriterTest, Overwrite) {
 
     writer.close_file();
 
-#ifdef DCA_HAVE_ADIOS2
     dca::io::Reader reader(*concurrency_ptr, type);
-#else
-    dca::io::Reader reader(*concurrency_ptr, type);
-#endif
     reader.open_file("test" + toLower(type));
 
     int i_val;
@@ -527,11 +468,7 @@ TEST(ReaderWriterTest, Overwrite) {
 TEST(ReaderWriterTest, CompoundName) {
   std::string type{"HDF5"};
 
-#ifdef DCA_HAVE_ADIOS2
-  dca::io::Writer writer(*adios2_ptr, *concurrency_ptr, type);
-#else
   dca::io::Writer writer(*concurrency_ptr, type);
-#endif
   writer.open_file("compound_names." + toLower(type), true);
 
   // compound names are actually only supported by the reader for hdf5
@@ -547,11 +484,7 @@ TEST(ReaderWriterTest, CompoundName) {
 
   writer.close_file();
 
-#ifdef DCA_HAVE_ADIOS2
   dca::io::Reader reader(*concurrency_ptr, type);
-#else
-  dca::io::Reader reader(*concurrency_ptr, type);
-#endif
   reader.open_file("compound_names." + toLower(type));
 
   int i_val;
@@ -567,13 +500,7 @@ TEST(ReaderWriterTest, CompoundName) {
 int main(int argc, char** argv) {
   // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
   // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
-#ifdef DCA_HAVE_MPI
-  concurrency_ptr = new dca::parallel::MPIConcurrency(argc, argv);
-#ifdef DCA_HAVE_ADIOS2
-  adios2::ADIOS adios("", concurrency_ptr->get());
-  adios2_ptr = &(concurrency_ptr->get_adios());
-#endif
-#endif
+  concurrency_ptr = new Concurrency(argc, argv);
 
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

@@ -22,12 +22,8 @@ namespace io {
 // dca::io::
 
 template <class CT>
-ADIOS2Reader<CT>::ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency, bool verbose)
-    : adios_(adios), verbose_(verbose), concurrency_(concurrency) {}
-
-template <class CT>
-ADIOS2Reader<CT>::ADIOS2Reader(const CT* concurrency, bool verbose)
-    : adios_(GlobalAdios::getAdios()), verbose_(verbose), concurrency_(concurrency) {}
+ADIOS2Reader<CT>::ADIOS2Reader(const CT& concurrency, bool verbose)
+  : concurrency_(concurrency), adios_(*concurrency.adios_), verbose_(verbose)  {}
 
 template <class CT>
 ADIOS2Reader<CT>::~ADIOS2Reader() {

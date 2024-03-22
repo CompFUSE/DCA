@@ -17,6 +17,10 @@
 namespace dca {
 namespace parallel {
 
+#ifdef DCA_HAVE_ADIOS2
+  NoConcurrency::NoConcurrency(int argc, char** argv) : adios_(std::make_unique<adios2::ADIOS>("", MPI_COMM_SELF)) {}
+#endif
+
 void NoConcurrency::abort() const {
   std::cout << "\nAborting process.\n";
   std::terminate();

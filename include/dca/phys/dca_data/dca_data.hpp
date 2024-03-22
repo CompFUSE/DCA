@@ -116,9 +116,6 @@ public:
   /** These reads are used by analysis programs only for now.
    */
   void read(const std::string& filename);
-#ifdef DCA_HAVE_ADIOS2
-  void read(adios2::ADIOS& adios, std::string filename);
-#endif
 
   /** prefer this as it allows for more sensible handling of appendable files like bp4.
    *  currently this is used by chi_q_omega only.
@@ -135,11 +132,6 @@ public:
   void initialize();
   void initializeH0_and_H_i();
   void initialize_G0();
-#ifdef DCA_HAVE_ADIOS2
-  /** read initializeSigma from adios file, it is probably already open.
-   */
-  void initializeSigma(adios2::ADIOS& adios, const std::string& filename);
-#endif
   void initializeSigma(const std::string& filename);
   void readSigmaFile(io::Reader<Concurrency>& reader);
 
@@ -150,7 +142,7 @@ public:
 
 private:
   Parameters& parameters_;
-  const Concurrency& concurrency_;
+  Concurrency& concurrency_;
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
@@ -366,31 +358,6 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
       concurrency_.broadcast_object(G4_channel);
   }
 }
-
-#ifdef DCA_HAVE_ADIOS2
-template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::read(adios2::ADIOS& adios, std::string filename) {
-  if (concurrency_.id() == concurrency_.first()) {
-    std::cout << "\n\n\t starts reading \n\n";
-
-    dca::io::Reader<typename Parameters::concurrency_type> reader(adios, concurrency_,
-                                                                  parameters_.get_output_format());
-    reader.open_file(filename);
-    read(reader);
-    reader.close_file();
-  }
-  // realize that if you need anyting else from the prior data that you need to add its broadcast here.
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast_object(Sigma);
-
-  if (parameters_.isAccumulatingG4()) {
-    concurrency_.broadcast_object(G_k_w);
-
-    for (auto& G4_channel : G4_)
-      concurrency_.broadcast_object(G4_channel);
-  }
-}
-#endif
 
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurrency_type>& reader) {
@@ -616,65 +583,56 @@ void DcaData<Parameters, DT>::initialize_G0() {
   }
 }
 
-#ifdef DCA_HAVE_ADIOS2
-template <class Parameters, DistType DT>
-void DcaData<Parameters, DT>::initializeSigma(adios2::ADIOS& adios [[maybe_unused]],
-                                              const std::string& filename) {
-  if (concurrency_.id() == concurrency_.first()) {
-    std::cout << "reading Sigma File\n";
-    io::IOType sigma_file_io = io::extensionToIOType(filename);
-    io::Reader reader(concurrency_, sigma_file_io);
-    reader.open_file(filename);
-    std::size_t step_count = reader.getStepCount();
-    for (std::size_t i = 0; i < step_count; ++i) {
-      reader.begin_step();
-      reader.end_step();
-    }
-    readSigmaFile(reader);
-    reader.close_file();
-  }
-  concurrency_.broadcast(parameters_.get_chemical_potential());
-  concurrency_.broadcast(Sigma);
-}
-#endif
-
-// Strong assumption here that this only gets called for HDF5 input.
 template <class Parameters, DistType DT>
 void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "reading Sigma File\n";
     io::IOType sigma_file_io = io::extensionToIOType(filename);
     io::Reader reader(concurrency_, sigma_file_io);
-    int hdf5_last_iteration = -1;
-    reader.open_file(filename);
-    long step_count = reader.getStepCount();
-    // Work around odd way hdf5 steps get written
-    int completed_iteration = 0;
-    std::cout << step_count << " steps found.\n";
-    if (step_count >= 0) {
-    find_step:
-      for (std::size_t i = 0; i < step_count; ++i) {
-        reader.begin_step();
-        std::cerr << "current step " << i << '\n';
-        bool has_iteration =
-            reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
-        std::cerr << "completed_iteration " << completed_iteration << '\n';
-        if (has_iteration && (i > completed_iteration)) {
-          std::cerr << "past complete iterations " << completed_iteration << "at step " << i << '\n';
-          hdf5_last_iteration = i;
-          reader.close_file();
-          reader.open_file(filename);
-          step_count = hdf5_last_iteration;
-          goto find_step;
+    if (sigma_file_io == io::IOType::HDF5) {
+      io::Reader reader(concurrency_, sigma_file_io);
+      int hdf5_last_iteration = -1;
+      reader.open_file(filename);
+      long step_count = reader.getStepCount();
+      // Work around odd way hdf5 steps get written
+      int completed_iteration = 0;
+      std::cout << step_count << " steps found.\n";
+      if (step_count >= 0) {
+      find_step:
+        for (std::size_t i = 0; i < step_count; ++i) {
+          reader.begin_step();
+          std::cerr << "current step " << i << '\n';
+          bool has_iteration =
+              reader.execute("DCA-loop-functions/completed-iteration", completed_iteration);
+          std::cerr << "completed_iteration " << completed_iteration << '\n';
+          if (has_iteration && (i > completed_iteration)) {
+            std::cerr << "past complete iterations " << completed_iteration << "at step " << i
+                      << '\n';
+            hdf5_last_iteration = i;
+            reader.close_file();
+            reader.open_file(filename);
+            step_count = hdf5_last_iteration;
+            goto find_step;
+          }
+          if (i < step_count - 1)
+            reader.end_step();
         }
-        if (i < step_count - 1)
-          reader.end_step();
+        readSigmaFile(reader);
+        reader.end_step();
       }
-      readSigmaFile(reader);
-      reader.end_step();
+      else {
+        readSigmaFile(reader);
+      }
     }
     else {
+      reader.open_file(filename);
+      std::size_t step_count = reader.getStepCount();
+      for (std::size_t i = 0; i < step_count; ++i) {
+        reader.begin_step();
+        reader.end_step();
+      }
       readSigmaFile(reader);
+      reader.close_file();
     }
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());

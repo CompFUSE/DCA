@@ -43,12 +43,8 @@ public:
   typedef adios2::ADIOS file_type;
 
 public:
-  // In: verbose. If true, the reader outputs a short log whenever it is executed.
-  ADIOS2Reader(adios2::ADIOS& adios, const CT* concurrency,
-               bool verbose = false);
-
-  /** maybe this one uses a singleton adios2::ADIOS accessor */
-  ADIOS2Reader(const CT* concurrency,
+  ADIOS2Reader() = delete;
+  ADIOS2Reader(const CT& concurrency,
                bool verbose = false);
 
   ~ADIOS2Reader();
@@ -150,9 +146,10 @@ private:
   template <class T>
   std::string VectorToString(const std::vector<T>& v);
 
+  // concurrency_ must be before the adios reference
+  const CT& concurrency_;
   adios2::ADIOS& adios_;
   const bool verbose_;
-  const CT* concurrency_;
 
   adios2::IO io_;
   std::string io_name_;
@@ -394,7 +391,7 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
 
   if (verbose_) {
     std::cout << "\t ADIOS2Reader: Read function : " << name
-              << " in linear distributed manner, rank = " << concurrency_->id()
+              << " in linear distributed manner, rank = " << concurrency_.id()
               << " start = " << std::to_string(start) << " end = " << std::to_string(end) << "\n";
   }
 
@@ -428,7 +425,7 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
 
     if (verbose_) {
       std::cout << "\t ADIOS2Reader: Read function : " << name
-                << " in linear distributed manner, rank = " << concurrency_->id()
+                << " in linear distributed manner, rank = " << concurrency_.id()
                 << " shape = " << VectorToString(var.Shape()) << " start = " << VectorToString(s)
                 << " count = " << VectorToString(c) << "\n";
     }
@@ -476,7 +473,7 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
 
   if (verbose_) {
     std::cout << "\t ADIOS2Reader: Read function : " << name
-              << " in distributed manner, rank = " << concurrency_->id()
+              << " in distributed manner, rank = " << concurrency_.id()
               << " start = " << VectorToString(start) << " end = " << VectorToString(end) << "\n";
   }
 
@@ -521,7 +518,7 @@ bool ADIOS2Reader<CT>::execute(const std::string& name, func::function<Scalartyp
 
     if (verbose_) {
       std::cout << "\t ADIOS2Reader: Read function : " << name
-                << " in distributed manner, rank = " << concurrency_->id()
+                << " in distributed manner, rank = " << concurrency_.id()
                 << " shape = " << VectorToString(var.Shape()) << " start = " << VectorToString(s)
                 << " count = " << VectorToString(c) << "\n";
     }
@@ -621,3 +618,4 @@ extern template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
 }  // namespace dca
 
 #endif  // DCA_IO_ADIOS2_ADIOS2_READER_HPP
+
