@@ -150,8 +150,10 @@ void ADIOS2Reader<CT>::dumpAvailableVars() {
 }
 
 template class ADIOS2Reader<dca::parallel::NoConcurrency>;
+template class ADIOS2Reader<dca::parallel::NoConcurrency const>;
 #ifdef DCA_HAVE_MPI
 template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
+template class ADIOS2Reader<dca::parallel::MPIConcurrency const>;
 #endif
 
 }  // namespace io

@@ -611,8 +611,10 @@ std::string ADIOS2Reader<CT>::VectorToString(const std::vector<T>& v) {
 }
 
 extern template class ADIOS2Reader<dca::parallel::NoConcurrency>;
+extern template class ADIOS2Reader<dca::parallel::NoConcurrency const>;
 #ifdef DCA_HAVE_MPI
 extern template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
+extern template class ADIOS2Reader<dca::parallel::MPIConcurrency const>;
 #endif
 }  // namespace io
 }  // namespace dca

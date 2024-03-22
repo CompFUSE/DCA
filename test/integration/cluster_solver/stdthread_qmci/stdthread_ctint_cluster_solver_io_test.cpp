@@ -88,7 +88,7 @@ TEST(PosixCtintClusterSolverTest, PerMeasurementIO) {
   data.initialize();
 
   auto writer = std::make_shared<dca::io::Writer<TestConcurrency>>(
-      concurrency.get_adios(), std::ref(concurrency), parameters.get_output_format(), false);
+      std::ref(concurrency), parameters.get_output_format(), false);
   writer->open_file(parameters.get_filename_dca(), true);
   // Do one integration step.
   QmcSolver qmc_solver(parameters, data, writer);
