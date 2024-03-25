@@ -119,7 +119,9 @@ TEST(ADIOS2ReaderWriterTest, VectorOfVectorsReadWrite) {
   // Create test file.
   dca::io::ADIOS2Writer writer(concurrency_ptr, true);
   writer.open_file(file_name);
+  writer.begin_step();
   writer.execute(object_name, data_unequal_size);
+  writer.end_step();
   writer.close_file();
 
   // Read test file.

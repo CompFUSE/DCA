@@ -44,7 +44,7 @@ public:
 
 public:
   ADIOS2Reader() = delete;
-  ADIOS2Reader(const CT& concurrency,
+  ADIOS2Reader(CT& concurrency,
                bool verbose = false);
 
   ~ADIOS2Reader();
@@ -614,6 +614,7 @@ extern template class ADIOS2Reader<dca::parallel::NoConcurrency>;
 extern template class ADIOS2Reader<dca::parallel::NoConcurrency const>;
 #ifdef DCA_HAVE_MPI
 extern template class ADIOS2Reader<dca::parallel::MPIConcurrency>;
+//this has become required for some reason. Const correctness for the ADIOS2Reader has gone wrong
 extern template class ADIOS2Reader<dca::parallel::MPIConcurrency const>;
 #endif
 }  // namespace io

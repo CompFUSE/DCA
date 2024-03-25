@@ -22,7 +22,7 @@ namespace io {
 // dca::io::
 
 template <class CT>
-ADIOS2Reader<CT>::ADIOS2Reader(const CT& concurrency, bool verbose)
+ADIOS2Reader<CT>::ADIOS2Reader(CT& concurrency, bool verbose)
   : concurrency_(concurrency), adios_(*concurrency.adios_), verbose_(verbose)  {}
 
 template <class CT>
@@ -39,6 +39,7 @@ void ADIOS2Reader<CT>::open_file(const std::string& file_name) {
   io_name_ = file_name;
   file_name_ = file_name;
   io_ = adios_.DeclareIO(io_name_);
+  io_.SetEngine("BP4");
   file_ = io_.Open(file_name_, adios2::Mode::Read);
 }
 

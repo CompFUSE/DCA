@@ -27,8 +27,23 @@
 #include "gtest/gtest.h"
 
 int rank, comm_size;
-dca::parallel::MPIConcurrency* concurrency_ptr;
-adios2::ADIOS* adios_ptr;
+
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+using Concurrency = dca::parallel::MPIConcurrency;
+#else
+#error "This file needs GPU support."
+#endif
+
+Concurrency* concurrency_ptr = nullptr;
+
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#include "dca/io/adios2/adios2_global.hpp"
+adios2::ADIOS* adios2_ptr = nullptr;
+#else
+#error "This file needs ADIOS2 support."
+#endif
 
 template <typename Scalar>
 class ADIOS2ParallelIOTest : public ::testing::Test {};
@@ -110,7 +125,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
     // fastest index
 
     writer.execute(f1, subind_start, subind_end);
-    adios_ptr->FlushAll();
+    //adios_ptr->FlushAll();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -211,7 +226,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2));
 
     for (int i = 0; i < f2.get_end() - f2.get_start() + 1; ++i) {
@@ -277,7 +292,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));
 
     /* TODO: This should be working on every rank */
@@ -353,7 +368,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
     reader.open_file(fname);
 
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));
 
     /* TODO: This should be working on every rank */
@@ -382,24 +397,26 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
 }
 
 int main(int argc, char** argv) {
-  int result = 0;
+  // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
+  // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
+  concurrency_ptr = new Concurrency(argc, argv);
 
-  dca::parallel::MPIConcurrency concurrency(argc, argv);
-  rank = concurrency.id();
-  comm_size = concurrency.number_of_processors();
-  concurrency_ptr = &concurrency;
+  rank = concurrency_ptr->id();
+  std::cout << "rank: " << rank << '\n';
+  comm_size = concurrency_ptr->number_of_processors();
+
   ::testing::InitGoogleTest(&argc, argv);
-
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  if (rank != 0) {
+
+  if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
-  adios2::ADIOS adios("", concurrency_ptr->get());
-  adios_ptr = &adios;
+  int result = RUN_ALL_TESTS();
 
-  result = RUN_ALL_TESTS();
+  delete concurrency_ptr;
 
   return result;
-}
+
+  }
