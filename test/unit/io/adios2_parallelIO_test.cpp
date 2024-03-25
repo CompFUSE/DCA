@@ -118,7 +118,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
   {
     dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(concurrency_ptr);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
@@ -126,6 +126,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
     writer.execute(f1, subind_start, subind_end);
     //adios_ptr->FlushAll();
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -137,9 +138,8 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
     dca::io::ADIOS2Reader reader(*concurrency_ptr);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
-
     EXPECT_TRUE(reader.execute(f2, subind_start, subind_end));
 
     /* TODO: This should be working on every rank */
@@ -161,7 +161,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
       if (f1(i) != f2(i))
         break;
     }
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -210,9 +210,9 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
   {
     dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     writer.execute(f1);
-
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -224,7 +224,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
 
     dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
     MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2));
@@ -234,7 +234,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
       if (f1(i) != f2(i))
         break;
     }
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -273,13 +273,14 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
   {
     dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
     // fastest index
 
     writer.execute(f1, start, end);
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -290,7 +291,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     }
     dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
     MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));
@@ -314,7 +315,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
 
     /* 1D array on disk cannot be read back with 3D selection */
     EXPECT_FALSE(reader.execute(f3, subind_start, subind_end));
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -349,13 +350,14 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
   {
     dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
     // fastest index
 
     writer.execute(f1, start, end);
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -366,7 +368,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
     }
     dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
     MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));

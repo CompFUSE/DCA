@@ -173,9 +173,9 @@ public:
   }
 
 private:
+  const CT* concurrency_;
   adios2::ADIOS& adios_;
   bool verbose_;
-  const CT* concurrency_;
 
   /** For the case of sample it is necessary to explicitly write a rank "local" variable
    *  of this type.

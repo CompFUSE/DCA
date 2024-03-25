@@ -93,13 +93,16 @@ TEST(ADIOS2ReaderWriterTest, VectorReadWrite) {
   // Create test file.
   dca::io::ADIOS2Writer writer(concurrency_ptr);
   writer.open_file(file_name);
+  writer.begin_step();
   writer.execute(object_name, a_vector);
+  writer.end_step();
   writer.close_file();
 
   // Read test file.
   dca::io::ADIOS2Reader reader(*concurrency_ptr);
   std::vector<std::complex<double>> vector_read;
   reader.open_file(file_name);
+  reader.begin_step();
   EXPECT_TRUE(reader.execute(object_name, vector_read));
 
   ASSERT_EQ(a_vector.size(), vector_read.size());
@@ -107,13 +110,13 @@ TEST(ADIOS2ReaderWriterTest, VectorReadWrite) {
     EXPECT_DOUBLE_EQ(std::real(a_vector[i]), std::real(vector_read[i]));
     EXPECT_DOUBLE_EQ(std::imag(a_vector[i]), std::imag(vector_read[i]));
   }
-
+  reader.end_step();
   reader.close_file();
 }
 
 TEST(ADIOS2ReaderWriterTest, VectorOfVectorsReadWrite) {
   const std::string object_name = "a_vector";
-  const std::string file_name = "test_vector_vector.bp";
+  const std::string file_name = "adios2_test_vector_vector.bp";
   const std::vector<std::vector<double>> data_unequal_size{{1, 0, 2}, {1}, {1, 0}, {}, {2, 2}};
 
   // Create test file.
@@ -128,9 +131,10 @@ TEST(ADIOS2ReaderWriterTest, VectorOfVectorsReadWrite) {
   dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
   std::vector<std::vector<double>> data_read;
   reader.open_file(file_name);
+  reader.begin_step();
   EXPECT_TRUE(reader.execute(object_name, data_read));
-
   EXPECT_EQ(data_unequal_size, data_read);
+  reader.end_step();
   reader.close_file();
 }
 
@@ -143,17 +147,20 @@ TEST(ADIOS2ReaderWriterTest, VectorOfArraysReadWrite) {
   // Create test file.
   dca::io::ADIOS2Writer writer(concurrency_ptr, true);
   writer.open_file(file_name);
+  writer.begin_step();
   writer.execute(object_name, data);
+  writer.end_step();
   writer.close_file();
 
   // Read test file.
   dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
   std::vector<std::array<int, 3>> data_read;
   reader.open_file(file_name);
+  reader.begin_step();
   EXPECT_TRUE(reader.execute(object_name, data_read));
 
   EXPECT_EQ(data, data_read);
-
+  reader.end_step();
   reader.close_file();
 }
 
@@ -165,20 +172,23 @@ TEST(ADIOS2ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
   // Create test file.
   dca::io::ADIOS2Writer writer(concurrency_ptr);
   writer.open_file(filename);
+  writer.begin_step();
   writer.execute("single-string", s1);
   writer.execute("strings", s_vec1);
+  writer.end_step();
   writer.close_file();
 
   // Read test file.
   dca::io::ADIOS2Reader reader(*concurrency_ptr);
   reader.open_file(filename);
-  //
+  reader.begin_step();
   std::vector<std::string> s_vec2;
   std::string s2;
   EXPECT_TRUE(reader.execute("strings", s_vec2));
   EXPECT_TRUE(reader.execute("single-string", s2));
   EXPECT_EQ(s_vec1, s_vec2);
   EXPECT_EQ(s1, s2);
+  reader.end_step();
   reader.close_file();
 }
 
@@ -201,22 +211,22 @@ TYPED_TEST(ADIOS2ReaderWriterTestTyped, FunctionReadWrite) {
 
   dca::io::ADIOS2Writer writer(concurrency_ptr);
   writer.open_file("test_func.bp", true);
-
+  writer.begin_step();
   writer.execute(f1);
-
+  writer.end_step();
   writer.close_file();
 
   // Read test file.
   dca::io::ADIOS2Reader reader(*concurrency_ptr);
   reader.open_file("test_func.bp");
-
+  reader.begin_step();
   dca::func::function<Scalar, Dmn> f2("myfunc");
 
   EXPECT_TRUE(reader.execute(f2));
 
   for (int i = 0; i < f1.size(); ++i)
     EXPECT_EQ(f1(i), f2(i));
-
+  reader.end_step();
   reader.close_file();
 }
 
@@ -326,14 +336,14 @@ TEST(ADIOS2ReaderWriterTest, GroupOpenclose) {
 TEST(ADIOS2ReaderWriterTest, VectorOfVector) {
   dca::io::ADIOS2Writer writer(GlobalAdios::getAdios(), concurrency_ptr, true);
   writer.open_file("vector.bp");
-
+  writer.begin_step();
   // Simple 3D vector
   std::vector<double> vec_1{1., 2., 3.};
   writer.execute("simple-vector", vec_1);
 
   std::vector<std::vector<float>> vec_2{{1.2, 3.4}, {5.6, 7.8, 4.4}, {1.0}};
   writer.execute("vector-of-vectors", vec_2);
-
+  writer.end_step();
   writer.close_file();
 }
 

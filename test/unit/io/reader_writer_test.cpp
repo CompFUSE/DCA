@@ -135,7 +135,7 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
     reader.open_file(file_name);
     reader.begin_step();
     EXPECT_TRUE(reader.execute(object_name, data_read));
-    
+
     EXPECT_EQ(data_unequal_size, data_read);
     reader.end_step();
     reader.close_file();
@@ -144,23 +144,27 @@ TEST(ReaderWriterTest, VectorOfVectorsReadWrite) {
 
 TEST(ReaderWriterTest, VectorOfArraysReadWrite) {
   for (auto type : types) {
-    const std::string object_name = "obj";
+    const std::string object_name = "obj_11";
     const std::string file_name = "test_vec_of_arr." + toLower(type);
 
     std::vector<std::array<int, 3>> data{{-1, 2, 3}, {5, -7, 0}};
 
-// Create test file.
+    // Create test file.
     dca::io::Writer writer(*concurrency_ptr, type);
     writer.open_file(file_name);
-    writer.execute(object_name, data);
+    writer.begin_step();
+    writer.execute("test_ovj", data);
+    writer.end_step();
     writer.close_file();
 
     // Read test file.
     dca::io::Reader reader(*concurrency_ptr, type);
-    std::vector<std::array<int, 3>> data_read;
+    std::vector<std::array<int, 3>> data_read(2);
     reader.open_file(file_name);
-    EXPECT_TRUE(reader.execute(object_name, data_read));
+    reader.begin_step();
+    EXPECT_TRUE(reader.execute("test_ovj", data_read));
     EXPECT_EQ(data, data_read);
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -171,7 +175,7 @@ TEST(ReaderWriterTest, StringAndVectorOfStringsReadWrite) {
     std::string s1{"bazinga"};
     const std::string filename = "test_vec_of_strings" + toLower(type);
 
-// Create test file.
+    // Create test file.
     dca::io::Writer writer(*concurrency_ptr, type);
     writer.open_file(filename);
     writer.execute("single-string", s1);
@@ -436,7 +440,6 @@ TEST(ReaderWriterTest, SteppedGroupOpenclose) {
     reader.open_group("bar");
     reader.execute("b2", d_val);
     EXPECT_EQ(1.5, d_val);
-
   }
 }
 
