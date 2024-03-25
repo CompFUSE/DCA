@@ -68,8 +68,8 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
   }
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
-  if (!io_)
-    io_ = adios_.DeclareIO(io_name_);
+  io_ = adios_.DeclareIO(io_name_);
+  io_.SetEngine("BP4");
 
   file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
@@ -83,6 +83,7 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
   if (static_cast<bool>(file_)) {
+    adios_.FlushAll();
     file_.Close();
     adios_.RemoveIO(io_.Name());
     // adios_.RemoveIO(io_name_);
