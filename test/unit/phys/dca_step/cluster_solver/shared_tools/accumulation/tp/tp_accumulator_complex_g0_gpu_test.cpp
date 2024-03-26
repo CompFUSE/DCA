@@ -146,7 +146,7 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
 
     writer.open_file("tp_gpu_test_complex_G0_G4.bp");
     writer_h5.open_file("tp_gpu_test_complex_G0_G4.hdf5");
-
+    writer.begin_step();
     this->host_setup.parameters_.write(writer);
     this->host_setup.parameters_.write(writer_h5);
     this->host_setup.data_->write(writer);
@@ -160,7 +160,7 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
     }
-
+    
 #ifndef NDEBUG
     writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
     writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
@@ -206,7 +206,7 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
             << "( " << i << ", " << j << " )";
       }
 #endif
-
+    writer.end_step();
     writer.close_file();
     writer_h5.close_file();
   }

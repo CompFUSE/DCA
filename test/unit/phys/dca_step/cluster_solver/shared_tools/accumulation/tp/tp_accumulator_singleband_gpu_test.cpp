@@ -105,7 +105,7 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
 
     writer.open_file("tp_single_band_gpu_test_G4.bp");
     writer_h5.open_file("tp_single_band_gpu_test_G4.hdf5");
-
+    writer.begin_step();
     parameters_.write(writer);
     parameters_.write(writer_h5);
     data_->write(writer);
@@ -121,6 +121,7 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
     }
+    writer.end_step();
     writer.close_file();
     writer_h5.close_file();
   }

@@ -128,7 +128,7 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 
     writer.open_file("tp_gpu_test_G4.bp");
     writer_h5.open_file("tp_gpu_test_G4.hdf5");
-
+    writer.begin_step();
     this->host_setup.parameters_.write(writer);
     this->host_setup.parameters_.write(writer_h5);
     this->host_setup.data_->write(writer);
@@ -184,7 +184,7 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 	EXPECT_NEAR(G_down(i, j).imag(), G_spin_separated[1](i, j).imag(), 1E-12) << "( " << i << ", " << j << " )";
       }
 #endif
-
+    writer.end_step();
     writer.close_file();
     writer_h5.close_file();
   }
