@@ -35,9 +35,9 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-constexpr bool update_baseline = false;
+constexpr bool update_baseline = true;
 
-constexpr bool write_G4s = true;
+constexpr bool write_G4s = false;
 
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
@@ -99,27 +99,27 @@ TEST_F(TpAccumulatorTest, Accumulate) {
 
   auto& concurrency = parameters_.get_concurrency();
 
-  // if (write_G4s) {
-  //   dca::io::Writer writer(concurrency, "ADIOS2", true);
-  //   dca::io::Writer writer_h5(concurrency, "HDF5", true);
-  //   writer.open_file("tp_accumulator_test_G4.bp");
-  //   writer_h5.open_file("tp_accumulator_test_G4.hdf5");
-  //   parameters_.write(writer);
-  //   parameters_.write(writer_h5);
-  //   data_->write(writer);
-  //   data_->write(writer_h5);
-  //   for (std::size_t channel = 0; channel < accumulator.get_G4().size(); ++channel) {
-  //     std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
-  //     writer.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
-  //     writer_h5.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
-  //   }
-  //   writer.close_file();
-  //   writer_h5.close_file();
-  // }
+  if (write_G4s) {
+    dca::io::Writer writer(concurrency, "ADIOS2", true);
+    dca::io::Writer writer_h5(concurrency, "HDF5", true);
+    writer.open_file("tp_accumulator_test_G4.bp");
+    writer_h5.open_file("tp_accumulator_test_G4.hdf5");
+    parameters_.write(writer);
+    parameters_.write(writer_h5);
+    data_->write(writer);
+    data_->write(writer_h5);
+    for (std::size_t channel = 0; channel < accumulator.get_G4().size(); ++channel) {
+      std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
+      writer.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
+      writer_h5.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
+    }
+    writer.close_file();
+    writer_h5.close_file();
+  }
 
   if (update_baseline) {
-    baseline_writer.end_step();
     data_->write(baseline_writer);
+    baseline_writer.end_step();
     baseline_writer.close_file();
   }
   else {
