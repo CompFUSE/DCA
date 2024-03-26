@@ -35,18 +35,6 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-#ifdef DCA_HAVE_ADIOS2
-adios2::ADIOS* adios_ptr;
-#endif
-
-#ifdef DCA_HAVE_MPI
-#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-dca::parallel::MPIConcurrency* concurrency_ptr;
-#else
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
-dca::parallel::NoConcurrency* concurrency_ptr;
-#endif
-
 constexpr bool update_baseline = true;
 
 constexpr bool write_G4s = true;
@@ -109,23 +97,25 @@ TEST_F(TpAccumulatorTest, Accumulate) {
 
   const auto& G4 = accumulator.get_G4();
 
-  if (write_G4s) {
-    dca::io::Writer writer(*concurrency_ptr, "ADIOS2", true);
-    dca::io::Writer writer_h5(*concurrency_ptr, "HDF5", true);
-    writer.open_file("tp_accumulator_test_G4.bp");
-    writer_h5.open_file("tp_accumulator_test_G4.hdf5");
-    parameters_.write(writer);
-    parameters_.write(writer_h5);
-    data_->write(writer);
-    data_->write(writer_h5);
-    for (std::size_t channel = 0; channel < accumulator.get_G4().size(); ++channel) {
-      std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
-      writer.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
-      writer_h5.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
-    }
-    writer.close_file();
-    writer_h5.close_file();
-  }
+  auto& concurrency = parameters_.get_concurrency();
+
+  // if (write_G4s) {
+  //   dca::io::Writer writer(concurrency, "ADIOS2", true);
+  //   dca::io::Writer writer_h5(concurrency, "HDF5", true);
+  //   writer.open_file("tp_accumulator_test_G4.bp");
+  //   writer_h5.open_file("tp_accumulator_test_G4.hdf5");
+  //   parameters_.write(writer);
+  //   parameters_.write(writer_h5);
+  //   data_->write(writer);
+  //   data_->write(writer_h5);
+  //   for (std::size_t channel = 0; channel < accumulator.get_G4().size(); ++channel) {
+  //     std::string channel_str = dca::phys::toString(parameters_.get_four_point_channels()[channel]);
+  //     writer.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
+  //     writer_h5.execute("accumulator_" + channel_str, accumulator.get_G4()[channel]);
+  //   }
+  //   writer.close_file();
+  //   writer_h5.close_file();
+  // }
 
   if (update_baseline) {
     baseline_writer.end_step();
@@ -138,33 +128,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
       reader.execute(G4_check);
       const auto diff = dca::func::util::difference(G4[0], G4_check);
       EXPECT_GT(1e-8, diff.l_inf);
-
       reader.close_file();
     }
   }
-}
-
-int main(int argc, char** argv) {
-#ifdef DCA_HAVE_MPI
-  dca::parallel::MPIConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#else
-  dca::parallel::NoConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#endif
-
-#ifdef DCA_HAVE_ADIOS2
-  // ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get());
-  adios_ptr = &adios;
-#endif
-
-  ::testing::InitGoogleTest(&argc, argv);
-
-  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  // delete listeners.Release(listeners.default_result_printer());
-  // listeners.Append(new dca::testing::MinimalistPrinter);
-
-  int result = RUN_ALL_TESTS();
-  return result;
 }

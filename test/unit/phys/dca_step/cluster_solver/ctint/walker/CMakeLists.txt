@@ -12,14 +12,14 @@ dca_add_gtest(ct_int_walker_test
 
 dca_add_gtest(ct_int_walker_submatrix_test
         FAST
-        GTEST_MAIN
+        GTEST_MPI_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
         LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS}
         )
 
 dca_add_gtest(ct_int_walker_multinsertion_test
         FAST
-        GTEST_MAIN
+        GTEST_MPI_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
         LIBS     ${TEST_LIBS} g0_interpolation
         )
@@ -27,7 +27,7 @@ dca_add_gtest(ct_int_walker_multinsertion_test
 dca_add_gtest(ct_int_walker_submatrix_gpu_test
         CUDA
         FAST
-        GTEST_MAIN
+        GTEST_MPI_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
         LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${DCA_KERNEL_LIBS}
       )
@@ -35,7 +35,7 @@ dca_add_gtest(ct_int_walker_submatrix_gpu_test
 dca_add_gtest(ct_int_walker_submatrix_gpu_complex_test
         CUDA
         FAST
-        GTEST_MAIN
+        GTEST_MPI_MAIN
         INCLUDE_DIRS ${TEST_INCLUDES}
         LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS} ctint ${DCA_KERNEL_LIBS}
         )

@@ -46,6 +46,8 @@ TEST_F(MPICollectiveSumTest, SumScalar) {
 
   scalar_expected = size_ * (size_ - 1) / 2;
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   EXPECT_EQ(scalar_expected, scalar_test);
 }
 
@@ -59,9 +61,12 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
     function_test(i) = i * rank_;
 
   sum_interface_.sum(function_test);
-
+  
+  
   for (int i = 0; i < function_test.size(); i++)
     function_expected(i) = i * size_ * (size_ - 1) / 2;
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < function_test.size(); i++)
     EXPECT_EQ(function_expected(i), function_test(i));
@@ -74,7 +79,7 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
     values[i] = 3.14 + i;
     sum += values[i];
   }
-
+  std::cout << "looaas:" << sum << "\n";
   // Expected result
   const double expected = (sum - values[rank_]) / double(size_ - 1);
 
@@ -83,6 +88,9 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   double sum_one_out = scalar;
   sum_interface_.leaveOneOutAvg(scalar);
   sum_interface_.leaveOneOutSum(sum_one_out);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
   EXPECT_DOUBLE_EQ(expected, scalar);
   EXPECT_DOUBLE_EQ(expected * (size_ - 1), sum_one_out);
 
@@ -95,6 +103,8 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   dca::func::function<double, TestDomain> f_sum(f);
   sum_interface_.leaveOneOutAvg(f);
   sum_interface_.leaveOneOutSum(f_sum);
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_DOUBLE_EQ(expected, f(0));
   EXPECT_DOUBLE_EQ(expected * (size_ - 1), f_sum(0));
@@ -115,6 +125,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   f(1) = 2.72;
 
   auto err_trivial = sum_interface_.jackknifeError(f);
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_NEAR(0., err_trivial(0), epsilon_);
   EXPECT_NEAR(0., err_trivial(1), epsilon_);
@@ -160,6 +172,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   // Do not overwrite the jackknife estimates with their average.
   auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   EXPECT_DOUBLE_EQ(f_copy(0), f(0));
   EXPECT_DOUBLE_EQ(f_copy(1), f(1));
 
@@ -190,6 +204,9 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   f(1) = std::complex<double>(2.72, 3.4);
 
   auto err_trivial = sum_interface_.jackknifeError(f);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
   EXPECT_NEAR(0., err_trivial(0).real(), epsilon_);
   EXPECT_NEAR(0., err_trivial(1).real(), epsilon_);
   EXPECT_NEAR(0., err_trivial(0).imag(), epsilon_);
@@ -237,6 +254,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
 
   // Do not overwrite the jackknife estimates with their average.
   auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_DOUBLE_EQ(f_copy(0).real(), f(0).real());
   EXPECT_DOUBLE_EQ(f_copy(1).real(), f(1).real());
@@ -311,6 +330,8 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   // Compute covariance matrix with respect to the mean of f.
   sum_interface_.computeCovarianceAndAvg(f, covariance_from_computeCovarianceAndAvg);
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   for (int i = 0; i < f_mean.size(); ++i)
     EXPECT_DOUBLE_EQ(f_mean(i), f(i));
 
@@ -335,6 +356,9 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
     f_mean(i) = f(i);
   }
   sum_interface_.sum(f_mean);
+
+  MPI_Barrier(MPI_COMM_WORLD);
+
   f_mean /= size_;
 
   /// Calculate the equivalent covariance matrix without using function's etc
@@ -390,8 +414,11 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
 
   // Compute covariance matrix with respect to the *precomputed* mean of f.
   sum_interface_.computeCovariance(f, f_mean, covariance_from_computeCovariance);
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // Compute covariance matrix with respect to the mean of f.
   sum_interface_.computeCovarianceAndAvg(f, covariance_from_computeCovarianceAndAvg);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < f_mean.size(); ++i) {
     EXPECT_DOUBLE_EQ(f_mean(i).real(), f(i).real());
@@ -469,6 +496,8 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
     expected_momenta_avg[ir] /= f.size();
 
   momenta = sum_interface_.avgNormalizedMomenta(f, orders);
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // Expected values obtained with python
   EXPECT_NEAR(0., momenta[0], 1e-8);
   EXPECT_NEAR(expected_momenta_avg[1], momenta[1], 1e-8);
@@ -499,6 +528,7 @@ TEST_F(MPICollectiveSumTest, DelayedSum) {
   sum_interface_.delayedSum(function_cmplx_test);
 
   sum_interface_.resolveSums();
+  MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_EQ(scalar_expected, scalar_test);
   EXPECT_EQ(function_expected, function_test);

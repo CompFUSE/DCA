@@ -196,12 +196,12 @@ if (DCA_HAVE_GPU)
 )  
 endif()
 
-if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
-  list(APPEND DCA_LIBS
-    dca_adios2 adios2::adios2
-    )
-  message("-- Add dca_adios2 to targets")
-endif()
+# if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
+#   list(APPEND DCA_LIBS
+#     dca_adios2 adios2::adios2
+#     )
+#   message("-- Add dca_adios2 to targets")
+# endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
 list(APPEND DCA_LIBS lapack ${DCA_EXTERNAL_LIBS})
