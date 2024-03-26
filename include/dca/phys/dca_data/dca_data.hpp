@@ -589,7 +589,7 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     std::cout << "reading Sigma File\n";
     io::IOType sigma_file_io = io::extensionToIOType(filename);
     io::Reader reader(concurrency_, sigma_file_io);
-    if (sigma_file_io == io::IOType::HDF5) {
+    if (sigma_file_io == io::IOType::HDF5 || sigma_file_io == io::IOType::ADIOS2) {
       io::Reader reader(concurrency_, sigma_file_io);
       int hdf5_last_iteration = -1;
       reader.open_file(filename);
