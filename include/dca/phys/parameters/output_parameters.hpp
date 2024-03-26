@@ -30,9 +30,8 @@ public:
 	autoresume_(false),
 #ifdef DCA_HAVE_ADIOS2
         output_format_("HDF5"),
-        g4_output_format_("HDF5"),
-        filename_g4_("dca_g4.bp"),
-        filename_dca_("dca.bp"),
+        g4_output_format_(""),
+        filename_dca_("dca.hdf5"),
         filename_analysis_("sofqomega.bp"),
 #else
         output_format_("HDF5"),
