@@ -35,7 +35,7 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-constexpr bool update_baseline = true;
+constexpr bool update_baseline = false;
 
 constexpr bool write_G4s = true;
 
