@@ -36,6 +36,7 @@ inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::mt19937_64>() 
   return vec;
 }
 template <>
+#if defined (__clang__)
 inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48_base>() {
   static std::vector<double> vec{0.67052872832964927, 0.89987293212401465, 0.48383422722711483,0.28699620000273923,0.37575706648963081};
   return vec;
@@ -45,7 +46,6 @@ inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48>() {
   static std::vector<double> vec{0.67052872832964927, 0.89987293212401465, 0.48383422722711483,0.28699620000273923,0.37575706648963081};
   return vec;
 }
-#if defined (__clang__)
 #else
 template <>
 inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48_base>() {
