@@ -8,5 +8,5 @@ if (DCA_BUILD_DCA)
     target_link_libraries(main_dca PRIVATE ${DCA_KERNEL_LIBS})
   endif()
   
-  target_link_libraries(main_dca PUBLIC FFTW::Double signals ${DCA_LIBS} dca_io dca_adios2)
+  target_link_libraries(main_dca PUBLIC FFTW::Double signals ${DCA_LIBS} dca_io)
 endif()
