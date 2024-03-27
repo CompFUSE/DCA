@@ -39,7 +39,7 @@ public:
 
   using Real = typename Parameters::Real;
   using Scalar = typename Parameters::Scalar;
-  
+
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
@@ -56,10 +56,6 @@ public:
   // the last completed iteration from the input file, otherwise it returns -1.
   int readData(const std::string& filename, const std::string& format,
                const Concurrency& concurrency);
-#ifdef DCA_HAVE_ADIOS2
-  int readData(const std::string& filename, const std::string& format,
-               const Concurrency& concurrency, adios2::ADIOS& adios);
-#endif
   template <class READER>
   void readLoopDataCommon(READER& reader, const std::string& filename, const std::string& format);
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
@@ -160,39 +156,24 @@ void DcaLoopData<Parameters>::write(Writer& writer, Concurrency& concurrency) {
 
 template <typename Parameters>
 int DcaLoopData<Parameters>::readData(const std::string& filename, const std::string& format,
-                                          const Concurrency& concurrency) {
+                                      const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     io::Reader reader(concurrency, format, false);
-    readLoopDataCommon(reader, filename, format);
-  }
-  concurrency.broadcast(last_completed_iteration);
-  return last_completed_iteration;
-}
-
-#ifdef DCA_HAVE_ADIOS2
-template <typename Parameters>
-int DcaLoopData<Parameters>::readData(const std::string& filename, const std::string& format,
-                                          const Concurrency& concurrency, adios2::ADIOS& adios) {
-  std::cout << "Reading dca_loop_data with ADIOS2\n";
-  if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-    io::Reader reader(adios, concurrency, format, false);
-    auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
-    std::size_t step_count = adios2_reader.getStepCount();
+    std::size_t step_count = reader.getStepCount();
     for (std::size_t i = 0; i < step_count; ++i) {
-      adios2_reader.begin_step();
-      adios2_reader.end_step();
+      reader.begin_step();
+      reader.end_step();
     }
     readLoopDataCommon(reader, filename, format);
   }
   concurrency.broadcast(last_completed_iteration);
   return last_completed_iteration;
 }
-#endif
 
 template <typename Parameters>
 template <class READER>
 void DcaLoopData<Parameters>::readLoopDataCommon(READER& reader, const std::string& filename,
-                                                     const std::string& format [[maybe_unused]]) {
+                                                 const std::string& format [[maybe_unused]]) {
   reader.open_file(filename);
   reader.open_group("DCA-loop-functions");
 

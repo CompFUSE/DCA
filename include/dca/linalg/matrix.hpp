@@ -306,7 +306,7 @@ Matrix<ScalarType, device_name,  ALLOC>::Matrix(const Matrix<ScalarRhs, rhs_devi
     : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
   if (sizeof(ScalarType) != sizeof(ScalarRhs))
     throw std::runtime_error("conversion of both type and location of Matrix not currently possible!");
-  data_ = Allocator::allocate(nrElements(capacity_));
+  data_ = ALLOC::allocate(nrElements(capacity_));
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
@@ -319,7 +319,7 @@ Matrix<ScalarType, device_name, ALLOC>::Matrix(const std::string& name, std::pai
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
-  data_ = Allocator::allocate(nrElements(capacity_));
+  data_ = ALLOC::allocate(nrElements(capacity_));
   util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
 }
 

@@ -142,8 +142,8 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
 
 #ifdef DCA_HAVE_ADIOS2
   if (write_transforms) {
-    dca::io::Writer writer(*adios_ptr, *concurrency_ptr, "ADIOS2", true);
-    dca::io::Writer writer_h5(*adios_ptr, *concurrency_ptr, "HDF5", true);
+    dca::io::Writer writer(*concurrency_ptr, "ADIOS2", true);
+    dca::io::Writer writer_h5(*concurrency_ptr, "HDF5", true);
 
     //writer.open_file("tp_single_band_gpu_test_G4.bp");
     writer_h5.open_file("space_transform_2D_gpu_test.hdf5");

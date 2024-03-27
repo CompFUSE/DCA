@@ -56,7 +56,6 @@ public:
   using Lattice = typename ParametersType::lattice_type;
   using Real = typename ParametersType::Real;
 
-  
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using k_DCA =
@@ -143,18 +142,8 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-#ifdef DCA_HAVE_ADIOS2
-      output_file_(
-          parameters.get_output_format() == "ADIOS2"
-              ? std::make_shared<io::Writer<concurrency_type>>(
-                    concurrency.get_adios(), concurrency_ref, parameters.get_output_format(), false)
-              : std::make_shared<io::Writer<concurrency_type>>(
-                           concurrency.get_adios(), concurrency_ref, parameters.get_output_format(),
-                           false)),
-#else
       output_file_(std::make_shared<io::Writer<concurrency_type>>(
-								  concurrency_ref, parameters.get_output_format(), false)),
-#endif
+          concurrency_ref, parameters.get_output_format(), false)),
       monte_carlo_integrator_(parameters_ref, MOMS_ref, output_file_) {
   file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
@@ -169,7 +158,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
   // We assume DCALoop write is called once at the end of the run and we leave a step open for it to
   // write into.
 
-  //output_file_->begin_step();
+  // output_file_->begin_step();
 
   if (concurrency.id() == concurrency.first()) {
     // This should probably happen first not at the end
@@ -208,15 +197,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   int last_completed = -1;
   auto& autoresume_filename = parameters.get_autoresume_filename();
   if (parameters.autoresume()) {
-#ifdef DCA_HAVE_ADIOS2
-    io::IOType iotype = io::extensionToIOType(autoresume_filename);
-    if (iotype == io::IOType::ADIOS2)
-      last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
-                                                concurrency, concurrency.get_adios());
-    else
-#endif
-      last_completed =
-          DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
+    last_completed =
+        DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
 
     if (last_completed >= 0) {
       if (concurrency.id() == concurrency.first())
@@ -225,22 +207,12 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
                   << std::endl;
 
       dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
-#ifdef DCA_HAVE_ADIOS2
-      if (iotype == io::IOType::ADIOS2)
-        MOMS.initializeSigma(concurrency.get_adios(), autoresume_filename);
-      else
-#endif
-        MOMS.initializeSigma(autoresume_filename);
+      MOMS.initializeSigma(autoresume_filename);
       perform_lattice_mapping();
     }
   }
   else if (parameters.get_initial_self_energy() != "zero") {
-#ifdef DCA_HAVE_ADIOS2
-    if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
-      MOMS.initializeSigma(concurrency.get_adios(), parameters.get_initial_self_energy());
-    else
-#endif
-      MOMS.initializeSigma(parameters.get_initial_self_energy());
+    MOMS.initializeSigma(parameters.get_initial_self_energy());
     perform_lattice_mapping();
   }
 
@@ -302,16 +274,10 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
     }
 
     if (parameters.do_not_update_sigma()) {
-	if (parameters.get_initial_self_energy() == "zero")
-	  throw std::runtime_error("If there is no initial self energy it must be updated!");
-#ifdef DCA_HAVE_ADIOS2
-	if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
-	  MOMS.initializeSigma(concurrency.get_adios(), parameters.get_initial_self_energy());
-	else
-#endif
-	  MOMS.initializeSigma(parameters.get_initial_self_energy());
+      if (parameters.get_initial_self_energy() == "zero")
+        throw std::runtime_error("If there is no initial self energy it must be updated!");
+      MOMS.initializeSigma(parameters.get_initial_self_energy());
     }
-
   }
 }
 

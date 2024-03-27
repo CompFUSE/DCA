@@ -15,6 +15,9 @@
 #include <utility>
 #include "gtest/gtest.h"
 #include "gpu_test_util.hpp"
+#include "dca/linalg/util/util_gpublas.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
+
 
 TEST(MatrixGPUTest, Constructors) {
   int size = 3;
@@ -648,4 +651,18 @@ TEST(MatrixGPUTest, setTo) {
   for (int j = 0; j < mat_host.nrCols(); ++j)
     for (int i = 0; i < mat_host.nrRows(); ++i)
       EXPECT_EQ(mat_host_ret(i,j), mat_host(i, j)); 
+}
+
+int main(int argc, char** argv) {
+
+      dca::linalg::util::printInfoDevices();
+  dca::linalg::util::initializeMagma();
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

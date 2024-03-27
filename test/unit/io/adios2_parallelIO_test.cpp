@@ -27,8 +27,23 @@
 #include "gtest/gtest.h"
 
 int rank, comm_size;
-dca::parallel::MPIConcurrency* concurrency_ptr;
-adios2::ADIOS* adios_ptr;
+
+#ifdef DCA_HAVE_MPI
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+using Concurrency = dca::parallel::MPIConcurrency;
+#else
+#error "This file needs GPU support."
+#endif
+
+Concurrency* concurrency_ptr = nullptr;
+
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/io/adios2/adios2_writer.hpp"
+#include "dca/io/adios2/adios2_global.hpp"
+adios2::ADIOS* adios2_ptr = nullptr;
+#else
+#error "This file needs ADIOS2 support."
+#endif
 
 template <typename Scalar>
 class ADIOS2ParallelIOTest : public ::testing::Test {};
@@ -101,16 +116,17 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
 
   const std::string fname("ADIOS2ParallelIOTest_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(*adios_ptr, concurrency_ptr, false);
+    dca::io::ADIOS2Writer<dca::parallel::MPIConcurrency> writer(concurrency_ptr);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
     // fastest index
 
     writer.execute(f1, subind_start, subind_end);
-    adios_ptr->FlushAll();
+    //adios_ptr->FlushAll();
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -120,11 +136,10 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
       std::cout << " Read back data with 3D selection " << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, false);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
-
     EXPECT_TRUE(reader.execute(f2, subind_start, subind_end));
 
     /* TODO: This should be working on every rank */
@@ -146,7 +161,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWrite) {
       if (f1(i) != f2(i))
         break;
     }
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -193,11 +208,11 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
 
   const std::string fname("ADIOS2ParallelIOTest_ImplicitSubIndices_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     writer.execute(f1);
-
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -207,11 +222,11 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
       std::cout << " Read back data with 3D selection from " << fname << std::endl;
     }
 
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::BLOCKED> f2("parallelFunc", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2));
 
     for (int i = 0; i < f2.get_end() - f2.get_start() + 1; ++i) {
@@ -219,7 +234,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionImplicitBlockingReadWrite) {
       if (f1(i) != f2(i))
         break;
     }
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -256,15 +271,16 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
 
   const std::string fname("ADIOS2ParallelIOTest_linear_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
     // fastest index
 
     writer.execute(f1, start, end);
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -273,11 +289,11 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
     if (!rank) {
       std::cout << " Read back data with linear 1D selection " << std::endl;
     }
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));
 
     /* TODO: This should be working on every rank */
@@ -299,7 +315,7 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinear) {
 
     /* 1D array on disk cannot be read back with 3D selection */
     EXPECT_FALSE(reader.execute(f3, subind_start, subind_end));
-
+    reader.end_step();
     reader.close_file();
   }
 }
@@ -332,15 +348,16 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
 
   const std::string fname("ADIOS2ParallelIOTest_linear_" + typeStr + ".bp");
   {
-    dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Writer writer(concurrency_ptr, true);
     writer.open_file(fname, true);
-
+    writer.begin_step();
     // Because the caller needs to know if its function is distributed or not we will assume this is
     // so for the API as well. in the future I think something more sophisticated needs to be done
     // and the function will need to know its distribution, but for now we distribute only over the
     // fastest index
 
     writer.execute(f1, start, end);
+    writer.end_step();
     MPI_Barrier(concurrency_ptr->get());
     writer.close_file();
   }
@@ -349,11 +366,11 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
     if (!rank) {
       std::cout << " Read back data with linear 1D selection " << std::endl;
     }
-    dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+    dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
     reader.open_file(fname);
-
+    reader.begin_step();
     dca::func::function<Scalar, Dmn, dca::DistType::LINEAR> f2("parallelFuncLin", *concurrency_ptr);
-
+    MPI_Barrier(concurrency_ptr->get());
     EXPECT_TRUE(reader.execute(f2, start, end));
 
     /* TODO: This should be working on every rank */
@@ -382,24 +399,26 @@ TYPED_TEST(ADIOS2ParallelIOTest, FunctionReadWriteLinearIrregular) {
 }
 
 int main(int argc, char** argv) {
-  int result = 0;
+  // This results in a copy constructor beging called at somepoint,  resulting in an MPI_INIT after
+  // the finalize. concurrency = std::make_unique<dca::parallel::MPIConcurrency>(argc, argv);
+  concurrency_ptr = new Concurrency(argc, argv);
 
-  dca::parallel::MPIConcurrency concurrency(argc, argv);
-  rank = concurrency.id();
-  comm_size = concurrency.number_of_processors();
-  concurrency_ptr = &concurrency;
+  rank = concurrency_ptr->id();
+  std::cout << "rank: " << rank << '\n';
+  comm_size = concurrency_ptr->number_of_processors();
+
   ::testing::InitGoogleTest(&argc, argv);
-
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  if (rank != 0) {
+
+  if (concurrency_ptr->id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
     listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
-  adios2::ADIOS adios("", concurrency_ptr->get());
-  adios_ptr = &adios;
+  int result = RUN_ALL_TESTS();
 
-  result = RUN_ALL_TESTS();
+  delete concurrency_ptr;
 
   return result;
-}
+
+  }

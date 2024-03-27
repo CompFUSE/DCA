@@ -31,7 +31,7 @@ if (CMAKE_CUDA_COMPILER)
   dca_add_haves_define(DCA_HAVE_CUDA)
   dca_add_haves_define(DCA_HAVE_GPU)
 
-  list(APPEND DCA_GPU_LIBS CUDA::cudart CUDA::cublas)
+  list(APPEND DCA_GPU_LIBS CUDA::cudart CUDA::cublas CUDA::cusparse)
   set(DCA_CUDA_PROPERTIES "CMAKE_CUDA_ARCHITECTURES 70")
   list(APPEND CUDAFLAGS "--expt-relaxed-constexpr" ${DCA_CUDA_OPTIONS})
   set(CMAKE_CUDA_STANDARD 17)

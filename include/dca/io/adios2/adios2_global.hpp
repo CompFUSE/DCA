@@ -10,7 +10,7 @@
 // ADIOS2 global object
 
 
-/** For testing only, in main_dca adios2::ADIOS is a member of dca_loop
+/** For testing only, in main_dca adios2::ADIOS is a member of concurrency the concurrency context owned by main.
  */
 class GlobalAdios
 {

@@ -4,7 +4,7 @@ dca_add_gtest(phase_test
 
 dca_add_gtest(vector_operations_test
   GTEST_MAIN
-  LIBS ${MAGMA_LIBRARY} ${LAPACK_LIBRARIES} ${DCA_GPU_LIBS})
+  LIBS ${MAGMA_LIBRARY} ${LAPACK_LIBRARIES} ${DCA_GPU_LIBS} ${DCA_LIBS})
 
 dca_add_gtest(comparison_methods_test
   GTEST_MAIN

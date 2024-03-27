@@ -38,7 +38,6 @@ public:
 #endif
                                         >;
   /** Constructor for writer, pretty tortured due to optional Adios2.
-   *  \param [in] adios        if build with ADIOS2 support adios2 env reference.
    *  \param [in] concurrency  reference to the concurrency environment
    *  \param [in] format       output format: ADIOS2, HDF5 or JSON.
    *  \param [in] verbose      If true, the writer outputs a short log whenever it is executed.
@@ -47,13 +46,10 @@ public:
    *  used by the writer.
    */
   Writer(
-#ifdef DCA_HAVE_ADIOS2
-      adios2::ADIOS& adios,
-#endif
       Concurrency& concurrency, const std::string& format, bool verbose = true)
       :
 #ifdef DCA_HAVE_ADIOS2
-        adios_(adios),
+    adios_(concurrency.get_adios()),
 #endif
         concurrency_(concurrency) {
     if (format == "HDF5") {
@@ -64,7 +60,7 @@ public:
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
-      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(adios_, &concurrency_, verbose);
+      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(&concurrency_, verbose);
     }
 #endif
     else {

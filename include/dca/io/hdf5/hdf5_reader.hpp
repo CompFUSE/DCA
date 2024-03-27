@@ -185,7 +185,7 @@ bool HDF5Reader::execute(const std::string& name, std::vector<std::vector<Scalar
 
   std::vector<hvl_t> data(size);
 
-  H5::DataSet dataset = file_->openDataSet(name.c_str());
+  H5::DataSet dataset = file_->openDataSet(full_name.c_str());
   dataset.read(data.data(), type);
 
   value.resize(size);

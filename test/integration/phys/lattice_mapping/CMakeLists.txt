@@ -8,4 +8,4 @@ dca_add_gtest(lattice_mapping_sp_test EXTENSIVE
        time_and_frequency_domains
        quantum_domains gaussian_quadrature
        tetrahedron_mesh coarsegraining enumerations dca_hdf5 ${LAPACK_LIBRARIES} ${HDF5_LIBRARIES} ${DCA_GPU_LIBS}
-       lapack gpu_utils)
+       lapack gpu_utils parallel_no_concurrency)

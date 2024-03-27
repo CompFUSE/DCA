@@ -29,7 +29,7 @@ class NoConcurrency : public SerialCollectiveSum, public SerialProcessorGrouping
 public:
   using Gang = SerialGang;
 
-  NoConcurrency(int /*argc*/, char** /*argv*/){};
+  NoConcurrency(int /*argc*/, char** /*argv*/);
 
   void abort() const;
 
@@ -64,7 +64,7 @@ public:
 
 #ifdef DCA_HAVE_ADIOS2
   adios2::ADIOS& get_adios() {
-    return adios_;
+    return *adios_;
   }
 #endif
 
@@ -74,8 +74,9 @@ public:
 
 private:
   constexpr static char parallel_type_str_[] = "NoConcurrency";
+public:
 #ifdef DCA_HAVE_ADIOS2
-  adios2::ADIOS adios_;
+  std::unique_ptr<adios2::ADIOS> adios_;
 #endif
 
 };

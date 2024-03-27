@@ -17,6 +17,8 @@
 #include "dca/config/dca.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
+#include "dca/config/haves_defines.hpp"
+
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"

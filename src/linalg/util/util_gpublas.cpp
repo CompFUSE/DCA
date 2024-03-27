@@ -10,11 +10,11 @@
 //
 // This file implements cublas related utilities.
 
-#include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/util_gpublas.hpp"
+#include "dca/linalg/util/handle_functions.hpp"
 
-#include <mutex>
 #include <magma_v2.h>
+#include <mutex>
 
 
 namespace dca {

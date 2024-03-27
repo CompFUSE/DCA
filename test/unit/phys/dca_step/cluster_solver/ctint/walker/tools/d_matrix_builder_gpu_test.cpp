@@ -117,3 +117,14 @@ TYPED_TEST(DMatrixBuilderGpuTest, RemoveAndInstertVertex) {
     }
   }
 }
+
+int main(int argc, char** argv) {
+  int result = 0;
+
+  dca::parallel::MPIConcurrency concurrency(argc, argv);
+  ::testing::InitGoogleTest(&argc, argv);
+
+  result = RUN_ALL_TESTS();
+
+  return result;
+}

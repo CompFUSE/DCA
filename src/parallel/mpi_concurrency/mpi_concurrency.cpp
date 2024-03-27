@@ -17,7 +17,12 @@
 namespace dca {
 namespace parallel {
 
-MPIConcurrency::MPIConcurrency(int argc, char** argv) : MPIInitializer(argc, argv) {
+  MPIConcurrency::MPIConcurrency(int argc, char** argv) : MPIInitializer(argc, argv)
+#ifdef DCA_HAVE_ADIOS2
+							,adios_(std::make_unique<adios2::ADIOS>(MPIProcessorGrouping::get()))
+#endif
+
+  {
   if (!MPIProcessorGrouping::isValid()) {
     std::string error_string;
     if (MPIProcessorGrouping::get_size() == MPIProcessorGrouping::get_world_size())

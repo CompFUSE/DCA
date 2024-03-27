@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <complex>
 #include <tuple>
+#include <cstdint>
 
 // namespace dca {
 // namespace util {

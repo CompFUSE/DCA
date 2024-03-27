@@ -21,7 +21,7 @@
 #include <cublas_v2.h>
 #elif defined(DCA_HAVE_HIP)
 #include <hip/hip_runtime.h>
-#include <hipblas.h>
+#include <hipblas/hipblas.h>
 #include <hip/hip_complex.h>
 #include "dca/util/cuda2hip.h"
 #endif
