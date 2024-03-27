@@ -1,7 +1,14 @@
 # unit/math/function_transform
+
+set(gtest_main_flag GTEST_MAIN)
+if(DCA_HAVE_ADIOS2)
+  set(gtest_main_flag GTEST_MPI_MAIN)
+endif(DCA_HAVE_ADIOS2)
+
 dca_add_gtest(function_transform_test
+        ${gtest_main_flag}
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
-        LIBS FFTW::Double parallel_no_concurrency ${DCA_LIBS} )
+        LIBS FFTW::Double parallel_no_concurrency dca_math dca_io dca_domains enumerations function )
 
 dca_add_gtest(space_transform_2D_test
         INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}

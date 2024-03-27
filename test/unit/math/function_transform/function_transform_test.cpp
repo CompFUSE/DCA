@@ -148,16 +148,3 @@ TEST(FunctionTransformTest, SpaceToMomentumCmplx) {
 TEST(FunctionTransformTest, MomentumToSpaceCmplx) {
   spTestImplementation<KDmn, RDmn>(false);
 }
-
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-
-  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  // delete listeners.Release(listeners.default_result_printer());
-  // listeners.Append(new dca::testing::MinimalistPrinter);
-
-  initialize();
-
-  int result = RUN_ALL_TESTS();
-  return result;
-}
