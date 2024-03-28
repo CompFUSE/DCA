@@ -142,9 +142,11 @@ void spTestImplementation(const bool direct) {
 }
 
 TEST(FunctionTransformTest, SpaceToMomentumCmplx) {
+  initialize();
   spTestImplementation<RDmn, KDmn>(true);
 }
 
 TEST(FunctionTransformTest, MomentumToSpaceCmplx) {
+  initialize();
   spTestImplementation<KDmn, RDmn>(false);
 }
