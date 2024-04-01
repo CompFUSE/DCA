@@ -68,7 +68,8 @@ inline void copyMatrixToArray(const Matrix<Scalar, CPU, ALLOC>& mat, Scalar* a, 
 // Copies the m by n matrix stored in a to the matrix mat.
 // Preconditions: lda >= m.
 template <typename Scalar, class ALLOC>
-inline void copyArrayToMatrix(int m, int n, const Scalar* a, int lda, Matrix<Scalar, CPU, ALLOC>& mat) {
+inline void copyArrayToMatrix(int m, int n, const Scalar* a, int lda,
+                              Matrix<Scalar, CPU, ALLOC>& mat) {
   assert(lda >= m);
   mat.resizeNoCopy(std::make_pair(m, n));
   lapack::lacpy("A", mat.nrRows(), mat.nrCols(), a, lda, mat.ptr(), mat.leadingDimension());
@@ -95,8 +96,9 @@ inline void copyCol(const Matrix<Scalar, device_name>& mat_x, int jx,
 //                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
 //                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
 template <typename Scalar, class Vec, class ALLOC>
-inline void copyCols(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& j_x, Matrix<Scalar, CPU, ALLOC>& mat_y,
-                     const Vec& j_y, int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+inline void copyCols(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& j_x,
+                     Matrix<Scalar, CPU, ALLOC>& mat_y, const Vec& j_y, int /*thread_id*/ = 0,
+                     int /*stream_id*/ = 0) {
   assert(j_x.size() <= j_y.size());
 
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
@@ -127,7 +129,6 @@ inline void copyCols(const Matrix<Scalar, GPU>& mat_x, const Vector<int, GPU>& j
   blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
                  mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
   checkErrorsCudaDebug();
-
 }
 #endif  // DCA_HAVE_GPU
 
@@ -153,8 +154,9 @@ inline void copyRow(const Matrix<Scalar, device_name>& mat_x, int ix,
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
 //                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
 template <typename Scalar, class Vec, class ALLOC>
-inline void copyRows(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& i_x, Matrix<Scalar, CPU, ALLOC>& mat_y,
-                     const Vec& i_y, const int /*thread_id*/ = 0, const int /*stream_id*/ = 0) {
+inline void copyRows(const Matrix<Scalar, CPU, ALLOC>& mat_x, const Vec& i_x,
+                     Matrix<Scalar, CPU, ALLOC>& mat_y, const Vec& i_y, const int /*thread_id*/ = 0,
+                     const int /*stream_id*/ = 0) {
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
@@ -200,7 +202,6 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
   auto max_diff = std::abs(Scalar(0));
   assert(a.size() == b.size());
 
-
   for (int j = 0; j < a.nrCols(); ++j) {
     for (int i = 0; i < a.nrRows(); ++i) {
       max_diff = std::max(max_diff, std::abs(a(i, j) - b(i, j)));
@@ -228,7 +229,7 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
 
   return max_diff;
 }
-  template <typename Scalar, DeviceType device_name, class ALLOC>
+template <typename Scalar, DeviceType device_name, class ALLOC>
 auto difference(const Matrix<Scalar, device_name>& a, const Matrix<Scalar, CPU, ALLOC>& b,
                 double diff_threshold = 1e-3) {
   Matrix<Scalar, CPU, ALLOC> cp_a(a);
@@ -295,8 +296,9 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
 // Preconditions: mat is a square matrix.
 // Postconditions: ipiv and work are resized to the needed dimension.
 // \todo consider doing inverse at full precision reguardless of incoming Scalar precision
-  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
-  void inverse(MatrixType<Scalar, device_name, ALLOC>& mat, Vector<int, CPU>& ipiv,
+template <typename Scalar, DeviceType device_name, template <typename> class ALLOC,
+          template <typename, DeviceType, class> class MatrixType>
+void inverse(MatrixType<Scalar, device_name, ALLOC<Scalar>>& mat, Vector<int, CPU>& ipiv,
              Vector<Scalar, device_name>& work) {
   assert(mat.is_square());
 
@@ -312,15 +314,17 @@ void insertRow(Matrix<Scalar, CPU, ALLOC>& mat, int i) {
                                         work.ptr(), lwork);
 }
 
-  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixType>
-  void inverse(MatrixType<Scalar, device_name, ALLOC>& mat) {
+  template <typename Scalar, DeviceType device_name, template<typename> class ALLOC,
+          template <typename, DeviceType, class> class MatrixType>
+void inverse(MatrixType<Scalar, device_name, ALLOC<Scalar>>& mat) {
   Vector<int, CPU> ipiv;
   Vector<Scalar, device_name> work;
   inverse(mat, ipiv, work);
 }
 
 template <typename Scalar, class ALLOC>
-void smallInverse(Matrix<Scalar, CPU, ALLOC>& m_inv, Vector<int, CPU>& ipiv, Vector<Scalar, CPU>& work) {
+void smallInverse(Matrix<Scalar, CPU, ALLOC>& m_inv, Vector<int, CPU>& ipiv,
+                  Vector<Scalar, CPU>& work) {
   assert(m_inv.is_square());
   switch (m_inv.nrCols()) {
     case 1:
@@ -631,8 +635,8 @@ inline void swapRowAndCol(Matrix<Scalar, device_name>& mat, int i1, int i2, int 
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename Scalar, class ALLOC>
-void gemv(char transa, Scalar alpha, const Matrix<Scalar, CPU, ALLOC>& a, const Vector<Scalar, CPU>& x,
-          Scalar beta, Vector<Scalar, CPU>& y) {
+void gemv(char transa, Scalar alpha, const Matrix<Scalar, CPU, ALLOC>& a,
+          const Vector<Scalar, CPU>& x, Scalar beta, Vector<Scalar, CPU>& y) {
   if (transa == 'N') {
     assert(a.nrRows() == y.size());
     assert(a.nrCols() == x.size());
@@ -669,11 +673,12 @@ void gemv(char transa, const Matrix<Scalar, CPU, ALLOC>& a, const Vector<Scalar,
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
-  template <typename Scalar, DeviceType device_name, template <typename, DeviceType, class> class MatrixA,
-	    template <typename, DeviceType, class> class MatrixB, template <typename, DeviceType, class> class MatrixC, class ALLOC1, class ALLOC2, class ALLOC3>
-  void gemm(char transa, char transb, Scalar alpha, const MatrixA<Scalar, device_name, ALLOC1>& a,
-	    const MatrixB<Scalar, device_name, ALLOC2>& b, Scalar beta, MatrixC<Scalar, device_name, ALLOC3>& c,
-          int thread_id = 0, int stream_id = 0) {
+template <typename Scalar, DeviceType device_name, template <typename, DeviceType, class> class MatrixA,
+          template <typename, DeviceType, class> class MatrixB,
+          template <typename, DeviceType, class> class MatrixC, class ALLOC1, class ALLOC2, class ALLOC3>
+void gemm(char transa, char transb, Scalar alpha, const MatrixA<Scalar, device_name, ALLOC1>& a,
+          const MatrixB<Scalar, device_name, ALLOC2>& b, Scalar beta,
+          MatrixC<Scalar, device_name, ALLOC3>& c, int thread_id = 0, int stream_id = 0) {
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -707,21 +712,26 @@ void gemv(char transa, const Matrix<Scalar, CPU, ALLOC>& a, const Vector<Scalar,
 // Performs the matrix-matrix multiplication c <- a * b
 // Out: c
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixA,
-	    template <typename, DeviceType, class> class MatrixB, template <typename, DeviceType, class> class MatrixC>
-  inline void gemm(const MatrixA<Scalar, device_name, ALLOC>& a, const MatrixB<Scalar, device_name, ALLOC>& b,
-		   MatrixC<Scalar, device_name, ALLOC>& c, int thread_id = 0, int stream_id = 0) {
+template <typename Scalar, DeviceType device_name, class ALLOC,
+          template <typename, DeviceType, class> class MatrixA,
+          template <typename, DeviceType, class> class MatrixB,
+          template <typename, DeviceType, class> class MatrixC>
+inline void gemm(const MatrixA<Scalar, device_name, ALLOC>& a,
+                 const MatrixB<Scalar, device_name, ALLOC>& b,
+                 MatrixC<Scalar, device_name, ALLOC>& c, int thread_id = 0, int stream_id = 0) {
   gemm<Scalar, device_name>('N', 'N', 1., a, b, 0., c, thread_id, stream_id);
 }
 
 // Performs the matrix-matrix multiplication c <- alpha * a * b + beta * c,
 // In/Out: c ('In' only if beta != 0)
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-  template <typename Scalar, DeviceType device_name, class ALLOC, template <typename, DeviceType, class> class MatrixA,
-	    template <typename, DeviceType,class> class MatrixB, template <typename, DeviceType, class> class MatrixC>
-  inline void gemm(Scalar alpha, const MatrixA<Scalar, device_name, ALLOC>& a,
-		   const MatrixB<Scalar, device_name, ALLOC>& b, Scalar beta,
-		   MatrixC<Scalar, device_name, ALLOC>& c, int thread_id = 0, int stream_id = 0) {
+template <typename Scalar, DeviceType device_name, class ALLOC,
+          template <typename, DeviceType, class> class MatrixA,
+          template <typename, DeviceType, class> class MatrixB,
+          template <typename, DeviceType, class> class MatrixC>
+inline void gemm(Scalar alpha, const MatrixA<Scalar, device_name, ALLOC>& a,
+                 const MatrixB<Scalar, device_name, ALLOC>& b, Scalar beta,
+                 MatrixC<Scalar, device_name, ALLOC>& c, int thread_id = 0, int stream_id = 0) {
   gemm<Scalar, device_name>('N', 'N', alpha, a, b, beta, c, thread_id, stream_id);
 }
 
@@ -734,7 +744,7 @@ void gemv(char transa, const Matrix<Scalar, CPU, ALLOC>& a, const Vector<Scalar,
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
-  template <typename Scalar, DeviceType device_name, class ALLOC>
+template <typename Scalar, DeviceType device_name, class ALLOC>
 inline void gemm(char transa, char transb, const Matrix<Scalar, device_name, ALLOC>& a,
                  const Matrix<Scalar, device_name, ALLOC>& b, Matrix<Scalar, device_name, ALLOC>& c,
                  int thread_id = 0, int stream_id = 0) {
@@ -774,8 +784,8 @@ void trsm(char uplo, char diag, const Matrix<Scalar, device_name>& a,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename Scalar, class ALLOC>
-void gemm(char transa, char transb, Matrix<Scalar, CPU, ALLOC>& a, Matrix<std::complex<Scalar>, CPU, ALLOC>& b,
-          Matrix<std::complex<Scalar>, CPU, ALLOC>& c) {
+void gemm(char transa, char transb, Matrix<Scalar, CPU, ALLOC>& a,
+          Matrix<std::complex<Scalar>, CPU, ALLOC>& b, Matrix<std::complex<Scalar>, CPU, ALLOC>& c) {
   Matrix<Scalar, CPU, ALLOC> b_part(b.size());
   Matrix<Scalar, CPU, ALLOC> c_re(c.size());
   Matrix<Scalar, CPU, ALLOC> c_im(c.size());
@@ -858,7 +868,8 @@ static void gemm(char transa, char transb, Matrix<std::complex<Scalar>, CPU, ALL
 //                and kb = b[0].nrRows() if transb == 'N', kb = b[0].nrCols() otherwise.
 template <typename Scalar, class ALLOC>
 void multiply(char transa, char transb, const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& a,
-              const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& b, std::array<Matrix<Scalar, CPU, ALLOC>, 2>& c,
+              const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& b,
+              std::array<Matrix<Scalar, CPU, ALLOC>, 2>& c,
               std::array<Matrix<Scalar, CPU, ALLOC>, 5>& work) {
   assert(a[0].size() == a[1].size());
   assert(b[0].size() == b[1].size());
@@ -895,7 +906,8 @@ void multiply(char transa, char transb, const std::array<Matrix<Scalar, CPU, ALL
 
 template <typename Scalar, class ALLOC>
 void multiply(const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& a,
-              const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& b, std::array<Matrix<Scalar, CPU, ALLOC>, 2>& c,
+              const std::array<Matrix<Scalar, CPU, ALLOC>, 2>& b,
+              std::array<Matrix<Scalar, CPU, ALLOC>, 2>& c,
               std::array<Matrix<Scalar, CPU, ALLOC>, 5>& work) {
   multiply('N', 'N', a, b, c, work);
 }
@@ -1018,8 +1030,9 @@ inline void multiplyDiagonalRight(const Matrix<Scalar, GPU>& a, const Vector<Sca
 // Postcondition: lambda_re, lambda_i, are resized, vl if jobvl == 'V', vr if jobvr == 'V' are
 // resized.
 template <typename Scalar, class ALLOC>
-void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU, ALLOC>& a, Vector<Scalar, CPU>& lambda_re,
-                 Vector<Scalar, CPU>& lambda_im, Matrix<Scalar, CPU, ALLOC>& vl, Matrix<Scalar, CPU, ALLOC>& vr) {
+void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU, ALLOC>& a,
+                 Vector<Scalar, CPU>& lambda_re, Vector<Scalar, CPU>& lambda_im,
+                 Matrix<Scalar, CPU, ALLOC>& vl, Matrix<Scalar, CPU, ALLOC>& vr) {
   assert(a.is_square());
 
   Matrix<Scalar, CPU, ALLOC> a_copy(a);
@@ -1055,8 +1068,9 @@ void eigensolver(char jobvl, char jobvr, const Matrix<Scalar, CPU, ALLOC>& a, Ve
 //               a is a square matrix.
 // Postcondition: lambda, is resized, vl if jobvl == 'V', vr if jobvr == 'V' are resized.
 template <typename Scalar, class ALLOC>
-void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<Scalar>, CPU>& a,
-                 Vector<std::complex<Scalar>, CPU>& lambda, Matrix<std::complex<Scalar>, CPU, ALLOC>& vl,
+void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<Scalar>, CPU, ALLOC>& a,
+                 Vector<std::complex<Scalar>, CPU>& lambda,
+                 Matrix<std::complex<Scalar>, CPU, ALLOC>& vl,
                  Matrix<std::complex<Scalar>, CPU, ALLOC>& vr) {
   assert(a.is_square());
 
@@ -1145,7 +1159,8 @@ void eigensolverHermitian(char jobv, char uplo, const Matrix<std::complex<Scalar
 }
 
 template <typename Scalar, class ALLOC>
-void eigensolverGreensFunctionMatrix(char jobv, char uplo, const Matrix<std::complex<Scalar>, CPU, ALLOC>& a,
+void eigensolverGreensFunctionMatrix(char jobv, char uplo,
+                                     const Matrix<std::complex<Scalar>, CPU, ALLOC>& a,
                                      Vector<Scalar, CPU>& lambda,
                                      Matrix<std::complex<Scalar>, CPU, ALLOC>& v) {
   assert(a.is_square());
@@ -1174,7 +1189,8 @@ void eigensolverGreensFunctionMatrix(char jobv, char uplo, const Matrix<std::com
 // Out: a_inv
 // Postconditions: a_inv is resized to the needed dimension.
 template <typename Scalar, class ALLOC>
-void pseudoInverse(const Matrix<Scalar, CPU, ALLOC>& a, Matrix<Scalar, CPU, ALLOC>& a_inv, double eps = 1.e-6) {
+void pseudoInverse(const Matrix<Scalar, CPU, ALLOC>& a, Matrix<Scalar, CPU, ALLOC>& a_inv,
+                   double eps = 1.e-6) {
   int m = a.nrRows();
   int n = a.nrCols();
   a_inv.resizeNoCopy(std::make_pair(n, m));
@@ -1236,7 +1252,7 @@ void pseudoInverse(const Matrix<Scalar, CPU, ALLOC>& a, Matrix<Scalar, CPU, ALLO
 // Computes (in place) the determinant of the matrix.
 // Returns: determinant.
 // Postcondition: M is its LU decomposition.
-  template <template <typename, DeviceType, class> class MatrixType, typename Scalar, class ALLOC>
+template <template <typename, DeviceType, class> class MatrixType, typename Scalar, class ALLOC>
 Scalar determinantIP(MatrixType<Scalar, CPU, ALLOC>& M) {
   assert(M.nrCols() == M.nrRows());
   const int n = M.nrCols();
@@ -1263,7 +1279,7 @@ Scalar determinantIP(MatrixType<Scalar, CPU, ALLOC>& M) {
 
 // Copy and computes the determinant of the matrix.
 // Returns: determinant.
-  template <typename Scalar, DeviceType device, class ALLOC>
+template <typename Scalar, DeviceType device, class ALLOC>
 Scalar determinant(const Matrix<Scalar, device>& M) {
   Matrix<Scalar, CPU, ALLOC> M_copy(M);
   return determinantIP(M_copy);
@@ -1305,7 +1321,8 @@ auto logDeterminantIP(MatrixType<Scalar, CPU, ALLOC>& M, std::vector<int>& ipiv)
   return std::make_pair(log_det, phase);
 }
 
-template <template <typename, DeviceType, class> class MatrixType, typename Scalar, DeviceType device, class ALLOC>
+template <template <typename, DeviceType, class> class MatrixType, typename Scalar,
+          DeviceType device, class ALLOC>
 auto logDeterminant(const MatrixType<Scalar, device, ALLOC>& m) {
   Matrix<Scalar, CPU, ALLOC> m_copy(m);
   std::vector<int> ipiv;
@@ -1330,8 +1347,8 @@ auto inverseAndLogDeterminant(MatrixType<Scalar, CPU, ALLOC>& mat) {
 }
 
 template <typename Scalar, class ALLOC>
-bool areNear(const Matrix<Scalar, CPU, ALLOC>& A, const Matrix<Scalar, CPU, ALLOC>& B, const double err = 1e-16) {
-
+bool areNear(const Matrix<Scalar, CPU, ALLOC>& A, const Matrix<Scalar, CPU, ALLOC>& B,
+             const double err = 1e-16) {
   if (A.size() != B.size())
     return false;
 

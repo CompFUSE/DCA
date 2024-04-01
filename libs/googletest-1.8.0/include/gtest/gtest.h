@@ -55,9 +55,6 @@
 #include <ostream>
 #include <vector>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsuggest-override"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #include "gtest/internal/gtest-internal.h"
 #include "gtest/internal/gtest-string.h"
@@ -68,8 +65,6 @@
 #include "gtest/gtest_prod.h"
 #include "gtest/gtest-test-part.h"
 #include "gtest/gtest-typed-test.h"
-
-#pragma GCC diagnostic_pop
 
 // Depending on the platform, different string classes are available.
 // On Linux, in addition to ::std::string, Google also makes use of

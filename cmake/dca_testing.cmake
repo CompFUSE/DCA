@@ -34,7 +34,7 @@ endif()
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN THREADED MPI CUDA CUDA_MPI)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN GTEST_MPI_MAIN THREADED MPI CUDA CUDA_MPI)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -106,6 +106,10 @@ function(dca_add_gtest name)
 
   if (DCA_ADD_GTEST_GTEST_MAIN)
     set(DCA_ADD_GTEST_SOURCES ${PROJECT_SOURCE_DIR}/test/dca_gtest_main.cpp ${DCA_ADD_GTEST_SOURCES})
+  endif()
+
+  if (DCA_ADD_GTEST_GTEST_MPI_MAIN)
+    set(DCA_ADD_GTEST_SOURCES ${PROJECT_SOURCE_DIR}/test/dca_gtest_main_mpi.cpp ${DCA_ADD_GTEST_SOURCES})
   endif()
 
   add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})

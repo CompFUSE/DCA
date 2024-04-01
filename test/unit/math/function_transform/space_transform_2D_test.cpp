@@ -26,7 +26,9 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
-
+#ifdef DCA_HAVE_ADIOS2
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
+#endif
 dca::parallel::NoConcurrency* concurrency_ptr;
 
 using Model = dca::phys::models::TightBindingModel<
@@ -121,6 +123,11 @@ TYPED_TEST(SpaceTransform2DTest, Execute) {
 }
 
 int main(int argc, char** argv) {
+#ifdef DCA_HAVE_ADIOS2
+  // Until I figure out how to prevent globals inside the adios library from calling
+  // MPI_COMM_dup why're stuck with this if it is linked.
+  dca::parallel::MPIConcurrency mpi_concurrency(argc, argv);
+#endif
   dca::parallel::NoConcurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
 

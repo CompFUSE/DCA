@@ -27,7 +27,11 @@ cudaMemoryType PointerType(const ScalarType* ptr) {
 #if defined(DCA_HAVE_CUDA)
   return attributes.type;
 #elif defined(DCA_HAVE_HIP)
+  #if HIP_VERSION_MAJOR >= 6
+  return attributes.type;
+  #else
   return attributes.memoryType;
+  #endif
 #endif
 }
 

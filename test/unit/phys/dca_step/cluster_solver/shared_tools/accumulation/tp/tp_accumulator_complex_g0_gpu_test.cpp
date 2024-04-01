@@ -141,12 +141,12 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
 
 #ifdef DCA_HAVE_ADIOS2
   if (write_G4s) {
-    dca::io::Writer writer(*adios_ptr, *concurrency_ptr, "ADIOS2", true);
-    dca::io::Writer writer_h5(*adios_ptr, *concurrency_ptr, "HDF5", true);
+    dca::io::Writer writer(*concurrency_ptr, "ADIOS2", true);
+    dca::io::Writer writer_h5(*concurrency_ptr, "HDF5", true);
 
     writer.open_file("tp_gpu_test_complex_G0_G4.bp");
     writer_h5.open_file("tp_gpu_test_complex_G0_G4.hdf5");
-
+    writer.begin_step();
     this->host_setup.parameters_.write(writer);
     this->host_setup.parameters_.write(writer_h5);
     this->host_setup.data_->write(writer);
@@ -160,7 +160,7 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer_h5.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
     }
-
+    
 #ifndef NDEBUG
     writer_h5.execute("accumulatorDevice_G_0", accumulatorDevice.get_G_Debug()[0]);
     writer_h5.execute("accumulatorDevice_G_1", accumulatorDevice.get_G_Debug()[1]);
@@ -206,7 +206,7 @@ TYPED_TEST(TpAccumulatorComplexG0GpuTest, Accumulate) {
             << "( " << i << ", " << j << " )";
       }
 #endif
-
+    writer.end_step();
     writer.close_file();
     writer_h5.close_file();
   }
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
 
 #ifdef DCA_HAVE_ADIOS2
   // ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get(), false);
+  adios2::ADIOS adios("", concurrency_ptr->get());
   adios_ptr = &adios;
 #endif
   ::testing::InitGoogleTest(&argc, argv);

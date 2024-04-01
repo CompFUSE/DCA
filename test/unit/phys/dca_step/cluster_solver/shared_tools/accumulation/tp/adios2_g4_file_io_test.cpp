@@ -67,8 +67,8 @@ TEST_F(G4FileIoTest, ReadWrite) {
       G4(i) = rng();
   };
 
-  dca::io::ADIOS2Writer writer(*adios_ptr, concurrency_ptr);
-  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr);;
+  dca::io::ADIOS2Writer writer(concurrency_ptr);
+  dca::io::ADIOS2Reader reader(*concurrency_ptr);;
 
   std::map<dca::phys::FourPointType, std::string> func_names;
   func_names[dca::phys::FourPointType::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";

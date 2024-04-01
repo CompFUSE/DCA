@@ -48,6 +48,8 @@ public:
 public:
   ADIOS2Writer() = delete;
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
+  // Concurrency objects now carry an adios pointer if DCA_HAVE_ADIOS2.
+  ADIOS2Writer(const CT* concurrency, bool verbose = false);
   ADIOS2Writer(adios2::ADIOS& adios, const CT* concurrency, bool verbose = false);
   ~ADIOS2Writer();
 
@@ -171,9 +173,9 @@ public:
   }
 
 private:
+  const CT* concurrency_;
   adios2::ADIOS& adios_;
   bool verbose_;
-  const CT* concurrency_;
 
   /** For the case of sample it is necessary to explicitly write a rank "local" variable
    *  of this type.

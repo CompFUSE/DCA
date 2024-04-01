@@ -31,16 +31,6 @@ using McOptions = MockMcOptions<double>;
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#ifdef DCA_HAVE_ADIOS2
-adios2::ADIOS* adios_ptr;
-#endif
-#ifdef DCA_HAVE_MPI
-#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-dca::parallel::MPIConcurrency* concurrency_ptr;
-#else
-#include "dca/parallel/no_concurrency/no_concurrency.hpp"
-dca::parallel::NoConcurrency* concurrency_ptr;
-#endif
 
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::RashbaHubbard<dca::phys::domains::D4>>;
@@ -152,35 +142,11 @@ void spTestImplementation(const bool direct) {
 }
 
 TEST(FunctionTransformTest, SpaceToMomentumCmplx) {
+  initialize();
   spTestImplementation<RDmn, KDmn>(true);
 }
 
 TEST(FunctionTransformTest, MomentumToSpaceCmplx) {
-  spTestImplementation<KDmn, RDmn>(false);
-}
-
-int main(int argc, char** argv) {
-#ifdef DCA_HAVE_MPI
-  dca::parallel::MPIConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#else
-  dca::parallel::NoConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-#endif
-
-#ifdef DCA_HAVE_ADIOS2
-  //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", concurrency_ptr->get(), "C++");
-  adios_ptr = &adios;
-#endif
-  ::testing::InitGoogleTest(&argc, argv);
-
-  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-  // delete listeners.Release(listeners.default_result_printer());
-  // listeners.Append(new dca::testing::MinimalistPrinter);
-
   initialize();
-
-  int result = RUN_ALL_TESTS();
-  return result;
+  spTestImplementation<KDmn, RDmn>(false);
 }
