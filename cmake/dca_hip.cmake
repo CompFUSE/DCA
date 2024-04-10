@@ -74,6 +74,9 @@ if (CMAKE_HIP_COMPILER)
   set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx908,gfx90a")
   set(CMAKE_HIP_STANDARD 17)
   list(APPEND HIP_HIPCC_FLAGS "-fPIC")
+  list(APPEND HIP_HIPCC_FLAGS "-mno-unsafe-fp-atomics")
+  list(APPEND HIP_HIPCC_FLAGS "-fgpu-default-stream=per-thread")
+
   # doesn't appear to work
   set(CMAKE_HIP_SOURCE_FILE_EXTENSIONS cu)
   message("Enabled HIP as a language")

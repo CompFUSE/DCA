@@ -1012,11 +1012,15 @@ void CtauxWalker<device_t, Parameters, Data>::read_Gamma_matrices(e_spin_states 
     case e_DN:
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_dn, N_dn, G_dn, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
+      // assume we've no guarantee this will be allowed to finish before the async copy starts
+      linalg::util::syncStream(thread_id, stream_id);
       break;
 
     case e_UP:
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_up, N_up, G_up, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
+      // assume we've no guarantee this will be allowed to finish before the async copy starts
+      linalg::util::syncStream(thread_id, stream_id);
       break;
 
     default:
