@@ -100,10 +100,10 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::compute_Gamma(
         //     return quot;
         //   };
 
-          Scalar gamma_k = exp_delta_V[j];
-	  auto y = gamma_k - dca::util::RealAlias<Scalar>(1.0);
-          Scalar inter_gamma = consistentScalarDiv(gamma_k, y);  //(gamma_k) / (gamma_k - Real(1.));
-          Gamma(i, j) -= inter_gamma;                          //(gamma_k) / (gamma_k - Real(1.));
+        Scalar gamma_k = exp_delta_V[j];
+        auto y = gamma_k - dca::util::RealAlias<Scalar>(1.0);
+        Scalar inter_gamma = consistentScalarDiv(gamma_k, y);  //(gamma_k) / (gamma_k - Real(1.));
+        Gamma(i, j) -= inter_gamma;                            //(gamma_k) / (gamma_k - Real(1.));
         // }
         // else {
         //   Scalar gamma_k = exp_delta_V[j];
@@ -199,10 +199,12 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma(
     min = Gamma_val;
   }
 
+  // Here this is fine since we don't reset Gamma_LU to identity as in the blocked solve
 #ifndef NDEBUG
   if (!test_max_min(n, Gamma_LU, max, min))
-    throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+    throw std::runtime_error("solve_Gamma test_max_min on Gamma_LU failed!");
 #endif
+  
   Scalar phani_gamma = exp_delta_V - Real(1.);
   Scalar determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
@@ -414,18 +416,17 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
     else {
       max = new_max;
       min = new_min;
+      // This has to be here since it will fail almost always when we set Gamma_LU to identity.
+#ifndef NDEBUG
+      if (!test_max_min(n, Gamma_LU, max, min))
+        throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+#endif
     }
   }
   else {
     max = Gamma_val;
     min = Gamma_val;
   }
-
-  // std::cout << min << ", " << max << ")\t";
-#ifndef NDEBUG
-  if (!test_max_min(n, Gamma_LU, max, min))
-    throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
-#endif
 
   auto phani_gamma = exp_delta_V - Real(1.);
   auto determinant_ratio = -phani_gamma * Gamma_LU_n_n;
@@ -610,7 +611,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::apply_bennett_on_Gamma(
 
   Scalar ratio = 1.;
   for (int i = 0; i < n; ++i)
-    ratio *= consistentScalarDiv(Gamma_LU(i,i), d_ptr[i]);
+    ratio *= consistentScalarDiv(Gamma_LU(i, i), d_ptr[i]);
 
   {
     Real Gamma_val = std::abs(Gamma_LU(0, 0));
@@ -630,7 +631,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::apply_bennett_on_Gamma(
   }
 
   const Scalar phani_gamma = exp_delta_V - Real(1.);
-  const Scalar det_ratio = consistentScalarDiv(-ratio,phani_gamma);
+  const Scalar det_ratio = consistentScalarDiv(-ratio, phani_gamma);
 
   if (std::abs(std::imag(det_ratio)) > std::numeric_limits<Real>::epsilon() * 1000) {
     throw(std::logic_error("The determinant is complex."));
