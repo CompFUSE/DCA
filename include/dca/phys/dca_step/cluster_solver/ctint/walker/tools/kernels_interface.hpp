@@ -30,7 +30,7 @@ namespace details {
 template <typename Scalar, typename SignType>
 void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Scalar, SignType> g0_interp, dca::linalg::util::GpuStream stream);
+                   DeviceInterpolationData<Scalar, SignType> g0_interp, dca::linalg::util::GpuStream& stream);
 
 }  // namespace details
 }  // namespace ctint

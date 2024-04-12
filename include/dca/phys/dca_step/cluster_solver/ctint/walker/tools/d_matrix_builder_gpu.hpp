@@ -53,7 +53,7 @@ public:
   // See DMatrixBuilder<linalg::CPU, Scalar>::computeG0.
   // Out: G0. Device matrix
   void computeG0(Matrix& G0, const details::DeviceConfiguration& configuration, int n_init,
-                 bool right_section, GpuStream stream) const override;
+                 bool right_section, const GpuStream& stream) const;
 
 private:
   const G0Interpolation<linalg::GPU, Scalar>& g0_ref_;
