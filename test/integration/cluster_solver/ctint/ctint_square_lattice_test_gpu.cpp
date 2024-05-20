@@ -10,7 +10,8 @@
 // Compare GPU and CPU runs with CT-INT.
 // Model: square lattice with single band and double occupancy repulsion U.
 
-#include <cuda_profiler_api.h>
+//#include <cuda_profiler_api.h>
+#include "dca/platform/dca_gpu.h"
 #include <iostream>
 #include <string>
 #include "dca/testing/gtest_h_w_warning_blocking.h"
@@ -73,9 +74,9 @@ TEST(SquareLatticeTest, GpuSolver) {
   dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters, true> qmc_solver_gpu(
       parameters, data_gpu, nullptr);
   qmc_solver_gpu.initialize(0);
-  cudaProfilerStart();
+  //cudaProfilerStart();
   qmc_solver_gpu.integrate();
-  cudaProfilerStop();
+  //cudaProfilerStop();
   qmc_solver_gpu.finalize();
   EXPECT_NEAR(1.0, qmc_solver_gpu.computeDensity(), 1e-3);
 

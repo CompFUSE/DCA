@@ -1327,6 +1327,8 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       }
     */
 
+    delayed_spins[delayed_index].is_accepted_move  = false;
+
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP and
         delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP) {
       Gamma_up_diag_max = tmp_up_diag_max < 1. ? 1. : tmp_up_diag_max;
@@ -1608,8 +1610,9 @@ template <typename AccumType>
 const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
     std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
   // Stream 1 waits on stream 0.
-  sync_streams_event_.record(linalg::util::getStream(thread_id, 0));
-  sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
+  // sync_streams_event_.record(linalg::util::getStream(thread_id, 0));
+  // sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
+  linalg::util::syncStream(thread_id, stream_id);
 
   for (int s = 0; s < 2; ++s) {
     const auto& config = get_configuration().get(s == 0 ? e_DN : e_UP);
@@ -1625,17 +1628,17 @@ const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
 
     if (device_t == linalg::GPU) {
       exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, s);
-      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M, thread_id, s);
+      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M, thread_id, stream_id);
     }
     else {
       dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_[s], N, M);
     }
   }
 
-  m_computed_events_[1].record(linalg::util::getStream(thread_id, 1));
-  m_computed_events_[1].block(linalg::util::getStream(thread_id, 0));
+  // m_computed_events_[1].record(linalg::util::getStream(thread_id, 1));
+  // m_computed_events_[1].block(linalg::util::getStream(thread_id, 0));
 
-  m_computed_events_[0].record(linalg::util::getStream(thread_id, 0));
+  m_computed_events_[0].record(linalg::util::getStream(thread_id, stream_id));
   return &m_computed_events_[0];
 }
 

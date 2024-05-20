@@ -92,6 +92,7 @@ private:
   void solve_Gamma_slow(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
   void solve_Gamma_fast(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
   void solve_Gamma_BLAS(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_BLAS(int n, Scalar* Gamma_LU, int lda);
 
   void solve_Gamma_fast(int n, Scalar* A, int LD);
 

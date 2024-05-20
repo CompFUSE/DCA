@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2024 ETH Zurich
+// Copyright (C) 2024 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -7,75 +7,98 @@
 //
 // Author: Jérémie Bouquet   (bouquetj@gmail.com).
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch).
+//         Peter W. Doak     (doakpw@ornl.gov)
 //
 // This class tests the GPU walker used by the ctint cluster solver by comparing it with the CPU
 // version.
 
 #include "dca/platform/dca_gpu.h"
+using Scalar = double;
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {
-using McOptions = MockMcOptions<double>;
+using McOptions = MockMcOptions<Scalar>;
 }  // namespace config
 }  // namespace dca
 
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
-
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 
-#include "dca/linalg/matrixop.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+#include "walker_wrapper.hpp"
 #include "walker_wrapper_submatrix.hpp"
-
-using dca::linalg::CPU;
-using dca::linalg::GPU;
+#include "dca/linalg/matrixop.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
-template <typename Scalar>
-using CtintWalkerSubmatrixGpuTest =
-  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
+using dca::linalg::CPU;
+using dca::linalg::GPU;
+
+template <typename SCALAR>
+struct CtINTWalkerSubmatrixGPUTestT : public ::testing::Test {
+  using G0Setup = dca::testing::G0SetupBare<SCALAR, dca::testing::LatticeBilayer,
+                                            dca::ClusterSolverId::CT_INT, input_name>;
+  virtual void SetUp() {
+    host_setup.SetUp();
+    gpu_setup.SetUp();
+  }
+
+  virtual void TearDown() {}
+  G0Setup host_setup;
+  G0Setup gpu_setup;
+};
 
 using namespace dca::phys::solver;
 
-using FloatingPointTypes = ::testing::Types<double>;
-TYPED_TEST_CASE(CtintWalkerSubmatrixGpuTest, FloatingPointTypes);
+template <typename Scalar>
+using CtintWalkerSubmatrixGpuTest = CtINTWalkerSubmatrixGPUTestT<Scalar>;
+
+// Currently testing float isn't really possible due to the way the Scalar type is
+// carried through from mc_options. See test_setup.hpp PD
+using ScalarTypes = ::testing::Types<double>; //double,
+TYPED_TEST_CASE(CtintWalkerSubmatrixGpuTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
 // acceptance probability to
 // the CTINT walker with no submatrix update.
 TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
-  using Real = TypeParam;
-  using Parameters = typename TestFixture::Parameters;
-
+  using Scalar = TypeParam;
+  using Parameters = typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::Parameters;
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
+  using Matrix = typename Walker::Matrix;
+  using MatrixPair = std::array<Matrix, 2>;
   using SbmWalkerCpu =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Real, Parameters, dca::linalg::CPU>;
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
   using SbmWalkerGpu =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Real, Parameters, dca::linalg::GPU>;
+    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::GPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
-  typename TestFixture::RngType rng(setup_rngs);
+  typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::RngType cpu_rng(setup_rngs);
+  typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::RngType gpu_rng(setup_rngs);
 
-  auto& data = *TestFixture::data_;
-  auto& parameters = TestFixture::parameters_;
+  auto& cpu_data = *this->host_setup.data_;
+  auto& gpu_data = *this->gpu_setup.data_;
+  auto& cpu_parameters = this->host_setup.parameters_;
+  auto& gpu_parameters = this->gpu_setup.parameters_;
 
-  const auto g0_func = dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t);
-  G0Interpolation<CPU, Real> g0_cpu(g0_func);
-  G0Interpolation<GPU, Real> g0_gpu(g0_func);
-  typename TestFixture::LabelDomain label_dmn;
+  const auto g0_func_cpu = dca::phys::solver::ctint::details::shrinkG0(cpu_data.G0_r_t);
+  G0Interpolation<CPU, Scalar> g0_cpu(g0_func_cpu);
+  const auto g0_func_gpu = dca::phys::solver::ctint::details::shrinkG0(gpu_data.G0_r_t);
+  G0Interpolation<GPU, Scalar> g0_gpu(g0_func_gpu);
+  typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::LabelDomain label_dmn;
 
   // TODO: improve API.
-  SbmWalkerCpu::setDMatrixBuilder(g0_cpu);
-  SbmWalkerCpu::setDMatrixAlpha(parameters.getAlphas(), false);
-  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
-  SbmWalkerGpu::setDMatrixAlpha(parameters.getAlphas(), false);
+  Walker::setDMatrixBuilder(g0_cpu);
+  Walker::setDMatrixAlpha(cpu_parameters.getAlphas(), false);
+  Walker::setInteractionVertices(cpu_data, cpu_parameters);
 
-  SbmWalkerCpu::setInteractionVertices(data, parameters);
-  SbmWalkerGpu::setInteractionVertices(data, parameters);
+  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
+  SbmWalkerGpu::setDMatrixAlpha(gpu_parameters.getAlphas(), false);
+  SbmWalkerGpu::setInteractionVertices(gpu_data, gpu_parameters);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -99,20 +122,20 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   };
 
   for (const int initial_size : std::array<int, 2>{0, 5}) {
-    parameters.setInitialConfigurationSize(initial_size);
-
+    cpu_parameters.setInitialConfigurationSize(initial_size);
+    gpu_parameters.setInitialConfigurationSize(initial_size);
     for (int steps = 1; steps <= 8; ++steps) {
-      rng.setNewValues(setup_rngs);
-      SbmWalkerCpu walker_cpu(parameters, rng);
-      rng.setNewValues(setup_rngs);
-      SbmWalkerGpu walker_gpu(parameters, rng);
+      cpu_rng.setNewValues(setup_rngs);
+      SbmWalkerCpu walker_cpu(cpu_parameters, cpu_rng);
+      gpu_rng.setNewValues(setup_rngs);
+      SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng);
 
-      rng.setNewValues(rng_vals);
+      cpu_rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);
-      rng.setNewValues(rng_vals);
+      gpu_rng.setNewValues(rng_vals);
       walker_gpu.doStep(steps);
 
-      constexpr Real tolerance = std::numeric_limits<Real>::epsilon() * 100;
+      constexpr Scalar tolerance = std::numeric_limits<Scalar>::epsilon() * 100;
 
       auto M_cpu = walker_cpu.getM();
       auto M_gpu = walker_gpu.getM();

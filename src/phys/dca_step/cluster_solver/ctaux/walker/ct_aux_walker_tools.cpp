@@ -153,17 +153,26 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
     return true;
   else {
     std::cout << __FUNCTION__ << " for Gamma_LU has failed!\n";
-    std::cout << "Has failed!\n";
     std::cout.precision(16);
     std::cout << "\n\t n : " << n << "\n";
+    for (int i = 1; i < n + 1; i++) {
+      Gamma_val = std::abs(Gamma_LU(i, i));
+      std::cout << Gamma_val << ", ";
+    }
+    std::cout << '\n';
     std::cout << std::scientific;
     std::cout << "max"
-              << "\t"
+              << "\t\t"
               << "max_ref"
-              << "\t"
+              << "\t\t"
               << "std::fabs(max_ref - max)" << '\n';
-    std::cout << max << "\t" << max_ref << "\t" << std::fabs(max_ref - max) << '\n';
-    std::cout << min << "\t" << min_ref << "\t" << std::fabs(min_ref - min) << '\n';
+    std::cout << max_ref << "\t" << max << "\t" << std::fabs(max_ref - max) << '\n';
+    std::cout << "max"
+              << "\t\t"
+              << "max_ref"
+              << "\t\t"
+    << "std::fabs(min_ref - min)" << '\n';
+    std::cout << min_ref << "\t" << min << "\t" << std::fabs(min_ref - min) << '\n';
     std::cout << std::endl;
 
     Gamma_LU.print();
@@ -177,8 +186,8 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma(
     int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V, Real& max,
     Real& min) -> Real {
   // solve_Gamma_slow(n, Gamma_LU);
-  solve_Gamma_fast(n, Gamma_LU);
-  // solve_Gamma_BLAS(n, Gamma_LU);
+  // solve_Gamma_fast(n, Gamma_LU);
+  solve_Gamma_BLAS(n, Gamma_LU);
 
   Scalar Gamma_LU_n_n = Gamma_LU(n, n);
   Real Gamma_val = std::abs(Gamma_LU_n_n);
@@ -201,8 +210,10 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma(
 
   // Here this is fine since we don't reset Gamma_LU to identity as in the blocked solve
 #ifndef NDEBUG
-  if (!test_max_min(n, Gamma_LU, max, min))
+  if (!test_max_min(n, Gamma_LU, max, min)) {
+    std::cerr << "solve_Gamma test_max_min on Gamma_LU failed!\n";
     throw std::runtime_error("solve_Gamma test_max_min on Gamma_LU failed!");
+  }
 #endif
   
   Scalar phani_gamma = exp_delta_V - Real(1.);
@@ -386,6 +397,15 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_BLAS(
 }
 
 template <typename Scalar>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::
+solve_Gamma_BLAS(int n, Scalar* Gamma_LU /*, Scalar exp_delta_V*/, int lda) {
+  {
+    dca::linalg::blas::trsv("L", "N", "U", n, Gamma_LU, lda, Gamma_LU, 1);
+    dca::linalg::blas::trsv("U", "T", "N", n, Gamma_LU, lda, Gamma_LU, lda);
+  }
+}
+
+template <typename Scalar>
 auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
     int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V, Real& max,
     Real& min) -> Scalar {
@@ -416,10 +436,13 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
     else {
       max = new_max;
       min = new_min;
-      // This has to be here since it will fail almost always when we set Gamma_LU to identity.
+
 #ifndef NDEBUG
-      if (!test_max_min(n, Gamma_LU, max, min))
+      // This has to be here since it will fail almost always when we set Gamma_LU to identity.
+      if (!test_max_min(n, Gamma_LU, max, min)) {
+	std::cerr << "solve_Gamma_blocked test_max_min on Gamma_LU failed!\n";
         throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+      }
 #endif
     }
   }
