@@ -603,10 +603,6 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
   read_Gamma_matrices(e_DN);
 
   actually_download_from_device<device_t>();
-  // Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
-  // Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
-
-  // linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -625,9 +621,6 @@ std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> CtauxW
   read_Gamma_matrices(e_DN);
 
   actually_download_from_device<device_t>();
-
-  // Gamma_up_CPU.swap(Gamma_up);
-  // Gamma_dn_CPU.swap(Gamma_dn);
 }
 
 // In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
@@ -1010,6 +1003,7 @@ void CtauxWalker<device_t, Parameters, Data>::read_Gamma_matrices(e_spin_states 
   // Profiler profiler(concurrency_, __FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
   switch (e_spin) {
     case e_DN:
+      linalg::util::syncStream(thread_id, stream_id);
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_dn, N_dn, G_dn, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
       // assume we've no guarantee this will be allowed to finish before the async copy starts
@@ -1017,6 +1011,7 @@ void CtauxWalker<device_t, Parameters, Data>::read_Gamma_matrices(e_spin_states 
       break;
 
     case e_UP:
+      linalg::util::syncStream(thread_id, stream_id);
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_up, N_up, G_up, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
       // assume we've no guarantee this will be allowed to finish before the async copy starts
@@ -1164,6 +1159,7 @@ void CtauxWalker<device_t, Parameters, Data>::remove_non_accepted_and_bennett_sp
       }
     }
   }
+  linalg::util::syncStream(thread_id, stream_id);
 
   assert(Gamma_up_size == Gamma_up_CPU.size().first and Gamma_up_size == Gamma_up_CPU.size().second);
   assert(Gamma_dn_size == Gamma_dn_CPU.size().first and Gamma_dn_size == Gamma_dn_CPU.size().second);
@@ -1608,10 +1604,7 @@ void CtauxWalker<device_t, Parameters, Data>::updateShell(const int done, const 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <typename AccumType>
 const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
-    std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
-  // Stream 1 waits on stream 0.
-  // sync_streams_event_.record(linalg::util::getStream(thread_id, 0));
-  // sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
+  std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
   linalg::util::syncStream(thread_id, stream_id);
 
   for (int s = 0; s < 2; ++s) {
@@ -1627,17 +1620,13 @@ const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
     M.resizeNoCopy(N.size());
 
     if (device_t == linalg::GPU) {
-      exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, s);
+      exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, stream_id);
       dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M, thread_id, stream_id);
     }
     else {
       dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_[s], N, M);
     }
   }
-
-  // m_computed_events_[1].record(linalg::util::getStream(thread_id, 1));
-  // m_computed_events_[1].block(linalg::util::getStream(thread_id, 0));
-
   m_computed_events_[0].record(linalg::util::getStream(thread_id, stream_id));
   return &m_computed_events_[0];
 }

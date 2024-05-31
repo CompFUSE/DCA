@@ -73,7 +73,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::compute_Gamma(
 
         Scalar N_ij = N(configuration_e_spin_index_i, configuration_e_spin_index_j);
 
-        Gamma(i, j) = (N_ij * exp_V[j] - delta) / (exp_V[j] - Real(1.));
+        Gamma(i, j) = consistentScalarDiv((N_ij * exp_V[j] - delta),(exp_V[j] - Real(1.)));
       }
       else {
         Gamma(i, j) =
@@ -95,6 +95,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::compute_Gamma(
         //     LocalReal brs = y.real() * oos;
         //     LocalReal bis = y.imag() * oos;
         //     s = (brs * brs) + (bis * bis);
+
         //     oos = 1.0 / s;
         //     quot = {((ars * brs) + (ais * bis)) * oos, ((ais * brs) - (ars * bis)) * oos};
         //     return quot;
@@ -280,6 +281,52 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_slow(
       Gamma_LU(n, n) -= x[i * LD] * y[i];
   }
 }
+
+
+template <typename Scalar>
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_slow(
+								     int n, Scalar* Gamma_LU, int LD) {
+
+
+  {
+    Scalar* y = &Gamma_LU[0 + n * LD]; //Gamma_LU.ptr(0, n);
+    Scalar* x = &Gamma_LU[n]; //Gamma_LU.ptr(n, 0);
+
+    {
+      if (false) {  // serial
+        for (int i = 0; i < n; i++)
+          for (int j = 0; j < i; j++)
+            y[i] -= Gamma_LU[i + j * LD] * y[j];
+      }
+      else {  // parallell
+        for (int j = 0; j < n; j++)
+          for (int i = j + 1; i < n; i++)
+            y[i] -= Gamma_LU[i + j * LD] * y[j];
+      }
+    }
+
+    {
+      if (true) {  // serial
+        for (int j = 0; j < n; j++) {
+          for (int i = 0; i < j; i++)
+            x[j * LD] -= x[i * LD] * Gamma_LU[i + j * LD];
+          x[j * LD] /= Gamma_LU[j + j * LD];
+        }
+      }
+      else {  // parallell
+        for (int i = 0; i < n; i++) {
+          x[i * LD] /= Gamma_LU[i + i * LD];
+          for (int j = i + 1; j < n; j++)
+            x[j * LD] -= x[i * LD] * Gamma_LU[i + j * LD];
+        }
+      }
+    }
+
+    for (int i = 0; i < n; i++)
+      Gamma_LU[ n +  n * LD] -= x[i * LD] * y[i];
+  }
+}
+
 
 /*!                 /            |   \          /            |      \ /            |            \
  *                  |            |   |          |            |      | |            |      |
@@ -526,7 +573,8 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
                               &A[n + Ic * LD], LD);
     }
 
-    solve_Gamma_fast(l, A_00, LD);
+    //solve_Gamma_fast(l, A_00, LD);
+    solve_Gamma_slow(l, A_00, LD);
 
     {
       Scalar xy = 0;
