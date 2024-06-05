@@ -284,8 +284,7 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_slow(
 
 
 template <typename Scalar>
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_slow(
-								     int n, Scalar* Gamma_LU, int LD) {
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_slow(int n, Scalar* Gamma_LU, int LD) {
 
 
   {
