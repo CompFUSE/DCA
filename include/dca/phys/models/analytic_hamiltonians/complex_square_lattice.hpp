@@ -35,8 +35,8 @@ public:
   static constexpr bool complex_g0 = true;
   static constexpr bool spin_symmetric = true;
 
-  typedef domains::no_symmetry<2> LDA_point_group;
-  typedef point_group_type DCA_point_group;
+  using LDA_point_group = domains::no_symmetry<2>;
+  using DCA_point_group = PointGroup;
 
   const static int DIMENSION = 2;
   const static int BANDS = 1;
@@ -59,8 +59,9 @@ public:
   // Initializes the interaction part of the real space Hubbard Hamiltonian.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
   static void initializeHInteraction(
-				     func::function<typename parameters_type::Real, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      func::function<typename parameters_type::Real,
+                     func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                        func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
 
   template <class domain>
