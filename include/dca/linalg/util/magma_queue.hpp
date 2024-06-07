@@ -42,6 +42,7 @@ public:
   MagmaQueue& operator=(const MagmaQueue& rhs) = delete;
 
   MagmaQueue(MagmaQueue&& rhs) noexcept : queue_(std::move(rhs.queue_)) {
+    std::swap(stream_, rhs.stream_);
     std::swap(cublas_handle_, rhs.cublas_handle_);
     std::swap(cusparse_handle_, rhs.cusparse_handle_);
     std::swap(queue_, rhs.queue_);

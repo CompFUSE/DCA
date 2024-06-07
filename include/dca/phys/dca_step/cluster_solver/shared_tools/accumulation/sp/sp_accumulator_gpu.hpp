@@ -96,7 +96,7 @@ public:
   }
 
   auto get_streams() {
-    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[1]};
+    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[0]};
   }
 
   // Returns the allocated device memory in bytes.
@@ -122,7 +122,7 @@ private:
    */
   void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function, bool m_sqr);
 
-  std::array<linalg::util::GpuStream, 2> streams_;
+  std::array<linalg::util::GpuStream, 1> streams_;
   /** gpu M_r_t */
   std::array<NfftType, 2> cached_nfft_obj_;
   /** \todo Don't always pay the memory cost even when not collect single measurement G's */
@@ -137,9 +137,9 @@ SpAccumulator<Parameters, linalg::GPU>::SpAccumulator(const Parameters& paramete
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
-                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)},
+                       NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr)},
       single_measurement_M_r_t_device_{NfftType(parameters_.get_beta(), streams_[0], false),
-                                       NfftType(parameters_.get_beta(), streams_[1], false)} {
+                                       NfftType(parameters_.get_beta(), streams_[0], false)} {
   single_measurement_M_r_w_.reset(new MFunction("M_r_w"));
 }
 
@@ -189,7 +189,7 @@ void SpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<Configuration, 2>& configs, const Scalar factor) {
   std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(Ms[s], streams_[s]);
+    M_dev[s].setAsync(Ms[s], streams_[0]);
 
   accumulate(M_dev, configs, factor);
 }

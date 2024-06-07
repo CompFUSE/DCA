@@ -406,8 +406,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
   walker.get_error_distribution() = 0;
 #endif  // DCA_WITH_QMC_BIT
 
-  single_particle_accumulator_obj.syncStreams(*event);
-  two_particle_accumulator_.syncStreams(*event);
+  //single_particle_accumulator_obj.syncStreams(*event);
+  //two_particle_accumulator_.syncStreams(*event);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>

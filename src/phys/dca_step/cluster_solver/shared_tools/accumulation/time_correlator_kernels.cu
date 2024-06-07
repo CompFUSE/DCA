@@ -45,7 +45,7 @@ template <typename Scalar, typename Real, typename SignType>
 void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
                const DeviceInterpolationData<Scalar, SignType> g0, const Real* t_l,
                const int* b_l, const int* r_l, const Real* t_r, const int* b_r, const int* r_r,
-               const GpuStream stream) {
+               const GpuStream& stream) {
   assert(SolverHelper::initialized());
   auto blocks = dca::util::get2DBlockSize(g0_mat.nrRows(), g0_mat.nrCols(), 32);
 
@@ -56,19 +56,19 @@ void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
   template<> void computeG0<double, double, std::int8_t>(linalg::MatrixView<double, linalg::GPU>&,
 					    const DeviceInterpolationData<double, std::int8_t>,
                                         const double*, const int*, const int*, const double*,
-                                        const int*, const int*, const GpuStream);
+                                        const int*, const int*, const GpuStream&);
   template<> void computeG0<float, float, std::int8_t>(linalg::MatrixView<float, linalg::GPU>&,
 					  const DeviceInterpolationData<float, std::int8_t>, const float*,
                                       const int*, const int*, const float*, const int*, const int*,
-                                      const GpuStream);
+                                      const GpuStream&);
   template<> void computeG0<std::complex<double>, double, std::complex<double>>(
     linalg::MatrixView<std::complex<double>, linalg::GPU>&,
     const DeviceInterpolationData<std::complex<double>, std::complex<double>>, const double*, const int*,
-    const int*, const double*, const int*, const int*, GpuStream);
+    const int*, const double*, const int*, const int*, const GpuStream&);
   template<> void computeG0<std::complex<float>, float, std::complex<float>>(
     linalg::MatrixView<std::complex<float>, linalg::GPU>&,
     const DeviceInterpolationData<std::complex<float>, std::complex<float>>, const float*, const int*, const int*,
-    const float*, const int*, const int*, GpuStream);
+    const float*, const int*, const int*, const GpuStream&);
 
 
 }  // namespace details

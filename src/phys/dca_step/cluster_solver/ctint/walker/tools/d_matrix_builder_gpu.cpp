@@ -40,7 +40,7 @@ template <typename Scalar>
 void DMatrixBuilder<GPU, Scalar>::computeG0(Matrix& G0,
                                             const details::DeviceConfiguration& configuration,
                                             const int n_init, bool right_section,
-                                            GpuStream stream) const {
+                                            const GpuStream& stream) const {
   if (G0.nrRows() * G0.nrCols() == 0)
     return;
   details::buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU>(G0), n_init, right_section,

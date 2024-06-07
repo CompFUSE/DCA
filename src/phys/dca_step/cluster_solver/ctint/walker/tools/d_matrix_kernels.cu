@@ -66,7 +66,7 @@ __global__ void buildG0MatrixKernel(linalg::MatrixView<Scalar, linalg::GPU> G0, 
 template <typename Scalar, typename SignType>
 void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> g0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Scalar, SignType> g0_interp, GpuStream stream) {
+                   DeviceInterpolationData<Scalar, SignType> g0_interp, const GpuStream& stream) {
   // assert(CtintHelper::is_initialized());
   const auto blocks = dca::util::getBlockSize(g0.nrRows(), g0.nrCols());
 
@@ -75,16 +75,16 @@ void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> g0, const int n_init,
   checkErrorsCudaDebug();
 }
 
-  template void buildG0Matrix(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
-                            DeviceConfiguration, DeviceInterpolationData<float, signed char>, GpuStream);
-  template void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
-                            DeviceConfiguration, DeviceInterpolationData<double, std::int8_t>, GpuStream);
-  template void buildG0Matrix(linalg::MatrixView<std::complex<float>, linalg::GPU>, const int,
+template void buildG0Matrix(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
+                            DeviceConfiguration, DeviceInterpolationData<float, signed char>, const GpuStream&);
+template void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
+                            DeviceConfiguration, DeviceInterpolationData<double, std::int8_t>, const GpuStream&);
+template void buildG0Matrix(linalg::MatrixView<std::complex<float>, linalg::GPU>, const int,
                             const bool, DeviceConfiguration,
-                            DeviceInterpolationData<std::complex<float>, std::complex<float>>, GpuStream);
-  template void buildG0Matrix(linalg::MatrixView<std::complex<double>, linalg::GPU>, const int,
+                            DeviceInterpolationData<std::complex<float>, std::complex<float>>, const GpuStream&);
+template void buildG0Matrix(linalg::MatrixView<std::complex<double>, linalg::GPU>, const int,
                             const bool, DeviceConfiguration,
-                            DeviceInterpolationData<std::complex<double>, std::complex<double>>, GpuStream);
+                            DeviceInterpolationData<std::complex<double>, std::complex<double>>, const GpuStream&);
 
 }  // namespace details
 }  // namespace ctint

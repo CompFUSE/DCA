@@ -30,7 +30,7 @@ namespace details {
 template <typename Scalar, typename Real>
 void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
                DeviceInterpolationData<Scalar, SignType<Scalar>> g0, const Real* t_l, const int* b_l,
-               const int* r_lf, const Real* t_r, const int* b_r, const int* r_r, const dca::linalg::util::GpuStream stream);
+               const int* r_lf, const Real* t_r, const int* b_r, const int* r_r, const dca::linalg::util::GpuStream& stream);
 
   
 

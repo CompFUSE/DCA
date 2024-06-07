@@ -49,7 +49,7 @@ dca_add_gtest(matrixop_complex_gpu_test
               CUDA
               LIBS ${DCA_LIBS} lapack lapack_kernels blas_kernels gpu_utils ${MAGMA_LIBARY} lapack_kernels)
 
-dca_add_gtest(reshapable_matrix_cpu_test GTEST_MAIN LIBS ${UTIL_LIBS} ${DCA_LIBS} magma::magma)
+dca_add_gtest(reshapable_matrix_cpu_test GTEST_MAIN LIBS ${UTIL_LIBS} ${DCA_LIBS})
 
 dca_add_gtest(reshapable_matrix_gpu_test CUDA GTEST_MAIN LIBS ${DCA_LIBS} gpu_utils magma::magma)
 

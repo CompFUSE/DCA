@@ -224,6 +224,8 @@ void Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   config_left_dev_.setAsync(config_left_, stream_);
   times_dev_.setAsync(times_, stream_);
 
+  //hipStreamSynchronize(stream_.streamActually());
+  
   details::accumulateOnDevice<oversampling, BaseClass::window_sampling_, Scalar, Real>(
       M.ptr(), M.leadingDimension(), factor, accumulation_matrix_.ptr(),
       accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),

@@ -9,12 +9,14 @@
 
 module reset
 module load amd-mixed/6.0.0
-spack load cmake%gcc@11.2.0
-spack load ninja%gcc@11.2.0
-spack load magma@master amdgpu_target=gfx90a
-spack load hdf5@1.12.1 +cxx ~mpi api=v112 %rocmcc@6.0.0
-spack load fftw ~mpi %rocmcc@6.0.0
-spack load openblas@0.3.25 %gcc@11.2.0
+module load ninja
+module load cmake
+#spack load cmake%gcc@11.2.0
+#spack load ninja%gcc@11.2.0
+#spack load magma@master amdgpu_target=gfx90a
+#spack load hdf5@1.12.1 +cxx ~mpi api=v112 %rocmcc@6.0.0
+#spack load fftw ~mpi %rocmcc@6.0.0
+#spack load openblas@0.3.25 %gcc@11.2.0
 
 export CC=mpicc
 export CXX=mpicxx
