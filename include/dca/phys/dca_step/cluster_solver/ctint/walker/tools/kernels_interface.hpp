@@ -31,8 +31,6 @@ template <typename Scalar, typename SignType>
 void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
                    DeviceInterpolationData<Scalar, SignType> g0_interp, const dca::linalg::util::GpuStream& stream);
-
-
 extern  template void buildG0Matrix(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
                             DeviceConfiguration, DeviceInterpolationData<float, signed char>, const dca::linalg::util::GpuStream&);
 extern  template void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
