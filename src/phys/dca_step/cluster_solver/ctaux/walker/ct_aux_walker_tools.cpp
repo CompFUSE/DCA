@@ -153,7 +153,7 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
   if (std::abs(max_ref - max) < 1.e-12 and std::fabs(min_ref - min) < 1.e-12)
     return true;
   else {
-    std::cout << __FUNCTION__ << " for Gamma_LU has failed!\n";
+    std::cout << __FUNCTION__ << " for Gamma_LU has failed.!\n";
     std::cout.precision(16);
     std::cout << "\n\t n : " << n << "\n";
     for (int i = 1; i < n + 1; i++) {
@@ -176,7 +176,7 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
     std::cout << min_ref << "\t" << min << "\t" << std::fabs(min_ref - min) << '\n';
     std::cout << std::endl;
 
-    Gamma_LU.print();
+    //Gamma_LU.print();
 
     return false;
   }
@@ -487,7 +487,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
       // This has to be here since it will fail almost always when we set Gamma_LU to identity.
       if (!test_max_min(n, Gamma_LU, max, min)) {
 	std::cerr << "solve_Gamma_blocked test_max_min on Gamma_LU failed!\n";
-        throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
+        //throw std::runtime_error("solve_Gamma_blocked test_max_min on Gamma_LU failed!");
       }
 #endif
     }

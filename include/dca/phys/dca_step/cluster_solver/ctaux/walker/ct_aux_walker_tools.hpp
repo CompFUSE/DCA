@@ -88,6 +88,12 @@ public:
   auto apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
                               Scalar phani_gamma, Real& max, Real& min) -> Real;
 
+  /** Debugging function
+   *  requires: n > 0
+   */
+  static bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
+                    Real min);
+
 private:
   void solve_Gamma_slow(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
   void solve_Gamma_slow(int n, Scalar* Gamma_LU, int lda);
@@ -98,9 +104,6 @@ private:
 
 
   void solve_Gamma_blocked(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
-
-  bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
-                    Real min);
 
   /** Return x/y.
    *  nothing but that is done for real number but for complex division an implementation consistent with cuda

@@ -351,6 +351,8 @@ private:
   unsigned long n_steps_ = 0;
   linalg::util::GpuEvent sync_streams_event_;
   bool config_initialized_;
+
+  std::vector<std::string> trace_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -1209,6 +1211,11 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
                                                           exp_delta_V_HS_field_DN,
                                                           Gamma_up_diag_max, Gamma_up_diag_min);
 
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_DN > 0 && !ctaux_tools.test_max_min(Gamma_index_HS_field_DN, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min)) {
+	std::cerr << "After e_spin_HS_field_DN == e_UP, solve_Gamma test_max_min on Gamma_LU failed!\n";
+      }
+#endif
       Gamma_up_size += 1;
     }
     else {
@@ -1221,6 +1228,11 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
                                                           exp_delta_V_HS_field_DN,
                                                           Gamma_dn_diag_max, Gamma_dn_diag_min);
 
+      #ifndef NDEBUG
+      if (Gamma_index_HS_field_DN > 0 && !ctaux_tools.test_max_min(Gamma_index_HS_field_DN, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min)) {
+	std::cerr << "After e_spin_HS_field_DN == e_DN, solve_Gamma test_max_min on Gamma_LU failed!\n";
+      }
+      #endif
       Gamma_dn_size += 1;
     }
 
@@ -1233,6 +1245,12 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_up_CPU,
                                                           exp_delta_V_HS_field_UP,
                                                           Gamma_up_diag_max, Gamma_up_diag_min);
+      #ifndef NDEBUG
+      if (Gamma_index_HS_field_UP > 0 && !ctaux_tools.test_max_min(Gamma_index_HS_field_DN, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min)) {
+	std::cerr << "After e_spin_HS_field_UP == e_UP, solve_Gamma test_max_min on Gamma_LU failed!\n";
+      }
+      #endif
+
 
       Gamma_up_size += 1;
     }
@@ -1245,6 +1263,12 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_dn_CPU,
                                                           exp_delta_V_HS_field_UP,
                                                           Gamma_dn_diag_max, Gamma_dn_diag_min);
+
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_UP > 0 && !ctaux_tools.test_max_min(Gamma_index_HS_field_DN, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min)) {
+	std::cerr << "After e_spin_HS_field_UP == e_DN, solve_Gamma test_max_min on Gamma_LU failed!\n";
+      }
+      #endif
 
       Gamma_dn_size += 1;
     }
