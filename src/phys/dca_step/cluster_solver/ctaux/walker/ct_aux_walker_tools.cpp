@@ -453,7 +453,7 @@ solve_Gamma_BLAS(int n, Scalar* Gamma_LU /*, Scalar exp_delta_V*/, int lda) {
 
 template <typename Scalar>
 auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
-    int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V, Real& max,
+    int const n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Scalar exp_delta_V, Real& max,
     Real& min) -> Scalar {
   // std::cout << "\t(" << min << ", " << max << " ) ";
 
@@ -475,7 +475,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
       // matrix.
       // Since the current diagonal element should not be considered for max/min, we need to already
       // update the Gamma matrix (which will set it to 1).
-      CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_LU, n);
+      // CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_LU, n);
 
       return Scalar(1.e-16);
     }
@@ -497,7 +497,7 @@ auto CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::solve_Gamma_blocked(
     min = Gamma_val;
   }
 
-  auto phani_gamma = exp_delta_V - Real(1.);
+  auto phani_gamma = exp_delta_V - Scalar(1.);
   auto determinant_ratio = -phani_gamma * Gamma_LU_n_n;
 
   return determinant_ratio;

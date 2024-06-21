@@ -82,7 +82,14 @@ public:
   // exp_delta_V);
   auto solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
                    Scalar exp_delta_V, Real& max, Real& min) -> Real;
-  auto solve_Gamma_blocked(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+
+  /** Solve gamma using blocked submatrix updates
+   *  \param[in] int
+   *  \param[inout] Gamma_LU
+   *  \param[ioout] max
+   *  \param[inout] min
+   */
+  auto solve_Gamma_blocked(const int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
                            Scalar exp_delta_V, Real& max, Real& min) -> Scalar;
 
   auto apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,

@@ -179,4 +179,5 @@ private:
 }  // namespace phys
 }  // namespace dca
 
+
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_WALKER_HPP
