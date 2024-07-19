@@ -15,6 +15,7 @@ cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DCMAKE_HIP_COMPILER=/opt/rocm-6.0.0/llvm/bin/clang++ \
       -DCMAKE_INSTALL_PREFIX=$INST \
       -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" \
+      -DCMAKE_HIP_LINK_FLAGS=--hip-link \
       -GNinja \
       ..
 
