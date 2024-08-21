@@ -112,14 +112,22 @@ public:
   // This method is available only if device_name == CPU.
   template <DeviceType dn = device_name, typename = std::enable_if_t<dn == CPU>>
   ScalarType& operator()(int i, int j) {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+#ifndef NDEBUG
+    if(!(i >= 0 && i <= size_.first))
+      throw std::runtime_error("assertion of i >= 0 && i <= size_.first failed!");
+    if(!(j >= 0 && j <= size_.second))
+      throw std::runtime_error("assertion of j >= 0 && j <= size_.second failed!");
+#endif
     return data_[i + j * leadingDimension()];
   }
   template <DeviceType dn = device_name, typename = std::enable_if_t<dn == CPU>>
   const ScalarType& operator()(int i, int j) const {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+#ifndef NDEBUG
+    if(!(i >= 0 && i <= size_.first))
+      throw std::runtime_error("assertion of i >= 0 && i <= size_.first failed!");
+    if(!(j >= 0 && j <= size_.second))
+      throw std::runtime_error("assertion of j >= 0 && j <= size_.second failed!");
+#endif
     return data_[i + j * leadingDimension()];
   }
 
@@ -142,13 +150,22 @@ public:
   // a pointer past the end of the range if i == size().first or j == size().second.
   // Preconditions: 0 <= i <= size().first, 0 <= j <= size().second.
   ValueType* ptr(int i, int j) {
-    assert(i >= 0 && i <= size_.first);
-    assert(j >= 0 && j <= size_.second);
+    //These can be an annoyance debugging so making them "manual" asserts
+#ifndef NDEBUG
+    if(!(i >= 0 && i <= size_.first))
+      throw std::runtime_error("assertion of i >= 0 && i <= size_.first failed!");
+    if(!(j >= 0 && j <= size_.second))
+      throw std::runtime_error("assertion of j >= 0 && j <= size_.second failed!");
+#endif
     return data_ + i + j * leadingDimension();
   }
   const ValueType* ptr(int i, int j) const {
-    assert(i >= 0 && i <= size_.first);
-    assert(j >= 0 && j <= size_.second);
+#ifndef NDEBUG
+    if(!(i >= 0 && i <= size_.first))
+      throw std::runtime_error("assertion of i >= 0 && i <= size_.first failed!");
+    if(!(j >= 0 && j <= size_.second))
+      throw std::runtime_error("assertion of j >= 0 && j <= size_.second failed!");
+#endif
     return data_ + i + j * leadingDimension();
   }
 

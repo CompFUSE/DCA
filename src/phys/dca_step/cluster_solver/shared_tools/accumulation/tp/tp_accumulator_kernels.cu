@@ -983,77 +983,76 @@ template double updateG4<std::complex<double>, FourPointType::PARTICLE_PARTICLE_
 
 // complex g0
 
-template <>
-double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_TRANSVERSE, std::complex<float>>(
+template double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_TRANSVERSE, std::complex<float>>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const std::complex<float> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_MAGNETIC, std::complex<float>>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const std::complex<float> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_CHARGE, std::complex<float>>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const std::complex<float> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                 std::complex<float>>(std::complex<float>* G4, const std::complex<float>* G_up,
                                      const int ldgu, const std::complex<float>* G_down,
                                      const int ldgd, const std::complex<float> factor, bool atomic,
                                      cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<float>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
                 std::complex<float>>(std::complex<float>* G4, const std::complex<float>* G_up,
                                      const int ldgu, const std::complex<float>* G_down,
                                      const int ldgd, const std::complex<float> factor, bool atomic,
                                      cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<float>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::complex<float>>(
     std::complex<float>* G4, const std::complex<float>* G_up, const int ldgu,
     const std::complex<float>* G_down, const int ldgd, const std::complex<float> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_TRANSVERSE, std::complex<double>>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const std::complex<double> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_MAGNETIC, std::complex<double>>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const std::complex<double> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_CHARGE, std::complex<double>>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const std::complex<double> factor,
     bool atomic, cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
                 std::complex<double>>(std::complex<double>* G4, const std::complex<double>* G_up,
                                       const int ldgu, const std::complex<double>* G_down,
                                       const int ldgd, const std::complex<double> factor, bool atomic,
                                       cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
                 std::complex<double>>(std::complex<double>* G4, const std::complex<double>* G_up,
                                       const int ldgu, const std::complex<double>* G_down,
                                       const int ldgd, const std::complex<double> factor, bool atomic,
                                       cudaStream_t stream, std::size_t start, std::size_t end);
 
-template <>
+template
 double updateG4<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::complex<double>>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double>* G_down, const int ldgd, const std::complex<double> factor,
@@ -1068,6 +1067,11 @@ template double updateG4NoSpin<std::complex<float>, FourPointType::PARTICLE_PART
 template double updateG4NoSpin<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::complex<double>>(
     std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
     const std::complex<double> factor, bool atomic,
+    cudaStream_t stream, std::size_t start, std::size_t end);
+
+template double updateG4NoSpin<std::complex<double>, FourPointType::PARTICLE_PARTICLE_UP_DOWN, std::int8_t>(
+    std::complex<double>* G4, const std::complex<double>* G_up, const int ldgu,
+    const std::int8_t factor, bool atomic,
     cudaStream_t stream, std::size_t start, std::size_t end);
 
 

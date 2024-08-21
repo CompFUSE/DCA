@@ -129,7 +129,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters>::copy_rows(
   assert(N_new_spins.nrCols() == N.nrCols());
   assert(N_new_spins.nrRows() == permutation.size());
   assert(permutation.size() <= identity.size());
-
+  dca::linalg::util::syncStream(thread_id, stream_id);
   dca::linalg::matrixop::copyRows(N, permutation, N_new_spins, identity, thread_id, stream_id);
 }
 
@@ -139,6 +139,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, Parameters>::compute_G_cols(
     dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G,
     dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G_cols) {
   exp_V.setAsync(exp_V_CPU, linalg::util::getStream(thread_id, stream_id));
+  dca::linalg::util::syncStream(thread_id, stream_id);
 
   assert(N.nrRows() == G.nrRows());
   assert(N.nrRows() == G_cols.nrRows());

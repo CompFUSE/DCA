@@ -42,6 +42,52 @@ __device__ void inline atomicAdd(double* address, const double val) {
   atomicAddImpl(address, val);
 }
 
+#elif defined(DCA_HAVE_HIP)
+// HIP seems to have some horrible problem with concurrent atomic operations.
+__device__ double inline atomicAddImpl(double* address, const double val) {
+  unsigned long long int* address_as_ull = (unsigned long long int*)address;
+  unsigned long long int old = *address_as_ull, assumed;
+  do {
+    assumed = old;
+    old = atomicCAS(address_as_ull, assumed,
+                    __double_as_longlong(val + __longlong_as_double(assumed)));
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN) }
+  } while (assumed != old);
+  return __longlong_as_double(old);
+}
+
+__device__ double inline atomicAddImpl(float* address, const float val) {
+  unsigned long int* address_as_int = (unsigned long int*)address;
+  unsigned long int old = *address_as_int, assumed;
+  do {
+    assumed = old;
+    old = atomicCAS(address_as_int, assumed,
+                    __float_as_int(val + __int_as_float(assumed)));
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN) }
+  } while (assumed != old);
+  return __int_as_float(old);
+}
+  
+__device__ void inline atomicAdd(float* address, const float val) {
+  atomicAddImpl(address, val);
+}
+
+__device__ void inline atomicAdd(double* address, const double val) {
+  atomicAddImpl(address, val);
+}
+
+__device__ void inline atomicAdd(cuDoubleComplex* address, cuDoubleComplex val) {
+  double* a_d = reinterpret_cast<double*>(address);
+  atomicAddImpl(a_d, val.x);
+  atomicAddImpl(a_d + 1, val.y);
+}
+
+  __device__ void inline atomicAdd(magmaFloatComplex* const address, magmaFloatComplex val) {
+  double* a_d = reinterpret_cast<double*>(address);
+  atomicAddImpl(a_d, val.x);
+  atomicAddImpl(a_d + 1, val.y);
+}
+
 #else
 __device__ void inline atomicAdd(double* address, double val) {
   ::atomicAdd(address, val);
@@ -62,7 +108,7 @@ __device__ void inline atomicAdd(cuDoubleComplex* address, cuDoubleComplex val) 
   atomicAdd(a_d, val.x);
   atomicAdd(a_d + 1, val.y);
 }
-#endif  // __CUDA_ARCH__
+#endif  // atomic operation help
 
 }  // linalg
 }  // dca
