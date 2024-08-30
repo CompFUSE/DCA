@@ -416,6 +416,12 @@ else()
   set(TWO_PARTICLE_ALLOCATOR "dca::linalg::util::DeviceAllocator<T>")
 endif()
 
+option(DCA_WITH_CTAUX_TRACING "special debug tracing of of delayed spin updates in ctaux" OFF)
+mark_as_advanced(DCA_WITH_CTAUX_TRACING)
+if(DCA_WITH_CTAUX_TRACING)
+  add_compile_definitions(CTAUX_DEBUG_TRACING)
+endif()
+
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/mc_options.hpp.in"
         "${CMAKE_BINARY_DIR}/include/dca/config/mc_options.hpp" @ONLY)
 

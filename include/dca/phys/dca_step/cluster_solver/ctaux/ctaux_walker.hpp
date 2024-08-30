@@ -13,6 +13,7 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_WALKER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_WALKER_HPP
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::size_t
@@ -42,6 +43,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/config/lattice_model.hpp"
 
 namespace dca {
 namespace phys {
@@ -66,7 +68,7 @@ public:
 
 public:
   /** constructor
-   *  param[in] id    thread id?
+   *  param[in] id    thread id
    */
   CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
 
@@ -351,6 +353,34 @@ private:
   unsigned long n_steps_ = 0;
   linalg::util::GpuEvent sync_streams_event_;
   bool config_initialized_;
+
+#ifndef NDEBUG
+  bool last_failed_min_max_ = false;
+  std::vector<std::string> trace_;
+#ifndef CTAUX_DEBUG_TRACING
+  template <typename... ARGS>
+  void pushOnTrace(const ARGS&... args) {}
+
+  static void dumpTrace(const std::vector<std::string> trace, const Parameters& parameters_ref,
+                        int thread_id, int depth_limit) {}
+#else
+  template <typename... ARGS>
+  void pushOnTrace(const ARGS&... args) {
+    std::ostringstream trace;
+    (trace << ... << args);
+    trace_.push_back(trace.str());
+  }
+
+  static void dumpTrace(const std::vector<std::string> trace, const Parameters& parameters_ref,
+                        int thread_id, int depth_limit) {
+    auto iter = std::make_reverse_iterator(trace.end());
+    auto end = std::make_reverse_iterator(trace.begin());
+    for (int depth = 0; iter > end, depth < depth_limit; ++iter, ++depth)
+      std::cerr << "rank:" << parameters_ref.get_concurrency().get_id() << "thread:" << thread_id
+                << " " << *iter << '\n';
+  }
+#endif
+#endif
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
@@ -527,6 +557,9 @@ void CtauxWalker<device_t, Parameters, Data>::initialize(int iteration) {
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::doSweep() {
   Profiler profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
+#ifndef NDEBUG
+  trace_.clear();
+#endif
   const double sweeps_per_measurement{thermalized_ ? sweeps_per_measurement_ : 1.};
 
   // Do at least one single spin update per sweep.
@@ -603,10 +636,6 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
   read_Gamma_matrices(e_DN);
 
   actually_download_from_device<device_t>();
-  // Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
-  // Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
-
-  // linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -625,9 +654,6 @@ std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> CtauxW
   read_Gamma_matrices(e_DN);
 
   actually_download_from_device<device_t>();
-
-  // Gamma_up_CPU.swap(Gamma_up);
-  // Gamma_dn_CPU.swap(Gamma_dn);
 }
 
 // In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
@@ -824,6 +850,13 @@ int CtauxWalker<device_t, Parameters, Data>::generateDelayedSpinsAbortAtBennett(
     }
   }
 
+#ifndef NDEBUG
+  if (delayed_spins.size() > max_num_delayed_spins) {
+    std::cout << "Delayed spins = " << delayed_spins.size() << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
+    if (delayed_spins.size() >= 256)
+      throw std::runtime_error("delayed spins hit 256 or greater bailing out!");
+  }
+#endif
   // We need to unmark all "virtual" interacting spins, that we have temporarily marked as
   // annihilatable in CT_AUX_HS_configuration::get_random_noninteracting_vertex().
   // TODO: Eliminate the need to mark and unmark these spins.
@@ -833,6 +866,12 @@ int CtauxWalker<device_t, Parameters, Data>::generateDelayedSpinsAbortAtBennett(
 
   assert(single_spin_updates_proposed ==
          currently_proposed_creations_ + currently_proposed_annihilations_ + num_statics);
+
+#ifndef NDEBUG
+  if (single_spin_updates_proposed >= max_num_delayed_spins) {
+    std::cout << "single_spin_updates_proposed = " << single_spin_updates_proposed << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
+  }
+#endif
 
   return single_spin_updates_proposed;
 }
@@ -1010,13 +1049,23 @@ void CtauxWalker<device_t, Parameters, Data>::read_Gamma_matrices(e_spin_states 
   // Profiler profiler(concurrency_, __FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
   switch (e_spin) {
     case e_DN:
+      linalg::util::syncStream(thread_id, stream_id);
+#ifndef NDEBUG
+      if(Gamma_dn.capacity().first < vertex_indixes.size())
+	std::cout << "gamma_dn.capacity().first == " << Gamma_dn.capacity().first << "  vertex_indixes.size() == " << vertex_indixes.size() << '\n';
+#endif
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_dn, N_dn, G_dn, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
+      // assume we've no guarantee this will be allowed to finish before the async copy starts
+      linalg::util::syncStream(thread_id, stream_id);
       break;
 
     case e_UP:
+      linalg::util::syncStream(thread_id, stream_id);
       CT_AUX_WALKER_TOOLS<device_t, Scalar>::compute_Gamma(
           Gamma_up, N_up, G_up, vertex_indixes, exp_V, exp_delta_V, thread_id, stream_id);
+      // assume we've no guarantee this will be allowed to finish before the async copy starts
+      linalg::util::syncStream(thread_id, stream_id);
       break;
 
     default:
@@ -1060,9 +1109,23 @@ void CtauxWalker<device_t, Parameters, Data>::compute_Gamma_matrices() {
     else {
       add_delayed_spin(delayed_index, Gamma_up_size, Gamma_dn_size);
     }
+    // upload_to_device();
   }
+#ifndef NDEBUG
+  if (last_failed_min_max_)
+    std::cout << "out of delayed spins loop but last vertex failed min_max test!\n";
+#endif
 
   add_delayed_spins_to_the_configuration();
+
+#ifndef NDEBUG
+  std::ostringstream gamma_diag;
+  for (int i = 0; i < Gamma_dn_CPU.size().first; i++) {
+    auto Gamma_val = std::abs(Gamma_dn_CPU(i, i));
+    gamma_diag << Gamma_val << ", ";
+  }
+  pushOnTrace("diag of Gamma_dn:", gamma_diag.str());
+#endif
 
   remove_non_accepted_and_bennett_spins_from_Gamma(Gamma_up_size, Gamma_dn_size);
 
@@ -1087,22 +1150,34 @@ void CtauxWalker<device_t, Parameters, Data>::neutralize_delayed_spin(int& delay
     Gamma_up_size += 1;
     CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
         Gamma_up_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_DN);
+#ifndef NDEBUG
+    pushOnTrace("delayed_spins[", std::to_string(delayed_index), "].e_spin_HS_field_DN == e_UP");
+#endif
   }
   else {
     Gamma_dn_size += 1;
     CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
         Gamma_dn_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_DN);
+#ifndef NDEBUG
+    pushOnTrace("delayed_spins[", std::to_string(delayed_index), "].e_spin_HS_field_DN == e_DN");
+#endif
   }
 
   if (delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP) {
     Gamma_up_size += 1;
     CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
         Gamma_up_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_UP);
+#ifndef NDEBUG
+    pushOnTrace("delayed_spins[", std::to_string(delayed_index), "].e_spin_HS_field_UP == e_UP");
+#endif
   }
   else {
     Gamma_dn_size += 1;
     CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(
         Gamma_dn_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_UP);
+#ifndef NDEBUG
+    pushOnTrace("delayed_spins[", std::to_string(delayed_index), "].e_spin_HS_field_UP == e_DN");
+#endif
   }
 
   //     delayed_index += 1;
@@ -1144,19 +1219,31 @@ void CtauxWalker<device_t, Parameters, Data>::remove_non_accepted_and_bennett_sp
       if (e_spin_HS_field_UP == e_UP) {
         Gamma_up_size -= 1;
         dca::linalg::matrixop::removeRowAndCol(Gamma_up_CPU, Gamma_index_HS_field_UP);
+#ifndef NDEBUG
+        pushOnTrace("gu-fu-eu:", std::to_string(Gamma_index_HS_field_UP));
+#endif
       }
       else {
         Gamma_dn_size -= 1;
         dca::linalg::matrixop::removeRowAndCol(Gamma_dn_CPU, Gamma_index_HS_field_UP);
+#ifndef NDEBUG
+        pushOnTrace("gd-fu-ed:", std::to_string(Gamma_index_HS_field_UP));
+#endif
       }
 
       if (e_spin_HS_field_DN == e_UP) {
         Gamma_up_size -= 1;
         dca::linalg::matrixop::removeRowAndCol(Gamma_up_CPU, Gamma_index_HS_field_DN);
+#ifndef NDEBUG
+        pushOnTrace("gu-fd-eu:", std::to_string(Gamma_index_HS_field_DN));
+#endif
       }
       else {
         Gamma_dn_size -= 1;
         dca::linalg::matrixop::removeRowAndCol(Gamma_dn_CPU, Gamma_index_HS_field_DN);
+#ifndef NDEBUG
+        pushOnTrace("gd-fd-ed:", std::to_string(Gamma_index_HS_field_DN));
+#endif
       }
     }
   }
@@ -1178,6 +1265,26 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
                                   delayed_spins[delayed_index].new_HS_spin_value,
                                   delayed_spins[delayed_index].exp_delta_V_HS_field_UP));
 
+#ifndef NDEBUG
+  // The espin_up corresponds the Gamma matrix and diags used.
+  auto isDebugTestMinMax = [this](bool HS_field_up, bool espin_up, auto& ratio_HS_field,  auto& Gamma_index_HS_field, auto& Gamma_CPU, auto& Gamma_diag_max, auto& Gamma_diag_min, int trace_depth) {
+    if (std::abs(ratio_HS_field) <= std::abs(Scalar(1.e-16)))
+        this->pushOnTrace("gamma matrix was ill conditioned!");
+      if (Gamma_index_HS_field > 0 && std::abs(ratio_HS_field) > 1.e-16 &&
+          !ctaux_tools.test_max_min(Gamma_index_HS_field, Gamma_CPU, Gamma_diag_max,
+                                    Gamma_diag_min)) {
+        std::cerr
+            << "ratiod: " << ratio_HS_field
+            << "After e_spin_HS_field_ " << (HS_field_up ? "UP" : "DN")
+	    << " == e_" << (espin_up ? "UP" : "DN") << ", solve_Gamma test_max_min on Gamma_LU failed!\n";
+        this->dumpTrace(trace_, parameters_, thread_id, trace_depth);
+        this->last_failed_min_max_ = true;
+      }
+      else
+        this->last_failed_min_max_ = false;
+  };
+#endif
+
   if (delayed_spins[delayed_index].HS_current_move == CREATION)
     number_of_creations += 1;
 
@@ -1193,33 +1300,57 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
   Scalar ratio_HS_field_DN = 0.;
   Scalar ratio_HS_field_UP = 0.;
 
+  // So what are these really for, in the first block below I use them for the debug max_min check
   Real tmp_up_diag_max = Gamma_up_diag_max;
   Real tmp_up_diag_min = Gamma_up_diag_min;
   Real tmp_dn_diag_max = Gamma_dn_diag_max;
   Real tmp_dn_diag_min = Gamma_dn_diag_min;
+
+#ifndef NDEBUG
+  int trace_depth = 64;
+#endif
 
   {
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP) {
       // std::cout << "\t" << "e_UP" << "\t" << Gamma_index_HS_field_DN << "\t" << Gamma_up_size <<
       // "\t|\t";
 
-      assert(Gamma_index_HS_field_DN == Gamma_up_size);
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_DN != Gamma_up_size) {
+	std::cerr << "Gamma_index_HS_field_DN = " << Gamma_index_HS_field_DN << "  Gamma_up_size = " << Gamma_up_size << '\n';
+      }
+#endif
+      if constexpr (Lattice::spin_symmetric)
+        ratio_HS_field_DN = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_DN, Gamma_up_CPU,
+                                                            exp_delta_V_HS_field_DN,
+                                                            Gamma_up_diag_max, Gamma_up_diag_min);
+      else
+        std::cout << "warning Gamma_up delayed spin for spin_symmetric=false model";
 
-      ratio_HS_field_DN = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_DN, Gamma_up_CPU,
-                                                          exp_delta_V_HS_field_DN,
-                                                          Gamma_up_diag_max, Gamma_up_diag_min);
-
+#ifndef NDEBUG
+      isDebugTestMinMax(false, true, ratio_HS_field_DN, Gamma_index_HS_field_DN, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min, trace_depth);
+#endif
+ 
       Gamma_up_size += 1;
     }
     else {
       // std::cout << "\t" << "e_DN" << "\t" << Gamma_index_HS_field_DN << "\t" << Gamma_dn_size <<
       // "\t|\t";
 
-      assert(Gamma_index_HS_field_DN == Gamma_dn_size);
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_DN != Gamma_dn_size) {
+	std::cerr << "Gamma_index_HS_field_DN = " << Gamma_index_HS_field_DN << "  Gamma_dn_size = " << Gamma_dn_size << '\n';
+      }
+#endif
 
       ratio_HS_field_DN = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_DN, Gamma_dn_CPU,
                                                           exp_delta_V_HS_field_DN,
                                                           Gamma_dn_diag_max, Gamma_dn_diag_min);
+
+
+#ifndef NDEBUG
+      isDebugTestMinMax(false, false, ratio_HS_field_DN, Gamma_index_HS_field_DN, Gamma_dn_CPU, Gamma_dn_diag_max, Gamma_dn_diag_min, trace_depth);
+#endif
 
       Gamma_dn_size += 1;
     }
@@ -1228,24 +1359,41 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       // std::cout << "\t" << "e_UP" << "\t" << Gamma_index_HS_field_UP << "\t" << Gamma_up_size <<
       // "\t|\t";
 
-      assert(Gamma_index_HS_field_UP == Gamma_up_size);
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_UP != Gamma_up_size) {
+	std::cerr << "Gamma_index_HS_field_UP = " << Gamma_index_HS_field_UP << "  Gamma_up_size = " << Gamma_up_size << '\n';
+      }
+#endif
 
-      ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_up_CPU,
-                                                          exp_delta_V_HS_field_UP,
-                                                          Gamma_up_diag_max, Gamma_up_diag_min);
+      if constexpr (Lattice::spin_symmetric)
+        ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_up_CPU,
+                                                            exp_delta_V_HS_field_UP,
+                                                            Gamma_up_diag_max, Gamma_up_diag_min);
+      else
+        std::cout << "warning Gamma_up delayed spin for spin_symmetric=false model";
 
+#ifndef NDEBUG
+      isDebugTestMinMax(true, true, ratio_HS_field_UP, Gamma_index_HS_field_UP, Gamma_up_CPU, Gamma_up_diag_max, Gamma_up_diag_min, trace_depth);
+#endif
       Gamma_up_size += 1;
     }
     else {
       // std::cout << "\t" << "e_DN" << "\t" << Gamma_index_HS_field_UP << "\t" << Gamma_dn_size <<
       // "\t|\t";
 
-      assert(Gamma_index_HS_field_UP == Gamma_dn_size);
-
+#ifndef NDEBUG
+      if (Gamma_index_HS_field_UP != Gamma_dn_size) {
+	std::cerr << "Gamma_index_HS_field_UP = " << Gamma_index_HS_field_UP << "  Gamma_dn_size = " << Gamma_dn_size << '\n';
+      }
+#endif
+ 
       ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_dn_CPU,
                                                           exp_delta_V_HS_field_UP,
                                                           Gamma_dn_diag_max, Gamma_dn_diag_min);
 
+#ifndef NDEBUG
+      isDebugTestMinMax(true, false, ratio_HS_field_UP, Gamma_index_HS_field_UP, Gamma_dn_CPU, Gamma_dn_diag_max, Gamma_dn_diag_min, trace_depth);
+#endif
       Gamma_dn_size += 1;
     }
 
@@ -1253,9 +1401,6 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
   }
 
   const auto determinant_ratio = ratio_HS_field_UP * ratio_HS_field_DN;
-  // std::cout << "ratio up: " << std::setprecision(16) << ratio_HS_field_UP
-  //          << "  ratio down: " << std::setprecision(16) << ratio_HS_field_DN << '\n';
-  // std::cout << "determinant_ratio: " << determinant_ratio << '\n';
   auto acceptance_ratio =
       calculate_acceptance_ratio(determinant_ratio, delayed_spins[delayed_index].HS_current_move,
                                  delayed_spins[delayed_index].QMC_factor);
@@ -1269,6 +1414,10 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
   if (std::abs(acceptance_ratio) >= rng()) {
     delayed_spins[delayed_index].is_accepted_move = true;
 
+#ifndef NDEBUG
+    if (last_failed_min_max_)
+      std::cout << "Accepted but last vertex insert failed min_max test!\n";
+#endif
     // Update Monte Carlo weight.
     mc_log_weight_ += std::log(std::abs(determinant_ratio));
     // std::cout << "mc_log_weight: " << mc_log_weight_ << '\n';
@@ -1296,40 +1445,73 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
       number_of_interacting_spins -= 1;
   }
   else {
-    /*
-    Gamma_up_diag_max = tmp_up_diag_max<1. ? 1. : tmp_up_diag_max;
-    Gamma_dn_diag_max = tmp_dn_diag_max<1. ? 1. : tmp_dn_diag_max;
-    Gamma_up_diag_min = tmp_up_diag_min>1. ? 1. : tmp_up_diag_min;
-    Gamma_dn_diag_min = tmp_dn_diag_min>1. ? 1. : tmp_dn_diag_min;
+#ifndef NDEBUG
+    if (last_failed_min_max_)
+      std::cout << "Rejected but last vertex insert failed min_max test!\n";
+#endif
 
-    delayed_spins[delayed_index].is_accepted_move  = false;
+      /*
+      Gamma_up_diag_max = tmp_up_diag_max<1. ? 1. : tmp_up_diag_max;
+      Gamma_dn_diag_max = tmp_dn_diag_max<1. ? 1. : tmp_dn_diag_max;
+      Gamma_up_diag_min = tmp_up_diag_min>1. ? 1. : tmp_up_diag_min;
+      Gamma_dn_diag_min = tmp_dn_diag_min>1. ? 1. : tmp_dn_diag_min;
 
-    if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
-      {
-        CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
-      }
-    else
-      {
-        CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
-      }
+      delayed_spins[delayed_index].is_accepted_move  = false;
 
-    if(delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP)
-      {
-        CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
-      }
-    else
-      {
-        CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
-      }
-    */
+      if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
+        {
+          CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
+        }
+      else
+        {
+          CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
+        }
+
+      if(delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP)
+        {
+          CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
+        }
+      else
+        {
+          CT_AUX_WALKER_TOOLS<device_t, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
+        }
+      */
+
+      // delayed_spins[delayed_index].is_accepted_move  = false;
+
+#ifndef NDEBUG
+    auto getNewDiagMin = [](auto& Gamma, auto gamma_size, auto& gamma_min) -> Scalar {
+      for (int i = 0; i < gamma_size - 1; ++i)
+        gamma_min = std::min(std::abs(gamma_min), std::abs(Gamma(i, i)));
+    };
+#endif
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP and
         delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP) {
       Gamma_up_diag_max = tmp_up_diag_max < 1. ? 1. : tmp_up_diag_max;
       Gamma_up_diag_min = tmp_up_diag_min > 1. ? 1. : tmp_up_diag_min;
+
+#ifndef NDEBUG
+      bool was_lowest = false;
+      for (int n : {Gamma_up_size - 2, Gamma_up_size - 1})
+        if (Gamma_up_CPU(n, n) == Gamma_up_diag_min) {
+          was_lowest = true;
+          break;
+        }
+#endif
 
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 2);
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
+
+#ifndef NDEBUG
+      if (was_lowest)
+        getNewDiagMin(Gamma_up_CPU, Gamma_up_size, Gamma_up_diag_min);
+      // here we have to check if Gamma_up_diag_min was one of the values that just got set to 1 if
+      // it is well that's bad for passing test_max_min
+      pushOnTrace("double delayed_spins[", std::to_string(delayed_index),
+                  "].e_spin_HS_field_[DN,UP] == [e_UP,e_UP] G_up:", std::to_string(Gamma_up_size - 2),
+                  ", G_up:", std::to_string(Gamma_up_size - 1));
+#endif
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_DN and
@@ -1341,6 +1523,11 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
 
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
+#ifndef NDEBUG
+      pushOnTrace("double delayed_spins[", std::to_string(delayed_index),
+                  "].e_spin_HS_field_[DN,UP] == [e_DN,e_UP] G_dn:", std::to_string(Gamma_dn_size - 1),
+                  ", G_up:", std::to_string(Gamma_up_size - 1));
+#endif
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP and
@@ -1352,18 +1539,43 @@ void CtauxWalker<device_t, Parameters, Data>::add_delayed_spin(int& delayed_inde
 
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
+#ifndef NDEBUG
+      pushOnTrace("double delayed_spins[", std::to_string(delayed_index),
+                  "].e_spin_HS_field_[DN,UP] == [e_UP,e_DN] G_dn",
+                  std::to_string(Gamma_dn_size - 1), ", G_up:", std::to_string(Gamma_up_size - 1));
+#endif //NDEBUG
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_DN and
         delayed_spins[delayed_index].e_spin_HS_field_UP == e_DN) {
       Gamma_dn_diag_max = tmp_dn_diag_max < 1. ? 1. : tmp_dn_diag_max;
-      Gamma_dn_diag_min = tmp_dn_diag_min > 1. ? 1. : tmp_dn_diag_min;
+      Gamma_dn_diag_min = tmp_dn_diag_min > 1 ? 1. : tmp_dn_diag_min;
+
+#ifndef NDEBUG
+      bool was_lowest = false;
+      for (int n : {Gamma_dn_size - 2, Gamma_dn_size - 1})
+        if (Gamma_dn_CPU(n, n) == Gamma_dn_diag_min) {
+          was_lowest = true;
+          break;
+        }
+#endif
 
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 2);
       CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
+#ifndef NDEBUG
+      if (was_lowest)
+        getNewDiagMin(Gamma_dn_CPU, Gamma_dn_size, Gamma_dn_diag_min);
+      pushOnTrace("double delayed_spins[", std::to_string(delayed_index),
+                  "].e_spin_HS_field_[DN,UP] == [e_DN,e_DN] G_dn:", std::to_string(Gamma_dn_size - 2),
+                  ", G_dn:", std::to_string(Gamma_dn_size - 1));
+#endif
     }
+    // Here I think Gamma has to go back to the GPU
+    // In the current code it doesn't until the loop over delayed spins ends.  I don't know
+    // why this is wrong as everything seems to be happening on the CPU, but
+    // epirically it seems elements aren't ending up as identity on the GPU that should.
   }
-}  // namespace ctaux
+}
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::apply_bennett_on_Gamma_matrices(int& /*Gamma_up_size*/,
@@ -1603,9 +1815,7 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <typename AccumType>
 const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
     std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
-  // Stream 1 waits on stream 0.
-  sync_streams_event_.record(linalg::util::getStream(thread_id, 0));
-  sync_streams_event_.block(linalg::util::getStream(thread_id, 1));
+  linalg::util::syncStream(thread_id, stream_id);
 
   for (int s = 0; s < 2; ++s) {
     const auto& config = get_configuration().get(s == 0 ? e_DN : e_UP);
@@ -1620,18 +1830,15 @@ const linalg::util::GpuEvent* CtauxWalker<device_t, Parameters, Data>::computeM(
     M.resizeNoCopy(N.size());
 
     if (device_t == linalg::GPU) {
-      exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, s);
-      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M, thread_id, s);
+      exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, stream_id);
+      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M, thread_id,
+                                                  stream_id);
     }
     else {
       dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_[s], N, M);
     }
   }
-
-  m_computed_events_[1].record(linalg::util::getStream(thread_id, 1));
-  m_computed_events_[1].block(linalg::util::getStream(thread_id, 0));
-
-  m_computed_events_[0].record(linalg::util::getStream(thread_id, 0));
+  m_computed_events_[0].record(linalg::util::getStream(thread_id, stream_id));
   return &m_computed_events_[0];
 }
 

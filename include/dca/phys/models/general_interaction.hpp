@@ -72,7 +72,7 @@ void general_interaction<parameters_type>::set_vertex(
                                                   func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>&
         H_interaction) {
   // Create the vector of correlated spin-orbitals once.
-  static const std::vector<int> correlated_orbitals =
+  const std::vector<int> correlated_orbitals =
       general_interaction<parameters_type>::make_correlated_orbitals(parameters, H_interaction);
 
   // Get a random pair of correlated spin-orbitals.

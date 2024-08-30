@@ -34,6 +34,8 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
+/** Represents the Hubbard-Stratonovitch vertices in a particular configuration.
+ */
 template <class parameters_type>
 class CT_AUX_HS_configuration {
 public:

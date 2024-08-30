@@ -310,9 +310,10 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   // CTINT calculates its error here maybe
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
 
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+    std::cout << "Writing Configurations.\n";
     writeConfigurations();
-
+  }
   // autocorrelation_data_.sumConcurrency(concurrency_);
 
   if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
