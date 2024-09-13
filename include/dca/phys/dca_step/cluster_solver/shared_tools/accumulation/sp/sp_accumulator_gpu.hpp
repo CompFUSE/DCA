@@ -39,17 +39,18 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <class Parameters, typename Real>
-class SpAccumulator<Parameters, linalg::GPU, Real>
-    : public SpAccumulator<Parameters, linalg::CPU, Real> {
+template <class Parameters>
+class SpAccumulator<Parameters, linalg::GPU>
+    : public SpAccumulator<Parameters, linalg::CPU> {
 public:
-  using BaseClass = SpAccumulator<Parameters, linalg::CPU, Real>;
+  using BaseClass = SpAccumulator<Parameters, linalg::CPU>;
 
   using typename BaseClass::BDmn;
   using typename BaseClass::PDmn;
   using typename BaseClass::RDmn;
   using typename BaseClass::WDmn;
-
+  using typename BaseClass::Real;
+  using typename BaseClass::Scalar;
   using typename BaseClass::Profiler;
 
   using BaseClass::accumulate_m_sqr_;
@@ -59,7 +60,7 @@ public:
   using BaseClass::single_measurement_M_r_w_;
   using BaseClass::oversampling;
   using BaseClass::parameters_;
-  using NfftType = math::nfft::Dnfft1DGpu<Real, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
+  using NfftType = math::nfft::Dnfft1DGpu<Scalar, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
   using MFunction = typename BaseClass::MFunction;
   using MFunctionTime = typename BaseClass::MFunctionTime;
   using MFunctionTimePair = typename BaseClass::MFunctionTimePair;
@@ -72,17 +73,17 @@ public:
   void resetAccumulation();
 
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& Ms,
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   // For testing purposes.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
-                  const std::array<Configuration, 2>& configs, const int sign);
+  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
+                  const std::array<Configuration, 2>& configs, const Scalar factor);
 
   void finalize();
 
-  void sumTo(SpAccumulator<Parameters, linalg::GPU, Real>& other);
+  void sumTo(SpAccumulator<Parameters, linalg::GPU>& other);
 
   void synchronizeCopy() {
     cached_nfft_obj_[0].synchronizeCopy();
@@ -95,7 +96,7 @@ public:
   }
 
   auto get_streams() {
-    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[1]};
+    return std::array<linalg::util::GpuStream*, 2>{&streams_[0], &streams_[0]};
   }
 
   // Returns the allocated device memory in bytes.
@@ -121,7 +122,7 @@ private:
    */
   void finalizeFunction(std::array<NfftType, 2>& ft_objs, MFunction& function, bool m_sqr);
 
-  std::array<linalg::util::GpuStream, 2> streams_;
+  std::array<linalg::util::GpuStream, 1> streams_;
   /** gpu M_r_t */
   std::array<NfftType, 2> cached_nfft_obj_;
   /** \todo Don't always pay the memory cost even when not collect single measurement G's */
@@ -130,20 +131,20 @@ private:
 
 /// \todo examine memory impact when not in use of single_measurement_M_r_w etc.
 
-template <class Parameters, typename Real>
-SpAccumulator<Parameters, linalg::GPU, Real>::SpAccumulator(const Parameters& parameters_ref,
+template <class Parameters>
+SpAccumulator<Parameters, linalg::GPU>::SpAccumulator(const Parameters& parameters_ref,
                                                             const bool accumulate_m_sqr)
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
-                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)},
+                       NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr)},
       single_measurement_M_r_t_device_{NfftType(parameters_.get_beta(), streams_[0], false),
-                                       NfftType(parameters_.get_beta(), streams_[1], false)} {
+                                       NfftType(parameters_.get_beta(), streams_[0], false)} {
   single_measurement_M_r_w_.reset(new MFunction("M_r_w"));
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::GPU, Real>::resetAccumulation() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::GPU>::resetAccumulation() {
   for (int s = 0; s < 2; ++s) {
     cached_nfft_obj_[s].resetAccumulation();
     if (parameters_.stamping_period() > 0) {
@@ -156,11 +157,11 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::resetAccumulation() {
   finalized_ = false;
 }
 
-template <class Parameters, typename Real>
+template <class Parameters>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
-    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
+void SpAccumulator<Parameters, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::GPU>, 2>& Ms,
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
   if (finalized_)
     throw(std::logic_error("The accumulator is already finalized."));
 
@@ -174,27 +175,27 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
   }
 
   for (int s = 0; s < 2; ++s) {
-    cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
+    cached_nfft_obj_[s].accumulate(Ms[s], configs[s], factor);
     if (parameters_.stamping_period() > 0) {
-      single_measurement_M_r_t_device_[s].accumulate(Ms[s], configs[s], sign);
+      single_measurement_M_r_t_device_[s].accumulate(Ms[s], configs[s], factor);
     }
   }
 }
   
-template <class Parameters, typename Real>
+template <class Parameters>
 template <class Configuration>
-void SpAccumulator<Parameters, linalg::GPU, Real>::accumulate(
-    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& Ms,
-    const std::array<Configuration, 2>& configs, const int sign) {
-  std::array<linalg::Matrix<Real, linalg::GPU>, 2> M_dev;
+void SpAccumulator<Parameters, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& Ms,
+    const std::array<Configuration, 2>& configs, const Scalar factor) {
+  std::array<linalg::Matrix<Scalar, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
-    M_dev[s].setAsync(Ms[s], streams_[s]);
+    M_dev[s].setAsync(Ms[s], streams_[0]);
 
-  accumulate(M_dev, configs, sign);
+  accumulate(M_dev, configs, factor);
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::GPU, Real>::finalizeFunction(std::array<NfftType, 2>& ft_objs,
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::GPU>::finalizeFunction(std::array<NfftType, 2>& ft_objs,
                                                                     MFunction& function, bool m_sqr) {
   func::function<std::complex<Real>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
   const Real normalization = 1. / RDmn::dmn_size();
@@ -211,8 +212,8 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalizeFunction(std::array<N
   }
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::GPU, Real>::finalize() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
@@ -227,16 +228,16 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::finalize() {
   finalized_ = true;
 }
 
-template <class Parameters, typename Real>
-void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(
-    SpAccumulator<Parameters, linalg::GPU, Real>& other) {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::GPU>::sumTo(
+    SpAccumulator<Parameters, linalg::GPU>& other) {
   for (int s = 0; s < 2; ++s)
     other.cached_nfft_obj_[s] += cached_nfft_obj_[s];
 }
 
-// template <class Parameters, typename Real>
-// const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumulator<
-//     Parameters, linalg::CPU, Real>::get_single_measurement_sign_times_MFunction() {
+// template <class Parameters>
+// const typename SpAccumulator<Parameters, linalg::CPU>::MFunction& SpAccumulator<
+//     Parameters, linalg::CPU>::get_single_measurement_sign_times_MFunction() {
 //   single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
 //   finalizeFunction(*single_measurement_M_r_t_, *single_measurement_M_r_w_);
 //   return *single_measurement_M_r_w_;
@@ -245,9 +246,9 @@ void SpAccumulator<Parameters, linalg::GPU, Real>::sumTo(
 /** get M_r_w_ for a single configuration.
  *  This is quite unoptimized, a heap allocation in incurred every time.
  */
-template <class Parameters, typename Real>
-const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumulator<
-    Parameters, linalg::GPU, Real>::get_single_measurement_sign_times_MFunction() {
+template <class Parameters>
+const typename SpAccumulator<Parameters, linalg::CPU>::MFunction& SpAccumulator<
+    Parameters, linalg::GPU>::get_single_measurement_sign_times_MFunction() {
   // single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
   //  assuming this is faster than the allocation.
   std::fill(single_measurement_M_r_w_->begin(), single_measurement_M_r_w_->end(),
@@ -259,9 +260,9 @@ const typename SpAccumulator<Parameters, linalg::CPU, Real>::MFunction& SpAccumu
 /** get M_r_t_ for a single configuration.
  *  This is quite unoptimized, a heap allocation in incurred every time.
  */
-template <class Parameters, typename Real>
-const typename SpAccumulator<Parameters, linalg::CPU, Real>::FTauPair& SpAccumulator<
-    Parameters, linalg::GPU, Real>::get_single_measurement_sign_times_MFunction_time() {
+template <class Parameters>
+const typename SpAccumulator<Parameters, linalg::CPU>::FTauPair& SpAccumulator<
+    Parameters, linalg::GPU>::get_single_measurement_sign_times_MFunction_time() {
   // single_measurement_M_r_w_.reset(new MFunction("single_function_M_r_w"));
   //  assuming this is faster than the allocation.
   // std::fill(single_measurement_M_r_t_->begin(), single_measurement_M_r_t_->end(), 0.0);

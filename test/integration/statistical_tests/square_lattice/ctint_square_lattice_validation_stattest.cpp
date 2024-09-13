@@ -17,6 +17,14 @@
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
 #include "dca/config/profiler.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/integration/statistical_tests/square_lattice/square_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;

@@ -1,0 +1,81 @@
+{
+  "output" :
+  {
+    "output-format"         : "HDF5",
+
+    "output-QMC" : "output_QMC.hdf5"
+  },
+
+  "physics" :
+  {
+      "beta"                      :  10,
+      "density"                 : 0.85,
+      "chemical-potential"        : 0,
+      "adjust-chemical-potential": true
+  },
+
+  "Rashba-Hubbard-model":
+  {
+      "t"       : 1,
+      "h"       : 0,
+      "lambda"  : 0.5,
+      "U"       : 6.0
+  },
+    "DCA" : {
+	"iterations": 1,
+	"accuracy": 1.e-3,
+	"self-energy-mixing-factor": 0.8,
+	"interacting-orbitals": [0,1],
+	"coarse-graining": {
+	    "k-mesh-recursion": 3,
+	    "periods": 0,
+	    "quadrature-rule": 1,
+	    "threads": 1,
+	    "tail-frequencies": 10
+	}
+    },
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 2],
+		  [2, -2]],
+	"sp-host": [[10, 10], [10, -10]],
+	"tp-host": [[4,4],[4,-4]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+	"four-point-fermionic-frequencies" : 5
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+      "frequency-transfer": 0,
+      "compute-all-transfers": true
+  },
+
+
+  "Monte-Carlo-integration" :
+  {
+    "Sigma-file" : "zero",
+    "warm-up-sweeps"         : 100,
+    "sweeps-per-measurement" : 1,
+    "measurements" : 1500,
+    "seed" : 0,
+    "threaded-solver" : {"walkers" : 4,
+			 "accumulators" : 4,
+			 "fix-meas-per-walker" : true,
+			 "shared-walk-and-accumulation-thread" : true
+			}
+    }
+  },
+  "CT-AUX" :
+  {
+      "initial-configuration-size" :100,
+    "max-submatrix-size":1
+  }
+}

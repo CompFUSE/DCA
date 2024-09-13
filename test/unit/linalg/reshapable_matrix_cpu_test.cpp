@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -15,7 +15,8 @@
 
 #include <complex>
 #include <string>
-#include "gtest/gtest.h"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "cpu_test_util.hpp"
 
 TEST(MatrixCPUTest, Constructor) {

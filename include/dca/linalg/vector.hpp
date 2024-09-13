@@ -23,17 +23,18 @@
 #include <type_traits>
 #include <vector>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/linalg/util/copy.hpp"
-#include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
 
-template <typename ScalarType, DeviceType device_name,
+  template <typename ScalarType, DeviceType device_name = DeviceType::CPU,
           class Allocator = util::DefaultAllocator<ScalarType, device_name>>
 class Vector : public Allocator {
 public:
@@ -49,7 +50,13 @@ public:
   Vector(size_t size, size_t capacity);
   Vector(const std::string& name, size_t size, size_t capacity);
 
-  Vector(const ThisType& rhs, const std::string& name = default_name_);
+  /** copy constructor except for name.
+   *  this is strange but for historical reasons is kept.
+   *  has needed to be explicit because with the `const ThisType&` somehow lead to an implicit conversion
+   *  from an int to a Vector& argument that landed here.
+   *  This occurred in Debug with 
+   */
+  explicit Vector(const ThisType& rhs, const std::string& name = default_name_);
 
   template <DeviceType device_name2, class Allocator2>
   Vector(const Vector<ScalarType, device_name2, Allocator2>& rhs,

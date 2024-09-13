@@ -30,31 +30,31 @@ namespace phys {
 // function G_0(\vec{k}, i\omega_n) = [i\omega_n + \mu - H_0(\vec{k})]^{-1} and the self-energy
 // \Sigma(\vec{k}, i\omega_n) via the Dyson equation,
 // G = [G_0^{-1} - \Sigma]^{-1}.
-template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn>
+template <typename Real, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn>
 void compute_G_k_w(
-    const func::function<std::complex<Scalar>,
+    const func::function<std::complex<Real>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
-    const func::function<std::complex<Scalar>,
+    const func::function<std::complex<Real>,
                          func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& S_k_w,
-    const Scalar mu, const int n_threads,
-    func::function<std::complex<Scalar>,
+    const Real mu, const int n_threads,
+    func::function<std::complex<Real>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G_k_w) {
   G_k_w = 0.;
 
   Threading().execute(n_threads, [&](int id, int n_threads) {
     // Work space for inverse.
-    linalg::Matrix<std::complex<Scalar>, linalg::CPU> G_inv("G_inv", OrbitalSpinDmn::dmn_size());
+    linalg::Matrix<std::complex<Real>, linalg::CPU> G_inv("G_inv", OrbitalSpinDmn::dmn_size());
     linalg::Vector<int, linalg::CPU> ipiv;
-    linalg::Vector<std::complex<Scalar>, linalg::CPU> work;
+    linalg::Vector<std::complex<Real>, linalg::CPU> work;
 
-    const std::complex<Scalar> i(0., 1.);
+    const std::complex<Real> i(0., 1.);
 
     // Distribute the work amongst the threads.
     const auto bounds = parallel::util::getBounds(id, n_threads, MatsubaraFreqDmn());
 
     for (int w_ind = bounds.first; w_ind < bounds.second; ++w_ind)
       for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
-        const auto w_val = MatsubaraFreqDmn::get_elements()[w_ind];
+        const auto w_val = static_cast<Real>(MatsubaraFreqDmn::get_elements()[w_ind]);
 
         // Compute G^{-1} for fixed k-vector and Matsubara frequency.
         for (int n = 0; n < OrbitalSpinDmn::dmn_size(); ++n) {

@@ -52,72 +52,94 @@ namespace ctaux {
 //
 // Empty class template
 //
-template <dca::linalg::DeviceType device_t, typename Real>
+template <dca::linalg::DeviceType device_t, typename Scalar>
 class CT_AUX_WALKER_TOOLS {};
 
 //
 // Specialization for CPU
 // INTERNAL: Should we inline the static methods?
 //
-template <typename Real>
-class CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Real> {
+template <typename Scalar>
+class CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar> {
+  using Real = dca::util::RealAlias<Scalar>;
   const static int BLOCK_SIZE = 32;  // dca::linalg::Matrix<double, dca::linalg::CPU>::BLOCK_SIZE;
 
 public:
   CT_AUX_WALKER_TOOLS(int k_ph);
 
-  static void compute_Gamma(dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma,
-                            dca::linalg::Matrix<Real, dca::linalg::CPU>& N,
-                            dca::linalg::Matrix<Real, dca::linalg::CPU>& G_precomputed,
+  static void compute_Gamma(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma,
+                            dca::linalg::Matrix<Scalar, dca::linalg::CPU>& N,
+                            dca::linalg::Matrix<Scalar, dca::linalg::CPU>& G_precomputed,
                             dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
-                            dca::linalg::Vector<Real, dca::linalg::CPU>& exp_V,
-                            dca::linalg::Vector<Real, dca::linalg::CPU>& exp_delta_V, int thread_id,
-                            int stream_id);
+                            dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_V,
+                            dca::linalg::Vector<Scalar, dca::linalg::CPU>& exp_delta_V,
+                            int thread_id, int stream_id);
 
-  static void set_to_identity(dca::linalg::Matrix<Real, dca::linalg::CPU>& M, int index);
+  static void set_to_identity(dca::linalg::Matrix<Scalar, dca::linalg::CPU>& M, int index);
 
-  // inline Real solve_Gamma(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU,
-  // Real
+  // inline Scalar solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+  // Scalar
   // exp_delta_V);
-  double solve_Gamma(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real exp_delta_V,
-                     Real& max, Real& min);
-  double solve_Gamma_blocked(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU,
-                             Real exp_delta_V, Real& max, Real& min);
+  auto solve_Gamma(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+                   Scalar exp_delta_V, Real& max, Real& min) -> Real;
 
-  double apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU,
-                                Real phani_gamma, Real& max, Real& min);
+  /** Solve gamma using blocked submatrix updates
+   *  \param[in] int
+   *  \param[inout] Gamma_LU
+   *  \param[ioout] max
+   *  \param[inout] min
+   */
+  auto solve_Gamma_blocked(const int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+                           Scalar exp_delta_V, Real& max, Real& min) -> Scalar;
+
+  auto apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU,
+                              Scalar phani_gamma, Real& max, Real& min) -> Real;
+
+  /** Debugging function
+   *  requires: n > 0
+   */
+  static bool test_max_min(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU, Real max,
+                    Real min);
 
 private:
-  void solve_Gamma_slow(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU);
-  void solve_Gamma_fast(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU);
-  void solve_Gamma_BLAS(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_slow(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_slow(int n, Scalar* Gamma_LU, int lda);
+  void solve_Gamma_fast(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_fast(int n, Scalar* A, int LD);
+  void solve_Gamma_BLAS(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_BLAS(int n, Scalar* Gamma_LU, int lda);
 
-  void solve_Gamma_fast(int n, Real* A, int LD);
 
-  void solve_Gamma_blocked(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU);
+  void solve_Gamma_blocked(int n, dca::linalg::Matrix<Scalar, dca::linalg::CPU>& Gamma_LU);
 
-  bool test_max_min(int n, dca::linalg::Matrix<Real, dca::linalg::CPU>& Gamma_LU, Real max, Real min);
+  /** Return x/y.
+   *  nothing but that is done for real number but for complex division an implementation consistent with cuda
+   *  and magma libraries is used.
+   *  This is more overflow resistant than the std lib method.
+   *  But we need this for reasonable numerical agreement for testing.
+   */
+  static Scalar consistentScalarDiv(Scalar x, Scalar y);
 
 private:
-  dca::linalg::Vector<Real, dca::linalg::CPU> r;
-  dca::linalg::Vector<Real, dca::linalg::CPU> c;
-  dca::linalg::Vector<Real, dca::linalg::CPU> d;
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> r;
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> c;
+  dca::linalg::Vector<Scalar, dca::linalg::CPU> d;
 };
 
 #ifdef DCA_HAVE_GPU
 //
 // Specialization for GPU
 //
-template <typename Real>
-class CT_AUX_WALKER_TOOLS<dca::linalg::GPU, Real> {
+template <typename Scalar>
+class CT_AUX_WALKER_TOOLS<dca::linalg::GPU, Scalar> {
 public:
-  static void compute_Gamma(dca::linalg::Matrix<Real, dca::linalg::GPU>& Gamma,
-                            dca::linalg::Matrix<Real, dca::linalg::GPU>& N,
-                            dca::linalg::Matrix<Real, dca::linalg::GPU>& G,
+  static void compute_Gamma(dca::linalg::Matrix<Scalar, dca::linalg::GPU>& Gamma,
+                            dca::linalg::Matrix<Scalar, dca::linalg::GPU>& N,
+                            dca::linalg::Matrix<Scalar, dca::linalg::GPU>& G,
                             dca::linalg::Vector<int, dca::linalg::GPU>& random_vertex_vector,
-                            dca::linalg::Vector<Real, dca::linalg::GPU>& exp_V,
-                            dca::linalg::Vector<Real, dca::linalg::GPU>& exp_delta_V, int thread_id,
-                            int stream_id) {
+                            dca::linalg::Vector<Scalar, dca::linalg::GPU>& exp_V,
+                            dca::linalg::Vector<Scalar, dca::linalg::GPU>& exp_delta_V,
+                            int thread_id, int stream_id) {
     Gamma.resize(random_vertex_vector.size());
 
     assert(Gamma.nrRows() == Gamma.nrCols());

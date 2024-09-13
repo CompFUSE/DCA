@@ -19,15 +19,15 @@ namespace nfft {
 
 template <int max_count, int count>
 struct NfftAtomicConvolutionImpl {
-  template <typename ScalarType>
-  inline static void execute_linear(ScalarType* f, const ScalarType* M, const ScalarType* y) {
+  template <typename Scalar, typename Real>
+  inline static void execute_linear(Scalar* f, const Real* M, const Scalar* y) {
     f[count] += (M[0 + 2 * count] * y[0] + M[1 + 2 * count] * y[1]);
 
     NfftAtomicConvolutionImpl<max_count, count + 1>::execute_linear(f, M, y);
   }
 
-  template <typename ScalarType>
-  inline static void execute_cubic(ScalarType* f, const ScalarType* M, const ScalarType* y) {
+  template <typename Scalar, typename Real>
+  inline static void execute_cubic(Scalar* f, const Real* M, const Scalar* y) {
     f[count] += (M[0 + 4 * count] * y[0] + M[1 + 4 * count] * y[1] + M[2 + 4 * count] * y[2] +
                  M[3 + 4 * count] * y[3]);
 
@@ -75,13 +75,11 @@ struct NfftAtomicConvolutionImpl {
 
 template <int max_count>
 struct NfftAtomicConvolutionImpl<max_count, max_count> {
-  template <typename ScalarType>
-  inline static void execute_linear(ScalarType* /*f*/, const ScalarType* /*y*/,
-                                    const ScalarType* /*M*/) {}
+  template <typename Scalar, typename Real>
+  inline static void execute_linear(Scalar* /*f*/, const Real* /*M*/, const Scalar* /*y*/) {}
 
-  template <typename ScalarType>
-  inline static void execute_cubic(ScalarType* /*f*/, const ScalarType* /*y*/,
-                                   const ScalarType* /*M*/) {}
+  template <typename Scalar, typename Real>
+  inline static void execute_cubic(Scalar* /*f*/, const Real* /*M*/, const Scalar* /*y*/) {}
 
   template <typename ScalarType>
   inline static void execute_Mt_y_2(ScalarType* /*f*/, const ScalarType* /*M*/,
@@ -94,16 +92,16 @@ struct NfftAtomicConvolutionImpl<max_count, max_count> {
 
 template <int oversampling>
 struct NfftAtomicConvolution {
-  template <typename ScalarType>
-  inline static void execute_linear(ScalarType* f, const ScalarType* y, const ScalarType* M) {
+  template <typename Scalar, typename Real>
+  inline static void execute_linear(Scalar* f, const Real* M, const Scalar* y) {
     static_assert(oversampling > 1, "Invalid oversampling size.");
-    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_linear(f, y, M);
+    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_linear(f, M, y);
   }
 
-  template <typename ScalarType>
-  inline static void execute_cubic(ScalarType* f, const ScalarType* y, const ScalarType* M) {
+  template <typename Scalar, typename Real>
+  inline static void execute_cubic(Scalar* f, const Real* M, const Scalar* y) {
     static_assert(oversampling > 1, "Invalid oversampling size.");
-    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_cubic(f, y, M);
+    NfftAtomicConvolutionImpl<2 * oversampling + 1, 1>::execute_cubic(f, M, y);
   }
 };
 

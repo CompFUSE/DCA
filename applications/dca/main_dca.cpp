@@ -17,6 +17,8 @@
 #include "dca/config/dca.hpp"
 #include "dca/application/dca_loop_dispatch.hpp"
 #include "dca/config/cmake_options.hpp"
+#include "dca/config/haves_defines.hpp"
+
 // Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
@@ -64,8 +66,14 @@ int dca_main(int argc, char** argv) {
     // Create the parameters object from the input file.
     ParametersType parameters(dca::util::GitVersion::string(), concurrency);
     parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
+    if(concurrency.id() == concurrency.first())
+      std::cout << "Input read and broadcast.\n";
     parameters.update_model();
+    if(concurrency.id() == concurrency.first())
+      std::cout << "Model updated.\n";
     parameters.update_domains();
+    if(concurrency.id() == concurrency.first())
+      std::cout << "Domains updated.\n";
 
     dca::DistType distribution = parameters.get_g4_distribution();
     {

@@ -14,7 +14,7 @@
 // TODO: Move domains-only tests to separate files and rename this file to function_test.cpp and the
 //       test cases to FunctionTest.
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include <array>
 #include <cassert>
 #include <complex>
@@ -28,38 +28,51 @@
 #include <vector>
 
 #include "dca/util/type_list.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 #include "function_testing.hpp"
+#include <ModernStringUtils.hpp>
 
 namespace dca {
 namespace testing {
 // dca::testing::
 
+/** basically this ignores whitespace for comparing output of the type ouput.
+ *  this is necessary because libc++ inserts spaces between trailing template type brackets which is
+ * legal and was required by some older c++ stds.
+ */
+bool checkTypeLine(const std::string_view& expected, const std::string_view& test) {
+  auto expected_tokens = modernstrutil::split(expected, " \t");
+  auto test_tokens = modernstrutil::split(test, " \t");
+  if (expected_tokens.size() != test_tokens.size())
+    return false;
+  for (int i = 0; i < expected_tokens.size(); ++i)
+    if (expected_tokens[i] != test_tokens[i])
+      return false;
+  return true;
+}
+
 bool compare_to_file(const std::string& filename, const std::string& check) {
   // Open the file.
   std::ifstream known_result(filename);
-
+  auto test_lines = modernstrutil::split(check, "\n");
   if (known_result.good()) {
-    std::string contents;
-
-    // Get the right size to reserve it.
-    known_result.seekg(0, std::ios::end);
-    contents.reserve(known_result.tellg());
-
-    known_result.seekg(0, std::ios::beg);
-
-    // Read contents into string directly.
-    contents.assign((std::istreambuf_iterator<char>(known_result)), std::istreambuf_iterator<char>());
-
-    return (contents == check);
+    std::string expected_line;
+    auto test_line = test_lines.begin();
+    while (std::getline(known_result, expected_line)) {
+      if (test_line == test_lines.end())
+        return false;
+      else if (!checkTypeLine(expected_line, *test_line))
+        return false;
+      ++test_line;
+      return true;
+    }
   }
-
   else {
     std::ofstream new_result(filename);
+    auto test_line = test_lines.begin();
     new_result << check.c_str();
     std::cout << "No baseline file exists, writing new one " << filename.c_str() << std::endl;
   }
-
   return false;
 }
 
@@ -80,24 +93,24 @@ Domain16v dummy2;
 
 TEST(Function, TestDomain4a) {
   try {
-    std::cout << "Leaf indexing \n";
+    // std::cout << "Leaf indexing \n";
     int index = 0;
     for (int i0 = 0; i0 < 1; ++i0) {
       for (int i1 = 0; i1 < 2; ++i1) {
         for (int i2 = 0; i2 < 4; ++i2) {
           for (int i3 = 0; i3 < 8; ++i3) {
-            std::cout << i0 << "," << i1 << "," << i2 << "," << i3 << "\n";
+            // std::cout << i0 << "," << i1 << "," << i2 << "," << i3 << "\n";
             dca::testing::function_4a.operator()(i0, i1, i2, i3) = index++;
             // dca::testing::function_4a.operator()(i3,i2,i1,i0) = index; bad ordering
           }
         }
       }
     }
-    std::cout << "Branch indexing \n";
+    // std::cout << "Branch indexing \n";
     index = 0;
     for (int i0 = 0; i0 < 2; ++i0) {
       for (int i1 = 0; i1 < 32; ++i1) {
-        std::cout << i0 << "," << i1 << "\n";
+        // std::cout << i0 << "," << i1 << "\n";
         dca::testing::function_4a.operator()(i0, i1) = index++;
       }
     }
@@ -145,7 +158,8 @@ TEST(Function, FingerPrint) {
 
   std::cout << result.str();
   EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/fingerprint.txt",
-                                            result.str()));
+                                            result.str()))
+      << result.str();
 }
 
 TEST(Function, PrintElements) {
@@ -480,9 +494,9 @@ TEST(FunctionTest, BranchIndexingAndAssignment) {
   int size_domain2c = Domain2c::dmn_size();
   EXPECT_EQ(size_domain2c, 32);
   auto& branched_steps = branched_function.get_domain().get_branch_domain_steps();
-  std::cout << "branched_steps: " << vectorToString(branched_steps) << '\n';
+  // std::cout << "branched_steps: " << vectorToString(branched_steps) << '\n';
   auto& branch_sizes = branched_function.get_domain().get_branch_domain_sizes();
-  std::cout << "branched_sizes: " << vectorToString(branch_sizes) << '\n';
+  // std::cout << "branched_sizes: " << vectorToString(branch_sizes) << '\n';
   auto get_steps = [](const std::vector<unsigned long>& sbdm_sizes) {
     std::vector<unsigned long> sbdm_steps(sbdm_sizes.size(), 1);
     for (int i = 1; i < sbdm_steps.size(); ++i)
@@ -505,8 +519,8 @@ TEST(FunctionTest, BranchIndexingAndAssignment) {
 
   EXPECT_EQ(branched_function.size(), 4096);
   EXPECT_EQ(branched_function.getValues().size(), 4096);
-  std::cout << vectorToString(branched_function.getValues()) << '\n';
-  std::cout << vectorToString(branched_function_test.f.getValues()) << '\n';
+  // std::cout << vectorToString(branched_function.getValues()) << '\n';
+  // std::cout << vectorToString(branched_function_test.f.getValues()) << '\n';
 }
 
 TEST(FunctionTest, ArrayBasedIndexing) {
@@ -531,8 +545,6 @@ TEST(FunctionTest, ArrayBasedIndexing) {
         f2c0c0c.linind_2_subind(
             i2c + c2 * Domain2c::dmn_size() + c1 * Domain0c::dmn_size() * Domain2c::dmn_size(),
             subind);
-        if (subind[2] > 0)
-          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];
@@ -558,8 +570,6 @@ TEST(FunctionTest, ArrayBasedIndexing) {
     for (int c2 = 0; c2 < Domain0a::dmn_size(); c2++)
       for (int i2c = 0; i2c < Domain2c::dmn_size(); i2c++) {
         f2c0a0c.linind_2_subind(linind++, subind);
-        if (subind[2] > 0)
-          std::cout << "break";
         subind_transpose[1] = subind[0];
         subind_transpose[0] = subind[1];
         subind_transpose[2] = subind[2];

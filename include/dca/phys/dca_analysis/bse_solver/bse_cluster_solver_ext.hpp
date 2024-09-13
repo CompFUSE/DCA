@@ -144,8 +144,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.Sigma, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -169,8 +169,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
         G_II.slice(0, subind, static_cast<std::complex<ScalarType>*>(G_II_indi.values()));
         G_II_0.slice(0, subind, static_cast<std::complex<ScalarType>*>(G_II_0_indi.values()));
 
-        symmetrize::execute(G_II_indi, parameters.get_four_point_momentum_transfer());
-        symmetrize::execute(G_II_0_indi, parameters.get_four_point_momentum_transfer());
+        Symmetrize<ParametersType>::execute(G_II_indi, parameters.get_four_point_momentum_transfer());
+        Symmetrize<ParametersType>::execute(G_II_0_indi, parameters.get_four_point_momentum_transfer());
         G_II.distribute(0, subind, static_cast<std::complex<ScalarType>*>(G_II_indi.values()));
         G_II_0.distribute(0, subind, static_cast<std::complex<ScalarType>*>(G_II_0_indi.values()));
       }

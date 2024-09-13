@@ -14,6 +14,7 @@
 #include <string>
 
 // Defines Concurrency, Threading, ParametersType, DcaData, and BseSolver.
+#include "dca/config/mc_options.hpp"
 #include "dca/config/analysis.hpp"
 #include "dca/config/cmake_options.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
   if (dca::io::stringToIOType(parameters.get_output_format()) == dca::io::IOType::ADIOS2) {
     int rank = concurrency.id();
     std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    dca::io::Writer writer(adios, concurrency, parameters.get_output_format(), true);
+    dca::io::Writer writer(concurrency, parameters.get_output_format(), true);
     std::string filename_bse(parameters.get_directory() + parameters.getAppropriateFilenameAnalysis());
     writer.open_file(filename_bse);
 

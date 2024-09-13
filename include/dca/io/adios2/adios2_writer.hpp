@@ -23,10 +23,12 @@
 
 #include "adios2.h"
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
 #include "dca/config/haves_defines.hpp"
@@ -46,6 +48,8 @@ public:
 public:
   ADIOS2Writer() = delete;
   // In: verbose. If true, the writer outputs a short log whenever it is executed.
+  // Concurrency objects now carry an adios pointer if DCA_HAVE_ADIOS2.
+  ADIOS2Writer(const CT* concurrency, bool verbose = false);
   ADIOS2Writer(adios2::ADIOS& adios, const CT* concurrency, bool verbose = false);
   ~ADIOS2Writer();
 
@@ -134,6 +138,9 @@ public:
     return execute(A.get_name(), A);
   }
 
+  template <typename Scalar, class ALLOCATOR>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A);
+
   template <class T>
   bool execute(const std::string& name, const std::unique_ptr<T>& obj);
 
@@ -166,9 +173,9 @@ public:
   }
 
 private:
+  const CT* concurrency_;
   adios2::ADIOS& adios_;
   bool verbose_;
-  const CT* concurrency_;
 
   /** For the case of sample it is necessary to explicitly write a rank "local" variable
    *  of this type.
@@ -184,7 +191,7 @@ private:
   template <typename Scalar>
   void write(const std::string& name, const std::vector<size_t>& size, const Scalar* data,
              const std::vector<size_t>& start, const std::vector<size_t>& count);
-
+  
   template <typename T, typename... Args>
   void getVariable(const std::string& name, adios2::Variable<T>& var, const Args&... args);
 
@@ -548,6 +555,26 @@ bool ADIOS2Writer<CT>::execute(const std::string& name,
   return true;
 }
 
+template <class CT>
+template <typename Scalar, class ALLOCATOR>
+bool ADIOS2Writer<CT>::execute(const std::string& name,
+                               const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A) {
+  std::vector<size_t> dims{size_t(A.nrRows()), size_t(A.nrCols())};
+  std::vector<Scalar> linearized(dims[0] * dims[1]);
+
+  int linindex = 0;
+  // Note: Matrices are row major, while ADIOS2 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[linindex++] = A(i, j);
+
+  std::string full_name = get_path(name);
+  write<Scalar>(full_name, dims, linearized.data());
+
+  addAttribute(full_name, "name", name);
+  return true;
+}
+  
 template <class CT>
 template <class T>
 bool ADIOS2Writer<CT>::execute(const std::string& name, const std::unique_ptr<T>& obj) {

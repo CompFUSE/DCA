@@ -10,6 +10,7 @@
 //
 // This file tests the specialization of material_lattice for NiO.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 
 #include <cmath>

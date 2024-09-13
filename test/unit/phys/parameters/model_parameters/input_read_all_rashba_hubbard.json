@@ -1,0 +1,8 @@
+{
+    "Rashba-Hubbard-model": {
+        "t": 1.,
+        "h": 0.5,
+	"lambda": 0.2,
+        "U": 8.
+    }
+}

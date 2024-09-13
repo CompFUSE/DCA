@@ -27,7 +27,8 @@ namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
 template <class QmciWalker, class DATA>
-class StdThreadQmciWalker final : public QmciWalker, public QmciAutocorrelationData<QmciWalker> {
+class StdThreadQmciWalker final
+    : public QmciWalker {  // , public QmciAutocorrelationData<QmciWalker> {
   using ThisType = StdThreadQmciWalker<QmciWalker, DATA>;
   using Parameters = typename QmciWalker::parameters_type;
   using Data = DATA;
@@ -47,7 +48,7 @@ public:
   void doSweep();
 
   void markThermalized() {
-    QmciAutocorrelationData<QmciWalker>::markThermalized();
+    //    QmciAutocorrelationData<QmciWalker>::markThermalized();
     QmciWalker::markThermalized();
   }
 
@@ -58,7 +59,10 @@ public:
     return last_iteration_;
   }
 
-  std::size_t get_meas_id() const { return meas_id_; }
+  std::size_t get_meas_id() const {
+    return meas_id_;
+  }
+
 private:
   void logConfiguration() const;
 
@@ -77,9 +81,9 @@ private:
 template <class QmciWalker, class DATA>
 StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(
     Parameters& parameters, DATA& data_ref, Rng& rng, int concurrency_id, int id,
-    const std::shared_ptr<io::Writer<Concurrency>>& writer, G0Interpolation<device, Real>& g0)
+    const std::shared_ptr<io::Writer<Concurrency>>& writer, [[maybe_unused]]G0Interpolation<device, Real>& g0)
     : QmciWalker(parameters, data_ref, rng, id),
-      QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
+      // QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
       stamping_period_(parameters.stamping_period()),
       concurrency_id_(concurrency_id),
       thread_id_(id),
@@ -97,7 +101,7 @@ void StdThreadQmciWalker<QmciWalker, DATA>::initialize(int iteration) {
 template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
   QmciWalker::doSweep();
-  QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
+  // QmciAutocorrelationData<QmciWalker>::accumulateAutocorrelation(*this);
 
   if (QmciWalker::is_thermalized()) {
     // This must be before or the G_k_w and configuration meas_id will not match
@@ -109,21 +113,25 @@ void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
 
 template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
-  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open.
-  if (print_to_log && stamping_period_ && (meas_id_ % stamping_period_) == 0) {
-    const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
-                                   std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);
+  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open. \todo possibly this should always be true
+  if (print_to_log &&
+      (writer_->isADIOS2() ||
+       (writer_->isHDF5() && writer_->get_concurrency().id() == writer_->get_concurrency().first()))) {
+    if (stamping_period_ && (meas_id_ % stamping_period_) == 0) {
+      const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
+                                     std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);
 
-    writer_->lock();
-    writer_->open_group("STQW_Configurations");
+      writer_->lock();
+      writer_->open_group("STQW_Configurations");
 
-    const auto& config = QmciWalker::get_configuration();
-    config.write(*writer_, stamp_name);
-    writer_->open_group(stamp_name);
-    writer_->execute("log-weight", QmciWalker::get_MC_log_weight());
-    writer_->close_group();
-    writer_->close_group();
-    writer_->unlock();
+      const auto& config = QmciWalker::get_configuration();
+      config.write(*writer_, stamp_name);
+      writer_->open_group(stamp_name);
+      writer_->execute("log-weight", QmciWalker::get_MC_log_weight());
+      writer_->close_group();
+      writer_->close_group();
+      writer_->unlock();
+    }
   }
 }
 
@@ -148,8 +156,7 @@ public:
                                                                                 g0),
         thread_id_(id),
         concurrency_id_(concurrency_id),
-        writer_(writer)
-  {}
+        writer_(writer) {}
 
   static void write([[maybe_unused]] io::Writer<Concurrency>& writer) {}
 
@@ -160,6 +167,7 @@ public:
   std::size_t get_meas_id() const {
     return 0;
   }
+
 private:
   int thread_id_;
   int concurrency_id_;

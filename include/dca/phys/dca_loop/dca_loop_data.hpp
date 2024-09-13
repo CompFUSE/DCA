@@ -30,19 +30,22 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template <typename ParametersType>
+template <typename Parameters>
 class DcaLoopData {
 public:
-  using Concurrency = typename ParametersType::concurrency_type;
+  using Concurrency = typename Parameters::concurrency_type;
   using expansion_dmn_t = func::dmn_0<func::dmn<32, int>>;
   using DCA_iteration_domain_type = func::dmn_0<domains::DCA_iteration_domain>;
+
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   DcaLoopData();
 
@@ -53,10 +56,6 @@ public:
   // the last completed iteration from the input file, otherwise it returns -1.
   int readData(const std::string& filename, const std::string& format,
                const Concurrency& concurrency);
-#ifdef DCA_HAVE_ADIOS2
-  int readData(const std::string& filename, const std::string& format,
-               const Concurrency& concurrency, adios2::ADIOS& adios);
-#endif
   template <class READER>
   void readLoopDataCommon(READER& reader, const std::string& filename, const std::string& format);
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
@@ -68,7 +67,7 @@ public:
   func::function<double, DCA_iteration_domain_type> Gflops_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> max_Gflops_per_mpi_task;
 
-  func::function<double, DCA_iteration_domain_type> sign;
+  func::function<Scalar, DCA_iteration_domain_type> sign;
 
   func::function<double, DCA_iteration_domain_type> L2_Sigma_difference;
 
@@ -89,8 +88,8 @@ public:
   int last_completed_iteration = -1;
 };
 
-template <typename ParametersType>
-DcaLoopData<ParametersType>::DcaLoopData()
+template <typename Parameters>
+DcaLoopData<Parameters>::DcaLoopData()
     : Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),
 
@@ -116,9 +115,9 @@ DcaLoopData<ParametersType>::DcaLoopData()
       chemical_potential("chemical-potential"),
       average_expansion_order("expansion_order") {}
 
-template <typename ParametersType>
+template <typename Parameters>
 template <typename Writer>
-void DcaLoopData<ParametersType>::write(Writer& writer, Concurrency& concurrency) {
+void DcaLoopData<Parameters>::write(Writer& writer, Concurrency& concurrency) {
   // This is suboptimal really the writer should report whether the file is open.
   if (concurrency.id() == concurrency.first()) {
     if (writer.isOpen()) {
@@ -155,41 +154,26 @@ void DcaLoopData<ParametersType>::write(Writer& writer, Concurrency& concurrency
   }
 }
 
-template <typename ParametersType>
-int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
-                                          const Concurrency& concurrency) {
+template <typename Parameters>
+int DcaLoopData<Parameters>::readData(const std::string& filename, const std::string& format,
+                                      const Concurrency& concurrency) {
   if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
     io::Reader reader(concurrency, format, false);
-    readLoopDataCommon(reader, filename, format);
-  }
-  concurrency.broadcast(last_completed_iteration);
-  return last_completed_iteration;
-}
-
-#ifdef DCA_HAVE_ADIOS2
-template <typename ParametersType>
-int DcaLoopData<ParametersType>::readData(const std::string& filename, const std::string& format,
-                                          const Concurrency& concurrency, adios2::ADIOS& adios) {
-  std::cout << "Reading dca_loop_data with ADIOS2\n";
-  if (concurrency.id() == concurrency.first() && filesystem::exists(filename)) {
-    io::Reader reader(adios, concurrency, format, false);
-    auto& adios2_reader = std::get<io::ADIOS2Reader<Concurrency>>(reader.getUnderlying());
-    std::size_t step_count = adios2_reader.getStepCount();
+    std::size_t step_count = reader.getStepCount();
     for (std::size_t i = 0; i < step_count; ++i) {
-      adios2_reader.begin_step();
-      adios2_reader.end_step();
+      reader.begin_step();
+      reader.end_step();
     }
     readLoopDataCommon(reader, filename, format);
   }
   concurrency.broadcast(last_completed_iteration);
   return last_completed_iteration;
 }
-#endif
 
-template <typename ParametersType>
+template <typename Parameters>
 template <class READER>
-void DcaLoopData<ParametersType>::readLoopDataCommon(READER& reader, const std::string& filename,
-                                                     const std::string& format [[maybe_unused]]) {
+void DcaLoopData<Parameters>::readLoopDataCommon(READER& reader, const std::string& filename,
+                                                 const std::string& format [[maybe_unused]]) {
   reader.open_file(filename);
   reader.open_group("DCA-loop-functions");
 

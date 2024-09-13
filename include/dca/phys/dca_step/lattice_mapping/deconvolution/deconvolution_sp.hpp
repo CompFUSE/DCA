@@ -34,7 +34,9 @@ class deconvolution_sp
     : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t> {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
-
+  using Scalar = typename parameters_type::Scalar;
+  using Real = typename parameters_type::Real;
+  
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -92,6 +94,7 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int k_ind = 0; k_ind < source_k_dmn_t::dmn_size(); k_ind++) {
       for (int j = 0; j < b::dmn_size(); j++) {
+
         for (int i = 0; i < b::dmn_size(); i++) {
           source(k_ind, 0, i, j, 0, w_ind) = real(f_source(i, 0, j, 0, k_ind, w_ind));
           source(k_ind, 1, i, j, 0, w_ind) = imag(f_source(i, 0, j, 0, k_ind, w_ind));

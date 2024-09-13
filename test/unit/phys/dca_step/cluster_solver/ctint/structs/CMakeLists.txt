@@ -3,7 +3,7 @@ set(TEST_INCLUDES ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR})
 
 dca_add_gtest(ct_int_interaction_vertices_test
     FAST
-    GTEST_MAIN
+    GTEST_MPI_MAIN
     INCLUDE_DIRS ${TEST_INCLUDES}
     CUDA
     LIBS FFTW::Double ${DCA_LIBS}

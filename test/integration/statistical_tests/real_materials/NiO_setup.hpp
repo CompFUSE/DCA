@@ -50,11 +50,13 @@ constexpr DeviceType default_device = GPU;
 constexpr DeviceType default_device = CPU;
 #endif  // DCA_HAVE_CUDA
 
+using Scalar = double;
+
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/real_materials/";
 
 using Model = dca::phys::models::TightBindingModel<dca::phys::models::material_lattice<
-    dca::phys::models::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
+  dca::phys::models::Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 
 using dca::ClusterSolverId;
@@ -62,7 +64,7 @@ using dca::ClusterSolverId;
 template <class Concurrency, ClusterSolverId name>
 using TestParameters =
     dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, name>;
+                                  RandomNumberGenerator, name, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 
 template <ClusterSolverId name, class Concurrency>
 using DcaData = dca::phys::DcaData<TestParameters<Concurrency, name>>;

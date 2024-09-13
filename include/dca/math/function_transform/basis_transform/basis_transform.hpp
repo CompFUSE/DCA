@@ -62,15 +62,11 @@ public:
   typedef typename basis_transformation_type::matrix_type matrix_type;
 
 public:
-  static bool& is_initialized() {
-    return basis_transformation_type::is_initialized();
-  }
-
   static std::string& get_name() {
     return basis_transformation_type::get_name();
   }
 
-  static matrix_type& get_transformation_matrix() {
+  static matrix_type get_transformation_matrix() {
     return basis_transformation_type::get_transformation_matrix();
   }
 };

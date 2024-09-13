@@ -12,7 +12,8 @@
 #include <vector>
 #include <array>
 
-#include <gtest/gtest.h>
+#include "dca/platform/dca_gpu.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
@@ -42,7 +43,6 @@ protected:
 
 TEST(ClusterDomainsTest, initializeKDmn) {
   dca::io::JSONReader reader;
-  const int dimension = 2;
   using DomainsParameters = dca::phys::params::DomainsParameters;
   using AnalysisParameters = dca::phys::params::AnalysisParameters;
   using Model = ClusterDomainsTest::Model;
@@ -58,7 +58,6 @@ TEST(ClusterDomainsTest, initializeKDmn) {
   };
 
   ClusterDomainsTestParameters pars;
-  //DmnParameters pars(dimension);
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/domains/cluster/input.json");

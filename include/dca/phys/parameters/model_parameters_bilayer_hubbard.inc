@@ -156,5 +156,22 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+    std::cout << "\n  bilayer-Hubbard-model parameter group is not defined!\n" << std::endl;
+    throw std::logic_error(__PRETTY_FUNCTION__);
   }
+
+  if (ReaderOrWriter::is_reader) {
+    std::cout << "\n\n"
+              << "\tbilayer-Hubbard-model : \n"
+              << "\t--------------- \n\n"
+              << "\t\t t  : " << t_ << "\n"
+              << "\t\t t_prime  : " << t_prime_ << "\n"
+              << "\t\t t_perp  : " << t_perp_ << "\n"
+              << "\t\t U : " << U_ << "\n"
+              << "\t\t V : " << V_ << "\n"
+              << "\t\t V-prime : " << V_prime_ << "\n"
+              << "\n"
+              << std::endl;
+  }
+
 }

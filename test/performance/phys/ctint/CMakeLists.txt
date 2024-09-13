@@ -1,7 +1,7 @@
 
 add_executable(ctint_walker_performance_test ctint_walker_performance_test.cpp)
 
-target_link_libraries(ctint_walker_performance_test PRIVATE ${DCA_LIBS})
+target_link_libraries(ctint_walker_performance_test PRIVATE ${DCA_LIBS} ${DCA_KERNEL_LIBS})
 target_include_directories(ctint_walker_performance_test  PRIVATE
     ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR})
 target_compile_definitions(ctint_walker_performance_test PRIVATE DCA_SOURCE_DIR="${PROJECT_SOURCE_DIR}")

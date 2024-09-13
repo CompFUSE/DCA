@@ -10,6 +10,8 @@
 //
 // This file implements a write read of a largish G4 matrix
 
+#include "dca/platform/dca_gpu.h"
+
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_cpu.hpp"
 
 #include <array>
@@ -17,12 +19,21 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 #define INPUT_DIR \
@@ -34,8 +45,10 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
+using Scalar = double;
+
 using G4FileIoTest =
-    dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
+  dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
 
 // Since we are not going to put a 1.6G file in the repo this has different logic from tp_accumulator_test.cpp
 

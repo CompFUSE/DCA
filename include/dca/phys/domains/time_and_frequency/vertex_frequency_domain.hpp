@@ -87,7 +87,7 @@ template <VERTEX_FREQUENCY_NAME NAME>
 void vertex_frequency_domain<NAME>::checkCorrespondingFrequencyDomain(const std::vector<double>& wn) {
   for (int i = 0; i < get_size(); i++)
     if (get_corresponding_frequency_domain_index()[i] == -1 ||
-        std::fabs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6) {
+        std::abs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6) {
       std::ostringstream error;
       error
           << "in vertex_frequency_domain::initialize get_corresponding_frequency_domain for index "
@@ -121,7 +121,7 @@ void vertex_frequency_domain<COMPACT>::initialize(parameters_t& parameters) {
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
   checkCorrespondingFrequencyDomain(wn);
@@ -146,7 +146,7 @@ void vertex_frequency_domain<COMPACT_POSITIVE>::initialize(parameters_t& paramet
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
   checkCorrespondingFrequencyDomain(wn);
@@ -178,7 +178,7 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
   checkCorrespondingFrequencyDomain(wn);
@@ -207,7 +207,7 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
   checkCorrespondingFrequencyDomain(wn);

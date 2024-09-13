@@ -12,7 +12,7 @@
 #include "dca/linalg/reshapable_matrix.hpp"
 #include <complex>
 #include <string>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "cpu_test_util.hpp"
 
 TEST(MatrixCPUTest, Constructor) {
@@ -127,7 +127,7 @@ TEST(MatrixCPUTest, SetAsync) {
 
   mat_gpu.setAsync(mat_cpu, stream);
   mat_cpu_out.setAsync(mat_gpu, stream);
-  cudaStreamSynchronize(stream);
+  checkRC(cudaStreamSynchronize(stream));
 
   EXPECT_EQ(mat_cpu, mat_cpu_out);
 }

@@ -14,6 +14,7 @@
 #ifdef DCA_HAVE_GPU
 
 #include "dca/platform/dca_gpu.h"
+#include "dca/linalg/util/gpu_stream.hpp"
 
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
@@ -25,11 +26,21 @@ namespace solver {
 namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
-
-template <typename Real>
-void buildG0Matrix(linalg::MatrixView<Real, linalg::GPU> G0, const int n_init,
+  
+template <typename Scalar, typename SignType>
+void buildG0Matrix(linalg::MatrixView<Scalar, linalg::GPU> G0, const int n_init,
                    const bool right_section, DeviceConfiguration config,
-                   DeviceInterpolationData<Real> g0_interp, cudaStream_t stream);
+                   DeviceInterpolationData<Scalar, SignType> g0_interp, const dca::linalg::util::GpuStream& stream);
+extern  template void buildG0Matrix(linalg::MatrixView<float, linalg::GPU>, const int, const bool,
+                            DeviceConfiguration, DeviceInterpolationData<float, signed char>, const dca::linalg::util::GpuStream&);
+extern  template void buildG0Matrix(linalg::MatrixView<double, linalg::GPU>, const int, const bool,
+                            DeviceConfiguration, DeviceInterpolationData<double, std::int8_t>, const dca::linalg::util::GpuStream&);
+extern  template void buildG0Matrix(linalg::MatrixView<std::complex<float>, linalg::GPU>, const int,
+                            const bool, DeviceConfiguration,
+                            DeviceInterpolationData<std::complex<float>, std::complex<float>>, const dca::linalg::util::GpuStream&);
+extern  template void buildG0Matrix(linalg::MatrixView<std::complex<double>, linalg::GPU>, const int,
+                            const bool, DeviceConfiguration,
+                            DeviceInterpolationData<std::complex<double>, std::complex<double>>, const dca::linalg::util::GpuStream&);
 
 }  // namespace details
 }  // namespace ctint

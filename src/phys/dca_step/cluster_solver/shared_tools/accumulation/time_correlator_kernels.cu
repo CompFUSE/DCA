@@ -13,6 +13,7 @@
 
 #include "dca/util/cuda_blocks.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/solver_helper.cuh"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {
@@ -20,9 +21,13 @@ namespace solver {
 namespace details {
 // dca::phys::solver::details::
 
-template <typename Real>
-__global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
-                                const DeviceInterpolationData<Real> g0, const Real* t_l,
+using namespace dca::linalg;
+  using dca::util::SignType;
+using dca::linalg::util::GpuStream;
+
+template <typename Scalar, typename Real>
+__global__ void computeG0Kernel(linalg::MatrixView<Scalar, linalg::GPU>& mat,
+                                const DeviceInterpolationData<Scalar, Real> g0, const Real* t_l,
                                 const int* b_l, const int* r_l, const Real* t_r, const int* b_r,
                                 const int* r_r) {
   const unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -32,14 +37,15 @@ __global__ void computeG0Kernel(linalg::MatrixView<Real, linalg::GPU> mat,
 
   const auto index = solver_helper.index(b_l[i], b_r[j], r_l[i], r_r[j]);
   const Real tau = t_l[i] - t_r[j];
-
-  mat(i, j) = g0(tau, index);
+  auto mat_elem_ptr = castGPUType(&mat(i, j));
+  *mat_elem_ptr = castGPUType(g0(tau, index));
 }
 
-template <typename Real>
-void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat, const DeviceInterpolationData<Real> g0,
-               const Real* t_l, const int* b_l, const int* r_l, const Real* t_r, const int* b_r,
-               const int* r_r, cudaStream_t stream) {
+template <typename Scalar, typename Real, typename SignType>
+void computeG0(linalg::MatrixView<Scalar, linalg::GPU>& g0_mat,
+               const DeviceInterpolationData<Scalar, SignType> g0, const Real* t_l,
+               const int* b_l, const int* r_l, const Real* t_r, const int* b_r, const int* r_r,
+               const GpuStream& stream) {
   assert(SolverHelper::initialized());
   auto blocks = dca::util::get2DBlockSize(g0_mat.nrRows(), g0_mat.nrCols(), 32);
 
@@ -47,12 +53,23 @@ void computeG0(linalg::MatrixView<Real, linalg::GPU>& g0_mat, const DeviceInterp
 }
 
 // Instantation.
-template void computeG0<double>(linalg::MatrixView<double, linalg::GPU>&,
-                                const DeviceInterpolationData<double>, const double*, const int*,
-                                const int*, const double*, const int*, const int*, cudaStream_t);
-template void computeG0<float>(linalg::MatrixView<float, linalg::GPU>&,
-                               const DeviceInterpolationData<float>, const float*, const int*,
-                               const int*, const float*, const int*, const int*, cudaStream_t);
+  template<> void computeG0<double, double, std::int8_t>(linalg::MatrixView<double, linalg::GPU>&,
+					    const DeviceInterpolationData<double, std::int8_t>,
+                                        const double*, const int*, const int*, const double*,
+                                        const int*, const int*, const GpuStream&);
+  template<> void computeG0<float, float, std::int8_t>(linalg::MatrixView<float, linalg::GPU>&,
+					  const DeviceInterpolationData<float, std::int8_t>, const float*,
+                                      const int*, const int*, const float*, const int*, const int*,
+                                      const GpuStream&);
+  template<> void computeG0<std::complex<double>, double, std::complex<double>>(
+    linalg::MatrixView<std::complex<double>, linalg::GPU>&,
+    const DeviceInterpolationData<std::complex<double>, std::complex<double>>, const double*, const int*,
+    const int*, const double*, const int*, const int*, const GpuStream&);
+  template<> void computeG0<std::complex<float>, float, std::complex<float>>(
+    linalg::MatrixView<std::complex<float>, linalg::GPU>&,
+    const DeviceInterpolationData<std::complex<float>, std::complex<float>>, const float*, const int*, const int*,
+    const float*, const int*, const int*, const GpuStream&);
+
 
 }  // namespace details
 }  // namespace solver

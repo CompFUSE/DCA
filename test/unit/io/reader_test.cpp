@@ -13,9 +13,9 @@
 #include "dca/io/csv/csv_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include <functional>
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_reader.hpp"
-adios2::ADIOS* adios_ptr;
 #endif
 #include <vector>
 #include "gtest/gtest.h"
@@ -26,7 +26,14 @@ template <typename T>
 class ReaderTest : public ::testing::Test {};
 
 
+#ifdef DCA_HAVE_MPI
+using Concurrency = dca::parallel::MPIConcurrency;
+#else
 using Concurrency = dca::parallel::NoConcurrency;
+#endif
+
+
+
 
 using ReaderTypes = ::testing::Types<dca::io::CSVReader, dca::io::HDF5Reader, dca::io::JSONReader
 #ifdef DCA_HAVE_ADIOS2
@@ -36,7 +43,7 @@ using ReaderTypes = ::testing::Types<dca::io::CSVReader, dca::io::HDF5Reader, dc
 
 TYPED_TEST_CASE(ReaderTest, ReaderTypes);
 
-dca::parallel::NoConcurrency* concurrency_ptr;
+std::unique_ptr<Concurrency> concurrency_ptr;
 
 TEST(JSONReaderTest, Vector) {
   dca::io::JSONReader reader;
@@ -81,7 +88,7 @@ TEST(HDF5ReaderTest, Vector) {
 #ifdef DCA_HAVE_ADIOS2
 // more extensive testing in adios2_reader_writer_test
 TEST(ADIOS2ReaderTest, Vector) {
-  dca::io::ADIOS2Reader reader(*adios_ptr, concurrency_ptr, true);
+  dca::io::ADIOS2Reader reader(*concurrency_ptr, true);
   reader.open_file(DCA_SOURCE_DIR "/test/unit/io/vector.bp");
 
   // Simple 3D vector
@@ -103,15 +110,7 @@ TEST(ADIOS2ReaderTest, Vector) {
 #endif
 
 int main(int argc, char** argv) {
-  dca::parallel::NoConcurrency concurrency(argc, argv);
-  concurrency_ptr = &concurrency;
-
-#ifdef DCA_HAVE_ADIOS2
-  //ADIOS expects MPI_COMM pointer or nullptr
-  adios2::ADIOS adios("", false);
-  adios_ptr = &adios;
-#endif
-
+  concurrency_ptr = std::make_unique<Concurrency>(argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
 
   // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

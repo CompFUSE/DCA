@@ -14,7 +14,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/util/difference.hpp"
@@ -26,6 +26,16 @@
 #include "dca/linalg/util/util_gpublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -45,6 +55,7 @@ dca::testing::DcaMpiTestEnvironment* dca_test_env;
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
   // These names collide with type aliases in dca.hpp and this is not clever but
   // quite easy to break.
+  using Scalar = double;
   using RngType_test = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using DcaPointGroupType_test = dca::phys::domains::D4;
   using LatticeType_test = dca::phys::models::square_lattice<DcaPointGroupType_test>;
@@ -53,7 +64,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using ParametersType_test =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading_test,
                                     dca::profiling::NullProfiler, ModelType_test, RngType_test,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType_test = dca::phys::DcaData<ParametersType_test, dca::DistType::NONE>;
   using ClusterSolverType_test =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType_test, DcaDataType_test>;

@@ -10,12 +10,21 @@
 // Performance test for CT-AUX walker.
 // Bilayer lattice with two bands and 36 sites.
 
+#include "dca/linalg/util/allocators/allocators.hpp"
+#include "dca/platform/dca_gpu.h"
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
+#include "dca/linalg/vector.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
 
 #include <iostream>
 #include <string>
 
-#include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -52,11 +61,14 @@ using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using NoThreading = dca::parallel::NoThreading;
 using TestConcurrency = dca::parallel::NoConcurrency;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
-                                                 dca::ClusterSolverId::CT_AUX>;
+using Scalar = double;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, NoThreading, Profiler, Model, RngType,
+                                  dca::ClusterSolverId::CT_AUX,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
-using Real = dca::config::McOptions::MCScalar;
-using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data, Real>;
+using Real = dca::config::McOptions::MC_REAL;
+using Walker = dca::phys::solver::ctaux::CtauxWalker<device, Parameters, Data>;
 
 template <typename T>
 using future = dca::parallel::thread_traits::future_type<T>;

@@ -15,6 +15,9 @@
 #include <utility>
 #include "gtest/gtest.h"
 #include "gpu_test_util.hpp"
+#include "dca/linalg/util/util_gpublas.hpp"
+#include "dca/linalg/util/info_gpu.hpp"
+
 
 TEST(MatrixGPUTest, Constructors) {
   int size = 3;
@@ -626,4 +629,40 @@ TEST(MatrixGPUTest, setToZero) {
   for (int j = 0; j < mat_copy.nrCols(); ++j)
     for (int i = 0; i < mat_copy.nrRows(); ++i)
       EXPECT_EQ(0, mat_copy(i, j));
+}
+
+TEST(MatrixGPUTest, setTo) {
+  std::string name{"test_complex_matrix"};
+  auto size = std::make_pair(640, 2);
+  
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> mat_host(name, size);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> mat_dev(name, size);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> mat_host_ret(name, size);
+
+  auto el_value = [](int i, int j) ->std::complex<double> { return {static_cast<double>(3 * i - 2 * j), static_cast<double>(2*i - 3*j)}; };
+  for (int j = 0; j < mat_host.nrCols(); ++j)
+    for (int i = 0; i < mat_host.nrRows(); ++i)
+      mat_host(i,j) = el_value(i,j);
+
+  dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
+  mat_dev.set(mat_host, reset_stream);
+  mat_host_ret.set(mat_dev, reset_stream);
+
+  for (int j = 0; j < mat_host.nrCols(); ++j)
+    for (int i = 0; i < mat_host.nrRows(); ++i)
+      EXPECT_EQ(mat_host_ret(i,j), mat_host(i, j)); 
+}
+
+int main(int argc, char** argv) {
+
+      dca::linalg::util::printInfoDevices();
+  dca::linalg::util::initializeMagma();
+  ::testing::InitGoogleTest(&argc, argv);
+
+  // ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
+  // delete listeners.Release(listeners.default_result_printer());
+  // listeners.Append(new dca::testing::MinimalistPrinter);
+
+  int result = RUN_ALL_TESTS();
+  return result;
 }

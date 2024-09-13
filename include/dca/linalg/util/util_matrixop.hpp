@@ -33,8 +33,8 @@ namespace util {
 
 // Returns optimal lwork for inverse.
 // In: mat
-template <typename ScalarType,  template <typename, DeviceType> class MatrixType>
-int getInverseWorkSize(MatrixType<ScalarType, CPU>& mat) {
+  template <typename ScalarType, template <typename> class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  int getInverseWorkSize(MatrixType<ScalarType, CPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   ScalarType tmp;
@@ -42,8 +42,8 @@ int getInverseWorkSize(MatrixType<ScalarType, CPU>& mat) {
   return lapack::util::getWorkSize(tmp);
 }
 #ifdef DCA_HAVE_GPU
-template <typename ScalarType,  template <typename, DeviceType> class MatrixType>
-int getInverseWorkSize(const MatrixType<ScalarType, GPU>& mat) {
+  template <typename ScalarType,  template<typename> class ALLOC, template <typename, DeviceType, class> class MatrixType>
+  int getInverseWorkSize(const MatrixType<ScalarType, GPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   return mat.nrRows() * magma::get_getri_nb<ScalarType>(mat.nrRows());
@@ -75,9 +75,9 @@ int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<std::complex<ScalarTyp
 }
 // Returns optimal lwork and liwork for the symmetric eigensolver.
 // In: mat
-template <typename ScalarType>
+  template <typename ScalarType, template <typename> class ALLOC >
 std::tuple<int, int> getEigensolverSymmetricWorkSize(char jobv, char uplo,
-                                                     Matrix<ScalarType, CPU>& mat) {
+                                                     Matrix<ScalarType, CPU, ALLOC<ScalarType>>& mat) {
   assert(mat.is_square());
 
   ScalarType tmp1;

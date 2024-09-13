@@ -11,6 +11,8 @@
 
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_ALIGNED_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_ALIGNED_ALLOCATOR_HPP
+#include <cstdlib>
+#include <new>
 
 namespace dca {
 namespace linalg {

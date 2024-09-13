@@ -10,7 +10,7 @@
 // This file tests the tetrahedron class.
 
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 TEST(TetrahedronTest, Constructor) {
   dca::math::geometry::tetrahedron<1> tetrahedron_1D;

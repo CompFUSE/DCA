@@ -237,8 +237,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
   math::interpolation::akima_interpolation<double> ai_obj(size);
 
-  double* x = new double[size];
-  double* y = new double[size];
+  std::vector<double> x(size);
+  std::vector<double> y(size);
 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
@@ -277,9 +277,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
       }
     }
   }
-
-  delete[] x;
-  delete[] y;
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
@@ -469,8 +466,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
-          typename orbital_configuration_t>
+template <typename Hybridization_function_t, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
 double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::det_rat_up(
     int this_flavor, Hybridization_vertex& new_segment, vertex_vertex_matrix_type& M,
     orbital_configuration_t& segments_old, Hybridization_function_t& F, std::vector<double>& R,
@@ -528,8 +524,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
-          typename orbital_configuration_t>
+template <typename Hybridization_function_t, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M_up(
     int r, int s, vertex_vertex_matrix_type& M, orbital_configuration_t& /*segments_old*/,
     Hybridization_function_t& /*F*/, std::vector<double>& R, std::vector<double>& Q_prime,
@@ -644,8 +639,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
-          typename orbital_configuration_t>
+template <typename Hybridization_function_t, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
 double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::det_rat_shift_end(
     int this_flavor, Hybridization_vertex& new_segment, int k, vertex_vertex_matrix_type& M,
     orbital_configuration_t& segments_old, Hybridization_function_t& F, std::vector<double>& R,
@@ -696,8 +690,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
-          typename orbital_configuration_t>
+template <typename Hybridization_function_t, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
 double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::det_rat_shift_start(
     int this_flavor, Hybridization_vertex& new_segment, int k, vertex_vertex_matrix_type& M,
     orbital_configuration_t& segments_old, Hybridization_function_t& F,
@@ -815,9 +808,9 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.leadingDimension());
 }
 
-}  // cthyb
-}  // solver
-}  // phys
-}  // dca
+}  // namespace cthyb
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_HPP

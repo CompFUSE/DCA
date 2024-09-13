@@ -30,31 +30,30 @@ public:
   static void characterize_transformation(const f_input_t& f_input, const f_output_t& f_output,
                                           int& M, int& K, int& N, int& P);
 
-  template <typename scalartype, class domain_input, class domain_output>
-  static void transform(const func::function<scalartype, domain_input>& f_input,
-                        func::function<scalartype, domain_output>& f_output,
-                        const linalg::Matrix<scalartype, linalg::CPU>& T);
+  template <typename Scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
+  static void transform(const func::function<Scalartype, domain_input>& f_input,
+                        func::function<Scalartype, domain_output>& f_output,
+                        const linalg::Matrix<Scalartype, linalg::CPU, ALLOC<Scalartype>>& tm);
 
-  template <typename scalartype, class domain_input, class domain_output>
+  template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
   static void transform(const func::function<std::complex<scalartype>, domain_input>& f_input,
                         func::function<std::complex<scalartype>, domain_output>& f_output,
-                        const linalg::Matrix<scalartype, linalg::CPU>& T);
+                        const linalg::Matrix<scalartype, linalg::CPU, ALLOC<scalartype>>& tm);
 
-  template <typename Scalartype, typename Scalartype2, class DomainInput, class DomainOutput,
-            class = std::enable_if_t<std::is_scalar<Scalartype>::value>>
+  template <typename Scalartype, class DomainInput, class DomainOutput, template<typename> class ALLOC>
   static void transform(const func::function<Scalartype, DomainInput>& f_input,
                         func::function<Scalartype, DomainOutput>& f_output,
-                        const linalg::Matrix<std::complex<Scalartype2>, linalg::CPU>& T);
+                        const linalg::Matrix<std::complex<Scalartype>, linalg::CPU, ALLOC<std::complex<Scalartype>>>& tm);
 
-  template <typename scalartype, class domain_input, class domain_output>
+  template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
   static void transform(const func::function<scalartype, domain_output>& f_input,
                         func::function<std::complex<scalartype>, domain_input>& f_output,
-                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T);
+                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU, ALLOC<std::complex<scalartype>>>& tm);
 
-  template <typename scalartype, class domain_input, class domain_output>
+  template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
   static void transform(const func::function<std::complex<scalartype>, domain_input>& f_input,
                         func::function<scalartype, domain_output>& f_output,
-                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T);
+                        const linalg::Matrix<std::complex<scalartype>, linalg::CPU, ALLOC<std::complex<scalartype>>>& T);
 };
 
 template <int DMN_INDEX>
@@ -76,11 +75,11 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::characterize_transformation(const f_
 }
 
 template <int DMN_INDEX>
-template <typename scalartype, class domain_input, class domain_output>
+template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<scalartype, domain_input>& f_input,
     func::function<scalartype, domain_output>& f_output,
-    const linalg::Matrix<scalartype, linalg::CPU>& T) {
+    const linalg::Matrix<scalartype, linalg::CPU, ALLOC<scalartype>>& T) {
   int M, K, N, P;
   characterize_transformation(f_input, f_output, M, K, N, P);
 
@@ -104,11 +103,11 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
 }
 
 template <int DMN_INDEX>
-template <typename scalartype, class domain_input, class domain_output>
+template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<std::complex<scalartype>, domain_input>& f_input,
     func::function<std::complex<scalartype>, domain_output>& f_output,
-    const linalg::Matrix<scalartype, linalg::CPU>& T) {
+    const linalg::Matrix<scalartype, linalg::CPU, ALLOC<scalartype>>& T) {
   int M, K, N, P;
   characterize_transformation(f_input, f_output, M, K, N, P);
 
@@ -125,12 +124,13 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
 }
 
 template <int DMN_INDEX>
-template <typename Scalartype, typename Scalartype2, class DomainInput, class DomainOutput, class>
+template <typename Scalartype,  class DomainInput, class DomainOutput, template<typename> class ALLOC>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<Scalartype, DomainInput>& f_input,
     func::function<Scalartype, DomainOutput>& f_output,
-    const linalg::Matrix<std::complex<Scalartype2>, linalg::CPU>& T) {
-  linalg::Matrix<Scalartype, linalg::CPU> T_re("T_re", T.size());
+    const linalg::Matrix<std::complex<Scalartype>, linalg::CPU, ALLOC<std::complex<Scalartype>>>& T) {
+  auto matrix_size = T.size();
+  linalg::Matrix<dca::util::RealAlias<Scalartype>, linalg::CPU, ALLOC<dca::util::RealAlias<Scalartype>>> T_re("T_re", matrix_size);
 
   for (int j = 0; j < T.size().second; j++)
     for (int i = 0; i < T.size().first; i++)
@@ -140,28 +140,28 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
 }
 
 template <int DMN_INDEX>
-template <typename scalartype, class domain_input, class domain_output>
+template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<scalartype, domain_output>& f_input,
     func::function<std::complex<scalartype>, domain_input>& f_output,
-    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T) {
+    const linalg::Matrix<std::complex<scalartype>, linalg::CPU, ALLOC<std::complex<scalartype>>>& T) {
   const auto f_cmplx = func::util::complex(f_input);
 
   transform(f_cmplx, f_output, T);
 }
 
 template <int DMN_INDEX>
-template <typename scalartype, class domain_input, class domain_output>
+template <typename scalartype, class domain_input, class domain_output, template<typename> class ALLOC>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<std::complex<scalartype>, domain_input>& f_input,
     func::function<scalartype, domain_output>& f_output,
-    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T) {
+    const linalg::Matrix<std::complex<scalartype>, linalg::CPU, ALLOC<std::complex<scalartype>>>& T) {
   f_output = 0.;
 
   func::function<scalartype, domain_input> f_in("f_in");
   func::function<scalartype, domain_output> f_out("f_out");
 
-  linalg::Matrix<scalartype, linalg::CPU> T_tmp("T_tmp", T.size());
+  linalg::Matrix<scalartype, linalg::CPU, ALLOC<scalartype>> T_tmp("T_tmp", T.size());
 
   {
     for (int i = 0; i < f_input.size(); i++)
