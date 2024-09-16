@@ -68,11 +68,7 @@ public:
   // to the extended (positive for w1) domain used by G.
   // In/Out: k1, k2, w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
-<<<<<<< HEAD
-  __device__ inline bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
-=======
   __device__ bool extendGIndicesMultiBand(int& k1, int& k2, int& w1, int& w2) const;
->>>>>>> master
 
   // Unroll the linear index of G4 as a function of band, band, band, band,
   // k1, k2, k_ex, w1, w2, w_ex.
