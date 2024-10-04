@@ -53,8 +53,14 @@ void initializeSingleBandHint(
   for (const auto& vec : nn_vec) {
     std::vector<double> nn_vec_translated =
         domains::cluster_operations::translate_inside_cluster(vec, super_basis);
-    nn_index.push_back(
-        domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE));
+    int r = domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE);
+    int minus_r = RDmn::parameter_type::subtract(r, origin);
+
+    // Ensure that r and minus_r are added only if they are distinct
+    nn_index.push_back(r);
+    if (r != minus_r) {
+      nn_index.push_back(minus_r);
+    }
   }
 
   // Set all elements to zero.
@@ -82,9 +88,9 @@ void initializeSingleBandHint(
   H_int(0, 1, 0, 0, origin) = U;
 }
 
-}  // util
-}  // models
-}  // phys
-}  // dca
+}  // namespace util
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_UTIL_HPP
