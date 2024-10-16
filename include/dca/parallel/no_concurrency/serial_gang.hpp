@@ -31,7 +31,11 @@ public:
   }
 
   auto get() const {
+#ifdef DCA_HAVE_MPI
+    return 0;
+#else
     return nullptr;
+#endif
   }
 };
 
