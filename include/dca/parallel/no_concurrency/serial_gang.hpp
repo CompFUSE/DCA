@@ -31,7 +31,7 @@ public:
   }
 
   auto get() const {
-#ifdef DCA_HAVE_MPI
+#if defined (CRAY_MPICH_VERSION) && defined (DCA_HAVE_MPI)
     return 0;
 #else
     return nullptr;
