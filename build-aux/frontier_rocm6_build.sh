@@ -1,5 +1,7 @@
 
 cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
+      -DDCA_WITH_ADIOS2=ON \
+      -DCMAKE_BUILD_TYPE=Release \
       -DFFTW_ROOT=$FFTW_PATH \
       -DDCA_FIX_BROKEN_MPICH=ON \
       -DROCM_ROOT=${ROCM_PATH} \
