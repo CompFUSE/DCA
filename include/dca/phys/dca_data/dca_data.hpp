@@ -533,6 +533,7 @@ void DcaData<Parameters, DT>::initializeH0_and_H_i() {
     for (int nu2 = 0; nu2 < NuDmn::dmn_size(); ++nu2)
       for (int nu1 = 0; nu1 < NuDmn::dmn_size(); ++nu1) {
         if (std::abs(H_interactions(nu1, nu2, r) - H_interactions(nu2, nu1, minus_r)) > 1e-8) {
+          std::cout << r << " , " << minus_r << " , " << H_interactions(nu1, nu2, r) << " , " << H_interactions(nu2, nu1, minus_r) << "\n";
           throw(std::logic_error("Double counting is not consistent."));
         }
       }
