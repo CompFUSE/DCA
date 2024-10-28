@@ -22,6 +22,7 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "dca/util/type_list.hpp"
+#include "dca/phys/models/traits.hpp"
 
 namespace dca {
 namespace phys {
@@ -67,6 +68,11 @@ public:
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                 func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
       const parameters_type& parameters);
+
+  // Initializes the interaction Hamiltonian non density-density local term.
+  template <typename Scalar, typename Parameters>
+  static void initializeNonDensityInteraction(
+					      NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction, const Parameters& parameters);
 
   template <class domain>
   static void initializeHSymmetry(func::function<int, domain>& H_symmetry);
@@ -252,6 +258,37 @@ void La3Ni2O7_bilayer<point_group_type>::initializeH0(
     }
   }
 }
+
+template <typename PointGroupType>
+template <typename Scalar, typename Parameters>
+void La3Ni2O7_bilayer<PointGroupType>::initializeNonDensityInteraction(
+								  NonDensityIntHamiltonian<Scalar, Parameters>& non_density_interaction, const Parameters& parameters) {
+  const double J = parameters.get_J();
+  const double Jp = parameters.get_J();
+  const NuDmn nu;  // band-spin domain.
+  constexpr int up(0), down(1);
+
+  non_density_interaction = 0.;
+  for (int b1 = 0; b1 < 2; b1++)
+    for (int b2 = 0; b2 < 2; b2++) {
+      if (b1 == b2)
+        continue;
+      // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
+      // Note: a factor of -1 comes from rearranging the fermion operators.
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
+    }
+  for (int b1 = 2; b1 < 4; b1++)
+    for (int b2 = 2; b2 < 4; b2++) {
+      if (b1 == b2)
+        continue;
+      // spin-flip interaction coming from the -J * S_b1^+S_b2^- Hamiltonian term.
+      // Note: a factor of -1 comes from rearranging the fermion operators.
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b2, down), nu(b1, down), 0) = J;
+      non_density_interaction(nu(b1, up), nu(b2, up), nu(b1, down), nu(b2, down), 0) = Jp;
+    }
+}
+
 
 }  // namespace models
 }  // namespace phys
