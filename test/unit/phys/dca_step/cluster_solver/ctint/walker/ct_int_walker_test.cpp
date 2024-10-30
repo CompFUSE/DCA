@@ -16,7 +16,7 @@
 #include "walker_wrapper.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
-
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "test/mock_mcconfig.hpp"
 namespace dca {
 namespace config {
@@ -70,12 +70,16 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
   typename CtintWalkerTest<Scalar>::LabelDomain label_dmn;
 
   using Parameters = typename CtintWalkerTest<Scalar>::Parameters;
+  using CDA = dca::phys::ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
+  using RDmn = typename CDA::RClusterDmn;
+
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters.getAlphas(), 0);
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder(g0, 1, RDmn());
+  d_matrix_builder.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+
   Walker::setInteractionVertices(data, parameters);
 
-  Walker walker(parameters, rng);
+  Walker walker(parameters, rng, d_matrix_builder);
 
   // *******************************
   // Test vertex removal ***********

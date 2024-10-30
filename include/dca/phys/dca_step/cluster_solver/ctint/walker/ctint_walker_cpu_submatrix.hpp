@@ -28,6 +28,7 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/submat_impl_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
@@ -51,7 +52,7 @@ public:
   using typename BaseClass::Real;
   using typename BaseClass::Scalar;
 
-  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
+  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
@@ -61,11 +62,10 @@ public:
 
   using BaseClass::order;
 
+  void setMFromConfig() override;
 protected:
-  virtual void setMFromConfig() override;
-
+  void doStep() override;
   void doSteps();
-
   void generateDelayedMoves(int nbr_of_movesto_delay);
 
   /** This does a bunch of things, this is the majority of a step
@@ -84,6 +84,8 @@ protected:
    */
   void mainSubmatrixProcess();
 
+  void markThermalized() override;
+
   void updateM();
 
   void transformM();
@@ -91,8 +93,8 @@ protected:
   // For testing purposes.
   void doStep(const int nbr_of_movesto_delay);
 
+  const DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
 private:
-  virtual void doStep();
 
   void doSubmatrixUpdate();
 
@@ -134,7 +136,6 @@ protected:
   using BaseClass::configuration_;
   using BaseClass::rng_;
   using BaseClass::thread_id_;
-  using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::phase_;
   using BaseClass::M_;
@@ -142,16 +143,18 @@ protected:
   using BaseClass::beta_;
 
   using BaseClass::thermalized_;
+  using BaseClass::sweeps_per_meas_;
+  using BaseClass::partial_order_avg_;
+  using BaseClass::thermalization_steps_;
+  using BaseClass::order_avg_;
+  using BaseClass::sign_avg_;
+  using BaseClass::n_steps_;
+  using BaseClass::mc_log_weight_;
+  using BaseClass::n_accepted_;
 
 protected:
   int max_submatrix_size_;
 
-  struct DelayedMoveType {
-    Move move_type;
-    std::array<double, 3> removal_rng{1., 1., 1.};
-    Real acceptance_rng;
-    std::array<int, 2> indices{-1, -1};
-  };
 
 protected:
   using BaseClass::acceptance_prob_;
@@ -159,7 +162,6 @@ protected:
 protected:
   static constexpr Scalar the_one_ = dca::util::TheOne<Scalar>::value;
 
-  std::vector<DelayedMoveType> delayed_moves_;
 
   using MatrixPair = std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>;
   MatrixPair G_;
@@ -171,7 +173,6 @@ protected:
   MatrixPair s_;
   std::array<std::vector<Real>, 2> gamma_;
 
-  Scalar det_ratio_;
   std::map<int, std::array<Real, n_bands_>> f_;
   std::map<int, std::array<Real, n_bands_>> prob_const_;
   std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
@@ -181,15 +182,6 @@ protected:
   int nbr_of_moves_to_delay_;
   int max_nbr_of_moves;
 
-  std::array<int, 2> Gamma_size_;
-  std::array<std::vector<int>, 2> Gamma_indices_;
-  std::array<std::vector<int>, 2> sector_indices_;
-
-  const DelayedMoveType* current_move_;
-
-  std::array<unsigned, 2> nbr_of_indices_;
-
-  std::vector<int> index_;
 
   // Initial configuration size.
   unsigned config_size_init_;
@@ -202,16 +194,8 @@ protected:
 
   std::array<unsigned, 2> n_max_;
 
-  std::array<linalg::util::HostVector<int>, 2> move_indices_;
-  std::array<linalg::util::HostVector<int>, 2> removal_list_;
-  std::array<linalg::util::HostVector<int>, 2> source_list_;
-  std::array<std::vector<int>, 2> insertion_list_;
-  std::array<std::vector<int>, 2> insertion_Gamma_indices_;
-
-  std::vector<int> conf_removal_list_;
-
-  std::vector<int>::iterator insertion_list_it_;
-
+  SubmatImplData smatd_
+  
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
   Matrix D_;
@@ -222,17 +206,18 @@ protected:
 template <class Parameters, DistType DIST>
 CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(const Parameters& parameters_ref,
                                                                    const Data& /*data*/,
-                                                                   Rng& rng_ref, int id)
-    : BaseClass(parameters_ref, rng_ref, id) {
+                                                                   Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder,
+								   int id)
+  : BaseClass(parameters_ref, rng_ref, id), d_matrix_builder_(d_matrix_builder) {
   for (int b = 0; b < n_bands_; ++b) {
     for (int i = 1; i <= 3; ++i) {
-      f_[i][b] = d_builder_ptr_->computeF(i, b);
-      f_[-i][b] = d_builder_ptr_->computeF(-i, b);
+      f_[i][b] = d_matrix_builder_.computeF(i, b);
+      f_[-i][b] = d_matrix_builder_.computeF(-i, b);
 
-      gamma_values_[std::make_pair(0, i)][b] = d_builder_ptr_->computeGamma(0, i, b);
-      gamma_values_[std::make_pair(0, -i)][b] = d_builder_ptr_->computeGamma(0, -i, b);
-      gamma_values_[std::make_pair(i, 0)][b] = d_builder_ptr_->computeGamma(i, 0, b);
-      gamma_values_[std::make_pair(-i, 0)][b] = d_builder_ptr_->computeGamma(-i, 0, b);
+      gamma_values_[std::make_pair(0, i)][b] = d_matrix_builder_.computeGamma(0, i, b);
+      gamma_values_[std::make_pair(0, -i)][b] = d_matrix_builder_.computeGamma(0, -i, b);
+      gamma_values_[std::make_pair(i, 0)][b] = d_matrix_builder_.computeGamma(i, 0, b);
+      gamma_values_[std::make_pair(-i, 0)][b] = d_matrix_builder_.computeGamma(-i, 0, b);
 
       prob_const_[i][b] = prob_const_[-i][b] = -1. / (f_[i][b] - 1) / (f_[-i][b] - 1);
     }
@@ -245,8 +230,26 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(const Paramet
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
-  BaseClass::setMFromConfig();
+  setMFromConfig();
   transformM();
+}
+
+template <class Parameters, DistType DIST>
+void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
+  thermalized_ = true;
+
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
+  thermalization_steps_ = n_steps_;
+
+  order_avg_.reset();
+  sign_avg_.reset();
+  n_accepted_ = 0;
+
+  // Recompute the Monte Carlo weight.
+  setMFromConfig();
+#ifndef NDEBUG
+  //writeAlphas();
+#endif
 }
 
 template <class Parameters, DistType DIST>
@@ -356,19 +359,12 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::doSubmatrixUpdate() {
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
-
   for (int s = 0; s < 2; ++s) {
     Gamma_inv_[s].resizeNoCopy(0);
     gamma_[s].clear();
-
-    move_indices_[s].clear();
-    insertion_list_[s].clear();
-    insertion_Gamma_indices_[s].clear();
   }
+  smat_impl.mainSubmatrixProcess();
 
-  std::vector<int> aux_spin_type, new_aux_spin_type, move_band;
-
-  acceptance_prob_ = 1.0;
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     current_move_ = &delayed_moves_[delay_ind];
     const auto move_type = current_move_->move_type;
@@ -388,7 +384,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
       if (idx >= 0)
         index_.push_back(idx);
     }
-
+  
     // This leads to a bunch of complex branchy and premature looking optimization
     // The branch predictor must be weeping
     bool at_least_one_recently_added = false;
@@ -589,7 +585,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
       Scalar f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
-      d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
+      d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
       for (int j = 0; j < n_init_[s]; ++j) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
@@ -646,7 +642,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeGInit() {
     }
 
     if (delta > 0) {
-      d_builder_ptr_->computeG0(G0, configuration_.getSector(s), n_init_[s], n_max_[s], 1);
+      d_matrix_builder_.computeG0(G0, configuration_.getSector(s), n_init_[s], n_max_[s], 1);
 
       MatrixView G(G_[s], 0, n_init_[s], n_max_[s], delta);
 

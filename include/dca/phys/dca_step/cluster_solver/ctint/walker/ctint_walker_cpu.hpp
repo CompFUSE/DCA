@@ -50,12 +50,13 @@ public:
   using ConstView = typename linalg::MatrixView<const Scalar, linalg::CPU>;
 
 public:
-  CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
+  CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
   void doSweep();
 
+  void markThermalized() override;
 protected:
-  void doStep();
+  void doStep() override;
   /** try to insertVertex, if accepted do it.
    *  on accept applyInsertion is called.
    */
@@ -72,6 +73,7 @@ protected:
 
   void initializeStep();
 
+  void setMFromConfig() override;
 private:
   auto insertionProbability(int delta_vertices);
 
@@ -87,7 +89,7 @@ protected:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
-  using BaseClass::d_builder_ptr_;
+  const DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
   using BaseClass::phase_;
@@ -98,11 +100,16 @@ protected:
   using BaseClass::n_accepted_;
 
   using BaseClass::M_;
-
   // For testing purposes.
   using BaseClass::acceptance_prob_;
   std::array<Scalar, 2> det_ratio_;
-
+  using BaseClass::sweeps_per_meas_;
+  using BaseClass::partial_order_avg_;
+  using BaseClass::thermalization_steps_;
+  using BaseClass::order_avg_;
+  using BaseClass::sign_avg_;
+  using BaseClass::n_steps_;
+  using BaseClass::mc_log_weight_;
 private:
   std::array<linalg::Matrix<Scalar, linalg::CPU>, 2> S_, Q_, R_;
   // work spaces
@@ -121,14 +128,33 @@ private:
 
 template <class Parameters, DistType DIST>
 CtintWalker<linalg::CPU, Parameters,DIST>::CtintWalker(const Parameters& parameters_ref,
-                                                        const Data& /*data*/, Rng& rng_ref, int id)
+						       const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id)
     : BaseClass(parameters_ref, rng_ref, id),
       det_ratio_{1, 1},
+      d_matrix_builder_(d_matrix_builder),
       // If we perform double updates, we need at most 3 rng values for: selecting the first vertex,
       // deciding if we select a second one, select the second vertex. Otherwise only the first is
       // needed.
       n_removal_rngs_(configuration_.getDoubleUpdateProb() ? 3 : 1) {}
 
+template <class Parameters, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters,DIST>::markThermalized() {
+  thermalized_ = true;
+
+  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
+  thermalization_steps_ = n_steps_;
+
+  order_avg_.reset();
+  sign_avg_.reset();
+  n_accepted_ = 0;
+
+  // Recompute the Monte Carlo weight.
+  setMFromConfig();
+#ifndef NDEBUG
+  //writeAlphas();
+#endif
+}
+  
 template <class Parameters, DistType DIST>
 void CtintWalker<linalg::CPU, Parameters,DIST>::doSweep() {
   int nb_of_steps;
@@ -172,7 +198,7 @@ bool CtintWalker<linalg::CPU, Parameters,DIST>::tryVertexInsert() {
   const int delta_vertices = configuration_.lastInsertionSize();
 
   // Compute the new pieces of the D(= M^-1) matrix.
-  d_builder_ptr_->buildSQR(S_, Q_, R_, configuration_);
+  d_matrix_builder_.buildSQR(S_, Q_, R_, configuration_);
 
   acceptance_prob_ = insertionProbability(delta_vertices);
 
@@ -434,6 +460,42 @@ void CtintWalker<linalg::CPU, Parameters,DIST>::initializeStep() {
   }
 }
 
+template <class Parameters, DistType DIST>
+void CtintWalker<linalg::CPU, Parameters, DIST>::setMFromConfig() {
+  mc_log_weight_ = 0.;
+  phase_.reset();
+
+  for (int s = 0; s < 2; ++s) {
+    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
+    const auto& sector = configuration_.getSector(s);
+    auto& M = M_[s];
+    const int n = sector.size();
+    M.resize(n);
+    if (!n)
+      continue;
+    for (int j = 0; j < n; ++j)
+      for (int i = 0; i < n; ++i)
+        M(i, j) = d_matrix_builder_.computeD(i, j, sector);
+
+    if (M.nrRows()) {
+      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
+      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
+      phase_.divide(phase);
+    }
+  }
+
+  // So what is going on here.
+  for (int i = 0; i < configuration_.size(); ++i) {
+    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
+    const Real term = -configuration_.getStrength(i);
+    mc_log_weight_ += std::log(std::abs(term));
+    phase_.multiply(term);
+  }
+}
+
+  
 }  // namespace ctint
 }  // namespace solver
 }  // namespace phys

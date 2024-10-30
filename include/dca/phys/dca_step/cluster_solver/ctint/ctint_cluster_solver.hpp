@@ -35,6 +35,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 //#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -108,7 +109,8 @@ public:
   // Returns the function G(k,w) without averaging across MPI ranks.
   auto local_G_k_w() const;
 
-protected:  // thread jacket interface.
+  
+protected:  // thread jacket interface.  
   using ParametersType = Parameters;
   using DataType = Data;
   using Rng = typename Parameters::random_number_generator;
@@ -117,6 +119,7 @@ protected:  // thread jacket interface.
   using Lattice = typename Parameters::lattice_type;
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, DIST>;
+  using DMatrixBuilder = ctint::DMatrixBuilder<device_t, Scalar>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t, DIST>;
 
 private:
@@ -166,6 +169,7 @@ private:
   std::unique_ptr<Walker> walker_;
   // Walker input.
   Rng rng_;
+  std::unique_ptr<DMatrixBuilder> d_matrix_builder_;
 };
 
 template <dca::linalg::DeviceType DEV, class PARAM, bool use_submatrix, DistType DIST>
@@ -174,11 +178,10 @@ CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
-
       accumulator_(parameters_, data_),
       writer_(writer),
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
-  Walker::setDMatrixBuilder(g0_);
+  d_matrix_builder_ = std::make_unique<DMatrixBuilder>(g0_, PARAM::bands, RDmn());
   Walker::setInteractionVertices(data_, parameters_);
 
   if (concurrency_.id() == concurrency_.first())
@@ -191,7 +194,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
   
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
-  Walker::setDMatrixAlpha(parameters_.getAlphas(), parameters_.adjustAlphaDd());
+  d_matrix_builder_.setAlphas(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
   // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
@@ -203,7 +206,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::integrate() {
-  walker_ = std::make_unique<Walker>(parameters_, data_, rng_, 0);
+  walker_ = std::make_unique<Walker>(parameters_, data_, rng_, d_matrix_builder_, 0);
   walker_->initialize(dca_iteration_);
 
   dca::profiling::WallTime start_time;

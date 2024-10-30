@@ -70,15 +70,12 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
   G0Interpolation<GPU, Scalar> g0_gpu(g0_func);
   typename TestFixture::LabelDomain label_dmn;
 
-  // TODO: improve API.
-  SbmWalkerCpu::setDMatrixBuilder(g0_cpu);
-  SbmWalkerCpu::setDMatrixAlpha(parameters.getAlphas(), false);
-  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
-  SbmWalkerGpu::setDMatrixAlpha(parameters.getAlphas(), false);
-
+  DMatrixBuilder<linalg::CPU, Scalar> d_matrix_cpu(g0_cpu, n_bands_, rng);
   SbmWalkerCpu::setInteractionVertices(data, parameters);
-  SbmWalkerGpu::setInteractionVertices(data, parameters);
-
+  d_matrix_cpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+  DMatrixBuilder<linalg::GPU, Scalar> d_matrix_gpu(g0_gpu, n_bands_, rng);
+  d_matrix_gpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+  
   // ************************************
   // Test vertex insertion / removal ****
   // ************************************
@@ -105,9 +102,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
 
     for (int steps = 1; steps <= 8; ++steps) {
       rng.setNewValues(setup_rngs);
-      SbmWalkerCpu walker_cpu(parameters, rng);
+      SbmWalkerCpu walker_cpu(parameters, rng, d_matrix_cpu);
       rng.setNewValues(setup_rngs);
-      SbmWalkerGpu walker_gpu(parameters, rng);
+      SbmWalkerGpu walker_gpu(parameters, rng, d_matrix_gpu);
 
       rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);

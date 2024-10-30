@@ -58,8 +58,8 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
 
-  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
+    WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref, DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, d_matrix_builder, 0),
         streams_(3) {
     BaseClass::initialize(0);
 
@@ -84,8 +84,6 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
     std::array<dca::linalg::Matrix<Scalar, CPU>, 2> M_copy{M[0], M[1]};
     return M_copy;
   }
-
-  using BaseClass::setMFromConfig;
 
   const auto& getWalkerConfiguration() const {
     return BaseClass::configuration_;

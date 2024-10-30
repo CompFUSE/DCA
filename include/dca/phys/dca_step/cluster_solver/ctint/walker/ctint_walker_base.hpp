@@ -80,15 +80,20 @@ public:
   void computeM(MatrixPair& m_accum) const;
 
   // Reset the counters and recompute the configuration sign and weight.
-  void markThermalized();
+  virtual void markThermalized() = 0;
 
   /** Recompute the matrix M from the configuration in O(expansion_order^3) time.
    *  Postcondition: sign_ and mc_log_weight_ are recomputed.
    *  mc_log_weight is the negative sum of the log det of both sectors of M
    *  + log of the abs of each vertices interaction strength.
    */
-  virtual void setMFromConfig();
+  virtual void setMFromConfig() = 0;
 
+  virtual void doStep() = 0;
+
+  template<linalg::DeviceType DEVICE>
+  void setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder);
+  
   bool is_thermalized() const {
     return thermalized_;
   }
@@ -152,14 +157,6 @@ public:
     buff >> configuration_;
   }
 
-  // Initialize the builder object shared by all walkers.
-  template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type, Scalar>& g0);
-
-  static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
-
-  static void setInteractionVertices(const Data& data, const Parameters& parameters);
-
   double stealFLOPs() {
     auto flop = flop_;
     flop_ = 0.;
@@ -173,11 +170,10 @@ public:
 
   static void sumConcurrency(const Concurrency&) {}
 
-  const auto& get_dmatrix_builder() const {
-    return *d_builder_ptr_;
-  }
-
   void writeAlphas() const;
+
+  static void setInteractionVertices(const Data& data,
+			      const Parameters& parameters);
 
 protected:
   // typedefs
@@ -187,7 +183,6 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Scalar>> d_builder_ptr_;
   static inline InteractionVertices vertices_;
 
   const Parameters& parameters_;
@@ -272,41 +267,6 @@ void CtintWalkerBase<Parameters,DIST>::initialize(int iteration) {
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::setMFromConfig() {
-  mc_log_weight_ = 0.;
-  phase_.reset();
-
-  for (int s = 0; s < 2; ++s) {
-    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
-
-    const auto& sector = configuration_.getSector(s);
-    auto& M = M_[s];
-    const int n = sector.size();
-    M.resize(n);
-    if (!n)
-      continue;
-    for (int j = 0; j < n; ++j)
-      for (int i = 0; i < n; ++i)
-        M(i, j) = d_builder_ptr_->computeD(i, j, sector);
-
-    if (M.nrRows()) {
-      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
-
-      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
-      phase_.divide(phase);
-    }
-  }
-
-  // So what is going on here.
-  for (int i = 0; i < configuration_.size(); ++i) {
-    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
-    const Real term = -configuration_.getStrength(i);
-    mc_log_weight_ += std::log(std::abs(term));
-    phase_.multiply(term);
-  }
-}
-
-template <class Parameters, DistType DIST>
 void CtintWalkerBase<Parameters,DIST>::updateSweepAverages() {
   order_avg_.addSample(order());
   sign_avg_.addSample(phase_.getSign());
@@ -315,39 +275,22 @@ void CtintWalkerBase<Parameters,DIST>::updateSweepAverages() {
     partial_order_avg_.addSample(order());
 }
 
-template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::writeAlphas() const {
-  std::cout << "For initial configuration integration:\n";
-  for (int isec = 0; isec < 2; ++isec) {
-    std::cout << "Sector: " << isec << '\n';
-    for (int ic = 0; ic < order(); ++ic) {
-      auto aux_spin = configuration_.getSector(isec).getAuxFieldType(ic);
-      auto left_b = configuration_.getSector(isec).getLeftB(ic);
-      auto alpha_left = get_dmatrix_builder().computeAlpha(aux_spin, left_b);
-      std::cout << "vertex: " << std::setw(6) << ic;
-      std::cout << " | aux spin: " << aux_spin << " | left B: " << left_b
-                << " | alpha left = " << alpha_left << '\n';
-    }
-  }
-}
+// template <class Parameters, DistType DIST>
+// void CtintWalkerBase<Parameters,DIST>::writeAlphas() const {
+//   std::cout << "For initial configuration integration:\n";
+//   for (int isec = 0; isec < 2; ++isec) {
+//     std::cout << "Sector: " << isec << '\n';
+//     for (int ic = 0; ic < order(); ++ic) {
+//       auto aux_spin = configuration_.getSector(isec).getAuxFieldType(ic);
+//       auto left_b = configuration_.getSector(isec).getLeftB(ic);
+//       auto alpha_left = get_dmatrix_builder().computeAlpha(aux_spin, left_b);
+//       std::cout << "vertex: " << std::setw(6) << ic;
+//       std::cout << " | aux spin: " << aux_spin << " | left B: " << left_b
+//                 << " | alpha left = " << alpha_left << '\n';
+//     }
+//   }
+// }
 
-template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::markThermalized() {
-  thermalized_ = true;
-
-  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
-  thermalization_steps_ = n_steps_;
-
-  order_avg_.reset();
-  sign_avg_.reset();
-  n_accepted_ = 0;
-
-  // Recompute the Monte Carlo weight.
-  setMFromConfig();
-#ifndef NDEBUG
-  //writeAlphas();
-#endif
-}
 
 template <class Parameters, DistType DIST>
 void CtintWalkerBase<Parameters,DIST>::updateShell(int meas_id, int meas_to_do) const {
@@ -384,25 +327,6 @@ void CtintWalkerBase<Parameters,DIST>::printSummary() const {
 }
 
 template <class Parameters, DistType DIST>
-template <linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters,DIST>::setDMatrixBuilder(
-							 const dca::phys::solver::G0Interpolation<device_type, Scalar>& g0) {
-  using RDmn = typename Parameters::RClusterDmn;
-
-  if (d_builder_ptr_)
-    std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
-
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Scalar>>(g0, n_bands_, RDmn());
-}
-
-template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::setDMatrixAlpha(const std::array<double, 3>& alphas,
-                                                              bool adjust_dd) {
-  assert(d_builder_ptr_);
-  d_builder_ptr_->setAlphas(alphas, adjust_dd);
-}
-
-template <class Parameters, DistType DIST>
 void CtintWalkerBase<Parameters,DIST>::setInteractionVertices(const Data& data,
                                                                      const Parameters& parameters) {
   vertices_.reset();
@@ -419,6 +343,42 @@ void CtintWalkerBase<Parameters,DIST>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
 }
 
+template <class Parameters, DistType DIST>
+template <linalg::DeviceType DEVICE>
+void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
+  mc_log_weight_ = 0.;
+  phase_.reset();
+
+  for (int s = 0; s < 2; ++s) {
+    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
+    const auto& sector = configuration_.getSector(s);
+    auto& M = M_[s];
+    const int n = sector.size();
+    M.resize(n);
+    if (!n)
+      continue;
+    for (int j = 0; j < n; ++j)
+      for (int i = 0; i < n; ++i)
+        M(i, j) = d_matrix_builder.computeD(i, j, sector);
+
+    if (M.nrRows()) {
+      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
+      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
+      phase_.divide(phase);
+    }
+  }
+
+  // So what is going on here.
+  for (int i = 0; i < configuration_.size(); ++i) {
+    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
+    const Real term = -configuration_.getStrength(i);
+    mc_log_weight_ += std::log(std::abs(term));
+    phase_.multiply(term);
+  }
+}
+  
 }  // namespace ctint
 }  // namespace solver
 }  // namespace phys
