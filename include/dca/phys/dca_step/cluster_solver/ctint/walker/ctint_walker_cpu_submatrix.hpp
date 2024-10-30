@@ -28,7 +28,6 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/solver_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/submat_impl_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
@@ -56,7 +55,7 @@ public:
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
-  virtual void doSweep();
+  void doSweep() override;
 
   void computeM(typename BaseClass::MatrixPair& m_accum);
 
@@ -155,6 +154,12 @@ protected:
 protected:
   int max_submatrix_size_;
 
+  struct DelayedMoveType {
+    Move move_type;
+    std::array<double, 3> removal_rng{1., 1., 1.};
+    Real acceptance_rng;
+    std::array<int, 2> indices{-1, -1};
+  };
 
 protected:
   using BaseClass::acceptance_prob_;
@@ -162,6 +167,7 @@ protected:
 protected:
   static constexpr Scalar the_one_ = dca::util::TheOne<Scalar>::value;
 
+  std::vector<DelayedMoveType> delayed_moves_;
 
   using MatrixPair = std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>;
   MatrixPair G_;
@@ -173,6 +179,7 @@ protected:
   MatrixPair s_;
   std::array<std::vector<Real>, 2> gamma_;
 
+  Scalar det_ratio_;
   std::map<int, std::array<Real, n_bands_>> f_;
   std::map<int, std::array<Real, n_bands_>> prob_const_;
   std::map<std::pair<int, int>, std::array<Real, n_bands_>> gamma_values_;
@@ -182,6 +189,15 @@ protected:
   int nbr_of_moves_to_delay_;
   int max_nbr_of_moves;
 
+  std::array<int, 2> Gamma_size_;
+  std::array<std::vector<int>, 2> Gamma_indices_;
+  std::array<std::vector<int>, 2> sector_indices_;
+
+  const DelayedMoveType* current_move_;
+
+  std::array<unsigned, 2> nbr_of_indices_;
+
+  std::vector<int> index_;
 
   // Initial configuration size.
   unsigned config_size_init_;
@@ -194,8 +210,16 @@ protected:
 
   std::array<unsigned, 2> n_max_;
 
-  SubmatImplData smatd_
-  
+  std::array<linalg::util::HostVector<int>, 2> move_indices_;
+  std::array<linalg::util::HostVector<int>, 2> removal_list_;
+  std::array<linalg::util::HostVector<int>, 2> source_list_;
+  std::array<std::vector<int>, 2> insertion_list_;
+  std::array<std::vector<int>, 2> insertion_Gamma_indices_;
+
+  std::vector<int> conf_removal_list_;
+
+  std::vector<int>::iterator insertion_list_it_;
+
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
   Matrix D_;
@@ -359,12 +383,19 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::doSubmatrixUpdate() {
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
+
   for (int s = 0; s < 2; ++s) {
     Gamma_inv_[s].resizeNoCopy(0);
     gamma_[s].clear();
-  }
-  smat_impl.mainSubmatrixProcess();
 
+    move_indices_[s].clear();
+    insertion_list_[s].clear();
+    insertion_Gamma_indices_[s].clear();
+  }
+
+  std::vector<int> aux_spin_type, new_aux_spin_type, move_band;
+
+  acceptance_prob_ = 1.0;
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     current_move_ = &delayed_moves_[delay_ind];
     const auto move_type = current_move_->move_type;
@@ -384,7 +415,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::mainSubmatrixProcess() {
       if (idx >= 0)
         index_.push_back(idx);
     }
-  
+
     // This leads to a bunch of complex branchy and premature looking optimization
     // The branch predictor must be weeping
     bool at_least_one_recently_added = false;

@@ -51,6 +51,9 @@ struct CtINTWalkerSubmatrixGPUTestT : public ::testing::Test {
   G0Setup gpu_setup;
 };
 
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
+
 using namespace dca::phys::solver;
 
 template <typename Scalar>
@@ -98,11 +101,10 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   constexpr int bands = dca::testing::LatticeBilayer::BANDS;
 
   DMatrixBuilder<dca::linalg::CPU> d_matrix_cpu(g0_cpu, bands, RDmn());
-  SbmWalkerCpu::setInteractionVertices(data, parameters);
-  d_matrix_cpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
-  DMatrixBuilder<dca::linalg::GPU> d_matrix_gpu(g0_gpu, n_bands_, RDmn());
-  d_matrix_gpu.setInteractionVertices(data, parameters);
-  d_matrix_gpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+  SbmWalkerCpu::setInteractionVertices(cpu_data, cpu_parameters);
+  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), cpu_parameters.adjustAlphaDd());
+  DMatrixBuilder<dca::linalg::GPU> d_matrix_gpu(g0_gpu, bands, RDmn());
+  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), gpu_parameters.adjustAlphaDd());
 
   // ************************************
   // Test vertex insertion / removal ****

@@ -35,10 +35,11 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters, DistType DIST>
-class CtintWalkerSubmatrixGpu : public CtintWalkerBase<Parameters, DIST> {
+class CtintWalkerSubmatrixGpu : public CtintWalkerSubmatrixCpu<Parameters, DIST> {
 public:
   using this_type = CtintWalkerSubmatrixGpu<Parameters, DIST>;
-  using BaseClass = CtintWalkerBase<Parameters, DIST>;
+  using BaseClass = CtintWalkerSubmatrixCpu<Parameters, DIST>;
+  using RootClass = CtintWalkerBase<Parameters, DIST>;
 
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
@@ -149,7 +150,7 @@ CtintWalkerSubmatrixGpu<Parameters, DIST>::CtintWalkerSubmatrixGpu(
   
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
-  setMFromConfigImpl(d_matrix_builder_);
+  RootClass::setMFromConfigImpl(d_matrix_builder_);
   for (int s = 0; s < 2; ++s) {
     M_dev_[s].setAsync(M_[s], get_stream(s));
   }

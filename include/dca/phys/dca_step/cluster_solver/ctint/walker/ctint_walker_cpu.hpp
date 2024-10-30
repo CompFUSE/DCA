@@ -52,7 +52,7 @@ public:
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
-  void doSweep();
+  void doSweep() override;
 
   void markThermalized() override;
 protected:

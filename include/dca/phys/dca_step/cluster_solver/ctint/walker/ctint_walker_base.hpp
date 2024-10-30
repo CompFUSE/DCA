@@ -91,6 +91,8 @@ public:
 
   virtual void doStep() = 0;
 
+  virtual void doSweep() = 0;
+  
   template<linalg::DeviceType DEVICE>
   void setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder);
   
