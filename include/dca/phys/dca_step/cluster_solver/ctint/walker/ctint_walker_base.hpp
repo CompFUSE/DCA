@@ -345,6 +345,42 @@ void CtintWalkerBase<Parameters,DIST>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
 }
 
+// template<class WALKER, linalg::DeviceType DEVICE>  
+// void setMFromConfigHelper(WALKER& walker, DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
+//   walker.mc_log_weight_ = 0.;
+//   walker.phase_.reset();
+
+//   for (int s = 0; s < 2; ++s) {
+//     // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
+//     const auto& sector = walker.configuration_.getSector(s);
+//     auto& M = walker.M_[s];
+//     const int n = sector.size();
+//     M.resize(n);
+//     if (!n)
+//       continue;
+//     for (int j = 0; j < n; ++j)
+//       for (int i = 0; i < n; ++i)
+//         M(i, j) = d_matrix_builder.computeD(i, j, sector);
+
+//     if (M.nrRows()) {
+//       const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
+//       walker.mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
+//       walker.phase_.divide(phase);
+//     }
+//   }
+
+//   // So what is going on here.
+//   for (int i = 0; i < walker.configuration_.size(); ++i) {
+//     // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
+//     const typename decltype(walker)::Real term = -walker.configuration_.getStrength(i);
+//     walker.mc_log_weight_ += std::log(std::abs(term));
+//     walker.phase_.multiply(term);
+//   }
+// }
+  
+     
 template <class Parameters, DistType DIST>
 template <linalg::DeviceType DEVICE>
 void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {

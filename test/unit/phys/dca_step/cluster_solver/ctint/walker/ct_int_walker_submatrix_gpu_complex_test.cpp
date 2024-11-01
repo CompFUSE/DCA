@@ -39,6 +39,13 @@ constexpr char input_name[] =
 template <typename Scalar>
 using CtintWalkerSubmatrixGpuComplexTest =
   typename dca::testing::G0Setup<Scalar, dca::testing::LatticeRashba, dca::ClusterSolverId::CT_INT, input_name>;
+constexpr int bands = dca::testing::LatticeRashba::BANDS;
+
+template<dca::linalg::DeviceType DEVICE, typename SCALAR>
+using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<DEVICE, SCALAR>;
+
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
 
 using namespace dca::phys::solver;
 
@@ -70,10 +77,10 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
   G0Interpolation<GPU, Scalar> g0_gpu(g0_func);
   typename TestFixture::LabelDomain label_dmn;
 
-  DMatrixBuilder<linalg::CPU, Scalar> d_matrix_cpu(g0_cpu, n_bands_, rng);
+  DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_cpu(g0_cpu, bands, RDmn());
   SbmWalkerCpu::setInteractionVertices(data, parameters);
   d_matrix_cpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
-  DMatrixBuilder<linalg::GPU, Scalar> d_matrix_gpu(g0_gpu, n_bands_, rng);
+  DMatrixBuilder<dca::linalg::GPU, Scalar> d_matrix_gpu(g0_gpu, bands, RDmn());
   d_matrix_gpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
   
   // ************************************

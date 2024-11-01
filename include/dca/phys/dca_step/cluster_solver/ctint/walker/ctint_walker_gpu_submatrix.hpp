@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "dca/linalg/util/gpu_event.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_submatrix_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/kernels_interface.hpp"
@@ -35,11 +36,11 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters, DistType DIST>
-class CtintWalkerSubmatrixGpu : public CtintWalkerSubmatrixCpu<Parameters, DIST> {
+class CtintWalkerSubmatrixGpu : public CtintWalkerSubmatrixBase<Parameters, DIST> {
 public:
   using this_type = CtintWalkerSubmatrixGpu<Parameters, DIST>;
-  using BaseClass = CtintWalkerSubmatrixCpu<Parameters, DIST>;
-  using RootClass = CtintWalkerBase<Parameters, DIST>;
+  using SubmatrixBase = CtintWalkerSubmatrixBase<Parameters, DIST>;
+  using BaseClass = CtintWalkerBase<Parameters, DIST>;
 
   using typename BaseClass::Data;
   using typename BaseClass::Profiler;
@@ -97,25 +98,29 @@ protected:
   using BaseClass::mc_log_weight_;
   using BaseClass::n_accepted_;
 
+
+  
 private:
   using BaseClass::concurrency_;
   using BaseClass::thread_id_;
-  using BaseClass::removal_list_;
-  using BaseClass::source_list_;
-  using BaseClass::conf_removal_list_;
-  using BaseClass::parameters_;
-  using BaseClass::rng_;
-  using BaseClass::Gamma_inv_;
-  using BaseClass::f_;
+  using SubmatrixBase::removal_list_;
+  using SubmatrixBase::source_list_;
+  using SubmatrixBase::conf_removal_list_;
+  using SubmatrixBase::parameters_;
+  using SubmatrixBase::rng_;
+  using SubmatrixBase::Gamma_inv_;
+  using SubmatrixBase::gamma_values_;
+  using SubmatrixBase::f_;
   // Initial and current sector sizes.
-  using BaseClass::n_init_;
+  using SubmatrixBase::n_init_;
   // Maximal sector size after submatrix update.
-  using BaseClass::n_max_;
-  using BaseClass::gamma_;
-  using BaseClass::G_;
-  using BaseClass::move_indices_;
-  using BaseClass::flop_;
-
+  using SubmatrixBase::n_max_;
+  using SubmatrixBase::n_bands_;
+  using SubmatrixBase::gamma_;
+  using SubmatrixBase::G_;
+  using SubmatrixBase::move_indices_;
+  using SubmatrixBase::flop_;
+  using SubmatrixBase::prob_const_;
   DeviceConfigurationManager device_config_;
 
   std::array<linalg::Vector<int, linalg::GPU>, 2> removal_list_dev_;
@@ -136,21 +141,36 @@ private:
 
   std::array<linalg::util::GpuEvent, 2> config_copied_;
 
-  const DMatrixBuilder<linalg::GPU, Scalar>& d_matrix_builder_;
+  DMatrixBuilder<linalg::GPU, Scalar>& d_matrix_builder_;
 };
 
 template <class Parameters, DistType DIST>
 CtintWalkerSubmatrixGpu<Parameters, DIST>::CtintWalkerSubmatrixGpu(
     const Parameters& pars_ref, const Data& data, Rng& rng_ref,
     DMatrixBuilder<linalg::GPU, Scalar>& d_matrix_builder, int id)
-    : BaseClass(pars_ref, data, rng_ref, id), d_matrix_builder_(d_matrix_builder) {
+    : SubmatrixBase(pars_ref, data, rng_ref, id), d_matrix_builder_(d_matrix_builder) {
+  for (int b = 0; b < n_bands_; ++b) {
+    for (int i = 1; i <= 3; ++i) {
+      f_[i][b] = d_matrix_builder_.computeF(i, b);
+      f_[-i][b] = d_matrix_builder_.computeF(-i, b);
+
+      gamma_values_[std::make_pair(0, i)][b] = d_matrix_builder_.computeGamma(0, i, b);
+      gamma_values_[std::make_pair(0, -i)][b] = d_matrix_builder_.computeGamma(0, -i, b);
+      gamma_values_[std::make_pair(i, 0)][b] = d_matrix_builder_.computeGamma(i, 0, b);
+      gamma_values_[std::make_pair(-i, 0)][b] = d_matrix_builder_.computeGamma(-i, 0, b);
+
+      prob_const_[i][b] = prob_const_[-i][b] = -1. / (f_[i][b] - 1) / (f_[-i][b] - 1);
+    }
+    f_[0][b] = 1;
+  }
+
   if (concurrency_.id() == concurrency_.first() && thread_id_ == 0)
     std::cout << "\nCT-INT submatrix walker extended to GPU." << std::endl;
 }
   
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
-  RootClass::setMFromConfigImpl(d_matrix_builder_);
+  BaseClass::setMFromConfigImpl(d_matrix_builder_);
   for (int s = 0; s < 2; ++s) {
     M_dev_[s].setAsync(M_[s], get_stream(s));
   }
@@ -168,26 +188,26 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
-  BaseClass::doSteps();
+  SubmatrixBase::doSteps();
   uploadConfiguration();
 }
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::doStep(const int n_moves_to_delay) {
-  BaseClass::nbr_of_moves_to_delay_ = n_moves_to_delay;
+  SubmatrixBase::nbr_of_moves_to_delay_ = n_moves_to_delay;
   doStep();
   uploadConfiguration();
 }
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::doStep() {
-  BaseClass::generateDelayedMoves(BaseClass::nbr_of_moves_to_delay_);
+  SubmatrixBase::generateDelayedMoves(SubmatrixBase::nbr_of_moves_to_delay_);
   uploadConfiguration();
 
   computeMInit();
   computeGInit();
   synchronize();
-  BaseClass::mainSubmatrixProcess();
+  SubmatrixBase::mainSubmatrixProcess();
   updateM();
 }
 

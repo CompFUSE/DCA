@@ -57,6 +57,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
   using Real = dca::util::RealAlias<Scalar>;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
+  using BaseClass::setMFromConfig;
 
     WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref, DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
       : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, d_matrix_builder, 0),
@@ -67,7 +68,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
 
   // This purposefully shadows
   void doStep(const int n_steps_to_delay) {
-    BaseClass::doStep(n_steps_to_delay);
+    BaseClass::SubmatrixBase::doStep(n_steps_to_delay);
   }
 
   using Matrix = dca::linalg::Matrix<Scalar, CPU>;

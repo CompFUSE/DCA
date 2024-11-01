@@ -89,7 +89,7 @@ protected:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
-  const DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
+  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
   using BaseClass::phase_;
@@ -462,37 +462,7 @@ void CtintWalker<linalg::CPU, Parameters,DIST>::initializeStep() {
 
 template <class Parameters, DistType DIST>
 void CtintWalker<linalg::CPU, Parameters, DIST>::setMFromConfig() {
-  mc_log_weight_ = 0.;
-  phase_.reset();
-
-  for (int s = 0; s < 2; ++s) {
-    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
-
-    const auto& sector = configuration_.getSector(s);
-    auto& M = M_[s];
-    const int n = sector.size();
-    M.resize(n);
-    if (!n)
-      continue;
-    for (int j = 0; j < n; ++j)
-      for (int i = 0; i < n; ++i)
-        M(i, j) = d_matrix_builder_.computeD(i, j, sector);
-
-    if (M.nrRows()) {
-      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
-
-      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
-      phase_.divide(phase);
-    }
-  }
-
-  // So what is going on here.
-  for (int i = 0; i < configuration_.size(); ++i) {
-    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
-    const Real term = -configuration_.getStrength(i);
-    mc_log_weight_ += std::log(std::abs(term));
-    phase_.multiply(term);
-  }
+  BaseClass::setMFromConfigImpl(d_matrix_builder_);
 }
 
   
