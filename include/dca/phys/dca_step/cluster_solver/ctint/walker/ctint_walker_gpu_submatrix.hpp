@@ -49,6 +49,8 @@ public:
   using typename BaseClass::Real;
   using typename BaseClass::Scalar;
 
+  using Resource = DMatrixBuilder<linalg::GPU, Scalar>;
+
   template <linalg::DeviceType dev>
   using MatrixView = linalg::MatrixView<Scalar, dev>;
   template <linalg::DeviceType dev>

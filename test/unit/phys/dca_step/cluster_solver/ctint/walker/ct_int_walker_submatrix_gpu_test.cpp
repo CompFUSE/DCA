@@ -102,9 +102,10 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
 
   DMatrixBuilder<dca::linalg::CPU> d_matrix_cpu(g0_cpu, bands, RDmn());
   SbmWalkerCpu::setInteractionVertices(cpu_data, cpu_parameters);
-  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), cpu_parameters.adjustAlphaDd());
+  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), false); //cpu_parameters.adjustAlphaDd());
   DMatrixBuilder<dca::linalg::GPU> d_matrix_gpu(g0_gpu, bands, RDmn());
-  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), gpu_parameters.adjustAlphaDd());
+  SbmWalkerGpu::setInteractionVertices(cpu_data, gpu_parameters);
+  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), false); //gpu_parameters.adjustAlphaDd());
 
   // ************************************
   // Test vertex insertion / removal ****

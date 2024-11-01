@@ -53,6 +53,8 @@ public:
   using typename BaseClass::Real;
   using typename BaseClass::Scalar;
 
+  using Resource = DMatrixBuilder<linalg::CPU, Scalar>;
+
   CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;

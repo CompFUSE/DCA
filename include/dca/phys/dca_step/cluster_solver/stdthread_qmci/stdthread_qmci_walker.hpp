@@ -35,12 +35,13 @@ class StdThreadQmciWalker final
   using Concurrency = typename Parameters::concurrency_type;
   using Rng = typename Parameters::random_number_generator;
   using Real = typename QmciWalker::Scalar;
-
+  using WalkerResource = QmciWalker::Resource;
+  
   constexpr static auto device = QmciWalker::device;
   constexpr static int bands = Parameters::bands;
 
 public:
-  StdThreadQmciWalker(Parameters& parameters_ref, DATA& data_ref, Rng& rng, int concurrency_id,
+  StdThreadQmciWalker(Parameters& parameters_ref, DATA& data_ref, Rng& rng, WalkerResource& d_matrix_builder, int concurrency_id,
                       int id, const std::shared_ptr<io::Writer<Concurrency>>& writer,
                       G0Interpolation<device, Real>& g0);
 
@@ -80,9 +81,10 @@ private:
 
 template <class QmciWalker, class DATA>
 StdThreadQmciWalker<QmciWalker, DATA>::StdThreadQmciWalker(
-    Parameters& parameters, DATA& data_ref, Rng& rng, int concurrency_id, int id,
-    const std::shared_ptr<io::Writer<Concurrency>>& writer, [[maybe_unused]]G0Interpolation<device, Real>& g0)
-    : QmciWalker(parameters, data_ref, rng, id),
+    Parameters& parameters, DATA& data_ref, Rng& rng, WalkerResource& d_matrix_builder,
+    int concurrency_id, int id, const std::shared_ptr<io::Writer<Concurrency>>& writer,
+    [[maybe_unused]] G0Interpolation<device, Real>& g0)
+    : QmciWalker(parameters, data_ref, rng, d_matrix_builder, id),
       // QmciAutocorrelationData<QmciWalker>(parameters, id, g0),
       stamping_period_(parameters.stamping_period()),
       concurrency_id_(concurrency_id),
@@ -113,10 +115,13 @@ void StdThreadQmciWalker<QmciWalker, DATA>::doSweep() {
 
 template <class QmciWalker, class DATA>
 void StdThreadQmciWalker<QmciWalker, DATA>::logConfiguration() const {
-  const bool print_to_log = writer_ && static_cast<bool>(*writer_);  // File exists and it is open. \todo possibly this should always be true
+  const bool print_to_log =
+      writer_ &&
+      static_cast<bool>(
+          *writer_);  // File exists and it is open. \todo possibly this should always be true
   if (print_to_log &&
-      (writer_->isADIOS2() ||
-       (writer_->isHDF5() && writer_->get_concurrency().id() == writer_->get_concurrency().first()))) {
+      (writer_->isADIOS2() || (writer_->isHDF5() && writer_->get_concurrency().id() ==
+                                                        writer_->get_concurrency().first()))) {
     if (stamping_period_ && (meas_id_ % stamping_period_) == 0) {
       const std::string stamp_name = "r_" + std::to_string(concurrency_id_) + "_meas_" +
                                      std::to_string(meas_id_) + "_w_" + std::to_string(thread_id_);

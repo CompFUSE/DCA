@@ -117,6 +117,8 @@ public:
     return g0_;
   };
 
+  Walker::Resource& getResource() { return dummy_walker_resource_; };
+
 protected:
   void warmUp(Walker& walker);
 
@@ -161,6 +163,7 @@ protected:
 
   G0Interpolation<device, Scalar> g0_;
 
+  Walker::Resource walker_dummy_resource_;
 private:
   Rng rng_;
 

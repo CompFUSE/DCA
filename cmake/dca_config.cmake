@@ -145,6 +145,8 @@ elseif (DCA_LATTICE STREQUAL "Kagome")
     "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp")
 elseif (DCA_LATTICE STREQUAL "hund")
   set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+    "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
 elseif (DCA_LATTICE STREQUAL "threeband")
   set(DCA_LATTICE_TYPE dca::phys::models::ThreebandHubbard<PointGroup>)
   set(DCA_LATTICE_INCLUDE

@@ -66,6 +66,9 @@ public:
   constexpr static dca::linalg::DeviceType device = device_t;
   static constexpr bool is_complex = dca::util::IsComplex<Scalar>::value;
 
+  struct DummyResource {};
+  using Resource = DummyResource;
+
 public:
   /** constructor
    *  param[in] id    thread id

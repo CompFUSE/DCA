@@ -75,6 +75,8 @@ public:
   using Data = DcaData<Parameters, DIST>;
   static constexpr linalg::DeviceType device = device_t;
 
+  using DMatrixBuilder = ctint::DMatrixBuilder<device_t, Scalar>;
+
   CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref,
                      std::shared_ptr<io::Writer<Concurrency>> writer);
 
@@ -109,7 +111,7 @@ public:
   // Returns the function G(k,w) without averaging across MPI ranks.
   auto local_G_k_w() const;
 
-  
+  DMatrixBuilder& getResource() { return *d_matrix_builder_; };
 protected:  // thread jacket interface.  
   using ParametersType = Parameters;
   using DataType = Data;
@@ -119,7 +121,6 @@ protected:  // thread jacket interface.
   using Lattice = typename Parameters::lattice_type;
 
   using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix, DIST>;
-  using DMatrixBuilder = ctint::DMatrixBuilder<device_t, Scalar>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t, DIST>;
 
 private:
@@ -194,7 +195,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
   
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
-  d_matrix_builder_.setAlphas(parameters_.getAlphas(), parameters_.adjustAlphaDd());
+  d_matrix_builder_->setAlphas(parameters_.getAlphas(), parameters_.adjustAlphaDd());
 
   // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);

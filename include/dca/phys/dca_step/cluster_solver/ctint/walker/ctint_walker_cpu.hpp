@@ -49,6 +49,8 @@ public:
   using MatrixView = typename linalg::MatrixView<Scalar, linalg::CPU>;
   using ConstView = typename linalg::MatrixView<const Scalar, linalg::CPU>;
 
+  using Resource = DMatrixBuilder<linalg::CPU, Scalar>;
+
 public:
   CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
