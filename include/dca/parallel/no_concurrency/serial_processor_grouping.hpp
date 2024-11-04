@@ -40,7 +40,11 @@ public:
   }
 
   auto get() const {
+#if defined (CRAY_MPICH_VERSION) && defined (DCA_HAVE_MPI)
+    return 0;
+#else
     return nullptr;
+#endif
   }
 
 private:

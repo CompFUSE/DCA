@@ -11,6 +11,7 @@ module reset
 module load amd-mixed/6.0.0
 module load ninja
 module load cmake
+module load adios2
 #spack load cmake%gcc@11.2.0
 #spack load ninja%gcc@11.2.0
 #spack load magma@master amdgpu_target=gfx90a
