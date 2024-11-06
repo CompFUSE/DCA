@@ -86,7 +86,7 @@ public:
 #ifdef DCA_HAVE_GPU
   virtual void computeG0(linalg::Matrix<Scalar, linalg::GPU>& /*G0*/,
                          const details::DeviceConfiguration& /*configuration*/, int /*n_init*/,
-                         bool /*right_section*/, GpuStream /*stream*/) const {
+                         bool /*right_section*/, const GpuStream& /*stream*/) const {
     throw(std::runtime_error("Not implemented."));
   }
 #endif  // DCA_HAVE_GPU

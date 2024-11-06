@@ -39,6 +39,7 @@ private:
   using BaseClass = DMatrixBuilder<linalg::CPU, Scalar>;
   using GpuStream = dca::linalg::util::GpuStream;
 public:
+  using BaseClass::setAlphas;
   template <class RDmn>
   DMatrixBuilder(const G0Interpolation<linalg::GPU, Scalar>& g0, int nb, const RDmn& /*rdmn*/);
 

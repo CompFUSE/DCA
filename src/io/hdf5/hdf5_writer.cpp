@@ -27,6 +27,7 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
   if (file_)
     throw std::logic_error(__FUNCTION__);
 
+  try {
   if (overwrite) {
     file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
@@ -36,7 +37,9 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
     else
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
   }
-
+  } catch (const H5::Exception& exc) {
+    std::cerr << exc.getDetailMsg() << '\n';
+  }
   file_id_ = file_->getId();
 }
 

@@ -28,6 +28,7 @@ namespace models {
 template <typename Lattice>
 class TightBindingModel {
 public:
+  using model_type = TightBindingModel<Lattice>;
   using lattice_type = Lattice;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;

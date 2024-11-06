@@ -36,6 +36,10 @@ template <typename Scalar>
 using CtintWalkerSubmatrixTest =
   typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
 
+  using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+  using RDmn = typename CDA::RClusterDmn;
+
+
 using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
@@ -55,7 +59,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   using MatrixPair = std::array<Matrix, 2>;
   using SubmatrixWalker =
     testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
-
+  
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   typename TestFixture::RngType rng(setup_rngs);
@@ -66,9 +70,10 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   G0Interpolation<dca::linalg::CPU, Scalar> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
   typename TestFixture::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters.getAlphas(), false);
-  Walker::setInteractionVertices(data, parameters);
+  using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
+  DMatrixBuilder d_matrix_builder(g0, 2, RDmn());
+  d_matrix_builder.setAlphas(parameters.getAlphas(), false);
+  SubmatrixWalker::setInteractionVertices(data, parameters);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -93,7 +98,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
 
   for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
-    SubmatrixWalker walker(parameters, rng);
+    SubmatrixWalker walker(parameters, rng, d_matrix_builder);
 
     MatrixPair old_M(walker.getM());
     rng.setNewValues(rng_vals);
@@ -116,7 +121,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
-    Walker walker_nosub(parameters, rng);
+    Walker walker_nosub(parameters, rng, d_matrix_builder);
 
     rng.setNewValues(rng_vals);
     for (int i = 0; i < steps; ++i)

@@ -51,10 +51,16 @@ struct CtINTWalkerSubmatrixGPUTestT : public ::testing::Test {
   G0Setup gpu_setup;
 };
 
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
+
 using namespace dca::phys::solver;
 
 template <typename Scalar>
 using CtintWalkerSubmatrixGpuTest = CtINTWalkerSubmatrixGPUTestT<Scalar>;
+
+template<dca::linalg::DeviceType DEVICE>
+using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<DEVICE, Scalar>;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
@@ -91,14 +97,15 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   G0Interpolation<GPU, Scalar> g0_gpu(g0_func_gpu);
   typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::LabelDomain label_dmn;
 
-  // TODO: improve API.
-  Walker::setDMatrixBuilder(g0_cpu);
-  Walker::setDMatrixAlpha(cpu_parameters.getAlphas(), false);
-  Walker::setInteractionVertices(cpu_data, cpu_parameters);
 
-  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
-  SbmWalkerGpu::setDMatrixAlpha(gpu_parameters.getAlphas(), false);
-  SbmWalkerGpu::setInteractionVertices(gpu_data, gpu_parameters);
+  constexpr int bands = dca::testing::LatticeBilayer::BANDS;
+
+  DMatrixBuilder<dca::linalg::CPU> d_matrix_cpu(g0_cpu, bands, RDmn());
+  SbmWalkerCpu::setInteractionVertices(cpu_data, cpu_parameters);
+  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), false); //cpu_parameters.adjustAlphaDd());
+  DMatrixBuilder<dca::linalg::GPU> d_matrix_gpu(g0_gpu, bands, RDmn());
+  SbmWalkerGpu::setInteractionVertices(cpu_data, gpu_parameters);
+  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), false); //gpu_parameters.adjustAlphaDd());
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -126,9 +133,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
     gpu_parameters.setInitialConfigurationSize(initial_size);
     for (int steps = 1; steps <= 8; ++steps) {
       cpu_rng.setNewValues(setup_rngs);
-      SbmWalkerCpu walker_cpu(cpu_parameters, cpu_rng);
+      SbmWalkerCpu walker_cpu(cpu_parameters, cpu_rng, d_matrix_cpu);
       gpu_rng.setNewValues(setup_rngs);
-      SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng);
+      SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng, d_matrix_gpu);
 
       cpu_rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);
