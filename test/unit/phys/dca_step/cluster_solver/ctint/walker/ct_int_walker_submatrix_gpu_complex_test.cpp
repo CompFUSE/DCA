@@ -39,6 +39,13 @@ constexpr char input_name[] =
 template <typename Scalar>
 using CtintWalkerSubmatrixGpuComplexTest =
   typename dca::testing::G0Setup<Scalar, dca::testing::LatticeRashba, dca::ClusterSolverId::CT_INT, input_name>;
+constexpr int bands = dca::testing::LatticeRashba::BANDS;
+
+template<dca::linalg::DeviceType DEVICE, typename SCALAR>
+using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<DEVICE, SCALAR>;
+
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
 
 using namespace dca::phys::solver;
 
@@ -70,15 +77,12 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
   G0Interpolation<GPU, Scalar> g0_gpu(g0_func);
   typename TestFixture::LabelDomain label_dmn;
 
-  // TODO: improve API.
-  SbmWalkerCpu::setDMatrixBuilder(g0_cpu);
-  SbmWalkerCpu::setDMatrixAlpha(parameters.getAlphas(), false);
-  SbmWalkerGpu::setDMatrixBuilder(g0_gpu);
-  SbmWalkerGpu::setDMatrixAlpha(parameters.getAlphas(), false);
-
+  DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_cpu(g0_cpu, bands, RDmn());
   SbmWalkerCpu::setInteractionVertices(data, parameters);
-  SbmWalkerGpu::setInteractionVertices(data, parameters);
-
+  d_matrix_cpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+  DMatrixBuilder<dca::linalg::GPU, Scalar> d_matrix_gpu(g0_gpu, bands, RDmn());
+  d_matrix_gpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
+  
   // ************************************
   // Test vertex insertion / removal ****
   // ************************************
@@ -105,9 +109,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
 
     for (int steps = 1; steps <= 8; ++steps) {
       rng.setNewValues(setup_rngs);
-      SbmWalkerCpu walker_cpu(parameters, rng);
+      SbmWalkerCpu walker_cpu(parameters, rng, d_matrix_cpu);
       rng.setNewValues(setup_rngs);
-      SbmWalkerGpu walker_gpu(parameters, rng);
+      SbmWalkerGpu walker_gpu(parameters, rng, d_matrix_gpu);
 
       rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);

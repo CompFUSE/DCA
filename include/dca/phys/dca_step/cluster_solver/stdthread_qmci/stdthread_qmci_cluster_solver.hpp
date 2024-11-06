@@ -366,7 +366,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
 
   auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
-  Walker walker(parameters_, data_, rng_vector_[walker_index], concurrency_.get_id(), id,
+  Walker walker(parameters_, data_, rng_vector_[walker_index], BaseClass::getResource(), concurrency_.get_id(), id,
                 walker_log, BaseClass::g0_);
 
   std::unique_ptr<std::exception> exception_ptr;
@@ -588,7 +588,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
 
   // Create and warm a walker.
   auto walker_log = BaseClass::writer_;
-  Walker walker(parameters_, data_, rng_vector_[id], concurrency_.get_id(), id, walker_log,
+  Walker walker(parameters_, data_, rng_vector_[id], BaseClass::getResource(), concurrency_.get_id(), id, walker_log,
                 BaseClass::g0_);
   initializeAndWarmUp(walker, id, id);
 

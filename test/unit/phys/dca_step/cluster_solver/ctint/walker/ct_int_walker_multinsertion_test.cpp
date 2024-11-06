@@ -46,10 +46,16 @@ using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, G0Setup::Para
 using Matrix = Walker::Matrix;
 using MatrixPair = std::array<Matrix, 2>;
 
+constexpr int bands = dca::testing::LatticeHund::BANDS;
+
 auto getVertexRng = [](int id) {
   const double n_vertices = 12.;
   return (n_vertices - id - 0.5) / n_vertices;
 };
+
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeHund::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
+
 
 // Compare single versus double update without a submatrix update.
 TEST_F(G0Setup, NoSubmatrix) {
@@ -57,12 +63,13 @@ TEST_F(G0Setup, NoSubmatrix) {
   G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
+  using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
+  DMatrixBuilder d_matrix_builder(g0, bands, RDmn());
+  d_matrix_builder.setAlphas(parameters_.getAlphas(), false);
   Walker::setInteractionVertices(*data_, parameters_);
 
   parameters_.setDoubleUpdateProbability(0);
-  Walker walker_single(parameters_, rng);
+  Walker walker_single(parameters_, rng, d_matrix_builder);
   walker_single.setInteractionVertices(*data_, parameters_);
 
   // interaction, tau, aux, accept
@@ -101,7 +108,7 @@ TEST_F(G0Setup, NoSubmatrix) {
   parameters_.setDoubleUpdateProbability(1);
 
   Walker::setInteractionVertices(*data_, parameters_);
-  Walker walker_double(parameters_, rng);
+  Walker walker_double(parameters_, rng, d_matrix_builder);
 
   ////////////////////////////////
   // interaction, partner, tau, aux, tau, aux, accept
@@ -153,12 +160,13 @@ TEST_F(G0Setup, Submatrix) {
   G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters_.getAlphas(), false);
+  using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
+  DMatrixBuilder d_matrix_builder(g0, bands, RDmn());
+  d_matrix_builder.setAlphas(parameters_.getAlphas(), false);
   parameters_.setDoubleUpdateProbability(1);
   Walker::setInteractionVertices(*data_, parameters_);
 
-  Walker walker(parameters_, rng);
+  Walker walker(parameters_, rng, d_matrix_builder);
 
   // interaction, partner, tau, aux, tau, aux, accept
   rng.setNewValues(std::vector<double>{getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0});
@@ -173,12 +181,12 @@ TEST_F(G0Setup, Submatrix) {
   const double prob1 = walker.getAcceptanceProbability();
 
   /////////////////////////////
-
-  WalkerSubmatrix::setDMatrixBuilder(g0);
-  WalkerSubmatrix::setDMatrixAlpha(parameters_.getAlphas(), false);
+  using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
+  DMatrixBuilder d_matrix_cpu(g0, bands, RDmn());
+  d_matrix_builder.setAlphas(parameters_.getAlphas(), false);
   WalkerSubmatrix::setInteractionVertices(*data_, parameters_);
 
-  WalkerSubmatrix walker_subm(parameters_, rng);
+  WalkerSubmatrix walker_subm(parameters_, rng, d_matrix_builder);
 
   std::vector<double> random_vals{// (insert, first_id, partner_id, tau, aux, tau, aux, accept) x 2
                                   0, getVertexRng(6), 0, 0.41, 0, 0.53, 1, 0, 0, getVertexRng(7),
