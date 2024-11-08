@@ -35,8 +35,8 @@ public:
   using Rng = typename Base::Rng;
 
   CTAUXWalkerWrapper(Parameters& parameters_ref, dca::phys::DcaData<Parameters>& data, Rng& rng_ref,
-                     int id [[maybe_unused]])
-      : Base(parameters_ref, data, rng_ref, 0) {
+                     Base::Resource& resource, int id [[maybe_unused]])
+    : Base(parameters_ref, data, rng_ref, resource, 0) {
     Base::initialize(0);
   }
 
