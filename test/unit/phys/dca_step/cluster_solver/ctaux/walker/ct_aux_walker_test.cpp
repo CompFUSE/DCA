@@ -117,7 +117,8 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
           walker.get_configuration().get_number_of_interacting_HS_spins());
   };
 
-  CPUWalker cpu_walker(cpu_parameters, cpu_data, cpu_rng, 0);
+  CPUWalker::Resource resource;
+  CPUWalker cpu_walker(cpu_parameters, cpu_data, cpu_rng, resource, 0);
 
   cpu_walker.initialize(0);
   // for (int i = 0; i < 1; i++) {
@@ -130,7 +131,8 @@ TEST_F(CtauxWalkerTest, InsertAndRemoveVertex) {
   int cpu_steps = 1;
   stepBeforeComputeGamma(cpu_walker, cpu_steps);
 
-  GPUWalker gpu_walker(gpu_parameters, gpu_data, gpu_rng, 0);
+  GPUWalker::Resource gpu_resource;
+  GPUWalker gpu_walker(gpu_parameters, gpu_data, gpu_rng, gpu_resource, 0);
   gpu_walker.initialize(0);
 
   // for (int i = 0; i < 1; i++) {

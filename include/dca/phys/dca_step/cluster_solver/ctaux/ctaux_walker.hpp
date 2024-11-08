@@ -73,7 +73,7 @@ public:
   /** constructor
    *  param[in] id    thread id
    */
-  CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
+  CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, Resource& resource, int id);
 
   void initialize(int iteration);
 
@@ -388,7 +388,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref,
-                                                     Rng& rng_ref, int id)
+                                                     Rng& rng_ref, Resource& resource, int id)
     : WalkerBIT<Parameters, Data>(parameters_ref, MOMS_ref, id),
       CtauxWalkerData<device_t, Parameters>(parameters_ref, id),
       parameters_(parameters_ref),
