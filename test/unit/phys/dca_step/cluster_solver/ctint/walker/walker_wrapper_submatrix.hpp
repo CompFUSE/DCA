@@ -70,15 +70,7 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
   using MatrixPair = std::array<Matrix, 2>;
 
   MatrixPair getM() {
-    std::array<dca::linalg::Matrix<Scalar, device_t>, 2> M;
-
-    BaseClass::computeM(M);
-#ifdef DCA_HAVE_GPU
-    checkRC(cudaDeviceSynchronize());
-#endif
-
-    std::array<dca::linalg::Matrix<Scalar, CPU>, 2> M_copy{M[0], M[1]};
-    return M_copy;
+    return BaseClass::getM();
   }
 
   const auto& getWalkerConfiguration() const {

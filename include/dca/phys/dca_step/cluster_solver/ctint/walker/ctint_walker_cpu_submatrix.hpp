@@ -101,6 +101,19 @@ private:
    *        weight_term = prob_const_[field_type][b] * the vertex interaction strength;
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
+  void mainSubmatrixProcess();
+
+  void markThermalized() override;
+
+  void updateM() override;
+
+  void transformM();
+
+  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
+
+  BaseClass::MatrixPair getM();
+
+private:
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]

@@ -101,6 +101,12 @@ protected:
 private:
   void doStep() override;
 
+  void computeMInit();
+  void computeGInit();
+  void updateM();
+
+  void uploadConfiguration();
+
 protected:
   using BaseClass::configuration_;
   using BaseClass::M_;
