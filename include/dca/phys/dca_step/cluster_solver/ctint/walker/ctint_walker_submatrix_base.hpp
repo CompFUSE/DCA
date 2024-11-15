@@ -248,6 +248,7 @@ void CtintWalkerSubmatrixBase<Parameters, DIST>::doSweep() {
   doSteps();
 }
 
+
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixBase<Parameters, DIST>::doSteps() {
   // Here nbr_of_steps is the number of single steps/moves during the current sweep,

@@ -55,7 +55,8 @@ public:
 
   using Resource = DMatrixBuilder<linalg::CPU, Scalar>;
 
-  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
+  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref,
+                          DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
@@ -64,6 +65,7 @@ public:
   using BaseClass::order;
 
   void setMFromConfig() override;
+
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
@@ -91,8 +93,10 @@ protected:
   void transformM();
 
   DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
-private:
 
+  BaseClass::MatrixPair getM();
+
+private:
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]
@@ -174,11 +178,11 @@ protected:
   using SubmatrixBase::nbr_of_indices_;
   using SubmatrixBase::q_;
   using SubmatrixBase::det_ratio_;
+
 protected:
   using BaseClass::acceptance_prob_;
 
 protected:
-
   using BaseClass::flop_;
 };
 
@@ -187,8 +191,7 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
     const Parameters& parameters_ref, const Data& data, Rng& rng_ref,
     DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id)
     : SubmatrixBase(parameters_ref, data, rng_ref, id), d_matrix_builder_(d_matrix_builder) {
-
-    for (int b = 0; b < n_bands_; ++b) {
+  for (int b = 0; b < n_bands_; ++b) {
     for (int i = 1; i <= 3; ++i) {
       f_[i][b] = d_matrix_builder_.computeF(i, b);
       f_[-i][b] = d_matrix_builder_.computeF(-i, b);
@@ -202,7 +205,6 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
     }
     f_[0][b] = 1;
   }
-
 }
 
 template <class Parameters, DistType DIST>
@@ -212,7 +214,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
+void CtintWalkerSubmatrixCpu<Parameters, DIST>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
@@ -225,7 +227,7 @@ void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
   // Recompute the Monte Carlo weight.
   setMFromConfig();
 #ifndef NDEBUG
-  //writeAlphas();
+  // writeAlphas();
 #endif
 }
 
@@ -241,6 +243,10 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
     if (delta > 0) {
       Scalar f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
+
+      if (delta == 0 || n_init_[s] == 0)
+        throw std::runtime_error(
+            "expansion factor dropped to 0 or below use a higher beta or larger interaction!");
 
       d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
@@ -589,6 +595,13 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMixedInsertionAndRemoval(
   updateGammaInv(s);
 
   computeRemovalMatrix(s);
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters, DIST>::getM() {
+  typename BaseClass::MatrixPair M;
+  computeM(M);
+  return M;
 }
 
 }  // namespace ctint

@@ -65,6 +65,8 @@ public:
 
   void computeM(MatrixPair<linalg::GPU>& m_accum);
 
+  MatrixPair<linalg::CPU> getM();
+
   void doSweep() override;
 
   void synchronize() const override;
@@ -75,6 +77,8 @@ public:
   std::size_t deviceFingerprint() const override;
 
   void setMFromConfig() override;
+  void uploadConfiguration();
+
 protected:
   // For testing purposes:
   void doStep(int n_moves_to_delay);
@@ -84,9 +88,7 @@ private:
 
   void computeMInit();
   void computeGInit();
-  void updateM();
-
-  void uploadConfiguration();
+  void updateM() override;
 
 protected:
   using BaseClass::configuration_;
@@ -100,8 +102,6 @@ protected:
   using BaseClass::mc_log_weight_;
   using BaseClass::n_accepted_;
 
-
-  
 private:
   using BaseClass::concurrency_;
   using BaseClass::thread_id_;
@@ -169,7 +169,7 @@ CtintWalkerSubmatrixGpu<Parameters, DIST>::CtintWalkerSubmatrixGpu(
   if (concurrency_.id() == concurrency_.first() && thread_id_ == 0)
     std::cout << "\nCT-INT submatrix walker extended to GPU." << std::endl;
 }
-  
+
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
   BaseClass::setMFromConfigImpl(d_matrix_builder_);
@@ -199,6 +199,7 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::doStep(const int n_moves_to_dela
   SubmatrixBase::nbr_of_moves_to_delay_ = n_moves_to_delay;
   doStep();
   uploadConfiguration();
+  doStep();
 }
 
 template <class Parameters, DistType DIST>
@@ -247,8 +248,13 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeMInit() {
     const int delta = n_max_[s] - n_init_[s];
     if (delta > 0) {
       D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
+
+      if (delta == 0 || n_init_[s] == 0)
+        throw std::runtime_error(
+            "expansion factor dropped to 0 or below use a higher beta or larger interaction!");
+
       d_matrix_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
-                                 get_stream(s));
+                                  get_stream(s));
       flop_ += D_dev_[s].nrCols() * D_dev_[s].nrRows() * 10;
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
@@ -285,7 +291,7 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
       // This doesn't do flops but the g0 interp data it uses does somewhere.
       d_matrix_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
-                                 get_stream(s));
+                                  get_stream(s));
       flop_ += G0_dev_[s].nrCols() * G0_dev_[s].nrRows() * 10;
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
@@ -390,6 +396,22 @@ std::size_t CtintWalkerSubmatrixGpu<Parameters, DIST>::deviceFingerprint() const
     res += G0_dev_[s].deviceFingerprint();
   }
   return res;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSubmatrixGpu<
+    Parameters, DIST>::getM() {
+  std::array<dca::linalg::Matrix<Scalar, device>, 2> M;
+
+  computeM(M);
+  checkRC(cudaDeviceSynchronize());
+
+  std::array<dca::linalg::Matrix<Scalar, linalg::CPU>, 2> M_copy{M[0].size(), M[1].size()};
+  linalg::util::memoryCopyD2H(M_copy[0].ptr(), M_copy[0].leadingDimension(), M[0].ptr(), M[0].leadingDimension(),
+                M[0].size());
+  linalg::util::memoryCopyD2H(M_copy[1].ptr(), M_copy[1].leadingDimension(), M[1].ptr(), M[1].leadingDimension(),
+                M[1].size());
+  return M_copy;
 }
 
 }  // namespace ctint
