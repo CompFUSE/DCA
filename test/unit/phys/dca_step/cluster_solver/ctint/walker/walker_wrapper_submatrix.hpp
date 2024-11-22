@@ -50,7 +50,7 @@ struct WalkerSelector<Parameters, GPU, DIST> {
 #endif  // DCA_HAVE_GPU
 
 using namespace dca::phys::solver::ctint;
-  template <typename SCALAR, class Parameters, DeviceType device_t = CPU, DistType DIST = DistType::NONE>
+template <typename SCALAR, class Parameters, DeviceType device_t = CPU, DistType DIST = DistType::NONE>
 struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST>::type {
   using BaseClass = typename WalkerSelector<Parameters, device_t, DIST>::type;
   using Scalar = SCALAR;
@@ -59,11 +59,12 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
   using Data = typename BaseClass::Data;
   using BaseClass::setMFromConfig;
 
-    WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref, DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, d_matrix_builder, 0),
+  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref,
+                         DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref,
+                  d_matrix_builder, 0),
         streams_(3) {
     BaseClass::initialize(0);
-
   }
 
   using Matrix = dca::linalg::Matrix<Scalar, CPU>;

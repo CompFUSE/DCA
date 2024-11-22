@@ -39,7 +39,8 @@ public:
   using typename BaseClass::Real;
   using typename BaseClass::Scalar;
 
-  CtintWalkerSubmatrixBase(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
+  CtintWalkerSubmatrixBase(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref,
+                           int id = 0);
 
   virtual ~CtintWalkerSubmatrixBase() = default;
 
@@ -50,7 +51,10 @@ public:
   using BaseClass::order;
 
   virtual void setMFromConfig() = 0;
-  auto getF() const { return f_; }
+  auto getF() const {
+    return f_;
+  }
+
 protected:
   virtual void doStep() override;
   void doSteps();
@@ -84,7 +88,6 @@ protected:
   virtual void computeMInit() = 0;
 
 private:
-
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]
@@ -217,16 +220,15 @@ protected:
 
 template <class Parameters, DistType DIST>
 CtintWalkerSubmatrixBase<Parameters, DIST>::CtintWalkerSubmatrixBase(const Parameters& parameters_ref,
-                                                                   const Data& /*data*/,
-                                                                   Rng& rng_ref,
-								   int id)
-  : BaseClass(parameters_ref, rng_ref, id) {
+                                                                     const Data& /*data*/,
+                                                                     Rng& rng_ref, int id)
+    : BaseClass(parameters_ref, rng_ref, id) {
   if (BaseClass::concurrency_.id() == BaseClass::concurrency_.first() && thread_id_ == 0)
     std::cout << "\nCT-INT submatrix walker created." << std::endl;
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixBase<Parameters,DIST>::markThermalized() {
+void CtintWalkerSubmatrixBase<Parameters, DIST>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
@@ -239,7 +241,7 @@ void CtintWalkerSubmatrixBase<Parameters,DIST>::markThermalized() {
   // Recompute the Monte Carlo weight.
   setMFromConfig();
 #ifndef NDEBUG
-  //writeAlphas();
+  // writeAlphas();
 #endif
 }
 
@@ -248,7 +250,6 @@ void CtintWalkerSubmatrixBase<Parameters, DIST>::doSweep() {
   Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   doSteps();
 }
-
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixBase<Parameters, DIST>::doSteps() {

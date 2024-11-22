@@ -30,6 +30,9 @@ using McOptions = MockMcOptions<Scalar>;
 #include "walker_wrapper_submatrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
+#include "dca/util/to_string.hpp"
+
+using namespace dca::addt_str_oper;
 
 #include "dca/util/to_string.hpp"
 using namespace dca::addt_str_oper;

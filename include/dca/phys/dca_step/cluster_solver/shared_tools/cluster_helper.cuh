@@ -31,7 +31,7 @@ class ClusterHelper {
 public:
   /// Initialize real Cluster
   static void set(int nc, const int* add, int lda, const int* sub, int lds);
-  /// Initialize reciprocal cluster 
+  /// Initialize reciprocal cluster
   static void setMomentum(int nc, const int* add, int lda, const int* sub, int lds);
 
   // Returns the index of id_1 + id_2.
