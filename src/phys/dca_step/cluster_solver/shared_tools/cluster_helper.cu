@@ -44,12 +44,19 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
 
     compact_transfer(add, lda, const_cast<int**>(&host_helper.add_matrix_));
     compact_transfer(sub, lds, const_cast<int**>(&host_helper.sub_matrix_));
+    // The logic here for CUDA is transfers from unpinned memory only block for the copy from host
+    // memory to a DMA buffer.  This is on the default queue here and so a stream synch will not
+    // work to insure the ClusterHelper copy is actually complete.
+    cudaDeviceSynchronize();
 
     if (momentum) {
       cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper));
     }
     else {
-      cudaMemcpyToSymbol(cluster_real_helper, &host_helper, sizeof(ClusterHelper));
+      // In debug on sdgx-2 for CTINT I see know evidence this actually works, it appears not to.
+      cudaMemcpyToSymbol(cluster_real_helper, &host_helper, sizeof(ClusterHelper),
+                         cudaMemcpyHostToDevice);
+      cudaDeviceSynchronize();
     }
   });
 }

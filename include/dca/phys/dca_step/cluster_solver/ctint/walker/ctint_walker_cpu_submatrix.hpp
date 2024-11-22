@@ -90,11 +90,16 @@ protected:
 
   void updateM() override;
 
-  void transformM();
-
   DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
 
   BaseClass::MatrixPair getM();
+
+protected:
+  /** The following methods are really only here to get decent unit testing
+      they shouldn't really be called outside of the base implementations
+  */
+  void computeMInit() override;
+  BaseClass::MatrixPair getRawM();
 
 private:
   void doSubmatrixUpdate();
@@ -106,8 +111,6 @@ private:
   void updateGammaInv(int s);
 
   void removeRowAndColOfGammaInv();
-
-  void computeMInit() override;
 
   //  void computeG0Init();
   void computeGInit() override;
@@ -210,7 +213,10 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
   BaseClass::setMFromConfigImpl(d_matrix_builder_);
-  transformM();
+  std::cout << "cpu M post setMFromConfigImpl: \n";
+  M_[0].print();
+  M_[1].print();
+  SubmatrixBase::transformM();
 }
 
 template <class Parameters, DistType DIST>
@@ -250,6 +256,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 
       d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
+      D_.print();
+      
       for (int j = 0; j < n_init_[s]; ++j) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
         const auto b = configuration_.getSector(s).getRightB(j);
@@ -260,14 +268,22 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
         }
       }
 
+      std::cout << "cpu f factor mult\n";
+      D_.print();
+      
       M_[s].resize(n_max_[s]);
 
       MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
+      std::cout << "cpu M pre gemm\n";
+      M_[s].print();
+
       linalg::matrixop::gemm(D_, M, D_M);
       flop_ += 2 * D_.nrRows() * D_.nrCols() * M.nrCols();
 
+      D_M.print();
+	
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
           M_[s](i, j) = 0;
@@ -499,19 +515,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::recomputeGammaInv() {
   }
 }
 
-template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters, DIST>::transformM() {
-  for (int s = 0; s < 2; ++s) {
-    for (int j = 0; j < M_[s].size().second; ++j) {
-      for (int i = 0; i < M_[s].size().first; ++i) {
-        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
-        const auto b = configuration_.getSector(s).getLeftB(i);
-        const Scalar f_i = -(f_[field_type][b] - 1);
-        M_[s](i, j) /= f_i;
-      }
-    }
-  }
-}
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeM(typename BaseClass::MatrixPair& m_accum) {
@@ -598,7 +601,18 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMixedInsertionAndRemoval(
 }
 
 template <class Parameters, DistType DIST>
-CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters, DIST>::getM() {
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+    Parameters, DIST>::getRawM() {
+  typename BaseClass::MatrixPair M;
+  M = M_;
+  M[0].set_name("subMatrixCPU::M[0]");
+  M[1].set_name("subMatrixCPU::M[1]");
+  return M;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters,
+                                                                                         DIST>::getM() {
   typename BaseClass::MatrixPair M;
   computeM(M);
   return M;

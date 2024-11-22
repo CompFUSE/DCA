@@ -238,7 +238,7 @@ CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_
       thread_id_(id),
 
       streams_{&linalg::util::getStreamContainer()(thread_id_, 0),
-               &linalg::util::getStreamContainer()(thread_id_, 1)},
+               &linalg::util::getStreamContainer()(thread_id_, 0)},
 
       rng_(rng_ref),
 

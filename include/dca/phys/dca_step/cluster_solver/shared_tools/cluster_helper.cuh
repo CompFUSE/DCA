@@ -39,7 +39,7 @@ public:
   // returns the index of -id
   __DEVICE__ inline int minus(int id) const;
 
-private:
+  //private:
   int nc_;
   const int* add_matrix_;
   const int* sub_matrix_;
