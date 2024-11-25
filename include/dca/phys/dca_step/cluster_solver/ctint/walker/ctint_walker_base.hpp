@@ -41,6 +41,8 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #endif
 
+//#define DEBUG_SUBMATRIX
+
 namespace dca {
 namespace phys {
 namespace solver {

@@ -34,6 +34,7 @@ using dca::util::castGPUType;
 template <typename Scalar>
 __global__ void setRightSectorToIdKernel(Scalar* m, const int ldm, const int n0, const int n_max) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
+  // this preserves the behavior where we skip the lower left sector.
   const int j = threadIdx.y + blockDim.y * blockIdx.y + n0;
 
   if (i >= n_max || j >= n_max)

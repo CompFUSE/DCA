@@ -148,7 +148,6 @@ private:
   MatrixPair<linalg::GPU> M_dev_;
   MatrixPair<linalg::GPU> Gamma_inv_dev_;
   MatrixPair<linalg::GPU> D_dev_;
-  MatrixPair<linalg::GPU> M_D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
   MatrixPair<linalg::GPU> G0_dev_;
 
@@ -198,8 +197,15 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
     std::cout << "GPU pre set M: \n";
 #ifdef DEBUG_SUBMATRIX
     M_[s].print();
+<<<<<<< HEAD
 #endif
     M_dev_[s].setAsync(M_[s], *get_stream());
+||||||| parent of e155ca263 (through computeMInit looks good now for GPU)
+    M_dev_[s].setAsync(M_[s], get_stream(s));
+=======
+#endif
+    M_dev_[s].setAsync(M_[s], get_stream(s));
+>>>>>>> e155ca263 (through computeMInit looks good now for GPU)
   }
 }
 
@@ -344,16 +350,8 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
 
     // In cpu we only do all this if delta > 0
     if (delta > 0) {
-      auto& f_dev = f_dev_[s];
-
-      G_dev_[s].resizeNoCopy(n_max_[s]);
-
-      MatrixView<linalg::GPU> G_view_dev(G_dev_[s]);
-      const MatrixView<linalg::GPU> M(M_dev_[s]);
-      details::computeGLeft(G_view_dev, M, f_dev.ptr(), n_init_[s], get_stream(s));
-      flop_ += n_init_[s] * n_max_[s] * 2;
-
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
+
       // This doesn't do flops but the g0 interp data it uses does somewhere.
       d_matrix_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
                                   *get_stream());
