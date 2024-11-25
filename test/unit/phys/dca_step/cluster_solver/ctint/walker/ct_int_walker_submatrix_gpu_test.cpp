@@ -259,25 +259,6 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
   walker_gpu.generateDelayedMoves(steps);
   walker_gpu.uploadConfiguration();
   walker_gpu.computeMInit();
-
-  auto& dmatrix_gpu = walker_gpu.getDMatrixBuilder();
-  EXPECT_TRUE(dca::phys::solver::details::SolverHelper::initialized());
-  int nc;
-  cudaMemcpyFromSymbol(&nc, &dca::phys::solver::details::cluster_real_helper.nc_, sizeof(int), 0);
-  std::cout << "nc_ : " << nc << '\n';
-  std::vector<int> add_matrix(nc * nc);
-  int ** int_ptr;
-  auto* ptr_crh = &dca::phys::solver::details::cluster_real_helper;
-  cudaMemcpy(&int_ptr, dca::phys::solver::details::cluster_real_helper.add_matrix_, sizeof(int*), cudaMemcpyDeviceToHost);
-  cudaMemcpy(add_matrix.data(), int_ptr, sizeof(int) * nc * nc, cudaMemcpyDeviceToHost);
-  std::cout << "Add matrix:\n" << dca::vectorToString(add_matrix) << '\n';
-  std::vector<int> sub_matrix(nc * nc);
-  cudaMemcpy(&int_ptr, dca::phys::solver::details::cluster_real_helper.sub_matrix_, sizeof(int*), cudaMemcpyDeviceToHost);
-  cudaMemcpy(sub_matrix.data(), int_ptr, sizeof(int) * nc * nc, cudaMemcpyDeviceToHost);
-  std::cout << "Sub matrix:\n" << dca::vectorToString(sub_matrix) << '\n';
-
-  std::cout << "SiteDiff: \n";
-  dmatrix_gpu.getSiteDiff().print();
   
   //walker_gpu.computeGInit();
   auto M_cpu = walker_cpu.getRawM();

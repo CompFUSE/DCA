@@ -34,6 +34,7 @@ using dca::util::castGPUType;
 template <typename Scalar>
 __global__ void setRightSectorToIdKernel(Scalar* m, const int ldm, const int n0, const int n_max) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
+  // this preserves the behavior where we skip the lower left sector.
   const int j = threadIdx.y + blockDim.y * blockIdx.y + n0;
 
   if (i >= n_max || j >= n_max)
@@ -43,8 +44,9 @@ __global__ void setRightSectorToIdKernel(Scalar* m, const int ldm, const int n0,
   Scalar the_one{};
   the_one += 1.0;
   Scalar the_zero{};
+
   //assert(the_one == (the_zero -= 1.0));    
-  m[i + ldm * j] = (i == j) ? the_one : the_zero;
+  m[i +  ldm * j] = (i == j) ? the_one : the_zero;
 }
 
 template <typename Scalar>
@@ -79,18 +81,18 @@ __global__ void computeGLeftKernel(MatrixView<Scalar, GPU> G, const MatrixView<S
 }
 
 template <typename Scalar, typename Real>
-void computeGLeft(MatrixView<Scalar, GPU>& G, const MatrixView<Scalar, GPU>& M, const Real* f,
+void computeGLeft(MatrixView<Scalar, GPU>& G_dev, const MatrixView<Scalar, GPU>& M_dev, const Real* f_dev,
                   int n_init, cudaStream_t stream) {
   if (n_init == 0)
     return;
-  const int n = G.nrRows();
+  const int n = G_dev.nrRows();
 
   constexpr int thread_j = 4;
   constexpr int thread_i = 64;
   dim3 threads(thread_i, thread_j);
   dim3 blocks(std::max(n / (10 * thread_i), 1), dca::util::ceilDiv(n_init, thread_j));
 
-  computeGLeftKernel<<<blocks, threads, 0, stream>>>(G, M, f, n_init);
+  computeGLeftKernel<<<blocks, threads, 0, stream>>>(G_dev, M_dev, f_dev, n_init);
 }
 
 template void computeGLeft(MatrixView<float, GPU>&, const MatrixView<float, GPU>&, const float*,

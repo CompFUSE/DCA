@@ -213,10 +213,14 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
   BaseClass::setMFromConfigImpl(d_matrix_builder_);
+  SubmatrixBase::transformM();
+#ifdef DEBUG_SUBMATRIX
   std::cout << "cpu M post setMFromConfigImpl: \n";
+  M_[0].set_name("cpu_M_0");
+  M_[1].set_name("cpu_M_1");
   M_[0].print();
   M_[1].print();
-  SubmatrixBase::transformM();
+#endif
 }
 
 template <class Parameters, DistType DIST>
@@ -256,34 +260,49 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 
       d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
+#ifdef DEBUG_SUBMATRIX
       D_.print();
-      
+#endif
+
+      std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values;
+      f_values[s].resize(n_init_[s]);
       for (int j = 0; j < n_init_[s]; ++j) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
         const auto b = configuration_.getSector(s).getRightB(j);
         f_j = f_[field_type][b] - 1;
-
+        f_values[s][j] = f_[field_type][b];
         for (int i = 0; i < delta; ++i) {
           D_(i, j) *= f_j;
         }
       }
 
-      std::cout << "cpu f factor mult\n";
+#ifdef DEBUG_SUBMATRIX
+      f_values[0].set_name("cpu_f_values_0");
+      f_values[1].set_name("cpu_f_values_1");
+      f_values[0].print();
+      f_values[1].print();
+      std::cout << "cpu D post f factor mult\n";
       D_.print();
-      
+      using namespace dca::addt_str_oper;
+      std::cout << "M_[" << s << "] size: " << M_[s].size() << '\n';
+#endif
+
       M_[s].resize(n_max_[s]);
 
       MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
+#ifdef DEBUG_SUBMATRIX
       std::cout << "cpu M pre gemm\n";
       M_[s].print();
+#endif
 
       linalg::matrixop::gemm(D_, M, D_M);
       flop_ += 2 * D_.nrRows() * D_.nrCols() * M.nrCols();
 
+#ifdef DEBUG_SUBMATRIX
       D_M.print();
-	
+#endif
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
           M_[s](i, j) = 0;
@@ -292,6 +311,9 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 
       for (int i = n_init_[s]; i < n_max_[s]; ++i)
         M_[s](i, i) = 1;
+#ifdef DEBUG_SUBMATRIX
+      M_[s].print();
+#endif
     }
   }
 }
@@ -514,7 +536,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::recomputeGammaInv() {
       details::smallInverse(Gamma_inv_[s]);
   }
 }
-
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeM(typename BaseClass::MatrixPair& m_accum) {
