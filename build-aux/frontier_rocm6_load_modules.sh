@@ -8,7 +8,7 @@
 
 
 module reset
-module load amd-mixed/6.0.0
+module load rocm/6.0.0
 module load libfabric/1.15.2.0
 module load ninja
 module load cmake
