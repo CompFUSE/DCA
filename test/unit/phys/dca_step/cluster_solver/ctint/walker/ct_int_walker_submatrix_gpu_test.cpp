@@ -97,10 +97,6 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   auto& cpu_parameters = this->host_setup.parameters_;
   auto& gpu_parameters = this->gpu_setup.parameters_;
 
-  // beta of 1 can result in expansion factor of 0 with default bilayer model params
-  gpu_parameters.set_beta(4);
-  cpu_parameters.set_beta(4);
-
   const auto g0_func_cpu = dca::phys::solver::ctint::details::shrinkG0(cpu_data.G0_r_t);
   G0Interpolation<CPU, Scalar> g0_cpu(g0_func_cpu);
   const auto g0_func_gpu = dca::phys::solver::ctint::details::shrinkG0(gpu_data.G0_r_t);
@@ -182,16 +178,12 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
 
       cpu_rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);
-      MatrixPair new_M_cpu = walker_cpu.getM();
 
       gpu_rng.setNewValues(rng_vals);
-      walker_gpu.uploadConfiguration();
       walker_gpu.doStep(steps);
 
-      auto M_cpu = walker_cpu.getM();
-      auto M_gpu = walker_gpu.getM();
-      // for (int s = 0; s < 2; ++s)
-      //   EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
+      // doSweep does this
+      walker_gpu.uploadConfiguration();
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();

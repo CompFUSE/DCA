@@ -67,7 +67,6 @@ public:
   void computeM(MatrixPair<linalg::GPU>& m_accum);
 
   MatrixPair<linalg::CPU> getM();
-  MatrixPair<linalg::CPU> getRawM();
 
   void doSweep() override;
 
@@ -197,15 +196,8 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
     std::cout << "GPU pre set M: \n";
 #ifdef DEBUG_SUBMATRIX
     M_[s].print();
-<<<<<<< HEAD
 #endif
     M_dev_[s].setAsync(M_[s], *get_stream());
-||||||| parent of e155ca263 (through computeMInit looks good now for GPU)
-    M_dev_[s].setAsync(M_[s], get_stream(s));
-=======
-#endif
-    M_dev_[s].setAsync(M_[s], get_stream(s));
->>>>>>> e155ca263 (through computeMInit looks good now for GPU)
   }
 }
 

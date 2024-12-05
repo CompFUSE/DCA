@@ -101,24 +101,6 @@ private:
    *        weight_term = prob_const_[field_type][b] * the vertex interaction strength;
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
-  void mainSubmatrixProcess();
-
-  void markThermalized() override;
-
-  void updateM() override;
-
-  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
-
-  BaseClass::MatrixPair getM();
-
-protected:
-  /** The following methods are really only here to get decent unit testing
-      they shouldn't really be called outside of the base implementations
-  */
-  void computeMInit() override;
-  BaseClass::MatrixPair getRawM();
-
-private:
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]
