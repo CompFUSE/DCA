@@ -67,7 +67,6 @@ public:
   void computeM(MatrixPair<linalg::GPU>& m_accum);
 
   MatrixPair<linalg::CPU> getM();
-  MatrixPair<linalg::CPU> getRawM();
 
   void doSweep() override;
 
@@ -91,14 +90,16 @@ public:
 
 protected:
   // For testing purposes:
-  void doStep(int n_moves_to_delay);
+  void doStep(const int n_moves_to_delay) override;
   void computeMInit() override;
+  void computeGInit();
+  MatrixPair<linalg::CPU> getRawG();
+  MatrixPair<linalg::CPU> getRawM();
+
+  void updateM() override;
 
 private:
   void doStep() override;
-
-  void computeGInit();
-  void updateM() override;
 
 protected:
   using BaseClass::configuration_;
@@ -200,9 +201,7 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::setMFromConfig() {
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::synchronize() const {
   Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
-
   checkRC(cudaStreamSynchronize(get_stream(0)));
-  checkRC(cudaStreamSynchronize(get_stream(1)));
 }
 
 template <class Parameters, DistType DIST>
@@ -217,6 +216,7 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::doStep(const int n_moves_to_delay) {
   SubmatrixBase::nbr_of_moves_to_delay_ = n_moves_to_delay;
   uploadConfiguration();
+  synchronize();
   doStep();
 }
 
@@ -388,7 +388,10 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::updateM() {
     old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
     old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
 
-    assert(dca::linalg::util::getStream(thread_id_, s) == get_stream(s));
+    // We no longer use the 1 stream per spin
+    // This isn't portable and i.e. AMD don't really benefit from multiple streams per thread
+    // and it adds much complexity.
+    // assert(dca::linalg::util::getStream(thread_id_, s) == get_stream(s));
     move_indices_dev_[s].setAsync(move_indices_[s], get_stream(s));
     // Note: an event synchronization might be necessary if the order of operation is changed.
     linalg::matrixop::copyCols(G_dev_[s], move_indices_dev_[s], old_G, thread_id_, s);
@@ -472,9 +475,24 @@ CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSu
 
 template <class Parameters, DistType DIST>
 CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSubmatrixGpu<
+    Parameters, DIST>::getRawG() {
+  std::array<dca::linalg::Matrix<Scalar, linalg::CPU>, 2> G_copy{G_dev_[0].size(), G_dev_[1].size()};
+  // Synchronous copies for testing
+  linalg::util::memoryCopyD2H(G_copy[0].ptr(), G_copy[0].leadingDimension(), G_dev_[0].ptr(),
+                              G_dev_[0].leadingDimension(), G_dev_[0].size());
+  linalg::util::memoryCopyD2H(G_copy[1].ptr(), G_copy[1].leadingDimension(), G_dev_[1].ptr(),
+                              G_dev_[1].leadingDimension(), G_dev_[1].size());
+  G_copy[0].set_name("subMatrixGPU::G[0]");
+  G_copy[1].set_name("subMatrixGPU::G[1]");
+
+  return G_copy;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSubmatrixGpu<
     Parameters, DIST>::getM() {
   std::array<dca::linalg::Matrix<Scalar, device>, 2> M;
-
+  synchronize();
   computeM(M);
   checkRC(cudaDeviceSynchronize());
 

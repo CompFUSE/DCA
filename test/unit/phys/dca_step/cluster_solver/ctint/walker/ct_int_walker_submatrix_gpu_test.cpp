@@ -94,10 +94,6 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   auto& cpu_parameters = this->host_setup.parameters_;
   auto& gpu_parameters = this->gpu_setup.parameters_;
 
-  // beta of 1 can result in expansion factor of 0 with default bilayer model params
-  gpu_parameters.set_beta(4);
-  cpu_parameters.set_beta(4);
-
   const auto g0_func_cpu = dca::phys::solver::ctint::details::shrinkG0(cpu_data.G0_r_t);
   G0Interpolation<CPU, Scalar> g0_cpu(g0_func_cpu);
   const auto g0_func_gpu = dca::phys::solver::ctint::details::shrinkG0(gpu_data.G0_r_t);
@@ -134,36 +130,42 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       0, 0.99, 0.4, 0.2, -1,  // Insertion
   };
 
-  for (const int initial_size : std::array<int, 1>{5}) {
+  constexpr Scalar tolerance = 10e-12;
+  auto compareSubMatrix = [tolerance](auto& mat_cpu, auto& mat_gpu, const std::string& mat_tag) {
+    int fail = 0;
+    for (int s = 0; s < 2; ++s) {
+      std::cout << mat_tag << "_cpu[" << s << "] size: " << mat_cpu[s].size() << '\n';
+      std::cout << mat_tag << "_gpu[" << s << "] size: " << mat_gpu[s].size() << '\n';
+      for (int j = 0; j < mat_cpu[s].size().second; ++j)
+        for (int i = 0; i < mat_cpu[s].size().first; ++i) {
+          if (std::abs(mat_cpu[s](i, j) - mat_gpu[s](i, j)) > tolerance) {
+            std::cout << mat_tag << " element: " << s << "," << i << "," << j << "  cpu("
+                      << mat_cpu[s](i, j) << ") - gpu(" << mat_gpu[s](i, j) << ") > " << tolerance
+                      << '\n';
+            ++fail;
+          }
+        }
+    }
+    return fail;
+  };
+
+  for (const int initial_size : std::array<int, 1>{2}) {
     cpu_parameters.setInitialConfigurationSize(initial_size);
     gpu_parameters.setInitialConfigurationSize(initial_size);
-    for (int steps = 1; steps <= 8; ++steps) {
+    for (int steps = 2; steps <= 8; ++steps) {
       cpu_rng.setNewValues(setup_rngs);
       SbmWalkerCpu walker_cpu(cpu_parameters, cpu_rng, d_matrix_cpu);
       gpu_rng.setNewValues(setup_rngs);
       SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng, d_matrix_gpu);
 
-      // I don't think we can call these before steps are done.  At least the CPU implementation has nan's in M
-      // MatrixPair old_M_cpu(walker_cpu.getM());
-      // MatrixPair old_M_gpu(walker_gpu.getM());
-
-      constexpr Scalar tolerance = std::numeric_limits<Scalar>::epsilon() * 100;
-
-      // for (int s = 0; s < 2; ++s)
-      //   EXPECT_TRUE(dca::linalg::matrixop::areNear(old_M_cpu[s], old_M_gpu[s], tolerance));
-
       cpu_rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);
-      MatrixPair new_M_cpu = walker_cpu.getM();
 
       gpu_rng.setNewValues(rng_vals);
-      walker_gpu.uploadConfiguration();
       walker_gpu.doStep(steps);
 
-      auto M_cpu = walker_cpu.getM();
-      auto M_gpu = walker_gpu.getM();
-      // for (int s = 0; s < 2; ++s)
-      //   EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
+      // doSweep does this
+      walker_gpu.uploadConfiguration();
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();
@@ -172,11 +174,17 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       for (int i = 0; i < config1.size(); ++i)
         EXPECT_EQ(config1[i], config2[i]);
       EXPECT_EQ(walker_cpu.get_sign(), walker_gpu.get_sign());
+
+      auto M_cpu = walker_cpu.getM();
+      auto M_gpu = walker_gpu.getM();
+
+      auto fail = compareSubMatrix(M_cpu, M_gpu, "M");
+      EXPECT_FALSE(fail);
     }
   }
 }
 
-TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
+TYPED_TEST(CtintWalkerSubmatrixGpuTest, fineGrained) {
   using Scalar = TypeParam;
   using Parameters = typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::Parameters;
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
@@ -197,10 +205,6 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
   auto& cpu_parameters = this->host_setup.parameters_;
   auto& gpu_parameters = this->gpu_setup.parameters_;
 
-  // beta of 1 can result in expansion factor of 0 with default bilayer model params
-  // gpu_parameters.set_beta(4);
-  // cpu_parameters.set_beta(4);
-  
   const auto g0_func_cpu = dca::phys::solver::ctint::details::shrinkG0(cpu_data.G0_r_t);
   G0Interpolation<CPU, Scalar> g0_cpu(g0_func_cpu);
   const auto g0_func_gpu = dca::phys::solver::ctint::details::shrinkG0(gpu_data.G0_r_t);
@@ -241,14 +245,14 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
 
   cpu_parameters.setInitialConfigurationSize(initial_size);
   gpu_parameters.setInitialConfigurationSize(initial_size);
-  int steps = 2;
+  int steps = 4;
 
   cpu_rng.setNewValues(setup_rngs);
   SbmWalkerCpu walker_cpu(cpu_parameters, cpu_rng, d_matrix_cpu);
   gpu_rng.setNewValues(setup_rngs);
   SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng, d_matrix_gpu);
 
-  constexpr Scalar tolerance = std::numeric_limits<Scalar>::epsilon() * 100;
+  constexpr Scalar tolerance = 10e-12;
 
   cpu_rng.setNewValues(rng_vals);
   walker_cpu.generateDelayedMoves(steps);
@@ -259,15 +263,15 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
   walker_gpu.generateDelayedMoves(steps);
   walker_gpu.uploadConfiguration();
   walker_gpu.computeMInit();
-  
-  //walker_gpu.computeGInit();
+
+  // walker_gpu.computeGInit();
   auto M_cpu = walker_cpu.getRawM();
   auto M_gpu = walker_gpu.getRawM();
 
-  std::cout << "Minit init cpu size " << M_cpu[0].size().first << "," << M_cpu[0].size().second << " : " <<
-    M_cpu[1].size().first << "," << M_cpu[1].size().second << '\n';
-  std::cout << "Minit init gpu size " << M_gpu[0].size().first << "," << M_gpu[0].size().second << " : " <<
-    M_gpu[1].size().first << "," << M_gpu[1].size().second << '\n';
+  std::cout << "Minit init cpu size " << M_cpu[0].size().first << "," << M_cpu[0].size().second
+            << " : " << M_cpu[1].size().first << "," << M_cpu[1].size().second << '\n';
+  std::cout << "Minit init gpu size " << M_gpu[0].size().first << "," << M_gpu[0].size().second
+            << " : " << M_gpu[1].size().first << "," << M_gpu[1].size().second << '\n';
 
   std::cout << walker_cpu.getF()[-1][0] << "," << walker_cpu.getF()[-1][1] << '\n';
   std::cout << walker_cpu.getF()[1][0] << "," << walker_cpu.getF()[1][1] << '\n';
@@ -281,20 +285,65 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
   M_gpu[0].print();
   M_gpu[1].print();
 
-  for (int s = 0; s < 2; ++s) {
+  auto compareSubMatrix = [tolerance](auto& mat_cpu, auto& mat_gpu, const std::string& mat_tag) {
     int fail = 0;
-    std::cout << "M_cpu[" << s << "] size: " << M_cpu[s].size() << '\n';
-    std::cout << "M_gpu[" << s << "] size: " << M_gpu[s].size() << '\n';
-    for (int j = 0; j < M_cpu[0].size().second; ++j)
-      for (int i = 0; i < M_cpu[0].size().first; ++i) {
-        if (std::abs(M_cpu[s](i, j) - M_gpu[s](i, j)) > tolerance) {
-          std::cout << "M element: " << s << "," << i << "," << j << "  cpu(" << M_cpu[s](i, j)
-                    << ") - gpu(" << M_gpu[s](i, j) << ") > " << tolerance << '\n';
-          ++fail;
+    for (int s = 0; s < 2; ++s) {
+      std::cout << mat_tag << "_cpu[" << s << "] size: " << mat_cpu[s].size() << '\n';
+      std::cout << mat_tag << "_gpu[" << s << "] size: " << mat_gpu[s].size() << '\n';
+      for (int j = 0; j < mat_cpu[s].size().second; ++j)
+        for (int i = 0; i < mat_cpu[s].size().first; ++i) {
+          if (std::abs(mat_cpu[s](i, j) - mat_gpu[s](i, j)) > tolerance) {
+            std::cout << mat_tag << " element: " << s << "," << i << "," << j << "  cpu("
+                      << mat_cpu[s](i, j) << ") - gpu(" << mat_gpu[s](i, j) << ") > " << tolerance
+                      << '\n';
+            ++fail;
+          }
         }
-      }
-  }
-  // EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
+    }
+    return fail;
+  };
+
+  auto fail = compareSubMatrix(M_cpu, M_gpu, "M");
+  EXPECT_FALSE(fail);
+
+  walker_cpu.computeGInit();
+  walker_gpu.computeGInit();
+  walker_gpu.synchronize();
+
+  auto G_cpu = walker_cpu.getRawG();
+  auto G_gpu = walker_gpu.getRawG();
+
+  fail = compareSubMatrix(G_cpu, G_gpu, "G");
+  EXPECT_FALSE(fail);
+
+  walker_cpu.mainSubmatrixProcess();
+  walker_gpu.mainSubmatrixProcess();
+
+  walker_cpu.updateM();
+  walker_gpu.updateM();
+
+  M_cpu = walker_cpu.getRawM();
+  M_gpu = walker_gpu.getRawM();
+
+  std::cout << "M post update cpu size " << M_cpu[0].size().first << "," << M_cpu[0].size().second
+            << " : " << M_cpu[1].size().first << "," << M_cpu[1].size().second << '\n';
+  std::cout << "M post update gpu size " << M_gpu[0].size().first << "," << M_gpu[0].size().second
+            << " : " << M_gpu[1].size().first << "," << M_gpu[1].size().second << '\n';
+
+  std::cout << walker_cpu.getF()[-1][0] << "," << walker_cpu.getF()[-1][1] << '\n';
+  std::cout << walker_cpu.getF()[1][0] << "," << walker_cpu.getF()[1][1] << '\n';
+  std::cout << walker_gpu.getF()[-1][0] << "," << walker_gpu.getF()[-1][1] << '\n';
+  std::cout << walker_gpu.getF()[1][0] << "," << walker_gpu.getF()[1][1] << '\n';
+  std::cout << walker_gpu.getFValues()[0][0] << "," << walker_gpu.getFValues()[0][1] << '\n';
+  std::cout << walker_gpu.getFValues()[1][0] << "," << walker_gpu.getFValues()[1][1] << '\n';
+
+  M_cpu[0].print();
+  M_cpu[1].print();
+  M_gpu[0].print();
+  M_gpu[1].print();
+
+  fail = compareSubMatrix(M_cpu, M_gpu, "updated_M");
+  EXPECT_FALSE(fail);
 
   // The final configuration is the same.
   const auto& config1 = walker_cpu.getWalkerConfiguration();
@@ -303,4 +352,31 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, computeMInit) {
   for (int i = 0; i < config1.size(); ++i)
     EXPECT_EQ(config1[i], config2[i]);
   EXPECT_EQ(walker_cpu.get_sign(), walker_gpu.get_sign());
+
+  walker_gpu.uploadConfiguration();
+
+  auto comp_M_cpu = walker_cpu.getM();
+  auto comp_M_gpu = walker_gpu.getM();
+
+  std::cout << "computed M cpu size " << comp_M_cpu[0].size().first << ","
+            << comp_M_cpu[0].size().second << " : " << comp_M_cpu[1].size().first << ","
+            << comp_M_cpu[1].size().second << '\n';
+  std::cout << "computed M gpu size " << comp_M_gpu[0].size().first << ","
+            << comp_M_gpu[0].size().second << " : " << comp_M_gpu[1].size().first << ","
+            << comp_M_gpu[1].size().second << '\n';
+
+  std::cout << walker_cpu.getF()[-1][0] << "," << walker_cpu.getF()[-1][1] << '\n';
+  std::cout << walker_cpu.getF()[1][0] << "," << walker_cpu.getF()[1][1] << '\n';
+  std::cout << walker_gpu.getF()[-1][0] << "," << walker_gpu.getF()[-1][1] << '\n';
+  std::cout << walker_gpu.getF()[1][0] << "," << walker_gpu.getF()[1][1] << '\n';
+  std::cout << walker_gpu.getFValues()[0][0] << "," << walker_gpu.getFValues()[0][1] << '\n';
+  std::cout << walker_gpu.getFValues()[1][0] << "," << walker_gpu.getFValues()[1][1] << '\n';
+
+  comp_M_cpu[0].print();
+  comp_M_cpu[1].print();
+  comp_M_gpu[0].print();
+  comp_M_gpu[1].print();
+
+  fail = compareSubMatrix(comp_M_cpu, comp_M_gpu, "comp_M");
+  EXPECT_FALSE(fail);
 }

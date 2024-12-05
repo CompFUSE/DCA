@@ -86,18 +86,37 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
    *  able to write meaningful unit tests for the CtintWalker
    */
   void doStep(const int n_steps_to_delay) {
-    BaseClass::SubmatrixBase::doStep(n_steps_to_delay);
+    BaseClass::doStep(n_steps_to_delay);
   }
 
-  void generateDelayedMoves(int nbr_of_movesto_delay) { BaseClass::SubmatrixBase::generateDelayedMoves(nbr_of_movesto_delay); }
-  
+  void generateDelayedMoves(int nbr_of_movesto_delay) {
+    BaseClass::SubmatrixBase::generateDelayedMoves(nbr_of_movesto_delay);
+  }
+
   void computeMInit() {
     BaseClass::computeMInit();
+  }
+
+  void computeGInit() {
+    BaseClass::computeGInit();
   }
 
   auto getRawM() {
     return BaseClass::getRawM();
   }
+
+  auto getRawG() {
+    return BaseClass::getRawG();
+  }
+
+  void updateM() {
+    BaseClass::updateM();
+  }
+
+  void mainSubmatrixProcess() {
+    BaseClass::mainSubmatrixProcess();
+  }
+
 private:
   std::vector<dca::linalg::util::GpuStream> streams_;
 };

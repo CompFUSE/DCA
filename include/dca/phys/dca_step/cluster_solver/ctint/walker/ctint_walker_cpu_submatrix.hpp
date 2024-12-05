@@ -70,7 +70,24 @@ protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
 
-  /** This does a bunch of things, this is the majority of a step
+  void markThermalized() override;
+
+  void updateM() override;
+
+  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
+
+  BaseClass::MatrixPair getM();
+
+  /** The following methods are really only here to get decent unit testing
+      they shouldn't really be called outside of the base implementations
+  */
+  void computeMInit() override;
+  void computeGInit() override;
+  BaseClass::MatrixPair getRawM();
+  BaseClass::MatrixPair getRawG();
+
+private:
+    /** This does a bunch of things, this is the majority of a step
    *  For each delayed_move it:
    *  * computes the acceptance prob
    *  * compares std::abs(acceptance prob) and random value
@@ -84,24 +101,6 @@ protected:
    *        weight_term = prob_const_[field_type][b] * the vertex interaction strength;
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
-  void mainSubmatrixProcess();
-
-  void markThermalized() override;
-
-  void updateM() override;
-
-  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
-
-  BaseClass::MatrixPair getM();
-
-protected:
-  /** The following methods are really only here to get decent unit testing
-      they shouldn't really be called outside of the base implementations
-  */
-  void computeMInit() override;
-  BaseClass::MatrixPair getRawM();
-
-private:
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]
@@ -113,7 +112,6 @@ private:
   void removeRowAndColOfGammaInv();
 
   //  void computeG0Init();
-  void computeGInit() override;
 
   Move generateMoveType();
 
@@ -430,6 +428,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateM() {
     linalg::matrixop::copyCols(M_[s], source_list_[s], M_[s], removal_list_[s]);
     M_[s].resize(configuration_.getSector(s).size());
   }
+
+  
 }
 
 template <class Parameters, DistType DIST>
@@ -629,6 +629,16 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubm
   M[0].set_name("subMatrixCPU::M[0]");
   M[1].set_name("subMatrixCPU::M[1]");
   return M;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+    Parameters, DIST>::getRawG() {
+  typename BaseClass::MatrixPair G;
+  G = G_;
+  G[0].set_name("subMatrixCPU::G[0]");
+  G[1].set_name("subMatrixCPU::G[1]");
+  return G;
 }
 
 template <class Parameters, DistType DIST>
