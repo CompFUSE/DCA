@@ -55,7 +55,8 @@ public:
 
   using Resource = DMatrixBuilder<linalg::CPU, Scalar>;
 
-  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
+  CtintWalkerSubmatrixCpu(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref,
+                          DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id = 0);
 
   virtual ~CtintWalkerSubmatrixCpu() = default;
 
@@ -64,11 +65,29 @@ public:
   using BaseClass::order;
 
   void setMFromConfig() override;
+
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
 
-  /** This does a bunch of things, this is the majority of a step
+  void markThermalized() override;
+
+  void updateM() override;
+
+  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
+
+  BaseClass::MatrixPair getM();
+
+  /** The following methods are really only here to get decent unit testing
+      they shouldn't really be called outside of the base implementations
+  */
+  void computeMInit() override;
+  void computeGInit() override;
+  BaseClass::MatrixPair getRawM();
+  BaseClass::MatrixPair getRawG();
+
+private:
+    /** This does a bunch of things, this is the majority of a step
    *  For each delayed_move it:
    *  * computes the acceptance prob
    *  * compares std::abs(acceptance prob) and random value
@@ -82,17 +101,6 @@ protected:
    *        weight_term = prob_const_[field_type][b] * the vertex interaction strength;
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
-  void mainSubmatrixProcess();
-
-  void markThermalized() override;
-
-  void updateM() override;
-
-  void transformM();
-
-  DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
-private:
-
   void doSubmatrixUpdate();
 
   /** returns [acceptance_probability , mc_weight_ratio ]
@@ -103,10 +111,7 @@ private:
 
   void removeRowAndColOfGammaInv();
 
-  void computeMInit() override;
-
   //  void computeG0Init();
-  void computeGInit() override;
 
   Move generateMoveType();
 
@@ -174,11 +179,11 @@ protected:
   using SubmatrixBase::nbr_of_indices_;
   using SubmatrixBase::q_;
   using SubmatrixBase::det_ratio_;
+
 protected:
   using BaseClass::acceptance_prob_;
 
 protected:
-
   using BaseClass::flop_;
 };
 
@@ -187,8 +192,7 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
     const Parameters& parameters_ref, const Data& data, Rng& rng_ref,
     DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder, int id)
     : SubmatrixBase(parameters_ref, data, rng_ref, id), d_matrix_builder_(d_matrix_builder) {
-
-    for (int b = 0; b < n_bands_; ++b) {
+  for (int b = 0; b < n_bands_; ++b) {
     for (int i = 1; i <= 3; ++i) {
       f_[i][b] = d_matrix_builder_.computeF(i, b);
       f_[-i][b] = d_matrix_builder_.computeF(-i, b);
@@ -202,17 +206,23 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::CtintWalkerSubmatrixCpu(
     }
     f_[0][b] = 1;
   }
-
 }
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
   BaseClass::setMFromConfigImpl(d_matrix_builder_);
-  transformM();
+  SubmatrixBase::transformM();
+#ifdef DEBUG_SUBMATRIX
+  std::cout << "cpu M post setMFromConfigImpl: \n";
+  M_[0].set_name("cpu_M_0");
+  M_[1].set_name("cpu_M_1");
+  M_[0].print();
+  M_[1].print();
+#endif
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
+void CtintWalkerSubmatrixCpu<Parameters, DIST>::markThermalized() {
   thermalized_ = true;
 
   nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
@@ -225,7 +235,7 @@ void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
   // Recompute the Monte Carlo weight.
   setMFromConfig();
 #ifndef NDEBUG
-  //writeAlphas();
+  // writeAlphas();
 #endif
 }
 
@@ -242,26 +252,55 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
       Scalar f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
+      if (delta == 0 || n_init_[s] == 0)
+        throw std::runtime_error(
+            "expansion factor dropped to 0 or below use a higher beta or larger interaction!");
+
       d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
+#ifdef DEBUG_SUBMATRIX
+      D_.print();
+#endif
+
+      std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values;
+      f_values[s].resize(n_init_[s]);
       for (int j = 0; j < n_init_[s]; ++j) {
         const auto field_type = configuration_.getSector(s).getAuxFieldType(j);
         const auto b = configuration_.getSector(s).getRightB(j);
         f_j = f_[field_type][b] - 1;
-
+        f_values[s][j] = f_[field_type][b];
         for (int i = 0; i < delta; ++i) {
           D_(i, j) *= f_j;
         }
       }
+
+#ifdef DEBUG_SUBMATRIX
+      f_values[0].set_name("cpu_f_values_0");
+      f_values[1].set_name("cpu_f_values_1");
+      f_values[0].print();
+      f_values[1].print();
+      std::cout << "cpu D post f factor mult\n";
+      D_.print();
+      using namespace dca::addt_str_oper;
+      std::cout << "M_[" << s << "] size: " << M_[s].size() << '\n';
+#endif
 
       M_[s].resize(n_max_[s]);
 
       MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
+#ifdef DEBUG_SUBMATRIX
+      std::cout << "cpu M pre gemm\n";
+      M_[s].print();
+#endif
+
       linalg::matrixop::gemm(D_, M, D_M);
       flop_ += 2 * D_.nrRows() * D_.nrCols() * M.nrCols();
 
+#ifdef DEBUG_SUBMATRIX
+      D_M.print();
+#endif
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
           M_[s](i, j) = 0;
@@ -270,6 +309,9 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 
       for (int i = n_init_[s]; i < n_max_[s]; ++i)
         M_[s](i, i) = 1;
+#ifdef DEBUG_SUBMATRIX
+      M_[s].print();
+#endif
     }
   }
 }
@@ -386,6 +428,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::updateM() {
     linalg::matrixop::copyCols(M_[s], source_list_[s], M_[s], removal_list_[s]);
     M_[s].resize(configuration_.getSector(s).size());
   }
+
+  
 }
 
 template <class Parameters, DistType DIST>
@@ -494,20 +538,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::recomputeGammaInv() {
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters, DIST>::transformM() {
-  for (int s = 0; s < 2; ++s) {
-    for (int j = 0; j < M_[s].size().second; ++j) {
-      for (int i = 0; i < M_[s].size().first; ++i) {
-        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
-        const auto b = configuration_.getSector(s).getLeftB(i);
-        const Scalar f_i = -(f_[field_type][b] - 1);
-        M_[s](i, j) /= f_i;
-      }
-    }
-  }
-}
-
-template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeM(typename BaseClass::MatrixPair& m_accum) {
   for (int s = 0; s < 2; ++s) {
     m_accum[s].resizeNoCopy(M_[s].size());
@@ -589,6 +619,34 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMixedInsertionAndRemoval(
   updateGammaInv(s);
 
   computeRemovalMatrix(s);
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+    Parameters, DIST>::getRawM() {
+  typename BaseClass::MatrixPair M;
+  M = M_;
+  M[0].set_name("subMatrixCPU::M[0]");
+  M[1].set_name("subMatrixCPU::M[1]");
+  return M;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+    Parameters, DIST>::getRawG() {
+  typename BaseClass::MatrixPair G;
+  G = G_;
+  G[0].set_name("subMatrixCPU::G[0]");
+  G[1].set_name("subMatrixCPU::G[1]");
+  return G;
+}
+
+template <class Parameters, DistType DIST>
+CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters,
+                                                                                         DIST>::getM() {
+  typename BaseClass::MatrixPair M;
+  computeM(M);
+  return M;
 }
 
 }  // namespace ctint

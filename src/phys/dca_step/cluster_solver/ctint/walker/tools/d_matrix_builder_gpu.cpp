@@ -32,6 +32,8 @@ DMatrixBuilder<linalg::GPU, Scalar>::DMatrixBuilder(const G0Interpolation<GPU, S
                                                   const int nb, const int r0)
     : BaseClass(g0, site_diff, nb), g0_ref_(g0) {
   assert(site_add.size() == site_diff.size());
+  
+
   dca::phys::solver::details::SolverHelper::set(site_add.ptr(), site_add.leadingDimension(), site_diff.ptr(),
                     site_diff.leadingDimension(), nb, site_add.nrRows(), r0);
 }

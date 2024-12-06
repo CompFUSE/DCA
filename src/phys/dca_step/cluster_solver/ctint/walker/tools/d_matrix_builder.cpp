@@ -126,7 +126,7 @@ auto DMatrixBuilder<CPU, Scalar>::computeGamma(const int aux_spin_type, const in
 
 // Compute only the parts of G0 required at a given moment. (Re)Computing every element is not needed in most situations.
 template <typename Scalar>
-void DMatrixBuilder<CPU, Scalar>::computeG0(Matrix& G0, const Sector& configuration, const int n_init,
+ void DMatrixBuilder<CPU, Scalar>::computeG0(Matrix& G0, const Sector& configuration, const int n_init,
                                             const int n_max, const int which_section) const {
   int b_i, b_j, r_i, r_j;
   Real tau_i, tau_j;
