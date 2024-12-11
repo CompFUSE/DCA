@@ -41,6 +41,8 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #endif
 
+//#define DEBUG_SUBMATRIX
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -238,7 +240,7 @@ CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_
       thread_id_(id),
 
       streams_{&linalg::util::getStreamContainer()(thread_id_, 0),
-               &linalg::util::getStreamContainer()(thread_id_, 1)},
+               &linalg::util::getStreamContainer()(thread_id_, 0)},
 
       rng_(rng_ref),
 

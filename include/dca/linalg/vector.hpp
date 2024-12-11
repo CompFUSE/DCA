@@ -34,7 +34,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-  template <typename ScalarType, DeviceType device_name = DeviceType::CPU,
+template <typename ScalarType, DeviceType device_name = DeviceType::CPU,
           class Allocator = util::DefaultAllocator<ScalarType, device_name>>
 class Vector : public Allocator {
 public:
@@ -52,9 +52,8 @@ public:
 
   /** copy constructor except for name.
    *  this is strange but for historical reasons is kept.
-   *  has needed to be explicit because with the `const ThisType&` somehow lead to an implicit conversion
-   *  from an int to a Vector& argument that landed here.
-   *  This occurred in Debug with 
+   *  has needed to be explicit because with the `const ThisType&` somehow lead to an implicit
+   * conversion from an int to a Vector& argument that landed here. This occurred in Debug with
    */
   explicit Vector(const ThisType& rhs, const std::string& name = default_name_);
 
@@ -323,7 +322,8 @@ void Vector<ScalarType, device_name, Allocator>::setAsync(const Container& rhs,
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuStream& stream [[maybe_unused]]) {
+void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuStream& stream
+                                                                [[maybe_unused]]) {
   // TODO: implement in copy.hpp.
 #ifdef DCA_HAVE_GPU
   checkRC(cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream));
@@ -333,12 +333,14 @@ void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(const util::GpuS
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream [[maybe_unused]]) {
+void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream
+                                                           [[maybe_unused]]) {
   dca::linalg::util::Memory<device_name>::setToZero(data_, size_, stream);
 }
 
 // template <typename ScalarType, DeviceType device_name, class Allocator>
-// void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream [[maybe_unused]]) {
+// void Vector<ScalarType, device_name, Allocator>::setToZero(const util::GpuStream& stream
+// [[maybe_unused]]) {
 //   // TODO: implement in copy.hpp.
 //   dca::linalg::util::memory<device_name>::setToZero(data_, size_, stream);
 // }

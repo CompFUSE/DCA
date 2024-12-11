@@ -13,6 +13,7 @@
 
 #include <mutex>
 #include <array>
+#include <cassert>
 #include "dca/platform/dca_gpu.h"
 #include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 
@@ -24,6 +25,28 @@ namespace details {
 
 __device__ __constant__ ClusterHelper cluster_real_helper;
 __device__ __constant__ ClusterHelper cluster_momentum_helper;
+__CONSTANT__ int* cluster_add_matrix;
+__CONSTANT__ int* cluster_sub_matrix;
+
+__global__ void checkClusterHelper() {
+  const int i_t = threadIdx.x + blockDim.x * blockIdx.x;
+  const int j = threadIdx.y + blockDim.y * blockIdx.y;
+  if (i_t == 0 && j == 0) {
+    printf("%d %d %d %d\n", cluster_sub_matrix[0],
+	   cluster_sub_matrix[1],
+	   cluster_sub_matrix[2],
+	   cluster_sub_matrix[3]);
+    printf("%d %d %d %d\n", cluster_sub_matrix[4],
+	   cluster_sub_matrix[5],
+	   cluster_sub_matrix[6],
+	   cluster_sub_matrix[7]);
+        printf("%d %d %d %d\n", cluster_real_helper.sub_matrix_[4],
+cluster_real_helper.sub_matrix_[5],
+	       cluster_real_helper.sub_matrix_[6],
+	       cluster_real_helper.sub_matrix_[7]);
+
+  }
+}
 
 void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds, bool momentum) {
   static std::array<std::once_flag, 2> flags;
@@ -44,13 +67,27 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
 
     compact_transfer(add, lda, const_cast<int**>(&host_helper.add_matrix_));
     compact_transfer(sub, lds, const_cast<int**>(&host_helper.sub_matrix_));
+    // The logic here for CUDA is transfers from unpinned memory only block for the copy from host
+    // memory to a DMA buffer.  This is on the default queue here and so a stream synch will not
+    // work to insure the ClusterHelper copy is actually complete.
+    cudaDeviceSynchronize();
 
     if (momentum) {
-      cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper));
+      cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper), cudaMemcpyHostToDevice);
     }
     else {
-      cudaMemcpyToSymbol(cluster_real_helper, &host_helper, sizeof(ClusterHelper));
+      // In debug on sdgx-2 for CTINT I see know evidence this actually works, it appears not to.
+      size_t cluster_helper_size;
+      checkRC(cudaGetSymbolSize(&cluster_helper_size, cluster_real_helper));
+      assert(cluster_helper_size  == sizeof(ClusterHelper));
+      checkRC(cudaMemcpyToSymbol(cluster_add_matrix, &host_helper.add_matrix_, sizeof(int*))
+				    );
+      checkRC(cudaMemcpyToSymbol(cluster_sub_matrix, &host_helper.sub_matrix_, sizeof(int*))
+				    );
+      checkRC(cudaMemcpyToSymbol(cluster_real_helper, &host_helper, cluster_helper_size));
+      cudaDeviceSynchronize();
     }
+	checkClusterHelper<<<1,1,0,0>>>();
   });
 }
 

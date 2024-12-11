@@ -141,6 +141,7 @@
 #define cudaIpcMemHandle_t              hipIpcMemHandle_t
 #define cudaIpcMemLazyEnablePeerAccess  hipIpcMemLazyEnablePeerAccess
 #define cudaIpcOpenMemHandle            hipIpcOpenMemHandle
+#define cudaGetSymbolSize               hipGetSymbolSize
 #define cudaMalloc                      hipMalloc
 #define cudaMallocArray                 hipMallocArray
 #define cudaMallocManaged               hipMallocManaged

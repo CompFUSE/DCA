@@ -56,6 +56,7 @@ __global__ void buildG0MatrixKernel(linalg::MatrixView<Scalar, linalg::GPU> G0, 
   const int b_j = config.getRightB(j);
   const auto tau_j = config.getTau(j);
 
+  
   const int label = dca::phys::solver::details::solver_helper.index(b_i, b_j, config.getLeftR(i),
                                                                     config.getRightR(j));
 

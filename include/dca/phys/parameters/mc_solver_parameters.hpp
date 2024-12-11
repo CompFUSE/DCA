@@ -99,7 +99,7 @@ int McSolverParameters<ClusterSolverId::CT_AUX>::getBufferSize(const Concurrency
 
 template <typename Concurrency>
 void McSolverParameters<ClusterSolverId::CT_AUX>::pack(const Concurrency& concurrency, char* buffer,
-                                              int buffer_size, int& position) const {
+                                                       int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
@@ -110,7 +110,7 @@ void McSolverParameters<ClusterSolverId::CT_AUX>::pack(const Concurrency& concur
 
 template <typename Concurrency>
 void McSolverParameters<ClusterSolverId::CT_AUX>::unpack(const Concurrency& concurrency, char* buffer,
-                                                int buffer_size, int& position) {
+                                                         int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
@@ -207,16 +207,18 @@ int McSolverParameters<ClusterSolverId::SS_CT_HYB>::getBufferSize(const Concurre
 }
 
 template <typename Concurrency>
-void McSolverParameters<ClusterSolverId::SS_CT_HYB>::pack(const Concurrency& concurrency, char* buffer,
-                                                 int buffer_size, int& position) const {
+void McSolverParameters<ClusterSolverId::SS_CT_HYB>::pack(const Concurrency& concurrency,
+                                                          char* buffer, int buffer_size,
+                                                          int& position) const {
   concurrency.pack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.pack(buffer, buffer_size, position, steps_per_sweep_);
   concurrency.pack(buffer, buffer_size, position, shifts_per_sweep_);
 }
 
 template <typename Concurrency>
-void McSolverParameters<ClusterSolverId::SS_CT_HYB>::unpack(const Concurrency& concurrency, char* buffer,
-                                                   int buffer_size, int& position) {
+void McSolverParameters<ClusterSolverId::SS_CT_HYB>::unpack(const Concurrency& concurrency,
+                                                            char* buffer, int buffer_size,
+                                                            int& position) {
   concurrency.unpack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.unpack(buffer, buffer_size, position, steps_per_sweep_);
   concurrency.unpack(buffer, buffer_size, position, shifts_per_sweep_);
@@ -252,6 +254,17 @@ void McSolverParameters<ClusterSolverId::SS_CT_HYB>::readWrite(ReaderOrWriter& r
 // Specialization for CT-INT
 template <>
 class McSolverParameters<ClusterSolverId::CT_INT> {
+private:
+  /// code does not currently cover corner case of configuration size 0, as such this isn't a sensible default to use.
+  int initial_configuration_size_ = 2;
+  double alpha_dd_pos_ = 0.501;
+  double alpha_dd_neg_ = 0;
+  double alpha_ndd_ = 1e-4;
+  bool adjust_alpha_dd_ = false;
+  double double_update_probability_ = 0;
+  bool all_sites_partnership_ = 0;
+  int max_submatrix_size_ = 1;
+
 public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -298,16 +311,6 @@ public:
   void setMaxSubmatrixSize(const int size) {
     max_submatrix_size_ = size;
   }
-
-private:
-  int initial_configuration_size_ = 0;
-  double alpha_dd_pos_ = 0.501;
-  double alpha_dd_neg_ = 0;
-  double alpha_ndd_ = 1e-4;
-  bool adjust_alpha_dd_ = false;
-  double double_update_probability_ = 0;
-  bool all_sites_partnership_ = 0;
-  int max_submatrix_size_ = 1;
 };
 
 template <typename Concurrency>
@@ -327,7 +330,7 @@ int McSolverParameters<ClusterSolverId::CT_INT>::getBufferSize(const Concurrency
 
 template <typename Concurrency>
 void McSolverParameters<ClusterSolverId::CT_INT>::pack(const Concurrency& concurrency, char* buffer,
-                                              const int buffer_size, int& position) const {
+                                                       const int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.pack(buffer, buffer_size, position, alpha_dd_pos_);
   concurrency.pack(buffer, buffer_size, position, alpha_dd_neg_);
@@ -340,7 +343,7 @@ void McSolverParameters<ClusterSolverId::CT_INT>::pack(const Concurrency& concur
 
 template <typename Concurrency>
 void McSolverParameters<ClusterSolverId::CT_INT>::unpack(const Concurrency& concurrency, char* buffer,
-                                                const int buffer_size, int& position) {
+                                                         const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_pos_);
   concurrency.unpack(buffer, buffer_size, position, alpha_dd_neg_);
