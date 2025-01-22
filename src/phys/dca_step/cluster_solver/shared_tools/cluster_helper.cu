@@ -28,23 +28,16 @@ __device__ __constant__ ClusterHelper cluster_momentum_helper;
 __CONSTANT__ int* cluster_add_matrix;
 __CONSTANT__ int* cluster_sub_matrix;
 
-__global__ void checkClusterHelper() {
+  __global__ void checkClusterHelper(int nc, int lds) {
   const int i_t = threadIdx.x + blockDim.x * blockIdx.x;
   const int j = threadIdx.y + blockDim.y * blockIdx.y;
   if (i_t == 0 && j == 0) {
-    printf("%d %d %d %d\n", cluster_sub_matrix[0],
-	   cluster_sub_matrix[1],
-	   cluster_sub_matrix[2],
-	   cluster_sub_matrix[3]);
-    printf("%d %d %d %d\n", cluster_sub_matrix[4],
-	   cluster_sub_matrix[5],
-	   cluster_sub_matrix[6],
-	   cluster_sub_matrix[7]);
-        printf("%d %d %d %d\n", cluster_real_helper.sub_matrix_[4],
-cluster_real_helper.sub_matrix_[5],
-	       cluster_real_helper.sub_matrix_[6],
-	       cluster_real_helper.sub_matrix_[7]);
-
+    for (int ch_i = 0; ch_i < nc; ++ch_i) {
+      for (int ch_j = 0; ch_j < lds; ++ch_j) {
+        printf("%d ", cluster_real_helper.sub_matrix_[ch_i * lds + ch_j]);
+      }
+      printf("\n");
+    }
   }
 }
 
@@ -73,21 +66,23 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
     cudaDeviceSynchronize();
 
     if (momentum) {
-      cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper), cudaMemcpyHostToDevice);
+
+      cudaMemcpyToSymbol(cluster_momentum_helper, &host_helper, sizeof(ClusterHelper),
+                         cudaMemcpyHostToDevice);
     }
     else {
       // In debug on sdgx-2 for CTINT I see know evidence this actually works, it appears not to.
       size_t cluster_helper_size;
       checkRC(cudaGetSymbolSize(&cluster_helper_size, cluster_real_helper));
-      assert(cluster_helper_size  == sizeof(ClusterHelper));
-      checkRC(cudaMemcpyToSymbol(cluster_add_matrix, &host_helper.add_matrix_, sizeof(int*))
-				    );
-      checkRC(cudaMemcpyToSymbol(cluster_sub_matrix, &host_helper.sub_matrix_, sizeof(int*))
-				    );
+      assert(cluster_helper_size == sizeof(ClusterHelper));
+      checkRC(cudaMemcpyToSymbol(cluster_add_matrix, &host_helper.add_matrix_, sizeof(int*)));
+      checkRC(cudaMemcpyToSymbol(cluster_sub_matrix, &host_helper.sub_matrix_, sizeof(int*)));
       checkRC(cudaMemcpyToSymbol(cluster_real_helper, &host_helper, cluster_helper_size));
       cudaDeviceSynchronize();
     }
-	checkClusterHelper<<<1,1,0,0>>>();
+#ifndef NDEBUG
+    checkClusterHelper<<<1, 1, 0, 0>>>(nc, lds);
+#endif
   });
 }
 

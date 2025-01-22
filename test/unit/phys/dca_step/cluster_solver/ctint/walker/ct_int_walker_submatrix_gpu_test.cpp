@@ -184,6 +184,8 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   }
 }
 
+// This test still fails if its run second in the batch.
+
 TYPED_TEST(CtintWalkerSubmatrixGpuTest, fineGrained) {
   using Scalar = TypeParam;
   using Parameters = typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::Parameters;

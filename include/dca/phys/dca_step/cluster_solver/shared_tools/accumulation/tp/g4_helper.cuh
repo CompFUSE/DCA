@@ -96,6 +96,10 @@ protected:
 // Global instance to be used in the tp accumulation kernel.
 extern __device__ __constant__ G4Helper g4_helper;
 
+extern __CONSTANT__ int* w_ex_indices_actual;
+extern __CONSTANT__ int* k_ex_indices_actual;
+
+  
 inline __device__ int G4Helper::addWex(const int w_idx, const int w_ex_idx) const {
   return w_idx + w_ex_indices_[w_ex_idx];
 }
