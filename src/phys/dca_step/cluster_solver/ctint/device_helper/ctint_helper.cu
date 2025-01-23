@@ -34,7 +34,7 @@ void CtintHelper::set(const int* add_r, int lda, const int* sub_r, int lds, cons
     host_helper.subdm_step_[0] = nb;
     host_helper.subdm_step_[1] = nb * nb;
 
-    cudaMemcpyToSymbol(ctint_helper, &host_helper, sizeof(CtintHelper));
+    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(ctint_helper), &host_helper, sizeof(CtintHelper)));
   });
 }
 

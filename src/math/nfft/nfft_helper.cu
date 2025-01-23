@@ -54,9 +54,9 @@ void NfftHelper<REAL>::set(int nb, const int nc, const int* add_r, int lda, cons
     host_helper.one_div_delta_t_window_ = 1. / delta_t_window;
 
     if constexpr (std::is_same_v<Real, double>)
-      cudaMemcpyToSymbol(HIP_SYMBOL(nfft_helper_double), &host_helper, sizeof(NfftHelper<double>));
+      checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(nfft_helper_double), &host_helper, sizeof(NfftHelper<double>)));
     else if constexpr (std::is_same_v<Real, float>)
-      cudaMemcpyToSymbol(HIP_SYMBOL(nfft_helper_float), &host_helper, sizeof(NfftHelper<float>));
+      checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(nfft_helper_float), &host_helper, sizeof(NfftHelper<float>)));
   });
 }
 

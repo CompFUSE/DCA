@@ -38,7 +38,7 @@ void SolverHelper::set(const int* add_r, int lda, const int* sub_r, int lds, con
     host_helper.subdm_step_[0] = nb;
     host_helper.subdm_step_[1] = nb * nb;
 
-    checkRC(cudaMemcpyToSymbol(solver_helper, &host_helper, sizeof(SolverHelper)));
+    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(solver_helper), &host_helper, sizeof(SolverHelper)));
     initialized_ = true;
   });
 }

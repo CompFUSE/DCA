@@ -77,12 +77,12 @@ void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
 #endif
 
   size_t g4_helper_size;
-  checkRC(cudaGetSymbolSize(&g4_helper_size, g4_helper));
+  checkRC(cudaGetSymbolSize(&g4_helper_size, HIP_SYMBOL(g4_helper)));
   assert(g4_helper_size == sizeof(G4Helper));
 
-  checkRC(cudaMemcpyToSymbol(w_ex_indices_actual, &host_helper.w_ex_indices_, sizeof(int*)));
-  checkRC(cudaMemcpyToSymbol(k_ex_indices_actual, &host_helper.k_ex_indices_, sizeof(int*)));
-  checkRC(cudaMemcpyToSymbol(g4_helper, &host_helper, sizeof(G4Helper)));
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(w_ex_indices_actual), &host_helper.w_ex_indices_, sizeof(int*)));
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(k_ex_indices_actual), &host_helper.k_ex_indices_, sizeof(int*)));
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(g4_helper), &host_helper, sizeof(G4Helper)));
   checkRC(cudaDeviceSynchronize());
 }
 
