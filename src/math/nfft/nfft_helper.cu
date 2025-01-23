@@ -38,7 +38,9 @@ void NfftHelper<REAL>::set(int nb, const int nc, const int* add_r, int lda, cons
                            const REAL delta_t_window, const REAL beta) {
   static std::once_flag flag;
   std::call_once(flag, [=]() {
-    dca::phys::solver::details::ClusterHelper::set(nc, add_r, lda, sub_r, lds, false);
+    // Initialize real space cluster \todo this should be done somewhere definite instead of via call_once from multiple places
+    // other is SolverHelper.
+    dca::phys::solver::details::ClusterHelper::set(nc, add_r, lda, sub_r, lds);
 
     NfftHelper host_helper;
 

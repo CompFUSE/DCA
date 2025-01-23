@@ -32,13 +32,13 @@ void SolverHelper::set(const int* add_r, int lda, const int* sub_r, int lds, con
   static std::once_flag flag;
   std::call_once(flag, [&] {
     // Initialize real space cluster.
-                         ClusterHelper::set(nc, add_r, lda, sub_r, lds, 0);
+                         ClusterHelper::set(nc, add_r, lda, sub_r, lds);
 
     SolverHelper host_helper;
     host_helper.subdm_step_[0] = nb;
     host_helper.subdm_step_[1] = nb * nb;
 
-    cudaMemcpyToSymbol(solver_helper, &host_helper, sizeof(SolverHelper));
+    checkRC(cudaMemcpyToSymbol(solver_helper, &host_helper, sizeof(SolverHelper)));
     initialized_ = true;
   });
 }
