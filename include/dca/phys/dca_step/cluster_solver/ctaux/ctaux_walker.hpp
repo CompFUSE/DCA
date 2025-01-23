@@ -853,13 +853,13 @@ int CtauxWalker<device_t, Parameters, Data>::generateDelayedSpinsAbortAtBennett(
     }
   }
 
-#ifndef NDEBUG
-  if (delayed_spins.size() > max_num_delayed_spins) {
-    std::cout << "Delayed spins = " << delayed_spins.size() << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
-    if (delayed_spins.size() >= 256)
-      throw std::runtime_error("delayed spins hit 256 or greater bailing out!");
-  }
-#endif
+// #ifndef NDEBUG
+//   if (delayed_spins.size() > max_num_delayed_spins) {
+//     std::cout << "Delayed spins = " << delayed_spins.size() << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
+//     if (delayed_spins.size() >= 256)
+//       throw std::runtime_error("delayed spins hit 256 or greater bailing out!");
+//   }
+// #endif
   // We need to unmark all "virtual" interacting spins, that we have temporarily marked as
   // annihilatable in CT_AUX_HS_configuration::get_random_noninteracting_vertex().
   // TODO: Eliminate the need to mark and unmark these spins.
@@ -870,11 +870,11 @@ int CtauxWalker<device_t, Parameters, Data>::generateDelayedSpinsAbortAtBennett(
   assert(single_spin_updates_proposed ==
          currently_proposed_creations_ + currently_proposed_annihilations_ + num_statics);
 
-#ifndef NDEBUG
-  if (single_spin_updates_proposed >= max_num_delayed_spins) {
-    std::cout << "single_spin_updates_proposed = " << single_spin_updates_proposed << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
-  }
-#endif
+// #ifndef NDEBUG
+//   if (single_spin_updates_proposed >= max_num_delayed_spins) {
+//     std::cout << "single_spin_updates_proposed = " << single_spin_updates_proposed << "  max_num_delayed_spins = " << max_num_delayed_spins << '\n';
+//   }
+// #endif
 
   return single_spin_updates_proposed;
 }
