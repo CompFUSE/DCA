@@ -29,8 +29,10 @@ namespace details {
 
 class ClusterHelper {
 public:
-  // Initialize real reciprocal cluster if mometnum == true.
-  static void set(int nc, const int* add, int lda, const int* sub, int lds, bool momentum);
+  /// Initialize real Cluster
+  static void set(int nc, const int* add, int lda, const int* sub, int lds);
+  /// Initialize reciprocal cluster 
+  static void setMomentum(int nc, const int* add, int lda, const int* sub, int lds);
 
   // Returns the index of id_1 + id_2.
   __DEVICE__ inline int add(int id_1, int id_2) const;
@@ -39,11 +41,13 @@ public:
   // returns the index of -id
   __DEVICE__ inline int minus(int id) const;
 
-private:
   int nc_;
   const int* add_matrix_;
   const int* sub_matrix_;
 };
+
+extern __CONSTANT__ int* cluster_add_matrix;
+extern __CONSTANT__ int* cluster_sub_matrix;
 
 // Global instance for real space and momentum clusters.
 extern __DEVICE__ __CONSTANT__ ClusterHelper cluster_real_helper;

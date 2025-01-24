@@ -10,6 +10,7 @@
 // This file implements G4Helper::set.
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
+#include "dca/platform/dca_gpu.h"
 
 #include <algorithm>
 #include <array>
@@ -27,12 +28,14 @@ namespace details {
 // dca::phys::solver::accumulator::details::
 
 __device__ __constant__ G4Helper g4_helper;
+__CONSTANT__ int* w_ex_indices_actual;
+__CONSTANT__ int* k_ex_indices_actual;
 
 void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
-                   const std::vector<int>& delta_w, const int extension_offset, const int* add_k, int lda, const int* sub_k,
-                   int lds) {
+                   const std::vector<int>& delta_w, const int extension_offset, const int* add_k,
+                   int lda, const int* sub_k, int lds) {
   // Initialize the reciprocal cluster if not done already.
-  solver::details::ClusterHelper::set(nk, add_k, lda, sub_k, lds, true);
+  solver::details::ClusterHelper::setMomentum(nk, add_k, lda, sub_k, lds);
 
   G4Helper host_helper;
   host_helper.nb_ = nb;
@@ -62,17 +65,25 @@ void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
     host_helper.sbdm_steps_[i] = host_helper.sbdm_steps_[i - 1] * sizes[i - 1];
 
   cudaMalloc(&host_helper.w_ex_indices_, sizeof(int) * delta_w.size());
-  cudaMemcpy(const_cast<int*>(host_helper.w_ex_indices_), delta_w.data(),
-             sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
+  checkRC(cudaMemcpy(const_cast<int*>(host_helper.w_ex_indices_), delta_w.data(),
+                     sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice));
 
   cudaMalloc(&host_helper.k_ex_indices_, sizeof(int) * delta_k.size());
-  cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), delta_k.data(),
-             sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
+  checkRC(cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), delta_k.data(),
+                     sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice));
 
 #ifndef NDEBUG
-  cudaMalloc(&host_helper.bad_indicies_, sizeof(int) * 1024);
+  checkRC(cudaMalloc(&host_helper.bad_indicies_, sizeof(int) * 1024));
 #endif
-  cudaMemcpyToSymbol(g4_helper, &host_helper, sizeof(G4Helper));
+
+  size_t g4_helper_size;
+  checkRC(cudaGetSymbolSize(&g4_helper_size, HIP_SYMBOL(g4_helper)));
+  assert(g4_helper_size == sizeof(G4Helper));
+
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(w_ex_indices_actual), &host_helper.w_ex_indices_, sizeof(int*)));
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(k_ex_indices_actual), &host_helper.k_ex_indices_, sizeof(int*)));
+  checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(g4_helper), &host_helper, sizeof(G4Helper)));
+  checkRC(cudaDeviceSynchronize());
 }
 
 __device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
