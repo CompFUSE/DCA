@@ -270,6 +270,7 @@ TEST(ReaderWriterTest, NonAccessibleFile) {
     dca::io::Writer writer(*concurrency_ptr, type);
     H5::Exception::dontPrint();
     // Exception type doesn't seem portable
+
     if (type != "ADIOS2")
       EXPECT_ANY_THROW(writer.open_file("not_existing_directory/file.txt"));
 
