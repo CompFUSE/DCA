@@ -190,7 +190,6 @@ template <typename scalar_type>
 void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
-  // Should this one get changed too?
   MPI_Allreduce(&value, &result, 1, MPITypeMap<scalar_type>::value(), MPI_SUM,
                 MPIProcessorGrouping::get());
 
@@ -576,24 +575,11 @@ void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) cons
   for (std::size_t start = 0; start < n; start += max_size) {
     const int msg_size = std::min(n - start, max_size);
     if (root_id == -1) {
-      // MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
-      //               MPIProcessorGrouping::get());
-
-      // If we aren't directed to reduce to a particular rank reduce to 0 and bcast manually
-      // we're looking at the possibility that frontier has issues with Allreduce in certain special cases.
-      MPI_Reduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM, 0,
-                 MPIProcessorGrouping::get());
+      MPI_Allreduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM,
+                    MPIProcessorGrouping::get());
     }
     else {
       MPI_Reduce(in + start, out + start, msg_size, MPITypeMap<T>::value(), MPI_SUM, root_id,
-                 MPIProcessorGrouping::get());
-    }
-  }
-
-  if (root_id == -1) {
-    for (std::size_t start = 0; start < n; start += max_size) {
-      const int msg_size = std::min(n - start, max_size);
-      MPI_Bcast(out + start, msg_size, MPITypeMap<T>::value(), 0,
                  MPIProcessorGrouping::get());
     }
   }

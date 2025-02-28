@@ -27,6 +27,10 @@
 #include "dca/io/writer.hpp"
 
 int dca_main(int argc, char** argv) {
+#ifdef DCA_HAVE_GPU
+  dca::linalg::util::initializeMagma();
+#endif  // DCA_HAVE_GPU
+
   Concurrency concurrency(argc, argv);
 
   try {
@@ -59,9 +63,6 @@ int dca_main(int argc, char** argv) {
           << std::endl;
     }
 
-#ifdef DCA_HAVE_GPU
-    dca::linalg::util::initializeMagma();
-#endif  // DCA_HAVE_GPU
 
     // Create the parameters object from the input file.
     ParametersType parameters(dca::util::GitVersion::string(), concurrency);
