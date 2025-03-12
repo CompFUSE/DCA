@@ -12,6 +12,7 @@
 // This file implements hdf5_reader.hpp.
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/filesystem.hpp"
 #include "ModernStringUtils.hpp"
 #include "hdf5.h"
 #include <fstream>
@@ -38,23 +39,21 @@ long HDF5Reader::getStepCount() {
 }
 
 void HDF5Reader::open_file(std::string file_name) {
-  {  // check whether the file exists ...
-    std::wifstream tmp(file_name.c_str());
+  if (file_)
+    throw std::logic_error(__FUNCTION__);
 
-    try {
-      if (!tmp or !tmp.good() or tmp.bad()) {
-        throw std::runtime_error("Cannot open file : " + file_name);
-      }
-      else if (verbose_) {
-        std::cout << "\n\n\topening file : " << file_name << "\n";
-      }
-    }
-    catch (const std::exception& ex) {
-      throw std::runtime_error("Cannot open file : " + file_name);
-    }
+  try {
+    if (filesystem::exists(file_name))
+      file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDONLY);
+    else
+      throw std::runtime_error("Cannot open file: " + file_name + " to read, it is not found!");
+
+    if (verbose_)
+      std::cout << "\n\n\topening file : " << file_name << "\n";
   }
-
-  file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_RDONLY);
+  catch (const std::exception& ex) {
+    throw std::runtime_error("Cannot open file : " + file_name);
+  }
 }
 
 void HDF5Reader::close_file() {
@@ -157,14 +156,14 @@ bool HDF5Reader::exists(const std::string& name) const {
 
 bool HDF5Reader::buildCheckedFullName(const std::string& name, std::string& full_name) const {
   full_name = get_path();
-  auto parts = modernstrutil::split(name, "/");				    
+  auto parts = modernstrutil::split(name, "/");
   std::string part_wise_name;
   bool is_found = false;
-  for(auto part : parts) {
+  for (auto part : parts) {
     part_wise_name += std::string{"/"} + std::string{part};
     std::string tmp_string = full_name + part_wise_name;
     is_found = exists(tmp_string);
-    if(!is_found)
+    if (!is_found)
       return false;
   }
   full_name += part_wise_name;

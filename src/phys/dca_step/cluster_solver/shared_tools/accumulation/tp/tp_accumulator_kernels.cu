@@ -36,7 +36,7 @@ namespace details {
 // dca::phys::solver::accumulator::details::
 
 #undef DEBUG_G4_GPU
-  
+
 using namespace linalg;
 using dca::util::ComplexAlias;
 using dca::util::castGPUType;
@@ -140,7 +140,7 @@ __global__ void computeGMultibandKernel(GPUComplex<Real>* __restrict__ G, int ld
   // 		       id -= b * nb;
   // 		       k = id / nw;
   // 		       w = id - k * nk;
-  
+
   auto get_indices = [=](int id, int& b, int& k, int& w) {
     w = id / no;
     id -= w * no;
@@ -745,7 +745,7 @@ double updateG4(Scalar* G4, const Scalar* G_up, const int ldgu, const Scalar* G_
       throw(std::logic_error("Invalid mode"));
   }
 }
-  
+
 template <typename Scalar, FourPointType type, typename SignType>
 __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
                                      const GPUComplex<RealAlias<Scalar>>* __restrict__ G_dn,
@@ -901,7 +901,7 @@ double updateG4NoSpin(Scalar* G4, const Scalar* G_dn, const int ldgd, const Sign
   }
 }
 
-  
+
 // Explicit instantiation.
 template void computeGSingleband<float>(std::complex<float>* G, int ldg,
                                         const std::complex<float>* G0, int nk, int nw,

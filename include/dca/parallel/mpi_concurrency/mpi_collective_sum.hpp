@@ -626,7 +626,7 @@ inline void MPICollectiveSum::resolveSums() {
     return resolveSumsImplementation<float>();
   else if (current_type_ == MPI_CHAR)
     return resolveSumsImplementation<char>();
-  //else if (current_type_ == MPI_BYTE)
+  // else if (current_type_ == MPI_BYTE)
   else if (current_type_ == MPI_UNSIGNED_CHAR)
     return resolveSumsImplementation<std::uint8_t>();
   else if (current_type_ == MPI_SHORT)

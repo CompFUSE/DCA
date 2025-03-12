@@ -39,6 +39,7 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
   }
   } catch (const H5::Exception& exc) {
     std::cerr << exc.getDetailMsg() << '\n';
+    throw std::runtime_error("Failed to open HDF5 file: " + file_name + " for write!");
   }
   file_id_ = file_->getId();
 }

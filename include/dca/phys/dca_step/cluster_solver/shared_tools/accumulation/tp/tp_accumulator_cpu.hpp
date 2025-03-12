@@ -59,7 +59,7 @@ public:
   using Base = TpAccumulatorBase<Parameters, DT>;
 
   using Real = typename Parameters::Real;
-  
+
   using typename Base::NuDmn;
   using typename Base::TpPrecision;
   using typename Base::TpComplex;
@@ -647,7 +647,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                                   w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
                     // getGMultiband(0, k2, k1, w2, w1, G_a_);
                     // getGMultiband(0, q_minus_k(k2, k_ex), q_minus_k(k1, k_ex),
-                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_); 
+                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_);
                    for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
@@ -752,7 +752,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4Atomic(
     // Assuming 0 = down 1 = up
     //G_a = G[s_a]
     //G_b = G[d_b]
-      
+
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)
         for (int b3 = 0; b3 < n_bands_; ++b3)
@@ -810,7 +810,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
     // So G_a_ and G_b_ are accumulating over both spins for each band combination
     getGMultiband(0, k1_a, k2_a, w1_a, w2_a, G_a_);
     getGMultiband(1, k1_a, k2_a, w1_a, w2_a, G_a_, sign);
-   
+
     getGMultiband(0, k1_b, k2_b, w1_b, w2_b, G_b_);
     getGMultiband(1, k1_b, k2_b, w1_b, w2_b, G_b_, sign);
     // Assuming 0 = down 1 = up
@@ -820,7 +820,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::updateG4SpinDifference(
     // if sign == -1
     // G_a_ = G_down(k1_a, k2_a, w1_a, w2_a) - G_up(k1_a, k2_a, w1_a, w2_a)
     // G_b_ = G_down(k1_b, k2_b, w1_b, w2_b) - G_up(k1_b, k2_b, w1_b, w2_b)
-    
+
     if (!cross_legs)
       for (int b4 = 0; b4 < n_bands_; ++b4)
         for (int b3 = 0; b3 < n_bands_; ++b3)

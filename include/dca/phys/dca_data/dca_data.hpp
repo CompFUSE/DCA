@@ -348,14 +348,36 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
     read(reader);
     reader.close_file();
   }
+
   concurrency_.broadcast(parameters_.get_chemical_potential());
+#ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted chemical potential: " << parameters_.get_chemical_potential() << '\n';
+  }
+#endif
   concurrency_.broadcast_object(Sigma);
+#ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted Sigma \n";
+  }
+#endif
 
   if (parameters_.isAccumulatingG4()) {
     concurrency_.broadcast_object(G_k_w);
+#ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted G_k_w \n";
+  }
+#endif
 
-    for (auto& G4_channel : G4_)
+  for (auto& G4_channel : G4_) {
       concurrency_.broadcast_object(G4_channel);
+#ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted G4_channel \n";
+  }
+#endif
+  }
   }
 }
 
@@ -533,6 +555,7 @@ void DcaData<Parameters, DT>::initializeH0_and_H_i() {
     for (int nu2 = 0; nu2 < NuDmn::dmn_size(); ++nu2)
       for (int nu1 = 0; nu1 < NuDmn::dmn_size(); ++nu1) {
         if (std::abs(H_interactions(nu1, nu2, r) - H_interactions(nu2, nu1, minus_r)) > 1e-8) {
+          std::cout << r << " , " << minus_r << " , " << H_interactions(nu1, nu2, r) << " , " << H_interactions(nu2, nu1, minus_r) << "\n";
           throw(std::logic_error("Double counting is not consistent."));
         }
       }
@@ -636,7 +659,17 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     }
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
+  #ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted chemical potential: " << parameters_.get_chemical_potential();
+  }
+#endif
   concurrency_.broadcast(Sigma);
+  #ifndef NDEBUG
+  if (concurrency_.id() == concurrency_.first()) {
+    std::cout << "broadcasted Sigma \n";
+  }
+#endif
 }
 
 template <class Parameters, DistType DT>

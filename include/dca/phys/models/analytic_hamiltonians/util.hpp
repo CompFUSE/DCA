@@ -63,6 +63,7 @@ void initializeSingleBandHint(
     }
   }
 
+
   // Set all elements to zero.
   H_int = 0.;
 
