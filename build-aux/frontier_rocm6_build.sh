@@ -10,6 +10,8 @@ cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DBLAS_ROOT=${OPENBLAS_ROOT} \
       -DDCA_WITH_TESTS_FAST=ON \
       -DTEST_RUNNER="srun" \
+      -DHDF5_ROOT=${HDF5_ROOT}\
+      -DHDF5_NO_FIND_PACKAGE_CONFIG_FILE=false \
       -DGPU_TARGETS=gfx90a \
       -DAMDGPU_TARGETS=gfx90a \
       -DCMAKE_C_COMPILER=mpicc \
