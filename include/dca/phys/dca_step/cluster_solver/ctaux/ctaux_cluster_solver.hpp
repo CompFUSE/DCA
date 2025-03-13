@@ -163,7 +163,7 @@ protected:
 
   G0Interpolation<device, Scalar> g0_;
 
-  Walker::Resource dummy_walker_resource_;
+  typename Walker::Resource dummy_walker_resource_;
 private:
   Rng rng_;
 

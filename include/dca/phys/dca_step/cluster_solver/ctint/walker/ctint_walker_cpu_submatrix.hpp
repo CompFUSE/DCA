@@ -64,6 +64,7 @@ public:
   using BaseClass::order;
 
   void setMFromConfig() override;
+
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
@@ -83,8 +84,6 @@ protected:
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
   void mainSubmatrixProcess();
-
-  void markThermalized() override;
 
   void updateM() override;
 
@@ -209,24 +208,6 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixCpu<Parameters, DIST>::setMFromConfig() {
   BaseClass::setMFromConfigImpl(d_matrix_builder_);
   transformM();
-}
-
-template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters,DIST>::markThermalized() {
-  thermalized_ = true;
-
-  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
-  thermalization_steps_ = n_steps_;
-
-  order_avg_.reset();
-  sign_avg_.reset();
-  n_accepted_ = 0;
-
-  // Recompute the Monte Carlo weight.
-  setMFromConfig();
-#ifndef NDEBUG
-  //writeAlphas();
-#endif
 }
 
 // Extend M by adding non-interacting vertices.

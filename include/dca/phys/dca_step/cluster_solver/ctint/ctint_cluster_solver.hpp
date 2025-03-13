@@ -207,7 +207,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::integrate() {
-  walker_ = std::make_unique<Walker>(parameters_, data_, rng_, d_matrix_builder_, 0);
+  walker_ = std::make_unique<Walker>(parameters_, data_, rng_, *d_matrix_builder_, 0);
   walker_->initialize(dca_iteration_);
 
   dca::profiling::WallTime start_time;
