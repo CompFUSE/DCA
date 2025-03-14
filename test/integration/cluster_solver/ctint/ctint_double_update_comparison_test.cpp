@@ -95,11 +95,13 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     x = rng();
   RngType rng1(rng_vals), rng2(rng_vals);
 
-  DMatrixBuilder<dca::linalg::CPU> d_matrix_builder_(g0, bands, RDmn());
+  using RDmn = typename Parameters::RClusterDmn;
+  
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_(g0, Parameters::lattice_type::BANDS, RDmn());
   Walker walker1(parameters, rng1, d_matrix_builder_);
 
   parameters.setMaxSubmatrixSize(16);
-  DMatrixBuilder<dca::linalg::CPU> d_matrix_builder_2(g0, bands, RDmn());
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_2(g0, Parameters::lattice_type::BANDS, RDmn());
   WalkerSubmatrix walker2(parameters, rng2, d_matrix_builder_2);
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
