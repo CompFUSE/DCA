@@ -1,6 +1,6 @@
-
 cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DFFTW_ROOT=$FFTW_PATH \
+      -DDCA_WITH_ADIOS2=OFF \
       -DDCA_FIX_BROKEN_MPICH=ON \
       -DROCM_ROOT=${ROCM_PATH} \
       -DMAGMA_ROOT=${MAGMA_ROOT} \
@@ -12,8 +12,9 @@ cmake -DDCA_WITH_CUDA=off -DDCA_WITH_HIP=ON \
       -DAMDGPU_TARGETS=gfx90a \
       -DCMAKE_C_COMPILER=mpicc \
       -DCMAKE_CXX_COMPILER=mpic++ \
-      -DCMAKE_HIP_COMPILER=/opt/rocm-5.3.0/llvm/bin/clang++ \
+      -DCMAKE_HIP_COMPILER=/opt/rocm-6.3.1/llvm/bin/clang++ \
       -DCMAKE_INSTALL_PREFIX=$INST \
       -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}" \
+      -DCMAKE_HIP_LINK_FLAGS=--hip-link \
       -GNinja \
       ..

@@ -54,7 +54,8 @@ const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/s
 
 using TestConcurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
-using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
+// This test will end up testing whatever lattice you've selected as DCA_LATTICE
+//using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, Threading, dca::profiling::NullProfiler, Model,

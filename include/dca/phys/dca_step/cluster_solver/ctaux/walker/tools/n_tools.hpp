@@ -334,6 +334,11 @@ void N_TOOLS<device_t, Parameters>::update_N_matrix(configuration_type& configur
     int LD_G0 = G0_times_exp_V_minus_one.leadingDimension();
     int LD_N = N.leadingDimension();
 
+    // Sometimes this segfaults on Frontier.
+    // \todo turn this into an assert
+    if (LD_N < 0 || LD_G0 < 0 || m < 0 || k < 0 || n < 0 || first_shuffled_vertex_index >= N.getActualSize())
+      throw std::runtime_error("gemm getting called with bad vars in N_TOOLS<device_t, Parameters>::update_N_matrix(configuration_type& configuration)");
+
     dca::linalg::blas::UseDevice<device_t>::gemm(
         "N", "N", m, n, k, Scalar(1.), G0_times_exp_V_minus_one.ptr(), LD_G0, N.ptr(), LD_N,
         Scalar(0.), &N.ptr()[first_shuffled_vertex_index], LD_N, thread_id, stream_id);
@@ -378,15 +383,12 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
 
   {  // get the rows of N corresponding to the new spins => N_new_spins
     // profiler_t profiler(concurrency, "(a) resize N && copy rows", __FUNCTION__, __LINE__, true);
-
     N_new_spins.resizeNoCopy(std::pair<int, int>(Gamma_size, configuration_size));
-
     N_MATRIX_TOOLS<device_t, Parameters>::copy_rows(N, N_new_spins);
   }
 
   {  // get the columns of G corresponding to the new spins => G_new_spins
     // profiler_t profiler(concurrency, "(b) resize G && copy cols", __FUNCTION__, __LINE__, true);
-
     G.resizeNoCopy(std::pair<int, int>(configuration_size, Gamma_size));
 
     auto& exp_V = e_spin == e_UP ? exp_V_[0] : exp_V_[1];
@@ -399,7 +401,6 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
 
   {  // Gamma_LU * X = N(p_k,:) --> X = Gamma_inv_times_N_new_spins ==> (stored in N_new_spins)
     // profiler_t profiler(concurrency, "(c) LU-solve", __FUNCTION__, __LINE__, true);
-
     dca::linalg::matrixop::trsm('L', 'U', Gamma, N_new_spins, thread_id, stream_id);
     dca::linalg::matrixop::trsm('U', 'N', Gamma, N_new_spins, thread_id, stream_id);
 
@@ -409,6 +410,9 @@ void N_TOOLS<device_t, Parameters>::rebuild_N_matrix_via_Gamma_LU(
   {  // do N - G*Gamma_inv_times_N_new_spins --> N  || DGEMM --> work-horsegg
     // profiler_t profiler(concurrency, "(d) dgemm", __FUNCTION__, __LINE__, true);
     // N gets updated here.
+    if (G.nrRows() != N.nrRows() || N_new_spins.nrCols() != N.nrCols() || G.nrCols() != N_new_spins.nrRows())
+      throw std::runtime_error("bad sizes for G, N_new_spins, N. throwing before segfaulting!");
+
     dca::linalg::matrixop::gemm(Scalar(-1.), G, N_new_spins, Scalar(1.), N, thread_id, stream_id);
 
     GFLOP +=

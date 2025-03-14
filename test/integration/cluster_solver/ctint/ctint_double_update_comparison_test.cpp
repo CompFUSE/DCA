@@ -35,6 +35,7 @@ using McOptions = MockMcOptions<Scalar>;
 #include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/parallel//no_concurrency/no_concurrency.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper_submatrix.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -88,19 +89,20 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
 
-  initializeWalkerStatic<Walker>(g0, parameters, data);
-  initializeWalkerStatic<WalkerSubmatrix>(g0, parameters, data);
-
   RealRng rng(0, 1);
   std::vector<double> rng_vals(10000);
   for (auto& x : rng_vals)
     x = rng();
   RngType rng1(rng_vals), rng2(rng_vals);
 
-  Walker walker1(parameters, rng1);
+  using RDmn = typename Parameters::RClusterDmn;
+  
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_(g0, Parameters::lattice_type::BANDS, RDmn());
+  Walker walker1(parameters, rng1, d_matrix_builder_);
 
   parameters.setMaxSubmatrixSize(16);
-  WalkerSubmatrix walker2(parameters, rng2);
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_2(g0, Parameters::lattice_type::BANDS, RDmn());
+  WalkerSubmatrix walker2(parameters, rng2, d_matrix_builder_2);
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 

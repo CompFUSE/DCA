@@ -210,9 +210,13 @@ void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, const
   try {
     checkRC(ret);
   }
+  catch (const std::exception& exc) {
+    std::cerr << "memoryCopyAsync caught an exception: " << exc.what() << '\n';
+    throw std::runtime_error("memoryCopyAsync has failed!");
+  }
   catch (...) {
     std::cout << "Failed memorycopy!\n";
-    throw;
+    throw std::runtime_error("memoryCopyAsync has failed with an unknown exception!");
   }
 }
 

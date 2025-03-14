@@ -75,6 +75,11 @@ public:
    */
   CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, Resource& resource, int id);
 
+  /** original single threaded  constructor.
+   *  used for testing
+   */
+  CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref, Rng& rng_ref, int id);
+
   void initialize(int iteration);
 
   bool is_thermalized() const {
@@ -449,6 +454,71 @@ CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref,
   }
 }
 
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+CtauxWalker<device_t, Parameters, Data>::CtauxWalker(Parameters& parameters_ref, Data& MOMS_ref,
+                                                     Rng& rng_ref, int id)
+    : WalkerBIT<Parameters, Data>(parameters_ref, MOMS_ref, id),
+      CtauxWalkerData<device_t, Parameters>(parameters_ref, id),
+      parameters_(parameters_ref),
+
+      data_(MOMS_ref),
+      concurrency_(parameters_.get_concurrency()),
+
+      thread_id(id),
+      stream_id(0),
+
+      CV_obj(parameters_ref),
+      ctaux_tools(CtauxWalkerData<device_t, Parameters>::MAX_VERTEX_SINGLETS *
+                  parameters_.get_max_submatrix_size()),
+
+      rng(rng_ref),
+
+      configuration_(parameters_, rng),
+
+      G0_tools_obj(thread_id, parameters_),
+      N_tools_obj(thread_id, parameters_, CV_obj),
+      G_tools_obj(thread_id, parameters_, CV_obj),
+
+      SHRINK_tools_obj(thread_id),
+
+      Gamma_up_CPU("Gamma_up_CPU", Gamma_up.size(), Gamma_up.capacity()),
+      Gamma_dn_CPU("Gamma_dn_CPU", Gamma_dn.size(), Gamma_dn.capacity()),
+
+      warm_up_sweeps_done_(0),
+      warm_up_expansion_order_(),
+      num_delayed_spins_(),
+
+      Gamma_up_diag_max(1),
+      Gamma_up_diag_min(1),
+      Gamma_dn_diag_max(1),
+      Gamma_dn_diag_min(1),
+
+      stored_Gamma_up_CPU("stored_Gamma_up_CPU", Gamma_up.size(), Gamma_up.capacity()),
+      stored_Gamma_dn_CPU("stored_Gamma_dn_CPU", Gamma_dn.size(), Gamma_dn.capacity()),
+
+      random_vertex_vector(0),
+      HS_current_move_vector(0),
+      new_HS_spin_value_vector(0),
+
+      annihilation_proposal_aborted_(false),
+      aborted_vertex_id_(0),
+
+      thermalized_(false),
+      Bennett(false),
+      mc_log_weight_constant_(
+          std::log(parameters_.get_expansion_parameter_K() / (2. * parameters_.get_beta()))),
+
+      config_initialized_(false) {
+  if (concurrency_.id() == 0 and thread_id == 0) {
+    std::cout << "\n\n"
+              << "\t\t"
+              << "CT-AUX walker test"
+              << "\n\n";
+  }
+}
+
+  
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 void CtauxWalker<device_t, Parameters, Data>::printSummary() const {
   // std::defaultfloat is only supported by GCC 5 or later.
