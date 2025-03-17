@@ -35,7 +35,7 @@ class StdThreadQmciWalker final
   using Concurrency = typename Parameters::concurrency_type;
   using Rng = typename Parameters::random_number_generator;
   using Real = typename QmciWalker::Scalar;
-  using WalkerResource = QmciWalker::Resource;
+  using WalkerResource = typename QmciWalker::Resource;
   
   constexpr static auto device = QmciWalker::device;
   constexpr static int bands = Parameters::bands;

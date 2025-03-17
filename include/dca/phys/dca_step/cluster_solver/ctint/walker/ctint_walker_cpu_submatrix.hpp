@@ -155,7 +155,6 @@ protected:
   using SubmatrixBase::n_init_;
   using SubmatrixBase::D_;
   using SubmatrixBase::G_;
-  using SubmatrixBase::M_;
   using SubmatrixBase::s_;
   using SubmatrixBase::Gamma_indices_;
   using SubmatrixBase::Gamma_inv_;

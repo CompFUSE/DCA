@@ -117,7 +117,7 @@ public:
     return g0_;
   };
 
-  Walker::Resource& getResource() { return dummy_walker_resource_; };
+  typename Walker::Resource& getResource() { return dummy_walker_resource_; };
 
 protected:
   void warmUp(Walker& walker);
