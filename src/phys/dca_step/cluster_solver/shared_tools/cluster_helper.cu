@@ -91,7 +91,7 @@ void ClusterHelper::setMomentum(int nc, const int* add, int lda, const int* sub,
     assert(cluster_helper_size == sizeof(ClusterHelper));
     checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_helper), &host_helper, sizeof(ClusterHelper)));
     checkRC(cudaDeviceSynchronize());
-#ifndef NDEBUG
+#ifdef DEBUG_CLUSTER_HELPER
     checkClusterMomentumHelper<<<1, 1, 0, 0>>>(nc, lds);
 #endif
   });
@@ -132,7 +132,7 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
     checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_real_helper), &host_helper, cluster_helper_size));
     checkRC(cudaDeviceSynchronize());
 
-#ifndef NDEBUG
+#ifdef DEBUG_CLUSTER_HELPER
     checkClusterHelper<<<1, 1, 0, 0>>>(nc, lds);
 #endif
   });

@@ -154,6 +154,7 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
   if (std::abs(max_ref - max) < 1.e-12)
     return true;
   else {
+#ifndef NDEBUG
     std::cout << __FUNCTION__ << " for Gamma_LU has failed.!\n";
     std::cout.precision(16);
     std::cout << "\n\t n : " << n << "\n";
@@ -178,7 +179,7 @@ bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU, Scalar>::test_max_min(
     std::cout << std::endl;
 
     // Gamma_LU.print();
-
+#endif
     return false;
   }
 }

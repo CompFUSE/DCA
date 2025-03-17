@@ -271,7 +271,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   }
   catch (std::exception& err) {
     print_metadata();
-    throw;
+    throw std::runtime_error("Exception emitted from future!");
   }
 
   print_metadata();
