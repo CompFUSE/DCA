@@ -10,6 +10,7 @@
 module reset
 module load cpe/24.11
 module load rocm/6.3.1
+module load Core/24.07
 module load openblas/0.3.26
 module load cray-hdf5
 module load cmake

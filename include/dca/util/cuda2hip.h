@@ -177,7 +177,7 @@
 #define cudaStreamSynchronize           hipStreamSynchronize
 #define cudaStreamWaitEvent             hipStreamWaitEvent
 #define cudaStreamLegacy                hipStreamLegacy
-#define hipStreamLegacy 0
+
 #define cudaSuccess                     hipSuccess
 #define cuFloatComplex                  magmaFloatComplex
 #define cuDoubleComplex                 magmaDoubleComplex
