@@ -36,6 +36,6 @@ void setVectorElements(Vector& vec, F& func) {
     vec[i] = func(i);
   }
 }
-}  // testing
+}  // namespace testing
 
-#endif  // DCA_TEST_UNIT_LINALG_CPU_TEST_UTIL_HPP
+#endif

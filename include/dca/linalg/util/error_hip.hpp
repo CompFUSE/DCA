@@ -58,7 +58,8 @@ inline void checkRCInternal(cudaError_t return_code, std::string function_name,
                             std::string file_name, int line, std::string extra_error_string = "") {
   if (return_code != cudaSuccess) {
     printErrorMessage(return_code, function_name, file_name, line, extra_error_string);
-    throw std::logic_error(function_name);
+    //\todo would be better to throw nested_exception
+    throw std::runtime_error(function_name + extra_error_string);
   }
 }
   
