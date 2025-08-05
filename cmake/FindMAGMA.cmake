@@ -4,7 +4,7 @@ if(TARGET magma::magma)
 endif()
 
 find_path(MAGMA_INCLUDE_DIR
-  NAMES "magma.h"
+  NAMES "magma_v2.h"
   DOC "Magma include directory")
 
 find_library(MAGMA_LIBRARY
@@ -19,7 +19,7 @@ mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(MAGMA
                                   REQUIRED_VARS MAGMA_LIBRARY MAGMA_sparse_LIBRARY MAGMA_INCLUDE_DIR)
-                                
+
 if(MAGMA_FOUND)
   set(MAGMA_LIBRARIES ${MAGMA_LIBRARY} ${MAGMA_sparse_LIBRARY})
   set(MAGMA_INCLUDE_DIRS ${MAGMA_INCLUDE_DIR})
@@ -42,5 +42,5 @@ if(MAGMA_FOUND)
       IMPORTED_LOCATION "${MAGMA_sparse_LIBRARY}")
     target_link_libraries(magma::sparse INTERFACE ${DCA_GPU_LIBS})
     message("Added magma::sparse target")
-  endif()  
+  endif()
 endif()
