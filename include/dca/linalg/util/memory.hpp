@@ -108,7 +108,7 @@ struct Memory<GPU> {
   }
 
 
-  
+
 
   // Do nothing for non arithmetic types.
   template <typename ScalarType>
@@ -123,10 +123,7 @@ struct Memory<GPU> {
   template <typename ScalarType>
   static void setToZero(ScalarType* ptr, size_t size, const GpuStream& stream) {
     checkRC(cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream));
-    cudaEvent_t zero_event;
-    checkRC(cudaEventCreateWithFlags(&zero_event, cudaEventBlockingSync));
-    checkRC(cudaEventRecord(zero_event, stream));
-    checkRC(cudaEventSynchronize(zero_event));
+    checkRC(cudaStreamSynchronize(stream));
   }
 };
 #endif  // DCA_HAVE_GPU
