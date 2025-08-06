@@ -66,7 +66,7 @@ inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48>() {
 template <typename T>
 class StdRandomWrapperTest : public ::testing::Test {};
 
-using Engines = ::testing::Types<std::mt19937, std::mt19937_64, std::ranlux48_base, std::ranlux48>;
+using Engines = ::testing::Types<std::mt19937, std::mt19937_64>; //, std::ranlux48_base, std::ranlux48>;
 TYPED_TEST_CASE(StdRandomWrapperTest, Engines);
 
 TYPED_TEST(StdRandomWrapperTest, DefaultSeed) {

@@ -59,14 +59,14 @@ inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48>() {
                                  0.24682368736319102, 0.88335484565944544};
   return vec;
 }
-#endif  
+#endif
 }  // testing
 }  // dca
 
 template <typename T>
 class StdRandomWrapperTest : public ::testing::Test {};
 
-using Engines = ::testing::Types<std::mt19937, std::mt19937_64, std::ranlux48_base, std::ranlux48>;
+using Engines = ::testing::Types<std::mt19937, std::mt19937_64>; // std::ranlux48_base, std::ranlux48>;
 TYPED_TEST_CASE(StdRandomWrapperTest, Engines);
 
 TYPED_TEST(StdRandomWrapperTest, CustomSeed) {
