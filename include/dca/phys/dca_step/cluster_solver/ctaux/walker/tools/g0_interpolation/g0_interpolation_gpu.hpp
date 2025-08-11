@@ -101,8 +101,6 @@ public:
   linalg::MultiVector<linalg::GPU, int, int, Real> g0_labels_gpu_;
 
   using Base::beta;
-
-  linalg::util::GpuEvent config_copied_;
 };
 
 template <typename Parameters>
@@ -239,7 +237,7 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
     const Configuration& configuration) {
   const int configuration_size = configuration.size();
 
-  config_copied_.block();
+  linalg::util::getStream(thread_id, 0).sync();
   g0_labels_cpu_.resizeNoCopy(configuration_size);
   g0_labels_gpu_.resizeNoCopy(configuration_size);
 
@@ -255,7 +253,6 @@ void G0Interpolation<dca::linalg::GPU, Parameters>::uploadConfiguration(
 
   const auto& stream = linalg::util::getStream(thread_id, stream_id);
   g0_labels_gpu_.setAsync(g0_labels_cpu_, stream);
-  config_copied_.record(stream);
 }
 
 }  // namespace ctaux

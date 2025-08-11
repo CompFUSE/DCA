@@ -679,6 +679,7 @@ template <typename Scalar, DeviceType device_name, template <typename, DeviceTyp
 void gemm(char transa, char transb, Scalar alpha, const MatrixA<Scalar, device_name, ALLOC1>& a,
           const MatrixB<Scalar, device_name, ALLOC2>& b, Scalar beta,
           MatrixC<Scalar, device_name, ALLOC3>& c, int thread_id = 0, int stream_id = 0) {
+  assert(stream_id == 0);
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -719,6 +720,7 @@ template <typename Scalar, DeviceType device_name, class ALLOC,
 inline void gemm(const MatrixA<Scalar, device_name, ALLOC>& a,
                  const MatrixB<Scalar, device_name, ALLOC>& b,
                  MatrixC<Scalar, device_name, ALLOC>& c, int thread_id = 0, int stream_id = 0) {
+  assert(stream_id == 0);
   gemm<Scalar, device_name>('N', 'N', 1., a, b, 0., c, thread_id, stream_id);
 }
 
