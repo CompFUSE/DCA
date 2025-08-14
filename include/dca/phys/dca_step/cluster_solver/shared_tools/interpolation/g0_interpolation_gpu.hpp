@@ -92,7 +92,10 @@ void G0Interpolation<linalg::GPU, Scalar>::initialize(const FunctionProxy<Scalar
 
   G0_coeff_.setAsync(host_coeff, 0, 0);
 
-  linalg::util::syncStream(0, 0);
+  //linalg::util::syncStream(0, 0);
+  // We can't just sync on stream 0 as this causes a race condition in
+  // some cases.
+  checkRC(cudaDeviceSynchronize());
 
   // Copy pointer to the data structure.
   DeviceInterpolationData<Scalar, SignType<Scalar>>::values_ = G0_coeff_.ptr();

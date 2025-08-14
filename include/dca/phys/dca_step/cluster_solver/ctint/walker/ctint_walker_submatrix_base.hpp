@@ -50,8 +50,7 @@ public:
   using BaseClass::order;
 
   virtual void setMFromConfig() = 0;
-
-  void markThermalized() override;
+  auto getF() const { return f_; }
 protected:
   virtual void doStep() override;
   void doSteps();
@@ -73,12 +72,16 @@ protected:
    */
   void mainSubmatrixProcess();
 
+  void markThermalized() override;
+
   void transformM();
 
   // For testing purposes.
   virtual void doStep(const int nbr_of_movesto_delay);
 
   virtual void updateM() = 0;
+
+  virtual void computeMInit() = 0;
 
 private:
 
@@ -91,8 +94,6 @@ private:
   void updateGammaInv(int s);
 
   void removeRowAndColOfGammaInv();
-
-  virtual void computeMInit() = 0;
 
   //  void computeG0Init();
   virtual void computeGInit() = 0;
@@ -209,7 +210,7 @@ protected:
 
   std::array<Matrix, 2> Gamma_q_;
   Matrix workspace_;
-  Matrix D_;
+  Matrix D_{"SubMatrixHostD"};
 
   using BaseClass::flop_;
 };
@@ -344,6 +345,20 @@ void CtintWalkerSubmatrixBase<Parameters, DIST>::doSubmatrixUpdate() {
   computeGInit();
   mainSubmatrixProcess();
   updateM();
+}
+
+template <class Parameters, DistType DIST>
+void CtintWalkerSubmatrixBase<Parameters, DIST>::transformM() {
+  for (int s = 0; s < 2; ++s) {
+    for (int j = 0; j < M_[s].size().second; ++j) {
+      for (int i = 0; i < M_[s].size().first; ++i) {
+        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
+        const auto b = configuration_.getSector(s).getLeftB(i);
+        const Scalar f_i = -(f_[field_type][b] - 1);
+        M_[s](i, j) /= f_i;
+      }
+    }
+  }
 }
 
 template <class Parameters, DistType DIST>
@@ -775,20 +790,6 @@ void CtintWalkerSubmatrixBase<Parameters, DIST>::recomputeGammaInv() {
 
     if (Gamma_inv_[s].nrRows() > 0)
       details::smallInverse(Gamma_inv_[s]);
-  }
-}
-
-template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixBase<Parameters, DIST>::transformM() {
-  for (int s = 0; s < 2; ++s) {
-    for (int j = 0; j < M_[s].size().second; ++j) {
-      for (int i = 0; i < M_[s].size().first; ++i) {
-        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
-        const auto b = configuration_.getSector(s).getLeftB(i);
-        const Scalar f_i = -(f_[field_type][b] - 1);
-        M_[s](i, j) /= f_i;
-      }
-    }
   }
 }
 

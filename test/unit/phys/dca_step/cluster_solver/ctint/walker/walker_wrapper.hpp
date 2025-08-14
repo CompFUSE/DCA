@@ -33,8 +33,8 @@ public:
   using Real = dca::util::RealAlias<Scalar>;
   using Rng = typename Base::Rng;
 
-    WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref, DMatrixBuilder<dca::linalg::CPU, Scalar>& d_matrix_builder)
-      : Base(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, d_matrix_builder, 0) {
+    WalkerWrapper(Parameters& parameters_ref, const dca::phys::DcaData<Parameters>& data, Rng& rng_ref, DMatrixBuilder<dca::linalg::CPU, Scalar>& d_matrix_builder)
+      : Base(parameters_ref, data, rng_ref, d_matrix_builder, 0) {
     Base::initialize(0);
   }
 

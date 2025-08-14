@@ -66,11 +66,6 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
 
   }
 
-  // This purposefully shadows
-  void doStep(const int n_steps_to_delay) {
-    BaseClass::SubmatrixBase::doStep(n_steps_to_delay);
-  }
-
   using Matrix = dca::linalg::Matrix<Scalar, CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 
@@ -92,6 +87,41 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
 
   auto getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
+  }
+
+  /** These methods allow access to protected member functions in order to be
+   *  able to write meaningful unit tests for the CtintWalker
+   */
+  void doStep(const int n_steps_to_delay) {
+    BaseClass::doStep(n_steps_to_delay);
+  }
+
+  void generateDelayedMoves(int nbr_of_movesto_delay) {
+    BaseClass::SubmatrixBase::generateDelayedMoves(nbr_of_movesto_delay);
+  }
+
+  void computeMInit() {
+    BaseClass::computeMInit();
+  }
+
+  void computeGInit() {
+    BaseClass::computeGInit();
+  }
+
+  auto getRawM() {
+    return BaseClass::getRawM();
+  }
+
+  auto getRawG() {
+    return BaseClass::getRawG();
+  }
+
+  void updateM() {
+    BaseClass::updateM();
+  }
+
+  void mainSubmatrixProcess() {
+    BaseClass::mainSubmatrixProcess();
   }
 
 private:

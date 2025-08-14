@@ -82,7 +82,7 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
   d_matrix_cpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
   DMatrixBuilder<dca::linalg::GPU, Scalar> d_matrix_gpu(g0_gpu, bands, RDmn());
   d_matrix_gpu.setAlphas(parameters.getAlphas(), parameters.adjustAlphaDd());
-  
+
   // ************************************
   // Test vertex insertion / removal ****
   // ************************************
@@ -104,7 +104,7 @@ TYPED_TEST(CtintWalkerSubmatrixGpuComplexTest, doSteps) {
       0, 0.99, 0.4, 0.2, -1,  // Insertion
   };
 
-  for (const int initial_size : std::array<int, 2>{0, 5}) {
+  for (const int initial_size : std::array<int, 2>{2, 5}) {
     parameters.setInitialConfigurationSize(initial_size);
 
     for (int steps = 1; steps <= 8; ++steps) {

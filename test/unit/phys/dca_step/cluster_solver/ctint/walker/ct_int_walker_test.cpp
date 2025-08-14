@@ -79,7 +79,7 @@ TYPED_TEST(CtintWalkerTest, InsertAndRemoveVertex) {
 
   Walker::setInteractionVertices(data, parameters);
 
-  Walker walker(parameters, rng, d_matrix_builder);
+  Walker walker(parameters, data, rng, d_matrix_builder);
 
   // *******************************
   // Test vertex removal ***********
