@@ -20,6 +20,13 @@ namespace testing {
 
 class StubRng {
 public:
+  StubRng(bool bdummy, int n = 200) {
+    val_ = std::vector<double>(n);
+    double ftes = 1 / n;
+    for (int i = 0; i < val_.size(); ++i)
+      val_[i] = ftes * i;
+  }
+
   StubRng(int /*a*/ = 0, int /*b*/ = 0, int /*c*/ = 0, int /*d*/ = 0) {
     val_ = std::vector<double>(200, 0.5);
   }
@@ -43,7 +50,7 @@ private:
   int index_ = 0;
 };
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 #endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_STUB_HPP

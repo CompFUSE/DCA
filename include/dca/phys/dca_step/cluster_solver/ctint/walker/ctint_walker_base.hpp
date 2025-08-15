@@ -235,6 +235,10 @@ CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_
       thread_id_(id),
       stream_{&linalg::util::getStreamContainer()(thread_id_, 0)},
       rng_(rng_ref),
+
+      configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
+                     parameters_.getDoubleUpdateProbability()),
+
       beta_(parameters_.get_beta()),
       total_interaction_(vertices_.integratedInteraction()) {}
 

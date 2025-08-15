@@ -42,13 +42,12 @@ constexpr char input_name[] =
 template <typename SCALAR>
 struct CtintWalkerMultiInsertTestT : public ::testing::Test {
   using G0Setup = dca::testing::G0SetupFromParam<SCALAR, dca::testing::LatticeBilayer,
-                                            dca::ClusterSolverId::CT_INT, input_name>;
+                                                 dca::ClusterSolverId::CT_INT, input_name>;
   using Parameters = typename G0Setup::Parameters;
 
   virtual void SetUp() {}
 
-  void setParameters(Parameters& param_single, Parameters& param_double)
-  {
+  void setParameters(Parameters& param_single, Parameters& param_double) {
     single_setup = std::make_unique<G0Setup>(param_single);
     single_setup->setUp();
     double_setup = std::make_unique<G0Setup>(param_double);
@@ -94,11 +93,12 @@ TYPED_TEST(CtintWalkerMultiInsertTest, NoSubmatrix) {
   using Matrix = typename Walker::Matrix;
   using MatrixPair = std::array<Matrix, 2>;
 
-  Concurrency concurrency(0,nullptr);
+  Concurrency concurrency(0, nullptr);
 
   Parameters param_single("", concurrency);
   param_single.template readInput<dca::io::JSONReader>(input_name);
   param_single.setDoubleUpdateProbability(0);
+  param_single.setInitialConfigurationSize(2);
   param_single.broadcast();
 
   Parameters param_double("", concurrency);
@@ -108,14 +108,14 @@ TYPED_TEST(CtintWalkerMultiInsertTest, NoSubmatrix) {
 
   this->setParameters(param_single, param_double);
 
-  typename G0Setup::RngType rng(std::vector<Scalar>{});
+  typename G0Setup::RngType rng(true, 200);
   G0Interpolation<dca::linalg::CPU, Scalar> g0(
       dca::phys::solver::ctint::details::shrinkG0(this->single_setup->data_->G0_r_t));
   typename G0Setup::LabelDomain label_dmn;
 
   using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
   DMatrixBuilder d_matrix_builder_single(g0, bands, RDmn());
-  d_matrix_builder_single.setAlphas(param_single.getAlphas(), false);
+  d_matrix_builder_single.setAlphas(param_single.getAlphas(), param_single.adjustAlphaDd());
 
   auto& data_single = this->single_setup->data_;
 
