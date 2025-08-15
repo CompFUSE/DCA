@@ -85,24 +85,28 @@ struct UseDevice<GPU> {
   template <typename ScalarType>
   inline static void axpy(int n, ScalarType alpha, const ScalarType* x, int incx, ScalarType* y,
                           int incy, int thread_id, int stream_id) {
+    assert(stream_id == 0);
     cublas::axpy(util::getHandle(thread_id, stream_id), n, alpha, x, incx, y, incy);
   }
 
   template <typename ScalarType>
   inline static void copy(int n, const ScalarType* x, int incx, ScalarType* y, int incy,
                           int thread_id, int stream_id) {
+    assert(stream_id == 0);
     cublas::copy(util::getHandle(thread_id, stream_id), n, x, incx, y, incy);
   }
 
   template <typename ScalarType>
   inline static void scal(int n, ScalarType alpha, ScalarType* x, int incx, int thread_id,
                           int stream_id) {
+    assert(stream_id == 0);
     cublas::scal(util::getHandle(thread_id, stream_id), n, alpha, x, incx);
   }
 
   template <typename ScalarType>
   inline static void swap(int n, ScalarType* x, int incx, ScalarType* y, int incy, int thread_id,
                           int stream_id) {
+    assert(stream_id == 0);
     cublas::swap(util::getHandle(thread_id, stream_id), n, x, incx, y, incy);
   }
 
@@ -112,6 +116,7 @@ struct UseDevice<GPU> {
                           ScalarType alpha, const ScalarType* a, int lda, const ScalarType* b,
                           int ldb, ScalarType beta, ScalarType* c, int ldc, int thread_id,
                           int stream_id) {
+    assert(stream_id == 0);
     cublas::gemm(util::getHandle(thread_id, stream_id), transa, transb, m, n, k, alpha, a, lda, b,
                  ldb, beta, c, ldc);
   }
@@ -120,6 +125,7 @@ struct UseDevice<GPU> {
   inline static void trsm(const char* side, const char* uplo, const char* transa, const char* diag,
                           int m, int n, ScalarType alpha, const ScalarType* a, int lda,
                           ScalarType* b, int ldb, int thread_id, int stream_id) {
+    assert(stream_id == 0);
     cublas::trsm(util::getHandle(thread_id, stream_id), side, uplo, transa, diag, m, n, alpha, a,
                  lda, b, ldb);
   }

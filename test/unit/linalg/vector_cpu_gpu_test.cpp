@@ -151,13 +151,13 @@ TEST(VectorCPUGPUTest, Set) {
       vec[i] = el;
     }
 
-    vec_copy.set(vec, 0, 1);
+    vec_copy.set(vec, 0, 0);
     ASSERT_EQ(vec.size(), vec_copy.size());
     ASSERT_EQ(capacity, vec_copy.capacity());
     ASSERT_EQ(old_ptr, vec_copy.ptr());
     ASSERT_TRUE(testing::isDevicePointer(vec_copy.ptr()));
 
-    vec_copy_copy.set(vec_copy, 0, 1);
+    vec_copy_copy.set(vec_copy, 0, 0);
     EXPECT_EQ(vec.size(), vec_copy_copy.size());
     EXPECT_EQ(capacity_2, vec_copy_copy.capacity());
     EXPECT_EQ(old_ptr_2, vec_copy_copy.ptr());
@@ -181,12 +181,12 @@ TEST(VectorCPUGPUTest, Set) {
       vec[i] = el;
     }
 
-    vec_copy.set(vec, 0, 1);
+    vec_copy.set(vec, 0, 0);
     ASSERT_EQ(vec.size(), vec_copy.size());
     ASSERT_LE(vec.size(), vec_copy.capacity());
     ASSERT_FALSE(testing::isHostPointer(vec_copy.ptr()));
 
-    vec_copy_copy.set(vec_copy, 0, 1);
+    vec_copy_copy.set(vec_copy, 0, 0);
     EXPECT_EQ(vec.size(), vec_copy_copy.size());
     EXPECT_LE(vec.size(), vec_copy_copy.capacity());
     EXPECT_TRUE(testing::isHostPointer(vec_copy_copy.ptr()));

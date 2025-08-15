@@ -91,7 +91,7 @@ private:
   enum PartnershipType { NONE, SAME_SITE, ALL_SITES };
 
   std::vector<double> cumulative_weigths_;
-  double total_weigth_ = 0;
+  double total_weigth_{0};
   bool interband_propagator_ = false;
   PartnershipType partnership_type_ = NONE;
 };

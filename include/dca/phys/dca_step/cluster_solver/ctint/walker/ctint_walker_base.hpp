@@ -92,10 +92,10 @@ public:
   virtual void doStep() = 0;
 
   virtual void doSweep() = 0;
-  
-  template<linalg::DeviceType DEVICE>
+
+  template <linalg::DeviceType DEVICE>
   void setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder);
-  
+
   bool is_thermalized() const {
     return thermalized_;
   }
@@ -165,17 +165,15 @@ public:
     return flop;
   }
 
-  const auto& get_stream(int s) const {
-    assert(s >= 0 && s < 2);
-    return *streams_[s];
+  const auto& get_stream() const {
+    return stream_;
   }
 
   static void sumConcurrency(const Concurrency&) {}
 
   void writeAlphas() const;
 
-  static void setInteractionVertices(const Data& data,
-			      const Parameters& parameters);
+  static void setInteractionVertices(const Data& data, const Parameters& parameters);
 
 protected:
   // typedefs
@@ -191,7 +189,7 @@ protected:  // Members.
   const Concurrency& concurrency_;
 
   const int thread_id_;
-  std::array<linalg::util::GpuStream*, 2> streams_;
+  linalg::util::GpuStream* stream_;
 
   Rng& rng_;
   SolverConfiguration configuration_;
@@ -230,16 +228,12 @@ private:
 };
 
 template <class Parameters, DistType DIST>
-CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_ref,
-                                                         Rng& rng_ref, int id)
+CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
+                                                   int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
-
       thread_id_(id),
-
-      streams_{&linalg::util::getStreamContainer()(thread_id_, 0),
-               &linalg::util::getStreamContainer()(thread_id_, 1)},
-
+      stream_{&linalg::util::getStreamContainer()(thread_id_, 0)},
       rng_(rng_ref),
 
       configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
@@ -249,7 +243,7 @@ CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_
       total_interaction_(vertices_.integratedInteraction()) {}
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::initialize(int iteration) {
+void CtintWalkerBase<Parameters, DIST>::initialize(int iteration) {
   assert(total_interaction_);
   phase_.reset();
 
@@ -269,7 +263,7 @@ void CtintWalkerBase<Parameters,DIST>::initialize(int iteration) {
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::updateSweepAverages() {
+void CtintWalkerBase<Parameters, DIST>::updateSweepAverages() {
   order_avg_.addSample(order());
   sign_avg_.addSample(phase_.getSign());
   // Track avg order for the final number of steps / sweep.
@@ -293,9 +287,8 @@ void CtintWalkerBase<Parameters,DIST>::updateSweepAverages() {
 //   }
 // }
 
-
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::updateShell(int meas_id, int meas_to_do) const {
+void CtintWalkerBase<Parameters, DIST>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
       (meas_id % dca::util::ceilDiv(meas_to_do, 20)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
@@ -312,7 +305,7 @@ void CtintWalkerBase<Parameters,DIST>::updateShell(int meas_id, int meas_to_do) 
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::printSummary() const {
+void CtintWalkerBase<Parameters, DIST>::printSummary() const {
   std::cout << "\n"
             << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
             << "-------------------------------------------\n";
@@ -329,8 +322,8 @@ void CtintWalkerBase<Parameters,DIST>::printSummary() const {
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::setInteractionVertices(const Data& data,
-                                                                     const Parameters& parameters) {
+void CtintWalkerBase<Parameters, DIST>::setInteractionVertices(const Data& data,
+                                                               const Parameters& parameters) {
   vertices_.reset();
   vertices_.initialize(parameters.getDoubleUpdateProbability(), parameters.getAllSitesPartnership());
   vertices_.initializeFromHamiltonian(data.H_interactions);
@@ -341,11 +334,11 @@ void CtintWalkerBase<Parameters,DIST>::setInteractionVertices(const Data& data,
 }
 
 template <class Parameters, DistType DIST>
-void CtintWalkerBase<Parameters,DIST>::computeM(MatrixPair& m_accum) const {
+void CtintWalkerBase<Parameters, DIST>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
 }
 
-// template<class WALKER, linalg::DeviceType DEVICE>  
+// template<class WALKER, linalg::DeviceType DEVICE>
 // void setMFromConfigHelper(WALKER& walker, DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
 //   walker.mc_log_weight_ = 0.;
 //   walker.phase_.reset();
@@ -379,11 +372,11 @@ void CtintWalkerBase<Parameters,DIST>::computeM(MatrixPair& m_accum) const {
 //     walker.phase_.multiply(term);
 //   }
 // }
-  
-     
+
 template <class Parameters, DistType DIST>
 template <linalg::DeviceType DEVICE>
-void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
+void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(
+    DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
   mc_log_weight_ = 0.;
   phase_.reset();
 
@@ -416,7 +409,7 @@ void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(DMatrixBuilder<DEVICE
     phase_.multiply(term);
   }
 }
-  
+
 }  // namespace ctint
 }  // namespace solver
 }  // namespace phys

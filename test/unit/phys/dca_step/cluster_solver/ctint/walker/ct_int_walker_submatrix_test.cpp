@@ -44,7 +44,7 @@ using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<double>; //double, 
+using ScalarTypes = ::testing::Types<double>; //double,
 TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
@@ -59,7 +59,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   using MatrixPair = std::array<Matrix, 2>;
   using SubmatrixWalker =
     testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
-  
+
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   typename TestFixture::RngType rng(setup_rngs);
@@ -111,7 +111,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     MatrixPair direct_M(walker.getM());
 
     using dca::util::RealAlias;
-    
+
     // This should just be the RealAliases of the scalar since in the
     // complex case we are checking the Euclidean norm.
     const auto tolerance = 1000.0 * std::numeric_limits<RealAlias<Scalar>>::epsilon();
@@ -121,7 +121,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
-    Walker walker_nosub(parameters, rng, d_matrix_builder);
+    Walker walker_nosub(parameters, data, rng, d_matrix_builder);
 
     rng.setNewValues(rng_vals);
     for (int i = 0; i < steps; ++i)

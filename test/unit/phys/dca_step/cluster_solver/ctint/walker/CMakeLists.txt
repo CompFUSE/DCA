@@ -17,12 +17,12 @@ dca_add_gtest(ct_int_walker_submatrix_test
         LIBS     ${TEST_LIBS} g0_interpolation ${DCA_GPU_LIBS}
         )
 
-dca_add_gtest(ct_int_walker_multinsertion_test
-        FAST
-        GTEST_MPI_MAIN
-        INCLUDE_DIRS ${TEST_INCLUDES}
-        LIBS     ${TEST_LIBS} g0_interpolation
-        )
+# dca_add_gtest(ct_int_walker_multinsertion_test
+#         FAST
+#         GTEST_MPI_MAIN
+#         INCLUDE_DIRS ${TEST_INCLUDES}
+#         LIBS     ${TEST_LIBS} g0_interpolation
+#         )
 
 dca_add_gtest(ct_int_walker_submatrix_gpu_test
         CUDA

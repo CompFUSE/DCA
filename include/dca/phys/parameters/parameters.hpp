@@ -127,6 +127,9 @@ public:
   void write(Writer& writer);
   template <typename Reader>
   void read_input_and_broadcast(const std::string& file_name);
+  template <typename Reader>
+  void readInput(const std::string& file_name);
+  void broadcast();
 
   void update_model();
   void update_domains();
@@ -256,14 +259,29 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
 template <typename Reader>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
                 NUMTRAITS>::read_input_and_broadcast(const std::string& filename) {
+  readInput<Reader>(filename);
+  broadcast();
+}
+
+template <typename Concurrency, typename Threading, typename Profiler, typename Model,
+          typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::broadcast()
+{
+  concurrency_.broadcast_object(*this);
+}
+
+template <typename Concurrency, typename Threading, typename Profiler, typename Model,
+          typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
+template <typename Reader>
+void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
+                NUMTRAITS>::readInput(const std::string& filename) {
   if (concurrency_.id() == concurrency_.first()) {
     Reader read_obj;
     read_obj.open_file(filename);
     this->readWrite(read_obj);
     read_obj.close_file();
   }
-
-  concurrency_.broadcast_object(*this);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,

@@ -165,7 +165,7 @@ TEST(VectorGPUTest, Set) {
       testing::setOnDevice(vec.ptr(i), el);
     }
 
-    vec_copy.set(vec, 0, 1);
+    vec_copy.set(vec, 0, 0);
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_EQ(capacity, vec_copy.capacity());
     EXPECT_EQ(old_ptr, vec_copy.ptr());
@@ -189,7 +189,7 @@ TEST(VectorGPUTest, Set) {
       testing::setOnDevice(vec.ptr(i), el);
     }
 
-    vec_copy.set(vec, 0, 1);
+    vec_copy.set(vec, 0, 0);
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_LE(vec.size(), vec_copy.capacity());
 
