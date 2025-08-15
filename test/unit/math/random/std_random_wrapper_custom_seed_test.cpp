@@ -35,18 +35,18 @@ inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::mt19937_64>() {
   return vec;
 }
 
-#if defined(__clang__)
-template <>
-inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48_base>() {
-  static std::vector<double> vec{0.59121028582286772,0.1686617322410229, 0.076703898677588533,0.73282393484576336,0.3330563551366435};
-  return vec;
-}
-template <>
-inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48>() {
-  static std::vector<double> vec{0.59121028582286772, 0.1686617322410229, 0.076703898677588533, 0.73282393484576336, 0.3330563551366435};
-  return vec;
-}
-#else
+// #if defined(__clang__)
+// template <>
+// inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48_base>() {
+//   static std::vector<double> vec{0.59121028582286772,0.1686617322410229,
+//   0.076703898677588533,0.73282393484576336,0.3330563551366435}; return vec;
+// }
+// template <>
+// inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48>() {
+//   static std::vector<double> vec{0.59121028582286772, 0.1686617322410229, 0.076703898677588533,
+//   0.73282393484576336, 0.3330563551366435}; return vec;
+// }
+// #else
 template <>
 inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48_base>() {
   static std::vector<double> vec{0.0068332189419341447, 0.86802894579254541, 0.25453437079295799,
@@ -59,14 +59,14 @@ inline std::vector<double>& getFirstRandomNumbersCustomSeed<std::ranlux48>() {
                                  0.24682368736319102, 0.88335484565944544};
   return vec;
 }
-#endif
-}  // testing
-}  // dca
+
+}  // namespace testing
+}  // namespace dca
 
 template <typename T>
 class StdRandomWrapperTest : public ::testing::Test {};
 
-using Engines = ::testing::Types<std::mt19937, std::mt19937_64>; // std::ranlux48_base, std::ranlux48>;
+using Engines = ::testing::Types<std::mt19937, std::mt19937_64, std::ranlux48_base, std::ranlux48>;
 TYPED_TEST_CASE(StdRandomWrapperTest, Engines);
 
 TYPED_TEST(StdRandomWrapperTest, CustomSeed) {
