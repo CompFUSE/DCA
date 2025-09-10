@@ -22,7 +22,6 @@
 #endif
 #include "dca/linalg/lapack/lapack.hpp"
 
-
 #include "dca/linalg/util/cast_gpu.hpp"
 
 // C++ wrappers
@@ -103,7 +102,7 @@ inline void getri_gpu(int n, std::complex<float>* a, int lda, int* ipiv, std::co
 inline void getri_gpu(int n, std::complex<double>* a, int lda, int* ipiv,
                       std::complex<double>* work, int lwork) {
   checkErrorsCudaDebug();
-  
+
   auto cu_a = util::castMAGMAComplex(a);
   auto cu_work = util::castMAGMAComplex(work);
 
@@ -151,8 +150,9 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_cgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           *castMAGMAComplex(&alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b),
-                           ldb, *castMAGMAComplex(&beta), castMAGMAComplex(c), ldc, batch_count, queue);
+                           convertToMagmaComplex(alpha), castMAGMAComplex(a), lda,
+                           castMAGMAComplex(b), ldb, convertToMagmaComplex(beta),
+                           castMAGMAComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m, int* n, int* k,
@@ -163,8 +163,9 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_zgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           *castMAGMAComplex(&alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b),
-                           ldb, *castMAGMAComplex(&beta), castMAGMAComplex(c), ldc, batch_count, queue);
+                           convertToMagmaComplex(alpha), castMAGMAComplex(a), lda,
+                           castMAGMAComplex(b), ldb, convertToMagmaComplex(beta),
+                           castMAGMAComplex(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 
@@ -202,8 +203,8 @@ inline void magmablas_gemm_vbatched_max_nocheck(
   using util::castMAGMAComplex;
   magmablas_cgemm_vbatched_max_nocheck(
       toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castMAGMAComplex(alpha),
-      castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb, *castMAGMAComplex(beta), castMAGMAComplex(c),
-      ldc, batch_count, m_max, n_max, k_max, queue);
+      castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb, *castMAGMAComplex(beta),
+      castMAGMAComplex(c), ldc, batch_count, m_max, n_max, k_max, queue);
   checkErrorsCudaDebug();
 }
 
@@ -214,9 +215,9 @@ inline void magmablas_gemm_vbatched_max_nocheck(
     const int m_max, const int n_max, const int k_max, magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_zgemm_vbatched_max_nocheck(
-      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castMAGMAComplex(alpha),
-      castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb, *castMAGMAComplex(beta), castMAGMAComplex(c),
-      ldc, batch_count, m_max, n_max, k_max, queue);
+      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, convertToMagmaType(alpha),
+      castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb, convertToMagmaType(beta),
+      castMAGMAComplex(c), ldc, batch_count, m_max, n_max, k_max, queue);
   checkErrorsCudaDebug();
 }
 
@@ -246,8 +247,9 @@ inline void magmablas_gemm_batched(const char transa, const char transb, const i
                                    const int ldc, const int batch_count, const magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_cgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                          *castMAGMAComplex(alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb,
-                          *castMAGMAComplex(beta), castMAGMAComplex(c), ldc, batch_count, queue);
+                          convertToMagmaType(alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b),
+                          ldb, convertToMagmaType(beta), castMAGMAComplex(c), ldc, batch_count,
+                          queue);
   checkErrorsCudaDebug();
 }
 inline void magmablas_gemm_batched(const char transa, const char transb, const int m, const int n,
@@ -256,10 +258,10 @@ inline void magmablas_gemm_batched(const char transa, const char transb, const i
                                    const std::complex<double>* const* b, const int ldb,
                                    const std::complex<double> beta, std::complex<double>** c,
                                    const int ldc, const int batch_count, const magma_queue_t queue) {
-  using util::castMAGMAComplex;
+  using dca::util::castMagmaType;
   magmablas_zgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                          *castMAGMAComplex(alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b), ldb,
-                          *castMAGMAComplex(beta), castMAGMAComplex(c), ldc, batch_count, queue);
+                          convertToMagmaType(alpha), castMagmaType(a), lda, castMagmaType(b), ldb,
+                          convertToMagmaType(beta), castMagmaType(c), ldc, batch_count, queue);
   checkErrorsCudaDebug();
 }
 

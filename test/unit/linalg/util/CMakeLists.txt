@@ -29,7 +29,7 @@ if(DCA_HAVE_CUDA)
 dca_add_gtest(complex_op_cuda_test
   GTEST_MAIN
   CUDA
-  LIBS ${DCA_GPU_LIBS})
+  LIBS ${DCA_GPU_LIBS} magma::magma BLAS::BLAS)
 
 dca_gpu_runtime_link(complex_op_cuda_test)
 endif()
