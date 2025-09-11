@@ -140,22 +140,6 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
 #ifdef DEBUG_CLUSTER_HELPER
     checkClusterHelper<<<1, 1, 0, 0>>>(nc, lds);
 #endif
-    }
-    else {
-      // In debug on sdgx-2 for CTINT I see know evidence this actually works, it appears not to.
-      size_t cluster_helper_size;
-      checkRC(cudaGetSymbolSize(&cluster_helper_size, cluster_real_helper));
-      assert(cluster_helper_size  == sizeof(ClusterHelper));
-      checkRC(cudaMemcpyToSymbol(cluster_add_matrix, &host_helper.add_matrix_, sizeof(int*))
-				    );
-      checkRC(cudaMemcpyToSymbol(cluster_sub_matrix, &host_helper.sub_matrix_, sizeof(int*))
-				    );
-      checkRC(cudaMemcpyToSymbol(cluster_real_helper, &host_helper, cluster_helper_size));
-      cudaDeviceSynchronize();
-    }
-#ifndef NDEBUG
-    checkClusterHelper<<<1, 1, 0, 0>>>(nc, lds);
-#endif
   });
 }
 
