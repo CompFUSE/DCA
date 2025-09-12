@@ -24,7 +24,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_submatrix_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
@@ -91,20 +90,12 @@ public:
 protected:
   // For testing purposes:
   void doStep(const int n_moves_to_delay) override;
+  void doStep() override;
   void computeMInit() override;
-  void computeGInit();
+  void computeGInit() override;
   MatrixPair<linalg::CPU> getRawG();
   MatrixPair<linalg::CPU> getRawM();
-
   void updateM() override;
-
-private:
-  void doStep() override;
-
-  void computeGInit();
-  void updateM();
-
-  void uploadConfiguration();
 
 protected:
   using BaseClass::configuration_;
@@ -145,6 +136,7 @@ private:
   std::array<linalg::Vector<int, linalg::GPU>, 2> source_list_dev_;
 
   MatrixPair<linalg::GPU> M_dev_;
+  MatrixPair<linalg::GPU> M_D_dev_;
   MatrixPair<linalg::GPU> Gamma_inv_dev_;
   MatrixPair<linalg::GPU> D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
@@ -264,97 +256,67 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeMInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
   get_stream()->sync();
-  for (int s = 0; s < 2; ++s)
+  for (int s = 0; s < 2; ++s) {
     M_dev_[s].resize(n_max_[s]);
-  M_D_dev_[s].resize(n_max_[s]);
-}
-
-for (int s = 0; s < 2; ++s) {
-  const int delta = n_max_[s] - n_init_[s];
-  if (delta > 0) {
-    D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
-
-    if (delta == 0 || n_init_[s] == 0)
-      throw std::runtime_error(
-          "expansion factor dropped to 0 or below use a higher beta or larger interaction!");
-
-    d_matrix_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
-                                *get_stream());
-    flop_ += D_dev_[s].nrCols() * D_dev_[s].nrRows() * 10;
-
-#ifdef DEBUG_SUBMATRIX
-    // debugging
-    SubmatrixBase::D_ = D_dev_[s];
-    SubmatrixBase::D_.print();
-#endif
-    MatrixView<linalg::GPU> D_view(D_dev_[s]);
-    details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), *get_stream());
-
-#ifdef DEBUG_SUBMATRIX
-    std::cout << "GPU D multiplied by FCol Factor\n";
-    SubmatrixBase::D_ = D_dev_[s];
-    SubmatrixBase::D_.print();
-#endif
-    MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
-    MatrixView<linalg::GPU> D_M(M_D_dev_[s], n_init_[s], 0, delta, n_init_[s]);
-
-#ifdef DEBUG_SUBMATRIX
-    SubmatrixBase::M_[s] = M_dev_[s];
-    std::cout << "GPU M pre gemm M\n";
-    SubmatrixBase::M_[s].print();
-#endif
-
-    linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, 0);
-
-#ifdef DEBUG_SUBMATRIX
-    SubmatrixBase::M_[s] = M_dev_[s];
-    std::cout << "GPU M post gemm M\n";
-    SubmatrixBase::M_[s].print();
-    MatrixView<linalg::CPU> D_M_host(SubmatrixBase::M_[s], n_init_[s], 0, delta, n_init_[s]);
-    std::cout << "gpu D_M_ print\n";
-    D_M_host.print();
-#endif
-
-    flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
-
-    details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
-                                n_max_[s], *get_stream());
+    M_D_dev_[s].resize(n_max_[s]);
   }
-}
 }
 
 template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
   get_stream()->sync();
+
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
-
-    // In cpu we only do all this if delta > 0
-    auto& f_dev = f_dev_[s];
-
-    G_dev_[s].resizeNoCopy(n_max_[s]);
-
-    MatrixView<linalg::GPU> G_view_dev(G_dev_[s]);
-    const MatrixView<linalg::GPU> M(M_dev_[s]);
-    details::computeGLeft(G_view_dev, M, f_dev.ptr(), n_init_[s], get_stream()->streamActually());
-    flop_ += n_init_[s] * n_max_[s] * 2;
-
-    // In cpu we only do all this if delta > 0
     if (delta > 0) {
-      G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
+      D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
 
-      // This doesn't do flops but the g0 interp data it uses does somewhere.
-      d_matrix_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
+      if (delta == 0 || n_init_[s] == 0)
+        throw std::runtime_error(
+            "expansion factor dropped to 0 or below use a higher beta or larger interaction!");
+
+      d_matrix_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false,
                                   *get_stream());
-      flop_ += G0_dev_[s].nrCols() * G0_dev_[s].nrRows() * 10;
-      MatrixView<linalg::GPU> G_view_reduced(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
-      // compute G right.
+      flop_ += D_dev_[s].nrCols() * D_dev_[s].nrRows() * 10;
 
-      linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G_view_reduced, thread_id_, 0);
-      flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
+#ifdef DEBUG_SUBMATRIX
+      // debugging
+      SubmatrixBase::D_ = D_dev_[s];
+      SubmatrixBase::D_.print();
+#endif
+      MatrixView<linalg::GPU> D_view(D_dev_[s]);
+      details::multiplyByFColFactor(D_view, f_dev_[s].ptr(), *get_stream());
 
-      G_[s].setAsync(G_dev_[s], *get_stream());
+#ifdef DEBUG_SUBMATRIX
+      std::cout << "GPU D multiplied by FCol Factor\n";
+      SubmatrixBase::D_ = D_dev_[s];
+      SubmatrixBase::D_.print();
+#endif
+      MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
+      MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
+
+#ifdef DEBUG_SUBMATRIX
+      SubmatrixBase::M_[s] = M_dev_[s];
+      std::cout << "GPU M pre gemm M\n";
+      SubmatrixBase::M_[s].print();
+#endif
+
+      linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, 0);
+
+#ifdef DEBUG_SUBMATRIX
+      SubmatrixBase::M_[s] = M_dev_[s];
+      std::cout << "GPU M post gemm M\n";
+      SubmatrixBase::M_[s].print();
+      MatrixView<linalg::CPU> D_M_host(SubmatrixBase::M_[s], n_init_[s], 0, delta, n_init_[s]);
+      std::cout << "gpu D_M_ print\n";
+      D_M_host.print();
+#endif
+
+      flop_ += 2 * D_dev_[s].nrRows() * D_dev_[s].nrCols() * M.nrCols();
+
+      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
+                                  n_max_[s], *get_stream());
     }
   }
 }

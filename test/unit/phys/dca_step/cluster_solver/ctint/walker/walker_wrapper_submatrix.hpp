@@ -67,6 +67,13 @@ struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST
     BaseClass::initialize(0);
   }
 
+  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref,
+                         const dca::phys::DcaData<Parameters>& data, Rng& rng_ref,
+                         DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
+      : BaseClass(parameters_ref, data, rng_ref, d_matrix_builder, 0), streams_(3) {
+    BaseClass::initialize(0);
+  }
+
   using Matrix = dca::linalg::Matrix<Scalar, CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 

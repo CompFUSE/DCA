@@ -55,6 +55,8 @@ public:
     return f_;
   }
 
+  virtual void markThermalized() override;
+
 protected:
   virtual void doStep() override;
   void doSteps();
@@ -75,8 +77,6 @@ protected:
    *        BaseClass::mc_log_weight_ += std::log(std::abs(mc_weight_ratio));
    */
   void mainSubmatrixProcess();
-
-  void markThermalized() override;
 
   void transformM();
 

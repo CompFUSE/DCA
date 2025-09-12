@@ -66,11 +66,11 @@ public:
 
   void setMFromConfig() override;
 
+  void markThermalized() override;
+
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
-
-  void markThermalized() override;
 
   void updateM() override;
 
@@ -525,20 +525,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::recomputeGammaInv() {
 
     if (Gamma_inv_[s].nrRows() > 0)
       details::smallInverse(Gamma_inv_[s]);
-  }
-}
-
-template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixCpu<Parameters, DIST>::transformM() {
-  for (int s = 0; s < 2; ++s) {
-    for (int j = 0; j < M_[s].size().second; ++j) {
-      for (int i = 0; i < M_[s].size().first; ++i) {
-        const auto field_type = configuration_.getSector(s).getAuxFieldType(i);
-        const auto b = configuration_.getSector(s).getLeftB(i);
-        const Scalar f_i = -(f_[field_type][b] - 1);
-        M_[s](i, j) /= f_i;
-      }
-    }
   }
 }
 

@@ -35,8 +35,7 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <class Parameters, linalg::DeviceType device,
-          DistType DIST = dca::DistType::NONE>
+template <class Parameters, linalg::DeviceType device, DistType DIST = dca::DistType::NONE>
 class CtintAccumulator : public MC_accumulator_data<typename Parameters::Scalar> {
 public:
   constexpr static ClusterSolverId solver_id{ClusterSolverId::CT_INT};
@@ -47,7 +46,7 @@ public:
   using Base::accumulated_phase_;
   using Base::current_phase_;
   using Base::number_of_measurements_;
-  
+
   using ParametersType = Parameters;
   using DataType = phys::DcaData<Parameters, DIST>;
   using SpAccumulator = accumulator::SpAccumulator<Parameters, device>;
@@ -112,7 +111,7 @@ public:
   int get_number_of_measurements() const {
     std::cout << "number_of_measurements ==" << number_of_measurements_ << '\n';
     std::cout << "accumulated_phase_.count() == " << accumulated_phase_.count() << '\n';
-    //assert(accumulated_phase_.count() == number_of_measurements_);
+    // assert(accumulated_phase_.count() == number_of_measurements_);
     return number_of_measurements_;
   }
 
@@ -147,7 +146,6 @@ private:
   MatrixConfiguration configuration_;
 
   std::vector<const linalg::util::GpuStream*> streams_;
-  linalg::util::GpuEvent event_;
 
   util::Accumulator<unsigned long> accumulated_order_;
 
@@ -170,7 +168,7 @@ private:
 template <class Parameters, linalg::DeviceType device, DistType DIST>
 template <class Data>
 CtintAccumulator<Parameters, device, DIST>::CtintAccumulator(const Parameters& pars,
-                                                                   const Data& data, int id)
+                                                             const Data& data, int id)
     : parameters_(pars),
       thread_id_(id),
       sp_accumulator_(pars),
@@ -187,7 +185,7 @@ void CtintAccumulator<Parameters, device, DIST>::initialize(const int dca_iterat
                                          parameters_.dump_every_iteration());
   accumulated_order_.reset();
   accumulated_phase_.reset();
-  
+
   Base::initialize(dca_iteration);
   sp_accumulator_.resetAccumulation();
   sp_accumulator_.clearSingleMeasurement();
@@ -215,13 +213,7 @@ void CtintAccumulator<Parameters, device, DIST>::updateFrom(Walker& walker) {
     measure_flops_ = M_[0].nrCols() * M_[0].nrCols() * 2 * 2 * 8 * 19;
 
   if constexpr (device == linalg::GPU) {
-    for (int s = 0; s < 2; ++s) {
-      event_.record(walker.get_stream(s));
-      //  Synchronize sp accumulator streams with walker.
-      event_.block(*sp_accumulator_.get_streams()[s]);
-      //  Synchronize both walker streams with tp accumulator.
-      event_.block(*tp_accumulator_.get_stream());
-    }
+    walker.synchronize();
   }
 
   configuration_ = walker.getConfiguration();

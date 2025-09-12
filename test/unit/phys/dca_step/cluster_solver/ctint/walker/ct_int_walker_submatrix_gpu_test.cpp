@@ -34,9 +34,6 @@ using McOptions = MockMcOptions<Scalar>;
 
 using namespace dca::addt_str_oper;
 
-#include "dca/util/to_string.hpp"
-using namespace dca::addt_str_oper;
-
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
@@ -192,6 +189,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       for (int i = 0; i < config1.size(); ++i)
         EXPECT_EQ(config1[i], config2[i]);
       EXPECT_EQ(walker_cpu.get_sign(), walker_gpu.get_sign());
+
+      auto M_cpu = walker_cpu.getM();
+      auto M_gpu = walker_gpu.getM();
 
       auto fail = compareSubMatrix(M_cpu, M_gpu, "M");
       EXPECT_FALSE(fail);

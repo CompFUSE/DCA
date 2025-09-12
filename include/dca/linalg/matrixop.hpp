@@ -230,7 +230,6 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
 
   return max_diff;
 }
-
 template <typename Scalar, class ALLOC>
 auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, CPU, ALLOC>& b,
                 double diff_threshold = 1e-3) {
@@ -241,7 +240,7 @@ auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, CPU, ALLOC>& 
 template <typename Scalar, class ALLOC>
 auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, GPU>& b,
                 double diff_threshold = 1e-3) {
-  Matrix<Scalar, CPU> cp_b(b);
+  Matrix<Scalar, CPU, ALLOC> cp_b(b);
   return difference(a, cp_b, diff_threshold);
 }
 

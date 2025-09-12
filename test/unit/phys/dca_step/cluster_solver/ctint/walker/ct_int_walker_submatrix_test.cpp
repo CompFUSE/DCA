@@ -34,17 +34,17 @@ constexpr char input_name[] =
 
 template <typename Scalar>
 using CtintWalkerSubmatrixTest =
-  typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
+    typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer,
+                                   dca::ClusterSolverId::CT_INT, input_name>;
 
-  using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
-  using RDmn = typename CDA::RClusterDmn;
-
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
 
 using namespace dca::phys::solver;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<double>; //double,
+using ScalarTypes = ::testing::Types<double>;  // double,
 TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
@@ -58,7 +58,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   using Matrix = typename Walker::Matrix;
   using MatrixPair = std::array<Matrix, 2>;
   using SubmatrixWalker =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
@@ -117,7 +117,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     const auto tolerance = 1000.0 * std::numeric_limits<RealAlias<Scalar>>::epsilon();
 
     for (int s = 0; s < 2; ++s)
-	EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
+      EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
@@ -128,8 +128,8 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
       walker_nosub.doStep();
 
     // this needs to be std::abs because it could be a "complex" probability
-    EXPECT_NEAR(std::abs(walker.getAcceptanceProbability()), std::abs(walker_nosub.getAcceptanceProbability()),
-                tolerance);
+    EXPECT_NEAR(std::abs(walker.getAcceptanceProbability()),
+                std::abs(walker_nosub.getAcceptanceProbability()), tolerance);
 
     auto config_nosubm = walker_nosub.getWalkerConfiguration();
     ASSERT_EQ(config.size(), config_nosubm.size());

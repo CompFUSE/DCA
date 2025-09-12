@@ -46,8 +46,7 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 template <class WalkerType, class G0, class Parameters, class Data>
 void initializeWalkerStatic(const G0& g0, const Parameters& parameters, const Data& data) {
@@ -56,7 +55,23 @@ void initializeWalkerStatic(const G0& g0, const Parameters& parameters, const Da
   WalkerType::setInteractionVertices(data, parameters);
 }
 
-TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
+constexpr char input_name[] =
+    DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/double_insertion_comparison_input.json";
+
+struct CtintDoubleUpdateComparisonTest : public ::testing::Test {
+  using G0Setup = dca::testing::G0SetupBare<Scalar, dca::testing::LatticeFeAs,
+                                            dca::ClusterSolverId::CT_INT, input_name>;
+  virtual void SetUp() {
+    host_setup.SetUp();
+    host2_setup.SetUp();
+  }
+
+  virtual void TearDown() {}
+  G0Setup host_setup;
+  G0Setup host2_setup;
+};
+
+TEST_F(CtintDoubleUpdateComparisonTest, Self_Energy) {
   using RngType = dca::testing::StubRng;
   using RealRng = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using Lattice = dca::phys::models::FeAsLattice<dca::phys::domains::D4>;
@@ -65,44 +80,45 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
   using Concurrency = dca::parallel::NoConcurrency;
   using Parameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                    RngType, dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+                                    RngType, dca::ClusterSolverId::CT_INT,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
 
   using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
   using dca::DistType;
-  using WalkerSubmatrix =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters>;
+  using WalkerSubmatrix = testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters>;
+
+  auto& cpu_data = host_setup.data_;
+  auto& cpu2_data = host2_setup.data_;
+  auto& cpu_parameters = host_setup.parameters_;
+  auto& cpu2_parameters = host2_setup.parameters_;
 
   Concurrency concurrency(0, nullptr);
   dca::util::GitVersion::print();
   dca::util::Modules::print();
 
-  Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(
-      input_dir + "/double_insertion_comparison_input.json");
-  parameters.update_model();
-  parameters.update_domains();
-
-  Data data(parameters);
-  data.initialize();
-
-  dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0_cpu(
+      dca::phys::solver::ctint::details::shrinkG0(cpu_data->G0_r_t));
+  dca::phys::solver::G0Interpolation<dca::linalg::CPU, double> g0_cpu2(
+      dca::phys::solver::ctint::details::shrinkG0(cpu2_data->G0_r_t));
 
   RealRng rng(0, 1);
   std::vector<double> rng_vals(10000);
   for (auto& x : rng_vals)
     x = rng();
-  RngType rng1(rng_vals), rng2(rng_vals);
+  RngType rng1(rng_vals);
+  RngType rng2(rng_vals);
 
   using RDmn = typename Parameters::RClusterDmn;
-  
-  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_(g0, Parameters::lattice_type::BANDS, RDmn());
-  Walker walker1(parameters, rng1, d_matrix_builder_);
 
-  parameters.setMaxSubmatrixSize(16);
-  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_2(g0, Parameters::lattice_type::BANDS, RDmn());
-  WalkerSubmatrix walker2(parameters, rng2, d_matrix_builder_2);
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_(
+      g0_cpu, Parameters::lattice_type::BANDS, RDmn());
+  Walker walker1(cpu_parameters, *cpu_data, rng1, d_matrix_builder_);
+
+  cpu2_parameters.setMaxSubmatrixSize(16);
+  dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar> d_matrix_builder_2(
+      g0_cpu2, Parameters::lattice_type::BANDS, RDmn());
+  WalkerSubmatrix walker2(cpu2_parameters, *cpu2_data, rng2, d_matrix_builder_2);
 
   EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
 
@@ -116,7 +132,7 @@ TEST(CtintDoubleUpdateComparisonTest, Self_Energy) {
     EXPECT_NEAR(walker1.get_MC_log_weight(), walker2.get_MC_log_weight(), 5e-7);
     EXPECT_EQ(walker1.get_sign(), walker2.get_sign());
 
-    auto check_direct_weight = [] (auto& walker) {
+    auto check_direct_weight = [](auto& walker) {
       const auto fast_weight = walker.get_MC_log_weight();
       walker.setMFromConfig();
       const auto direct_weight = walker.get_MC_log_weight();
