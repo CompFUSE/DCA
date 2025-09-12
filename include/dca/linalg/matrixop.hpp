@@ -223,23 +223,34 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
     s << std::endl;
     std::cout << s.str();
 #endif  // NDEBUG
-    std::cerr << "matrix difference in excess of threshold!\n";
+    std::cerr << "matrix difference (" << max_diff << ") in excess of threshold (" << diff_threshold
+              << ")!\n";
     throw std::logic_error(__FUNCTION__);
   }
 
   return max_diff;
 }
-template <typename Scalar, DeviceType device_name, class ALLOC>
-auto difference(const Matrix<Scalar, device_name>& a, const Matrix<Scalar, CPU, ALLOC>& b,
+
+template <typename Scalar, class ALLOC>
+auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, CPU, ALLOC>& b,
                 double diff_threshold = 1e-3) {
   Matrix<Scalar, CPU, ALLOC> cp_a(a);
   return difference(cp_a, b, diff_threshold);
 }
-template <typename Scalar, DeviceType device_name_a, DeviceType device_name_b>
-auto difference(const Matrix<Scalar, device_name_a>& a, const Matrix<Scalar, device_name_b>& b,
+
+template <typename Scalar, class ALLOC>
+auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, GPU>& b,
                 double diff_threshold = 1e-3) {
   Matrix<Scalar, CPU> cp_b(b);
   return difference(a, cp_b, diff_threshold);
+}
+
+template <typename Scalar>
+auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, GPU>& b,
+                double diff_threshold = 1e-3) {
+  Matrix<Scalar, CPU> cp_a(a);
+  Matrix<Scalar, CPU> cp_b(b);
+  return difference(cp_a, cp_b, diff_threshold);
 }
 
 // Returns the real part of a matrix.
@@ -314,7 +325,7 @@ void inverse(MatrixType<Scalar, device_name, ALLOC<Scalar>>& mat, Vector<int, CP
                                         work.ptr(), lwork);
 }
 
-  template <typename Scalar, DeviceType device_name, template<typename> class ALLOC,
+template <typename Scalar, DeviceType device_name, template <typename> class ALLOC,
           template <typename, DeviceType, class> class MatrixType>
 void inverse(MatrixType<Scalar, device_name, ALLOC<Scalar>>& mat) {
   Vector<int, CPU> ipiv;
