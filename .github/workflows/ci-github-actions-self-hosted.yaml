@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  2xA30:
+  2xa30-2:
     runs-on: [self-hosted, Linux, X64]
 
     env:
