@@ -280,6 +280,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
       using namespace dca::addt_str_oper;
       std::cout << "M_[" << s << "] size: " << M_[s].size() << '\n';
 #endif
+      M_[s].resize(n_max_[s]);
 
       MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
       MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
@@ -302,6 +303,8 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
         }
       }
 
+      for (int i = n_init_[s]; i < n_max_[s]; ++i)
+        M_[s](i, i) = 1;
 #ifdef DEBUG_SUBMATRIX
       M_[s].print();
 #endif
@@ -613,7 +616,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMixedInsertionAndRemoval(
 }
 
 template <class Parameters, DistType DIST>
-
 CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
     Parameters, DIST>::getRawM() {
   typename BaseClass::MatrixPair M;

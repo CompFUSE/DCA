@@ -260,13 +260,6 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeMInit() {
     M_dev_[s].resize(n_max_[s]);
     M_D_dev_[s].resize(n_max_[s]);
   }
-}
-
-template <class Parameters, DistType DIST>
-void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
-  //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
-  get_stream()->sync();
-
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
     if (delta > 0) {
@@ -317,6 +310,39 @@ void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
 
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
                                   n_max_[s], *get_stream());
+    }
+  }
+}
+
+template <class Parameters, DistType DIST>
+void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
+  //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
+  get_stream()->sync();
+
+  for (int s = 0; s < 2; ++s) {
+    const int delta = n_max_[s] - n_init_[s];
+
+    auto& f_dev = f_dev_[s];
+
+    G_dev_[s].resizeNoCopy(n_max_[s]);
+
+    MatrixView<linalg::GPU> G_view_dev(G_dev_[s]);
+    const MatrixView<linalg::GPU> M(M_dev_[s]);
+    details::computeGLeft(G_view_dev, M, f_dev.ptr(), n_init_[s], get_stream()->streamActually());
+    flop_ += n_init_[s] * n_max_[s] * 2;
+
+    if (delta > 0) {
+      G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
+      // This doesn't do flops but the g0 interp data it uses does somewhere.
+      d_matrix_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true,
+                                  *get_stream());
+      flop_ += G0_dev_[s].nrCols() * G0_dev_[s].nrRows() * 10;
+      MatrixView<linalg::GPU> G_view_reduced(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
+      // compute G right.
+      linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G_view_reduced, thread_id_, 0);
+      flop_ += 2 * M_dev_[s].nrRows() * M_dev_[s].nrCols() * G0_dev_[s].nrCols();
+
+      G_[s].setAsync(G_dev_[s], *get_stream());
     }
   }
 }
