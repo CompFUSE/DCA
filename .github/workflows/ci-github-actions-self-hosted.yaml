@@ -9,8 +9,8 @@ on:
       - master
 
 jobs:
-  2xa30-2:
-    runs-on: [self-hosted, Linux, X64]
+  two_a30:
+    runs-on: [self-hosted, Linux, X64, A30]
 
     env:
       GH_JOBNAME: ${{matrix.jobname}}
