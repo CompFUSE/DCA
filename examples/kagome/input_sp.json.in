@@ -1,0 +1,73 @@
+{
+    "output": {
+        "directory": "./T_CURRENT_TEMP/",
+        "output-format": "HDF5",
+        "filename-dca": "dca_sp.hdf5",
+        "filename-profiling": "profiling.json",
+        "dump-lattice-self-energy": true,
+        "dump-cluster-Greens-functions": true,
+        "dump-Gamma-lattice": false,
+        "dump-chi-0-lattice": false
+    },
+    "physics": {
+        "beta": BETA,
+        "density": DENS,
+        "chemical-potential": 0.,
+        "adjust-chemical-potential": true
+    },
+    "Kagome-Hubbard-model": {
+        "t": 1.,
+        "U": HUBBARDU
+    },
+    "DCA": {
+        "initial-self-energy": "PREVIOUS_TEMP",
+        "iterations": ITERS,
+        "accuracy": 0.,
+        "self-energy-mixing-factor": 0.75,
+        "interacting-orbitals": [0],
+
+        "coarse-graining": {
+            "k-mesh-recursion": 3,
+            "periods": 0,
+            "quadrature-rule": 1,
+            "threads": 1,
+            "tail-frequencies": 0
+        }
+    },
+    "domains": {
+        "real-space-grids": {
+            "cluster": [VEC1,
+                        VEC2],
+            "sp-host": [[10, 10],
+                        [10,-10]]
+        },
+        "imaginary-time": {
+            "sp-time-intervals": 256
+        },
+        "imaginary-frequency": {
+            "sp-fermionic-frequencies": 256
+        }
+    },
+
+    "Monte-Carlo-integration": {
+        "seed": random,
+        "warm-up-sweeps": 100,
+        "sweeps-per-measurement": 1.,
+        "measurements": 100000,
+
+        "threaded-solver": {
+            "walkers": 3,
+          "accumulators": 3,
+          "shared-walk-and-accumulation-thread": true
+        }
+    },
+
+    "CT-AUX": {
+        "expansion-parameter-K": 4.,
+        "initial-configuration-size": 16,
+        "initial-matrix-size": 16,
+        "max-submatrix-size": 256,
+        "neglect-Bennett-updates": false,
+        "additional-time-measurements": false
+    }
+}
