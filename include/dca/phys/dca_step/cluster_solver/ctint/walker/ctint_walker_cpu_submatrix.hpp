@@ -66,11 +66,11 @@ public:
 
   void setMFromConfig() override;
 
+  void markThermalized() override;
+
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_movesto_delay);
-
-  void markThermalized() override;
 
   void updateM() override;
 
@@ -258,10 +258,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 
       d_matrix_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
-#ifdef DEBUG_SUBMATRIX
-      D_.print();
-#endif
-
       std::array<linalg::Vector<Real, linalg::CPU>, 2> f_values;
       f_values[s].resize(n_init_[s]);
       for (int j = 0; j < n_init_[s]; ++j) {
@@ -284,7 +280,6 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
       using namespace dca::addt_str_oper;
       std::cout << "M_[" << s << "] size: " << M_[s].size() << '\n';
 #endif
-
       M_[s].resize(n_max_[s]);
 
       MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
@@ -301,6 +296,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMInit() {
 #ifdef DEBUG_SUBMATRIX
       D_M.print();
 #endif
+
       for (int i = 0; i < n_max_[s]; ++i) {
         for (int j = n_init_[s]; j < n_max_[s]; ++j) {
           M_[s](i, j) = 0;

@@ -24,7 +24,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/util/gpu_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_submatrix_base.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
@@ -91,15 +90,12 @@ public:
 protected:
   // For testing purposes:
   void doStep(const int n_moves_to_delay) override;
+  void doStep() override;
   void computeMInit() override;
-  void computeGInit();
+  void computeGInit() override;
   MatrixPair<linalg::CPU> getRawG();
   MatrixPair<linalg::CPU> getRawM();
-
   void updateM() override;
-
-private:
-  void doStep() override;
 
 protected:
   using BaseClass::configuration_;
@@ -140,6 +136,7 @@ private:
   std::array<linalg::Vector<int, linalg::GPU>, 2> source_list_dev_;
 
   MatrixPair<linalg::GPU> M_dev_;
+  MatrixPair<linalg::GPU> M_D_dev_;
   MatrixPair<linalg::GPU> Gamma_inv_dev_;
   MatrixPair<linalg::GPU> D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
@@ -259,9 +256,10 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeMInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
   get_stream()->sync();
-  for (int s = 0; s < 2; ++s)
+  for (int s = 0; s < 2; ++s) {
     M_dev_[s].resize(n_max_[s]);
-
+    M_D_dev_[s].resize(n_max_[s]);
+  }
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
     if (delta > 0) {
@@ -320,10 +318,10 @@ template <class Parameters, DistType DIST>
 void CtintWalkerSubmatrixGpu<Parameters, DIST>::computeGInit() {
   //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
   get_stream()->sync();
+
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
 
-    // In cpu we only do all this if delta > 0
     auto& f_dev = f_dev_[s];
 
     G_dev_[s].resizeNoCopy(n_max_[s]);
@@ -477,6 +475,7 @@ CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSu
 
 template <class Parameters, DistType DIST>
 CtintWalkerSubmatrixGpu<Parameters, DIST>::MatrixPair<linalg::CPU> CtintWalkerSubmatrixGpu<
+
     Parameters, DIST>::getM() {
   std::array<dca::linalg::Matrix<Scalar, device>, 2> M;
   synchronize();

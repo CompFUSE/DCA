@@ -9,16 +9,18 @@
 
   "physics" :
   {
-    "beta"                      :  2,
+    "beta"                      :  4,
     "chemical-potential"        : 0
   },
 
   "bilayer-Hubbard-model":
   {
-    "t"       : 0,
-    "U"       : 0,
-    "V"       : 0,
-    "V-prime" : 2
+    "t"       : 1.0,
+    "t_prime" : 0.1,
+    "t_perp"  : 0.01,
+    "U"       : 1.0,
+    "V"       : 1.0,
+    "V-prime" : 2.0
   },
 
   "Hund-model":

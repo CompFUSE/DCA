@@ -202,13 +202,23 @@ template <typename Real>
 using CudaComplex = typename details::ComplexContainer<Real>::type;
 }  // namespace dca::linalg::util
 
-inline double2 convertToMagmaType(std::complex<double> var) {
+inline magmaDoubleComplex convertToMagmaType(std::complex<double> var) {
   return {reinterpret_cast<double (&)[2]>(var)[0], reinterpret_cast<double (&)[2]>(var)[1]};
 }
 
-inline float2 convertToMagmaType(std::complex<float> var) {
+inline magmaFloatComplex convertToMagmaType(std::complex<float> var) {
   return {reinterpret_cast<float (&)[2]>(var)[0], reinterpret_cast<float (&)[2]>(var)[1]};
 }
+
+#ifdef DCA_HAVE_HIP
+inline magmaFloatComplex convertToMagmaType(HIP_vector_type<float, 2> var) {
+  return {reinterpret_cast<float (&)[2]>(var)[0], reinterpret_cast<float (&)[2]>(var)[1]};
+}
+
+inline magmaDoubleComplex convertToMagmaType(HIP_vector_type<double, 2> var) {
+  return {reinterpret_cast<double (&)[2]>(var)[0], reinterpret_cast<double (&)[2]>(var)[1]};
+}
+#endif
 
 namespace dca::util {
 template <typename T>
@@ -231,8 +241,13 @@ using MAGMATypeMap = typename std::disjunction<
     OnTypesEqual<T, const std::complex<double>**, const magmaDoubleComplex**>,
     OnTypesEqual<T, const std::complex<float>* const*, const magmaFloatComplex* const*>,
     OnTypesEqual<T, const std::complex<double>* const*, const magmaDoubleComplex* const*>,
+    OnTypesEqual<T, const double2* const*, const magmaDoubleComplex* const*>,
+    OnTypesEqual<T, const float2* const*, const magmaFloatComplex* const*>,
+#ifdef DCA_HAVE_HIP
+    OnTypesEqual<T, const HIP_vector_type<float, 2>* const*, const magmaFloatComplex* const*>,
+    OnTypesEqual<T, const HIP_vector_type<double, 2>* const*, const magmaDoubleComplex* const*>,
+#endif
     default_type<void>>::type;
-
 template <typename T>
 __device__ __host__ MAGMATypeMap<T> castMagmaType(T var) {
   return reinterpret_cast<MAGMATypeMap<T>>(var);

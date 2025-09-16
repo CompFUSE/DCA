@@ -9,8 +9,8 @@ on:
       - master
 
 jobs:
-  v100:
-    runs-on: [self-hosted, Linux, X64, V100, CUDA]
+  two_a30:
+    runs-on: [self-hosted, Linux, X64, A30]
 
     env:
       GH_JOBNAME: ${{matrix.jobname}}
@@ -18,11 +18,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jobname: [
-            GCC12-MPI-CUDA-Real-Full,
-            ]
-#            GCC12-MPI-NoMPI-CUDA-Real-Full,
-#            GCC12-MPI-NoMPI-CUDA-Real-Debug-Full,
+        jobname: [GCC12-MPI-CUDA-Real-Full]
+    #            GCC12-MPI-NoMPI-CUDA-Real-Full,
+    #            GCC12-MPI-NoMPI-CUDA-Real-Debug-Full,
 
     steps:
       - name: Checkout PR branch
@@ -36,4 +34,3 @@ jobs:
 
       - name: Test
         run: test/test_automation/ci/run_step.sh test
-

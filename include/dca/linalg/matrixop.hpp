@@ -43,6 +43,7 @@
 #include "dca/linalg/blas/use_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/allocators/aligned_allocator.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
 #include "dca/linalg/vector.hpp"
@@ -230,7 +231,6 @@ auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, CPU, A
 
   return max_diff;
 }
-
 template <typename Scalar, class ALLOC>
 auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, CPU, ALLOC>& b,
                 double diff_threshold = 1e-3) {
@@ -241,7 +241,7 @@ auto difference(const Matrix<Scalar, GPU>& a, const Matrix<Scalar, CPU, ALLOC>& 
 template <typename Scalar, class ALLOC>
 auto difference(const Matrix<Scalar, CPU, ALLOC>& a, const Matrix<Scalar, GPU>& b,
                 double diff_threshold = 1e-3) {
-  Matrix<Scalar, CPU> cp_b(b);
+  Matrix<Scalar, CPU, ALLOC> cp_b(b);
   return difference(a, cp_b, diff_threshold);
 }
 
@@ -354,7 +354,7 @@ void smallInverse(Matrix<Scalar, CPU, ALLOC>& m_inv, Vector<int, CPU>& ipiv,
       break;
     }
     case 3: {
-      const Matrix<Scalar, CPU, ALLOC> m(m_inv);
+      const Matrix<Scalar, CPU, dca::linalg::util::AlignedAllocator<Scalar>> m(m_inv);
       const Scalar det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
                          m(1, 0) * (m(0, 1) * m(2, 2) - m(0, 2) * m(2, 1)) +
                          m(2, 0) * (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1));
@@ -1005,7 +1005,8 @@ inline void multiplyDiagonalLeft(const Vector<ScalarIn, device_name>& d,
 template <typename ScalarIn, typename ScalarOut>
 inline void multiplyDiagonalLeft(const Vector<ScalarIn, CPU>& d, const Matrix<ScalarIn, GPU>& a,
                                  Matrix<ScalarOut, GPU>& b, int thread_id = 0, int stream_id = 0) {
-  Vector<ScalarIn, GPU> d_gpu(d);
+  Vector<ScalarIn, GPU> d_gpu;
+  d_gpu.setAsync(d, thread_id, stream_id);
   multiplyDiagonalLeft(d_gpu, a, b, thread_id, stream_id);
 }
 
@@ -1025,7 +1026,8 @@ inline void multiplyDiagonalRight(const Matrix<Scalar, device_name>& a,
 template <typename Scalar>
 inline void multiplyDiagonalRight(const Matrix<Scalar, GPU>& a, const Vector<Scalar, CPU>& d,
                                   Matrix<Scalar, GPU>& b, int thread_id = 0, int stream_id = 0) {
-  Vector<Scalar, GPU> d_gpu(d);
+  Vector<Scalar, GPU> d_gpu;
+  d_gpu.setAsync(d, thread_id, stream_id);
   multiplyDiagonalRight(a, d_gpu, b, thread_id, stream_id);
 }
 

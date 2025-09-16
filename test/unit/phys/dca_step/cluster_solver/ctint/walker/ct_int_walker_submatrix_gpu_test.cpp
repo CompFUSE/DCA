@@ -30,8 +30,8 @@ using McOptions = MockMcOptions<Scalar>;
 #include "walker_wrapper_submatrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
-
 #include "dca/util/to_string.hpp"
+
 using namespace dca::addt_str_oper;
 
 constexpr char input_name[] =
@@ -62,12 +62,12 @@ using namespace dca::phys::solver;
 template <typename Scalar>
 using CtintWalkerSubmatrixGpuTest = CtINTWalkerSubmatrixGPUTestT<Scalar>;
 
-template<dca::linalg::DeviceType DEVICE>
+template <dca::linalg::DeviceType DEVICE>
 using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<DEVICE, Scalar>;
 
 // Currently testing float isn't really possible due to the way the Scalar type is
 // carried through from mc_options. See test_setup.hpp PD
-using ScalarTypes = ::testing::Types<double>; //double,
+using ScalarTypes = ::testing::Types<double>;  // double,
 TYPED_TEST_CASE(CtintWalkerSubmatrixGpuTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
@@ -80,9 +80,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   using Matrix = typename Walker::Matrix;
   using MatrixPair = std::array<Matrix, 2>;
   using SbmWalkerCpu =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
   using SbmWalkerGpu =
-    testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::GPU>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::GPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
@@ -100,15 +100,14 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
   G0Interpolation<GPU, Scalar> g0_gpu(g0_func_gpu);
   typename CtintWalkerSubmatrixGpuTest<Scalar>::G0Setup::LabelDomain label_dmn;
 
-
   constexpr int bands = dca::testing::LatticeBilayer::BANDS;
 
   DMatrixBuilder<dca::linalg::CPU> d_matrix_cpu(g0_cpu, bands, RDmn());
+  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), false);  // cpu_parameters.adjustAlphaDd());
   SbmWalkerCpu::setInteractionVertices(cpu_data, cpu_parameters);
-  d_matrix_cpu.setAlphas(cpu_parameters.getAlphas(), false); //cpu_parameters.adjustAlphaDd());
   DMatrixBuilder<dca::linalg::GPU> d_matrix_gpu(g0_gpu, bands, RDmn());
+  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), false);  // gpu_parameters.adjustAlphaDd());
   SbmWalkerGpu::setInteractionVertices(cpu_data, gpu_parameters);
-  d_matrix_gpu.setAlphas(gpu_parameters.getAlphas(), false); //gpu_parameters.adjustAlphaDd());
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -162,20 +161,26 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       SbmWalkerGpu walker_gpu(gpu_parameters, gpu_rng, d_matrix_gpu);
       walker_gpu.setInteractionVertices(gpu_data, gpu_parameters);
 
-      cpu_rng.setNewValues(rng_vals);
-      walker_cpu.doStep(steps);
-      gpu_rng.setNewValues(rng_vals);
-      walker_gpu.doStep(steps);
+      // I don't think we can call these before steps are done.  At least the CPU implementation has nan's in M
+      // MatrixPair old_M_cpu(walker_cpu.getM());
+      // MatrixPair old_M_gpu(walker_gpu.getM());
 
       // doSweep does this
       walker_gpu.uploadConfiguration();
 
       constexpr Scalar tolerance = std::numeric_limits<Scalar>::epsilon() * 100;
 
-      auto M_cpu = walker_cpu.getM();
-      auto M_gpu = walker_gpu.getM();
-      for (int s = 0; s < 2; ++s)
-        EXPECT_TRUE(dca::linalg::matrixop::areNear(M_cpu[s], M_gpu[s], tolerance));
+      // for (int s = 0; s < 2; ++s)
+      //   EXPECT_TRUE(dca::linalg::matrixop::areNear(old_M_cpu[s], old_M_gpu[s], tolerance));
+
+      cpu_rng.setNewValues(rng_vals);
+      walker_cpu.doStep(steps);
+
+      gpu_rng.setNewValues(rng_vals);
+      walker_gpu.doStep(steps);
+
+      // doSweep does this
+      walker_gpu.uploadConfiguration();
 
       // The final configuration is the same.
       const auto& config1 = walker_cpu.getWalkerConfiguration();
@@ -184,6 +189,9 @@ TYPED_TEST(CtintWalkerSubmatrixGpuTest, doSteps) {
       for (int i = 0; i < config1.size(); ++i)
         EXPECT_EQ(config1[i], config2[i]);
       EXPECT_EQ(walker_cpu.get_sign(), walker_gpu.get_sign());
+
+      auto M_cpu = walker_cpu.getM();
+      auto M_gpu = walker_gpu.getM();
 
       auto fail = compareSubMatrix(M_cpu, M_gpu, "M");
       EXPECT_FALSE(fail);

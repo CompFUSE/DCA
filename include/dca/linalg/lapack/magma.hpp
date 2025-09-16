@@ -150,9 +150,9 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_cgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           convertToMagmaComplex(alpha), castMAGMAComplex(a), lda,
-                           castMAGMAComplex(b), ldb, convertToMagmaComplex(beta),
-                           castMAGMAComplex(c), ldc, batch_count, queue);
+                           convertToMagmaType(alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b),
+                           ldb, convertToMagmaType(beta), castMAGMAComplex(c), ldc, batch_count,
+                           queue);
   checkErrorsCudaDebug();
 }
 inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m, int* n, int* k,
@@ -163,9 +163,9 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
                                     int* ldc, const int batch_count, const magma_queue_t queue) {
   using util::castMAGMAComplex;
   magmablas_zgemm_vbatched(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k,
-                           convertToMagmaComplex(alpha), castMAGMAComplex(a), lda,
-                           castMAGMAComplex(b), ldb, convertToMagmaComplex(beta),
-                           castMAGMAComplex(c), ldc, batch_count, queue);
+                           convertToMagmaType(alpha), castMAGMAComplex(a), lda, castMAGMAComplex(b),
+                           ldb, convertToMagmaType(beta), castMAGMAComplex(c), ldc, batch_count,
+                           queue);
   checkErrorsCudaDebug();
 }
 

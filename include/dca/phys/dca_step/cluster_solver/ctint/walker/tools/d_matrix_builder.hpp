@@ -83,6 +83,8 @@ public:
   void computeG0(Matrix& G0, const Sector& configuration, const int n_init, const int n_max,
                  const int which_section) const;
 
+  auto& getSiteDiff() { return site_diff_; }
+  
 #ifdef DCA_HAVE_GPU
   virtual void computeG0(linalg::Matrix<Scalar, linalg::GPU>& /*G0*/,
                          const details::DeviceConfiguration& /*configuration*/, int /*n_init*/,

@@ -46,10 +46,8 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
-using Scalar = double;
-
 using TpAccumulatorSinglebandTest =
-  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+    dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   const std::array<int, 2> n{17, 17};
@@ -77,9 +75,10 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   func_names[dca::phys::FourPointType::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
   func_names[dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
-  for (const dca::phys::FourPointType type :
-       {dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE, dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC,
-        dca::phys::FourPointType::PARTICLE_HOLE_CHARGE, dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN}) {
+  for (const dca::phys::FourPointType type : {dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE,
+                                              dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC,
+                                              dca::phys::FourPointType::PARTICLE_HOLE_CHARGE,
+                                              dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN}) {
     parameters_.set_four_point_channel(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(

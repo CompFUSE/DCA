@@ -30,6 +30,7 @@
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Moire_Hubbard.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
@@ -50,6 +51,7 @@ using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 using LatticeKagome = phys::models::KagomeHubbard<phys::domains::no_symmetry<2>>;
 using LatticeRashba = phys::models::RashbaHubbard<phys::domains::no_symmetry<2>>;
 using LatticeMoireHubbard = phys::models::moire_hubbard<phys::domains::no_symmetry<2>>;
+using LatticeFeAs = phys::models::FeAsLattice<phys::domains::D4>;
 
 template <typename Scalar, class Lattice = LatticeSquare,
           ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
@@ -102,9 +104,8 @@ struct G0Setup : public ::testing::Test {
   virtual void TearDown() {}
 
   auto& getParameters() {
-      return parameters_;
+    return parameters_;
   }
-
 };
 
 template <typename Scalar, class Lattice = LatticeSquare,
@@ -154,9 +155,7 @@ struct G0SetupBare {
   }
 
   void TearDown() {}
-
 };
-
 
 template <typename Scalar, class Lattice = LatticeSquare,
           ClusterSolverId solver_name = ClusterSolverId::CT_AUX,
@@ -196,9 +195,7 @@ struct G0SetupFromParam {
   }
 
   void TearDown() {}
-
 };
-
 
 }  // namespace testing
 }  // namespace dca

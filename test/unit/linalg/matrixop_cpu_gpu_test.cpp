@@ -39,7 +39,6 @@ TEST(MatrixopCPUGPUTest, difference) {
         dca::linalg::Matrix<double, dca::linalg::CPU, dca::linalg::util::PinnedAllocator<double>> b(a);
         b(ia, ja) += sg * diff;
         double err = std::abs(epsilon * b(ia, ja));
-
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, b, 2 * diff), err);
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, b, diff + err), err);
         auto diffcalc = dca::linalg::matrixop::difference(da, b, 2 * diff);

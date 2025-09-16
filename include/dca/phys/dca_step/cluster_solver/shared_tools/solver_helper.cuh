@@ -44,7 +44,6 @@ public:
 
 private:
   static bool initialized_;
-
   std::size_t subdm_step_[2];
 };
 

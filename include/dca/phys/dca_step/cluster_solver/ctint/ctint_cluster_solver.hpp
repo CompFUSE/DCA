@@ -37,7 +37,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
-//#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
+// #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
@@ -58,7 +58,7 @@ public:
   static constexpr ClusterSolverId solver_type{ClusterSolverId::CT_INT};
 
   using Real = typename config::McOptions::MC_REAL;
-  using Scalar = typename dca::util::ScalarSelect<Real,Parameters::complex_g0>::type;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
   using Concurrency = typename Parameters::concurrency_type;
 
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
@@ -111,8 +111,11 @@ public:
   // Returns the function G(k,w) without averaging across MPI ranks.
   auto local_G_k_w() const;
 
-  DMatrixBuilder& getResource() { return *d_matrix_builder_; };
-protected:  // thread jacket interface.  
+  DMatrixBuilder& getResource() {
+    return *d_matrix_builder_;
+  };
+
+protected:  // thread jacket interface.
   using ParametersType = Parameters;
   using DataType = Data;
   using Rng = typename Parameters::random_number_generator;
@@ -140,8 +143,8 @@ protected:  // Protected for testing purposes.
 
   /** gather all M and G4 and accumulated sign
    *  \param[out] Returns: average phase
-   *  \param[in,out]  G                 greens function has allreduce or leaveoneoutSum applied to it
-   *                                    side effect seems undesirable and motivated by saving copy.
+   *  \param[in,out]  G                 greens function has allreduce or leaveoneoutSum applied to
+   * it side effect seems undesirable and motivated by saving copy.
    *  \param[in]      compute_error     does leave one out sum removing the local accumulated type.
    */
   auto gatherMAndG4(SpGreensFunction& M, bool compute_error) const;
@@ -192,7 +195,7 @@ CtintClusterSolver<DEV, PARAM, use_submatrix, DIST>::CtintClusterSolver(
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
 void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
-  
+
   g0_.initializeShrinked(data_.G0_r_t_cluster_excluded);
 
   d_matrix_builder_->setAlphas(parameters_.getAlphas(), parameters_.adjustAlphaDd());
@@ -202,7 +205,6 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
-
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
@@ -353,10 +355,8 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::warmUp() {
   const int n_sweep = parameters_.get_warm_up_sweeps();
   for (int i = 0; i < n_sweep; i++) {
     walker_->doSweep();
-
     walker_->updateShell(i, n_sweep);
   }
-
   walker_->markThermalized();
 }
 

@@ -33,6 +33,8 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
+
+// I think the class hierarch isn't helpful here.
 class SolverConfiguration : public MatrixConfiguration {
 public:
   using BaseClass = MatrixConfiguration;

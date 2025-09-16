@@ -85,11 +85,14 @@ void ClusterHelper::setMomentum(int nc, const int* add, int lda, const int* sub,
 
     size_t cluster_helper_size;
 
-    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_add_matrix), &host_helper.add_matrix_, sizeof(int*)));
-    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_sub_matrix), &host_helper.sub_matrix_, sizeof(int*)));
+    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_add_matrix), &host_helper.add_matrix_,
+                               sizeof(int*)));
+    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_sub_matrix), &host_helper.sub_matrix_,
+                               sizeof(int*)));
     checkRC(cudaGetSymbolSize(&cluster_helper_size, HIP_SYMBOL(cluster_momentum_helper)));
     assert(cluster_helper_size == sizeof(ClusterHelper));
-    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_helper), &host_helper, sizeof(ClusterHelper)));
+    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_momentum_helper), &host_helper,
+                               sizeof(ClusterHelper)));
     checkRC(cudaDeviceSynchronize());
 #ifdef DEBUG_CLUSTER_HELPER
     checkClusterMomentumHelper<<<1, 1, 0, 0>>>(nc, lds);
@@ -127,8 +130,10 @@ void ClusterHelper::set(int nc, const int* add, int lda, const int* sub, int lds
     checkRC(cudaGetSymbolSize(&cluster_helper_size, HIP_SYMBOL(cluster_real_helper)));
     assert(cluster_helper_size == sizeof(ClusterHelper));
 
-    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_add_matrix), &host_helper.add_matrix_, sizeof(int*)));
-    checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_sub_matrix), &host_helper.sub_matrix_, sizeof(int*)));
+    checkRC(
+        cudaMemcpyToSymbol(HIP_SYMBOL(cluster_add_matrix), &host_helper.add_matrix_, sizeof(int*)));
+    checkRC(
+        cudaMemcpyToSymbol(HIP_SYMBOL(cluster_sub_matrix), &host_helper.sub_matrix_, sizeof(int*)));
     checkRC(cudaMemcpyToSymbol(HIP_SYMBOL(cluster_real_helper), &host_helper, cluster_helper_size));
     checkRC(cudaDeviceSynchronize());
 
