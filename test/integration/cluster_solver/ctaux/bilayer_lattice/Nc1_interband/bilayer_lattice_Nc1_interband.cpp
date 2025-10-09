@@ -15,8 +15,8 @@
 #include <string>
 #include <dca/function/util/difference.hpp>
 
-#include "gtest/gtest.h"
-
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "dca/config/mc_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -26,6 +26,7 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -50,13 +51,14 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   using LatticeType = dca::phys::models::bilayer_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::NoThreading;
+  using Scalar = double;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX,dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
-      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
+    dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType, dca::DistType::NONE>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

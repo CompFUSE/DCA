@@ -33,64 +33,95 @@ using dca::linalg::GPU;
 using dca::linalg::DeviceType;
 using dca::DistType;
 
-template <class Parameters, dca::linalg::DeviceType device, typename Real, DistType DIST = DistType::NONE>
+template <class Parameters, dca::linalg::DeviceType device, DistType DIST = DistType::NONE>
 struct WalkerSelector;
 
-template <class Parameters, typename Real, DistType DIST>
-struct WalkerSelector<Parameters, CPU, Real, DIST> {
+template <class Parameters, DistType DIST>
+struct WalkerSelector<Parameters, CPU, DIST> {
   // Fix rng order for testing.
-  using type = CtintWalkerSubmatrixCpu<Parameters, Real, DIST>;
+  using type = CtintWalkerSubmatrixCpu<Parameters, DIST>;
 };
 
 #ifdef DCA_HAVE_GPU
-template <class Parameters, typename Real, DistType DIST>
-struct WalkerSelector<Parameters, GPU, Real, DIST> {
-  using type = CtintWalkerSubmatrixGpu<Parameters, Real, DIST>;
+template <class Parameters, DistType DIST>
+struct WalkerSelector<Parameters, GPU, DIST> {
+  using type = CtintWalkerSubmatrixGpu<Parameters, DIST>;
 };
 #endif  // DCA_HAVE_GPU
 
 using namespace dca::phys::solver::ctint;
-template <class Parameters, DeviceType device_t = CPU, typename Real = double, DistType DIST = DistType::NONE>
-struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, Real, DIST>::type {
-  using BaseClass = typename WalkerSelector<Parameters, device_t, Real, DIST>::type;
+template <typename SCALAR, class Parameters, DeviceType device_t = CPU, DistType DIST = DistType::NONE>
+struct WalkerWrapperSubmatrix : public WalkerSelector<Parameters, device_t, DIST>::type {
+  using BaseClass = typename WalkerSelector<Parameters, device_t, DIST>::type;
+  using Scalar = SCALAR;
+  using Real = dca::util::RealAlias<Scalar>;
   using Rng = typename BaseClass::Rng;
   using Data = typename BaseClass::Data;
+  using BaseClass::setMFromConfig;
 
-  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref)
-      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref, 0),
+  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref, Rng& rng_ref,
+                         DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
+      : BaseClass(parameters_ref, dca::phys::DcaData<Parameters>(parameters_ref), rng_ref,
+                  d_matrix_builder, 0),
         streams_(3) {
     BaseClass::initialize(0);
-
   }
 
-  // This purposefully shadows
-  void doStep(const int n_steps_to_delay) {
-    BaseClass::doStep(n_steps_to_delay);
+  WalkerWrapperSubmatrix(/*const*/ Parameters& parameters_ref,
+                         const dca::phys::DcaData<Parameters>& data, Rng& rng_ref,
+                         DMatrixBuilder<device_t, Scalar>& d_matrix_builder)
+      : BaseClass(parameters_ref, data, rng_ref, d_matrix_builder, 0), streams_(3) {
+    BaseClass::initialize(0);
   }
 
-  using Matrix = dca::linalg::Matrix<Real, CPU>;
+  using Matrix = dca::linalg::Matrix<Scalar, CPU>;
   using MatrixPair = std::array<Matrix, 2>;
 
   MatrixPair getM() {
-    std::array<dca::linalg::Matrix<Real, device_t>, 2> M;
-
-    BaseClass::computeM(M);
-#ifdef DCA_HAVE_GPU
-    cudaDeviceSynchronize();
-#endif
-
-    std::array<dca::linalg::Matrix<Real, CPU>, 2> M_copy{M[0], M[1]};
-    return M_copy;
+    return BaseClass::getM();
   }
-
-  using BaseClass::setMFromConfig;
 
   const auto& getWalkerConfiguration() const {
     return BaseClass::configuration_;
   }
 
-  Real getAcceptanceProbability() const {
+  auto getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
+  }
+
+  /** These methods allow access to protected member functions in order to be
+   *  able to write meaningful unit tests for the CtintWalker
+   */
+  void doStep(const int n_steps_to_delay) {
+    BaseClass::doStep(n_steps_to_delay);
+  }
+
+  void generateDelayedMoves(int nbr_of_movesto_delay) {
+    BaseClass::SubmatrixBase::generateDelayedMoves(nbr_of_movesto_delay);
+  }
+
+  void computeMInit() {
+    BaseClass::computeMInit();
+  }
+
+  void computeGInit() {
+    BaseClass::computeGInit();
+  }
+
+  auto getRawM() {
+    return BaseClass::getRawM();
+  }
+
+  auto getRawG() {
+    return BaseClass::getRawG();
+  }
+
+  void updateM() {
+    BaseClass::updateM();
+  }
+
+  void mainSubmatrixProcess() {
+    BaseClass::mainSubmatrixProcess();
   }
 
 private:

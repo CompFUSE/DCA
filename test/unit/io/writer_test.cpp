@@ -1,5 +1,5 @@
-// Copyright (C) 2022 ETH Zurich
-// Copyright (C) 2022 UT-Battelle, LLC
+// Copyright (C) 2024 ETH Zurich
+// Copyright (C) 2024 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -12,6 +12,7 @@
 
 #include "gtest/gtest.h"
 #include <memory>
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/domains/dmn_0.hpp"
@@ -21,25 +22,26 @@
 #include "dca/util/ignore.hpp"
 #ifdef DCA_HAVE_MPI
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
-dca::parallel::MPIConcurrency* mpi_concurrency_ptr = nullptr;
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
 adios2::ADIOS* adios_ptr = nullptr;
 #endif
-#endif
+using Concurrency = dca::parallel::MPIConcurrency;
+#else
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-dca::parallel::NoConcurrency* concurrency_ptr = nullptr;
+using Concurrency = dca::parallel::NoCurrency;
+#endif
+
+Concurrency* concurrency_ptr = nullptr;
 
 template <typename T>
 class WriterTest : public ::testing::Test {};
 
-using Concurrency = dca::parallel::NoConcurrency;
-using MPIConcurrency = dca::parallel::MPIConcurrency;
 
 using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter
 #ifdef DCA_HAVE_ADIOS2
                                      ,
-                                     dca::io::ADIOS2Writer<MPIConcurrency>
+                                     dca::io::ADIOS2Writer<Concurrency>
 #endif
                                      >;  //, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
@@ -47,8 +49,8 @@ TYPED_TEST_CASE(WriterTest, WriterTypes);
 TYPED_TEST(WriterTest, Constructor) {
   std::unique_ptr<TypeParam> writer_ptr;
 #ifdef DCA_HAVE_ADIOS2
-  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<MPIConcurrency>>::value)
-    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, mpi_concurrency_ptr);
+  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
+    writer_ptr = std::make_unique<TypeParam>(concurrency_ptr);
   else
 #endif
     writer_ptr = std::make_unique<TypeParam>();
@@ -58,8 +60,8 @@ TYPED_TEST(WriterTest, Constructor) {
 TYPED_TEST(WriterTest, Unique_Ptr) {
   std::unique_ptr<TypeParam> writer_ptr;
 #ifdef DCA_HAVE_ADIOS2
-  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<MPIConcurrency>>::value)
-    writer_ptr = std::make_unique<TypeParam>(*adios_ptr, mpi_concurrency_ptr);
+  if constexpr (std::is_same<TypeParam, dca::io::ADIOS2Writer<Concurrency>>::value)
+    writer_ptr = std::make_unique<TypeParam>(concurrency_ptr);
   else
 #endif
     writer_ptr = std::make_unique<TypeParam>();
@@ -91,17 +93,11 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
 }
 
 int main(int argc, char** argv) {
-  dca::parallel::NoConcurrency concurrency(argc, argv);
-
+  Concurrency concurrency(argc, argv);
   concurrency_ptr = &concurrency;
 
-#ifdef DCA_HAVE_MPI
-  dca::parallel::MPIConcurrency mpi_concurrency(argc, argv);
-  mpi_concurrency_ptr = &mpi_concurrency;
 #ifdef DCA_HAVE_ADIOS2
-  adios2::ADIOS adios("", mpi_concurrency_ptr->get());
-  adios_ptr = &adios;
-#endif
+  adios_ptr = &(concurrency_ptr->get_adios());
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);

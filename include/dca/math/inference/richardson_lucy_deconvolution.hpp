@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"

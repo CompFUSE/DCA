@@ -43,9 +43,9 @@ public:
   using w = func::dmn_0<domains::frequency_domain>;
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA = typename ParametersType::KClusterDmn;
+  //      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+  //                                        domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, WVertexDmn>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
@@ -104,6 +104,7 @@ BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 template <typename Writer>
 void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& writer) {
+  writer.execute(Gamma_cluster);
   writer.execute(G_II_0_function);
 }
 
@@ -131,9 +132,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute<Lattice>(data_.Sigma, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute<Lattice>(data_.G_k_w, data_.H_symmetry);
+  Symmetrize<ParametersType>::execute(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -148,8 +149,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
-      symmetrize::execute(G_II, parameters.get_four_point_momentum_transfer());
-      symmetrize::execute(G_II_0, parameters.get_four_point_momentum_transfer());
+      Symmetrize<ParametersType>::execute(G_II, parameters.get_four_point_momentum_transfer());
+      Symmetrize<ParametersType>::execute(G_II_0, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {
@@ -311,18 +312,18 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_clu
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
-  ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
+  // ScalarType renorm = 1. / (parameters.get_beta() * k_DCA::dmn_size());
 
   int N = cluster_eigenvector_dmn.get_size();
 
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_inv(N);
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> G4_0_inv(N);
 
-  G_II *= renorm;
+  // G_II *= renorm;
   dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II(0), N, G4_inv);
   dca::linalg::matrixop::inverse(G4_inv);
 
-  G_II_0 *= renorm;
+  // G_II_0 *= renorm;
   dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II_0(0), N, G4_0_inv);
   dca::linalg::matrixop::inverse(G4_0_inv);
 

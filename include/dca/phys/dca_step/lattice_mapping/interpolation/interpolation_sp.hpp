@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov) {mixed precision}
 //
 // This class computes the interpolated cluster self-energy using the alpha transformation.
 
@@ -35,6 +36,9 @@ namespace latticemapping {
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_sp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn> {
 public:
+  using Real = typename parameters_type::Real;
+  using Scalar = typename parameters_type::Scalar;
+  
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
@@ -65,17 +69,17 @@ public:
   interpolation_sp(parameters_type& parameters_ref);
 
   void execute_with_alpha_transformation(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_self_energy,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_self_energy);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_self_energy,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_self_energy);
 
 private:
   void execute(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn>>& cluster_self_energy,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn>>& interp_self_energy);
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn>>& cluster_self_energy,
+      func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn>>& interp_self_energy);
 
-  void execute(func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn, w>>&
+  void execute(func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn, w>>&
                    cluster_self_energy,
-               func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn, w>>&
+               func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn, w>>&
                    interp_self_energy);
 
 private:
@@ -96,27 +100,27 @@ interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_sp(
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute_with_alpha_transformation(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_self_energy,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_self_energy) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_self_energy,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_self_energy) {
   r_centered_dmn::parameter_type::initialize();
 
-  func::function<std::complex<double>, nu_nu_k_DCA_w> cluster_alpha_k("cluster_alpha_k");
-  func::function<std::complex<double>, nu_nu_k_HOST_w> interpolated_alpha_k("interpolated_alpha");
+  func::function<std::complex<Real>, nu_nu_k_DCA_w> cluster_alpha_k("cluster_alpha_k");
+  func::function<std::complex<Real>, nu_nu_k_HOST_w> interpolated_alpha_k("interpolated_alpha");
 
-  transform_to_alpha::forward(1., cluster_self_energy, cluster_alpha_k);
+  transform_to_alpha::forward(static_cast<Real>(1.), cluster_self_energy, cluster_alpha_k);
 
   execute(cluster_alpha_k, interpolated_alpha_k);
 
-  transform_to_alpha::backward(1., interp_self_energy, interpolated_alpha_k);
+  transform_to_alpha::backward(static_cast<Real>(1.), interp_self_energy, interpolated_alpha_k);
 }
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_function,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_function) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn, w>>& cluster_function,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn, w>>& interp_function) {
   r_centered_dmn::parameter_type::initialize();
 
-  func::function<std::complex<double>, nu_nu_r_centered_w> cluster_centered_function(
+  func::function<std::complex<Real>, nu_nu_r_centered_w> cluster_centered_function(
       "cluster_centered_function");
 
   math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(
@@ -128,11 +132,11 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn>>& cluster_function,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn>>& interp_function) {
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, source_k_dmn>>& cluster_function,
+    func::function<std::complex<Real>, func::dmn_variadic<nu, nu, target_k_dmn>>& interp_function) {
   r_centered_dmn::parameter_type::initialize();
 
-  func::function<std::complex<double>, nu_nu_r_centered> cluster_centered_function(
+  func::function<std::complex<Real>, nu_nu_r_centered> cluster_centered_function(
       "cluster_centered_function");
 
   math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(

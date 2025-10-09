@@ -1,0 +1,17 @@
+{
+    "Monte-Carlo-integration": {
+        "seed": 42,
+        "warm-up-sweeps": 40,
+        "sweeps-per-measurement": [1.5, 1.5, 4.],
+        "measurements": [100, 150, 200],
+        "error-computation-type" : "JACK_KNIFE",
+        "store-configuration" : false,
+        "g4-distribution": "MPI",
+	"stamping-period": 2,
+        "threaded-solver": {
+            "walkers": 1,
+            "accumulators": 1,
+            "shared-walk-and-accumulation-thread": true
+        }
+    }
+}

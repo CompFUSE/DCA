@@ -115,7 +115,7 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, Dc
 
   {
     ProfilerType prof("compute-band-structure", "input", __LINE__);
-    compute_band_structure::execute(parameters_, dca_data_.band_structure);
+    compute_band_structure<ParametersType>::execute(parameters_, dca_data_.band_structure);
   }
 }
 
@@ -229,6 +229,8 @@ void BseSolver<ParametersType, DcaDataType>::calculateSusceptibilities() {
   bse_lattice_solver_.computeGammaLattice(bse_cluster_solver_.get_Gamma_cluster());
   bse_lattice_solver_.computeChi0Lattice();
   bse_lattice_solver_.diagonalizeGammaChi0();
+
+  
 }
 
 }  // namespace analysis

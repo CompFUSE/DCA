@@ -14,7 +14,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -24,8 +24,19 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -45,6 +56,7 @@ constexpr bool update_baseline = false;
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(squareLattice_Nc4_nn, Self_Energy) {
+  using Scalar = double;
   using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
@@ -53,7 +65,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::ClusterSolverId::CT_AUX>;
+                                    dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;

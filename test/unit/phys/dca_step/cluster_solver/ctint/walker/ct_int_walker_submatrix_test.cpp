@@ -11,6 +11,16 @@
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
 
+#include "dca/platform/dca_gpu.h"
+using Scalar = double;
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
+#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "gtest/gtest.h"
 
@@ -18,32 +28,37 @@
 #include "walker_wrapper_submatrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 constexpr char input_name[] =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
 
-template <typename Real>
+template <typename Scalar>
 using CtintWalkerSubmatrixTest =
-    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_INT, input_name>;
+    typename dca::testing::G0Setup<Scalar, dca::testing::LatticeBilayer,
+                                   dca::ClusterSolverId::CT_INT, input_name>;
+
+using CDA = dca::phys::ClusterDomainAliases<dca::testing::LatticeBilayer::DIMENSION>;
+using RDmn = typename CDA::RClusterDmn;
 
 using namespace dca::phys::solver;
 
-using FloatingPointTypes = ::testing::Types<float, double>;
-TYPED_TEST_CASE(CtintWalkerSubmatrixTest, FloatingPointTypes);
+// Currently testing float isn't really possible due to the way the Scalar type is
+// carried through from mc_options. See test_setup.hpp PD
+using ScalarTypes = ::testing::Types<double>;  // double,
+TYPED_TEST_CASE(CtintWalkerSubmatrixTest, ScalarTypes);
 
 // Compare the submatrix update with a direct computation of the M matrix, and compare the
 // acceptance probability to
 // the CTINT walker with no submatrix update.
 TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
-  using Real = TypeParam;
+  using Scalar = TypeParam;
   using Parameters = typename TestFixture::Parameters;
 
-  using Walker = testing::phys::solver::ctint::WalkerWrapper<Parameters, Real>;
+  using Walker = testing::phys::solver::ctint::WalkerWrapper<Scalar, Parameters>;
   using Matrix = typename Walker::Matrix;
   using MatrixPair = std::array<Matrix, 2>;
   using SubmatrixWalker =
-      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Parameters, dca::linalg::CPU, Real>;
+      testing::phys::solver::ctint::WalkerWrapperSubmatrix<Scalar, Parameters, dca::linalg::CPU>;
 
   std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
@@ -52,12 +67,13 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
   auto& data = *TestFixture::data_;
   auto& parameters = TestFixture::parameters_;
 
-  G0Interpolation<dca::linalg::CPU, Real> g0(
+  G0Interpolation<dca::linalg::CPU, Scalar> g0(
       dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
   typename TestFixture::LabelDomain label_dmn;
-  Walker::setDMatrixBuilder(g0);
-  Walker::setDMatrixAlpha(parameters.getAlphas(), false);
-  Walker::setInteractionVertices(data, parameters);
+  using DMatrixBuilder = dca::phys::solver::ctint::DMatrixBuilder<dca::linalg::CPU, Scalar>;
+  DMatrixBuilder d_matrix_builder(g0, 2, RDmn());
+  d_matrix_builder.setAlphas(parameters.getAlphas(), false);
+  SubmatrixWalker::setInteractionVertices(data, parameters);
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -82,7 +98,7 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
 
   for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
-    SubmatrixWalker walker(parameters, rng);
+    SubmatrixWalker walker(parameters, rng, d_matrix_builder);
 
     MatrixPair old_M(walker.getM());
     rng.setNewValues(rng_vals);
@@ -94,21 +110,26 @@ TYPED_TEST(CtintWalkerSubmatrixTest, doSteps) {
     walker.setMFromConfig();
     MatrixPair direct_M(walker.getM());
 
-    constexpr auto tolerance = 1000 * std::numeric_limits<Real>::epsilon();
+    using dca::util::RealAlias;
+
+    // This should just be the RealAliases of the scalar since in the
+    // complex case we are checking the Euclidean norm.
+    const auto tolerance = 1000.0 * std::numeric_limits<RealAlias<Scalar>>::epsilon();
 
     for (int s = 0; s < 2; ++s)
       EXPECT_TRUE(dca::linalg::matrixop::areNear(direct_M[s], new_M[s], tolerance));
 
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
-    Walker walker_nosub(parameters, rng);
+    Walker walker_nosub(parameters, data, rng, d_matrix_builder);
 
     rng.setNewValues(rng_vals);
     for (int i = 0; i < steps; ++i)
       walker_nosub.doStep();
 
-    EXPECT_NEAR(walker.getAcceptanceProbability(), walker_nosub.getAcceptanceProbability(),
-                tolerance);
+    // this needs to be std::abs because it could be a "complex" probability
+    EXPECT_NEAR(std::abs(walker.getAcceptanceProbability()),
+                std::abs(walker_nosub.getAcceptanceProbability()), tolerance);
 
     auto config_nosubm = walker_nosub.getWalkerConfiguration();
     ASSERT_EQ(config.size(), config_nosubm.size());

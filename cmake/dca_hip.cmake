@@ -39,13 +39,18 @@ if(DCA_WITH_HIP)
 #-------------------------------------------------------------------
 #  set up HIP compiler options
 #-------------------------------------------------------------------
-  set(CMAKE_MODULE_PATH "${ROCM_ROOT}/hip/cmake" ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH "${ROCM_ROOT}/hip/cmake" "${ROCM_ROOT}/lib/cmake/hip" "${ROCM_ROOT}/lib/cmake/hipblas" "${ROCM_ROOT}/lib/cmake/rocthrust" ${CMAKE_MODULE_PATH})
   find_package(HIP REQUIRED)
   find_package(hipblas REQUIRED)
   find_package(hipsparse REQUIRED)
   find_package(rocsolver REQUIRED)
+  find_package(rocthrust REQUIRED)
 
 endif(DCA_WITH_HIP)
+
+get_property(hipblas_include_dirs TARGET roc::hipblas PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+message("hipblas includes: ${hipblas_include_dirs}")
+
 
 #set(CUDA_ARCHITECTURES "sm_60" CACHE STRING "Name of the real architecture to build for.")
 set(MAGMA_ROOT "" CACHE PATH "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
@@ -65,12 +70,17 @@ if (CMAKE_HIP_COMPILER)
   dca_add_haves_define(DCA_HAVE_HIP)
   dca_add_haves_define(DCA_HAVE_GPU)
   dca_add_haves_define(__HIP_PLATFORM_AMD__)
-  list(APPEND DCA_GPU_LIBS hip::host roc::hipblas)
-  set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx906,gfx908")
+  list(APPEND DCA_GPU_LIBS hip::host roc::hipblas roc::hipsparse)
+  set(DCA_HIP_PROPERTIES "CMAKE_HIP_ARCHITECTURES gfx908,gfx90a")
   set(CMAKE_HIP_STANDARD 17)
   list(APPEND HIP_HIPCC_FLAGS "-fPIC")
+  list(APPEND HIP_HIPCC_FLAGS "-mno-unsafe-fp-atomics")
+  list(APPEND HIP_HIPCC_FLAGS "-fgpu-default-stream=per-thread")
+  list(APPEND HIP_HIPCC_FLAGS_DEBUG "--save-temps -g")
+
   # doesn't appear to work
   set(CMAKE_HIP_SOURCE_FILE_EXTENSIONS cu)
+  message("Enabled HIP as a language")
   # NOTE: this is solved by dca_linking.cmake: dca_gpu_device_link()
   # alternative method (same issue)
   #file(GLOB_RECURSE CUDA_KERNELS_SRC ${PROJECT_SOURCE_DIR} *.cu)
@@ -106,6 +116,7 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # I have built magma without openmp for
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
-  target_link_libraries(magma::sparse INTERFACE magma::magma roc::hipblas roc::hipsparse)
-  list(APPEND DCA_GPU_LIBS ${MAGMA_LIBRARY} roc::hipsparse)
+  target_link_libraries(magma::magma INTERFACE roc::hipblas roc::hipsparse LAPACK::LAPACK BLAS::BLAS)
+  target_link_libraries(magma::sparse INTERFACE magma::magma)
+  list(APPEND DCA_GPU_LIBS ${MAGMA_LIBRARY} roc::hipsparse roc::hipblas)
 endif()

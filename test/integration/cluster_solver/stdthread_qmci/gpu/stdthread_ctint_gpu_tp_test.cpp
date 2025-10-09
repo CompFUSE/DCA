@@ -12,8 +12,9 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
-
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+#include "dca/platform/dca_gpu.h"
+#include "dca/platform/dca_gpu_complex.h"
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -21,6 +22,17 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/config/profiler.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -44,8 +56,10 @@ using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using StdThreading = dca::parallel::stdthread;
-using Parameters = dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::ClusterSolverId::CT_INT>;
+using Parameters =
+    dca::phys::params::Parameters<TestConcurrency, StdThreading, dca::profiling::NullProfiler,
+                                  Model, RngType, dca::ClusterSolverId::CT_INT,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device>
 using BaseSolver = dca::phys::solver::CtintClusterSolver<device, Parameters, true>;

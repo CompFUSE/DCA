@@ -4,11 +4,12 @@ dca_add_gtest(buffer_test
   GTEST_MAIN)
 
 dca_add_gtest(reader_test
-  LIBS function dca_io)
+  MPI
+  LIBS function ${DCA_LIBS} dca_io)
 
 dca_add_gtest(writer_test
   MPI
-  LIBS function dca_io parallel_mpi_concurrency)
+  LIBS function dca_io parallel_mpi_concurrency parallel_no_concurrency)
 
 dca_add_gtest(json_reader_test
   GTEST_MAIN
@@ -26,10 +27,11 @@ if (DCA_HAVE_ADIOS2)
     dca_add_gtest(adios2_reader_writer_test
       LIBS parallel_mpi_concurrency dca_io function)
     dca_add_gtest(adios2_parallelIO_test
-      MPI MPI_NUMPROC 12
+      MPI MPI_NUMPROC 6
       LIBS dca_io parallel_mpi_concurrency function parallel_util)
   else()
     dca_add_gtest(adios2_reader_writer_test
       LIBS parallel_no_concurrency dca_io function)
   endif()
 endif()
+

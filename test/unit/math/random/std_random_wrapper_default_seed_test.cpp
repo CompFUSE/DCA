@@ -35,6 +35,20 @@ inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::mt19937_64>() 
                                  0.79004886762619775, 0.73670732232143421};
   return vec;
 }
+// #if defined(__clang__)
+// template <>
+// inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48_base>() {
+//   static std::vector<double> vec{0.67052872832964927, 0.89987293212401465, 0.48383422722711483,
+//                                  0.28699620000273923, 0.37575706648963081};
+//   return vec;
+// }
+// template <>
+// inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48>() {
+//   static std::vector<double> vec{0.67052872832964927, 0.89987293212401465, 0.48383422722711483,
+//                                  0.28699620000273923, 0.37575706648963081};
+//   return vec;
+// }
+// #else
 template <>
 inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48_base>() {
   static std::vector<double> vec{0.72777987290424495, 0.6717218115467265, 0.67916691101138849,
@@ -48,8 +62,8 @@ inline std::vector<double>& getFirstRandomNumbersDefaultSeed<std::ranlux48>() {
   return vec;
 }
 
-}  // testing
-}  // dca
+}  // namespace testing
+}  // namespace dca
 
 template <typename T>
 class StdRandomWrapperTest : public ::testing::Test {};

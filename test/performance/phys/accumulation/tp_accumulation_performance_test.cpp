@@ -16,18 +16,21 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#ifdef DCA_HAVE_GPU
 #if defined(DCA_HAVE_CUDA)
 #include <cuda_profiler_api.h>
+#include "dca/profiling/cuda_profiler.hpp"
+using Profiler = dca::profiling::CudaProfiler;
 #elif defined(DCA_HAVE_HIP)
 // \todo add hip profiler
+#else
+using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
 #endif
-#ifdef DCA_HAVE_GPU
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #endif  // DCA_HAVE_GPU
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -67,7 +70,6 @@ using dca::linalg::GPU;
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::square_lattice<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
-using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
                                                  Model, void, dca::ClusterSolverId::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
@@ -109,7 +111,7 @@ int main(int argc, char** argv) {
   };
 
   if (!skip_cpu) {
-    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulator(
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::CPU> accumulator(
         data.G0_k_w_cluster_excluded, parameters);
     accumulator.resetAccumulation(0);
 
@@ -143,7 +145,7 @@ int main(int argc, char** argv) {
   dca::linalg::util::GpuEvent start_event;
   dca::linalg::util::GpuEvent stop_event;
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
+  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::DistType::NONE, dca::linalg::GPU> gpu_accumulator(
       data.G0_k_w_cluster_excluded, parameters);
   gpu_accumulator.resetAccumulation(0);
   MatrixPair<GPU> M_dev{M[0], M[1]};

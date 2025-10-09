@@ -32,19 +32,27 @@ struct ConfigElem {
   int site;
 };
 
-template <int oversampling, int window_sampling, typename ScalarIn, typename ScalarOut>
-void accumulateOnDevice(const ScalarIn* M, const int ldm, const ScalarIn sign, ScalarOut* out,
-                        ScalarOut* out_sqr, const int ldo, const ConfigElem* config_left,
-                        const ConfigElem* config_right, const ScalarIn* tau,
-                        const ScalarOut* cubic_coeff, const int size, cudaStream_t stream_);
+template <int oversampling, int window_sampling, typename Scalar, typename Real>
+void accumulateOnDevice(const Scalar* M, const int ldm, const Scalar factor, Scalar* out,
+                        Scalar* out_sqr, const int ldo, const ConfigElem* config_left,
+                        const ConfigElem* config_right, const Real* tau,
+                        const Real* cubic_coeff, const int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);
 
+template<typename REAL>
 void initializeNfftHelper(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+                          REAL t0, REAL delta_t, REAL t0_window, REAL delta_t_window,
+                          REAL beta);
+
+extern template void initializeNfftHelper<double>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
                           double t0, double delta_t, double t0_window, double delta_t_window,
                           double beta);
-
+// extern template void initializeNfftHelper<float>(int nb, int nc, const int* add_r, int lda, const int* sub_r, int lds,
+//                           float t0, float delta_t, float t0_window, float delta_t_window,
+//                           float beta);
+  
 }  // namespace details
 }  // namespace nfft
 }  // namespace math

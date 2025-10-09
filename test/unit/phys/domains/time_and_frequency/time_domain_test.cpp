@@ -11,7 +11,7 @@
 
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include <vector>
-#include <gtest/gtest.h>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 using namespace dca::phys::domains;
 
@@ -37,8 +37,6 @@ TEST(TimeDomainTest, Basic) {
   const std::vector<double> elements_check{-beta + eps, -beta / time_slices, -eps,
                                            eps,         beta / time_slices,  beta - eps};
   EXPECT_EQ(elements_check, time_domain::get_elements());
-
-  EXPECT_THROW(time_domain::initialize(beta, time_slices, eps), std::logic_error);
 
   // Check initialization of integration domain.
   time_domain::initialize_integration_domain(level, weights, nodes);

@@ -11,7 +11,9 @@
 
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+#include <sstream>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -26,6 +28,14 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<double>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/parameters/parameters.hpp"
 
 using namespace dca;
@@ -34,11 +44,12 @@ TEST(ComputeBandStructureTest, Execute) {
   using PointGroup = phys::domains::D4;
   using Lattice = phys::models::square_lattice<PointGroup>;
   using Model = phys::models::TightBindingModel<Lattice>;
-
+  using NumTraits = dca::NumericalTraits<
+    double, double>;
   using ConcurrencyType = parallel::NoConcurrency;
   using ParametersType =
-      phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
-                               Model, void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX>;
+      phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler, Model,
+                               void /*RandomNumberGenerator*/, ClusterSolverId::CT_AUX, NumTraits>;
 
   using b = func::dmn_0<phys::domains::electron_band_domain>;
   using s = func::dmn_0<phys::domains::electron_spin_domain>;
@@ -55,7 +66,11 @@ TEST(ComputeBandStructureTest, Execute) {
   parameters.update_domains();
 
   func::function<double, nu_k_cut> band_structure;
-  phys::compute_band_structure::execute(parameters, band_structure);
+  phys::compute_band_structure<ParametersType>::execute(parameters, band_structure);
+
+  std::ostringstream kcut_elements;
+  phys::domains::brillouin_zone_cut_domain<101>::to_JSON(kcut_elements);
+  std::cout << kcut_elements.str() << '\n';
 
   // Check spin symmetry.
   for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)

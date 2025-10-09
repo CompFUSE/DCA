@@ -54,6 +54,27 @@ inline void checkLapackInfoInternal(int info, std::string function_name, std::st
   }
 }
 
+// Prints an error message and throws a std::logic_error if info is not zero
+// The macro provides the interface that automatically passes the function name, the filename, and
+// the line to the function call.
+#define warnLapackInfo(info) \
+  dca::linalg::lapack::util::warnLapackInfoInternal(info, __FUNCTION__, __FILE__, __LINE__)
+inline void warnLapackInfoInternal(int info, std::string function_name, std::string file_name,
+                                    int line) {
+  if (info < 0) {
+    std::stringstream s;
+    s << "Error in function: " << function_name << " (" << file_name << ":" << line << ")"
+      << "\n";
+    s << "The Lapack function returned info = " << info << std::endl;
+
+    throw LapackException(s.str(), info);
+  }
+  else if (info > 0) {
+    std::cout << "warning lapack info = " << info << " at " << file_name << ":" << line << '\n';
+  }
+}
+
+  
 }  // util
 }  // lapack
 }  // linalg

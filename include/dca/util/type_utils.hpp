@@ -1,5 +1,5 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -7,6 +7,7 @@
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file provides utility functions that operate on types.
 //
@@ -163,16 +164,6 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
       print_type<dca::util::Typelist<Domains...>>::to_JSON(s);
     }
   }
-};
-
-// Determine if a type is complex or not.
-template <class T>
-struct IsComplex {
-  constexpr static bool value = 0;
-};
-template <class T>
-struct IsComplex<std::complex<T>> {
-  constexpr static bool value = 1;
 };
 
 }  // namespace util

@@ -15,7 +15,16 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -24,6 +33,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -36,8 +46,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-const std::string input_dir =
-    DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 constexpr bool update_baseline = false;
 
@@ -49,7 +58,8 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
   using Threading = dca::parallel::stdthread;
   using Parameters =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
-                                    RngType, dca::ClusterSolverId::CT_INT>;
+                                    RngType, dca::ClusterSolverId::CT_INT,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
   using BaseSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
   using QmcSolverType = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverType>;

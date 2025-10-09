@@ -13,6 +13,7 @@
 #define DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP
 
 #include <vector>
+#include <type_traits>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -27,6 +28,7 @@ namespace models {
 template <typename Lattice>
 class TightBindingModel {
 public:
+  using model_type = TightBindingModel<Lattice>;
   using lattice_type = Lattice;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -46,11 +48,11 @@ public:
   static const int DIMENSION = Lattice::DIMENSION;
   static const int BANDS = Lattice::BANDS;
 
-  static double* get_r_DCA_basis();
-  static double* get_k_DCA_basis();
+  static const double* get_r_DCA_basis();
+  static const double* get_k_DCA_basis();
 
-  static double* get_r_LDA_basis();
-  static double* get_k_LDA_basis();
+  static const double* get_r_LDA_basis();
+  static const double* get_k_LDA_basis();
 
   static std::vector<int> flavors();
   static std::vector<std::vector<double>> aVectors();
@@ -58,8 +60,8 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> orbitalPermutations();
 
   template <class domain, class parameters_type>
-  static void initializeHInteraction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  static void initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
+                                     parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetries(func::function<int, domain>& H_interactions_symmetries);
@@ -105,15 +107,27 @@ std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_DCA_basis() {
-  static double* r_DCA = Lattice::initializeRDCABasis();
-  return r_DCA;
+const double* TightBindingModel<Lattice>::get_r_DCA_basis() {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRDCABasis()), const double *>) {
+    static const double* r_DCA = Lattice::initializeRDCABasis();
+    return r_DCA;
+  }
+  else {
+    static std::array<double, 9> r_DCA = Lattice::initializeRDCABasis();
+    return r_DCA.data();
+  }
 }
 
 template <typename Lattice>
-double* TightBindingModel<Lattice>::get_r_LDA_basis() {
-  static double* r_LDA = Lattice::initializeRLDABasis();
-  return r_LDA;
+const double* TightBindingModel<Lattice>::get_r_LDA_basis() {
+  if constexpr (std::is_same_v<decltype(Lattice::initializeRLDABasis()), const double *>) {
+    static const double* r_LDA = Lattice::initializeRLDABasis();
+    return r_LDA;
+  }
+  else {
+    static std::array<double, 9> r_LDA = Lattice::initializeRLDABasis();
+    return r_LDA.data();
+  }
 }
 
 template <typename Lattice>
@@ -128,8 +142,8 @@ std::vector<std::vector<double>> TightBindingModel<Lattice>::aVectors() {
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initializeHInteraction(func::function<double, domain>& H_interaction,
-                                                          parameters_type& parameters) {
+void TightBindingModel<Lattice>::initializeHInteraction(func::function<typename parameters_type::Real, domain>& H_interaction,
+                                                        parameters_type& parameters) {
   Lattice::initializeHInteraction(H_interaction, parameters);
 }
 
@@ -139,8 +153,8 @@ void TightBindingModel<Lattice>::initialize_H_symmetries(func::function<int, dom
   Lattice::initializeHSymmetry(H_symmetry);
 }
 
-}  // models
-}  // phys
-}  // dca
+}  // namespace models
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP

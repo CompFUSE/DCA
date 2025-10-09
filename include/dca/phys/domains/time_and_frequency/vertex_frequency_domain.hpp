@@ -71,6 +71,8 @@ public:
 
   template <typename parameters_t>
   static void initialize(parameters_t& parameters);
+
+  static void checkCorrespondingFrequencyDomain(const std::vector<double>& wn);
 };
 
 template <VERTEX_FREQUENCY_NAME NAME>
@@ -79,6 +81,23 @@ void vertex_frequency_domain<NAME>::write(Writer& writer) {
   writer.open_group(get_name());
   writer.execute("elements", get_elements());
   writer.close_group();
+}
+
+template <VERTEX_FREQUENCY_NAME NAME>
+void vertex_frequency_domain<NAME>::checkCorrespondingFrequencyDomain(const std::vector<double>& wn) {
+  for (int i = 0; i < get_size(); i++)
+    if (get_corresponding_frequency_domain_index()[i] == -1 ||
+        std::abs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6) {
+      std::ostringstream error;
+      error
+          << "in vertex_frequency_domain::initialize get_corresponding_frequency_domain for index "
+          << i << " which is " << get_corresponding_frequency_domain_index()[i] << " and that is "
+          << wn[get_corresponding_frequency_domain_index()[i]] << " which is an error\n";
+      error << "Frequently this is because imaginary-frequency: sp-fermionic-frequencies must be "
+               "greate than\n"
+            << "four-point-fermionic-frequencies";
+      throw std::logic_error(error.str());
+    }
 }
 
 template <>
@@ -102,13 +121,10 @@ void vertex_frequency_domain<COMPACT>::initialize(parameters_t& parameters) {
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
-  for (int i = 0; i < get_size(); i++)
-    if (get_corresponding_frequency_domain_index()[i] == -1 ||
-        std::fabs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6)
-      throw std::logic_error(__FUNCTION__);
+  checkCorrespondingFrequencyDomain(wn);
 }
 
 template <>
@@ -130,14 +146,10 @@ void vertex_frequency_domain<COMPACT_POSITIVE>::initialize(parameters_t& paramet
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
-  for (int i = 0; i < get_size(); i++)
-    if (get_corresponding_frequency_domain_index()[i] == -1 ||
-        std::fabs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6)
-      throw std::logic_error(__FUNCTION__);
-
+  checkCorrespondingFrequencyDomain(wn);
   assert(get_elements().back() == vertex_frequency_domain<COMPACT>::get_elements().back());
 }
 
@@ -166,13 +178,10 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
-  for (int i = 0; i < get_size(); i++)
-    if (get_corresponding_frequency_domain_index()[i] == -1 ||
-        std::fabs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6)
-      throw std::logic_error(__FUNCTION__);
+  checkCorrespondingFrequencyDomain(wn);
 }
 
 template <>
@@ -198,13 +207,10 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
-      if (std::fabs(wn[j] - get_elements()[i]) < 1.e-6)
+      if (std::abs(wn[j] - get_elements()[i]) < 1.e-6)
         get_corresponding_frequency_domain_index()[i] = j;
 
-  for (int i = 0; i < get_size(); i++)
-    if (get_corresponding_frequency_domain_index()[i] == -1 ||
-        std::fabs(wn[get_corresponding_frequency_domain_index()[i]] - get_elements()[i]) > 1.e-6)
-      throw std::logic_error(__FUNCTION__);
+  checkCorrespondingFrequencyDomain(wn);
 
   assert(get_elements().back() == vertex_frequency_domain<EXTENDED>::get_elements().back());
 }
@@ -225,8 +231,8 @@ void vertex_frequency_domain<EXTENDED_BOSONIC>::initialize(parameters_t& paramet
   }
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_VERTEX_FREQUENCY_DOMAIN_HPP

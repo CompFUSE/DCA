@@ -18,11 +18,15 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "dca/platform/dca_gpu.h"
+#include "dca/util/type_help.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/util/ignore.hpp"
 
-#include "dca/platform/dca_gpu.h"
+#ifdef DCA_HAVE_GPU
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#endif
 
 namespace dca {
 namespace linalg {
@@ -44,12 +48,34 @@ struct Memory<CPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
+    std::complex<ScalarType> c_zero{0.0, 0.0};
+    std::fill_n(
+        ptr, size,
+        c_zero);  // memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
     setToZero(ptr, size);
   }
+  template <typename ScalarType>
+  static void setToZero(ScalarType* ptr, size_t size, const GpuStream& /*s*/) {
+    setToZero(ptr, size);
+  }
+#ifdef DCA_HAVE_GPU
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    std::memset(ptr, 0, sizeof(Scalar) * size);
+  }
+
+#ifdef DCA_HAVE_HIP
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsMagmaComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    std::memset(ptr, 0, sizeof(Scalar) * size);
+  }
+#endif
+#endif
 };
 
 #ifdef DCA_HAVE_GPU
@@ -57,16 +83,32 @@ template <>
 struct Memory<GPU> {
   // Sets the elements to 0. Only defined for arithmetic types and
   // std::complex of aritmetic types.
+
+  /// Specialization for float2, double2, cuComplex, cuDoubleComplex
+  template <typename ScalarType>
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<ScalarType>::value == true, void> setToZero(ScalarType ptr, size_t size) {
+    checkRC(cudaMemset(ptr, 0, size * sizeof(ScalarType)));
+  }
+
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       ScalarType* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(ScalarType)));
   }
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
+    checkRC(cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>)));
   }
+
+  template <typename Scalar>
+  static std::enable_if_t<dca::util::IsCUDAComplex_t<Scalar>::value == true, void> setToZero(
+      Scalar* ptr, size_t size) {
+    checkRC(cudaMemset(ptr, 0, size * sizeof(Scalar)));
+  }
+
+
+
 
   // Do nothing for non arithmetic types.
   template <typename ScalarType>
@@ -75,7 +117,13 @@ struct Memory<GPU> {
 
   template <typename ScalarType>
   static void setToZeroAsync(ScalarType* ptr, size_t size, const GpuStream& stream) {
-    cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream);
+    checkRC(cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream));
+  }
+
+  template <typename ScalarType>
+  static void setToZero(ScalarType* ptr, size_t size, const GpuStream& stream) {
+    checkRC(cudaMemsetAsync(ptr, 0, size * sizeof(ScalarType), stream));
+    checkRC(cudaStreamSynchronize(stream));
   }
 };
 #endif  // DCA_HAVE_GPU

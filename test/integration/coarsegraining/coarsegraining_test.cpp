@@ -28,7 +28,7 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -57,13 +57,17 @@ using Model1 = dca::phys::models::TightBindingModel<
 using Model2 = dca::phys::models::TightBindingModel<
     dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<2>>>;
 
+using Scalar = double;
+
 #ifdef UPDATE_BASELINE
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model1, void, dca::ClusterSolverId::CT_AUX>;
+                                                 Model1, void, dca::ClusterSolverId::CT_AUX, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>>;
 const std::string input = input_dir + "input_singleband.json";
 #else
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model2, void, dca::ClusterSolverId::CT_AUX>;
+using Parameters =
+    dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model2,
+                                  void, dca::ClusterSolverId::CT_AUX,
+                                  dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 const std::string input = input_dir + "input_bilayer.json";
 #endif  // UPDATE_BASELINE
 
@@ -158,8 +162,9 @@ void performTest(const bool test_dca_plus) {
           auto real_grw = data.G_r_w(r % 2, s, 0, s, r / 2, w);
           auto test_grw = G_check(0, s, 0, s, r, w);
           double thresh = 1e-6;
-          EXPECT_LE(std::abs(real_grw - test_grw), thresh) << data.G_r_w(r % 2, s, 0, s, r / 2, w) << " - "
-                                               << G_check(0, s, 0, s, r, w) << " > " << thresh;
+          EXPECT_LE(std::abs(real_grw - test_grw), thresh)
+              << data.G_r_w(r % 2, s, 0, s, r / 2, w) << " - " << G_check(0, s, 0, s, r, w) << " > "
+              << thresh;
         }
 #endif  // UPDATE_BASELINE
   }
@@ -195,8 +200,9 @@ void computeMockSigma(SigmaType& Sigma) {
 int main(int argc, char** argv) {
   int result = 0;
 
-  std::cout << "This Test is not portable.  Currently passes on summit with build-aux std version\nFails almost everywherer else.";
-  
+  std::cout << "This Test is not portable.  Currently passes on summit with build-aux std "
+               "version\nFails almost everywherer else.";
+
   ::testing::InitGoogleTest(&argc, argv);
 
   dca::parallel::MPIConcurrency concurrency(argc, argv);

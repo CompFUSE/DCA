@@ -54,6 +54,7 @@ public:
   using concurrency_type = typename ParametersType::concurrency_type;
 
   using Lattice = typename ParametersType::lattice_type;
+  using Real = typename ParametersType::Real;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -63,7 +64,6 @@ public:
   using k_HOST =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-
   using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type =
       clustermapping::double_counting_correction<ParametersType, DcaDataType>;
@@ -105,10 +105,6 @@ protected:
   ParametersType& parameters;
   DcaDataType& MOMS;
   concurrency_type& concurrency;
-#ifdef DCA_WITH_ADIOS2
-  adios2::ADIOS adios_;
-  ;
-#endif
 
 private:
   DcaLoopData<ParametersType> DCA_info_struct;
@@ -141,47 +137,40 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
-#ifdef DCA_HAVE_ADIOS2
-      adios_("", concurrency_ref.get()),
-#endif
       cluster_exclusion_obj(parameters, MOMS),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
-#ifdef DCA_HAVE_ADIOS2
-      output_file_(parameters.get_output_format() == "ADIOS2"
-                       ? std::make_shared<io::Writer<concurrency_type>>(
-                             adios_, concurrency_ref, parameters.get_output_format(), false)
-                       : (concurrency.id() == concurrency.first()
-                              ? std::make_shared<io::Writer<concurrency_type>>(
-                                    adios_, concurrency_ref, parameters.get_output_format(), false)
-                              : nullptr)),
-#else
-      output_file_(concurrency.id() == concurrency.first()
-                       ? std::make_shared<io::Writer<concurrency_type>>(
-                             concurrency_ref, parameters.get_output_format(), false)
-                       : nullptr),
-#endif
+      output_file_(std::make_shared<io::Writer<concurrency_type>>(
+          concurrency_ref, parameters.get_output_format(), false)),
       monte_carlo_integrator_(parameters_ref, MOMS_ref, output_file_) {
   file_name_ = parameters.get_directory() + parameters.get_filename_dca();
 
   if (concurrency.id() == concurrency.first()) {
     // dca::util::SignalHandler<concurrency_type>::registerFile(output_file_);
-
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
   }
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
+  // We assume DCALoop write is called once at the end of the run and we leave a step open for it to
+  // write into.
+
+  // output_file_->begin_step();
+
   if (concurrency.id() == concurrency.first()) {
+    // This should probably happen first not at the end
     parameters.write(*output_file_);
     MOMS.write(*output_file_);
     monte_carlo_integrator_.write(*output_file_);
-    DCA_info_struct.write(*output_file_);
-
+    DCA_info_struct.write(*output_file_, concurrency);
     // None of this kludgy file shuffling with ADIOS2 each iteration is a step in the ADIOS2 output
+  }
+  output_file_->end_step();
+
+  if (concurrency.id() == concurrency.first()) {
     if (output_file_ && !(output_file_->isADIOS2())) {
       output_file_->close_file();
       output_file_.reset();
@@ -192,12 +181,13 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::write() {
       }
     }
   }
-
   // For ADIOS2 every rank has an output_file_ so close them
   // data.
   if (output_file_ != nullptr && output_file_->isADIOS2()) {
-    concurrency.barrier();
-    output_file_->end_step();
+    // if (concurrency.id() == concurrency.first()) {
+    output_file_->close_file();
+    std::cout << "ADIOS2 output closed\n";
+    //}
   }
 }
 
@@ -206,18 +196,10 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
   static_assert(std::is_same<DDT, dca::phys::DcaData<ParametersType, DIST>>::value);
   int last_completed = -1;
   auto& autoresume_filename = parameters.get_autoresume_filename();
-  io::IOType iotype = io::extensionToIOType(autoresume_filename);
-  if (parameters.autoresume()) {  // Try to read state of previous run.
-                                  // This is not complete we should work based on extension
-    // do we want to decide what format we are reading?  Just from output format?
-#ifdef DCA_HAVE_ADIOS2
-    if (iotype == io::IOType::ADIOS2)
-      last_completed = DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(),
-                                                concurrency, adios_);
-    else
-#endif
-      last_completed =
-          DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
+  if (parameters.autoresume()) {
+    last_completed =
+        DCA_info_struct.readData(autoresume_filename, parameters.get_output_format(), concurrency);
+
     if (last_completed >= 0) {
       if (concurrency.id() == concurrency.first())
         std::cout << "\n   *******  Resuming DCA from iteration " << last_completed + 1
@@ -225,25 +207,13 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
                   << std::endl;
 
       dca_iteration_ = std::min(last_completed + 1, parameters.get_dca_iterations() - 1);
-#ifdef DCA_HAVE_ADIOS2
-      if (iotype == io::IOType::ADIOS2)
-        MOMS.initializeSigma(adios_, autoresume_filename);
-      else
-#else
       MOMS.initializeSigma(autoresume_filename);
-#endif
-        perform_lattice_mapping();
+      perform_lattice_mapping();
     }
   }
   else if (parameters.get_initial_self_energy() != "zero") {
-#ifdef DCA_HAVE_ADIOS2
-    if (io::extensionToIOType(parameters.get_initial_self_energy()) == io::IOType::ADIOS2)
-      MOMS.initializeSigma(adios_, parameters.get_initial_self_energy());
-    else
-#else
     MOMS.initializeSigma(parameters.get_initial_self_energy());
-#endif
-      perform_lattice_mapping();
+    perform_lattice_mapping();
   }
 
   // In ADIOS2 every rank has an output_file_ for the purposes of writing per rank
@@ -259,11 +229,8 @@ void DcaLoop<ParametersType, DDT, MCIntegratorType, DIST>::initialize() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
-  // static_assert(std::is_same<DcaDataType, ::DcaDataType<ParametersType, DIST>>::value);
-  // static_assert(std::is_same<MCIntegratorType, ::ClusterSolver<DIST>>::value);
   for (; dca_iteration_ < parameters.get_dca_iterations(); dca_iteration_++) {
-    if (output_file_ && output_file_->isADIOS2())
-      output_file_->begin_step();
+    output_file_->begin_step();
 
     adjust_chemical_potential();
 
@@ -280,15 +247,37 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 
     perform_lattice_mapping();
 
-    update_DCA_loop_data_functions(dca_iteration_);
-    logSelfEnergy(dca_iteration_);  // Write a check point.
+    update_DCA_loop_data_functions(dca_iteration_);  // Really just updates
 
-    if (output_file_ && output_file_->isADIOS2())
-      output_file_->end_step();
+    // This writes the self energy and DCA_loop_data.  Sort of a check point.
+    logSelfEnergy(dca_iteration_);
 
     if (L2_Sigma_difference <
-        parameters.get_dca_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
+        parameters.get_dca_accuracy()) {  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
       break;
+    }
+
+    // As long as this isn't the last iteration where this is handled by the finalize we want these here
+    if (dca_iteration_ != parameters.get_dca_iterations() - 1) {
+      if (output_file_ && (output_file_->isADIOS2() || output_file_->isHDF5())) {
+        if (parameters.dump_every_iteration()) {
+          if (concurrency.id() == concurrency.first()) {
+            // This normally gets done in finalize before the dump.
+            perform_cluster_mapping_self_energy();
+            MOMS.compute_Sigma_bands();
+            MOMS.compute_single_particle_properties();
+            MOMS.write(*output_file_);
+          }
+        }
+      }
+      output_file_->end_step();
+    }
+
+    if (parameters.do_not_update_sigma()) {
+      if (parameters.get_initial_self_energy() == "zero")
+        throw std::runtime_error("If there is no initial self energy it must be updated!");
+      MOMS.initializeSigma(parameters.get_initial_self_energy());
+    }
   }
 }
 
@@ -326,7 +315,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 
   MOMS.print_Sigma_QMC_versus_Sigma_cg();
 
-  symmetrize::execute<Lattice>(MOMS.Sigma_cluster, MOMS.H_symmetry);
+  Symmetrize<ParametersType>::execute(MOMS.Sigma_cluster, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
@@ -339,7 +328,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
 
   // Finite-size QMC
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, static_cast<Real>(parameters.get_chemical_potential()),
                   parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   // DCA+
   else if (parameters.do_dca_plus())
@@ -348,7 +337,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType,
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.Sigma, MOMS.G_k_w);
 
-  symmetrize::execute<Lattice>(MOMS.G_k_w, MOMS.H_symmetry);
+  Symmetrize<ParametersType>::execute(MOMS.G_k_w, MOMS.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
@@ -469,7 +458,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::logSelfEnergy
     output_file_->close_group();
     output_file_->close_group();
 
-    DCA_info_struct.write(*output_file_);
+    DCA_info_struct.write(*output_file_, concurrency);
   }
 }
 

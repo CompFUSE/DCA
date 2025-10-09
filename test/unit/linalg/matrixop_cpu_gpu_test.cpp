@@ -15,9 +15,10 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/blas/blas3.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/allocators/pinned_allocator.hpp"
 #include "cpu_test_util.hpp"
 #include "gpu_test_util.hpp"
 
@@ -28,17 +29,16 @@ TEST(MatrixopCPUGPUTest, difference) {
 
   auto val_a = [](int i, int j) { return 10 * i + j; };
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  dca::linalg::Matrix<double, dca::linalg::CPU, dca::linalg::util::PinnedAllocator<double>> a(size2_a);
   testing::setMatrixElements(a, val_a);
   dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
 
   for (int sg : {1, -1})
     for (int ia : {0, 1, 4})
       for (int ja : {0, 2, 3}) {
-        dca::linalg::Matrix<double, dca::linalg::CPU> b(a);
+        dca::linalg::Matrix<double, dca::linalg::CPU, dca::linalg::util::PinnedAllocator<double>> b(a);
         b(ia, ja) += sg * diff;
         double err = std::abs(epsilon * b(ia, ja));
-
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, b, 2 * diff), err);
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, b, diff + err), err);
         auto diffcalc = dca::linalg::matrixop::difference(da, b, 2 * diff);

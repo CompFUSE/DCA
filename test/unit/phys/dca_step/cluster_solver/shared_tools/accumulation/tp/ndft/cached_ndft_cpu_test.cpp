@@ -12,22 +12,29 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 
 #include <complex>
-#include <test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp>
-
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
 constexpr int n_sites = 4;
 constexpr int n_bands = 3;
 constexpr int n_frqs = 16;
 
 template <class Real>
-using CachedNdftCpuTest = dca::testing::SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>;
+using CachedNdftCpuTest = dca::testing::AccumulationTest<Real, n_bands, n_sites, n_frqs>;
+
+template <class Real>
+using ConfigGenerator = dca::testing::AccumulationTest<Real>;
+template <class Real>
+using Configuration = typename ConfigGenerator<Real>::Configuration;
+template <class Real>
+using Sample = typename ConfigGenerator<Real>::Sample;
+
 
 template <typename Real>
 double computeWithFastDNFT(const typename CachedNdftCpuTest<Real>::Configuration& config,
@@ -42,7 +49,12 @@ TYPED_TEST_CASE(CachedNdftCpuTest, TestTypes);
 TYPED_TEST(CachedNdftCpuTest, Execute) {
   constexpr int n_samples = 40;
 
-  TestFixture::prepareConfiguration(TestFixture::configuration_, TestFixture::M_, n_samples);
+  const std::array<int, 2> n{40, 40};
+  using Scalar = TypeParam;
+  Sample<Scalar> M;
+  Configuration<Scalar> config;
+
+  TestFixture::prepareConfiguration(config, M, n);
 
   using Real = TypeParam;
   typename TestFixture::F_w_w f_w_fast("f_w_fast");
@@ -64,13 +76,15 @@ double computeWithFastDNFT(const typename CachedNdftCpuTest<Real>::Configuration
   using RDmn = typename CachedNdftCpuTest<Real>::RDmn;
   using PosFreqDmn = typename CachedNdftCpuTest<Real>::PosFreqDmn;
   using FreqDmn = typename CachedNdftCpuTest<Real>::FreqDmn;
-  dca::func::function<std::complex<double>,
-                      dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, PosFreqDmn, FreqDmn>>
-      f_b_b_r_r_w_w;
-  dca::phys::solver::accumulator::CachedNdft<double, RDmn, FreqDmn, PosFreqDmn, dca::linalg::CPU> nft_obj;
+  using SDmn = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
+  dca::func::function<dca::util::ComplexAlias<Real>, dca::func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, PosFreqDmn, FreqDmn>>
+      M_r_r_w_w;
+
+  dca::phys::solver::accumulator::CachedNdft<Real, RDmn, FreqDmn, PosFreqDmn, dca::linalg::CPU> nft_obj;
 
   dca::profiling::WallTime start_time;
-  nft_obj.execute(config, M, f_b_b_r_r_w_w);
+  for (int spin = 0; spin < SDmn::dmn_size(); ++spin)
+    nft_obj.execute(config[spin], M[spin], M_r_r_w_w, spin);
   dca::profiling::WallTime end_time;
 
   // Rearrange output.
@@ -81,8 +95,9 @@ double computeWithFastDNFT(const typename CachedNdftCpuTest<Real>::Configuration
       for (int r2 = 0; r2 < RDmn::dmn_size(); ++r2)
         for (int r1 = 0; r1 < RDmn::dmn_size(); ++r1)
           for (int w2 = 0; w2 < FreqDmn::dmn_size(); ++w2)
-            for (int w1 = 0; w1 < n_w; ++w1) {
-              f_w(b1, b2, r1, r2, w1 + n_w, w2) = f_b_b_r_r_w_w(b1, b2, r1, r2, w1, w2);
+            for (int w1 = 0; w1 < n_w; ++w1)
+	      for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
+              f_w(b1, b2, r1, r2, w1 + n_w, w2) = M_r_r_w_w(r1, r2, b1, b2, spin, w1, w2);
               f_w(b1, b2, r1, r2, invert_w(w1 + n_w), invert_w(w2)) =
                   std::conj(f_b_b_r_r_w_w(b1, b2, r1, r2, w1, w2));
             }

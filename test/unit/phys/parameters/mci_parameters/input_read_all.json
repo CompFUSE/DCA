@@ -7,6 +7,7 @@
         "error-computation-type" : "JACK_KNIFE",
         "store-configuration" : false,
         "g4-distribution": "MPI",
+	"stamping-period": 2,
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,

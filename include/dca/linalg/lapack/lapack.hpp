@@ -162,48 +162,51 @@ inline void gesv(int n, int nrhs, std::complex<double>* a, int lda, int* ipiv,
   checkLapackInfo(info);
 }
 
+  // for sparse and some basis matrices getrf returns postive info if there
+  // are 0's this doesn't make the LU facorization useless for all purposes and really
+  // should be passed to the caller.
 inline void getrf(int m, int n, float* a, int lda, int* ipiv) {
   int info = 0;
   sgetrf_(&m, &n, a, &lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getrf(int m, int n, double* a, int lda, int* ipiv) {
   int info = 0;
   dgetrf_(&m, &n, a, &lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getrf(int m, int n, std::complex<float>* a, int lda, int* ipiv) {
   int info = 0;
   cgetrf_(&m, &n, a, &lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getrf(int m, int n, std::complex<double>* a, int lda, int* ipiv) {
   int info = 0;
   zgetrf_(&m, &n, a, &lda, ipiv, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 
 inline void getri(int n, float* a, int lda, int* ipiv, float* work, int lwork) {
   int info = 0;
   sgetri_(&n, a, &lda, ipiv, work, &lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getri(int n, double* a, int lda, int* ipiv, double* work, int lwork) {
   int info = 0;
   dgetri_(&n, a, &lda, ipiv, work, &lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getri(int n, std::complex<float>* a, int lda, int* ipiv, std::complex<float>* work,
                   int lwork) {
   int info = 0;
   cgetri_(&n, a, &lda, ipiv, work, &lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 inline void getri(int n, std::complex<double>* a, int lda, int* ipiv, std::complex<double>* work,
                   int lwork) {
   int info = 0;
   zgetri_(&n, a, &lda, ipiv, work, &lwork, &info);
-  checkLapackInfo(info);
+  warnLapackInfo(info);
 }
 
 inline void geev(const char* job_vl, const char* job_vr, int n, float* a, int lda, float* wr,

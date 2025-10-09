@@ -30,10 +30,29 @@ class GpuStream {
 public:
   GpuStream() {
     checkRC(cudaStreamCreate(&stream_));
+    owning_ = true;
   }
 
-  GpuStream(const GpuStream& other) = delete;
-  GpuStream& operator=(const GpuStream& other) = delete;
+  GpuStream(const cudaStream_t& stream) { 
+    stream_ = stream;
+    owning_ = false;
+  }
+
+  GpuStream(const GpuStream& other) {
+    stream_ = other.stream_;
+    owning_ = false;
+  }
+
+  /** simple assignment does not take possesion of the cuda stream
+   */
+  GpuStream& operator=(const GpuStream& other)
+  {
+    if (owning_ && stream_)
+      checkRC(cudaStreamDestroy(stream_));
+    stream_ = other.stream_;
+    owning_ = false;
+    return *this;
+  }
 
   GpuStream(GpuStream&& other) noexcept {
     swap(other);
@@ -58,7 +77,7 @@ public:
   }
 
   ~GpuStream() {
-    if (stream_)
+    if (owning_ && stream_)
       checkRC(cudaStreamDestroy(stream_));
   }
 
@@ -72,6 +91,7 @@ public:
 
 private:
   cudaStream_t stream_ = nullptr;
+  bool owning_ = false;
 };
 
 #else  // DCA_HAVE_GPU

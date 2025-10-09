@@ -17,6 +17,9 @@
 #include "dca/linalg/util/cast_gpu.hpp"
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+
+using dca::util::castGPUType;
 
 namespace dca {
 namespace math {
@@ -24,7 +27,6 @@ namespace transform {
 namespace details {
 // dca::math::transform::details::
 
-using linalg::util::castCudaComplex;
 using linalg::util::CudaComplex;
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
@@ -36,16 +38,16 @@ std::array<dim3, 2> getBlockSize(const int i, const int j) {
   return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
 }
 
-template <typename Real>
-__global__ void phaseFactorsAndRearrangeKernel(const CudaComplex<Real>* in, const int ldi,
-                                               CudaComplex<Real>* out, const int ldo, const int nb,
+template <typename Scalar>
+__global__ void phaseFactorsAndRearrangeKernel(const Scalar* in, const int ldi,
+                                               Scalar* out, const int ldo, const int nb,
                                                const int nk, const int nw,
-                                               const CudaComplex<Real>* phase_factors) {
+                                               const Scalar* phase_factors) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
 
   const int cols = nb * nk * nw;
-  const int rows = cols / 2;
+  const int rows = cols;
   if (id_i >= rows || id_j >= cols)
     return;
 
@@ -64,11 +66,11 @@ __global__ void phaseFactorsAndRearrangeKernel(const CudaComplex<Real>* in, cons
   const int out_i = b1 + nb * k1 + no * w1;
   const int out_j = b2 + nb * k2 + no * w2;
 
-  CudaComplex<Real> value = in[id_i + ldi * id_j];
+  Scalar value = in[id_i + ldi * id_j];
 
   using namespace dca::linalg;
   if (phase_factors)
-    value *= phase_factors[b1 + nb * k1] * conj(phase_factors[b2 + nb * k2]);
+    value = value * phase_factors[b1 + nb * k1] * conj(phase_factors[b2 + nb * k2]);
 
   out[out_i + ldo * out_j] = value;
 }
@@ -78,11 +80,10 @@ void phaseFactorsAndRearrange(const std::complex<Real>* in, const int ldi, std::
                               const int ldo, const int nb, const int nk, const int nw,
                               const std::complex<Real>* phase_factors, const cudaStream_t stream) {
   const int size = nk * nb * nw;
-  auto const blocks = getBlockSize(size / 2, size);
+  auto const blocks = getBlockSize(size, size);
 
-  phaseFactorsAndRearrangeKernel<Real>
-      <<<blocks[0], blocks[1], 0, stream>>>(castCudaComplex(in), ldi, castCudaComplex(out), ldo, nb,
-                                            nk, nw, castCudaComplex(phase_factors));
+  phaseFactorsAndRearrangeKernel<<<blocks[0], blocks[1], 0, stream>>>(
+      castGPUType(in), ldi, castGPUType(out), ldo, nb, nk, nw, castGPUType(phase_factors));
 }
 
 // Explicit instantiation.

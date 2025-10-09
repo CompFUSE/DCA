@@ -5,7 +5,7 @@ add_subdirectory(util)
 
 dca_add_gtest(function_library_test
   GTEST_MAIN
-  LIBS function)
+  LIBS function modern_string_utils)
 
 if (function_library_test)
   # We want to test self-assignment and self-move.

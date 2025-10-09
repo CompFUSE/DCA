@@ -17,6 +17,10 @@
 #include <string>
 #include <variant>
 
+#include "dca/config/haves_defines.hpp"
+#include "dca/platform/dca_gpu.h"
+
+#include "dca/util/type_help.hpp"
 #include "dca/io/io_types.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -30,18 +34,20 @@ namespace dca::io {
 template <class Concurrency>
 class Reader {
 public:
-  using DCAReaderVariant = std::variant<io::HDF5Reader, io::JSONReader
+  using DCAReaderVariant = std::variant<std::monostate,
 #ifdef DCA_HAVE_ADIOS2
-                                        ,
-                                        io::ADIOS2Reader<Concurrency>
+                                        io::ADIOS2Reader<Concurrency>,
 #endif
-                                        >;
+                                        io::HDF5Reader, io::JSONReader>;
   /**
-   * \param[in] concureency   current concurrency context
+   * \param[in] concureency   reference to current concurrency env
    * \param[in] format        format as IOType
    * \param[in] verbose       If true, reader does some logging
    */
-  Reader(const Concurrency& concurrency, const IOType format, bool verbose = true)
+  Reader(Concurrency& concurrency, const std::string& format_tag, bool verbose = true)
+    : Reader(concurrency, stringToIOType(format_tag), verbose) {}
+  
+  Reader(Concurrency& concurrency, IOType format, bool verbose = true)
       : concurrency_(concurrency) {
     switch (format) {
       case IOType::HDF5:
@@ -50,74 +56,128 @@ public:
       case IOType::JSON:
         reader_.template emplace<io::JSONReader>(verbose);
         break;
-#ifdef DCA_HAVE_ADIOS2
       case IOType::ADIOS2:
-        reader_.template emplace<io::ADIOS2Reader<Concurrency>>(&concurrency, verbose);
-        break;
-#endif
-    }
-  }
-
-  /** DEPRECATED -- Support for format type as string 
-   * \param[in] format        string representation of format, since parameters still use string
-   *
-   * \todo remove need for this constructor store IO format as enum class type.
-   */
-  Reader(const Concurrency& concurrency, const std::string& format, bool verbose = true)
-      : Reader(concurrency, stringToIOType(format), verbose) {}
-
 #ifdef DCA_HAVE_ADIOS2
-  Reader(adios2::ADIOS& adios, const Concurrency& concurrency, const std::string& format,
-         bool verbose = true)
-      : concurrency_(concurrency) {
-    if (format == "HDF5") {
-      throw(std::logic_error("ADIOS2 reference not an argument for hdf5 reader"));
-    }
-    else if (format == "JSON") {
-      throw(std::logic_error("ADIOS2 reference not an argument for json reader"));
-    }
-    else if (format == "ADIOS2") {
-      reader_.template emplace<io::ADIOS2Reader<Concurrency>>(adios, &concurrency, verbose);
-    }
-    else {
-      throw(std::logic_error("Invalid input format"));
+        reader_.template emplace<io::ADIOS2Reader<Concurrency>>(concurrency, verbose);
+
+#endif
+        break;
     }
   }
-#endif
 
+  
   constexpr static bool is_reader = true;
   constexpr static bool is_writer = false;
 
   void open_file(const std::string& file_name) {
-    std::visit([&](auto& var) { var.open_file(file_name); }, reader_);
+    std::visit(
+        [&](auto& var) {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            var.open_file(file_name);
+        },
+        reader_);
   }
   void close_file() {
-    std::visit([&](auto& var) { var.close_file(); }, reader_);
+    std::visit(
+        [&](auto& var) {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            var.close_file();
+        },
+        reader_);
   }
 
   /** For reading input there is great utility in knowing if a group is present.
    *  It isn't an exceptional circumstance if a group is not present.
    */
   bool open_group(const std::string& new_path) {
-    return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, reader_);
+    return std::visit(
+        [&](auto& var) -> bool {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            return var.open_group(new_path);
+        },
+        reader_);
   }
 
   void close_group() {
-    std::visit([&](auto& var) { var.close_group(); }, reader_);
+    std::visit(
+        [&](auto& var) {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            var.close_group();
+        },
+        reader_);
+  }
+
+  long getStepCount() {
+    return std::visit(
+        [&](auto& var) -> std::size_t {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            return var.getStepCount();
+        },
+        reader_);
   }
 
   void begin_step() {
-    std::visit([&](auto& var) { var.begin_step(); }, reader_);
+    std::visit(
+        [&](auto& var) {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            var.begin_step();
+        },
+        reader_);
   }
 
   void end_step() {
-    std::visit([&](auto& var) { var.end_step(); }, reader_);
+    std::visit(
+        [&](auto& var) {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            var.end_step();
+        },
+        reader_);
+  }
+
+  std::string get_path() {
+    return std::visit(
+        [&](auto& var) -> std::string {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            return var.get_path();
+        },
+        reader_);
   }
 
   template <class... Args>
   bool execute(Args&&... args) noexcept {
-    return std::visit([&](auto& var) -> bool { return var.execute(std::forward<Args>(args)...); },
-                      reader_);
+    return std::visit(
+        [&](auto& var) -> bool {
+          if constexpr (std::is_same_v<std::monostate&, decltype(var)>)
+            throw std::runtime_error(
+                "No operations should ever occur on monostate in reader variant");
+          else
+            return var.execute(std::forward<Args>(args)...);
+        },
+        reader_);
   }
 
   DCAReaderVariant& getUnderlying() {
@@ -126,7 +186,7 @@ public:
 
 private:
   DCAReaderVariant reader_;
-  const Concurrency& concurrency_;
+  Concurrency& concurrency_;
 };
 
 extern template class Reader<dca::parallel::NoConcurrency>;

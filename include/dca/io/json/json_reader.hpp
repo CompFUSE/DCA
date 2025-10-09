@@ -16,6 +16,7 @@
 #include <stack>
 #include <string>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/io/json/details/json_group.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -42,8 +43,12 @@ public:
   // the root group.
   bool close_group() noexcept;
 
-  void begin_step(){};
-  void end_step(){};
+  long getStepCount() { return 0; }
+
+  std::string get_path() { return {}; }
+  
+  void begin_step(){}
+  void end_step(){}
   
   constexpr static bool is_reader = true;
   constexpr static bool is_writer = false;

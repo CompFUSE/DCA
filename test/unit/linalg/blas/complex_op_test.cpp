@@ -9,7 +9,7 @@
 //
 
 #include <complex>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/vector.hpp"
 #include "complex_op_test_kernels.hpp"
 #include "dca/linalg/util/stream_functions.hpp"

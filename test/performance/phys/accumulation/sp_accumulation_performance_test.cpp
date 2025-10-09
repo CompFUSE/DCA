@@ -18,14 +18,19 @@
 #include <vector>
 #include <iostream>
 #ifdef DCA_HAVE_GPU
+#ifdef DCA_HAVE_CUDA
 #include <cuda_profiler_api.h>
+#include "dca/profiling/cuda_profiler.hpp"
+using Profiler = dca::profiling::CudaProfiler;
+#else
+using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
+#endif // DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
-#endif  // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_GPU
 
 #include "dca/config/mc_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
@@ -67,7 +72,6 @@ using Configuration = std::array<std::vector<ConfigElement>, 2>;
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
-using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
                                                  Model, void, dca::ClusterSolverId::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;

@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/blas/blas3.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -475,7 +475,7 @@ TYPED_TEST(MatrixopComplexGPUTest, CopyRow) {
   {
     dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(b);
 
-    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests);
+    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests, 0, 0);
 
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
@@ -591,7 +591,7 @@ TYPED_TEST(MatrixopComplexGPUTest, ScaleRow) {
 
     for (int j = 0; j < a.nrCols(); ++j) {
       for (int i = 0; i < is.size(); ++i) {
-        EXPECT_GE(10 * this->epsilon, std::abs(vals[i] * a(is[i], j) - c(is[i], j)));
+        EXPECT_GE(10 * this->epsilon, std::abs(vals[i] * a(is[i], j) - c(is[i], j))) << " i:" << i << " j:" << j; 
         // set the checked elements to -1000 to simplify the check of the unchanged elements
         c(is[i], j) = checked;
       }

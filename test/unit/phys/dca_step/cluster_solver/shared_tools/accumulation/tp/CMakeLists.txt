@@ -2,7 +2,7 @@
 
 dca_add_gtest(hdf5_g4_file_io_test
   FAST
-  GTEST_MAIN
+  GTEST_MPI_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS     ${DCA_LIBS}
   )
@@ -12,19 +12,28 @@ if (DCA_HAVE_ADIOS2)
     FAST
     INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
     LIBS     ${DCA_LIBS}
-    )
+  )
+
 endif()
 
-dca_add_gtest(tp_accumulator_test
+# Baseline write is broken
+# dca_add_gtest(tp_accumulator_test
+#   FAST
+#   GTEST_MPI_MAIN
+#   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+#   LIBS enumerations function timer parallel_stdthread parallel_util dca_domains dca_math modern_string_utils dca_io parallel_no_concurrency
+#   )
+
+dca_add_gtest(tp_accumulator_test_complex
   FAST
-  GTEST_MAIN
+  GTEST_MPI_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS     ${DCA_LIBS}
   )
 
 dca_add_gtest(tp_accumulator_singleband_test
   FAST
-  GTEST_MAIN
+  GTEST_MPI_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
   LIBS     ${DCA_LIBS}
   )
@@ -39,27 +48,38 @@ endif()
 dca_add_gtest(tp_accumulator_particle_hole_test
   FAST
   CUDA
-  GTEST_MAIN
+  GTEST_MPI_MAIN
   INCLUDE_DIRS ${PROJECT_SOURCE_DIR} ${FFTW_INCLUDE_DIR} ${HDF5_INCLUDE_DIR}
-  LIBS function cluster_domains time_and_frequency_domains quantum_domains timer json random
-       enumerations dca_algorithms ${DCA_THREADING_LIBS} dca_io parallel_util ${LAPACK_LIBRARIES} gpu_utils)
+  LIBS function FFTW::Double cluster_domains time_and_frequency_domains quantum_domains timer json random
+       enumerations dca_algorithms ${DCA_THREADING_LIBS} dca_io parallel_util ${LAPACK_LIBRARIES} gpu_utils parallel_no_concurrency)
 
 dca_add_gtest(tp_accumulator_gpu_test
   FAST
   CUDA
-  GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
   )
-  #;mc_kernels;lapack;lapack_kernels;blas_kernels;magma::magma;magma::sparse;function_transform;gpu_utils
+
+dca_add_gtest(tp_accumulator_complex_g0_gpu_test
+  FAST
+  CUDA
+        INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+        LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
+        )
 
 dca_add_gtest(tp_accumulator_singleband_gpu_test
   FAST
   CUDA
-  GTEST_MAIN
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
-  LIBS     ${DCA_LIBS}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
   )
   #;mc_kernels;lapack;lapack_kernels;blas_kernels;gpu_utils;magma::magma;magma::sparse;
+
+dca_add_gtest(tp_accumulator_multiband_gpu_test
+  FAST
+  CUDA
+  INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
+  LIBS     ${DCA_LIBS} ${DCA_KERNEL_LIBS}
+  )
 
 add_subdirectory(ndft)

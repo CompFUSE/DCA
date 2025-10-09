@@ -32,31 +32,32 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
-
 namespace dca {
 namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
+template <typename Parameters, typename Data, typename Coarsegraining>
 class update_chemical_potential {
 public:
-  using concurrency_type = typename parameters_type::concurrency_type;
+  using Concurrency = typename Parameters::concurrency_type;
+  constexpr static int spin_sectors = Parameters::lattice_type::spin_symmetric ? 2 : 1;
 
-  using t = func::dmn_0<domains::time_domain>;
-  using w = func::dmn_0<domains::frequency_domain>;
+  using Real = typename Parameters::Real;
+  using TDmn = func::dmn_0<domains::time_domain>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
 
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
-  update_chemical_potential(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
-                            coarsegraining_type& coarsegraining_ref);
+  update_chemical_potential(/*const*/ Parameters& parameters_ref, Data& MOMS_ref,
+                            Coarsegraining& coarsegraining_ref);
 
   // Executes the search for the new value of the chemical potential.
   void execute();
@@ -68,12 +69,12 @@ private:
   // Computes the new estimate for the chemical potential within the regula falsi method.
   double get_new_chemical_potential(double d_0, double mu_lb, double mu_ub, double n_lb, double n_ub);
 
-  void compute_density_correction(func::function<double, nu>& result);
+  void compute_density_correction(func::function<Real, NuDmn>& result);
 
   void compute_density_coefficients(
-      func::function<double, func::dmn_variadic<nu, KClusterDmn>>& A,
-      func::function<double, func::dmn_variadic<nu, KClusterDmn>>& B,
-      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G);
+      func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>>& A,
+      func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>>& B,
+      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>& G);
 
   // Determines initial lower and upper bounds of the chemical potential.
   void search_bounds(double dens);
@@ -83,27 +84,27 @@ private:
   void print_bounds();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  /*const*/ Parameters& parameters;
+  const Concurrency& concurrency;
 
-  MOMS_type& MOMS;
-  coarsegraining_type& coarsegraining;
+  Data& MOMS;
+  Coarsegraining& coarsegraining;
 
   std::pair<double, double> lower_bound;
   std::pair<double, double> upper_bound;
 };
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::update_chemical_potential(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, coarsegraining_type& coarsegraining_ref)
+template <typename Parameters, typename Data, typename Coarsegraining>
+update_chemical_potential<Parameters, Data, Coarsegraining>::update_chemical_potential(
+    /*const*/ Parameters& parameters_ref, Data& MOMS_ref, Coarsegraining& coarsegraining_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
       MOMS(MOMS_ref),
       coarsegraining(coarsegraining_ref) {}
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::execute() {
+template <typename Parameters, typename Data, typename Coarsegraining>
+void update_chemical_potential<Parameters, Data, Coarsegraining>::execute() {
   double dens = compute_density();
 
   if (concurrency.id() == concurrency.first()) {
@@ -131,7 +132,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     double n_lb = lower_bound.second;
     double n_ub = upper_bound.second;
 
-    parameters.get_chemical_potential() = get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub);
+    parameters.set_chemical_potential(get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub));
 
     dens = compute_density();
 
@@ -164,15 +165,14 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   }
 }
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::get_new_chemical_potential(
+template <typename Parameters, typename Data, typename Coarsegraining>
+double update_chemical_potential<Parameters, Data, Coarsegraining>::get_new_chemical_potential(
     const double d_0, const double mu_lb, const double mu_ub, const double n_lb, const double n_ub) {
   return (mu_ub - mu_lb) / (n_ub - n_lb) * (d_0 - n_lb) + mu_lb;
 }
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::search_bounds(
-    double dens) {
+template <typename Parameters, typename Data, typename Coarsegraining>
+void update_chemical_potential<Parameters, Data, Coarsegraining>::search_bounds(double dens) {
   const double factor = 2;
   double delta = 0.1;
 
@@ -222,10 +222,10 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   }
 }
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
+template <typename Parameters, typename Data, typename Coarsegraining>
+double update_chemical_potential<Parameters, Data, Coarsegraining>::compute_density() {
   if (parameters.do_finite_size_qmc())
-    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(),
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, static_cast<typename Parameters::Real>(parameters.get_chemical_potential()),
                   parameters.get_coarsegraining_threads(), MOMS.G_k_w);
   else if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.Sigma_lattice, MOMS.G_k_w);
@@ -234,7 +234,7 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
 
   MOMS.G_k_w -= MOMS.G0_k_w;
 
-  math::transform::FunctionTransform<w, t>::execute(MOMS.G_k_w, MOMS.G_k_t);
+  math::transform::FunctionTransform<WDmn, TDmn>::execute(MOMS.G_k_w, MOMS.G_k_t);
 
   MOMS.G_k_t += MOMS.G0_k_t;
 
@@ -242,50 +242,59 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
 
   MOMS.G_k_w += MOMS.G0_k_w;
 
-  func::function<double, nu> result;
-  result = 0.0;
-  compute_density_correction(result);
-  double result_total = 0.0;
-  for (int i = 0; i < nu::dmn_size(); i++) {
-    result(i) += 1. - MOMS.G_r_t(i, i, RClusterDmn::parameter_type::origin_index(), 0);
-    MOMS.orbital_occupancy(i) = result(i);
-    result_total += result(i);
+  const int origin = RClusterDmn::parameter_type::origin_index();
+
+  MOMS.orbital_occupancy = 0.;
+  compute_density_correction(MOMS.orbital_occupancy);
+  double result = 0.0;
+
+  for (int b = 0; b < BDmn::dmn_size(); ++b) {
+    for (int s = 0; s < spin_sectors; ++s) {
+      const auto G_r_t_val = MOMS.G_r_t(b, s, b, s, origin, 0);
+      if (std::abs(std::imag(G_r_t_val)) >= 1e-6) {
+        throw(std::logic_error("G_ii(r = 0, t = 0) is complex"));
+      }
+
+      MOMS.orbital_occupancy(b, s) += 1. - std::real(G_r_t_val);
+      result += MOMS.orbital_occupancy(b, s);
+    }
   }
-  return result_total;
+
+  return result;
 }
 
 /*!
  *  We assume that G_ii(w>>0) ~ 1/(i w_m + A + B/(i w_m))
  */
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_correction(
-    func::function<double, nu>& result) {
+template <typename Parameters, typename Data, typename Coarsegraining>
+void update_chemical_potential<Parameters, Data, Coarsegraining>::compute_density_correction(
+											     func::function<Real, NuDmn>& result) {
   std::complex<double> I(0, 1);
 
   double N_k = KClusterDmn::dmn_size();
   double beta = parameters.get_beta();
 
-  func::function<double, func::dmn_variadic<nu, KClusterDmn>> A;
-  func::function<double, func::dmn_variadic<nu, KClusterDmn>> B;
+  func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>> A;
+  func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>> B;
 
-  func::function<double, func::dmn_variadic<nu, KClusterDmn>> A0;
-  func::function<double, func::dmn_variadic<nu, KClusterDmn>> b0;
+  func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>> A0;
+  func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>> B0;
 
   compute_density_coefficients(A, B, MOMS.G_k_w);
-  compute_density_coefficients(A0, b0, MOMS.G0_k_w);
+  compute_density_coefficients(A0, B0, MOMS.G0_k_w);
 
   for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
-    for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
+    for (int nu_i = 0; nu_i < NuDmn::dmn_size(); nu_i++) {
       double tmp = 0.0;
       double sum = 1.e-16;
 
-      int l = w::dmn_size() / 2;
+      int l = WDmn::dmn_size() / 2;
 
       do {
         std::complex<double> I_wn = (M_PI / beta) * (1 + 2 * l) * I;
 
         std::complex<double> G = 1. / (I_wn + A(nu_i, k_i) + B(nu_i, k_i) / I_wn);
-        std::complex<double> G0 = 1. / (I_wn + A0(nu_i, k_i) + b0(nu_i, k_i) / I_wn);
+        std::complex<double> G0 = 1. / (I_wn + A0(nu_i, k_i) + B0(nu_i, k_i) / I_wn);
 
         tmp = std::real(G - G0);
         sum += tmp;
@@ -296,15 +305,15 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
       result(nu_i) += sum;
     }
   }
-  for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++)
+  for (int nu_i = 0; nu_i < NuDmn::dmn_size(); nu_i++)
     result(nu_i) *= (2. / (beta * N_k));
 }
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(
-    func::function<double, func::dmn_variadic<nu, KClusterDmn>>& A,
-    func::function<double, func::dmn_variadic<nu, KClusterDmn>>& B,
-    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G) {
+template <typename Parameters, typename Data, typename Coarsegraining>
+void update_chemical_potential<Parameters, Data, Coarsegraining>::compute_density_coefficients(
+    func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>>& A,
+    func::function<double, func::dmn_variadic<NuDmn, KClusterDmn>>& B,
+    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>& G) {
   A = 0;
   B = 0;
 
@@ -312,9 +321,9 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
   if (nb_wm > 0) {
     for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
-      for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
-        for (int w_i = w::dmn_size() - nb_wm; w_i < w::dmn_size(); w_i++) {
-          double wm = w::get_elements()[w_i];
+      for (int nu_i = 0; nu_i < NuDmn::dmn_size(); nu_i++) {
+        for (int w_i = WDmn::dmn_size() - nb_wm; w_i < WDmn::dmn_size(); w_i++) {
+          double wm = WDmn::get_elements()[w_i];
 
           A(nu_i, k_i) += std::real(1. / G(nu_i, nu_i, k_i, w_i));
           B(nu_i, k_i) += wm * (wm - std::imag(1. / G(nu_i, nu_i, k_i, w_i)));
@@ -329,9 +338,9 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
       const std::complex<double> I(0, 1);
 
       for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
-        for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
-          int w_i = w::dmn_size() - 1;
-          double wm = w::get_elements()[w_i];
+        for (int nu_i = 0; nu_i < NuDmn::dmn_size(); nu_i++) {
+          int w_i = WDmn::dmn_size() - 1;
+          double wm = WDmn::get_elements()[w_i];
 
           if (std::abs((G(nu_i, nu_i, k_i, w_i)) -
                        1. / (I * wm + A(nu_i, k_i) + B(nu_i, k_i) / (I * wm))) > 1.e-12)
@@ -342,8 +351,8 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   }
 }
 
-template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::print_bounds() {
+template <typename Parameters, typename Data, typename Coarsegraining>
+void update_chemical_potential<Parameters, Data, Coarsegraining>::print_bounds() {
   if (concurrency.id() == concurrency.first()) {
     std::cout.precision(6);
     std::cout << std::scientific;

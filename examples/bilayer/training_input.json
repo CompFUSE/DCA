@@ -1,0 +1,107 @@
+{
+  "output": {
+      "directory": "./",
+      "output-format": "ADIOS2",
+      "g4-ouput-format": "ADIOS2",
+      "filename-dca": "training_conv.bp",
+      "dump-lattice-self-energy": true,
+      "dump-cluster-Greens-functions" : true,
+      "dump-every-iteration" : true,
+      "dump-Gamma-lattice" : true,
+      "dump-chi-0-lattice" : true
+    },
+"physics": {
+      "beta": 8.0,
+    "density": 1.6,
+    "adjust-chemical-potential": false
+  },
+    "bilayer-Hubbard-model": {
+        "t": 1.,
+        "t-prime": 0.0,
+        "t-perp": 0.0,
+        "U": 6.0,
+        "V": 3.0,
+        "V-prime": 0.0
+    },
+  "DCA": {
+      "initial-self-energy": "conv.bp",
+      "interacting-orbitals" : [ 0 ],
+    "iterations": 1,
+    "accuracy": 10e-4,
+    "self-energy-mixing-factor": 0.8,
+    "coarse-graining": {
+      "k-mesh-recursion": 3,
+      "periods": 0,
+      "quadrature-rule": 1,
+      "threads": 2,
+      "tail-frequencies": 20
+    }
+  },
+  "domains": {
+    "real-space-grids": {
+      "cluster": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "sp-host": [
+        [
+          10,
+          10
+        ],
+        [
+          10,
+          -10
+        ]
+      ],
+      "tp-host": [
+        [
+          8,
+          8
+        ],
+        [
+          8,
+          -8
+        ]
+      ]
+    },
+    "imaginary-time": {
+      "sp-time-intervals": 512,
+      "time-intervals-for-time-measurements": 32
+    },
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 256,
+      "four-point-fermionic-frequencies": 64,
+      "HTS-bosonic-frequencies": 32
+    },
+    "real-frequency": {
+      "min": -10,
+      "max": 10,
+      "frequencies": 128,
+      "imaginary-damping": 0.01
+    }
+  },
+  "Monte-Carlo-integration": {
+    "warm-up-sweeps": 1500,
+    "sweeps-per-measurement" : 16,
+"measurements": 360000,
+    "seed": 9854510000,
+    "stamping-period" : 1,
+    "threaded-solver": {
+      "accumulators": 1,
+      "walkers": 1,
+      "fix-meas-per-walkers": true,
+      "shared-walk-and-accumulation-thread": true
+    }
+  },
+    "CT-INT": {
+        "initial-configuration-size": 40,
+        "max-submatrix-size": 256
+    }
+}
+

@@ -21,25 +21,30 @@
 #include "dca/config/rng.hpp"            // defines RandomNumberGenerator
 #include "dca/config/walker_device.hpp"  // defines walker_device
 #include "dca/config/threading.hpp"      // defines Threading
+#include "dca/distribution/dist_types.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
-constexpr ClusterSolverId solver_name = @DCA_CLUSTER_SOLVER_NAME@;
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
+constexpr dca::ClusterSolverId solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
                                                      RandomNumberGenerator, solver_name>;
 
 #include "dca/phys/dca_data/dca_data.hpp"
-using DcaDataType = dca::phys::DcaData<ParametersType>;
+template<dca::DistType DIST = dca::DistType::NONE>
+using DcaDataType = dca::phys::DcaData<ParametersType, DIST>;
 
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/ed_cluster_solver.hpp"
-using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType>;
+template<dca::DistType DIST = dca::DistType::NONE>
+using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType<DIST>>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
+template<dca::DistType DIST = dca::DistType::NONE>
 using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 #ifdef DCA_WITH_THREADED_SOLVER
 #include "@DCA_THREADED_SOLVER_INCLUDE@"
+template<dca::DistType DIST = dca::DistType::NONE>
 using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 #else
 using ClusterSolver = ClusterSolverBaseType;

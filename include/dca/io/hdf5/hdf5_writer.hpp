@@ -22,11 +22,13 @@
 
 #include <H5Cpp.h>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/io/buffer.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {
@@ -50,14 +52,15 @@ public:
 
   void open_file(std::string file_name_ref, bool overwrite = true);
   void close_file();
-
+  void legacy_close_file();
+  
   bool open_group(std::string new_path);
   void close_group();
 
   std::string get_path();
 
-  void begin_step(){};
-  void end_step(){};
+  void begin_step();
+  void end_step();
 
   void erase(const std::string& name);
 
@@ -98,6 +101,9 @@ public:
   template <typename Scalar>
   bool execute(const std::string& name, const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A);
 
+  template <typename Scalar, typename ALLOCATOR>
+  bool execute(const std::string& name, const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A);
+  
   template <typename Scalar>
   bool execute(const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
     return execute(A.get_name(), A);
@@ -123,6 +129,7 @@ public:
     verbose_ = verbose;
   }
 
+  std::string makeFullName(const std::string& name);
 private:
   bool exists(const std::string& name) const;
 
@@ -141,6 +148,9 @@ private:
   bool verbose_;
 
   std::vector<hsize_t> size_check_;
+
+  int step_ = 0;
+  bool in_step_ = false;
 };
 
 template <typename arbitrary_struct_t>
@@ -153,7 +163,7 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, Scalar value) {
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims{1};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value);
@@ -162,7 +172,7 @@ bool HDF5Writer::execute(const std::string& name, Scalar value) {
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::pair<Scalar, Scalar>& value) {
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims{2};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), &value.first);
@@ -173,7 +183,7 @@ template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::vector<Scalar>& value,
                          [[maybe_unused]] const bool local) {
   if (value.size() > 0) {
-    std::string full_name = get_path() + "/" + name;
+    const std::string full_name{makeFullName(name)};
     std::vector<hsize_t> dims{value.size()};
     write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
     return true;
@@ -183,8 +193,7 @@ bool HDF5Writer::execute(const std::string& name, const std::vector<Scalar>& val
 
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name, const std::vector<std::vector<Scalar>>& value) {
-  std::string full_name = get_path() + "/" + name;
-
+  const std::string full_name{makeFullName(name)};
   std::vector<hvl_t> data(value.size());
   for (int i = 0; i < value.size(); ++i) {
     data[i].p = const_cast<void*>(static_cast<const void*>((value[i].data())));
@@ -203,7 +212,7 @@ bool HDF5Writer::execute(const std::string& name, const std::vector<std::array<S
     return true;
 
   std::vector<hsize_t> dims{value.size(), n};
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
 
   write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), value.data());
   return true;
@@ -236,8 +245,7 @@ bool HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
   if (f.size() == 0)
     return true;
 
-  const std::string full_name = get_path() + "/" + name;
-
+  const std::string full_name{makeFullName(name)};
   std::vector<hsize_t> dims;
   for (int l = 0; l < f.signature(); ++l)
     dims.push_back(f[l]);
@@ -258,7 +266,7 @@ bool HDF5Writer::execute(const std::string& name, const func::function<Scalar, d
 template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<Scalar, dca::linalg::CPU>& V) {
-  std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   auto dataset =
       write(full_name, std::vector<hsize_t>{V.size()}, HDF5_TYPE<Scalar>::get_PredType(), V.ptr());
 
@@ -270,21 +278,37 @@ template <typename Scalar>
 bool HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<Scalar, dca::linalg::CPU>& A) {
   std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
-  std::vector<Scalar> linearized(dims[0] * dims[1]);
+  std::vector<Scalar> linearized; //(dims[0] * dims[1]);
 
   int linindex = 0;
   // Note: Matrices are row major, while HDF5 is column major
   for (int i = 0; i < A.nrRows(); ++i)
-    for (int j = 0; j < A.nrCols(); ++j)
-      linearized[linindex++] = A(i, j);
-
-  std::string full_name = get_path() + "/" + name;
+    for (int j = 0; j < A.nrCols(); ++j, ++linindex)
+      linearized.push_back(A(i, j));
+  const std::string full_name{makeFullName(name)};
   auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
 
   addAttribute(dataset, "name", A.get_name());
   return true;
 }
 
+template <typename Scalar, typename ALLOCATOR>
+bool HDF5Writer::execute(const std::string& name,
+                         const dca::linalg::ReshapableMatrix<Scalar, dca::linalg::CPU, ALLOCATOR>& A) {
+  std::vector<hsize_t> dims{hsize_t(A.nrRows()), hsize_t(A.nrCols())};
+  std::vector<Scalar> linearized(A.nrRows() * A.nrCols());
+
+  // Note: Matrices are row major, while HDF5 is column major
+  for (int i = 0; i < A.nrRows(); ++i)
+    for (int j = 0; j < A.nrCols(); ++j)
+      linearized[j + i * A.nrCols()] = A(i, j);
+  const std::string full_name{makeFullName(name)};
+  auto dataset = write(full_name, dims, HDF5_TYPE<Scalar>::get_PredType(), linearized.data());
+
+  addAttribute(dataset, "name", name);
+  return true;
+}
+  
 template <class T>
 bool HDF5Writer::execute(const std::string& name, const std::unique_ptr<T>& obj) {
   if (obj)

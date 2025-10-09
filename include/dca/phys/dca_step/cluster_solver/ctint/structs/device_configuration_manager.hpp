@@ -50,7 +50,7 @@ private:
 void DeviceConfigurationManager::upload(const SolverConfiguration& config, int thread_id, int spin) {
   assert(spin >= 0 and spin < 2);
   const auto& entries = config.getSector(spin).entries_;
-  device_entries_[spin].setAsync(entries, linalg::util::getStream(thread_id, spin));
+  device_entries_[spin].setAsync(entries, linalg::util::getStream(thread_id, 0));
   device_pointers_[spin].data = device_entries_[spin].ptr();
 }
 

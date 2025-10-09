@@ -59,6 +59,29 @@ TEST(MciParametersTest, ReadAll) {
   EXPECT_EQ(false, pars.store_configuration());
 }
 
+TEST(MciParametersTest, ReadAllStamping) {
+  dca::io::JSONReader reader;
+  dca::phys::params::MciParameters pars;
+
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_read_all_stamping.json");
+  pars.readWrite(reader);
+  reader.close_file();
+
+  EXPECT_EQ(42, pars.get_seed());
+  EXPECT_EQ(40, pars.get_warm_up_sweeps());
+  const auto expected_sweeps = std::vector<double>{1.5, 1.5, 4};
+  EXPECT_EQ(expected_sweeps, pars.get_sweeps_per_measurement());
+  const auto expected_meas = std::vector<int>{100, 150, 200};
+  EXPECT_EQ(expected_meas, pars.get_measurements());
+  EXPECT_EQ(dca::phys::ErrorComputationType::JACK_KNIFE, pars.get_error_computation_type());
+  EXPECT_EQ(1, pars.get_walkers());
+  EXPECT_EQ(1, pars.get_accumulators());
+  EXPECT_EQ(true, pars.shared_walk_and_accumulation_thread());
+  EXPECT_EQ(false, pars.store_configuration());
+  EXPECT_EQ(2, pars.stamping_period());
+}
+
+
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {
   dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;

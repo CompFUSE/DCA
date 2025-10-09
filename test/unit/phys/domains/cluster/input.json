@@ -1,14 +1,24 @@
 {
   "domains": {
     "real-space-grids": {
-      "cluster": [[4, 0],
-        [0, 4]]
+	"cluster": [[4, 0],
+                    [0, 4]],
+        "sp-host": [[20, 20],
+                    [20,-20]],
+        "tp-host": [[8, 8],
+                    [8,-8]]
     }
   },
-
   "four-point": {
     "type": "PARTICLE_PARTICLE_UP_DOWN",
-    "momentum-transfer": [0., 3.1415],
     "compute-all-transfers" :  true
+  },
+  "analysis": {
+      "symmetrize-Gamma": false,
+      "Gamma-deconvolution-cut-off": 0.1,
+      "project-onto-crystal-harmonics": true,
+      "projection-cut-off-radius": 3.0,
+      "q-host" : [[3, 3], [3, -3]],
+      "q-host-fine" : [[10, 0], [0, 10]]
   }
 }

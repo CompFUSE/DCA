@@ -13,7 +13,9 @@
 
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #include <cassert>
-#include "dca/platform/dca_gpu_complex.h"
+#include "dca/util/type_help.hpp"
+//#include "dca/platform/dca_gpu_complex.h"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #include "dca/util/integer_division.hpp"
 
@@ -21,12 +23,13 @@
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #endif
 
+using dca::util::castGPUType;
+
 namespace dca {
 namespace linalg {
 namespace blas {
 namespace kernels {
-// dca::linalg::blas::kernels::
-
+  
 #if defined(DCA_HAVE_CUDA)
 constexpr int warp_size = 32;
 #elif defined(DCA_HAVE_HIP)
@@ -37,7 +40,8 @@ constexpr int move_block_size_x = warp_size;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = warp_size;
 constexpr int swap_block_size_x = warp_size;
-constexpr int swap_block_size_y = 8;
+// Moire_Hubbard / complex_g0 had this changed from 8 to warp_size
+constexpr int swap_block_size_y = warp_size;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
@@ -222,7 +226,8 @@ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx, 
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
-    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, x, ldx, y, ldy);
+    kernels::copyRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i_x, castGPUType(x), ldx,
+                                                      castGPUType(y), ldy);
     checkErrorsCudaDebug();
   }
 }
@@ -231,6 +236,10 @@ template void copyRows(int row_size, int n_rows, const int* i_x, const float* x,
                        int ldy, int thread_id, int stream_id);
 template void copyRows(int row_size, int n_rows, const int* i_x, const double* x, int ldx,
                        double* y, int ldy, int thread_id, int stream_id);
+template void copyRows(int row_size, int n_rows, const int* i_x, const std::complex<float>* x,
+                       int ldx, std::complex<float>* y, int ldy, int thread_id, int stream_id);
+template void copyRows(int row_size, int n_rows, const int* i_x, const std::complex<double>* x,
+                       int ldx, std::complex<double>* y, int ldy, int thread_id, int stream_id);
 
 template <typename Type>
 void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, const int* j_y,
@@ -267,7 +276,11 @@ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x, int ldx, 
 }
 
 template void copyCols(int, int, const int*, const float*, int, float*, int, int, int);
+template void copyCols(int, int, const int*, const std::complex<float>*, int, std::complex<float>*,
+                       int, int, int);
 template void copyCols(int, int, const int*, const double*, int, double*, int, int, int);
+template void copyCols(int, int, const int*, const std::complex<double>*, int,
+                       std::complex<double>*, int, int, int);
 
 template <typename Type>
 void moveLeft(int m, int n, Type* a, int lda) {
@@ -344,7 +357,7 @@ void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, i
               int thread_id, int stream_id) {
   if (row_size > 0 && n_rows > 0) {
     const int threads_x = std::min(kernels::swap_block_size_x, n_rows);
-    const int threads_y = 1024 / threads_x;
+    const int threads_y = std::min(kernels::swap_block_size_y, 1024 / threads_x);
     const dim3 threads(threads_x, threads_y);
 
     const int bl_x = dca::util::ceilDiv(n_rows, threads_x);
@@ -372,10 +385,11 @@ void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, i
               int thread_id, int stream_id) {
   if (col_size > 0 && n_cols > 0) {
     checkErrorsCudaDebug();
-    const int bl_x = dca::util::ceilDiv(col_size, kernels::swap_block_size_x);
-    const int bl_y = dca::util::ceilDiv(n_cols, kernels::swap_block_size_y);
-
-    dim3 threads(kernels::swap_block_size_x, kernels::swap_block_size_y);
+    const int threads_x = std::min(kernels::swap_block_size_x, n_cols);
+    const int threads_y = std::min(kernels::swap_block_size_y, 1024 / threads_x);
+    dim3 threads(threads_x, threads_y);
+    const int bl_x = dca::util::ceilDiv(col_size, threads_x);
+    const int bl_y = dca::util::ceilDiv(n_cols, threads_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);

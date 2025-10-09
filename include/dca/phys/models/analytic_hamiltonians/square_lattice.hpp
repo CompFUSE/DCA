@@ -30,14 +30,17 @@ namespace models {
 template <typename point_group_type>
 class square_lattice {
 public:
+  static constexpr bool complex_g0 = false;
+  static constexpr bool spin_symmetric = true;
+
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   const static int DIMENSION = 2;
   const static int BANDS = 1;
 
-  static double* initializeRDCABasis();
-  static double* initializeRLDABasis();
+  static const double* initializeRDCABasis();
+  static const double* initializeRLDABasis();
 
   constexpr static int transformationSignOfR(int, int, int) {
     return 1;
@@ -68,10 +71,17 @@ public:
       const ParametersType& parameters,
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
+
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+  static void initializeH0WithQ(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+      func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q);
+
 };
 
 template <typename point_group_type>
-double* square_lattice<point_group_type>::initializeRDCABasis() {
+const double* square_lattice<point_group_type>::initializeRDCABasis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.;
@@ -83,7 +93,7 @@ double* square_lattice<point_group_type>::initializeRDCABasis() {
 }
 
 template <typename point_group_type>
-double* square_lattice<point_group_type>::initializeRLDABasis() {
+const double* square_lattice<point_group_type>::initializeRLDABasis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1.;
@@ -154,7 +164,17 @@ template <typename ParametersType, typename ScalarType, typename BandDmn, typena
 void square_lattice<point_group_type>::initializeH0(
     const ParametersType& parameters,
     func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
-                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  typename KDmn::element_type default_q;
+  initializeH0WithQ(parameters, H_0, default_q);
+}
+  
+template <typename point_group_type>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
+void square_lattice<point_group_type>::initializeH0WithQ(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q [[maybe_unused]]) {
   if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Square lattice has one band.");
   if (SpinDmn::dmn_size() != 2)

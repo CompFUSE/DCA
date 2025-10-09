@@ -20,14 +20,14 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  if (file_)
-    close_file();
+  close_file();
 }
 
 void HDF5Writer::open_file(std::string file_name, bool overwrite) {
   if (file_)
     throw std::logic_error(__FUNCTION__);
 
+  try {
   if (overwrite) {
     file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_TRUNC);
   }
@@ -37,18 +37,32 @@ void HDF5Writer::open_file(std::string file_name, bool overwrite) {
     else
       file_ = std::make_unique<H5::H5File>(file_name.c_str(), H5F_ACC_EXCL);
   }
-
+  } catch (const H5::Exception& exc) {
+    std::cerr << exc.getDetailMsg() << '\n';
+    throw std::runtime_error("Failed to open HDF5 file: " + file_name + " for write!");
+  }
   file_id_ = file_->getId();
 }
 
 void HDF5Writer::close_file() {
   if (file_) {
+    my_paths_.clear();
+    execute("steps", step_);
     // file_->flush(H5F_SCOPE_LOCAL);
     file_->close();
-    file_.release();
+    file_.reset(nullptr);
   }
 }
 
+void HDF5Writer::legacy_close_file() {
+  if (file_) {
+    my_paths_.clear();
+    file_->close();
+    file_.reset(nullptr);
+  }
+}
+
+  
 bool HDF5Writer::open_group(std::string name) {
   my_paths_.push_back(name);
   const std::string path = get_path();
@@ -76,8 +90,27 @@ std::string HDF5Writer::get_path() {
   return path;
 }
 
+std::string HDF5Writer::makeFullName(const std::string& name) {
+  return { get_path() + '/' + name };
+}
+  
+void HDF5Writer::begin_step() {
+  if (in_step_)
+    throw std::runtime_error("HDF5Writer::begin_step() called while already in step!");
+  in_step_ = true;
+  std::string step_group{"step_" + std::to_string(++step_ - 1)};
+  open_group(step_group);
+}
+
+void HDF5Writer::end_step() {
+  if (!in_step_)
+    throw std::runtime_error("HDF5Writer::end_step() called while not in step!");
+  my_paths_.clear();
+  in_step_ = false;
+}
+
 void HDF5Writer::erase(const std::string& name) {
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
   if (exists(full_name))
     H5Ldelete(file_id_, full_name.c_str(), H5P_DEFAULT);
 }
@@ -89,7 +122,7 @@ bool HDF5Writer::execute(const std::string& name,
   if (value.size() == 0)
     return execute(name, std::string{0});
 
-  std::string full_name = get_path() + '/' + name;
+  const std::string full_name{makeFullName(name)};
 
   // String type.
   H5::StrType datatype(H5::PredType::C_S1, value.size());
@@ -104,7 +137,7 @@ bool HDF5Writer::execute(const std::string& name,
   if (value.size() == 0)
     return true;
 
-  const std::string full_name = get_path() + "/" + name;
+  const std::string full_name{makeFullName(name)};
 
   auto s_type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
 

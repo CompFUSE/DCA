@@ -21,14 +21,14 @@ namespace ctint {
 using linalg::CPU;
 using linalg::GPU;
 
-template <typename Real>
-DMatrixBuilder<CPU, Real>::DMatrixBuilder(const G0Interpolation<CPU, Real>& g0,
-                                          const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                          const int nb)
+template <typename Scalar>
+DMatrixBuilder<CPU, Scalar>::DMatrixBuilder(const G0Interpolation<CPU, Scalar>& g0,
+                                            const linalg::Matrix<int, linalg::CPU>& site_diff,
+                                            const int nb)
     : g0_ref_(g0), n_bands_(nb), sbdm_step_{nb, nb * nb}, site_diff_(site_diff) {}
 
-template <typename Real>
-void DMatrixBuilder<CPU, Real>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
+template <typename Scalar>
+void DMatrixBuilder<CPU, Scalar>::setAlphas(const std::array<double, 3>& alphas_base, bool adjust_dd) {
   alpha_dd_neg_ = alphas_base[1];
   alpha_ndd_ = alphas_base[2];
 
@@ -42,9 +42,9 @@ void DMatrixBuilder<CPU, Real>::setAlphas(const std::array<double, 3>& alphas_ba
   }
 }
 
-template <typename Real>
-void DMatrixBuilder<CPU, Real>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
-                                         const SolverConfiguration& config) const {
+template <typename Scalar>
+void DMatrixBuilder<CPU, Scalar>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
+                                           const SolverConfiguration& config) const {
   std::array<int, 2> size_increase = config.sizeIncrease();
 
   for (int s = 0; s < 2; ++s) {
@@ -68,8 +68,9 @@ void DMatrixBuilder<CPU, Real>::buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPai
   }
 }
 
-template <typename Real>
-Real DMatrixBuilder<CPU, Real>::computeD(const int i, const int j, const Sector& configuration) const {
+template <typename Scalar>
+Scalar DMatrixBuilder<CPU, Scalar>::computeD(const int i, const int j,
+                                             const Sector& configuration) const {
   assert(configuration.size() > i and configuration.size() > j);
 
   const int b1 = configuration.getLeftB(i);
@@ -77,21 +78,20 @@ Real DMatrixBuilder<CPU, Real>::computeD(const int i, const int j, const Sector&
   const int delta_r = site_diff_(configuration.getRightR(j), configuration.getLeftR(i));
   const int p_index = label(b1, b2, delta_r);
   const Real delta_tau = configuration.getTau(i) - configuration.getTau(j);
-  const Real g0_val = g0_ref_(delta_tau, p_index);
-  // This needs to be considered assert(b1 == b2);
+  const Scalar g0_val = g0_ref_(delta_tau, p_index);
   if (i == j)
     return g0_val - computeAlpha(configuration.getAuxFieldType(i), b1);
   else
     return g0_val;
 }
 
-template <typename Real>
-int DMatrixBuilder<CPU, Real>::label(const int b1, const int b2, const int r) const {
+template <typename Scalar>
+int DMatrixBuilder<CPU, Scalar>::label(const int b1, const int b2, const int r) const {
   return b1 + b2 * sbdm_step_[0] + r * sbdm_step_[1];
 }
 
-template <typename Real>
-Real DMatrixBuilder<CPU, Real>::computeAlpha(const int aux_spin_type, const int b) const {
+template <typename Scalar>
+auto DMatrixBuilder<CPU, Scalar>::computeAlpha(const int aux_spin_type, const int b) const -> Real {
   assert(alpha_dd_.size());
   switch (std::abs(aux_spin_type)) {
     case 1:
@@ -105,29 +105,29 @@ Real DMatrixBuilder<CPU, Real>::computeAlpha(const int aux_spin_type, const int 
   }
 }
 
-template <typename Real>
-Real DMatrixBuilder<CPU, Real>::computeF(const Real alpha) const {
-  return alpha / (alpha - 1);
+template <typename Scalar>
+auto DMatrixBuilder<CPU, Scalar>::computeF(const Real alpha) const -> Real {
+  return alpha / (alpha - 1.);
 }
 
-template <typename Real>
-Real DMatrixBuilder<CPU, Real>::computeF(const int aux_spin_type, int b) const {
+template <typename Scalar>
+auto DMatrixBuilder<CPU, Scalar>::computeF(const int aux_spin_type, int b) const -> Real {
   if (aux_spin_type == 0)
     return 1;
   else
     return computeF(computeAlpha(aux_spin_type, b));
 }
 
-template <typename Real>
-Real DMatrixBuilder<CPU, Real>::computeGamma(const int aux_spin_type, const int new_aux_spin_type,
-                                             int b) const {
+template <typename Scalar>
+auto DMatrixBuilder<CPU, Scalar>::computeGamma(const int aux_spin_type, const int new_aux_spin_type,
+                                               int b) const -> Real {
   return (computeF(new_aux_spin_type, b) - computeF(aux_spin_type, b)) / computeF(aux_spin_type, b);
 }
 
 // Compute only the parts of G0 required at a given moment. (Re)Computing every element is not needed in most situations.
-template <typename Real>
-void DMatrixBuilder<CPU, Real>::computeG0(Matrix& G0, const Sector& configuration, const int n_init,
-                                          const int n_max, const int which_section) const {
+template <typename Scalar>
+ void DMatrixBuilder<CPU, Scalar>::computeG0(Matrix& G0, const Sector& configuration, const int n_init,
+                                            const int n_max, const int which_section) const {
   int b_i, b_j, r_i, r_j;
   Real tau_i, tau_j;
 
@@ -167,6 +167,8 @@ void DMatrixBuilder<CPU, Real>::computeG0(Matrix& G0, const Sector& configuratio
 // Instantation
 template class DMatrixBuilder<CPU, float>;
 template class DMatrixBuilder<CPU, double>;
+template class DMatrixBuilder<CPU, std::complex<float>>;
+template class DMatrixBuilder<CPU, std::complex<double>>;
 
 }  // namespace ctint
 }  // namespace solver

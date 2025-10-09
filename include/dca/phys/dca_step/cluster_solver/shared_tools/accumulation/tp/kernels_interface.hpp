@@ -16,6 +16,9 @@
 #include <vector>
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/util/type_utils.hpp"
+#include "dca/linalg/util/gpu_type_mapping.hpp"
+#include "dca/util/type_help.hpp"
 
 // This amount of namespace nesting is really uncalled for
 // http://open-std.org/JTC1/SC22/WG21/docs/papers/2017/p0816r0.pdf
@@ -26,19 +29,28 @@ namespace accumulator {
 namespace details {
 // dca::phys::solver::accumulator::details::
 
+using dca::util::ComplexAlias;
+  
 template <typename Real>
 void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int nk,
-                        int nw_pos, Real beta, cudaStream_t stream);
+                        int nw_pos, Real beta, cudaStream_t stream, int spin);
 
 template <typename Real>
 void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int ldg0,
                        int nb, int nk, int nw_pos, Real beta, cudaStream_t stream);
 
 // Updates G4 in the range [start, end)
-template <typename Real, FourPointType type>
-float updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int ldgu,
-               const std::complex<Real>* G_down, const int ldgd, const int sign, bool atomic,
-               cudaStream_t stream, std::size_t start, std::size_t end);
+template <typename Scalar, FourPointType type, typename SignType>
+double updateG4(Scalar* G4, const Scalar* G_up, const int ldgu,
+               const Scalar* G_dn, const int ldgd, const SignType factor,
+               bool atomic, cudaStream_t stream, std::size_t start,
+               std::size_t end);
+
+// Updates G4 in the range [start, end)
+template <typename Scalar, FourPointType type, typename SignType>
+double updateG4NoSpin(Scalar* G4, const Scalar* G_up, const int ldgu, const SignType factor,
+               bool atomic, cudaStream_t stream, std::size_t start,
+               std::size_t end);
 
 }  // namespace details
 }  // namespace accumulator

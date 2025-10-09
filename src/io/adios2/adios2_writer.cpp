@@ -30,12 +30,20 @@ ADIOS2Writer<Concurrency>::ADIOS2Writer(adios2::ADIOS& adios, const Concurrency*
   }
 }
 
-// template <class CT>
-// ADIOS2Writer<CT>::ADIOS2Writer(const CT* concurrency, bool verbose)
-//     : adios_(GlobalAdios::getAdios()), verbose_(verbose), concurrency_(concurrency) {}
+template <class CT>
+ADIOS2Writer<CT>::ADIOS2Writer(const CT* concurrency, bool verbose)
+    : concurrency_(concurrency), adios_(*(concurrency->adios_)), verbose_(verbose) {
+  if constexpr (std::is_same<decltype(concurrency_), dca::parallel::MPIConcurrency>::value) {
+    std::cout << "AdiosWriter on MPI world:" << concurrency_->get_world_id()
+              << " of size: " << concurrency_->get_world_size() << '\n';
+    std::cout << "comm size: " << concurrency_->size() << " id: " << concurrency_->id() << '\n';
+  }
+}
 
 template <class Concurrency>
 ADIOS2Writer<Concurrency>::~ADIOS2Writer() {
+  // close_file won't close an invalid engine.
+  // but this could still be a problem if the adios2::ADIOS object has been destroyed.
   if (file_)
     close_file();
 }
@@ -47,6 +55,7 @@ void ADIOS2Writer<Concurrency>::begin_step() {
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::end_step() {
   file_.EndStep();
+  my_paths_.clear();
 };
 
 template <class Concurrency>
@@ -60,7 +69,9 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
   io_name_ = file_name_ref;
   file_name_ = file_name_ref;
   io_ = adios_.DeclareIO(io_name_);
+  io_.SetEngine("BP4");
 
+  
   file_ = io_.Open(file_name_, mode, concurrency_->get());
   // This is true if m_isClosed is false, that doesn't mean the "file" is open.
   if (!file_) {
@@ -72,12 +83,14 @@ void ADIOS2Writer<Concurrency>::open_file(const std::string& file_name_ref, bool
 
 template <class Concurrency>
 void ADIOS2Writer<Concurrency>::close_file() {
-  if (file_) {
+  if (static_cast<bool>(file_)) {
+    file_.Flush();
     file_.Close();
-    adios_.RemoveIO(io_name_);
-    //file_.Close();
-    // This combined with overwrite seems to create issues.
+    adios_.RemoveIO(io_.Name());
     // adios_.RemoveIO(io_name_);
+    // file_.Close();
+    //  This combined with overwrite seems to create issues.
+    //  adios_.RemoveIO(io_name_);
   }
 }
 
@@ -161,8 +174,8 @@ void ADIOS2Writer<Concurrency>::addAttribute(const std::string& set, const std::
 }
 
 template class ADIOS2Writer<dca::parallel::NoConcurrency>;
-
+#ifdef DCA_HAVE_MPI
 template class ADIOS2Writer<dca::parallel::MPIConcurrency>;
-
+#endif
 }  // namespace io
 }  // namespace dca

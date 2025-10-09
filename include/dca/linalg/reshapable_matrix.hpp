@@ -54,13 +54,20 @@ public:
   template <DeviceType rhs_device_name, class AllocatorRhs>
   ReshapableMatrix(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
 
+  // Complex Case
+  template <typename ScalarTypeRhs, DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix(const ReshapableMatrix<ScalarTypeRhs, rhs_device_name, AllocatorRhs>& rhs);
+
   // Constructs a matrix with size rhs.size(). The elements of rhs are moved.
   ReshapableMatrix(ThisType&& rhs);
 
   // Resize the matrix to rhs.size() and copies the elements.
   ReshapableMatrix& operator=(const ThisType& rhs);
-  template <DeviceType rhs_device_name, class AllocatorRhs>
-  ReshapableMatrix& operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
+
+  // template <DeviceType rhs_device_name, class AllocatorRhs>
+  // ReshapableMatrix& operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs);
+  template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+  ReshapableMatrix& operator=(const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs);
 
   // Moves the elements of rhs into this matrix.
   ReshapableMatrix& operator=(ThisType&& rhs);
@@ -91,6 +98,49 @@ public:
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
     return data_[i + j * leadingDimension()];
+  }
+
+  struct Iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = ScalarType;
+    using pointer = ScalarType*;
+    using reference = ScalarType&;
+
+    Iterator(pointer ptr) : m_ptr(ptr) {}
+
+    reference operator*() const {
+      return *m_ptr;
+    }
+    pointer operator->() {
+      return m_ptr;
+    }
+
+    Iterator& operator++() {
+      m_ptr++;
+      return *this;
+    }
+    Iterator operator++(int) {
+      Iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+    friend bool operator==(const Iterator& a, const Iterator& b) {
+      return a.m_ptr == b.m_ptr;
+    };
+    friend bool operator!=(const Iterator& a, const Iterator& b) {
+      return a.m_ptr != b.m_ptr;
+    };
+
+  private:
+    pointer m_ptr;
+  };
+
+  Iterator begin() {
+    return Iterator(data_);
+  }
+  Iterator end() {
+    return Iterator(data_ + size_.first * size_.second);
   }
 
   // Returns the pointer to the (0,0)-th element.
@@ -206,18 +256,37 @@ ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(const Thi
   *this = rhs;
 }
 
+#ifdef DCA_HAVE_GPU
+// Case for non matching GPU type complex
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
+    ScalarType, device_name,
+    Allocator>::operator=(const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
+  static_assert(sizeof(ScalarType) == sizeof(ScalarRhs),
+                "sizeof ScalarType and ScalarRhs are not equal");
+  if constexpr (device_name == rhs_device_name)
+    if (this != &rhs)
+      return *this;
+  resizeNoCopy(rhs.size_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <typename ScalarRhs, DeviceType rhs_device_name, class AllocatorRhs>
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
+    const ReshapableMatrix<ScalarRhs, rhs_device_name, AllocatorRhs>& rhs) {
+  *this = rhs;
+}
+#endif
+
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <DeviceType rhs_device_name, class AllocatorRhs>
 ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
     const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
   *this = rhs;
-}
-
-template <typename ScalarType, DeviceType device_name, class Allocator>
-ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(
-    ReshapableMatrix<ScalarType, device_name, Allocator>&& rhs)
-    : ReshapableMatrix<ScalarType, device_name, Allocator>() {
-  swap(rhs);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
@@ -232,14 +301,8 @@ ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-template <DeviceType rhs_device_name, class AllocatorRhs>
-ReshapableMatrix<ScalarType, device_name, Allocator>& ReshapableMatrix<
-    ScalarType, device_name,
-    Allocator>::operator=(const ReshapableMatrix<ScalarType, rhs_device_name, AllocatorRhs>& rhs) {
-  resizeNoCopy(rhs.size_);
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
-
-  return *this;
+ReshapableMatrix<ScalarType, device_name, Allocator>::ReshapableMatrix(ThisType&& rhs) {
+  swap(rhs);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
@@ -332,7 +395,7 @@ void ReshapableMatrix<ScalarType, device_name, Allocator>::setAsync(
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 void ReshapableMatrix<ScalarType, device_name, Allocator>::setToZero(cudaStream_t stream) {
-  cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
+  checkRC(cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream));
 }
 
 #else  // DCA_HAVE_GPU
@@ -370,6 +433,20 @@ std::size_t ReshapableMatrix<ScalarType, device_name, Allocator>::deviceFingerpr
     return capacity_ * sizeof(ScalarType);
   else
     return 0;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+std::ostream& operator<<(std::ostream& ostr,
+                         const ReshapableMatrix<ScalarType, device_name, Allocator>& rmatrix) {
+  ostr << "{";
+  for (std::size_t i = 0; i < rmatrix.size().first; ++i) {
+    ostr << "{";
+    for (std::size_t j = 0; j < rmatrix.size().second; ++j)
+      ostr << rmatrix(i, j) << ",";
+    ostr << "},";
+  }
+  ostr << "}";
+  return ostr;
 }
 
 }  // namespace linalg

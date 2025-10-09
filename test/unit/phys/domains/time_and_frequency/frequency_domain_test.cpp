@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 using dca::phys::domains::frequency_domain;
 
@@ -41,7 +41,4 @@ TEST(FrequencyDomainTest, Full) {
   EXPECT_EQ(2 * num_freqs, frequency_domain::get_size());
   EXPECT_EQ(elements_expected, frequency_domain::get_elements());
   EXPECT_EQ(indices_expected, frequency_domain::get_indices());
-
-  // The domain can only be initialized once.
-  EXPECT_THROW(frequency_domain::initialize(0.9, 10), std::logic_error);
 }

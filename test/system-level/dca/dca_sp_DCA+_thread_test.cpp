@@ -13,7 +13,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/threading.hpp"
@@ -27,6 +27,16 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
+
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 
@@ -58,15 +68,17 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
-      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                    ModelType, RngType, dca::ClusterSolverId::CT_AUX>;
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, ModelType,
+                                    RngType, dca::ClusterSolverId::CT_AUX,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
   using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>;
 
-  using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
+  using DcaLoopType =
+      dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType, dca::DistType::NONE>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

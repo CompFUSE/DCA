@@ -58,7 +58,7 @@ public:
   typedef func::dmn_variadic<nu, nu, HS_s, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_s_HS_f_r_dmn_t;
 
 public:
-  CV(parameters_type& parameters);
+  CV(const parameters_type& parameters);
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -121,7 +121,7 @@ private:
   void initialize_exp_delta_V();
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
 
   double BETA;
   double K_CT_AUX;
@@ -140,7 +140,7 @@ private:
 };
 
 template <typename parameters_type>
-CV<parameters_type>::CV(parameters_type& parameters_ref)
+CV<parameters_type>::CV(const parameters_type& parameters_ref)
     : parameters(parameters_ref),
 
       gamma_function("gamma_function"),
@@ -165,8 +165,7 @@ void CV<parameters_type>::to_JSON(stream_type& ss) {
 }
 
 template <typename parameters_type>
-func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<
-    parameters_type>::get_H_interaction() {
+func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction() {
   static func::function<double, nu_nu_r_dmn_t> H;
   return H;
 }
@@ -192,8 +191,8 @@ template <typename parameters_type>
 template <typename vertex_singleton_t>
 inline double CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v,
                                                   HS_spin_states_type new_HS_spin) {
-  std::pair<int, int>& spin_orbitals = v.get_spin_orbitals();
-  int& delta_r = v.get_delta_r();
+  std::pair<int, int> spin_orbitals = v.get_spin_orbitals();
+  int delta_r = v.get_delta_r();
 
   if (H_interaction(spin_orbitals.first, spin_orbitals.second, delta_r) > 1.e-3) {
     return 1.;
@@ -338,7 +337,7 @@ void CV<parameters_type>::initialize_gamma() {
   for (int nu_ind_i = 0; nu_ind_i < 2 * BANDS; nu_ind_i++) {
     for (int nu_ind_j = 0; nu_ind_j < 2 * BANDS; nu_ind_j++) {
       for (int r = 0; r < FULL_CLUSTER_SIZE; r++) {
-        double U_i_j_r = std::fabs(H_interaction(nu_ind_i, nu_ind_j, r));
+        double U_i_j_r = std::abs(H_interaction(nu_ind_i, nu_ind_j, r));
 
         double coshgamma = 1. + U_i_j_r * BETA * CORRELATED_ORBITALS / (2. * K_CT_AUX);
 
@@ -365,7 +364,7 @@ void CV<parameters_type>::initialize_exp_V() {
               exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r) =
                   std::exp(-gamma_function(nu_ind_i, nu_ind_j, r) * HS_spin * HS_field);
 
-              //                    if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind,
+              //                    if(std::abs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind,
               //                    HS_field_ind, r)-1.) > 1.e-16)
               //                      one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j,
               //                      HS_spin_ind, HS_field_ind, r)
@@ -384,7 +383,7 @@ void CV<parameters_type>::initialize_exp_V() {
                   std::exp(-gamma_function(nu_ind_i, nu_ind_j, r) * HS_spin *
                            HS_field);  // gamma=1? --> exp_V=1 ?!
 
-              //                            if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j,
+              //                            if(std::abs(exp_V_function(nu_ind_i, nu_ind_j,
               //                            HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
               //                              one__div__exp_V_function_min_one_function(nu_ind_i,
               //                              nu_ind_j, HS_spin_ind, HS_field_ind, r)

@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/linalg/blas/blas3.hpp"
 #include "dca/config/walker_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
@@ -31,7 +31,8 @@ public:
   static const ScalarType epsilon;
 };
 template <typename ScalarType>
-const ScalarType MatrixopRealGPUTest<ScalarType>::epsilon = std::numeric_limits<ScalarType>::epsilon();
+const ScalarType MatrixopRealGPUTest<ScalarType>::epsilon =
+    std::numeric_limits<ScalarType>::epsilon();
 
 typedef ::testing::Types<float, double> FloatingPointTypes;
 TYPED_TEST_CASE(MatrixopRealGPUTest, FloatingPointTypes);
@@ -473,7 +474,7 @@ TYPED_TEST(MatrixopRealGPUTest, CopyRow) {
   {
     dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(b);
 
-    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests);
+    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests, 0, 0);
 
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
@@ -765,22 +766,26 @@ TEST(MatrixopGPUTest, Difference) {
 
   auto val_a = [](int i, int j) { return 10 * i + j; };
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  dca::linalg::Matrix<double, dca::linalg::CPU, dca::linalg::util::PinnedAllocator<double>> a(size2_a);
   testing::setMatrixElements(a, val_a);
   dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
 
   for (int sg : {1, -1})
     for (int ia : {0, 1, 4})
       for (int ja : {0, 2, 3}) {
-        dca::linalg::Matrix<double, dca::linalg::CPU> b(a);
+        dca::linalg::Matrix<double, dca::linalg::CPU, dca::linalg::util::PinnedAllocator<double>> b(a);
         b(ia, ja) += sg * diff;
         double err = std::abs(epsilon * b(ia, ja));
         dca::linalg::Matrix<double, dca::linalg::GPU> db(b);
-
+        // To make this clear the difference calls are expected to show
+        // differences!
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, 2 * diff), err);
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diff + err), err);
         auto diffcalc = dca::linalg::matrixop::difference(da, db, 2 * diff);
         EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diffcalc), err);
+        // This will result on output even though we expect and want a
+        // throw.
+        std::cerr << "difference output expected below\n";
         EXPECT_THROW(dca::linalg::matrixop::difference(da, db, diffcalc - err), std::logic_error);
       }
 }

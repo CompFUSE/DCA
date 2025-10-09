@@ -15,6 +15,7 @@
 #include <complex>
 #include "dca/config/haves_defines.hpp"
 #include "dca/platform/dca_gpu.h"
+#include "dca/util/type_help.hpp"
 #include "dca/platform/dca_gpu_complex.h"
 #include "dca/linalg/util/cast_gpu.hpp"
 

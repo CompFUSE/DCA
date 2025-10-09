@@ -47,7 +47,7 @@ public:
   typedef cluster_domain<scalar_type, D, N, REPRESENTATION, S> this_type;
   typedef cluster_domain<scalar_type, D, N, DUAL_REPRESENTATION, S> dual_type;
 
-  typedef
+  typedef 
       typename cluster_specifications<scalar_type, N, R, S>::dmn_specifications_type dmn_specifications_type;
 
   typedef std::vector<scalar_type> element_type;

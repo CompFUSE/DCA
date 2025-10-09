@@ -35,6 +35,7 @@ std::string toString(const IOType type) {
     case IOType::ADIOS2:
       return "ADIOS2";
   }
+  return "UNKNOWN";
 }
 
 IOType extensionToIOType(const std::string& file_name) {
@@ -61,6 +62,7 @@ std::string extensionFromIOType(const IOType type) {
     case IOType::ADIOS2:
       return ".bp";
   }
+  return ".txt";
 }
 
   

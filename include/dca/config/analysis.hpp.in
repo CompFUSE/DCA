@@ -24,8 +24,11 @@
 constexpr dca::ClusterSolverId solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
-using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
-                                                     void /*RandomNumberGenerator*/, solver_name>;
+using ParametersType = dca::phys::params::Parameters<
+    Concurrency, Threading, Profiler, Model, void, solver_name,
+    dca::NumericalTraits<dca::config::McOptions::MC_REAL,
+                         typename dca::util::ScalarSelect<dca::config::McOptions::MC_REAL,
+                                                          Model::lattice_type::complex_g0>::type>>;
 
 #include "dca/phys/dca_data/dca_data.hpp"
 using DcaDataType = dca::phys::DcaData<ParametersType>;
@@ -33,4 +36,9 @@ using DcaDataType = dca::phys::DcaData<ParametersType>;
 #include "dca/phys/dca_analysis/bse_solver/bse_solver.hpp"
 using BseSolverType = dca::phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
+
+#ifdef DCA_HAS_SOFQOMEGA
+#include "dca/phys/dca_analysis/bse_solver/bse_solver_ext.hpp"
+using BseSolverExt = dca::phys::analysis::BseSolverExt<ParametersType, DcaDataType>;
+#endif
 #endif  // DCA_CONFIG_ANALYSIS_HPP

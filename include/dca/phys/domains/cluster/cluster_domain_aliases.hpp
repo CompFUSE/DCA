@@ -42,6 +42,20 @@ public:
   using KSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using RQHostDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using KQHostDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+
+  using RQFineDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q_FINE,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using KQFineDmn =
+      func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_Q_FINE,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+
   // Host vertex cluster domains
   using RTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, DIMENSION, domains::LATTICE_TP,
@@ -58,6 +72,15 @@ public:
   using HostTpClusterFamily =
       domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_TP,
                                      domains::BRILLOUIN_ZONE>;
+  using HostQClusterFamily =
+      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_Q,
+                                     domains::BRILLOUIN_ZONE>;
+
+  using HostQFineClusterFamily =
+      domains::cluster_domain_family<double, DIMENSION, domains::LATTICE_Q_FINE,
+                                     domains::BRILLOUIN_ZONE>;
+
+
 };
 
 }  // phys

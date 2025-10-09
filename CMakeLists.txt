@@ -110,13 +110,14 @@ dca_write_haves_definitions_file()
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
 
+include(dca_check_stdlib)
+message("std::filesystem resolved")
+
 ################################################################################
 # External libraries
 include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
 
-include(dca_check_stdlib)
-message("std::filesystem resolved")
 
 ################################################################################
 # Include directories
@@ -168,11 +169,12 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   signals
-  symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
+  parallel_no_concurrency
   ${DCA_THREADING_LIBS}
   lapack
+  models
 )
   
 set(SYSTEM_GPU_COUNT 0)
@@ -186,26 +188,20 @@ if (DCA_HAVE_GPU)
     EXECUTE_PROCESS(COMMAND bash -c "rocm-smi -i | awk 'BEGIN { num_gpu=0;} /GPU/ { num_gpu++;} END { printf(\"%d\", num_gpu) }'"
                     OUTPUT_VARIABLE SYSTEM_GPU_COUNT)
   endif()
-  list(APPEND DCA_LIBS
-    blas_kernels
-    lapack_kernels
-    mc_kernels
-    special_transform_kernels
-    ${DCA_GPU_LIBS})
+  #special transform kernels are purposefully omitted since they are publicly linked via function transform
   set(DCA_KERNEL_LIBS
     blas_kernels
     lapack_kernels
     mc_kernels
-    special_transform_kernels
 )  
 endif()
 
-if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
-  list(APPEND DCA_LIBS
-    dca_adios2 adios2::adios2
-    )
-  message("-- Add dca_adios2 to targets")
-endif()
+# if (DCA_WITH_ADIOS2 AND DCA_HAVE_ADIOS2)
+#   list(APPEND DCA_LIBS
+#     dca_adios2 adios2::adios2
+#     )
+#   message("-- Add dca_adios2 to targets")
+# endif()
 
 # The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
 list(APPEND DCA_LIBS lapack ${DCA_EXTERNAL_LIBS})

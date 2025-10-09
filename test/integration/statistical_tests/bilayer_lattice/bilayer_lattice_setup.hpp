@@ -60,40 +60,39 @@ using Model = dca::phys::models::TightBindingModel<
     dca::phys::models::bilayer_lattice<dca::phys::domains::no_symmetry<2>>>;
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 
-using dca::phys::solver::ClusterSolverName;
-using dca::ClusterSolverId::CT_AUX;
-using dca::ClusterSolverId::CT_INT;
+using dca::ClusterSolverId;
 
-template <ClusterSolverName name>
+template <ClusterSolverId name>
 using ParametersType =
-    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  Threading, dca::profiling::NullProfiler, Model,
-                                  RandomNumberGenerator, name>;
+    dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
+                                  dca::profiling::NullProfiler, Model, RandomNumberGenerator, name>;
 
-template <ClusterSolverName name>
+template <ClusterSolverId name>
 using DcaData = dca::phys::DcaData<ParametersType<name>>;
 
-template <ClusterSolverName name, DeviceType device>
+template <ClusterSolverId name, DeviceType device>
 struct ClusterSolverSelector;
 
 template <DeviceType device>
-struct ClusterSolverSelector<CT_AUX, device> {
-  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<CT_AUX>, DcaData<CT_AUX>>;
+struct ClusterSolverSelector<ClusterSolverId::CT_AUX, device> {
+  using type = dca::phys::solver::CtauxClusterSolver<device, ParametersType<ClusterSolverId::CT_AUX>,
+                                                     DcaData<ClusterSolverId::CT_AUX>>;
 };
 template <DeviceType device>
-struct ClusterSolverSelector<CT_INT, device> {
-  using type = dca::phys::solver::CtintClusterSolver<device, ParametersType<CT_INT>, true>;
+struct ClusterSolverSelector<ClusterSolverId::CT_INT, device> {
+  using type =
+      dca::phys::solver::CtintClusterSolver<device, ParametersType<ClusterSolverId::CT_INT>, true>;
 };
-template <ClusterSolverName name, DeviceType device>
+template <ClusterSolverId name, DeviceType device>
 using QuantumClusterSolver = typename ClusterSolverSelector<name, device>::type;
 
-template <ClusterSolverName name, DeviceType device>
+template <ClusterSolverId name, DeviceType device>
 using ThreadedSolver =
     dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver<name, device>>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 }  // namespace testing

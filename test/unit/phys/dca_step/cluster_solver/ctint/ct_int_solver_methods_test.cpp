@@ -1,8 +1,18 @@
-#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+#include "dca/config/profiler.hpp"
 
-#include "gtest/gtest.h"
+#include "dca/platform/dca_gpu.h"
+#include "test/mock_mcconfig.hpp"
+
+using Scalar = double;
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
@@ -18,7 +28,7 @@ using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
 using TestConcurrency = dca::parallel::NoConcurrency;
 using Parameters =
     dca::phys::params::Parameters<TestConcurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  ModelType, RngType, dca::ClusterSolverId::CT_INT>;
+                                  ModelType, RngType, dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
 using Data = dca::phys::DcaData<Parameters>;
 
 struct SolverWrapper

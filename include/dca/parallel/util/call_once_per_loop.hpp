@@ -26,7 +26,7 @@ namespace util {
 struct OncePerLoopFlag {
   OncePerLoopFlag() : loop_done(-1) {}
 
-  std::atomic<int> loop_done;
+  int loop_done;
   dca::parallel::thread_traits::mutex_type mutex;
 };
 
@@ -37,6 +37,8 @@ struct OncePerLoopFlag {
 template <class F, class... Args>
 void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args)
 {
+    std::scoped_lock<dca::parallel::thread_traits::mutex_type> lock(flag.mutex);
+
     const int currently_done = flag.loop_done;
 
     if (loop_id < 0)
@@ -47,10 +49,9 @@ void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... 
     else if (loop_id > currently_done + 1 && currently_done != -1)
         throw(std::logic_error("Loop id called out of order."));
 
-    std::unique_lock<dca::parallel::thread_traits::mutex_type> lock(flag.mutex);
     // Check if flag.loop_done changed before locking the mutex.
     if (loop_id <= flag.loop_done)
-        return;
+      throw std::runtime_error("I don't think this how lock objects work.");
 
     // Run the task.
     f(args...);

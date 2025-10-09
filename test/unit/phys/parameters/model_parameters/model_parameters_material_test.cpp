@@ -11,8 +11,10 @@
 //
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/phys/parameters/model_parameters.hpp"
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 
@@ -20,7 +22,7 @@ using PointGroup = dca::phys::domains::D4;
 
 TEST(ModelParametersMaterialTest, DefaultValues) {
   dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
-      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
+    dca::phys::models::material_lattice<dca::phys::models::Material::NiO_symmetric, PointGroup>>>
       pars;
 
   EXPECT_EQ("t_ij.txt", pars.get_t_ij_file_name());
@@ -30,7 +32,7 @@ TEST(ModelParametersMaterialTest, DefaultValues) {
 TEST(ModelParametersMaterialTest, ReadAll) {
   dca::io::JSONReader reader;
   dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
-      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
+    dca::phys::models::material_lattice<dca::phys::models::Material::NiO_symmetric, PointGroup>>>
       pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -44,7 +46,7 @@ TEST(ModelParametersMaterialTest, ReadAll) {
 
 TEST(ModelParametersMaterialTest, Setter) {
   dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
-      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
+    dca::phys::models::material_lattice<dca::phys::models::Material::NiO_symmetric, PointGroup>>>
       pars;
 
   pars.set_t_ij_file_name("NiO_t_ij.txt");

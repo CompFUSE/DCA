@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This file provides a class to do coordinate transformations.
 //
@@ -22,10 +23,10 @@ namespace math {
 namespace util {
 // dca::math::util::
 
-template <typename scalar_type>
+template <typename scalar_type, int DIMENSION>
 class coordinate_transformation {
 public:
-  coordinate_transformation(int d) : DIMENSION(d), T("T", d), T_inv("T_inv", d) {}
+  coordinate_transformation() : T("T", DIMENSION), T_inv("T_inv", DIMENSION) {}
 
   // basis-vectors column-wise
   void set_basis(scalar_type* basis);
@@ -48,14 +49,14 @@ public:
                       std::vector<scalar_type>& coor);
 
 private:
-  int DIMENSION;
+  static constexpr int dimension_ = DIMENSION;
 
   linalg::Matrix<scalar_type, linalg::CPU> T;
   linalg::Matrix<scalar_type, linalg::CPU> T_inv;
 };
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::set_basis(scalar_type* basis) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::set_basis(scalar_type* basis) {
   for (int d1 = 0; d1 < DIMENSION; d1++)
     for (int d0 = 0; d0 < DIMENSION; d0++)
       T(d0, d1) = basis[d0 + d1 * DIMENSION];
@@ -65,8 +66,8 @@ void coordinate_transformation<scalar_type>::set_basis(scalar_type* basis) {
   dca::linalg::matrixop::inverse(T_inv);
 }
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::execute(scalar_type* vec, scalar_type* coor) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::execute(scalar_type* vec, scalar_type* coor) {
   switch (DIMENSION) {
     case 1:
       coor[0] = T_inv(0, 0) * vec[0];
@@ -94,9 +95,9 @@ void coordinate_transformation<scalar_type>::execute(scalar_type* vec, scalar_ty
   }
 }
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_type* v1,
-                                                     scalar_type* vec, scalar_type* coor) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::execute(scalar_type* v0, scalar_type* v1,
+                                                                scalar_type* vec, scalar_type* coor) {
   linalg::Matrix<scalar_type, linalg::CPU> A("A", 2);
 
   A(0, 0) = v0[0];
@@ -111,10 +112,10 @@ void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_typ
   coor[1] = A(1, 0) * vec[0] + A(1, 1) * vec[1];
 }
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_type* v1,
-                                                     scalar_type* v2, scalar_type* vec,
-                                                     scalar_type* coor) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::execute(scalar_type* v0, scalar_type* v1,
+                                                                scalar_type* v2, scalar_type* vec,
+                                                                scalar_type* coor) {
   linalg::Matrix<scalar_type, linalg::CPU> A("A", 3);
 
   A(0, 0) = v0[0];
@@ -136,11 +137,11 @@ void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_typ
   coor[2] = A(2, 0) * vec[0] + A(2, 1) * vec[1] + A(2, 2) * vec[2];
 }
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::execute(std::vector<scalar_type>& v0,
-                                                     std::vector<scalar_type>& v1,
-                                                     std::vector<scalar_type>& vec,
-                                                     std::vector<scalar_type>& coor) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::execute(std::vector<scalar_type>& v0,
+                                                                std::vector<scalar_type>& v1,
+                                                                std::vector<scalar_type>& vec,
+                                                                std::vector<scalar_type>& coor) {
   assert(v0.size() == 2);
   assert(v1.size() == 2);
   assert(vec.size() == 2);
@@ -149,12 +150,12 @@ void coordinate_transformation<scalar_type>::execute(std::vector<scalar_type>& v
   execute(&v0[0], &v1[0], &vec[0], &coor[0]);
 }
 
-template <typename scalar_type>
-void coordinate_transformation<scalar_type>::execute(std::vector<scalar_type>& v0,
-                                                     std::vector<scalar_type>& v1,
-                                                     std::vector<scalar_type>& v2,
-                                                     std::vector<scalar_type>& vec,
-                                                     std::vector<scalar_type>& coor) {
+template <typename scalar_type, int DIMENSION>
+void coordinate_transformation<scalar_type, DIMENSION>::execute(std::vector<scalar_type>& v0,
+                                                                std::vector<scalar_type>& v1,
+                                                                std::vector<scalar_type>& v2,
+                                                                std::vector<scalar_type>& vec,
+                                                                std::vector<scalar_type>& coor) {
   assert(v0.size() == 3);
   assert(v1.size() == 3);
   assert(v2.size() == 3);
@@ -164,8 +165,8 @@ void coordinate_transformation<scalar_type>::execute(std::vector<scalar_type>& v
   execute(&v0[0], &v1[0], &v2[0], &vec[0], &coor[0]);
 }
 
-}  // util
-}  // math
-}  // dca
+}  // namespace util
+}  // namespace math
+}  // namespace dca
 
 #endif  // DCA_MATH_UTIL_COORDINATE_TRANSFORMATION_HPP

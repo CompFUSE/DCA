@@ -15,6 +15,9 @@
 
 #include <iostream>
 #include <stdexcept>
+#ifdef DCA_HAVE_ADIOS2
+#include "adios2.h"
+#endif
 
 namespace dca {
 namespace parallel {
@@ -47,6 +50,7 @@ public:
 
 private:
   constexpr static char parallel_type_str_[] = "NoThreading";
+
 };
 
 }  // parallel

@@ -61,7 +61,7 @@ public:
   }
 
 private:
-  constexpr static std::size_t streams_per_thread_ = 2;
+  constexpr static std::size_t streams_per_thread_ = 1;
   std::vector<std::array<GpuStream, streams_per_thread_>> streams_;
 };
 

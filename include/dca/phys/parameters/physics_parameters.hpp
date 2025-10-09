@@ -51,10 +51,13 @@ public:
     return chemical_potential_;
   }
 
+  void set_chemical_potential(double cpot) { chemical_potential_ = cpot; }
+
   bool adjust_chemical_potential() const {
     return adjust_chemical_potential_;
   }
 
+  const void set_beta(double beta) { beta_ = beta; }
 private:
   double beta_;
   double density_;

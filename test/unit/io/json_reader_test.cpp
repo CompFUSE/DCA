@@ -1,4 +1,15 @@
-#include "gtest/gtest.h"
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Peter Doak (doakpw@ornl.gov)
+//
+// This file provides unit tests or the json reader and writer.
+
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
 #include "dca/io/json/json_reader.hpp"
 
@@ -63,6 +74,11 @@ TEST(ReadTest, All) {
   EXPECT_EQ(b, false);
   reader.close_group();
 
+  std::vector<int> vi;
+  reader.execute("vec int", vi);
+  const std::vector<int> vi_check{1, 2, 3};
+  EXPECT_EQ(vi, vi_check);
+  
   reader.execute("vec vec string", vvs);
   const std::vector<std::vector<std::string>> vvs_check{std::vector<std::string>{"aa", "ab"},
                                                         std::vector<std::string>{"ba", "bc"}};

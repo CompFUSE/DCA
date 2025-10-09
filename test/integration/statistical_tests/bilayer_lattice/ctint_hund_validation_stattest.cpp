@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -43,9 +44,9 @@ using ParametersType =
 using DcaData = dca::phys::DcaData<ParametersType>;
 using Solver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, ParametersType, true>;
 
-using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
-using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
-using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn>;
+using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn<>>;
+using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn<>>;
+using CovarianceDomain = dca::math::util::CovarianceDomain<dca::math::util::details::Kdmn<>>;
 using dca::math::util::cutFrequency;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;

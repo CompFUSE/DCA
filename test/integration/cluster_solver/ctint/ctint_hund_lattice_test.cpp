@@ -13,7 +13,16 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -21,6 +30,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
@@ -45,7 +55,9 @@ TEST(CtintHundLatticeTest, Self_Energy) {
   using Threading = dca::parallel::NoThreading;
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, RngType, dca::ClusterSolverId::CT_INT>;
+                                    dca::profiling::NullProfiler, Model, RngType,
+                                    dca::ClusterSolverId::CT_INT,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 

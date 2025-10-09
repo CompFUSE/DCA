@@ -1,11 +1,12 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
 //  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This class provides the common interface between a walker on the CPU and one on the GPU.
 
@@ -20,6 +21,7 @@
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/io/buffer.hpp"
+#include "dca/math/util/phase.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/linalg/util/gpu_stream.hpp"
 #include "dca/linalg/util/stream_container.hpp"
@@ -39,29 +41,32 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 #endif
 
+//#define DEBUG_SUBMATRIX
+
 namespace dca {
 namespace phys {
 namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <linalg::DeviceType device_type, class Parameters, typename Real, DistType DIST>
+template <linalg::DeviceType device_type, class Parameters, DistType DIST>
 class CtintWalker;
 
-template <class Parameters, typename Real = double, DistType DIST = DistType::NONE>
+template <class Parameters, DistType DIST = DistType::NONE>
 class CtintWalkerBase {
 public:
+  using Real = typename Parameters::Real;
+  using Scalar = typename Parameters::Scalar;
   using parameters_type = Parameters;
   using Data = DcaData<Parameters, DIST>;
   using Rng = typename Parameters::random_number_generator;
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Matrix = linalg::Matrix<Real, linalg::CPU>;
-  using MatrixPair = std::array<linalg::Matrix<Real, linalg::CPU>, 2>;
+  using Matrix = linalg::Matrix<Scalar, linalg::CPU>;
+  using MatrixPair = std::array<Matrix, 2>;
   using GpuStream = linalg::util::GpuStream;
 
-  using Scalar = Real;
   constexpr static linalg::DeviceType device = linalg::CPU;
 
 protected:  // The class is not instantiable.
@@ -77,14 +82,21 @@ public:
   void computeM(MatrixPair& m_accum) const;
 
   // Reset the counters and recompute the configuration sign and weight.
-  void markThermalized();
+  virtual void markThermalized() = 0;
 
   /** Recompute the matrix M from the configuration in O(expansion_order^3) time.
    *  Postcondition: sign_ and mc_log_weight_ are recomputed.
    *  mc_log_weight is the negative sum of the log det of both sectors of M
    *  + log of the abs of each vertices interaction strength.
    */
-  virtual void setMFromConfig();
+  virtual void setMFromConfig() = 0;
+
+  virtual void doStep() = 0;
+
+  virtual void doSweep() = 0;
+
+  template <linalg::DeviceType DEVICE>
+  void setMFromConfigImpl(DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder);
 
   bool is_thermalized() const {
     return thermalized_;
@@ -100,8 +112,8 @@ public:
   double avgOrder() const {
     return order_avg_.count() ? order_avg_.mean() : order();
   }
-  int get_sign() const {
-    return sign_;
+  auto get_sign() const {
+    return phase_;
   }
 
   Real get_MC_log_weight() const {
@@ -149,32 +161,21 @@ public:
     buff >> configuration_;
   }
 
-  // Initialize the builder object shared by all walkers.
-  template <linalg::DeviceType device_type>
-  static void setDMatrixBuilder(const G0Interpolation<device_type, Real>& g0);
-
-  static void setDMatrixAlpha(const std::array<double, 3>& alphas, bool adjust_dd);
-
-  static void setInteractionVertices(const Data& data, const Parameters& parameters);
-
-  float stealFLOPs() {
+  double stealFLOPs() {
     auto flop = flop_;
     flop_ = 0.;
     return flop;
   }
 
-  const auto& get_stream(int s) {
-    assert(s >= 0 && s < 2);
-    return *streams_[s];
+  const auto& get_stream() const {
+    return stream_;
   }
 
   static void sumConcurrency(const Concurrency&) {}
 
-  const auto& get_dmatrix_builder() const {
-    return *d_builder_ptr_;
-  }
-
   void writeAlphas() const;
+
+  static void setInteractionVertices(const Data& data, const Parameters& parameters);
 
 protected:
   // typedefs
@@ -184,14 +185,13 @@ protected:
   void updateSweepAverages();
 
 protected:  // Members.
-  static inline std::unique_ptr<DMatrixBuilder<linalg::CPU, Real>> d_builder_ptr_;
   static inline InteractionVertices vertices_;
 
   const Parameters& parameters_;
   const Concurrency& concurrency_;
 
   const int thread_id_;
-  std::array<linalg::util::GpuStream*, 2> streams_;
+  linalg::util::GpuStream* stream_;
 
   Rng& rng_;
   SolverConfiguration configuration_;
@@ -205,7 +205,7 @@ protected:  // Members.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
-  util::Accumulator<int> sign_avg_;
+  util::Accumulator<math::Phase<Scalar>> sign_avg_;
   unsigned long n_steps_ = 0;
   unsigned long thermalization_steps_ = 0;
   unsigned long n_accepted_ = 0;
@@ -213,12 +213,12 @@ protected:  // Members.
 
   bool thermalized_ = false;
 
-  int sign_ = 1;
+  math::Phase<Scalar> phase_;
 
   // Store for testing purposes:
-  Real acceptance_prob_;
+  Scalar acceptance_prob_;
 
-  float flop_ = 0.;
+  double flop_ = 0.;
 
   double sweeps_per_meas_ = 1.;
 
@@ -226,20 +226,16 @@ protected:  // Members.
 
 private:
   linalg::Vector<int, linalg::CPU> ipiv_;
-  linalg::Vector<Real, linalg::CPU> work_;
+  linalg::Vector<Scalar, linalg::CPU> work_;
 };
 
-template <class Parameters, typename Real, DistType DIST>
-CtintWalkerBase<Parameters, Real, DIST>::CtintWalkerBase(const Parameters& parameters_ref,
-                                                         Rng& rng_ref, int id)
+template <class Parameters, DistType DIST>
+CtintWalkerBase<Parameters, DIST>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
+                                                   int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
-
       thread_id_(id),
-
-      streams_{&linalg::util::getStreamContainer()(thread_id_, 0),
-               &linalg::util::getStreamContainer()(thread_id_, 1)},
-
+      stream_{&linalg::util::getStreamContainer()(thread_id_, 0)},
       rng_(rng_ref),
 
       configuration_(parameters_.get_beta(), Bdmn::dmn_size(), vertices_,
@@ -248,14 +244,14 @@ CtintWalkerBase<Parameters, Real, DIST>::CtintWalkerBase(const Parameters& param
       beta_(parameters_.get_beta()),
       total_interaction_(vertices_.integratedInteraction()) {}
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::initialize(int iteration) {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::initialize(int iteration) {
   assert(total_interaction_);
+  phase_.reset();
+
+  mc_log_weight_ = 0.;
 
   sweeps_per_meas_ = parameters_.get_sweeps_per_measurement().at(iteration);
-
-  sign_ = 1;
-  mc_log_weight_ = 0.;
 
   if (!configuration_.size()) {  // Do not initialize config if it was read.
     while (parameters_.getInitialConfigurationSize() > configuration_.size()) {
@@ -268,88 +264,35 @@ void CtintWalkerBase<Parameters, Real, DIST>::initialize(int iteration) {
   setMFromConfig();
 }
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::setMFromConfig() {
-  mc_log_weight_ = 0.;
-  sign_ = 1;
-
-  for (int s = 0; s < 2; ++s) {
-    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
-
-    const auto& sector = configuration_.getSector(s);
-    auto& M = M_[s];
-    const int n = sector.size();
-    M.resize(n);
-    if (!n)
-      continue;
-    for (int j = 0; j < n; ++j)
-      for (int i = 0; i < n; ++i)
-        M(i, j) = d_builder_ptr_->computeD(i, j, sector);
-
-    if (M.nrRows()) {
-      const auto [log_det, sign] = linalg::matrixop::inverseAndLogDeterminant(M);
-      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
-      sign_ *= sign;
-    }
-  }
-
-  // So what is going on here.
-  for (int i = 0; i < configuration_.size(); ++i) {
-    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
-    const Real term = -configuration_.getStrength(i);
-    mc_log_weight_ += std::log(std::abs(term));
-    if (term < 0)
-      sign_ *= -1;
-  }
-}
-
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::updateSweepAverages() {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::updateSweepAverages() {
   order_avg_.addSample(order());
-  sign_avg_.addSample(sign_);
+  sign_avg_.addSample(phase_.getSign());
   // Track avg order for the final number of steps / sweep.
   if (!thermalized_ && order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
     partial_order_avg_.addSample(order());
 }
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::writeAlphas() const {
-  std::cout << "For initial configuration integration:\n";
-  for (int isec = 0; isec < 2; ++isec) {
-    std::cout << "Sector: " << isec << '\n';
-    for (int ic = 0; ic < order(); ++ic) {
-      auto aux_spin = configuration_.getSector(isec).getAuxFieldType(ic);
-      auto left_b = configuration_.getSector(isec).getLeftB(ic);
-      auto alpha_left = get_dmatrix_builder().computeAlpha(aux_spin, left_b);
-      std::cout << "vertex: " << std::setw(6) << ic;
-      std::cout << " | aux spin: " << aux_spin << " | left B: " << left_b
-                << " | alpha left = " << alpha_left << '\n';
-    }
-  }
-}
+// template <class Parameters, DistType DIST>
+// void CtintWalkerBase<Parameters,DIST>::writeAlphas() const {
+//   std::cout << "For initial configuration integration:\n";
+//   for (int isec = 0; isec < 2; ++isec) {
+//     std::cout << "Sector: " << isec << '\n';
+//     for (int ic = 0; ic < order(); ++ic) {
+//       auto aux_spin = configuration_.getSector(isec).getAuxFieldType(ic);
+//       auto left_b = configuration_.getSector(isec).getLeftB(ic);
+//       auto alpha_left = get_dmatrix_builder().computeAlpha(aux_spin, left_b);
+//       std::cout << "vertex: " << std::setw(6) << ic;
+//       std::cout << " | aux spin: " << aux_spin << " | left B: " << left_b
+//                 << " | alpha left = " << alpha_left << '\n';
+//     }
+//   }
+// }
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::markThermalized() {
-  thermalized_ = true;
-
-  nb_steps_per_sweep_ = std::max(1., std::ceil(sweeps_per_meas_ * partial_order_avg_.mean()));
-  thermalization_steps_ = n_steps_;
-
-  order_avg_.reset();
-  sign_avg_.reset();
-  n_accepted_ = 0;
-
-  // Recompute the Monte Carlo weight.
-  setMFromConfig();
-#ifndef NDEBUG
-  writeAlphas();
-#endif
-}
-
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::updateShell(int meas_id, int meas_to_do) const {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
-      (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
+      (meas_id % dca::util::ceilDiv(meas_to_do, 20)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();
     const double avg_order = avgOrder();
@@ -363,8 +306,8 @@ void CtintWalkerBase<Parameters, Real, DIST>::updateShell(int meas_id, int meas_
   }
 }
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::printSummary() const {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::printSummary() const {
   std::cout << "\n"
             << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
             << "-------------------------------------------\n";
@@ -380,28 +323,9 @@ void CtintWalkerBase<Parameters, Real, DIST>::printSummary() const {
   std::cout << std::endl;
 }
 
-template <class Parameters, typename Real, DistType DIST>
-template <linalg::DeviceType device_type>
-void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixBuilder(
-    const dca::phys::solver::G0Interpolation<device_type, Real>& g0) {
-  using RDmn = typename Parameters::RClusterDmn;
-
-  if (d_builder_ptr_)
-    std::cerr << "Warning: DMatrixBuilder already set." << std::endl;
-
-  d_builder_ptr_ = std::make_unique<DMatrixBuilder<device_type, Real>>(g0, n_bands_, RDmn());
-}
-
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::setDMatrixAlpha(const std::array<double, 3>& alphas,
-                                                              bool adjust_dd) {
-  assert(d_builder_ptr_);
-  d_builder_ptr_->setAlphas(alphas, adjust_dd);
-}
-
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::setInteractionVertices(const Data& data,
-                                                                     const Parameters& parameters) {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::setInteractionVertices(const Data& data,
+                                                               const Parameters& parameters) {
   vertices_.reset();
   vertices_.initialize(parameters.getDoubleUpdateProbability(), parameters.getAllSitesPartnership());
   vertices_.initializeFromHamiltonian(data.H_interactions);
@@ -411,9 +335,81 @@ void CtintWalkerBase<Parameters, Real, DIST>::setInteractionVertices(const Data&
   }
 }
 
-template <class Parameters, typename Real, DistType DIST>
-void CtintWalkerBase<Parameters, Real, DIST>::computeM(MatrixPair& m_accum) const {
+template <class Parameters, DistType DIST>
+void CtintWalkerBase<Parameters, DIST>::computeM(MatrixPair& m_accum) const {
   m_accum = M_;
+}
+
+// template<class WALKER, linalg::DeviceType DEVICE>
+// void setMFromConfigHelper(WALKER& walker, DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
+//   walker.mc_log_weight_ = 0.;
+//   walker.phase_.reset();
+
+//   for (int s = 0; s < 2; ++s) {
+//     // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
+//     const auto& sector = walker.configuration_.getSector(s);
+//     auto& M = walker.M_[s];
+//     const int n = sector.size();
+//     M.resize(n);
+//     if (!n)
+//       continue;
+//     for (int j = 0; j < n; ++j)
+//       for (int i = 0; i < n; ++i)
+//         M(i, j) = d_matrix_builder.computeD(i, j, sector);
+
+//     if (M.nrRows()) {
+//       const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
+//       walker.mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
+//       walker.phase_.divide(phase);
+//     }
+//   }
+
+//   // So what is going on here.
+//   for (int i = 0; i < walker.configuration_.size(); ++i) {
+//     // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
+//     const typename decltype(walker)::Real term = -walker.configuration_.getStrength(i);
+//     walker.mc_log_weight_ += std::log(std::abs(term));
+//     walker.phase_.multiply(term);
+//   }
+// }
+
+template <class Parameters, DistType DIST>
+template <linalg::DeviceType DEVICE>
+void CtintWalkerBase<Parameters, DIST>::setMFromConfigImpl(
+    DMatrixBuilder<DEVICE, Scalar>& d_matrix_builder) {
+  mc_log_weight_ = 0.;
+  phase_.reset();
+
+  for (int s = 0; s < 2; ++s) {
+    // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
+
+    const auto& sector = configuration_.getSector(s);
+    auto& M = M_[s];
+    const int n = sector.size();
+    M.resize(n);
+    if (!n)
+      continue;
+    for (int j = 0; j < n; ++j)
+      for (int i = 0; i < n; ++i)
+        M(i, j) = d_matrix_builder.computeD(i, j, sector);
+
+    if (M.nrRows()) {
+      const auto [log_det, phase] = linalg::matrixop::inverseAndLogDeterminant(M);
+
+      mc_log_weight_ -= log_det;  // Weight proportional to det(M^{-1})
+      phase_.divide(phase);
+    }
+  }
+
+  // So what is going on here.
+  for (int i = 0; i < configuration_.size(); ++i) {
+    // This is actual interaction strength of the vertex i.e H_int(nu1, nu2, delta_r)
+    const Real term = -configuration_.getStrength(i);
+    mc_log_weight_ += std::log(std::abs(term));
+    phase_.multiply(term);
+  }
 }
 
 }  // namespace ctint

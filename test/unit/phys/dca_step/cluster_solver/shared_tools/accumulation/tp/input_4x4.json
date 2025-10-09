@@ -9,14 +9,18 @@
 
   "physics" :
   {
-    "beta"                      :  2,
+    "beta"                      :  4,
     "chemical-potential"        : 0
   },
 
   "bilayer-Hubbard-model":
   {
-    "t"       : 1,
-    "U"       : 2
+    "t"       : 1.0,
+    "t_prime" : 0.1,
+    "t_perp"  : 0.01,
+    "U"       : 1.0,
+    "V"       : 1.0,
+    "V-prime" : 2.0
   },
 
   "Hund-model":
@@ -52,7 +56,7 @@
   "four-point": {
     "type": "NONE",
     "momentum-transfer": [0., 3.1415],
-    "frequency-transfer": 2
+    "frequency-transfer": 0
   },
 
 

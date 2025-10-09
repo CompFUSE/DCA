@@ -22,6 +22,9 @@
 #include "dca/io/adios2/adios2_writer.hpp"
 #endif
 
+#define RETURN_IF_NOT_PARALLEL(x) if(concurrency_.id() != concurrency_.first() && !isADIOS2()) \
+                                      return x
+
 namespace dca::io {
 
 template <class Concurrency>
@@ -35,18 +38,18 @@ public:
 #endif
                                         >;
   /** Constructor for writer, pretty tortured due to optional Adios2.
-   *  \param [in] format     output format: ADIOS2, HDF5 or JSON.
-   *  \param [in] verbose    If true, the writer outputs a short log whenever it is executed.
-   *  \param [in] adios      Global adios2 env.
+   *  \param [in] concurrency  reference to the concurrency environment
+   *  \param [in] format       output format: ADIOS2, HDF5 or JSON.
+   *  \param [in] verbose      If true, the writer outputs a short log whenever it is executed.
+   *
+   *  When using a format other than ADIOS2 the concurrency and adios arguments aren't
+   *  used by the writer.
    */
   Writer(
-#ifdef DCA_HAVE_ADIOS2
-      adios2::ADIOS& adios,
-#endif
       Concurrency& concurrency, const std::string& format, bool verbose = true)
       :
 #ifdef DCA_HAVE_ADIOS2
-        adios_(adios),
+    adios_(concurrency.get_adios()),
 #endif
         concurrency_(concurrency) {
     if (format == "HDF5") {
@@ -57,7 +60,7 @@ public:
     }
 #ifdef DCA_HAVE_ADIOS2
     else if (format == "ADIOS2") {
-      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(adios_, &concurrency_, verbose);
+      writer_.template emplace<io::ADIOS2Writer<Concurrency>>(&concurrency_, verbose);
     }
 #endif
     else {
@@ -82,22 +85,30 @@ public:
   }
 #endif
 
+  bool isHDF5() {
+    return std::holds_alternative<io::HDF5Writer>(writer_);
+  }
+  
   bool isOpen() { return is_open_; }
   
   void begin_step() {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.begin_step(); }, writer_);
   }
 
   void end_step() {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.end_step(); }, writer_);
   }
 
   void open_file(const std::string& file_name, bool overwrite = true) {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.open_file(file_name, overwrite); }, writer_);
     is_open_ = true;
   }
 
   void close_file() {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.close_file(); }, writer_);
     is_open_ = false;
   }
@@ -105,24 +116,29 @@ public:
   /** For writing open_group is expected to always return true
    */
   bool open_group(const std::string& new_path) {
+    RETURN_IF_NOT_PARALLEL(true);
     return std::visit([&](auto& var) -> bool { return var.open_group(new_path); }, writer_);
   }
 
   void close_group() {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.close_group(); }, writer_);
   }
 
   void flush() {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.flush(); }, writer_);
   }
 
   template <class... Args>
   bool execute(const Args&... args) {
+    RETURN_IF_NOT_PARALLEL(true);
     return std::visit([&](auto& var) ->bool { return var.execute(args...); }, writer_);
   }
 
   template <class... Args>
   void executePartial(const Args&... args) {
+    RETURN_IF_NOT_PARALLEL();
     std::visit([&](auto& var) { var.executePartial(args...); }, writer_);
   }
 
@@ -143,10 +159,12 @@ public:
   }
 
   void lock() {
+    RETURN_IF_NOT_PARALLEL();
     mutex_.lock();
   }
 
   void unlock() {
+    RETURN_IF_NOT_PARALLEL();
     mutex_.unlock();
   }
 
@@ -154,6 +172,8 @@ public:
     std::visit([&](auto& var) { var.set_verbose(verbose); }, writer_);
   }
 
+  Concurrency& get_concurrency() { return concurrency_; }
+  
   dca::parallel::thread_traits::mutex_type& get_mutex() { return mutex_; }
 private:
   dca::parallel::thread_traits::mutex_type mutex_;

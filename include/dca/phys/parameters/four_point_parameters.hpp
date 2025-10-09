@@ -60,7 +60,8 @@ public:
    *  when the head node has no four point channels. This works around this bug.  \todo fix this.
    */
   bool isAccumulatingG4() const {
-    if (four_point_channels_.size() > 0 && four_point_channels_[0] != FourPointType::PARTICLE_HOLE_NONE)
+    if (four_point_channels_.size() > 0 &&
+        four_point_channels_[0] != FourPointType::PARTICLE_HOLE_NONE)
       return true;
     else
       return false;
@@ -90,6 +91,17 @@ public:
     return four_point_frequency_transfer_;
   }
 
+  // Returns the vector of indexes of bosonic exchange frequencies
+  std::vector<int> get_four_point_frequency_transfers() const {
+    std::vector<int> transfers;
+    if (compute_all_transfers_)
+      for (int i = 0; i < four_point_frequency_transfer_; ++i)
+        transfers.push_back(i);
+    else
+      transfers.push_back(four_point_frequency_transfer_);
+    return transfers;
+  }
+
   // Returns the 'exact' momentum transfer (q-vector), i.e. the DCA momentum space cluster vector
   // whose distance (L2 norm) to the input momentum transfer is minimal.
   // It assumes that the input q-vectors' distance to the next DCA momentum space cluster vector is
@@ -109,6 +121,10 @@ public:
     return q_ind;
   }
 
+  std::size_t get_bin_measurements_every() const {
+    return bin_measurements_every_;
+  }
+
   // Returns true if all possible momentum and frequency exchanges are computed, ignoring the values
   // of 'get_four_point_momentum_transfer' and 'get_four_point_momentum_transfer_index'.
   bool compute_all_transfers() const {
@@ -119,7 +135,8 @@ private:
   std::vector<FourPointType> four_point_channels_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_ = 0;
-  bool compute_all_transfers_ = false;;
+  bool compute_all_transfers_ = false;
+  std::size_t bin_measurements_every_ = 0;
 };
 
 template <int lattice_dimension>
@@ -131,6 +148,7 @@ int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& con
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
   buffer_size += concurrency.get_buffer_size(compute_all_transfers_);
+  buffer_size += concurrency.get_buffer_size(bin_measurements_every_);
 
   return buffer_size;
 }
@@ -143,6 +161,7 @@ void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.pack(buffer, buffer_size, position, compute_all_transfers_);
+  concurrency.pack(buffer, buffer_size, position, bin_measurements_every_);
 }
 
 template <int lattice_dimension>
@@ -153,13 +172,13 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
   concurrency.unpack(buffer, buffer_size, position, compute_all_transfers_);
+  concurrency.unpack(buffer, buffer_size, position, bin_measurements_every_);
 }
 
 template <int lattice_dimension>
 template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
   if (reader_or_writer.open_group("four-point")) {
-    
     std::vector<std::string> channel_names;
     const std::string channel_par_name = "channels";
     if (ReaderOrWriter::is_reader) {
@@ -167,9 +186,9 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
       reader_or_writer.execute(channel_par_name, channel_names);
       for (auto name : channel_names)
         four_point_channels_.push_back(stringToFourPointType(name));
-      std::string legacy_channel_name; 
+      std::string legacy_channel_name;
       reader_or_writer.execute("type", legacy_channel_name);
-      if(!legacy_channel_name.empty())
+      if (!legacy_channel_name.empty())
         four_point_channels_.push_back(stringToFourPointType(legacy_channel_name));
 
       // Remove duplicates
@@ -187,11 +206,12 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
     reader_or_writer.execute("momentum-transfer", four_point_momentum_transfer_input_);
     reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
     reader_or_writer.execute("compute-all-transfers", compute_all_transfers_);
+    reader_or_writer.execute("bin-measurements-every", bin_measurements_every_);
 
     if (compute_all_transfers_ && four_point_frequency_transfer_ < 0)
-    throw(std::logic_error(
-        "When compute-all-transfers is set, a greater than 0 frequency-transfer must be chosen."));
-
+      throw(
+          std::logic_error("When compute-all-transfers is set, a greater than 0 frequency-transfer "
+                           "must be chosen."));
   }
   reader_or_writer.close_group();
 }

@@ -28,17 +28,16 @@ bool accumulation_test_initialized = false;
 }  // namespace
 // dca::testing::
 
-template <typename AccumType, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
-class AccumulationTest : public SingleSectorAccumulationTest<AccumType, n_bands, n_sites, n_frqs> {
+template <typename SpAccumType, int n_bands = 2, int n_sites = 3, int n_frqs = 64, bool singleGSampling = false>
+class AccumulationTest : public SingleSectorAccumulationTest<SpAccumType, n_bands, n_sites, n_frqs> {
 public:
   using TimeDmn = dca::func::dmn_0<dca::phys::domains::time_domain>;
 
-  using BaseClass = SingleSectorAccumulationTest<AccumType, n_bands, n_sites, n_frqs>;
-  using Parameters = MockParameters<BaseClass, AccumType>;
+  using BaseClass = SingleSectorAccumulationTest<SpAccumType, n_bands, n_sites, n_frqs>;
+  using Parameters = MockParameters<BaseClass, SpAccumType, singleGSampling>;
   using Configuration = std::array<typename BaseClass::Configuration, 2>;
   using Sample = std::array<typename BaseClass::Matrix, 2>;
 
-protected:
   static void SetUpTestCase() {
     BaseClass::SetUpTestCase();
 
@@ -53,9 +52,13 @@ protected:
 
   void SetUp() {}
 
+    /** creates a configuration for testing
+     *  \param[out]  config
+     *  \param[out]  M
+     */
   void prepareConfiguration(Configuration& config, Sample& M, const std::array<int, 2> n, [[maybe_unused]] unsigned long long num_discard = 0) {
     for (int s = 0; s < 2; ++s)
-      BaseClass::prepareConfiguration(config[s], M[s], n[s]);
+      BaseClass::prepareConfiguration(config[s], M[s], n[s], num_discard);
   }
 
 public:

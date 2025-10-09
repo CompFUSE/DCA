@@ -32,6 +32,7 @@
 #include "dca/phys/four_point_type.hpp"
 #include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/util/to_string.hpp"
 
 namespace dca {
 namespace phys {
@@ -210,6 +211,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     case FourPointType::PARTICLE_HOLE_CHARGE:
     case FourPointType::PARTICLE_HOLE_MAGNETIC:
     case FourPointType::PARTICLE_HOLE_TRANSVERSE: {
+      std::cout << "interpolating tp for particle hole...\n";
       interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::set_q_idx(Q_ind);
       compute_tp(H_k, Sigma, chi);
     } break;
@@ -327,8 +329,13 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
-  assert(k_DCA::get_elements() == K_dmn::get_elements());
-
+#ifndef NDEBUG
+  if (k_DCA::get_elements() != K_dmn::get_elements()) {
+    std::cout << "k_DCA::get_elements() != K_dmn::get_elements() ";
+    std::cout << vectorToString(k_DCA::get_elements()) << " != "
+	      << vectorToString(K_dmn::get_elements()) << '\n';
+  }
+#endif
   chi = 0.;
 
   K_dmn k_domain;

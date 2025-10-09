@@ -1,5 +1,5 @@
-// Copyright (C) 2020 ETH Zurich
-// Copyright (C) 2020 UT-Battelle, LLC
+// Copyright (C) 2023 ETH Zurich
+// Copyright (C) 2023 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
@@ -39,6 +39,7 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/models/traits.hpp"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace phys {
@@ -52,7 +53,9 @@ class TpAccumulator {};
 template <class Parameters, DistType DT>
 class TpAccumulatorBase {
 public:
-  using Real = typename Parameters::TP_measurement_scalar_type;
+  using TpPrecision = typename Parameters::TPAccumPrec;
+  using TpComplex = std::complex<TpPrecision>;
+  // In the context of the tp accumulator the scalar always needs to be complex
 
   using RDmn = typename Parameters::RClusterDmn;
   using KDmn = typename Parameters::KClusterDmn;
@@ -63,9 +66,9 @@ public:
   using WDmn = func::dmn_0<domains::frequency_domain>;
 
   using WTpDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>>;
+  using WTpPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
+  using WTpExtPosDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
   using TpGreensFunction = typename DcaData<Parameters, DT>::TpGreensFunction;
@@ -73,13 +76,8 @@ public:
 protected:
   using Profiler = typename Parameters::profiler_type;
 
-  using Complex = std::complex<Real>;
-
-  using SpGreenFunction =
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
-
-  using TpDomain =
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KDmn, KDmn, KExchangeDmn, WTpDmn, WTpDmn, WExchangeDmn>;
+  using SpGreensFunction =
+      func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WTpExtPosDmn, WTpExtDmn>>;
 
 public:
   // Constructor:
@@ -87,16 +85,16 @@ public:
   // In: pars: parameters object.
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulatorBase(
-      const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+      const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
   // Computes the two particles Greens function from the M matrix and accumulates it internally.
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
-  template <class Configuration, typename RealIn>
-  double accumulate(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
-                    const std::array<Configuration, 2>& configs, int sign);
+  template <class Configuration, typename SpScalar>
+  double accumulate(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
+                    const std::array<Configuration, 2>& configs, dca::util::SignType<SpScalar> sign);
 
   // Empty method for compatibility with GPU version.
   void finalize() {}
@@ -127,6 +125,8 @@ public:
   auto get_n_pos_frqs() {
     return n_pos_frqs_;
   }
+
+  int num_channels() { return channels_.size(); }
 protected:
   void initializeG0();
 
@@ -138,61 +138,61 @@ protected:
 
 //  void getGMultiband(int s, int k1, int k2, int w1, int w2, Matrix& G, Complex beta = 0) const;
 
-  auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> Complex const;
+  auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
-  template <class Configuration, typename RealIn>
-  float computeM(const std::array<linalg::Matrix<RealIn, linalg::CPU>, 2>& M_pair,
-                 const std::array<Configuration, 2>& configs);
+  // template <class Configuration, typename SpScalar>
+  // double computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
+  //                const std::array<Configuration, 2>& configs);
 
   double updateG4(int channel_id);
 
-  void inline updateG4Atomic(Complex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
-                             int s_b, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
+  void inline updateG4Atomic(TpComplex* G4_ptr, int s_a, int k1_a, int k2_a, int w1_a, int w2_a,
+                             int s_b, int k1_b, int k2_b, int w1_b, int w2_b, TpPrecision alpha,
                              bool cross_legs);
 
-  void inline updateG4SpinDifference(Complex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
-                                     int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, Real alpha,
+  void inline updateG4SpinDifference(TpComplex* G4_ptr, int sign, int k1_a, int k2_a, int w1_a,
+                                     int w2_a, int k1_b, int k2_b, int w1_b, int w2_b, TpPrecision alpha,
                                      bool cross_legs);
 
 protected:
-  const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
+  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
   const int thread_id_;
-  const bool multiple_accumulators_;
+  bool multiple_accumulators_;
 
-  const Real beta_ = -1;
+  const TpPrecision beta_ = -1;
   constexpr static int n_bands_ = Parameters::model_type::BANDS;
 
+  constexpr static bool  spin_symmetric_ = Parameters::model_type::lattice_type::spin_symmetric;
+  
   constexpr static bool non_density_density_ =
-      models::has_non_density_interaction<typename Parameters::lattice_type>;
-  CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
+    models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
+  //CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  SpGreenFunction G_;
+  SpGreensFunction G_;
 
   std::vector<TpGreensFunction> G4_;
   std::vector<FourPointType> channels_;
 
-  func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
-
-  int sign_;
+  func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
 
   const int extension_index_offset_ = -1;
   const int n_pos_frqs_ = -1;
-
 };
 
 template <class Parameters, DistType DT>
 TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
-    const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+    const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
     : G0_ptr_(&G0),
       thread_id_(thread_id),
       multiple_accumulators_(pars.get_accumulators() > 1),
       beta_(pars.get_beta()),
+      G_("tp_acc_base::G_"),
       channels_(pars.get_four_point_channels()),
-      extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2),
-      n_pos_frqs_(WTpExtPosDmn::dmn_size()) {
+      G0_("tp_acc_base::G0_"),
+      extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2) {
 
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
     throw(std::logic_error("The number of single particle frequencies is too small."));
@@ -205,13 +205,11 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
   for (auto channel : channels_) {
     G4_.emplace_back("G4_" + toString(channel), pars.get_concurrency());
   }
-
 }
 
 template <class Parameters, DistType DT>
 void TpAccumulatorBase<Parameters, DT>::initializeG0() {
   const int sp_index_offset = (WDmn::dmn_size() - WTpExtDmn::dmn_size()) / 2;
-
   for (int w = 0; w < WTpExtDmn::dmn_size(); ++w) {
     assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
     for (int k = 0; k < KDmn::dmn_size(); ++k)

@@ -12,8 +12,16 @@
 
 #include <iostream>
 #include <string>
+#include "dca/testing/gtest_h_w_warning_blocking.h"
 
-#include "gtest/gtest.h"
+using Scalar = double;
+
+#include "test/mock_mcconfig.hpp"
+namespace dca {
+namespace config {
+using McOptions = MockMcOptions<Scalar>;
+}  // namespace config
+}  // namespace dca
 
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
@@ -22,6 +30,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/config/profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
@@ -39,6 +48,7 @@ const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/c
 
 constexpr bool update_baseline = false;
 
+
 TEST(squareLattice_Nc4_nn, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
@@ -46,7 +56,8 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using Threading = dca::parallel::NoThreading;
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, RngType, dca::ClusterSolverId::CT_INT>;
+                                    dca::profiling::NullProfiler, Model, RngType,
+                                    dca::ClusterSolverId::CT_INT, dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true>;
 
@@ -105,7 +116,7 @@ int main(int argc, char** argv) {
   dca::parallel::MPIConcurrency concurrency(argc, argv);
 
   dca_test_env =
-     new dca::testing::DcaMpiTestEnvironment(concurrency, input_dir + "square_lattice_input.json");
+      new dca::testing::DcaMpiTestEnvironment(concurrency, input_dir + "square_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

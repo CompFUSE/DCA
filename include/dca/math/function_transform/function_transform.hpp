@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -84,10 +85,10 @@ public:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output,
-            class domain_output, typename scalartype_T>
+            class domain_output, typename scalartype_T, class ALLOC>
   static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output,
-                             const linalg::Matrix<scalartype_T, linalg::CPU>& T) {
+                             const linalg::Matrix<scalartype_T, linalg::CPU, ALLOC>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
 

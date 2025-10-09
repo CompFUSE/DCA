@@ -1,9 +1,25 @@
+# // Copyright (C) 2022 ETH Zurich
+# // Copyright (C) 2022 UT-Battelle, LLC
+# // All rights reserved.
+# //
+# // See LICENSE for terms of usage.
+# // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+# //
+# // Author: Peter W. Doak, doakpw@ornl.gov, Oak Ridge National Laboratory
+# //
+# // This file includes  compiler specific configurations
+# // Adapted from QMCPACK/CMake/inspectCompiler.cmake
+# // Licensed under the University of Illinois/NCSA Open Source License.
+# // Copyright (c) 2022 QMCPACK developers.
+
+# Map the compiler to the internal compiler flag/option customization
+# COMPILER is defined upon return
+#
+
 # Check compiler version
 if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
   message(FATAL_ERROR "Requires gcc 9.0 or higher ")
 endif()
-
-# Enable OpenMP
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -finline-limit=1000 -fstrict-aliasing -funroll-all-loops")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finline-limit=1000 -fstrict-aliasing -funroll-all-loops")
@@ -29,8 +45,9 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.2)
 endif()
 
 # Set extra optimization specific flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+# These break tests intel x86_64
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
   # the case for x86_64

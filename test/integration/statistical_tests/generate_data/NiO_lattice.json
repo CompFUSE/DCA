@@ -1,0 +1,40 @@
+{
+  "output" : {
+    "dump-cluster-Greens-functions" : true
+    },
+  "physics" :
+  {
+    "beta" : 5,
+    "adjust-chemical-potential" : false,
+    "density" : 14.0,
+    "chemical-potential" : 0.00
+  },
+  "material-model"
+  : {"t_ij-filename" : "hard_coded", "U_ij-filename" : "hard_coded"},
+
+  "double-counting"
+  : {
+    "method" : "constant-correction-with-U-correction",
+    "correction" : 59.0
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster" : [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ],
+      "sp-host": [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ],
+      "tp-host": [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ]
+    },
+    "imaginary-time" : {
+      "sp-time-intervals": 512,
+      "time-intervals-for-time-measurements" : 32
+    },
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "HTS-bosonic-frequencies": 32,
+      "four-point-fermionic-frequencies": 16
+    }
+  },
+    "ED": {
+        "eigenvalue-cut-off": 1.e-14
+    }
+}

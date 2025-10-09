@@ -1,5 +1,5 @@
-// Copyright (C) 2021 ETH Zurich
-// Copyright (C) 2021 UT-Battelle, LLC
+// Copyright (C) 2022 ETH Zurich
+// Copyright (C) 2022 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -27,6 +27,7 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/qmci_autocorrelation_data.hpp"
@@ -48,6 +49,9 @@ public:
   using ThisType = StdThreadQmciClusterSolver<BaseClass>;
   static constexpr linalg::DeviceType device = QmciSolver::device;
   using Parameters = typename BaseClass::ParametersType;
+  using Real = typename Parameters::Real;
+  using Scalar = typename dca::util::ScalarSelect<Real, Parameters::complex_g0>::type;
+  using SignType = std::conditional_t<dca::util::IsComplex_t<Scalar>::value, Scalar, std::int8_t>;
   using Data = typename BaseClass::Data;
   using typename BaseClass::Concurrency;
   using typename BaseClass::Profiler;
@@ -58,8 +62,14 @@ public:
   using StdThreadAccumulatorType =
       stdthreadqmci::StdThreadQmciAccumulator<Accumulator, typename BaseClass::SpGreensFunction>;
   using MFunction = typename StdThreadAccumulatorType::MFunction;
+  using MFunctionTime = typename StdThreadAccumulatorType::MFunctionTime;
+  using MFunctionTimePair = typename StdThreadAccumulatorType::MFunctionTimePair;
+  using FTauPair = typename StdThreadAccumulatorType::FTauPair;
+  using PaddedTimeDmn = typename StdThreadAccumulatorType::PaddedTimeDmn;
 
 protected:
+  using BaseClass::accumulator_;
+
 public:
   StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref,
                              const std::shared_ptr<io::Writer<Concurrency>>& writer);
@@ -75,7 +85,7 @@ public:
 
   struct MFuncAndSign {
     const MFunction& m_r_w;
-    const int sign;
+    const SignType sign;
   };
 
   /** gets the MFunction which for CT-INT and CT-AUX is M_r_w
@@ -84,13 +94,27 @@ public:
    */
   MFuncAndSign getSingleMFunc(StdThreadAccumulatorType& accumulator) const {
     const MFunction& mfunc(accumulator.get_single_measurement_sign_times_MFunction());
-    return {mfunc, accumulator.get_sign()};
+    return {mfunc, accumulator.get_sign().getSign()};
+  };
+
+  struct MFuncTimeAndSign {
+    const typename Accumulator::FTauPair& m_r_t;
+    const SignType sign;
+  };
+
+  /** gets the MFunction in time domain  which for CT-INT and CT-AUX is M_r_t
+   *  we also need the sign since the MFunction is accumulated
+   *  with as a product of fval and sign
+   */
+  MFuncTimeAndSign getSingleMFuncTime(StdThreadAccumulatorType& accumulator) const {
+    const FTauPair& mfunc(accumulator.get_single_measurement_sign_times_MFunction_time());
+    return {mfunc, accumulator.get_sign().getSign()};
   };
 
   auto transformMFunction(const MFuncAndSign& mfs) const;
   auto computeSingleMeasurement_G_k_w(const SpGreensFunction& M_k_w) const;
   void logSingleMeasurement(StdThreadAccumulatorType& accumulator, int stamping_period,
-                            bool log_MFunction) const;
+                            bool log_MFunction, bool log_MFunctionTime) const;
 
 private:
   void startWalker(int id);
@@ -109,7 +133,6 @@ private:
   void finalizeWalker(Walker& walker, int walker_id);
 
 private:
-  using BaseClass::accumulator_;
   using BaseClass::concurrency_;
   using BaseClass::data_;
   using BaseClass::dca_iteration_;
@@ -135,7 +158,7 @@ private:
   dca::parallel::thread_traits::condition_variable_type queue_insertion_;
 
   std::vector<dca::io::Buffer> config_dump_;
-  stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
+  // stdthreadqmci::QmciAutocorrelationData<typename BaseClass::Walker> autocorrelation_data_;
 
   bool last_iteration_ = false;
   bool read_configuration_ = false;
@@ -158,8 +181,9 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(
 
       accumulators_queue_(),
 
-      config_dump_(nr_walkers_),
-      autocorrelation_data_(parameters_, 0, BaseClass::g0_) {
+      config_dump_(nr_walkers_)
+      //autocorrelation_data_(parameters_, 0, BaseClass::g0_)
+{
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -247,7 +271,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
   }
   catch (std::exception& err) {
     print_metadata();
-    throw;
+    throw std::runtime_error("Exception emitted from future!");
   }
 
   print_metadata();
@@ -261,7 +285,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       }
       else if (concurrency_.id() == concurrency_.first()) {  // write one sample configuration.
         BaseClass::writer_->open_group("Configurations");
-        BaseClass::writer_->rewrite("sample", config_dump_[0]);
+        BaseClass::writer_->execute("sample", config_dump_[0]);
         BaseClass::writer_->close_group();
       }
       read_configuration_ = true;
@@ -279,22 +303,55 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     if (concurrency_.id() == concurrency_.first())
       std::cout << "Computing Error Bars." << std::endl;
-
+    // For CTINT this is a no op.
     BaseClass::computeErrorBars();
   }
 
+  // CTINT calculates its error here maybe
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
 
-  if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+    if (concurrency_.id() == concurrency_.first())
+      std::cout << "Writing Configurations.\n";
     writeConfigurations();
-
-  // Write and reset autocorrelation.
-  autocorrelation_data_.sumConcurrency(concurrency_);
-  if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
-    std::cout << "Writing autocorrelation data\n";
-    autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
   }
-  autocorrelation_data_.reset();
+  // autocorrelation_data_.sumConcurrency(concurrency_);
+
+  if (BaseClass::writer_ && *BaseClass::writer_ && concurrency_.id() == concurrency_.first()) {
+    std::cout << "Writing actual run info\n";
+    auto& writer = *BaseClass::writer_;
+    writer.open_group("actual");
+    int num_ranks = concurrency_.number_of_processors();
+    writer.execute("ranks", num_ranks);
+    std::vector<int> rank_measurements(num_ranks, 0);
+    for (int ir = 0; ir < num_ranks; ++ir)
+      rank_measurements[ir] = parallel::util::getWorkload(measurements_, num_ranks, ir);
+    writer.execute("rank_measurements", rank_measurements);
+    std::vector<int> thread_measurements(num_ranks * nr_walkers_, 0);
+    for (int ir = 0; ir < num_ranks; ++ir)
+      for (int iw = 0; iw < nr_walkers_; ++iw)
+        thread_measurements[iw + ir * nr_walkers_] =
+            parallel::util::getWorkload(rank_measurements[ir], nr_walkers_, iw);
+    writer.execute("thread_measurements", thread_measurements);
+    writer.close_group();
+
+    // only CTAUX supports equal time accumulation.
+    if constexpr (decltype(QmciSolver::accumulator_)::solver_id == ClusterSolverId::CT_AUX) {
+      // This is a bit of a mess because we normally write the accumulator by writing the owning
+      // integrator but currently this is expected to only happen 1 time per run.
+      if (QmciSolver::accumulator_.perform_equal_time_accumulation()) {
+        writer.open_group("CT-AUX-SOLVER-functions");
+        QmciSolver::accumulator_.write(*BaseClass::writer_);
+        writer.close_group();
+      }
+    }
+
+    // Write and reset autocorrelation.
+    std::cout << "Writing autocorrelation data\n";
+    std::cout << "Autocorrelation incompatible with complex G0 and GPU";
+    // autocorrelation_data_.write(*BaseClass::writer_, dca_iteration_);
+  }
+  // autocorrelation_data_.reset();
 
   return L2_Sigma_difference;
 }
@@ -310,7 +367,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
 
   auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
-  Walker walker(parameters_, data_, rng_vector_[walker_index], concurrency_.get_id(), id,
+  Walker walker(parameters_, data_, rng_vector_[walker_index], BaseClass::getResource(), concurrency_.get_id(), id,
                 walker_log, BaseClass::g0_);
 
   std::unique_ptr<std::exception> exception_ptr;
@@ -439,20 +496,25 @@ auto StdThreadQmciClusterSolver<QmciSolver>::computeSingleMeasurement_G_k_w(
     const SpGreensFunction& M_k_w) const {
   SpGreensFunction G_k_w("G_k_w");
   QmciSolver::computeG_k_w(data_.G0_k_w_cluster_excluded, M_k_w, G_k_w);
-
   return G_k_w;
 }
 
 template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::logSingleMeasurement(
-    StdThreadAccumulatorType& accumulator_obj, int stamping_period, bool log_MFunction) const {
+    StdThreadAccumulatorType& accumulator_obj, int stamping_period, bool log_MFunction,
+    bool log_MFunctionTime) const {
   if (accumulator_obj.get_meas_id() % stamping_period == 0) {
+    if (log_MFunctionTime) {
+      auto mfst = ThisType::getSingleMFuncTime(accumulator_obj);
+      accumulator_obj.logPerConfigurationMFunctionTime(mfst.m_r_t, mfst.sign);
+    }
     auto mfs = ThisType::getSingleMFunc(accumulator_obj);
     auto M_k_w = ThisType::transformMFunction(mfs);
     auto single_meas_G_k_w = ThisType::computeSingleMeasurement_G_k_w(M_k_w);
     if (log_MFunction)
       accumulator_obj.logPerConfigurationMFunction(M_k_w, mfs.sign);
     accumulator_obj.logPerConfigurationGreensFunction(single_meas_G_k_w);
+    // We can remove this if we finally trust the accumulators to clear there single measurments.
     accumulator_obj.clearSingleMeasurement();
   }
 }
@@ -468,6 +530,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
 
   std::unique_ptr<std::exception> exception_ptr;
   bool log_MFunction = parameters.per_measurement_MFunction();
+  bool log_MFunctionTime = parameters.per_measurement_MFunction_time();
   auto stamping_period = parameters.stamping_period();
   try {
     while (true) {
@@ -488,7 +551,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id, const Para
         Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
         accumulator_obj.measure();
         if (accumulator_log && stamping_period)
-          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction);
+          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction, log_MFunctionTime);
         accumulator_obj.finishMeasuring();
       }
     }
@@ -525,8 +588,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
   Profiler::start_threading(id);
 
   // Create and warm a walker.
-  auto walker_log = last_iteration_ ? BaseClass::writer_ : nullptr;
-  Walker walker(parameters_, data_, rng_vector_[id], concurrency_.get_id(), id, walker_log,
+  auto walker_log = BaseClass::writer_;
+  Walker walker(parameters_, data_, rng_vector_[id], BaseClass::getResource(), concurrency_.get_id(), id, walker_log,
                 BaseClass::g0_);
   initializeAndWarmUp(walker, id, id);
 
@@ -535,13 +598,14 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
       std::cout << "\n\t\t warm-up ends\n" << std::endl;
   }
 
-  auto accumulator_log = last_iteration_ ? BaseClass::writer_ : nullptr;
+  auto accumulator_log = BaseClass::writer_;
   StdThreadAccumulatorType accumulator_obj(parameters_, data_, id, accumulator_log);
   accumulator_obj.initialize(dca_iteration_);
 
   std::unique_ptr<std::exception> current_exception;
 
   bool log_MFunction = parameters.per_measurement_MFunction();
+  bool log_MFunctionTime = parameters.per_measurement_MFunction_time();
   auto stamping_period = parameters.stamping_period();
 
   try {
@@ -556,7 +620,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
                                    walker.get_meas_id(), last_iteration_);
         accumulator_obj.measure();
         if (accumulator_log && stamping_period)
-          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction);
+          logSingleMeasurement(accumulator_obj, stamping_period, log_MFunction, log_MFunctionTime);
         accumulator_obj.finishMeasuring();
       }
       if (print)
@@ -574,7 +638,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
     if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers() - 1)
       current_exception = std::make_unique<std::bad_alloc>(err);
   }
-
+  catch (...) {
+    throw std::runtime_error("something mysterious  went wrong in walker thread!");
+  }
+			     
   ++walk_finished_;
   if (BaseClass::writer_ && BaseClass::writer_->isADIOS2())
     BaseClass::writer_->flush();
@@ -590,6 +657,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id,
 
   finalizeWalker(walker, id);
 
+  accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
+
   Profiler::stop_threading(id);
 
   if (current_exception)
@@ -600,7 +669,7 @@ template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::finalizeWalker(Walker& walker, int walker_id) {
   config_dump_[walker_id] = walker.dumpConfig();
   walker_fingerprints_[walker_id] = walker.deviceFingerprint();
-  autocorrelation_data_ += walker;
+  // autocorrelation_data_ += walker;
 
   if (walker_id == 0 && concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;

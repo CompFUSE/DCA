@@ -17,6 +17,9 @@
 #include "dca/parallel/no_concurrency/serial_collective_sum.hpp"
 #include "dca/parallel/no_concurrency/serial_gang.hpp"
 #include "dca/parallel/no_concurrency/serial_gather.hpp"
+#ifdef DCA_HAVE_ADIOS2
+#include "adios2.h"
+#endif
 
 namespace dca {
 namespace parallel {
@@ -26,7 +29,7 @@ class NoConcurrency : public SerialCollectiveSum, public SerialProcessorGrouping
 public:
   using Gang = SerialGang;
 
-  NoConcurrency(int /*argc*/, char** /*argv*/){};
+  NoConcurrency(int /*argc*/, char** /*argv*/);
 
   void abort() const;
 
@@ -59,12 +62,23 @@ public:
     return std::make_pair(0, dmn.get_size());
   }
 
+#ifdef DCA_HAVE_ADIOS2
+  adios2::ADIOS& get_adios() {
+    return *adios_;
+  }
+#endif
+
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoConcurrency& this_concurrency);
 
 private:
   constexpr static char parallel_type_str_[] = "NoConcurrency";
+public:
+#ifdef DCA_HAVE_ADIOS2
+  std::unique_ptr<adios2::ADIOS> adios_;
+#endif
+
 };
 
 }  // namespace parallel

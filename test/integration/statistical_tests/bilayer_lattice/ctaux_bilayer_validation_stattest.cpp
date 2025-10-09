@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/math/statistical_testing/statistical_testing.hpp"
+#include "dca/config/profiler.hpp"
 #include "test/integration/statistical_tests/bilayer_lattice/bilayer_lattice_setup.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
@@ -34,18 +35,18 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType<CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType<ClusterSolverId::CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
   parameters.set_measurements(parameters.get_measurements().back() * number_of_samples);
 
-  DcaData<CT_AUX> data(parameters);
+  DcaData<ClusterSolverId::CT_AUX> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver<CT_AUX, CPU> qmc_solver(parameters, data, nullptr);
+  QuantumClusterSolver<ClusterSolverId::CT_AUX, CPU> qmc_solver(parameters, data, nullptr);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 
@@ -86,7 +87,7 @@ TEST(CtauxBilayerValidationTest, GreensFunction) {
   }
 
   // Uncomment to write integrator output.
-  dca::phys::DcaLoopData<ParametersType<CT_AUX>> loop_data;
+  dca::phys::DcaLoopData<ParametersType<ClusterSolverId::CT_AUX>> loop_data;
   qmc_solver.finalize(loop_data);
   if (id == 0) {
     std::cout << "\nProcessor " << id << " is writing data " << std::endl;

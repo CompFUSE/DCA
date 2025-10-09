@@ -25,6 +25,7 @@
 
 #include "dca_mpi.h"
 
+#include "dca/platform/dca_gpu.h"
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -33,7 +34,7 @@
 #include "dca/linalg/vector.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
-#include "dca/util/type_utils.hpp"
+#include "dca/util/type_help.hpp"
 
 namespace dca {
 namespace parallel {
@@ -189,8 +190,6 @@ template <typename scalar_type>
 void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
-  std::cout << "Rank: " << MPIProcessorGrouping::get_id()
-            << " MPIProcessorGrouping :" << MPIProcessorGrouping::get() << std::endl;
   MPI_Allreduce(&value, &result, 1, MPITypeMap<scalar_type>::value(), MPI_SUM,
                 MPIProcessorGrouping::get());
 
@@ -569,7 +568,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(
 template <typename T>
 void MPICollectiveSum::sum(const T* in, T* out, std::size_t n, int root_id) const {
   // On summit large messages hangs if sizeof(floating point type) * message_size > 2^31-1.
-  constexpr std::size_t max_size = dca::util::IsComplex<T>::value
+  constexpr std::size_t max_size = dca::util::IsComplex_t<T>::value
                                        ? 2 * (std::numeric_limits<int>::max() / sizeof(T))
                                        : std::numeric_limits<int>::max() / sizeof(T);
 
@@ -625,8 +624,23 @@ inline void MPICollectiveSum::resolveSums() {
     return resolveSumsImplementation<double>();
   else if (current_type_ == MPI_FLOAT)
     return resolveSumsImplementation<float>();
+  else if (current_type_ == MPI_CHAR)
+    return resolveSumsImplementation<char>();
+  // else if (current_type_ == MPI_BYTE)
+  else if (current_type_ == MPI_UNSIGNED_CHAR)
+    return resolveSumsImplementation<std::uint8_t>();
+  else if (current_type_ == MPI_SHORT)
+    return resolveSumsImplementation<short>();
+  else if (current_type_ == MPI_INT)
+    return resolveSumsImplementation<int>();
+  else if (current_type_ == MPI_UNSIGNED)
+    return resolveSumsImplementation<unsigned int>();
+  else if (current_type_ == MPI_LONG)
+    return resolveSumsImplementation<long int>();
   else if (current_type_ == MPI_UNSIGNED_LONG)
     return resolveSumsImplementation<unsigned long int>();
+  else if (current_type_ == MPI_LONG_LONG_INT)
+    return resolveSumsImplementation<long long int>();
   else
     throw(std::logic_error("Type not supported."));
 }
