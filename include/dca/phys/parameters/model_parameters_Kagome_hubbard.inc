@@ -36,9 +36,17 @@ public:
   void set_U(double U) {
     U_ = U;
   }
+
+  double get_V() const {
+    return V_;
+  }
+  void set_V(double V) {
+    V_ = V;
+  }
 private:
   double t_ = 0;
   double U_ = 0;
+  double V_ = 0;
 };
 
 template <typename PointGroup>
@@ -49,6 +57,7 @@ int ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>>
 
   buffer_size += concurrency.get_buffer_size(t_);
   buffer_size += concurrency.get_buffer_size(U_);
+  buffer_size += concurrency.get_buffer_size(V_);
 
   return buffer_size;
 }
@@ -59,6 +68,7 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, U_);
+  concurrency.pack(buffer, buffer_size, position, V_);
 }
 
 template <typename PointGroup>
@@ -67,6 +77,7 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
     const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
   concurrency.unpack(buffer, buffer_size, position, U_);
+  concurrency.unpack(buffer, buffer_size, position, V_);
 }
 
 template <typename PointGroup>
@@ -91,7 +102,11 @@ void ModelParameters<models::TightBindingModel<models::KagomeHubbard<PointGroup>
     }
     if (std::abs(U_) <= 1e-3)
       throw std::runtime_error("For Kagome model abs(U) must be greater than 1e-3");
+    try {
+      reader_or_writer.execute("V", V_);
+    }
+    catch (const std::exception& r_e) {
+    }
 
     reader_or_writer.close_group();
 }
-
