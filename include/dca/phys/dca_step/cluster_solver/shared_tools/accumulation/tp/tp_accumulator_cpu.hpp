@@ -491,35 +491,43 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                    TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
-#ifndef NDEBUG
-                    TpComplex G4_before = *G4_ptr;
-#endif
-                    updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
-                                           w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
-                                           w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
-#ifndef NDEBUG
-                    G4_FromSpinDifference += std::abs(*G4_ptr - G4_before);
-#endif
+                    // TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
+                    // updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+                    //                        w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                    //                        w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
+                    for (int s1 = 0; s1 < 2; ++s1) {
+                        for (int s2 = 0; s2 < 2; ++s2) {
+                            std::complex<double> spin_factor = (s1 == s2) ? 1 : -1;
+                            getGMultiband(s1, k1, momentum_sum(k1, k_ex), w1, w_plus_w_ex(w1, w_ex), G_a_);
+                            getGMultiband(s2, momentum_sum(k2, k_ex), k2, w_plus_w_ex(w2, w_ex), w2, G_b_);
+                       for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                          for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
+                            for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+                              for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+                                G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
+                                    sign_over_2 * G_a_(b2, b1) * G_b_(b3, b4) * spin_factor;
+                              }
+                        }
+                    }
                     for (int s = 0; s < 2; ++s) {
-#ifndef NDEBUG
-                      G4_before = *G4_ptr;
-#endif
-                      updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
-                                     momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
-                                     w_plus_w_ex(w1, w_ex), -sign_over_2, true);
-#ifndef NDEBUG
-                      G4_DirectDifference += std::abs(*G4_ptr - G4_before);
-#endif
+                      // updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                      //                momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                      //                w_plus_w_ex(w1, w_ex), -sign_over_2, true);
+                      getGMultiband(s, k1, k2, w1, w2, G_a_);
+                      getGMultiband(s, momentum_sum(k2, k_ex), momentum_sum(k1, k_ex),
+                                  w_plus_w_ex(w2, w_ex), w_plus_w_ex(w1, w_ex), G_b_);
+                       for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                          for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
+                            for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+                              for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+                                G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
+                                    -sign_over_2 * G_a_(b3, b1) * G_b_(b2, b4);
+                              }
                     }
                   }
           }
         }
         flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
-#ifndef NDEBUG
-        std::cout << "G4 PHM from spin:" << G4_FromSpinDifference << '\n';
-        std::cout << "G4 PHM from direct:" << G4_DirectDifference << '\n';
-#endif
         break;
 
       case FourPointType::PARTICLE_HOLE_CHARGE:
@@ -613,13 +621,25 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                    TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
-                    for (int s = 0; s < 2; ++s)
-                      updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
-                                     q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
-                                     w_ex_minus_w(w2, w_ex), sign_over_2, false);
+                    // TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
+                    for (int s = 0; s < 2; ++s) {
+                      // updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
+                      //                q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
+                      //                w_ex_minus_w(w2, w_ex), sign_over_2, false);
+                      // contraction: G_{b1,b3}(k1, k2) * G_{b2,b4}(q-k1, q-k2).
+                      getGMultiband(s, k1, k2, w1, w2, G_a_);
+                      getGMultiband(!s, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
+                                  w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                       for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
+                          for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
+                            for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+                              for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+                                G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
+                                    sign_over_2 * G_a_(b1, b3) * G_b_(b2, b4);
+                              }
                   }
           }
+        }
         }
 
         flops += n_loops * 2 * flops_update_atomic;
