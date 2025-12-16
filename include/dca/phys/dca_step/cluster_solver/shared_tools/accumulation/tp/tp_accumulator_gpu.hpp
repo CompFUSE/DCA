@@ -438,15 +438,15 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
             get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
             G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-      case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
-        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
-            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+        // case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP:
+        //   return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP>(
+        //       get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+        //       G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
-      case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
-        return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
-            get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-            G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
+        // case FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN:
+        //   return details::updateG4<TpComplex, FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN>(
+        //       get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+        //       G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
       case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
         return details::updateG4<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
@@ -458,7 +458,7 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
     }
   }
   else {
-    if (channel == FourPointType::PARTICLE_PARTICLE_UP_DOWN )
+    if (channel == FourPointType::PARTICLE_PARTICLE_UP_DOWN)
       return details::updateG4NoSpin<TpComplex, FourPointType::PARTICLE_PARTICLE_UP_DOWN>(
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), factor,
           multiple_accumulators_, queues_[0], start, end);
