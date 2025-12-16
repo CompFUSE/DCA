@@ -306,7 +306,7 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
   // the exchange momentum, implies the same operation is performed with the exchange frequency.
   // See tp_accumulator.hpp for more details.
   if constexpr (type == FourPointType::PARTICLE_HOLE_TRANSVERSE) {
-    // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, -s)
+    // contribution <- -\sum_s G_{b2,b4}(k1, k2, s) * G_{b3,b1}(k2 + k_ex, k1 + k_ex, -s)
     int w1_a(w1);
     int w2_a(w2);
     int k1_a(k1);
@@ -316,9 +316,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     else
       g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
 
-    int i_a = nb * k1_a + no * w1_a;
-    int j_a = nb * k2_a + no * w2_a;
-    condSwapAdd(i_a, j_a, b1, b4, true);
+    int i_a = nb * k1_a + no * w1_a + b2;
+    int j_a = nb * k2_a + no * w2_a + b4;
     const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
@@ -330,9 +329,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
     else
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
-    int i_b = nb * k1_b + no * w1_b;
-    int j_b = nb * k2_b + no * w2_b;
-    condSwapAdd(i_b, j_b, b2, b3, true);
+    int i_b = nb * k1_b + no * w1_b + b3;
+    int j_b = nb * k2_b + no * w2_b + b1;
     const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
     const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
 
