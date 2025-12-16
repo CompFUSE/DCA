@@ -796,13 +796,13 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       int k2_b = g4_helper.kexMinus(k2, k_ex);
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_a = nb * k1_a + no * w1_a;
-      int j_a = nb * k2_a + no * w2_a;
-      condSwapAdd(i_a, j_a, b1, b3, true);
+      int i_a = nb * k1_a + no * w1_a + b1;
+      int j_a = nb * k2_a + no * w2_a + b3;
+      // condSwapAdd(i_a, j_a, b1, b3, true);
 
-      int i_b = nb * k1_b + no * w1_b;
-      int j_b = nb * k2_b + no * w2_b;
-      condSwapAdd(i_b, j_b, b2, b4, true);
+      int i_b = nb * k1_b + no * w1_b + b2;
+      int j_b = nb * k2_b + no * w2_b + b4;
+      // condSwapAdd(i_b, j_b, b2, b4, true);
 
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
@@ -822,13 +822,13 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       int k2_b(k2);
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_a = nb * k1_a + no * w1_a;
-      int j_a = nb * k2_a + no * w2_a;
-      condSwapAdd(i_a, j_a, b1, b4, true);
+      int i_a = nb * k1_a + no * w1_a + b1;
+      int j_a = nb * k2_a + no * w2_a + b4;
+      // condSwapAdd(i_a, j_a, b1, b4, true);
 
-      int i_b = nb * k1_b + no * w1_b;
-      int j_b = nb * k2_b + no * w2_b;
-      condSwapAdd(i_b, j_b, b2, b3, true);
+      int i_b = nb * k1_b + no * w1_b + b2;
+      int j_b = nb * k2_b + no * w2_b + b3;
+      // condSwapAdd(i_b, j_b, b2, b3, true);
 
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];

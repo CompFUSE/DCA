@@ -674,34 +674,26 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                    // contraction: G(k2, k1, s3, s2) * G(k_ex - k2, k_ex - k1, s4, s1).
+                    // contraction: G(k2, k1, b1, b3) * G(k_ex - k2, k_ex - k1, b2, b4).
                     getGMultiband(0, k1, k2, w1, w2, G_a_);
                     getGMultiband(0, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
                                   w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
-                    // getGMultiband(0, k2, k1, w2, w1, G_a_);
-                    // getGMultiband(0, q_minus_k(k2, k_ex), q_minus_k(k1, k_ex),
-                    //               w_ex_minus_w(w2, w_ex), w_ex_minus_w(w1, w_ex), G_b_);
                    for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                           for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
                             G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
-                                // complex_factor * G_a_(b3, b2) * G_b_(b4, b1);
                                 complex_factor * G_a_(b1, b3) * G_b_(b2, b4);
-                            // complex_factor * G_a_(b1, b3);
                           }
 
-                    // contraction: -G(k2, k_ex - k1, s3, s1) * G(k_ex - k2, k1, s4, s2).
+                    // contraction: -G(k1, k_ex - k2, b1, b4) * G(k_ex - k1, k2, b2, b3).
                     getGMultiband(0, k1, q_minus_k(k2, k_ex), w1, w_ex_minus_w(w2, w_ex), G_a_);
                     getGMultiband(0, q_minus_k(k1, k_ex), k2, w_ex_minus_w(w1, w_ex), w2, G_b_);
-                    // getGMultiband(0, k2, q_minus_k(k1, k_ex), w2, w_ex_minus_w(w1, w_ex), G_a_);
-                    // getGMultiband(0, q_minus_k(k2, k_ex), k1, w_ex_minus_w(w2, w_ex), w1, G_b_);
                     for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                           for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
                             G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) -=
-                                // complex_factor * G_a_(b3, b1) * G_b_(b4, b2);
                                 complex_factor * G_a_(b1, b4) * G_b_(b2, b3);
                           }
                   }
