@@ -60,8 +60,7 @@ public:
    *  when the head node has no four point channels. This works around this bug.  \todo fix this.
    */
   bool isAccumulatingG4() const {
-    if (four_point_channels_.size() > 0 &&
-        four_point_channels_[0] != FourPointType::PARTICLE_HOLE_NONE)
+    if (four_point_channels_.size() > 0 && four_point_channels_[0] != FourPointType::NONE)
       return true;
     else
       return false;
@@ -73,7 +72,7 @@ public:
    * PARTICLE_HOLE_NONE should never be added.
    */
   void set_four_point_channel(FourPointType type) {
-    if (type != FourPointType::PARTICLE_HOLE_NONE)
+    if (type != FourPointType::NONE)
       four_point_channels_ = std::vector<FourPointType>{type};
   }
   void set_four_point_channels(const std::vector<FourPointType>& channels) {

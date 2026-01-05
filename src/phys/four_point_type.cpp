@@ -31,13 +31,13 @@ FourPointType stringToFourPointType(const std::string& name) {
   // else if (name == "PARTICLE_HOLE_LONGITUDINAL_UP_DOWN")
   //   return FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN;
   else
-    return FourPointType::PARTICLE_HOLE_NONE;
+    return FourPointType::NONE;
 }
 
 std::string toString(const FourPointType type) {
   switch (type) {
-    case FourPointType::PARTICLE_HOLE_NONE:
-      return "PARTICLE_HOLE_NONE";
+    case FourPointType::NONE:
+      return "NONE";
     case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
       return "PARTICLE_PARTICLE_UP_DOWN";
     case FourPointType::PARTICLE_HOLE_TRANSVERSE:

@@ -47,16 +47,15 @@ using WPosDmn =
 using WDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
 
-template<typename SCALAR>
-  using Parameters =
-      dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-    Model, void, dca::ClusterSolverId::CT_AUX, NumTraits<SCALAR>>;
-
+template <typename SCALAR>
+using Parameters =
+    dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
+                                  Model, void, dca::ClusterSolverId::CT_AUX, NumTraits<SCALAR>>;
 
 // Perform the test in double and single precision.
 template <typename T>
 class SpaceTransform2DTest : public ::testing::Test {};
-using TestTypes = ::testing::Types<float, double>; //, std::complex<double>>;
+using TestTypes = ::testing::Types<float, double>;  //, std::complex<double>>;
 TYPED_TEST_CASE(SpaceTransform2DTest, TestTypes);
 
 TYPED_TEST(SpaceTransform2DTest, Execute) {
@@ -84,7 +83,7 @@ TYPED_TEST(SpaceTransform2DTest, Execute) {
   auto f_in_cpy = f_in;
 
   dca::func::function<Complex, dca::func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Scalar>::execute(f_in_cpy, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, Scalar>::execute(f_in_cpy, f_out);
 
   const auto im = std::complex<double>(0, 1);
 
