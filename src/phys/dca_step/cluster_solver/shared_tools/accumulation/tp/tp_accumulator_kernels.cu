@@ -315,8 +315,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     else
       g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
 
-    int i_a = nb * k1_a + no * w1_a + b2;
-    int j_a = nb * k2_a + no * w2_a + b4;
+    int i_a = nb * k1_a + no * w1_a + b4;
+    int j_a = nb * k2_a + no * w2_a + b2;
     const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
@@ -328,8 +328,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
     else
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
-    int i_b = nb * k1_b + no * w1_b + b3;
-    int j_b = nb * k2_b + no * w2_b + b1;
+    int i_b = nb * k1_b + no * w1_b + b1;
+    int j_b = nb * k2_b + no * w2_b + b3;
     const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
     const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
 
@@ -350,8 +350,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
         g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       else
         g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-      int i_a = nb * k1_a + no * w1_a + b2;
-      int j_a = nb * k2_a + no * w2_a + b1;
+      int i_a = nb * k1_a + no * w1_a + b1;
+      int j_a = nb * k2_a + no * w2_a + b2;
       GPUComplex<RealAlias<Scalar>> Ga = G_up[i_a + ldgd * j_a] - G_down[i_a + ldgu * j_a];
 
       int k1_b = g4_helper.addKex(k2, k_ex);
@@ -363,8 +363,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
         g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
       else
         g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
-      int i_b = nb * k1_b + no * w1_b + b3;
-      int j_b = nb * k2_b + no * w2_b + b4;
+      int i_b = nb * k1_b + no * w1_b + b4;
+      int j_b = nb * k2_b + no * w2_b + b3;
       GPUComplex<RealAlias<Scalar>> Gb = G_up[i_b + ldgd * j_b] - G_down[i_b + ldgu * j_b];
 
       contribution = sign_over_2 * (Ga * Gb);
@@ -380,8 +380,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
         g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       else
         g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-      int i_a = nb * k1_a + no * w1_a + b2;
-      int j_a = nb * k2_a + no * w2_a + b4;
+      int i_a = nb * k1_a + no * w1_a + b1;
+      int j_a = nb * k2_a + no * w2_a + b3;
 
       GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
       GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
@@ -396,8 +396,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       else
         g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_b = nb * k1_b + no * w1_b + b3;
-      int j_b = nb * k2_b + no * w2_b + b1;
+      int i_b = nb * k1_b + no * w1_b + b4;
+      int j_b = nb * k2_b + no * w2_b + b2;
       GPUComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
       GPUComplex<RealAlias<Scalar>> Gb_2 = G_down[i_b + ldgd * j_b];
 
@@ -417,10 +417,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
         conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       else
         conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-      int i_a = nb * k1_a + no * w1_a;
-      int j_a = nb * k2_a + no * w2_a;
-      // b1 , b4
-      condSwapAdd(i_a, j_a, b1, b4, true);
+      int i_a = nb * k1_a + no * w1_a + b4;
+      int j_a = nb * k2_a + no * w2_a + b1;
 
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
       const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
@@ -435,10 +433,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       else
         conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_b = nb * k1_b + no * w1_b;
-      int j_b = nb * k2_b + no * w2_b;
-      // b2, b3
-      condSwapAdd(i_b, j_b, b2, b3, true);
+      int i_b = nb * k1_b + no * w1_b + b3;
+      int j_b = nb * k2_b + no * w2_b + b2;
 
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_up[i_b + ldgu * j_b];
       const GPUComplex<RealAlias<Scalar>> Gb_2 = G_down[i_b + ldgd * j_b];
@@ -461,9 +457,9 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       else
         conj_a = g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
 
-      int i_a = nb * k1_a + no * w1_a;
-      int j_a = nb * k2_a + no * w2_a;
-      condSwapAdd(i_a, j_a, b1, b3, true);
+      int i_a = nb * k1_a + no * w1_a + b1;
+      int j_a = nb * k2_a + no * w2_a + b2;
+      // condSwapAdd(i_a, j_a, b2, b1, true);
 
       const GPUComplex<RealAlias<Scalar>> Ga = G_up[i_a + ldgu * j_a] + G_down[i_a + ldgd * j_a];
 
@@ -477,9 +473,9 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       else
         conj_b = g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_b = nb * k1_b + no * w1_b;
-      int j_b = nb * k2_b + no * w2_b;
-      condSwapAdd(i_b, j_b, b2, b4, true);
+      int i_b = nb * k1_b + no * w1_b + b4;
+      int j_b = nb * k2_b + no * w2_b + b3;
+      // condSwapAdd(i_b, j_b, b3, b4, true);
 
       const GPUComplex<RealAlias<Scalar>> Gb = G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b];
 
@@ -654,8 +650,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
     else
       g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
-    int i_a = nb * k1_a + no * w1_a + b1;
-    int j_a = nb * k2_a + no * w2_a + b3;
+    int i_a = nb * k1_a + no * w1_a + b3;
+    int j_a = nb * k2_a + no * w2_a + b1;
 
     const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
@@ -670,8 +666,8 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     else
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-    int i_b = nb * k1_b + no * w1_b + b2;
-    int j_b = nb * k2_b + no * w2_b + b4;
+    int i_b = nb * k1_b + no * w1_b + b4;
+    int j_b = nb * k2_b + no * w2_b + b2;
 
     const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
     const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
@@ -794,12 +790,12 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       int k2_b = g4_helper.kexMinus(k2, k_ex);
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_a = nb * k1_a + no * w1_a + b1;
-      int j_a = nb * k2_a + no * w2_a + b3;
+      int i_a = nb * k1_a + no * w1_a + b3;  // + b1;
+      int j_a = nb * k2_a + no * w2_a + b1;  // + b3;
       // condSwapAdd(i_a, j_a, b1, b3, true);
 
-      int i_b = nb * k1_b + no * w1_b + b2;
-      int j_b = nb * k2_b + no * w2_b + b4;
+      int i_b = nb * k1_b + no * w1_b + b4;  // + b2;
+      int j_b = nb * k2_b + no * w2_b + b2;  // + b4;
       // condSwapAdd(i_b, j_b, b2, b4, true);
 
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
@@ -820,13 +816,13 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       int k2_b(k2);
       g4_helper.extendGIndicesMultiBand(k1_b, k2_b, w1_b, w2_b);
 
-      int i_a = nb * k1_a + no * w1_a + b1;
-      int j_a = nb * k2_a + no * w2_a + b4;
-      // condSwapAdd(i_a, j_a, b1, b4, true);
+      int i_a = nb * k1_a + no * w1_a;  // + b1;
+      int j_a = nb * k2_a + no * w2_a;  // + b4;
+      condSwapAdd(i_a, j_a, b1, b4, true);
 
-      int i_b = nb * k1_b + no * w1_b + b2;
-      int j_b = nb * k2_b + no * w2_b + b3;
-      // condSwapAdd(i_b, j_b, b2, b3, true);
+      int i_b = nb * k1_b + no * w1_b;  // + b2;
+      int j_b = nb * k2_b + no * w2_b;  // + b3;
+      condSwapAdd(i_b, j_b, b2, b3, true);
 
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
