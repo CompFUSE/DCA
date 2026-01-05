@@ -16,9 +16,9 @@
 #include <array>
 #include <memory>
 #include <complex>
-//#include "dca/config/haves_defines.hpp"
-// its expected that dca::config::McOptions will be provided in some manner before parameters.hpp is
-// included
+// #include "dca/config/haves_defines.hpp"
+//  its expected that dca::config::McOptions will be provided in some manner before parameters.hpp
+//  is included
 
 #include "space_transform_2D.hpp"
 #include "dca/util/type_help.hpp"
@@ -32,11 +32,11 @@ namespace math {
 namespace transform {
 // dca::math::transform::
 
-template <class RDmn, class KDmn, typename Scalar = double>
-class SpaceTransform2DGpu : public SpaceTransform2D<RDmn, KDmn, Scalar> {
+template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar = double>
+class SpaceTransform2DGpu : public SpaceTransform2D<RDmn, KDmn, BDMN, SPDMN, Scalar> {
 protected:
   // I guess the base type should use the host side scalar
-  using Base = SpaceTransform2D<RDmn, KDmn, Scalar>;
+  using Base = SpaceTransform2D<RDmn, KDmn, BDMN, SPDMN, Scalar>;
   using Complex = dca::util::ComplexAlias<Scalar>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
   using VectorDev = linalg::Vector<Complex, linalg::GPU>;
@@ -73,7 +73,7 @@ public:
   }
 
 private:
-  using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
+  using BDmn = typename Base::BDmn;  // func::dmn_0<phys::domains::electron_band_domain>;
 
   const MatrixDev& get_T_matrix() {
     auto initialize_T_matrix = []() {
@@ -101,9 +101,9 @@ private:
   linalg::util::MagmaBatchedGemm<Complex> plan2_;
 };
 
-template <class RDmn, class KDmn, typename Scalar>
-SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw,
-                                                             const linalg::util::MagmaQueue& queue)
+template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar>
+SpaceTransform2DGpu<RDmn, KDmn, BDMN, SPDMN, Scalar>::SpaceTransform2DGpu(
+    const int nw, const linalg::util::MagmaQueue& queue)
     : n_bands_(BDmn::dmn_size()),
       nw_(nw),
       nc_(RDmn::dmn_size()),
@@ -113,8 +113,8 @@ SpaceTransform2DGpu<RDmn, KDmn, Scalar>::SpaceTransform2DGpu(const int nw,
   workspace_ = std::make_shared<RMatrix>();
 }
 
-template <class RDmn, class KDmn, typename Real>
-float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
+template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Real>
+float SpaceTransform2DGpu<RDmn, KDmn, BDMN, SPDMN, Real>::execute(RMatrix& M) {
   float flop = 0.;
 
   auto& T_times_M = *(workspace_);
@@ -133,7 +133,8 @@ float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     const int lda = T.leadingDimension();
     const int ldb = M.leadingDimension();
     const int ldc = T_times_M.leadingDimension();
-    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex{1.0, 0.0}, Complex{0.0,0.0}, lda, ldb, ldc);
+    plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex{1.0, 0.0}, Complex{0.0, 0.0}, lda, ldb,
+                   ldc);
     flop += n_trafo * 8. * nc_ * M.nrCols() * nc_;
   }
 
@@ -147,7 +148,7 @@ float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     const int ldb = T.leadingDimension();
     const int ldc = T_times_M_times_T.leadingDimension();
     const Complex norm = dca::util::makeMaybe<Complex>(1.0 / nc_);
-    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex{0.0,0.0}, lda, ldb, ldc);
+    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex{0.0, 0.0}, lda, ldb, ldc);
     flop += n_trafo * 8. * M.nrRows() * nc_ * nc_;
   }
 
@@ -157,9 +158,9 @@ float SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
   return flop;
 }
 
-template <class RDmn, class KDmn, typename Scalar>
-void SpaceTransform2DGpu<RDmn, KDmn, Scalar>::phaseFactorsAndRearrange(const RMatrix& in,
-                                                                       RMatrix& out) {
+template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar>
+void SpaceTransform2DGpu<RDmn, KDmn, BDMN, SPDMN, Scalar>::phaseFactorsAndRearrange(const RMatrix& in,
+                                                                                    RMatrix& out) {
   out.resizeNoCopy(in.size());
   const Complex* const phase_factors_ptr =
       Base::hasPhaseFactors() ? getPhaseFactors().ptr() : nullptr;
@@ -169,13 +170,14 @@ void SpaceTransform2DGpu<RDmn, KDmn, Scalar>::phaseFactorsAndRearrange(const RMa
                                     queue_);
 }
 
-template <class RDmn, class KDmn, typename Scalar>
-const auto& SpaceTransform2DGpu<RDmn, KDmn, Scalar>::getPhaseFactors() {
+template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar>
+const auto& SpaceTransform2DGpu<RDmn, KDmn, BDMN, SPDMN, Scalar>::getPhaseFactors() {
   auto initialize = []() {
     using dca::util::ComplexAlias;
     const auto& phase_factors = Base::getPhaseFactors();
     linalg::Vector<Complex, linalg::CPU> host_vector(phase_factors.size());
-    std::copy_n(dca::util::castHostType(phase_factors.values()), phase_factors.size(), dca::util::castHostType(host_vector.ptr()));
+    std::copy_n(dca::util::castHostType(phase_factors.values()), phase_factors.size(),
+                dca::util::castHostType(host_vector.ptr()));
     return VectorDev(host_vector);
   };
 

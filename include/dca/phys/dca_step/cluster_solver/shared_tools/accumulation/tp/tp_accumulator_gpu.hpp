@@ -454,7 +454,8 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
             G_[1].leadingDimension(), factor, multiple_accumulators_, queues_[0], start, end);
 
       default:
-        throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
+        throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu." +
+                               std::to_string(static_cast<int>(channel)));
     }
   }
   else {
@@ -463,7 +464,8 @@ double TpAccumulator<Parameters, DT, linalg::GPU>::updateG4(const std::size_t ch
           get_G4Dev()[channel_index].ptr(), G_[0].ptr(), G_[0].leadingDimension(), factor,
           multiple_accumulators_, queues_[0], start, end);
   }
-  throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu.");
+  throw std::logic_error("Specified four point type not implemented by tp_accumulator_gpu." +
+                         std::to_string(static_cast<int>(channel)));
 }
 
 template <class Parameters, DistType DT>
