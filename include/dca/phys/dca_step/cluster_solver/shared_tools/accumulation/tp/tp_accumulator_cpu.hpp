@@ -395,7 +395,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
   const auto* const G_ptr = &G_(0, 0, s, k1, k2, w1_ext, w2_ext);
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
-      G(b1, b2) = sign * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
+      G(b1, b2) = sign * G(b1, b2) + G_ptr[b2 + b1 * n_bands_];
 #ifndef NDEBUG
     // if (std::abs(G(b1, b2).imag()) > 10)  // std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
     //   std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << ","
