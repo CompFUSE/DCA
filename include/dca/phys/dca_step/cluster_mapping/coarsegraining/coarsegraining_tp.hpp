@@ -332,8 +332,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
 #ifndef NDEBUG
   if (k_DCA::get_elements() != K_dmn::get_elements()) {
     std::cout << "k_DCA::get_elements() != K_dmn::get_elements() ";
-    std::cout << vectorToString(k_DCA::get_elements()) << " != "
-	      << vectorToString(K_dmn::get_elements()) << '\n';
+    std::cout << vectorToString(k_DCA::get_elements())
+              << " != " << vectorToString(K_dmn::get_elements()) << '\n';
   }
 #endif
   chi = 0.;
@@ -365,7 +365,9 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
 
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
-      { BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q); }
+      {
+        BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q);
+      }
 
       {
         BaseClass::compute_G_q_w(k_ind, w_2, H_k, S_K_plus_Q_w, I_q_plus_Q, H_q_plus_Q, S_q_plus_Q,
@@ -509,7 +511,9 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
 
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
-      { BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q); }
+      {
+        BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q);
+      }
 
       {
         BaseClass::compute_G_q_w(k_ind, w_2, H_k, S_Q_min_K_w, I_Q_min_q, H_Q_min_q, S_Q_min_q,

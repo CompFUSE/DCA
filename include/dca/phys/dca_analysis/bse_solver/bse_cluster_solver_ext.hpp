@@ -84,9 +84,7 @@ private:
 
   diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
-  func::function<std::complex<ScalarType>,
-                 func::dmn_variadic<DCA_matrix_dmn_t, KExDmn, WExDmn>>
-      Gamma_cluster;
+  func::function<std::complex<ScalarType>, func::dmn_variadic<DCA_matrix_dmn_t, KExDmn, WExDmn>> Gamma_cluster;
   func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, WVertexDmn, KExDmn, WExDmn>>
       G_II_0_function;
 };
@@ -121,7 +119,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::compute_Gamma
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II("G_II");
   func::function<std::complex<ScalarType>, TotalG4Dmn> G_II_0("G_II_0");
 
-  //apply_symmetries_sp();
+  // apply_symmetries_sp();
 
   load_G_II(G_II);
 
@@ -130,7 +128,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::compute_Gamma
   // it used to need to be here because G_II_0 was renormalized now we only do that to a temp variable.
   load_G_II_0_function(G_II_0);
 
-  //apply_symmetries_tp(G_II, G_II_0);
+  // apply_symmetries_tp(G_II, G_II_0);
 
   // in original analysis code the G_II and G_II_0 come back renormalized
   // not so here
@@ -160,7 +158,7 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
   if (parameters.symmetrize_Gamma()) {
     std::vector<int> subind(3);
     if (concurrency.id() == concurrency.first())
-       std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
+      std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
     for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); wex_ind++)
       for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); kex_ind++) {
         func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_indi;
@@ -170,7 +168,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::apply_symmetr
         G_II_0.slice(0, subind, static_cast<std::complex<ScalarType>*>(G_II_0_indi.values()));
 
         Symmetrize<ParametersType>::execute(G_II_indi, parameters.get_four_point_momentum_transfer());
-        Symmetrize<ParametersType>::execute(G_II_0_indi, parameters.get_four_point_momentum_transfer());
+        Symmetrize<ParametersType>::execute(G_II_0_indi,
+                                            parameters.get_four_point_momentum_transfer());
         G_II.distribute(0, subind, static_cast<std::complex<ScalarType>*>(G_II_indi.values()));
         G_II_0.distribute(0, subind, static_cast<std::complex<ScalarType>*>(G_II_0_indi.values()));
       }
@@ -195,8 +194,8 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
     std::cout << "\t" << __FUNCTION__ << " -- over " << KExDmn::dmn_size() << " k exchanges and "
               << WExDmn::dmn_size() << " frequency exchanges.\n\n";
 
-  //std::vector<int> coor_1(G_II.signature(), 0.0);
-  // ideally a compile time leaf domain count would be avaialbe from function 
+  // std::vector<int> coor_1(G_II.signature(), 0.0);
+  //  ideally a compile time leaf domain count would be avaialbe from function
   constexpr int num_indexes_G4 = 10;
   std::array<int, num_indexes_G4> coor_1;
   coor_1.fill(0);
@@ -231,12 +230,11 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II(
     }
   }
   std::cout << "final linind " << linind << '\n';
-  std::cout << "G_II(0,0,0,0,0,0,0,0,0,0): " << G_II(0,0,0,0,0,0,0,0,0,0) << '\n';
-  std::cout << "G_II(0,0,0,0,0,0,0,0,0,1): " << G_II(0,0,0,0,0,0,0,0,0,1) << '\n';
-  std::cout << "G_II(0,0,0,0,0,0,0,0,0,2): " << G_II(0,0,0,0,0,0,0,0,0,2) << '\n';
-  std::cout << "G4(0,0,0,0,0,0,0,0,0,1): " << G4(0,0,0,0,0,0,0,0,0,1) << '\n';
-  std::cout << "G4(0,0,0,0,0,0,0,0,0,2): " << G4(0,0,0,0,0,0,0,0,0,2) << '\n';
-
+  std::cout << "G_II(0,0,0,0,0,0,0,0,0,0): " << G_II(0, 0, 0, 0, 0, 0, 0, 0, 0, 0) << '\n';
+  std::cout << "G_II(0,0,0,0,0,0,0,0,0,1): " << G_II(0, 0, 0, 0, 0, 0, 0, 0, 0, 1) << '\n';
+  std::cout << "G_II(0,0,0,0,0,0,0,0,0,2): " << G_II(0, 0, 0, 0, 0, 0, 0, 0, 0, 2) << '\n';
+  std::cout << "G4(0,0,0,0,0,0,0,0,0,1): " << G4(0, 0, 0, 0, 0, 0, 0, 0, 0, 1) << '\n';
+  std::cout << "G4(0,0,0,0,0,0,0,0,0,2): " << G4(0, 0, 0, 0, 0, 0, 0, 0, 0, 2) << '\n';
 }
 
 /** This calculates close to the Chi_0(Q,omega_m)K,K' that we want for S(q,omega)
@@ -247,9 +245,10 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
   profiler_type prof(__FUNCTION__, "BseClusterSolverExt", __LINE__);
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\t" << __FUNCTION__ << "\n\n";
-    std::cout << "G_II_0 domain sizes: " << vectorToString(G_II_0.get_domain().get_leaf_domain_sizes()) << "\n\n";
+    std::cout << "G_II_0 domain sizes: "
+              << vectorToString(G_II_0.get_domain().get_leaf_domain_sizes()) << "\n\n";
   }
-  
+
   func::dmn_variadic<k_DCA, WVertexDmn> k_w_dmn;
   G_II_0 = 0.;
 
@@ -354,7 +353,6 @@ void BseClusterSolverExt<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_
 
   for (int wex_ind = 0; wex_ind < WExDmn::dmn_size(); wex_ind++)
     for (int kex_ind = 0; kex_ind < KExDmn::dmn_size(); kex_ind++) {
-
       func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_indi;
       func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_0_indi;
       subind = {0, kex_ind, wex_ind};

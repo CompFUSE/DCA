@@ -4,7 +4,8 @@ if (DCA_BUILD_ANALYSIS)
   add_executable(main_analysis main_analysis.cpp)
   target_include_directories(main_analysis PRIVATE ${DCA_INCLUDE_DIRS})
     if (DCA_HAVE_GPU)
-      target_link_libraries(main_analysis PRIVATE ${DCA_GPU_LIBS})
+      target_link_libraries(main_analysis PRIVATE ${DCA_GPU_LIBS}
+  magma::magma)
     endif()
 
     target_link_libraries(main_analysis PUBLIC signals ${DCA_LIBS} simplex_gm_rule)

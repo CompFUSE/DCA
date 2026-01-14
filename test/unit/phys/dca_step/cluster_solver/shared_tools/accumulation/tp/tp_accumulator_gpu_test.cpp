@@ -39,7 +39,9 @@ using McOptions = MockMcOptions<Scalar>;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_4x4.json";
+#define INPUT_FILE_4_4 INPUT_DIR "input_4x4_2_transfer.json"
+#define INPUT_FILE_4_4_COMPLEX INPUT_DIR "input_4x4_complex.json";
+#define INPUT_FILE_4_4_KAGOME INPUT_DIR "input_4x4_multitransfer_kagome.json";
 
 #ifdef DCA_HAVE_ADIOS2
 adios2::ADIOS* adios_ptr;
@@ -57,9 +59,53 @@ using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
-template <typename SCALAR>
+struct DoubleSquare {
+  using Scalar = double;
+  using Lattice = dca::testing::LatticeSquare;
+  static constexpr char Input[] = INPUT_FILE_4_4;
+};
+
+struct DoubleBilayer {
+  using Scalar = double;
+  using Lattice = dca::testing::LatticeBilayer;
+  static constexpr char Input[] = INPUT_FILE_4_4;
+};
+
+struct DoubleHund {
+  using Scalar = double;
+  using Lattice = dca::testing::LatticeHund;
+  static constexpr char Input[] = INPUT_FILE_4_4;
+};
+
+struct DoubleKagome {
+  using Scalar = double;
+  using Lattice = dca::testing::LatticeKagome;
+  static constexpr char Input[] = INPUT_FILE_4_4_KAGOME;
+};
+
+struct ComplexDoubleRashba {
+  using Scalar = std::complex<double>;
+  using Lattice = dca::testing::LatticeRashba;
+  static constexpr char Input[] = INPUT_FILE_4_4_COMPLEX;
+};
+
+struct ComplexDoubleMoireHubbard {
+  using Scalar = std::complex<double>;
+  using Lattice = dca::testing::LatticeMoireHubbard;
+  static constexpr char Input[] = INPUT_FILE_4_4_COMPLEX;
+};
+
+struct DoubleFeAs {
+  using Scalar = double;
+  using Lattice = dca::testing::LatticeFeAs;
+  static constexpr char Input[] = INPUT_FILE_4_4;
+};
+
+template <typename SCALAR_LATTICE>
 struct TpAccumulatorGpuTest : public ::testing::Test {
-  using G0Setup = dca::testing::G0SetupBare<SCALAR, dca::testing::LatticeBilayer, dca::ClusterSolverId::CT_AUX, input_file>;
+  using G0Setup =
+      dca::testing::G0SetupBare<typename SCALAR_LATTICE::Scalar, typename SCALAR_LATTICE::Lattice,
+                                dca::ClusterSolverId::CT_AUX, SCALAR_LATTICE::Input>;
   virtual void SetUp() {
     host_setup.SetUp();
     gpu_setup.SetUp();
@@ -74,30 +120,50 @@ uint loop_counter = 0;
 
 constexpr bool write_G4s = true;
 
-using TestTypes = ::testing::Types<double>;
+// Running more than one of these we run into the issue with Space
+// transform reinitialization and there will be failures aftrer the
+// first.  The work around is to build this test several times until
+// fix the space transform global and possibly others.  This is
+// clearly something that has helped make many areas of the code less
+// testable.
+
+using TestTypes =
+    ::testing::Types<THIS_TEST_DEFINES>;  // ComplexDoubleMoireHubbard,,
+                                          // DoubleSquare, DoubleKagome, , ComplexDoubleRashba,
+                                          // DoubleFeAs>;  //  DoubleBilayer, DoubleHund,
 TYPED_TEST_CASE(TpAccumulatorGpuTest, TestTypes);
 
 TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
   const std::array<int, 2> n{22, 22};
   Sample M;
   Configuration config;
-  using Scalar = TypeParam;
-  ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorGpuTest<Scalar>::G0Setup::BDmn::dmn_size(),
-                                        TpAccumulatorGpuTest<Scalar>::G0Setup::RDmn::dmn_size(),
+  using TestParam = TypeParam;
+  using TestType = TpAccumulatorGpuTest<TestParam>;
+  ConfigGenerator::prepareConfiguration(config, M,
+                                        TpAccumulatorGpuTest<TestParam>::G0Setup::BDmn::dmn_size(),
+                                        TpAccumulatorGpuTest<TestParam>::G0Setup::RDmn::dmn_size(),
                                         this->host_setup.parameters_.get_beta(), n);
 
   using namespace dca::phys;
-  std::vector<FourPointType> four_point_channels{
-      FourPointType::PARTICLE_HOLE_TRANSVERSE, FourPointType::PARTICLE_HOLE_MAGNETIC,
-      FourPointType::PARTICLE_HOLE_CHARGE,  FourPointType::PARTICLE_PARTICLE_UP_DOWN};
-  //FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
-  //    FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+
+  std::vector<FourPointType> four_point_channels;
+  if (TestType::G0Setup::LatticeType::spin_symmetric)
+    four_point_channels = {
+        FourPointType::PARTICLE_HOLE_TRANSVERSE, FourPointType::PARTICLE_HOLE_MAGNETIC,
+        FourPointType::PARTICLE_HOLE_CHARGE, FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+  else
+    four_point_channels = {FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+
+  // FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+  //     FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
   this->host_setup.parameters_.set_four_point_channels(four_point_channels);
   this->gpu_setup.parameters_.set_four_point_channels(four_point_channels);
 
-  dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_), dca::DistType::NONE, dca::linalg::CPU>
+  dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_),
+                                                dca::DistType::NONE, dca::linalg::CPU>
       accumulatorHost(this->host_setup.data_->G0_k_w_cluster_excluded, this->host_setup.parameters_);
-  dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_), dca::DistType::NONE, dca::linalg::GPU>
+  dca::phys::solver::accumulator::TpAccumulator<decltype(this->host_setup.parameters_),
+                                                dca::DistType::NONE, dca::linalg::GPU>
       accumulatorDevice(this->gpu_setup.data_->G0_k_w_cluster_excluded, this->gpu_setup.parameters_);
   const int8_t sign = 1;
 
@@ -126,7 +192,8 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
     this->host_setup.data_->write(writer_h5);
 
     for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
-      std::string channel_str = dca::phys::toString(this->host_setup.parameters_.get_four_point_channels()[channel]);
+      std::string channel_str =
+          dca::phys::toString(this->host_setup.parameters_.get_four_point_channels()[channel]);
       writer.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
       writer.execute("accumulatorDevice_" + channel_str, accumulatorDevice.get_G4()[channel]);
       writer_h5.execute("accumulatorHOST_" + channel_str, accumulatorHost.get_G4()[channel]);
@@ -139,11 +206,12 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 #endif
 
   std::cout << "blocks: " << dca::util::ceilDiv(int(accumulatorHost.get_G4()[0].size()), 256) << '\n';
-  
+
   for (std::size_t channel = 0; channel < accumulatorHost.get_G4().size(); ++channel) {
     auto diff = dca::func::util::difference(accumulatorHost.get_G4()[channel],
                                             accumulatorDevice.get_G4()[channel]);
-    EXPECT_GT(5e-7, diff.l_inf) << "channel: " << dca::phys::toString(four_point_channels[channel]);
+    EXPECT_GT(5e-7, diff.l_inf) << "channel: " << dca::phys::toString(four_point_channels[channel])
+                                << " diff.l_inf == " << diff.l_inf << "\n";
   }
 }
 
@@ -164,7 +232,6 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   //accumulator2.set_multiple_accumulators(true);
 //   Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_, 3);
 //   //accumulator3.set_multiple_accumulators(true);
-
 
 //   auto prepare_configuration = [&](auto& M, auto& configuration, const auto& n) {
 //     ConfigGenerator::prepareConfiguration(M, configuration, TpAccumulatorGpuTest::BDmn::dmn_size(),
@@ -188,7 +255,7 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   accumulator_sum.resetAccumulation(loop_id, flag);
 
 //   // This is a bandaid for CI.
-//   std::chrono::microseconds sleep_time(10000);  
+//   std::chrono::microseconds sleep_time(10000);
 //   std::this_thread::sleep_for(sleep_time);
 
 //   // there is a data race here between the resets above
@@ -197,8 +264,8 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   accumulator1.accumulate(M1, config1, sign);
 //   accumulator2.accumulate(M2, config2, sign);
 //   accumulator1.sumTo(accumulator_sum);
-//   accumulator2.sumTo(accumulator_sum);  
-  
+//   accumulator2.sumTo(accumulator_sum);
+
 //   accumulator_sum.finalize();
 
 //   // Reset the G4 on the GPU to zero.
@@ -212,14 +279,15 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   accumulator3.accumulate(M1, config1, sign);
 //   accumulator3.accumulate(M2, config2, sign);
 //   accumulator3.finalize();
-  
+
 //   // auto acc3_it = accumulator3.get_G4()[0].begin();
 //   // auto acc_sum_it = accumulator_sum.get_G4()[0].begin();
 //   // auto acc3_end = accumulator3.get_G4()[0].end();
 
 //   // int index = 0;
 //   // while(acc3_it != acc3_end) {
-//   //   EXPECT_NEAR(acc_sum_it->real(), acc3_it->real(), 1E-4) << "index = " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index));
+//   //   EXPECT_NEAR(acc_sum_it->real(), acc3_it->real(), 1E-4) << "index = " <<
+//   dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index));
 //   //   ++acc3_it;
 //   //   ++acc_sum_it;
 //   //   ++index;
@@ -232,13 +300,17 @@ TYPED_TEST(TpAccumulatorGpuTest, Accumulate) {
 //   if (diff.l_inf < 5e-7) {
 //     std::cout << "succeed with diff.l_inf = " << diff.l_inf << '\n';
 //     int index = 10;
-//     std::cout << "values at " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
-// 	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " << accumulator3.get_G4()[0](index) << '\n';
+//     std::cout << "values at " <<
+//     dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
+// 	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " <<
+// accumulator3.get_G4()[0](index) << '\n';
 //   }
 //   else {
 //     int index = 10;
-//         std::cout << "values at " << dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
-// 	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " << accumulator3.get_G4()[0](index) << '\n';
+//         std::cout << "values at " <<
+//         dca::vectorToString(accumulator3.get_G4()[0].linind_2_subind(index))
+// 	      << " sum: " << accumulator_sum.get_G4()[0](index) << " just_acc: " <<
+// accumulator3.get_G4()[0](index) << '\n';
 
 //   }
 // }

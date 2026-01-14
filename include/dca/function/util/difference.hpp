@@ -64,8 +64,6 @@ Difference difference(const function<Scalartype1, Dmn1, DT1>& f1,
   l2_error = std::sqrt(l2_error / l2);
   linf_error /= linf;
 
-  
-  
   return Difference{l1_error, l2_error, linf_error};
 }
 
@@ -73,7 +71,9 @@ Difference difference(const function<Scalartype1, Dmn1, DT1>& f1,
 template <typename Scalartype1, typename Scalartype2, class Dmn1, class Dmn2>
 Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scalartype2, Dmn2>& f2) {
   if (f1.size() != f2.size())
-    throw(std::logic_error("The two functions have different size."));
+    throw(std::logic_error("The two functions have different sizes. f1.size() (" +
+                           std::to_string(f1.size()) + ") == f2.size() (" +
+                           std::to_string(f2.size()) + ")!\n"));
 
   double l1 = 0.;
   double l2 = 0.;

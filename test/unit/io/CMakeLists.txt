@@ -15,8 +15,14 @@ dca_add_gtest(json_reader_test
   GTEST_MAIN
   LIBS json)
 
+if (DCA_HAVE_GPU)
+  set(DCA_FORTRAN_LIBS magma::magma)
+endif()
+
 dca_add_gtest(reader_writer_test
-  LIBS dca_io parallel_mpi_concurrency function ${DCA_THREADING_LIBS})
+  LIBS dca_io parallel_mpi_concurrency function ${DCA_THREADING_LIBS}
+  ${DCA_FORTRAN_LIBS}
+)
 
 dca_add_gtest(io_types_test
   GTEST_MAIN
@@ -34,4 +40,3 @@ if (DCA_HAVE_ADIOS2)
       LIBS parallel_no_concurrency dca_io function)
   endif()
 endif()
-

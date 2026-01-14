@@ -37,7 +37,6 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-
 constexpr bool update_baseline = false;
 
 #define INPUT_DIR \
@@ -51,8 +50,8 @@ using Sample = ConfigGenerator::Sample;
 
 using Scalar = std::complex<double>;
 
-using TpAccumulatorTest =
-  dca::testing::G0Setup<Scalar, dca::testing::LatticeMoireHubbard, dca::ClusterSolverId::CT_AUX, input_file>;
+using TpAccumulatorTest = dca::testing::G0Setup<Scalar, dca::testing::LatticeMoireHubbard,
+                                                dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, Accumulate) {
   const std::array<int, 2> n{18, 22};
@@ -80,8 +79,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
   func_names[dca::phys::FourPointType::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
   func_names[dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
-  for (const dca::phys::FourPointType type :
-       {dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN}) {
+  for (const dca::phys::FourPointType type : {dca::phys::FourPointType::PARTICLE_PARTICLE_UP_DOWN}) {
     parameters_.set_four_point_channel(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
