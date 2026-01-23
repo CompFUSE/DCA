@@ -78,7 +78,7 @@ case "$1" in
               -DCMAKE_CXX_COMPILER=mpic++ \
               -DDCA_WITH_CUDA=1 \
 	      -DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler \
-	      -DCMAKE_CUDA_ARCH_LIST=80 \
+	      -DCMAKE_CUDA_ARCHITECTURES=80 \
               -DDCA_WITH_MPI=1 \
 	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${CUDA_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT}\;${FFTW_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
