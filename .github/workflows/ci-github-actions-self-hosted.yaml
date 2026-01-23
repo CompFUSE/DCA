@@ -18,7 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jobname: [GCC12-MPI-CUDA-Real-Full]
+        jobname: [LLVM21-MPI-CUDA-Real-Full]
+
     #            GCC12-MPI-NoMPI-CUDA-Real-Full,
     #            GCC12-MPI-NoMPI-CUDA-Real-Debug-Full,
 
