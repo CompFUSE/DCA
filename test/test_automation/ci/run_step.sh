@@ -79,7 +79,6 @@ case "$1" in
               -DDCA_WITH_CUDA=1 \
 	      -DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler \
 	      -DCMAKE_CUDA_ARCH_LIST=80 \
-	      -DCMAKE_FORTRAN_COMPILER=gfortran -DCMAKE_EXE_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lgfortran" -DCMAKE_MODULE_LINKER_FLAGS_INIT="-lgfortran" \
               -DDCA_WITH_MPI=1 \
 	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${CUDA_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT}\;${FFTW_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
