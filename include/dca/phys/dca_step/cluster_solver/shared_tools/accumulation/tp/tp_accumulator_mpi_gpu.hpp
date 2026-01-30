@@ -77,8 +77,8 @@ private:
   using BaseGpu::event_;
   using BaseGpu::n_pos_frqs_;
   using BaseGpu::n_ndft_queues_;
-  //uint64_t start_;
-  //uint64_t end_;
+  // uint64_t start_;
+  // uint64_t end_;
 
   using BaseGpu::get_G0;
 
@@ -112,7 +112,7 @@ public:
   // Eventually distribution strategy should be pushed down into linalg::Vector but
   // I think generalization should still wait.
   using G4DevType = linalg::Vector<Complex, linalg::GPU, config::McOptions::TpAllocator<Complex>>;
-  
+
   std::vector<TpGreensFunction>& get_G4();
 
 private:
@@ -157,9 +157,9 @@ TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::TpAccumulator(
     : Base(G0, pars, thread_id), BaseGpu(pars, Base::get_n_pos_frqs(), thread_id_) {
   // each mpi rank only allocates memory of size 1/total_G4_size for its small portion of G4
   // static_assert(std::is_same<std::vector<TpAccumulator<DistType::LINEAR>>, decltype(G4_)>);
-  //start_ = G4_[0].get_start();
+  // start_ = G4_[0].get_start();
   // The sense here is one past the last index held
-  //end_ = G4_[0].get_end() + 1;
+  // end_ = G4_[0].get_end() + 1;
 
   // possible these can both go into the parent class constructor
 }
@@ -339,7 +339,7 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(
 
   uint64_t start = get_G4Dev().get_start();
   uint64_6 end = get_G4Dev().get_end() + 1;
-  
+
   switch (channel) {
     case FourPointType::PARTICLE_HOLE_TRANSVERSE:
       return details::updateG4<Real, FourPointType::PARTICLE_HOLE_TRANSVERSE>(
@@ -372,7 +372,8 @@ float TpAccumulator<Parameters, linalg::GPU, DistType::LINEAR>::updateG4(
           G_[1].leadingDimension(), sign_, multiple_accumulators_, queues_[0], start, end);
 
     default:
-      throw std::logic_error("Specified four point type not implemented.");
+      throw std::logic_error("Specified four point type not implemented." +
+                             std::to_string(static_cast<int>(channel)));
   }
 }
 
@@ -424,15 +425,14 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::ringG(float& flop) {
 }
 
 template <class Parameters, DistType DT>
-auto TpAccumulator<Parameters, DT, linalg::GPU>::get_G4Dev()
-    -> std::vector<G4DevType>& {
+auto TpAccumulator<Parameters, DT, linalg::GPU>::get_G4Dev() -> std::vector<G4DevType>& {
   static std::vector<G4DevType> G4;
   return G4;
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, DT, linalg::GPU>::send(
-    const std::array<RMatrix, 2>& data, int target, std::array<MPI_Request, 2>& request) {
+void TpAccumulator<Parameters, DT, linalg::GPU>::send(const std::array<RMatrix, 2>& data, int target,
+                                                      std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 
@@ -455,8 +455,8 @@ void TpAccumulator<Parameters, DT, linalg::GPU>::send(
 }
 
 template <class Parameters, DistType DT>
-void TpAccumulator<Parameters, DT, linalg::GPU>::receive(
-    std::array<RMatrix, 2>& data, int source, std::array<MPI_Request, 2>& request) {
+void TpAccumulator<Parameters, DT, linalg::GPU>::receive(std::array<RMatrix, 2>& data, int source,
+                                                         std::array<MPI_Request, 2>& request) {
   using dca::parallel::MPITypeMap;
   const auto g_size = data[0].size().first * data[0].size().second;
 

@@ -16,6 +16,7 @@ if(DCA_HAVE_HPX)
   set(test_thread_option HPX)
 endif()
 
+
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
@@ -36,7 +37,7 @@ endif()
 function(dca_add_gtest name)
   set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN GTEST_MPI_MAIN THREADED MPI CUDA CUDA_MPI)
   set(oneValueArgs MPI_NUMPROC)
-  set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
+  set(multiValueArgs INCLUDE_DIRS SOURCES LIBS CUSTOM_SOURCE TEST_DEFINES)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # FAST, EXTENSIVE and PERFORMANCE are mutually exclusive.
@@ -47,7 +48,7 @@ function(dca_add_gtest name)
       (DCA_ADD_GTEST_STOCHASTIC AND DCA_ADD_GTEST_EXTENSIVE) OR
       (DCA_ADD_GTEST_STOCHASTIC AND DCA_ADD_GTEST_PERFORMANCE))
     message(FATAL_ERROR "Incorrect use of dca_add_gtest.\n
-                         dca_add_gtest(name\n
+                         dca_add_gtest_impl (name src_file compile_definitions \n
                                        [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [THREADED]\n
@@ -97,7 +98,7 @@ function(dca_add_gtest name)
   IF (DCA_ADD_GTEST_CUDA_MPI AND NOT DCA_HAVE_GPU_AWARE_MPI)
     return()
   endif()
-  
+
   # Right now we're only testing GPU distributed code on one node so its pointless
   # without more than one GPU per node.
   if (DCA_ADD_GTEST_CUDA_MPI AND DCA_HAVE_GPU_AWARE_MPI AND (DCA_TEST_GPU_COUNT LESS 2) )
@@ -112,9 +113,15 @@ function(dca_add_gtest name)
     set(DCA_ADD_GTEST_SOURCES ${PROJECT_SOURCE_DIR}/test/dca_gtest_main_mpi.cpp ${DCA_ADD_GTEST_SOURCES})
   endif()
 
-  add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
-
+  if (DCA_ADD_GTEST_CUSTOM_SOURCE)
+    add_executable(${name} ${DCA_ADD_GTEST_CUSTOM_SOURCE} ${DCA_ADD_GTEST_SOURCES})
+  else ()
+    add_executable(${name} ${name}.cpp ${DCA_ADD_GTEST_SOURCES})
+  endif()
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+  if (DCA_ADD_GTEST_TEST_DEFINES)
+    target_compile_definitions(${name} PRIVATE THIS_TEST_DEFINES=${DCA_ADD_GTEST_TEST_DEFINES})
+  endif()
 
   # this is hacky but allows continued use of DCA_THREADING_LIBS
   # if (DCA_ADD_GTEST_LIBS MATCHES "parallel_hpx")
@@ -182,7 +189,7 @@ function(dca_add_gtest name)
     target_compile_definitions(${name} PUBLIC DCA_HAVE_HPX)
     target_link_libraries(${name} PUBLIC HPX::hpx HPX::wrap_main)
   endif()
-  
+
   target_include_directories(${name} PRIVATE
     ${gtest_SOURCE_DIR}/include
     ${DCA_ADD_GTEST_INCLUDE_DIRS})
@@ -239,5 +246,3 @@ function(dca_add_perftest name)
 
   target_compile_definitions(${name} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 endfunction()
-
-

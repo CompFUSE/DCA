@@ -23,6 +23,7 @@
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "dca/util/type_list.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
 
 namespace dca {
 namespace phys {
@@ -151,14 +152,93 @@ void KagomeHubbard<PointGroupType>::initializeHInteraction(
   const int origin = RDmn::parameter_type::origin_index();
 
   const double U = parameters.get_U();  // on-site Hubbard interaction
+  const double V = parameters.get_V();  // Nearest-neighbor interaction
+
+  // There are 6 different nearest neighbor (nn) pairs along a1, a2, a1+a2 and their negative vectors
+  const std::vector<typename RDmn::parameter_type::element_type>& basis =
+      RDmn::parameter_type::get_basis_vectors();
+
+  assert(basis.size() == 2);
+
+  // Pre-compute basis vectors and orbital pairs
+  std::vector<typename RDmn::parameter_type::element_type> nn_vec;
+  nn_vec.reserve(3);
+  nn_vec.push_back(basis[0]);
+  nn_vec.push_back(basis[1]);
+  nn_vec.emplace_back(basis[0]);
+  nn_vec[2][0] += basis[1][0];
+  nn_vec[2][1] += basis[1][1];
+
+  // Orbital pairs corresponding to each nearest neighbor direction
+  constexpr std::array<std::array<int, 2>, 3> orb_pairs = {{
+    {{2, 0}}, {{1, 2}}, {{1, 0}}
+  }};
+
+  const std::vector<typename RDmn::parameter_type::element_type>& super_basis =
+      RDmn::parameter_type::get_super_basis_vectors();
+  const std::vector<typename RDmn::parameter_type::element_type>& elements =
+      RDmn::parameter_type::get_elements();
+
+  std::vector<int> nn_index;
+  std::vector<std::vector<int>> nn_orbs;
+  nn_index.reserve(6);
+  nn_orbs.reserve(6);
+
+  // Process all nearest neighbor vectors in a loop
+  for (int vec_idx = 0; vec_idx < 3; ++vec_idx) {
+    const auto nn_vec_translated =
+        domains::cluster_operations::translate_inside_cluster(nn_vec[vec_idx], super_basis);
+    const int r = domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE);
+
+    if (r != origin) {
+      const int minus_r = RDmn::parameter_type::subtract(r, origin);
+
+      nn_index.push_back(r);
+      nn_orbs.push_back({orb_pairs[vec_idx][0], orb_pairs[vec_idx][1]});
+
+      // Add negative direction if distinct
+      if (r != minus_r) {
+        nn_index.push_back(minus_r);
+        nn_orbs.push_back({orb_pairs[vec_idx][1], orb_pairs[vec_idx][0]});
+      }
+    }
+  }
 
   H_interaction = 0.;
 
+// Onsite U interaction
   for (int i = 0; i < BANDS; i++) {
     H_interaction(i, 0, i, 1, origin) = U;
     H_interaction(i, 1, i, 0, origin) = U;
   }
+
+  // Nearest-neighbor V interaction inside unit cell
+  constexpr std::array<std::array<int, 2>, 3> intra_cell_pairs = {{
+    {{0, 1}}, {{1, 2}}, {{0, 2}}
+  }};
+
+  for (const auto& pair : intra_cell_pairs) {
+    for (int s = 0; s < 2; ++s) {
+      H_interaction(pair[0], s, pair[1], s, origin) = V;
+      H_interaction(pair[0], s, pair[1], 1-s, origin) = V;
+      H_interaction(pair[1], s, pair[0], s, origin) = V;
+      H_interaction(pair[1], s, pair[0], 1-s, origin) = V;
+    }
+  }
+
+  // Nearest-neighbor V interaction outside unit cell
+  const auto nn_size = nn_index.size();
+  for (std::size_t i = 0; i < nn_size; ++i) {
+    for (int s = 0; s < 2; ++s) {
+      H_interaction(nn_orbs[i][0], s, nn_orbs[i][1], s, nn_index[i]) = V;
+      H_interaction(nn_orbs[i][0], s, nn_orbs[i][1], 1-s, nn_index[i]) = V;
+    }
+  }
+
 }
+
+
+
 
 template <typename PointGroupType>
 template <class domain>

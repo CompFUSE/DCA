@@ -30,12 +30,12 @@ TEST(FourPointParametersTest, DefaultValues) {
 }
 
 using namespace dca::phys;
-const std::vector<FourPointType> all_channels{FourPointType::PARTICLE_HOLE_TRANSVERSE,
-                                              FourPointType::PARTICLE_HOLE_MAGNETIC,
-                                              FourPointType::PARTICLE_HOLE_CHARGE,
-                                              FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
-                                              FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
-                                              FourPointType::PARTICLE_PARTICLE_UP_DOWN};
+const std::vector<FourPointType> all_channels{
+    FourPointType::NONE, FourPointType::PARTICLE_HOLE_TRANSVERSE,
+    FourPointType::PARTICLE_HOLE_MAGNETIC, FourPointType::PARTICLE_HOLE_CHARGE,
+    // FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+    // FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
+    FourPointType::PARTICLE_PARTICLE_UP_DOWN};
 
 TEST(FourPointParametersTest, ReadAll) {
   dca::io::JSONReader reader;

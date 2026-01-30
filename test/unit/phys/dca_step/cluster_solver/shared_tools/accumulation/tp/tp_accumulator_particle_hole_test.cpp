@@ -12,7 +12,6 @@
 // channels based on the relation between the particle-hole longitudinal up-up and up-down channels,
 // and the particle-hole magnetic and charge channels.
 
-
 #include "dca/platform/dca_gpu.h"
 
 using Scalar = double;
@@ -45,7 +44,7 @@ constexpr char input_file[] = INPUT_DIR "input_tp_accumulator_particle_hole_test
 using Scalar = double;
 
 using TpAccumulatorTest =
-  dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
+    dca::testing::G0Setup<Scalar, dca::testing::LatticeSquare, dca::ClusterSolverId::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   using TpAccumulatorType = dca::phys::solver::accumulator::TpAccumulator<Parameters>;
@@ -60,9 +59,10 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  parameters_.set_four_point_channels(std::vector<dca::phys::FourPointType>{
-      dca::phys::FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_UP, dca::phys::FourPointType::PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
-      dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC, dca::phys::FourPointType::PARTICLE_HOLE_CHARGE});
+  parameters_.set_four_point_channels(
+      std::vector<dca::phys::FourPointType>{dca::phys::FourPointType::PARTICLE_HOLE_TRANSVERSE,
+                                            dca::phys::FourPointType::PARTICLE_HOLE_MAGNETIC,
+                                            dca::phys::FourPointType::PARTICLE_HOLE_CHARGE});
 
   TpAccumulatorType accumulator_ph(data_->G0_k_w_cluster_excluded, parameters_);
 
@@ -103,7 +103,7 @@ TEST_F(TpAccumulatorTest, ParticleHoleChannels) {
   }
 
   const auto diff_up_up = dca::func::util::difference(G4_ph_long_up_up, G4_ph_long_up_up_check);
-  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::TpPrecision>::epsilon());
+  EXPECT_LT(diff_up_up.l_inf, 100 * std::numeric_limits<TpAccumulatorType::TpPrecision>::epsilon()) << "G4_p4_long_up_up.getDomainSizes() " << dca::vectorToString(G4_ph_long_up_up.getDomainSizes());
 
   const auto diff_up_down = dca::func::util::difference(G4_ph_long_up_down, G4_ph_long_up_down_check);
   EXPECT_LT(diff_up_down.l_inf, 100 * std::numeric_limits<TpAccumulatorType::TpPrecision>::epsilon());

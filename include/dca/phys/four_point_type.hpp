@@ -25,14 +25,15 @@ namespace phys {
  *  causes a bug. That is not a good code smell.
  */
 enum class FourPointType : int {
-  PARTICLE_HOLE_NONE = 0,
+  NONE = 0,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
   PARTICLE_HOLE_CHARGE,
-  PARTICLE_HOLE_LONGITUDINAL_UP_UP,
-  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
   PARTICLE_PARTICLE_UP_DOWN
 };
+
+//  PARTICLE_HOLE_LONGITUDINAL_UP_UP,
+//  PARTICLE_HOLE_LONGITUDINAL_UP_DOWN,
 
 FourPointType stringToFourPointType(const std::string& name);
 

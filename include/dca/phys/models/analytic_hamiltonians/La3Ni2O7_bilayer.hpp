@@ -190,10 +190,10 @@ void La3Ni2O7_bilayer<point_group_type>::initializeHInteraction(
         H_interaction(2, s, 3, s, origin) = V - J;
         H_interaction(3, s, 2, s, origin) = V - J;
 
-        H_interaction(0, s, 1, 1-s, origin) = V + J;
-        H_interaction(1, s, 0, 1-s, origin) = V + J;
-        H_interaction(2, s, 3, 1-s, origin) = V + J;
-        H_interaction(3, s, 2, 1-s, origin) = V + J;
+        H_interaction(0, s, 1, 1-s, origin) = V;
+        H_interaction(1, s, 0, 1-s, origin) = V;
+        H_interaction(2, s, 3, 1-s, origin) = V;
+        H_interaction(3, s, 2, 1-s, origin) = V;
   }
 
 

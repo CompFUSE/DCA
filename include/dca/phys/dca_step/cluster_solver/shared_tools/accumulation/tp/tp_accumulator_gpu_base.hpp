@@ -77,9 +77,8 @@ protected:
   using MatrixHost = linalg::Matrix<TpComplex, linalg::CPU>;
 
 public:
-  TpAccumulatorGpuBase(
-		       const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn >>& G0,
-      const Parameters& pars, int n_freq, int thread_id);
+  TpAccumulatorGpuBase(const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
+                       const Parameters& pars, int n_freq, int thread_id);
 
 protected:
   void initializeG4Helpers() const;
@@ -88,15 +87,15 @@ protected:
 
   template <class Configuration, typename SpScalar>
   double computeM(const std::array<linalg::Matrix<SpScalar, linalg::GPU>, 2>& M_pair,
-                 const std::array<Configuration, 2>& configs);
+                  const std::array<Configuration, 2>& configs);
 
   void sumTo_(TpAccumulatorGpuBase<Parameters, DT>& other_acc);
 
   // \todo is this violation of single source of truth necessary.
-  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn >>* const G0_ptr_ =
+  const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>* const G0_ptr_ =
       nullptr;
 
-  //const int n_pos_frqs_ = -1;
+  // const int n_pos_frqs_ = -1;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
   linalg::util::GpuEvent event_;
@@ -105,12 +104,13 @@ protected:
 
   // this is how this is defined in the all tp_accumulator_gpu, suspect?
   constexpr static bool non_density_density_ =
-    models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
-  //CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::CPU, non_density_density_> ndft_obj_;
+      models::HasInitializeNonDensityInteractionMethod<Parameters>::value;
+  // CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
-  using NdftType = CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::GPU, non_density_density_>;
+  using NdftType =
+      CachedNdft<TpComplex, RDmn, WTpExtDmn, WTpExtDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
-  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, TpPrecision>;
+  using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, BDmn, SDmn, TpPrecision>;
   std::array<DftType, 2> space_trsf_objs_;
 
   constexpr static int n_ndft_queues_ = config::McOptions::memory_savings ? 1 : 2;
@@ -134,7 +134,7 @@ TpAccumulatorGpuBase<Parameters, DT>::TpAccumulatorGpuBase(
     const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int n_freq, int thread_id)
     : G0_ptr_(&G0),
-      //n_pos_frqs_(n_pos_frqs),
+      // n_pos_frqs_(n_pos_frqs),
       queues_(),
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_freq, queues_[0]), DftType(n_freq, queues_[1])},
@@ -159,17 +159,17 @@ auto TpAccumulatorGpuBase<Parameters, DT>::get_G0() -> G0DevType& {
 
 template <class Parameters, DistType DT>
 void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
-    const auto& add_mat = KDmn::parameter_type::get_add_matrix();
-    const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-    const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
-    const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-    const auto extension_offset =   (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2;
+  const auto& add_mat = KDmn::parameter_type::get_add_matrix();
+  const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
+  const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
+  const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
+  const auto extension_offset = (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2;
 
-    // CurrentlyA WTpPosDmn should always be == WTpDmn
-    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices, extension_offset,
-                           add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                           sub_mat.leadingDimension());
-    assert(cudaPeekAtLastError() == cudaSuccess);
+  // CurrentlyA WTpPosDmn should always be == WTpDmn
+  details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices,
+                         extension_offset, add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
+                         sub_mat.leadingDimension());
+  assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
 template <class Parameters, DistType DT>
@@ -192,9 +192,10 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG0() {
       for (int k = 0; k < KDmn::dmn_size(); ++k)
         for (int b2 = 0; b2 < n_bands_; ++b2)
           for (int b1 = 0; b1 < n_bands_; ++b1) {
-	    assert(std::abs(WTpExtDmn::get_elements()[w] - WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
-            G0_host[s](bkw_dmn(b1, k, w),b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
-	  }
+            assert(std::abs(WTpExtDmn::get_elements()[w] -
+                            WDmn::get_elements()[w + sp_index_offset]) < 1e-3);
+            G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
+          }
     dca::linalg::util::GpuStream reset_stream(cudaStreamLegacy);
     G0[s].set(G0_host[s], reset_stream);
   }
@@ -219,7 +220,7 @@ double TpAccumulatorGpuBase<Parameters, DT>::computeM(
     for (int s = 0; s < 2; ++s)
       flop += space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }
-  
+
   return flop;
 }
 

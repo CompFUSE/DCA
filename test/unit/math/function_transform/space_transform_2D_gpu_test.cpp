@@ -55,13 +55,12 @@ using Model = dca::phys::models::TightBindingModel<
 template <typename SCALAR>
 using NumTraits = dca::NumericalTraits<dca::util::RealAlias<SCALAR>, SCALAR>;
 
-
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using SDmn = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
 using WPosDmn =
-  dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
+    dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
 using WDmn =
     dca::func::dmn_0<dca::phys::domains::vertex_frequency_domain<dca::phys::domains::COMPACT>>;
 
@@ -77,13 +76,12 @@ template <typename Real>
 using SpaceTransform2DGpuTest = ::testing::Test;
 using TestTypes = ::testing::Types<float, double>;  //, std::complex<double>>;
 
-
 TYPED_TEST_CASE(SpaceTransform2DGpuTest, TestTypes);
 
 TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   using Scalar = TypeParam;
   using dca::util::castGPUType;
-  
+
   Parameters<Scalar> pars(dca::util::GitVersion::string(), *concurrency_ptr);
 
   using KDmn = typename Parameters<Scalar>::KClusterDmn;
@@ -100,14 +98,14 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   RMatrix<Complex, dca::linalg::CPU> M_in;
 
-  
   // Initialize the input function.
   const int nb = BDmn::dmn_size();
   const int nr = RDmn::dmn_size();
   const int nw = WPosDmn::dmn_size();
 
-  std::cout << "nBDmn:" << nb << "  nRDmn:" << nr << "  nw:" << nw << '|' << WDmn::dmn_size() << "  ns:" << SDmn::dmn_size() << '\n';
-  
+  std::cout << "nBDmn:" << nb << "  nRDmn:" << nr << "  nw:" << nw << '|' << WDmn::dmn_size()
+            << "  ns:" << SDmn::dmn_size() << '\n';
+
   M_in.resizeNoCopy(std::make_pair(nb * nr * nw, nb * nr * nw));
   for (int w2 = 0; w2 < nw; ++w2)
     for (int w1 = 0; w1 < nw; ++w1)
@@ -120,20 +118,20 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
 
               auto index = [=](int r, int b, int w) { return r + nr * b + nb * nr * w; };
               f_in(r1, r2, b1, b2, 0, w1, w2) = val;
-	      M_in(index(r1, b1, w1), index(r2, b2, w2)) = val;
+              M_in(index(r1, b1, w1), index(r2, b2, w2)) = val;
             }
 
   // Transform on the CPU.
   function<Complex, dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
-  dca::math::transform::SpaceTransform2D<RDmn, KDmn, Scalar>::execute(f_in, f_out);
+  dca::math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, Scalar>::execute(f_in, f_out);
 
   // Transform on the GPU.
   dca::linalg::ReshapableMatrix<dca::util::CUDATypeMap<Complex>, dca::linalg::GPU> M_dev(M_in);
 
   dca::linalg::util::MagmaQueue queue;
 
-  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, dca::util::CUDATypeMap<Complex>> transform_obj(
-      nw, queue);
+  dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, BDmn, SDmn, dca::util::CUDATypeMap<Complex>>
+      transform_obj(nw, queue);
   transform_obj.execute(M_dev);
 
   queue.getStream().sync();
@@ -145,10 +143,9 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
     dca::io::Writer writer(*concurrency_ptr, "ADIOS2", true);
     dca::io::Writer writer_h5(*concurrency_ptr, "HDF5", true);
 
-    //writer.open_file("tp_single_band_gpu_test_G4.bp");
+    // writer.open_file("tp_single_band_gpu_test_G4.bp");
     writer_h5.open_file("space_transform_2D_gpu_test.hdf5");
 
- 
     //    writer.execute("m_outDevice", M_out);
     //    writer.execute("m_outHost", f_out);
     writer_h5.execute("m_outDevice", M_out);
@@ -168,9 +165,8 @@ TYPED_TEST(SpaceTransform2DGpuTest, Execute) {
           for (int b2 = 0; b2 < nb; ++b2)
             for (int b1 = 0; b1 < nb; ++b1) {
               const Complex val1 = f_out(b1, b2, 0, r1, r2, w1, w2);
-              auto index = [=](int k, int b, int w) { return  b + nb * k + nb * nr * w; };
-              const Complex val2 =
-		M_out(index(r1, b1, w1), index(r2, b2, w2));
+              auto index = [=](int k, int b, int w) { return b + nb * k + nb * nr * w; };
+              const Complex val2 = M_out(index(r1, b1, w1), index(r2, b2, w2));
               EXPECT_LE(std::abs(val1 - val2), tolerance);
             }
 }
