@@ -146,6 +146,9 @@ public:
   auto& get_dwave_pp_correlator() {
     return equal_time_accumulator_ptr_->get_dwave_pp_correlator();
   }
+  auto& get_spin_ZZ_chi() {
+    return equal_time_accumulator_ptr_->get_spin_ZZ_chi();
+  }
 
   // sp-measurements
   const auto& get_sign() const {
@@ -343,9 +346,9 @@ template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistTy
 std::vector<vertex_singleton>& CtauxAccumulator<device_t, Parameters, Data, DIST>::get_configuration(
     e_spin_states_type e_spin) {
   if (e_spin == e_UP)
-    return hs_configuration_[0];
-  else
     return hs_configuration_[1];
+  else
+    return hs_configuration_[0];
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -365,6 +368,7 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::write(Writer& writer) {
     writer.execute(get_charge_cluster_moment());
     writer.execute(get_magnetic_cluster_moment());
     writer.execute(get_dwave_pp_correlator());
+    writer.execute(get_spin_ZZ_chi());
 
     writer.execute(get_G_r_t());
     writer.execute(get_G_r_t_stddev());
@@ -504,7 +508,9 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_equal_time_q
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_equal_time_quantities(
     const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M) {
-  equal_time_accumulator_ptr_->accumulateAll(hs_configuration_[0], M[0], hs_configuration_[1], M[1],
+  // equal_time_accumulator_ptr_->accumulateAll(hs_configuration_[0], M[0], hs_configuration_[1], M[1],
+  //                                            current_phase_.getSign());
+  equal_time_accumulator_ptr_->accumulateAll(hs_configuration_[1], M[1], hs_configuration_[0], M[0],
                                              current_phase_.getSign());
 
   gflop_ += equal_time_accumulator_ptr_->get_gflop();

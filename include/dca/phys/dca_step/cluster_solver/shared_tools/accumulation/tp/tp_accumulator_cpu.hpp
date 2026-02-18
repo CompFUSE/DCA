@@ -84,6 +84,7 @@ protected:
   using Base::G0_;
   using Base::G0_ptr_;
   using Base::G_;
+  // using Base::G_leg2_;
   using Base::beta_;
   using Profiler = typename Parameters::profiler_type;
   using Base::thread_id_;
@@ -271,6 +272,8 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
   Profiler prf_b("Space FT", "tp-accumulation", __LINE__, thread_id_);
   // TODO: add the gflops here.
   math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, TpPrecision>::execute(M_r_r_w_w, G_);
+  // The 'C' indicates that -k is used in the Fourier transform.
+  // math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, TpPrecision>::execute(M_r_r_w_w, G_leg2_, 'C');
 
   return flops;
 }
@@ -341,6 +344,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::computeGMultiband(const int s, 
   const BandBlockView G0_w2(&G0_(0, 0, s, k2, w2), n_bands_, n_bands_);
   // linalg::Matrix<TpComplex, linalg::CPU> M_matrix_copy(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
   BandBlockView M_matrix(&G_(0, 0, s, k1, k2, w1, w2), n_bands_);
+  // BandBlockView M_matrix_leg2(&G_leg2_(0, 0, s, k1, k2, w1, w2), n_bands_);
 
   matrixOperationsGMultiband(G0_w1, G0_w2, M_matrix, G0_M_);
 
@@ -643,14 +647,15 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                       //                w_ex_minus_w(w2, w_ex), sign_over_2, false);
                       // contraction: G_{b1,b3}(k1, k2) * G_{b2,b4}(q-k1, q-k2).
                       getGMultiband(s, k1, k2, w1, w2, G_a_);
-                      getGMultiband(!s, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
-                                    w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                      // getGMultiband(!s, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
+                      //               w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                      getGMultiband(!s, k1, k2, w1, w2, G_b_);
                       for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                         for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                           for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
                             for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
                               G4(b1, b2, b3, b4, k1, w1, k2, w2, k_ex_idx, w_ex_idx) +=
-                                  sign_over_2 * G_a_(b1, b3) * G_b_(b2, b4);
+                                  sign_over_2 * G_a_(b1, b3) * std::conj(G_b_(b2, b4));
                             }
                     }
                   }

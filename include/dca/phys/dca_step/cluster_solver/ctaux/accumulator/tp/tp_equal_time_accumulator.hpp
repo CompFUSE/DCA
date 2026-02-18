@@ -41,7 +41,7 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 using dca::util::SignType;
-  
+
 template <class Parameters, class Data>
 class TpEqualTimeAccumulator {
 public:
@@ -85,6 +85,7 @@ public:
   void sumTo(TpEqualTimeAccumulator<Parameters, Data>& other) const;
 
   auto& get_G_r_t() {
+    // return G_r_t_accumulated;
     return G_r_t;
   }
   auto& get_G_r_t_stddev() {
@@ -100,6 +101,9 @@ public:
   auto& get_dwave_pp_correlator() {
     return dwave_pp_correlator;
   }
+  auto& get_spin_ZZ_chi() {
+    return spin_ZZ_chi_accumulated;
+  }
 
   template <class configuration_type, typename T>
   void compute_G_r_t(const configuration_type& configuration_e_up,
@@ -110,6 +114,8 @@ public:
   void accumulate_G_r_t(Scalar factor);
 
   void accumulate_moments(Scalar factor);
+
+  void accumulate_chi(Scalar factor);
 
   void accumulate_dwave_pp_correlator(Scalar factor);
 
@@ -237,6 +243,7 @@ private:
   func::function<Real, r_dmn_t> dwave_r_factor;
 
   func::function<Scalar, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<Scalar, func::dmn_variadic<b, b, r_dmn_t, t_VERTEX>> spin_ZZ_chi_accumulated;
 };
 
 template <class Parameters, class Data>
@@ -253,14 +260,16 @@ TpEqualTimeAccumulator<Parameters, Data>::TpEqualTimeAccumulator(const Parameter
 
       G_r_t("G_r_t"),
       G_r_t_stddev("G_r_t_stddev"),
-      
+
       G_r_t_accumulated("G_r_t_accumulated"),
       G_r_t_accumulated_squared("G_r_t_accumulated_squared"),
 
       charge_cluster_moment("charge-cluster-moment"),
       magnetic_cluster_moment("magnetic-cluster-moment"),
 
-      dwave_pp_correlator("dwave-pp-correlator") {
+      dwave_pp_correlator("dwave-pp-correlator"),
+      spin_ZZ_chi_accumulated("spin-ZZ-chi-accumulated")
+{
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
     dwave_k_factor(k_ind) =
         cos(k_dmn_t::get_elements()[k_ind][0]) - cos(k_dmn_t::get_elements()[k_ind][1]);
@@ -297,6 +306,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::resetAccumulation() {
   magnetic_cluster_moment = 0;
 
   dwave_pp_correlator = 0;
+  spin_ZZ_chi_accumulated = 0;
 }
 
 template <class Parameters, class Data>
@@ -468,8 +478,8 @@ void TpEqualTimeAccumulator<Parameters, Data>::initialize_G0_original() {
     }
   }
 
-  //       if(true)
-  //        test_G0_original();
+        // if(true)
+         // test_G0_original();
 }
 
 template <class Parameters, class Data>
@@ -591,7 +601,6 @@ void TpEqualTimeAccumulator<Parameters, Data>::compute_G_r_t(
     const configuration_type& configuration_e_dn, const dca::linalg::Matrix<T, linalg::CPU>& M_dn) {
   {
     int configuration_size = find_first_non_interacting_spin(configuration_e_dn);
-
     M_matrix_dn.resizeNoCopy(std::pair<int, int>(configuration_size, configuration_size));
 
     G0_matrix_dn_left.resizeNoCopy(
@@ -703,6 +712,99 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulate_moments(Scalar factor)
     }
   }
 }
+
+
+template<class parameters_type, class MOMS_type>
+void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_chi(Scalar factor){
+
+  // std::cout << "b_r_t_VERTEX_dmn_t::dmn_size(): " << b_r_t_VERTEX_dmn_t::dmn_size() << "\n";
+  int b_i, b_j, r_i, r_j, t_i, t_j, dr, dt;
+  double upup, updn, spin_ZZ_val;
+  double sfactor = 0.5/((t_VERTEX::dmn_size()-1)*r_dmn_t::dmn_size());
+  // double cfactor = 2*sfactor;
+
+  for(int j=0; j<b_r_t_VERTEX_dmn_t::dmn_size(); j++){
+    b_j = fixed_configuration[j].b_ind;
+    r_j = fixed_configuration[j].r_ind;
+    t_j = fixed_configuration[j].t_ind;
+
+    for(int i=0; i<b_r_t_VERTEX_dmn_t::dmn_size(); i++){
+      b_i = fixed_configuration[i].b_ind;
+      r_i = fixed_configuration[i].r_ind;
+      t_i = fixed_configuration[i].t_ind;
+
+      dr = RClusterDmn::parameter_type::subtract(r_j, r_i);
+      dt = t_i-t_j;
+
+      spin_ZZ_val = 0.0;
+
+      // chi(beta) considered seperately later
+      if(t_i != t_VERTEX::dmn_size()-1 && t_j != t_VERTEX::dmn_size()-1)
+      // if(dt != t_VERTEX::dmn_size()-1)
+      {
+        dt = dt<0 ? dt+t_VERTEX::dmn_size()-1 : dt;
+
+        // connected diagrams:
+        // chi(0) ~ Gdn(0+)*Gup(0-) while Gup(0-) still has positive sign from G0_sign_up(i,j), so change sign here
+        upup = G_r_t_up(i,j)*G_r_t_up(j,i) + G_r_t_dn(i,j)*G_r_t_dn(j,i);
+        updn = G_r_t_dn(i,j)*G_r_t_up(j,i) + G_r_t_up(i,j)*G_r_t_dn(j,i);
+
+        if(dt==0){
+          //spin_XX_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn*sign;
+          spin_ZZ_val = -upup;
+          // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* upup;
+
+          // charge_chi_accumulated (b_i,b_j,dr,dt) -= cfactor* upup;
+        // }
+        } else{
+         // spin_XX_chi_accumulated(b_i,b_j,dr,dt) += sfactor* updn*sign;
+          spin_ZZ_val = upup;
+          // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) += sfactor* upup;
+
+          // charge_chi_accumulated (b_i,b_j,dr,dt) += cfactor* upup;
+        }
+
+        // disconnected diagrams:
+        // note that (1-G_sigma)(1-G_sigma') switch to (1+G_sigma)(1+G_sigma') since G(dt=0)<0 needs changing sign
+
+        upup = (1.0+G_r_t_up(i,i))*(1.0+G_r_t_up(j,j)) + (1.0+G_r_t_dn(i,i))*(1.0+G_r_t_dn(j,j));
+        updn = (1.0+G_r_t_up(i,i))*(1.0+G_r_t_dn(j,j)) + (1.0+G_r_t_dn(i,i))*(1.0+G_r_t_up(j,j));
+        spin_ZZ_val += (upup - updn);
+        // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) += sfactor* (upup - updn);
+
+        // charge_chi_accumulated (b_i,b_j,dr,dt) += cfactor* (upup + updn);
+
+        if(b_i==b_j && dr==0 && dt==0){
+          // correction due to cc+ = 1=c+c
+          updn = G_r_t_up(j,j) + G_r_t_dn(j,j);
+          //spin_XX_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn*sign;
+          spin_ZZ_val += -updn;
+          // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn;
+          // charge_chi_accumulated (b_i,b_j,0,0) -= cfactor* updn;
+        }
+	// std::cout << "b_i " << b_i << " b_j " << b_j << " dr " << dr << " dt " << dt << " spin_ZZ_val " << spin_ZZ_val << "\n";
+
+        spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) += spin_ZZ_val * sfactor * factor;
+
+        // spin_ZZ_chi_accumulated_squared(b_i,b_j,dr,dt) += spin_ZZ_val * spin_ZZ_val * sfactor;
+       // spin_ZZ_chi_stddev(b_i,b_j,dr,dt) += spin_ZZ_val * spin_ZZ_val * sfactor * sign;
+      }
+      // std::cout << "spin_ZZ_val " << spin_ZZ_val << "\n";
+
+      // chi(beta) = chi(0)
+      //spin_XX_chi_accumulated(b_i,b_j,dr,t_VERTEX::dmn_size()-1) = spin_XX_chi_accumulated(b_i,b_j,dr,0);
+
+      spin_ZZ_chi_accumulated(b_i,b_j,dr,t_VERTEX::dmn_size()-1) = spin_ZZ_chi_accumulated(b_i,b_j,dr,0);
+
+      //spin_ZZ_chi_stddev(b_i,b_j,dr,t_VERTEX::dmn_size()-1) = spin_ZZ_chi_stddev(b_i,b_j,dr,0);
+      // charge_chi_accumulated (b_i,b_j,dr,t_VERTEX::dmn_size()-1) = charge_chi_accumulated (b_i,b_j,dr,0);
+    }
+  }
+
+
+}
+
+
 
 /*!
  * P_d
@@ -873,25 +975,29 @@ auto TpEqualTimeAccumulator<Parameters, Data>::interpolate_akima(int b_i, int s_
   const static Real beta = parameters.get_beta();
   const static Real N_div_beta = parameters.get_sp_time_intervals() / beta;
 
-  int sign = 1;
-  // Map tau to [0, beta).
-  if (tau < 0) {
-    tau += beta;
-    sign = -1;
-  }
-  assert(0 <= tau && tau < beta);
+//   int sign = 1;
+//   // Map tau to [0, beta).
+//   if (tau < 0) {
+//     tau += beta;
+//     sign = -1;
+//   }
+//   assert(0 <= tau && tau < beta);
 
-  const Real scaled_tau = tau * N_div_beta;
-  // Find interpolation index of on the left of tau.
-  const int t_ind = static_cast<int>(scaled_tau);
+//   const Real scaled_tau = tau * N_div_beta;
+//   // Find interpolation index of on the left of tau.
+//   const int t_ind = static_cast<int>(scaled_tau);
 
-#ifndef NDEBUG
-  const auto* positive_times =
-      shifted_t::get_elements().data() + shifted_t::get_elements().size() / 2;
-  assert(positive_times[t_ind] <= tau && tau < positive_times[t_ind] + 1. / N_div_beta);
-#endif  // NDEBUG
+// #ifndef NDEBUG
+//   const auto* positive_times =
+//       shifted_t::get_elements().data() + shifted_t::get_elements().size() / 2;
+//   assert(positive_times[t_ind] <= tau && tau < positive_times[t_ind] + 1. / N_div_beta);
+// #endif  // NDEBUG
 
-  const Real delta_tau = scaled_tau - t_ind;
+const Real new_tau = tau + beta;
+const Real scaled_tau = new_tau * N_div_beta;
+const int t_ind = static_cast<int>(scaled_tau);
+
+const Real delta_tau = scaled_tau - t_ind;
   assert(delta_tau >= 0 && delta_tau < 1);
 
   const int linind = 4 * nu_nu_r_dmn_t_t_shifted_dmn(b_i, s_i, b_j, s_j, delta_r, t_ind);
@@ -901,7 +1007,8 @@ auto TpEqualTimeAccumulator<Parameters, Data>::interpolate_akima(int b_i, int s_
   const Scalar result =
       (a_ptr[0] + delta_tau * (a_ptr[1] + delta_tau * (a_ptr[2] + delta_tau * a_ptr[3])));
 
-  return Scalar(sign) * result;
+  // return Scalar(sign) * result;
+  return result;
 }
 
 template <class Parameters, class Data>
@@ -918,6 +1025,8 @@ void TpEqualTimeAccumulator<Parameters, Data>::accumulateAll(
   accumulate_moments(factor);
 
   accumulate_dwave_pp_correlator(factor);
+
+  accumulate_chi(factor);
 }
 
 template <class Parameters, class Data>
@@ -928,6 +1037,7 @@ void TpEqualTimeAccumulator<Parameters, Data>::sumTo(
   other.charge_cluster_moment += charge_cluster_moment;
   other.magnetic_cluster_moment += magnetic_cluster_moment;
   other.dwave_pp_correlator += dwave_pp_correlator;
+  other.spin_ZZ_chi_accumulated += spin_ZZ_chi_accumulated;
   other.GFLOP += GFLOP;
 }
 

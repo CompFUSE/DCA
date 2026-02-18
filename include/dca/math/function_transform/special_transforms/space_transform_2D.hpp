@@ -45,9 +45,10 @@ public:
   template <class W1Dmn, class W2Dmn>
   static void execute(
       func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, W1Dmn, W2Dmn>>& f_input,
-      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output);
+      func::function<Complex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output,
+      char trans = 'N');
 
-  static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix();
+  static const linalg::Matrix<Complex, linalg::CPU>& get_T_matrix(char trans = 'N');
 
   static bool hasPhaseFactors() {
     return SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor();
@@ -61,12 +62,12 @@ template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar>
 template <class W1Dmn, class W2Dmn>
 void SpaceTransform2D<RDmn, KDmn, BDMN, SPDMN, Scalar>::execute(
     func::function<Complex, func::dmn_variadic<RDmn, RDmn, BDMN, BDMN, SPDMN, W1Dmn, W2Dmn>>& f_input,
-    func::function<Complex, func::dmn_variadic<BDMN, BDMN, SPDMN, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output) {
+    func::function<Complex, func::dmn_variadic<BDMN, BDMN, SPDMN, KDmn, KDmn, W1Dmn, W2Dmn>>& f_output, char trans) {
   assert(SDmn::dmn_size() == 2);
   const int nc = RDmn::dmn_size();
   linalg::Matrix<Complex, linalg::CPU> tmp(nc);
   const Complex norm = Complex(1. / nc);
-  const auto& T = get_T_matrix();
+  const auto& T = get_T_matrix(trans);
   const auto& phase_factors = getPhaseFactors();
 
   for (int w2 = 0; w2 < W2Dmn::dmn_size(); ++w2)
@@ -92,14 +93,16 @@ void SpaceTransform2D<RDmn, KDmn, BDMN, SPDMN, Scalar>::execute(
 
 template <class RDmn, class KDmn, class BDMN, class SPDMN, typename Scalar>
 const linalg::Matrix<dca::util::ComplexAlias<Scalar>, linalg::CPU>& SpaceTransform2D<
-    RDmn, KDmn, BDMN, SPDMN, Scalar>::get_T_matrix() {
-  auto initialize_T_matrix = []() {
+    RDmn, KDmn, BDMN, SPDMN, Scalar>::get_T_matrix(char trans) {
+  auto initialize_T_matrix = [trans]() {
     assert(RDmn::dmn_size() == KDmn::dmn_size());
     linalg::Matrix<Complex, linalg::CPU> T(RDmn::dmn_size());
     for (int j = 0; j < RDmn::dmn_size(); ++j) {
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
-        const auto& k = KDmn::parameter_type::get_elements()[i];
+        auto& k = KDmn::parameter_type::get_elements()[i];
+	       if (trans == 'C') 
+	   for (int d; d=0; d<k.size()) k[d] = -k[d];
         using Real = dca::util::RealAlias<Scalar>;
         auto temp_exp =
             std::exp(dca::util::ComplexAlias<Real>{0, static_cast<Real>(util::innerProduct(k, r))});

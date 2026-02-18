@@ -171,11 +171,13 @@ protected:
   //CachedNdft<Scalar, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::CPU, non_density_density_> ndft_obj_;
 
   SpGreensFunction G_;
+  // SpGreensFunction G_leg2_;
 
   std::vector<TpGreensFunction> G4_;
   std::vector<FourPointType> channels_;
 
   func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_;
+  // func::function<TpComplex, func::dmn_variadic<BDmn, BDmn, SDmn, KDmn, WTpExtDmn>> G0_leg2_;
 
   const int extension_index_offset_ = -1;
   const int n_pos_frqs_ = -1;
@@ -190,8 +192,10 @@ TpAccumulatorBase<Parameters, DT>::TpAccumulatorBase(
       multiple_accumulators_(pars.get_accumulators() > 1),
       beta_(pars.get_beta()),
       G_("tp_acc_base::G_"),
+      // G_leg2_("tp_acc_base::G_leg_2"),
       channels_(pars.get_four_point_channels()),
       G0_("tp_acc_base::G0_"),
+      // G0_leg2_("tp_acc_base::G0_leg2_"),
       extension_index_offset_((WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2) {
 
   if (WDmn::dmn_size() < WTpExtDmn::dmn_size())
@@ -217,6 +221,8 @@ void TpAccumulatorBase<Parameters, DT>::initializeG0() {
         for (int b2 = 0; b2 < n_bands_; ++b2)
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
+	    // Now for leg 2: For PARTICLE_PARTICLE_UP_DOWN channel this will hold G0(-k, -w)
+            // G0_leg2_(b1, b2, s, k, w) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
   }
 }
 
