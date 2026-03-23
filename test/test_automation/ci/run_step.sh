@@ -36,9 +36,7 @@ case "$1" in
 
     if [[ "${GH_JOBNAME}" =~ (-CUDA) ]]
     then
-      echo "Set PATH to cuda-12.9 to be associated with the C and C++ compilers"
         export PATH=/usr/local/cuda-12.6/bin:$PATH
-        echo "Set CUDACXX CMake environment variable to nvcc cuda 11.8"
         export CUDACXX=/usr/local/cuda-12.6/bin/nvcc
         # Make current environment variables available to subsequent steps
         echo "PATH=$PATH" >> $GITHUB_ENV
@@ -86,7 +84,7 @@ case "$1" in
               -DDCA_WITH_MPI=1 \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
-              -DMAGMA_ROOT="/home/epd/opt_a30/magma"
+              -DMAGMA_ROOT="/home/epd/opt_a30/magma" \
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 \
 	      -DDCA_WITH_TESTS_FAST=1 \
               ${GITHUB_WORKSPACE}
