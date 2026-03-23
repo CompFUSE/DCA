@@ -3,7 +3,7 @@
 set -x
 HOST_NAME=$(hostname -s)
 
-. ./scratch/spack/share/spack/setup-env.sh
+. /scratch/spack/share/spack/setup-env.sh
 spack env activate -d /scratch/spack_envs/dca
 
 case "$1" in
