@@ -3,6 +3,9 @@
 set -x
 HOST_NAME=$(hostname -s)
 
+. /scratch/spack/share/spack/setup-env.sh
+spack env activate -d /scratch/spack_envs/dca
+
 case "$1" in
 
   # Configure DCA++ using cmake out-of-source builds
@@ -33,10 +36,8 @@ case "$1" in
 
     if [[ "${GH_JOBNAME}" =~ (-CUDA) ]]
     then
-      echo "Set PATH to cuda-12.9 to be associated with the C and C++ compilers"
-        export PATH=/usr/local/cuda-12.9/bin:$PATH
-        echo "Set CUDACXX CMake environment variable to nvcc cuda 11.8"
-        export CUDACXX=/usr/local/cuda-12.9/bin/nvcc
+        export PATH=/usr/local/cuda-12.6/bin:$PATH
+        export CUDACXX=/usr/local/cuda-12.6/bin/nvcc
         # Make current environment variables available to subsequent steps
         echo "PATH=$PATH" >> $GITHUB_ENV
         echo "CUDACXX=$CUDACXX" >> $GITHUB_ENV
@@ -57,14 +58,14 @@ case "$1" in
     if [[ "$HOST_NAME" =~ (a30four) ]]
     then
 	# use gcc-12
-      export PATH=$(spack find -lp llvm | awk '/llvm/{print $3}')/bin:${PATH}
-      export LD_LIBRARY_PATH=$(spack find -lp gcc/yel5m4n | awk '/gcc/{print $3}')/lib64:$(spack find -lp hdf5 | awk '/hdf5/{print $3}')/lib64:$(spack find -lp llvm/navafcm | awk '/llvm/{print $3}')/lib:${LD_LIBRARY_PATH}:$(spack find -lp tree-sitter-cmake | awk '/tree-sitter-cmake/{print $3}')/lib:${LD_LIBRARY_PATH}
-      export CUDAHOSTCXX=clang++
-      export MAGMA_ROOT=/home/epd/opt_a30/magma
-      export HDF5_ROOT=$(spack find --loaded -lp hdf5 | awk '/hdf5/{print $3}')
-      export OPENBLAS_ROOT=$(spack find --loaded -lp openblas | awk '/openblas/{print $3}')
-      export MPI_ROOT=$(spack find --loaded -lp openmpi | awk '/openmpi/{print $3}')
-      export FFTW_ROOT=$(spack find --loaded -lp fftw | awk '/fftw/{print $3}')
+      # export PATH=$(spack find -lp llvm | awk '/llvm/{print $3}')/bin:${PATH}
+      # export LD_LIBRARY_PATH=$(spack find -lp gcc/yel5m4n | awk '/gcc/{print $3}')/lib64:$(spack find -lp hdf5 | awk '/hdf5/{print $3}')/lib64:$(spack find -lp llvm/navafcm | awk '/llvm/{print $3}')/lib:${LD_LIBRARY_PATH}:$(spack find -lp tree-sitter-cmake | awk '/tree-sitter-cmake/{print $3}')/lib:${LD_LIBRARY_PATH}
+      # export CUDAHOSTCXX=clang++
+      # export MAGMA_ROOT=/home/epd/opt_a30/magma
+      # export HDF5_ROOT=$(spack find --loaded -lp hdf5 | awk '/hdf5/{print $3}')
+      # export OPENBLAS_ROOT=$(spack find --loaded -lp openblas | awk '/openblas/{print $3}')
+      # export MPI_ROOT=$(spack find --loaded -lp openmpi | awk '/openmpi/{print $3}')
+      # export FFTW_ROOT=$(spack find --loaded -lp fftw | awk '/fftw/{print $3}')
       # Make current environment variables available to subsequent steps
       echo "PATH=$PATH" >> $GITHUB_ENV
       echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
@@ -77,13 +78,14 @@ case "$1" in
               -DCMAKE_C_COMPILER=mpicc \
               -DCMAKE_CXX_COMPILER=mpic++ \
               -DDCA_WITH_CUDA=1 \
+              -DCMAKE_CUDA_HOST_COMPILER=g++-13 \
 	      -DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler \
 	      -DCMAKE_CUDA_ARCHITECTURES=80 \
               -DDCA_WITH_MPI=1 \
-	      -DCMAKE_PREFIX_PATH=${MPI_ROOT}\;${CUDA_ROOT}\;${MAGMA_ROOT}\;${HDF5_ROOT}\;${OPENBLAS_ROOT}\;${ADIOS2_ROOT}\;${FFTW_ROOT} \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
-	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 -DDCA_WITH_ADIOS2=1 \
+              -DMAGMA_ROOT="/home/epd/opt_a30/magma" \
+	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 \
 	      -DDCA_WITH_TESTS_FAST=1 \
               ${GITHUB_WORKSPACE}
       ;;
