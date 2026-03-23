@@ -64,7 +64,7 @@ public:
   using k_HOST =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
+  using cluster_exclusion_type = clustermapping::ClusterExclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type =
       clustermapping::double_counting_correction<ParametersType, DcaDataType>;
   using coarsegraining_sp_type = clustermapping::CoarsegrainingSp<ParametersType>;
@@ -137,7 +137,7 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::DcaLoop(
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(concurrency_ref),
-      cluster_exclusion_obj(parameters, MOMS),
+      cluster_exclusion_obj(parameters),
       double_counting_correction_obj(parameters, MOMS),
       cluster_mapping_obj(parameters),
       lattice_mapping_obj(parameters),
@@ -357,7 +357,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::perform_clust
 
   profiler_type profiler("cluster-exclusion-step", "DCA", __LINE__);
 
-  cluster_exclusion_obj.execute();
+  cluster_exclusion_obj.execute(MOMS);
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
