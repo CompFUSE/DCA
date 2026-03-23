@@ -86,6 +86,7 @@ case "$1" in
               -DDCA_WITH_MPI=1 \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
+              -DMAGMA_ROOT="/home/epd/opt_a30/magma"
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 \
 	      -DDCA_WITH_TESTS_FAST=1 \
               ${GITHUB_WORKSPACE}
