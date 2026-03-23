@@ -1,11 +1,12 @@
 // Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2026 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This class performs the cluster exclusion step.
 
@@ -31,11 +32,11 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename MOMS_type>
-class cluster_exclusion {
+template <class Parameters, class Data>
+class ClusterExclusion {
 public:
-  using profiler_type = typename parameters_type::profiler_type;
-  using concurrency_type = typename parameters_type::concurrency_type;
+  using profiler_type = typename Parameters::profiler_type;
+  using concurrency_type = typename Parameters::concurrency_type;
 
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
@@ -44,36 +45,34 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
-  cluster_exclusion(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  ClusterExclusion(Parameters& parameters_ref);
 
-  void execute();
-
-private:
-  void compute_G0_K_w_cluster_excluded();
-  void compute_G0_R_t_cluster_excluded();
-
-  void plot_G0_R_t_cluster_excluded();
+  void execute(Data& data);
 
 private:
-  parameters_type& parameters;
-  MOMS_type& MOMS;
+  void compute_G0_K_w_cluster_excluded(Data& data);
+  void compute_G0_R_t_cluster_excluded(Data& data);
+
+  void plot_G0_R_t_cluster_excluded(Data& data);
+
+private:
+  Parameters& parameters;
 };
 
-template <typename parameters_type, typename MOMS_type>
-cluster_exclusion<parameters_type, MOMS_type>::cluster_exclusion(parameters_type& parameters_ref,
-                                                                 MOMS_type& MOMS_ref)
-    : parameters(parameters_ref), MOMS(MOMS_ref) {}
+template <typename Parameters, typename Data>
+ClusterExclusion<Parameters, Data>::ClusterExclusion(Parameters& parameters_ref)
+    : parameters(parameters_ref) {}
 
-template <typename parameters_type, typename MOMS_type>
-void cluster_exclusion<parameters_type, MOMS_type>::execute() {
-  compute_G0_K_w_cluster_excluded();
+template <typename Parameters, typename Data>
+void ClusterExclusion<Parameters, Data>::execute(Data& data) {
+  compute_G0_K_w_cluster_excluded(data);
 
-  compute_G0_R_t_cluster_excluded();
+  compute_G0_R_t_cluster_excluded(data);
 }
 
 /*
@@ -81,9 +80,9 @@ void cluster_exclusion<parameters_type, MOMS_type>::execute() {
  *
  *   G_0 = G*(1 + S*G)^-1
  */
-template <typename parameters_type, typename MOMS_type>
-void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_excluded() {
-  profiler_type profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
+template <typename Parameters, typename Data>
+void ClusterExclusion<Parameters, Data>::compute_G0_K_w_cluster_excluded(Data& data) {
+  profiler_type profiler(__FUNCTION__, "ClusterExclusion", __LINE__);
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix("G_matrix", nu::dmn_size());
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> S_matrix("S_matrix", nu::dmn_size());
@@ -99,11 +98,11 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_exclu
     for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); K_ind++) {
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          G_matrix(i, j) = MOMS.G_k_w(i, j, K_ind, w_ind);
+          G_matrix(i, j) = data.G_k_w(i, j, K_ind, w_ind);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          S_matrix(i, j) = MOMS.Sigma_cluster(i, j, K_ind, w_ind);
+          S_matrix(i, j) = data.Sigma_cluster(i, j, K_ind, w_ind);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
@@ -130,39 +129,40 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_exclu
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          MOMS.G0_k_w_cluster_excluded(i, j, K_ind, w_ind) = G0_matrix(i, j);
+          data.G0_k_w_cluster_excluded(i, j, K_ind, w_ind) = G0_matrix(i, j);
     }
   }
 }
 
-template <typename parameters_type, typename MOMS_type>
-void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_excluded() {
-  profiler_type profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
+template <typename Parameters, typename Data>
+void ClusterExclusion<Parameters, Data>::compute_G0_R_t_cluster_excluded(Data& data) {
+  profiler_type profiler(__FUNCTION__, "ClusterExclusion", __LINE__);
 
-  MOMS.G0_k_w_cluster_excluded -= MOMS.G0_k_w;
+  data.G0_k_w_cluster_excluded -= data.G0_k_w;
 
   {
-    math::transform::FunctionTransform<w, t>::execute(MOMS.G0_k_w_cluster_excluded,
-                                                      MOMS.G0_k_t_cluster_excluded);
+    math::transform::FunctionTransform<w, t>::execute(data.G0_k_w_cluster_excluded,
+                                                      data.G0_k_t_cluster_excluded);
 
-    MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
+    data.G0_k_t_cluster_excluded += data.G0_k_t;
 
-    math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS.G0_k_t_cluster_excluded,
-                                                              MOMS.G0_r_t_cluster_excluded);
+    math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(
+        data.G0_k_t_cluster_excluded, data.G0_r_t_cluster_excluded);
   }
 
-  MOMS.G0_k_w_cluster_excluded += MOMS.G0_k_w;
+  data.G0_k_w_cluster_excluded += data.G0_k_w;
 }
 
-template <typename parameters_type, typename MOMS_type>
-void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded() {
+template <typename Parameters, typename Data>
+void ClusterExclusion<Parameters, Data>::plot_G0_R_t_cluster_excluded(Data& data) {
   {
     func::function<float, t> tmp("G0_k_t");
 
     util::Plot plot("lines");
     for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
-        tmp(t_ind) = MOMS.G0_k_t(0, 0, R_ind, t_ind);
+        // Method says R but this is k.
+        tmp(t_ind) = data.G0_k_t(0, 0, R_ind, t_ind);
 
       plot.plot(tmp);
     }
@@ -174,7 +174,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     util::Plot plot("lines");
     for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
-        tmp(t_ind) = MOMS.G0_k_t_cluster_excluded(0, 0, R_ind, t_ind);
+        tmp(t_ind) = data.G0_k_t_cluster_excluded(0, 0, R_ind, t_ind);
 
       plot.plot(tmp);
     }
@@ -186,15 +186,15 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     util::Plot plot("lines");
     for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
-        tmp(t_ind) = MOMS.G0_r_t_cluster_excluded(0, 0, R_ind, t_ind);
+        tmp(t_ind) = data.G0_r_t_cluster_excluded(0, 0, R_ind, t_ind);
 
       plot.plot(tmp);
     }
   }
 }
 
-}  // clustermapping
-}  // phys
-}  // dca
+}  // namespace clustermapping
+}  // namespace phys
+}  // namespace dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTER_EXCLUSION_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTEREXCLUSION_HPP
