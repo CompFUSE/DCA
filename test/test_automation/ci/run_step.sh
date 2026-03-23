@@ -80,6 +80,7 @@ case "$1" in
               -DCMAKE_C_COMPILER=mpicc \
               -DCMAKE_CXX_COMPILER=mpic++ \
               -DDCA_WITH_CUDA=1 \
+              -DCMAKE_CUDA_HOST_COMPILER=g++-13 \
 	      -DCMAKE_CUDA_FLAGS=-allow-unsupported-compiler \
 	      -DCMAKE_CUDA_ARCHITECTURES=80 \
               -DDCA_WITH_MPI=1 \
