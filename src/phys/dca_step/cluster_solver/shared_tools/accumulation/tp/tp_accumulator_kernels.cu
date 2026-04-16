@@ -639,6 +639,7 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
   // }
   else if constexpr (type == FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
     // contribution <- \sum_s G_{b1,b3}(k1, k2, s) * G_{b2,b4}(kex - k1, kex - k2, -s).
+    // Note that the following code only works for kex=0, w_ex=1.
     int w1_a(w1);
     int w2_a(w2);
     int k1_a(k1);
@@ -654,10 +655,14 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
-    int w1_b(g4_helper.wexMinus(w1, w_ex));
-    int w2_b(g4_helper.wexMinus(w2, w_ex));
-    int k1_b = g4_helper.kexMinus(k1, k_ex);
-    int k2_b = g4_helper.kexMinus(k2, k_ex);
+    // int w1_b(g4_helper.wexMinus(w1, w_ex));
+    // int w2_b(g4_helper.wexMinus(w2, w_ex));
+    // int k1_b = g4_helper.kexMinus(k1, k_ex);
+    // int k2_b = g4_helper.kexMinus(k2, k_ex);
+    int w1_b(w1);
+    int w2_b(w2);
+    int k1_b(k1);
+    int k2_b(k2);
 
     if (g4_helper.get_bands() == 1)
       g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
@@ -667,8 +672,10 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     int i_b = nb * k1_b + no * w1_b + b2;
     int j_b = nb * k2_b + no * w2_b + b4;
 
-    const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
-    const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
+    // const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
+    // const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
+    const GPUComplex<RealAlias<Scalar>> Gb_1 = conj(G_down[i_b + ldgd * j_b]);
+    const GPUComplex<RealAlias<Scalar>> Gb_2 = conj(G_up[i_b + ldgu * j_b]);
 
     contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
   }
