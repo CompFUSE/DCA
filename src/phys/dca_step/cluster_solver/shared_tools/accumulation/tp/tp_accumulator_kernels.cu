@@ -167,20 +167,20 @@ __global__ void computeGMultibandKernel(GPUComplex<Real>* __restrict__ G, int ld
   __syncthreads();
   GPUComplex<Real> G_val_store = G[id_i + ldg * id_j];
 
-  const GPUComplex<Real>* const G0_w1 = G0 + nb * k2 + no * w2;
-  const GPUComplex<Real>* const G0_w2 = G0 + nb * k1 + no * w1;
+  const GPUComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
+  const GPUComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
 
   G_val_store.x = 0;
   G_val_store.y = 0;
   for (int j = 0; j < nb; ++j) {
     for (int i = 0; i < nb; ++i) {
-      const GPUComplex<Real> G_band = -G0_w1[i + ldg0 * b1] * M[j + ldm * i] * G0_w2[b2 + ldg0 * j];
+      const GPUComplex<Real> G_band = -G0_w1[b1 + ldg0 * i] * M[i + ldm * j] * G0_w2[j + ldg0 * b2];
       G_val_store += G_band;
     }
   }
 
   if (k1 == k2 && w1 == w2)  // G0_w1 == G0_w2)
-    G_val_store += G0_w1[b2 + ldg0 * b1] * beta;
+    G_val_store += G0_w1[b1 + ldg0 * b2] * beta;
 #ifdef DEBUG_G4_GPU
   printf("%lf %lf %lf %lf %lf %lf -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2].x,
          M[b1 + ldm * b2].y, G0_w1[b2 + ldg0 * b1].x, G0_w1[b2 + ldg0 * b1].y,

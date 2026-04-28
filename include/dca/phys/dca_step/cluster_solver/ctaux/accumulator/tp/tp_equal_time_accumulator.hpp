@@ -746,8 +746,9 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_chi(Scalar f
 
         // connected diagrams:
         // chi(0) ~ Gdn(0+)*Gup(0-) while Gup(0-) still has positive sign from G0_sign_up(i,j), so change sign here
-        upup = G_r_t_up(i,j)*G_r_t_up(j,i) + G_r_t_dn(i,j)*G_r_t_dn(j,i);
-        updn = G_r_t_dn(i,j)*G_r_t_up(j,i) + G_r_t_up(i,j)*G_r_t_dn(j,i);
+	// For models with complexG0=True, convert G_r_t_sigma(i,j) to real
+	upup = std::real(G_r_t_up(i,j))*std::real(G_r_t_up(j,i)) + std::real(G_r_t_dn(i,j))*std::real(G_r_t_dn(j,i));
+	updn = std::real(G_r_t_dn(i,j))*std::real(G_r_t_up(j,i)) + std::real(G_r_t_up(i,j))*std::real(G_r_t_dn(j,i));
 
         if(dt==0){
           //spin_XX_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn*sign;
@@ -767,8 +768,8 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_chi(Scalar f
         // disconnected diagrams:
         // note that (1-G_sigma)(1-G_sigma') switch to (1+G_sigma)(1+G_sigma') since G(dt=0)<0 needs changing sign
 
-        upup = (1.0+G_r_t_up(i,i))*(1.0+G_r_t_up(j,j)) + (1.0+G_r_t_dn(i,i))*(1.0+G_r_t_dn(j,j));
-        updn = (1.0+G_r_t_up(i,i))*(1.0+G_r_t_dn(j,j)) + (1.0+G_r_t_dn(i,i))*(1.0+G_r_t_up(j,j));
+        upup = (1.0+std::real(G_r_t_up(i,i)))*(1.0+std::real(G_r_t_up(j,j))) + (1.0+std::real(G_r_t_dn(i,i)))*(1.0+std::real(G_r_t_dn(j,j)));
+        updn = (1.0+std::real(G_r_t_up(i,i)))*(1.0+std::real(G_r_t_dn(j,j))) + (1.0+std::real(G_r_t_dn(i,i)))*(1.0+std::real(G_r_t_up(j,j)));
         spin_ZZ_val += (upup - updn);
         // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) += sfactor* (upup - updn);
 
@@ -776,7 +777,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::accumulate_chi(Scalar f
 
         if(b_i==b_j && dr==0 && dt==0){
           // correction due to cc+ = 1=c+c
-          updn = G_r_t_up(j,j) + G_r_t_dn(j,j);
+          updn = std::real(G_r_t_up(j,j)) + std::real(G_r_t_dn(j,j));
           //spin_XX_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn*sign;
           spin_ZZ_val += -updn;
           // spin_ZZ_chi_accumulated(b_i,b_j,dr,dt) -= sfactor* updn;

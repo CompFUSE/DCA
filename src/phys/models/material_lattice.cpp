@@ -12,6 +12,8 @@ std::string to_str(Material mat) {
       return "NiO_unsymmetric";
     case Material::FeSn:
       return "FeSn";
+    case Material::Cs2ClCo4:
+      return "Cs2ClCo4";
     case Material::CuO2:
       return "CuO2";
     case Material::CuO2_1band:
@@ -26,6 +28,7 @@ std::string to_str(Material mat) {
 template class material_lattice<Material::NiO_symmetric, dca::phys::domains::no_symmetry<3>>;
 template class material_lattice<Material::NiO_unsymmetric, dca::phys::domains::no_symmetry<3>>;
 template class material_lattice<Material::FeSn, dca::phys::domains::no_symmetry<3>>;
+template class material_lattice<Material::Cs2ClCo4, dca::phys::domains::no_symmetry<3>>;
 
 }  // namespace models
 }  // namespace phys

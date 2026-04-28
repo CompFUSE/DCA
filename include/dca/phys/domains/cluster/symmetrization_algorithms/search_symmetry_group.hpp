@@ -152,7 +152,18 @@ private:
   }
 
   static bool is_unit_cell_compatible(double* /*T*/, double* T_inv) {
-    int Na = b_dmn_t::get_size();
+      // NOTE: This function does not work as intended. Presumbaly, it's purpose is to check if the unit call maps onto itself under
+      // a certain symmetry operation. However, it will always return 0 if there is jsut one site in unit cell at the origin,
+      // which will always map onto itself. In this case, it will return true, even though the other sites may not map onto themselves.
+      // Also, if the unit cell does not contain a site at the origin, even for the identity operation, it will return false,
+      // presumbaly becaise there is something wrong with the back_inside_cluster function.
+
+      int Na = b_dmn_t::get_size();
+
+    // std::cout << "avec0 BEFORE!!!!!: \n";
+    // for (int j = 0; j < DIMENSION; j++)        std::cout << b_dmn_t::get_elements()[0].a_vec[j] << "\n";
+
+
 
     double* permutation = new double[Na * DIMENSION];
 
@@ -162,9 +173,12 @@ private:
 
     for (int j = 0; j < Na; j++)
       for (int i = 0; i < DIMENSION; i++)
-        for (int l = 0; l < DIMENSION; l++)
+        for (int l = 0; l < DIMENSION; l++) {
           permutation[i + DIMENSION * j] += symmetry_type::matrix()[i + DIMENSION * l] *
                                             b_dmn_t::get_elements()[j].a_vec[l];  // T[l+DIMENSION*j];
+         // if (j==0) std::cout << "avec INSIDE: " << b_dmn_t::get_elements()[j].a_vec[l] << "\n";
+         // if (j==0) std::cout << "permutation INSIDE: " << permutation[i + DIMENSION * j] << "\n";
+        }
 
     bool is_compatible = false;
 
@@ -175,8 +189,14 @@ private:
       for (int j = 0; j < DIMENSION; j++)
         v[j] = permutation[j + DIMENSION * l];
 
+      // if (l==5) {
+      // std::cout << "v before back_inside_cluster: \n";
+      // for (int j = 0; j < DIMENSION; j++)        std::cout << "\t" << v[j] << "\n";
+      //   }
+
       // v_c is affine coordinates
       back_inside_cluster(&T_inv[0], &v[0], &v_c[0]);
+
 
       for (int j = 0; j < DIMENSION; j++)
         v[j] = 0;  // permutation[j+DIMENSION*i];
@@ -185,10 +205,30 @@ private:
         for (int j = 0; j < DIMENSION; j++)
           v[i] += symmetry_type::matrix()[i + DIMENSION * j] * v_c[j];
 
-      for (int j = 0; j < Na; j++)
+      // if (l==5) {
+      // std::cout << "vc after back_inside_cluster: \n";
+      // for (int j = 0; j < DIMENSION; j++)        std::cout << "\t" << v_c[j] << "\n";
+      // std::cout << "v after back_inside_cluster: \n";
+      // for (int j = 0; j < DIMENSION; j++)        std::cout << "\t" << v[j] << "\n";
+      //   }
+
+    // if (l==0) {
+    //     std::cout << "v : \n";
+    //     for (int j = 0; j < DIMENSION; j++)        std::cout << "\t" << v[j] << "\n";
+    //     std::cout << "vc : \n";
+    //     for (int j = 0; j < DIMENSION; j++)        std::cout << "\t" << v_c[j] << "\n";
+    //     std::cout << "avec0: \n";
+    //     for (int j = 0; j < DIMENSION; j++)        std::cout << b_dmn_t::get_elements()[0].a_vec[j] << "\n";
+    // }
+
+      for (int j = 0; j < Na; j++) {
+        // std::cout << "l, j, distance "<< l << "," << j << "," << math::util::distance2(v, b_dmn_t::get_elements()[j].a_vec) << "\n";
         if (math::util::distance2(v, b_dmn_t::get_elements()[j].a_vec) < 1.e-6 and
-            b_dmn_t::get_elements()[l].flavor == b_dmn_t::get_elements()[j].flavor)
+            b_dmn_t::get_elements()[l].flavor == b_dmn_t::get_elements()[j].flavor) {
           is_compatible = true;
+          // std::cout << "is_compatible for l, j, distance "<< l << "," << j << "," << math::util::distance2(v, b_dmn_t::get_elements()[j].a_vec) << "\n";
+            }
+      }
     }
 
     delete[] permutation;
@@ -209,8 +249,14 @@ public:
 
     bool is_a_duplicate = is_duplicate();
 
-    bool unit_cell_compatible = is_unit_cell_compatible(T_cell, T_cell_inv);
+    // bool unit_cell_compatible = is_unit_cell_compatible(T_cell, T_cell_inv);
+    // NOTE: this function does not work as intended, see the comment in the function definition. For now, we set it to true, which is a necessary condition for the symmetry operation to be a symmetry of the system, but not a sufficient one.
+    bool unit_cell_compatible = true;
     bool lattice_compatible = is_lattice_compatible(T, T_inv);
+
+    // std::cout << "is_unit_cell_compatible " << unit_cell_compatible << "\n";
+    // std::cout << "is_lattice_compatible " << lattice_compatible << "\n";
+    // std::cout << "is_a_duplicate " << is_a_duplicate << "\n";
 
     if (lattice_compatible && unit_cell_compatible && not is_a_duplicate) {
       symmetry_element_type symmetry_element(DIMENSION);
