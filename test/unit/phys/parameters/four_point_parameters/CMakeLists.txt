@@ -1,11 +1,12 @@
 # Four-point parameters' unit tests
 
-# why this test pulls in a bunch of magma references is a mystery
-# Define the libraries this test should link against
 set(FOUR_POINT_PARAMETERS_LIBS json enumerations ${DCA_GPU_LIBS})
 
 # Conditional linking for MAGMA (only link if MAGMA is available)
 if (MAGMA_FOUND)
+# This is only required for cuda 12.8 but harmless for earlier cuda
+# and rocm
+# why this test pulls in a bunch of magma references is a mystery
   list(APPEND FOUR_POINT_PARAMETERS_LIBS magma::magma)
 endif()
 
