@@ -58,8 +58,8 @@ for d in dirs:
 
         # Store real part of leading eigenvalue (imaginary part = 0).
         # Eigenvalues are sorted w.r.t. size in decreasing order.
-        leading_eigenvalues = data['analysis-functions']['leading-eigenvalues']['data'][:]
-        eigval.append(leading_eigenvalues[0][0])
+        leading_eigenvalues = data['analysis-functions']['leading-eigenvalues'][:]
+        eigval.append(leading_eigenvalues[0]['r'])
 
         data.close()
 
