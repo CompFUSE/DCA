@@ -353,8 +353,8 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeChi0Lattice()
     coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma, chi_0_lattice);
   }
 
-  // Renormalize and set diagonal \chi_0 matrix.
-  const ScalarType renorm = 1. / (parameters.get_beta() * k_HOST_VERTEX::dmn_size());
+  // Set diagonal \chi_0 matrix.
+  const ScalarType renorm = 1.;
 
   for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
     for (int K_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); K_ind++)
@@ -389,7 +389,8 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeGammaLattice(
       Gamma_lattice(i) = Gamma_cluster(i);
   }
 
-  if (parameters.symmetrize_Gamma()) {
+  if (parameters.symmetrize_Gamma() &&
+      parameters.get_four_point_channels()[0] != FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
     if (concurrency.id() == concurrency.first())
       std::cout << "Symmetrize Gamma_lattice according to the symmetry group." << std::endl;
     Symmetrize<Parameters>::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
