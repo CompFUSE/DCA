@@ -145,8 +145,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
-  if (parameters.symmetrize_Gamma() &&
-      parameters.get_four_point_channels()[0] != FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
+  if (parameters.symmetrize_Gamma()) {
     if (true) {
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;

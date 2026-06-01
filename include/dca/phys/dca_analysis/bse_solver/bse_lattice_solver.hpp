@@ -389,8 +389,7 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeGammaLattice(
       Gamma_lattice(i) = Gamma_cluster(i);
   }
 
-  if (parameters.symmetrize_Gamma() &&
-      parameters.get_four_point_channels()[0] != FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
+  if (parameters.symmetrize_Gamma()) {
     if (concurrency.id() == concurrency.first())
       std::cout << "Symmetrize Gamma_lattice according to the symmetry group." << std::endl;
     Symmetrize<Parameters>::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
