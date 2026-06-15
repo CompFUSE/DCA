@@ -301,12 +301,9 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::execute() {
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType, DistType DIST>
 double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::workTheClusters() {
 #ifdef DISORDERED_G0
-  // In a DISORDERED_G0 build the ordered single-cluster path (collectSingle ->
-  // compute_G_k_w_from_M_r_w) is disabled, so it cannot produce G_k_w with zero configurations.
-  // Fall back to a single configuration with no disorder (V(R) = 0), which drives the disorder
-  // pipeline through its clean limit. A missing disorder section is a deliberate clean run, so it
-  // does this silently; a section that is present but requests zero configurations is a
-  // misconfiguration, so we warn.
+  // The ordered single-cluster path is disabled under DISORDERED_G0, so with zero configurations
+  // fall back to one V=0 configuration, driving the disorder pipeline through its clean limit.
+  // Silent for a missing disorder section (deliberate clean run); warn if a section requested 0.
   if (parameters.get_disorder_num_configurations() == 0) {
     if (parameters.get_disorder_present() && concurrency.id() == concurrency.first())
       std::cerr << "Warning: a disorder section was provided but disorder-num-configurations is 0; "
@@ -496,8 +493,6 @@ double DcaLoop<ParametersType, DcaDataType, MCIntegratorType, DIST>::finalize_cl
     std::cout << "start Monte Carlo integration finalize.\n";
 
   profiler_type profiler("finalize cluster-solver", "DCA", __LINE__);
-
-  // So what we do here varies if disorder is activated.
 
   double L2_Sigma_difference = monte_carlo_integrator_.finalize(DCA_info_struct);
   if (concurrency.id() == concurrency.first())

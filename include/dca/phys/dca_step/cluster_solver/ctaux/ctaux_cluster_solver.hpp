@@ -475,12 +475,9 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
   accumulator_.finalize();
 
 #ifdef DISORDERED_G0
-  // QMC error bars on the disorder-averaged G_k_w and Sigma. accumulateGkw summed each rank's OWN
-  // (un-collected) per-config Dyson, over the whole disorder ensemble, into
-  // data_.disorder_G_r_r_w_local -- so it is a fully disorder-averaged, translationally-restored
-  // two-site G that carries only this rank's QMC noise. Here we finish the same pipeline as
-  // averageGkw (normalize -> translational average -> FT r->k) per rank, then
-  // average_and_compute_stddev takes the cross-rank mean and stddev. V=0 reduces to the clean bars.
+  // QMC error bars on the disorder-averaged G_k_w/Sigma. disorder_G_r_r_w_local holds this rank's
+  // own (un-collected) disorder-averaged two-site G; run averageGkw's pipeline (normalize ->
+  // translational average -> FT r->k) per rank, then take the cross-rank mean and stddev.
   const double total_disorder_weight =
       std::accumulate(data_.disorder_weights.begin(), data_.disorder_weights.end(), 0.0);
   data_.disorder_G_r_r_w_local /= total_disorder_weight;
@@ -553,8 +550,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     accumulated_sign_ = accumulator_.get_accumulated_phase();
     collect_delayed(accumulated_sign_);
 #ifdef DISORDERED_G0
-    // Under DISORDERED_G0 get_sign_times_M_r_w() returns the two-site M(R1,R2,w) (name is historical);
-    // the static_assert enforces it matches the two-site M_r_r_w_ domain.
+    // get_sign_times_M_r_w() returns the two-site M(R1,R2,w) here; static_assert pins the domain.
     static_assert(
         std::is_same_v<decltype(M_r_r_w_), std::decay_t<decltype(accumulator_.get_sign_times_M_r_w())>>);
     M_r_r_w_ = accumulator_.get_sign_times_M_r_w();
@@ -618,8 +614,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
   M_r_r_w_ /= static_cast<typename decltype(M_r_r_w_)::this_scalar_type>(accumulated_sign_);
   M_r_r_w_squared_ /=
       static_cast<typename decltype(M_r_r_w_squared_)::this_scalar_type>(accumulated_sign_);
-  // The r-space disorder Dyson (accumulateGrrwFromMrrw) consumes the two-site M_r_r_w_ directly;
-  // the single-R M_r_w_ is unused in the disorder build.
+  // The disorder Dyson consumes M_r_r_w_ directly; the single-R M_r_w_ is unused here.
 #else
   M_r_w_ /= static_cast<typename decltype(M_r_w_)::this_scalar_type>(accumulated_sign_);
   M_r_w_squared_ /=
@@ -675,9 +670,8 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::symmetrize_measuremen
     std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
 #ifdef DISORDERED_G0
-  // Symmetrize has no overload for the two-site <nu,R,nu,R,w> domain of M_r_r_w_.
-  // Crystal symmetry is only guaranteed after averaging over sufficiently many
-  // disorder configurations, so symmetrization is deferred until that path is implemented.
+  // No Symmetrize overload for the two-site <nu,R,nu,R,w> domain, and crystal symmetry only holds
+  // after disorder averaging, so per-config symmetrization is skipped.
 #else
   Symmetrize<Parameters>::execute(M_r_w_, data_.H_symmetry);
   Symmetrize<Parameters>::execute(M_r_w_squared_, data_.H_symmetry);
@@ -784,15 +778,9 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::accumulateGkwFromMrw(
           G_matrix(i, j) = -G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
     }
   }
-  //data_.accumulated_G_k_w += G_k_w * weight;
-  //AM
-
   G_k_w *= weight;
   data_.accumulated_G_k_w += G_k_w;
-  // This seems pretty dicey to me I think with the disorder some
-  // symmetry is only guaranteed if enough disorder configurations are
-  // summed over.
-  // Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
+  // No symmetrization here: crystal symmetry only holds after disorder averaging.
 #endif  // DISORDERED_G0
 }
 
@@ -1089,27 +1077,21 @@ auto CtauxClusterSolver<device_t, Parameters, Data, DIST>::local_G_k_w() const {
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
 #ifdef DISORDERED_G0
-  // Per-node local G in the disorder build: same r-space pipeline as the production path
-  // (accumulateGrrwFromMrrw + averageGkw), applied to THIS single config with NO cross-rank
-  // averaging. M_r_r_w_new, G_r_r_w_new, G_r_w_new are function-local scratch (destroyed at scope
-  // exit); only G_k_w_new is returned. The kernel reads disordered_G0_r_r_w_cl_exl / M through const
-  // MatrixViews (never mutates them) and accumulates into the LOCAL G_r_r_w_new, so zeroing it
-  // cannot affect any data_ member or downstream state.
+  // Per-node local G: the production r-space pipeline (Dyson -> translational average -> FT r->k)
+  // on THIS config alone, with no cross-rank averaging. All intermediates are local scratch.
 
-  // (1) Genuine two-site M(R1,R2,w), normalized by the LOCAL sign (get_accumulated_sign, matching
-  //     the clean branch -- the per-node sign, not collect_measurements' MPI-summed one).
+  // Two-site M(R1,R2,w), normalized by the local (per-node) sign.
   func::function<std::complex<Real>, NuRNuRClusterWDmn> M_r_r_w_new(
       accumulator_.get_sign_times_M_r_w(), "M_r_r_w_new");
   M_r_r_w_new /= static_cast<typename decltype(M_r_r_w_new)::this_scalar_type>(
       accumulator_.get_accumulated_phase());
 
-  // (2) r-space disorder Dyson, single config => weight 1. G_r_r_w_new is freshly default-
-  //     constructed (zero-initialized), which the accumulating kernel (acc += weight*G) requires.
+  // r-space disorder Dyson, single config (weight 1); G_r_r_w_new must start zeroed to accumulate.
   func::function<std::complex<Real>, NuRNuRClusterWDmn> G_r_r_w_new("G_r_r_w_new");
   disorder::accumulateDisorderDyson<nu, RDmn, w, Real>(
       data_.disordered_G0_r_r_w_cl_exl, M_r_r_w_new, parameters_.get_beta(), 1.0, G_r_r_w_new);
 
-  // (3) translational average <nu,R,nu,R,w> -> <nu,nu,R,w>, then FT r->k into G_k_w_new.
+  // Translational average then FT r->k.
   func::function<std::complex<Real>, NuNuRClusterWDmn> G_r_w_new("G_r_w_new");
   disorder::translationalAverage<nu, RDmn, w>(G_r_r_w_new, G_r_w_new);
   math::transform::FunctionTransform<RDmn, KDmn>::execute(G_r_w_new, G_k_w_new);

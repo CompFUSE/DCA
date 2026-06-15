@@ -66,10 +66,8 @@ public:
   /// For testing
   auto& getAkimaCoefficients() { return Base::akima_coefficients; }
 private:
-  // MAJOR CHANGE (DISORDERED_G0): these lookups take the two ABSOLUTE sites (r_0, r_1) instead of a
-  // single displacement, uniformly for both builds, so the build/update call sites stay #ifdef-free.
-  // Only each body's domain-index line is gated; the clean branch rebuilds delta_r = r1_minus_r0(r_1,
-  // r_0), preserving clean numerics exactly.
+  // These take both absolute sites (r_0, r_1) rather than a displacement; the clean build rebuilds
+  // the displacement r_1 - r_0 internally.
   auto interpolate(int nu_0, int r_0, int nu_1, int r_1, Real delta_time) -> Scalar const;
 
   auto interpolate_on_diagonal(int nu_i, int r_i) -> Scalar const;
@@ -290,7 +288,6 @@ void G0Interpolation<dca::linalg::CPU, Parameters>::update_G0_matrix(
 }
 
 template <typename Parameters>
-// MAJOR CHANGE (DISORDERED_G0): absolute sites (r_0,r_1); uniform signature, only the index is gated.
 auto G0Interpolation<dca::linalg::CPU, Parameters>::interpolate(int nu_0, int r_0, int nu_1, int r_1,
                                                                 Real tau) -> Scalar const {
   // make sure that new_tau is positive !!
@@ -318,7 +315,6 @@ auto G0Interpolation<dca::linalg::CPU, Parameters>::interpolate(int nu_0, int r_
 }
 
 template <typename Parameters>
-// MAJOR CHANGE (DISORDERED_G0): absolute site r_i; uniform signature, only the lookup is gated.
 auto G0Interpolation<dca::linalg::CPU, Parameters>::interpolate_on_diagonal(int nu_i,
                                                                             [[maybe_unused]] int r_i)
     -> Scalar const {
@@ -334,7 +330,6 @@ auto G0Interpolation<dca::linalg::CPU, Parameters>::interpolate_on_diagonal(int 
 }
 
 template <typename Parameters>
-// MAJOR CHANGE (DISORDERED_G0): absolute sites (r_0,r_1); uniform signature, only the index is gated.
 auto G0Interpolation<dca::linalg::CPU, Parameters>::interpolate_akima(int nu_0, int r_0, int nu_1,
                                                                       int r_1, Real tau)
     -> Scalar const {
