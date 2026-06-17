@@ -119,7 +119,7 @@ private:
   void initialize();
 
   void diagonalizeGammaChi0Symmetric();
-  void diagonalizeGammaChi0Full();
+  void diagonalizeGammaChi0Full(ScalarType scale = 1.);
   void diagonalize_folded_Gamma_chi_0();
 
   template <typename EvElementType>  // Element type of eigenvalues and eigenvectors.
@@ -664,14 +664,21 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0
     // Diagonalize the symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
     // The origin in momentum space has always index = 0.
     // TODO: loop over multiple channels.
-    if (parameters.get_four_point_channels()[0] == FourPointType::PARTICLE_PARTICLE_UP_DOWN &&
+    const bool is_pp_q0 =
+        parameters.get_four_point_channels()[0] == FourPointType::PARTICLE_PARTICLE_UP_DOWN &&
         parameters.get_four_point_momentum_transfer_index() == 0 &&
-        parameters.get_four_point_frequency_transfer() == 0) {
+        parameters.get_four_point_frequency_transfer() == 0;
+    if (is_pp_q0 && !parameters.direct_grid_chi0()) {
+      // Old symmetric method (real( sqrt(chi0) @ Gamma @ sqrt(chi0) )).
       diagonalizeGammaChi0Symmetric();
     }
-    else
+    else {
+      // Scale the kernel by 1/(beta * Nc) to match Python's diagonalizePPKernel(),
+      // which diagonalizes GammaIrr @ chi0 / (beta * Nc).
+      const double scale = is_pp_q0 ? (1.0 / (parameters.get_beta() * k_HOST_VERTEX::dmn_size())) : 1.0;
+      diagonalizeGammaChi0Full(scale);
+    }
 #endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
-      diagonalizeGammaChi0Full();
   }
 
   characterizeLeadingEigenvectors();
@@ -736,7 +743,8 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0
 }
 
 template <typename Parameters, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0Full() {
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0Full(
+    ScalarType scale) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
@@ -744,8 +752,12 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0
 
   const int size = LatticeEigenvectorDmn::dmn_size();
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "Compute Gamma*chi_0: " << util::print_time() << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    if (std::abs(scale - 1.) > 1.e-12)
+      std::cout << "Compute Gamma*chi_0 / (beta*Nc): " << util::print_time() << std::endl;
+    else
+      std::cout << "Compute Gamma*chi_0: " << util::print_time() << std::endl;
+  }
 
   Matrix<std::complex<ScalarType>> Gamma("Gamma", size);
   Matrix<std::complex<ScalarType>> chi_0("chi_0", size);
@@ -762,6 +774,12 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::diagonalizeGammaChi0
 
   // Compute \Gamma\chi_0.
   linalg::matrixop::gemm(Gamma, chi_0, Gamma_chi_0);
+
+  // Scale: divide by (beta * Nc) for PP Q=0 to match Python's diagonalizePPKernel().
+  if (std::abs(scale - 1.) > 1.e-12)
+    for (int j = 0; j < size; j++)
+      for (int i = 0; i < size; i++)
+        Gamma_chi_0(i, j) *= scale;
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Finished: " << util::print_time() << std::endl;
