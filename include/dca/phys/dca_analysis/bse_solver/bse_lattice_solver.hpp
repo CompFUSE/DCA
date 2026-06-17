@@ -37,6 +37,7 @@
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
@@ -98,6 +99,7 @@ public:
   void write(Writer& writer);
 
   void computeChi0Lattice();
+  void computeChi0DirectGrid();
   template <typename ClusterMatrixDmn>
   void computeGammaLattice(
       /*const*/ func::function<std::complex<ScalarType>, ClusterMatrixDmn>& Gamma_cluster);
@@ -312,48 +314,299 @@ void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeChi0Lattice()
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  clustermapping::coarsegraining_tp<Parameters, k_HOST_VERTEX> coarsegraining_tp(parameters);
+  if (parameters.direct_grid_chi0()) {
+    computeChi0DirectGrid();
+  }
+  else {
+    clustermapping::coarsegraining_tp<Parameters, k_HOST_VERTEX> coarsegraining_tp(parameters);
 
-  // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
-  if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
-    latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST> lattice_map_sp(parameters);
+    // DCA+/DCA with post-interpolation: Compute \chi_0 from continuous lattice self-energy.
+    if (parameters.do_dca_plus() || parameters.doPostInterpolation()) {
+      latticemapping::lattice_mapping_sp<Parameters, k_DCA, k_HOST> lattice_map_sp(parameters);
 
-    MOMS.Sigma_lattice_interpolated = 0.;
-    MOMS.Sigma_lattice_coarsegrained = 0.;
-    MOMS.Sigma_lattice = 0.;
+      MOMS.Sigma_lattice_interpolated = 0.;
+      MOMS.Sigma_lattice_coarsegrained = 0.;
+      MOMS.Sigma_lattice = 0.;
 
-    if (parameters.hts_approximation()) {
-      clustermapping::CoarsegrainingSp<Parameters> CoarsegrainingSp(parameters);
+      if (parameters.hts_approximation()) {
+        clustermapping::CoarsegrainingSp<Parameters> CoarsegrainingSp(parameters);
 
-      DcaDataType dca_data_hts(parameters);
-      dca_data_hts.H_HOST = MOMS.H_HOST;
-      dca_data_hts.H_interactions = MOMS.H_interactions;
+        DcaDataType dca_data_hts(parameters);
+        dca_data_hts.H_HOST = MOMS.H_HOST;
+        dca_data_hts.H_interactions = MOMS.H_interactions;
 
-      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, Parameters, DcaDataType> hts_solver(
-          parameters, dca_data_hts);
+        solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, Parameters, DcaDataType> hts_solver(
+            parameters, dca_data_hts);
 
-      lattice_map_sp.execute_with_HTS_approximation(
-          dca_data_hts, hts_solver, CoarsegrainingSp, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
-          MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+        lattice_map_sp.execute_with_HTS_approximation(
+            dca_data_hts, hts_solver, CoarsegrainingSp, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
+            MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+      }
+      else {
+        lattice_map_sp.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
+                               MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+      }
+
+      if (parameters.do_dca_plus())
+        coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_lattice);
+
+      else  // do_post_interpolation
+        coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice_interpolated, chi_0_lattice);
+    }
+
+    // (Standard) DCA: Compute \chi_0 from cluster self-energy.
+    else {
+      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma, chi_0_lattice);
+    }
+
+    // Set diagonal \chi_0 matrix.
+    const ScalarType renorm = 1.;
+
+    for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
+      for (int K_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); K_ind++)
+        for (int m2 = 0; m2 < b::dmn_size(); m2++)
+          for (int n2 = 0; n2 < b::dmn_size(); n2++)
+            for (int m1 = 0; m1 < b::dmn_size(); m1++)
+              for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+                chi_0_lattice(n1, m1, n2, m2, K_ind, w_ind) *= renorm;
+                chi_0_lattice_matrix(n1, m1, K_ind, w_ind, n2, m2, K_ind, w_ind) =
+                    chi_0_lattice(n1, m1, n2, m2, K_ind, w_ind);
+              }
+  }
+}
+
+template <typename Parameters, typename DcaDataType, typename ScalarType>
+void BseLatticeSolver<Parameters, DcaDataType, ScalarType>::computeChi0DirectGrid() {
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
+
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
+
+  chi_0_lattice = 0.;
+
+  const int nkfine = parameters.direct_grid_nkfine();
+  constexpr int dim = Parameters::lattice_type::DIMENSION;
+
+  using LatticeType = typename Parameters::model_type::lattice_type;
+  using w = func::dmn_0<domains::frequency_domain>;
+
+  const auto& super_basis = k_DCA::parameter_type::get_super_basis_vectors();
+  const auto& basis = k_DCA::parameter_type::get_basis_vectors();
+
+  const int n_w = w::dmn_size();
+  const int n_q = k_HOST_VERTEX::dmn_size();
+  const int n_w_vertex = WVertexDmn::dmn_size();
+
+  const int Q_ind = domains::cluster_operations::index(
+      parameters.get_four_point_momentum_transfer(), k_HOST_VERTEX::get_elements(),
+      k_HOST_VERTEX::parameter_type::SHAPE);
+  (void)Q_ind;
+
+  const auto& Q = parameters.get_four_point_momentum_transfer();
+
+  const int W_ind = parameters.get_four_point_frequency_transfer();
+  const auto channel = parameters.get_four_point_channels()[0];
+
+  // Number of patch points per cluster K-point.
+  int points_per_patch = 1;
+  for (int d = 0; d < dim; ++d)
+    points_per_patch *= nkfine;
+
+  // Total number of (cluster K, patch point) pairs.
+  int nk_total = n_q * points_per_patch;
+
+  // Generate cluster star vectors (all nearest-neighbor reciprocal lattice vectors).
+  // These are used to shift each patch point to the Voronoi cell around the origin,
+  // matching the Python build_kGrid(cluster=True) behavior.
+  std::vector<std::vector<double>> bcStar;
+  {
+    std::vector<int> coeffs = {-1, 0, 1};
+    if constexpr (dim == 2) {
+      for (int c0 : coeffs)
+        for (int c1 : coeffs) {
+          if (c0 == 0 && c1 == 0)
+            continue;
+          std::vector<double> v(dim, 0.);
+          for (int d = 0; d < dim; ++d)
+            v[d] = c0 * basis[0][d] + c1 * basis[1][d];
+          bcStar.push_back(v);
+        }
+    }
+    else if constexpr (dim == 3) {
+      for (int c0 : coeffs)
+        for (int c1 : coeffs)
+          for (int c2 : coeffs) {
+            if (c0 == 0 && c1 == 0 && c2 == 0)
+              continue;
+            std::vector<double> v(dim, 0.);
+            for (int d = 0; d < dim; ++d)
+              v[d] = c0 * basis[0][d] + c1 * basis[1][d] + c2 * basis[2][d];
+            bcStar.push_back(v);
+          }
+    }
+  }
+
+  // Integration factor matching coarsegraining_tp::get_integration_factor().
+  double factor = -1.;
+  switch (channel) {
+    case FourPointType::PARTICLE_HOLE_TRANSVERSE:
+    case FourPointType::PARTICLE_HOLE_MAGNETIC:
+      factor = -1.;
+      break;
+    case FourPointType::PARTICLE_HOLE_CHARGE:
+      factor = -2.;
+      break;
+    case FourPointType::PARTICLE_PARTICLE_UP_DOWN:
+      factor = 1.;
+      break;
+    default:
+      throw std::logic_error(__FUNCTION__);
+  }
+
+  // MPI round-robin over (cluster K, patch point) pairs.
+  for (int idx = concurrency.id(); idx < nk_total;
+       idx += concurrency.number_of_processors()) {
+    int qi = idx / points_per_patch;
+    int patch_idx = idx % points_per_patch;
+
+    int ix, iy, iz = 0;
+    if constexpr (dim == 2) {
+      ix = patch_idx % nkfine;
+      iy = patch_idx / nkfine;
+    }
+    else if constexpr (dim == 3) {
+      ix = patch_idx % nkfine;
+      int rem = patch_idx / nkfine;
+      iy = rem % nkfine;
+      iz = rem / nkfine;
+    }
+
+    const auto& K = k_HOST_VERTEX::get_elements()[qi];
+
+    // Build patch point using cluster basis vectors (supercell reciprocal lattice).
+    // This ensures each patch covers exactly 1/Nc of the BZ.
+    std::vector<double> k_patch(dim, 0.);
+    for (int d = 0; d < dim; ++d) {
+      k_patch[d] += basis[0][d] * ix / nkfine;
+      k_patch[d] += basis[1][d] * iy / nkfine;
+      if constexpr (dim == 3)
+        k_patch[d] += basis[2][d] * iz / nkfine;
+    }
+
+    // Shift k_patch to the Voronoi cell around the origin, matching Python's
+    // build_kGrid(cluster=True) behavior.
+    {
+      double dist0 = math::util::l2Norm2(k_patch);
+      int ibClosest = -1;
+      for (int ib = 0; ib < bcStar.size(); ++ib) {
+        double distb = math::util::distance2(k_patch, bcStar[ib]);
+        if (distb < dist0) {
+          dist0 = distb;
+          ibClosest = ib;
+        }
+      }
+      if (ibClosest > -1) {
+        for (int d = 0; d < dim; ++d)
+          k_patch[d] -= bcStar[ibClosest][d];
+      }
+    }
+
+    // Absolute k-point = cluster K + patch point.
+    std::vector<double> k_abs(dim);
+    for (int d = 0; d < dim; ++d)
+      k_abs[d] = K[d] + k_patch[d];
+
+    // Wrap to first primitive BZ using super_basis (primitive reciprocal lattice vectors).
+    const auto k = domains::cluster_operations::translate_inside_cluster(k_abs, super_basis);
+
+    // Use the patch K-point directly for the self-energy lookup.
+    // Patch points are generated within the DCA patch of K_qi using cluster basis vectors,
+    // so k is guaranteed to be in the correct patch.
+    const int k_cluster_ind = qi;
+
+    // Evaluate bare dispersion at k.
+    const double H0_k = LatticeType::evaluateH0AtK(parameters, k);
+
+    // Compute second momentum using the fixed momentum transfer Q.
+    std::vector<double> k_second_raw(dim);
+    if (channel == FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
+      for (int d = 0; d < dim; ++d)
+        k_second_raw[d] = Q[d] - k_abs[d];
     }
     else {
-      lattice_map_sp.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
-                             MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+      for (int d = 0; d < dim; ++d)
+        k_second_raw[d] = k_abs[d] + Q[d];
+    }
+    const auto kq_wrapped =
+        domains::cluster_operations::translate_inside_cluster(k_second_raw, super_basis);
+
+    // Use the same patch K-point for the second G's self-energy lookup.
+    // For PP with Q=0, -K is equivalent to K modulo the cluster superlattice.
+    const int kq_cluster_ind = qi;
+
+    // Evaluate bare dispersion at k+q.
+    const double H0_kq = LatticeType::evaluateH0AtK(parameters, kq_wrapped);
+
+    // Precompute G(k, w) for all Matsubara frequencies.
+    std::vector<std::complex<ScalarType>> G_k(n_w);
+    for (int wi = 0; wi < n_w; ++wi) {
+      const std::complex<ScalarType> iw(0., w::get_elements()[wi]);
+      // Single-band, up-spin (nu index 0 = b=0, s=0).
+      const std::complex<ScalarType> Sigma_val = MOMS.Sigma(0, 0, k_cluster_ind, wi);
+      G_k[wi] = std::complex<ScalarType>(1., 0.) /
+                (iw + parameters.get_chemical_potential() - H0_k - Sigma_val);
     }
 
-    if (parameters.do_dca_plus())
-      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_lattice);
+    // Precompute G(k+q, w) for all Matsubara frequencies.
+    std::vector<std::complex<ScalarType>> G_kq(n_w);
+    for (int wi = 0; wi < n_w; ++wi) {
+      const std::complex<ScalarType> iw(0., w::get_elements()[wi]);
+      const std::complex<ScalarType> Sigma_val = MOMS.Sigma(0, 0, kq_cluster_ind, wi);
+      G_kq[wi] = std::complex<ScalarType>(1., 0.) /
+                 (iw + parameters.get_chemical_potential() - H0_kq - Sigma_val);
+    }
 
-    else  // do_post_interpolation
-      coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma_lattice_interpolated, chi_0_lattice);
+    // Accumulate the bubble for each vertex frequency.
+    for (int w_ind = 0; w_ind < n_w_vertex; ++w_ind) {
+      // Find the w index matching the vertex frequency.
+      int w1 = -1;
+      for (int l = 0; l < n_w; ++l) {
+        if (std::abs(WVertexDmn::get_elements()[w_ind] - w::get_elements()[l]) < 1.e-6) {
+          w1 = l;
+          break;
+        }
+      }
+      if (w1 < 0)
+        throw std::logic_error(
+            "Could not find matching Matsubara frequency index in computeChi0DirectGrid.");
+
+      int w2 = -1;
+      switch (channel) {
+        case FourPointType::PARTICLE_HOLE_CHARGE:
+        case FourPointType::PARTICLE_HOLE_MAGNETIC:
+        case FourPointType::PARTICLE_HOLE_TRANSVERSE: {
+          w2 = w1 + W_ind;
+        } break;
+        case FourPointType::PARTICLE_PARTICLE_UP_DOWN: {
+          w2 = W_ind + (n_w - 1 - w1);
+        } break;
+        default:
+          throw std::logic_error(__FUNCTION__);
+      }
+
+      // Single-band: all band indices are 0.
+      chi_0_lattice(0, 0, 0, 0, qi, w_ind) +=
+          factor * G_k[w1] * G_kq[w2];
+    }
   }
 
-  // (Standard) DCA: Compute \chi_0 from cluster self-energy.
-  else {
-    coarsegraining_tp.execute(MOMS.H_HOST, MOMS.Sigma, chi_0_lattice);
-  }
+  // Collect contributions from all MPI ranks.
+  concurrency.sum(chi_0_lattice);
 
-  // Set diagonal \chi_0 matrix.
+  // Normalize by the number of patch points per cluster K-point.
+  chi_0_lattice /= static_cast<ScalarType>(points_per_patch);
+
+  // Set diagonal chi_0 matrix (same as in computeChi0Lattice).
   const ScalarType renorm = 1.;
 
   for (int w_ind = 0; w_ind < WVertexDmn::dmn_size(); w_ind++)
