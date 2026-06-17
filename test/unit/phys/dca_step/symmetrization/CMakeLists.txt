@@ -7,10 +7,10 @@ dca_add_gtest(symmetrize_test
         LIBS  ${DCA_LIBS}
         )
 
-# PR-0 characterization harness. One binary per (lattice, point group) case: the
-# DCA domain + cluster-symmetry singletons are keyed on dimension/role, not on the
-# lattice, so cases of the same dimension cannot coexist in one process. Each case
-# is selected from the shared source via THIS_TEST_DEFINES (CMake TEST_DEFINES).
+# Test binaries for derived symmetrization. One binary per (lattice, point group)
+# case: the DCA domain + cluster-symmetry singletons are keyed on dimension/role,
+# not on the lattice, so cases of the same dimension cannot coexist in one process.
+# Each case is selected from the shared source via TEST_DEFINES.
 dca_add_gtest(symmetrize_characterization_square_D4_test
         FAST
         GTEST_MPI_MAIN
