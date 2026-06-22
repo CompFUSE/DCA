@@ -67,7 +67,7 @@
 
 namespace {
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/unit/phys/dca_step/symmetrization/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/phys/symmetrization/";
 
 // Double-precision tolerance for the deterministic G0 oracle
 constexpr double kTolerance = 1e-12;
