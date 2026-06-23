@@ -1,0 +1,425 @@
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Tyler Sax (tylersax@gmail.com)
+//
+// Characterization harness for single-particle cluster symmetrization.
+//
+// This is the regression net for Hamiltonian-derived-symmetrization. It
+// generalizes symmetrize_test.cpp from one trivial-symmetry case (twoband_chain x
+// no_symmetry<2>, an identity-only group that makes every cluster loop a structural
+// no-op) into a per-(model, operation) characterization across lattices paired with
+// their real point groups.
+//
+// Oracle: G0 = [iw + mu - H0]^-1 is deterministic and exactly invariant under every
+// symmetry S of H0, so symmetrizing G0 must be a no-op. Four tests exercise this:
+//   1. DomainActivation: assert the cluster realized the expected number of symmetry
+//      ops, so the no-op checks below have a non-trivial group to exercise.
+//   2. CoarseNoOp: run the real production Symmetrize::execute on a copy of G0 and diff
+//      against the original at ~1e-12, over all four representations (k/r x w/t). This
+//      is the authoritative regression net -- it runs the whole production pipeline,
+//      which is where the multi-orbital bugs live.
+//   3 & 4. PerOpMapMomentum / PerOpMapRealSpace: a test-local applicator that, for one
+//      operation index, applies today's cluster-symmetry table relation to G0 and checks
+//      invariance. They mirror executeCluster, so they characterize today's
+//      representation+code per operation -- isolating which op's encoding is to blame.
+//
+// Limitation: A no-op on already-symmetric G0 detects operations whose encoding
+// is wrong, but does not detect symmetry operations that are silently missing.
+//
+// Test architecture: One binary per case. The cluster_symmetry<cluster_domain<...>> table
+// and all DCA domains are singletons keyed on (scalar, D, role-NAME, rep, shape) -- not on
+// the lattice -- so two lattices of the same dimension alias the same singletons and a
+// second update_domains() would clobber the first. Each case is therefore built into its
+// own binary, selected by THIS_TEST_DEFINES via CMake TEST_DEFINES (same idiom as
+// tp_accumulator_gpu_test.cpp).
+
+#include "dca/platform/dca_gpu.h"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
+
+#include <algorithm>
+#include <complex>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "dca/testing/gtest_h_w_warning_blocking.h"
+
+#include "dca/config/threading.hpp"
+#include "dca/io/json/json_reader.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
+#include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
+#include "dca/phys/domains/cluster/cluster_symmetry.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
+#include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
+#include "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp"
+#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp"
+#include "dca/phys/models/tight_binding_model.hpp"
+#include "dca/phys/parameters/num_traits.hpp"
+
+namespace {
+
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/phys/symmetrization/";
+
+// Double-precision tolerance for the deterministic G0 oracle
+constexpr double kTolerance = 1e-12;
+
+using Concurrency = dca::parallel::NoConcurrency;
+
+using dca::func::dmn_0;
+using dca::func::dmn_variadic;
+using dca::func::function;
+using BDmn = dmn_0<dca::phys::domains::electron_band_domain>;
+using SDmn = dmn_0<dca::phys::domains::electron_spin_domain>;
+using NuDmn = dmn_variadic<BDmn, SDmn>;
+
+// ---------------------------------------------------------------------------------
+// Case traits. THIS_TEST_DEFINES (set by CMake TEST_DEFINES) selects which one is
+// instantiated; only one trait is ever live per binary, so the domain singletons are
+// never shared across cases.
+//
+// The expectedFailing*() lists hold the ops/reps whose encoding the per-op oracle
+// finds inconsistent with the deterministic G0 -- i.e. the committed red cells. They
+// are filled from the harness's own first run and become the gate: any change flips the
+// test. (Empty == the whole point-group is encoded correctly for this representation.)
+// ---------------------------------------------------------------------------------
+
+// CASE 1 -- square lattice with the full D4 point group (8 ops)
+struct SquareD4 {
+  using Scalar = double;
+  using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
+  static constexpr char Input[] = "square_D4_input.json";
+  static constexpr int expected_num_symmetries = 8;
+  // GREEN baseline: single band, no off-diagonals -- nothing for the imposition to
+  // get wrong. Validates that the harness itself reports green when it should.
+  static std::vector<std::string> expectedFailingReps() { return {}; }
+  static std::vector<int> expectedFailingKOps() { return {}; }
+  static std::vector<int> expectedFailingROps() { return {}; }
+};
+
+// CASE 2 -- three-band Hubbard (Emery/CuO2) model on D4. This case fails the
+// newly-introduced test, indicating a possible bug we expect to fix in the next
+// milestone of the symmetrization project.
+struct ThreebandD4 {
+  using Scalar = double;
+  using Lattice = dca::phys::models::ThreebandHubbard<dca::phys::domains::D4>;
+  static constexpr char Input[] = "threeband_D4_input.json";
+  static constexpr int expected_num_symmetries = 8;
+  // The per-op cluster maps are GREEN -- each single operation's table encoding is
+  // consistent with G0 -- but the production Symmetrize::execute is NOT a no-op on
+  // the deterministic G0, suggesting buggy behavior in how multi-band symmetry
+  // is imposed. These flip to green when the next milestone in the symmetrization
+  // project rewrites the imposition.
+  static std::vector<std::string> expectedFailingReps() { return {"k_iw", "r_iw", "r_tau"}; }
+  static std::vector<int> expectedFailingKOps() { return {}; }
+  static std::vector<int> expectedFailingROps() { return {}; }
+};
+
+// CASE 3 -- 1D chain. Since this model has identity-only symmetry, this test exercises
+// only the basic plumbing (valuable as a diagnostic).
+struct SinglebandChain {
+  using Scalar = double;
+  // singleband_chain hardcodes no_symmetry<2> regardless of the template argument.
+  using Lattice = dca::phys::models::singleband_chain<dca::phys::domains::no_symmetry<2>>;
+  static constexpr char Input[] = "singleband_chain_input.json";
+  static constexpr int expected_num_symmetries = 1;
+  // GREEN baseline: identity-only group, single band.
+  static std::vector<std::string> expectedFailingReps() { return {}; }
+  static std::vector<int> expectedFailingKOps() { return {}; }
+  static std::vector<int> expectedFailingROps() { return {}; }
+};
+
+// Templated test fixture
+template <typename C>
+class SymmetrizeCharacterizationTest : public ::testing::Test {
+protected:
+  using Scalar = typename C::Scalar;
+  using Lattice = typename C::Lattice;
+  using Model = dca::phys::models::TightBindingModel<Lattice>;
+
+  using Parameters =
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, Model,
+                                    void, dca::ClusterSolverId::CT_AUX,
+                                    dca::NumericalTraits<dca::util::RealAlias<Scalar>, Scalar>>;
+
+  using RClusterDmn = typename Parameters::RClusterDmn;
+  using KClusterDmn = typename Parameters::KClusterDmn;
+  using TDmn = typename Parameters::TDmn;
+  using WDmn = typename Parameters::WDmn;
+
+  using KCluster = typename KClusterDmn::parameter_type;
+  using RCluster = typename RClusterDmn::parameter_type;
+  using KSymDmn = typename dca::phys::domains::cluster_symmetry<KCluster>::sym_super_cell_dmn_t;
+  using RSymDmn = typename dca::phys::domains::cluster_symmetry<RCluster>::sym_super_cell_dmn_t;
+
+  SymmetrizeCharacterizationTest() : concurrency_(0, nullptr), parameters_("", concurrency_) {
+    // load the per-case JSON into parameters_, derive model-level data.
+    parameters_.template read_input_and_broadcast<dca::io::JSONReader>(input_dir + C::Input);
+    parameters_.update_model();
+
+    // Domain singletons are process-global and must be initialized exactly once, even
+    // though gtest builds a fresh fixture per test. This static guard lets multiple
+    // TYPED_TESTs share one init in a single binary -- tp_accumulator_gpu_test.cpp hits
+    // the same singleton constraint but works around it by only ever running one case
+    // per binary. reset() is inside the guard because only the first fixture's members
+    // were constructed before update_domains() ran (so only they are mis-sized); the H0/
+    // H_symmetry fills are outside because every fixture gets fresh, zero-valued members.
+    static bool domain_initialized = false;
+    if (!domain_initialized) {
+      parameters_.update_domains();
+      H0_.reset();
+      H_symmetry_.reset();
+      domain_initialized = true;
+    }
+
+    Parameters::model_type::initializeH0(parameters_, H0_);
+    Parameters::model_type::initialize_H_symmetries(H_symmetry_);
+  }
+
+  Concurrency concurrency_;
+  Parameters parameters_;
+
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H0_;
+  function<int, dmn_variadic<NuDmn, NuDmn>> H_symmetry_;
+};
+
+using TestTypes = ::testing::Types<THIS_TEST_DEFINES>;
+TYPED_TEST_CASE(SymmetrizeCharacterizationTest, TestTypes);
+
+// Largest element-wise magnitude of (a - b) over two identically-shaped functions.
+template <typename F>
+double maxAbsDiff(const F& a, const F& b) {
+  double m = 0.;
+  // std::abs correctly returns the modulus for std::complex<double>.
+  for (int i = 0; i < a.size(); ++i)
+    m = std::max(m, std::abs(a(i) - b(i)));
+  return m;
+}
+
+// TEST 1 of 4: DomainActivation -- sanity gate. Reads the op counts off the symmetry
+// domains and asserts they match the trait's expected_num_symmetries. Without this, a
+// misconfigured case could run green simply because it had only the identity op to check.
+TYPED_TEST(SymmetrizeCharacterizationTest, DomainActivation) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  const int n_k_ops = Fixture::KSymDmn::dmn_size();
+  const int n_r_ops = Fixture::RSymDmn::dmn_size();
+
+  std::cout << "[case] " << TypeParam::Input << ": cluster sym ops = " << n_k_ops
+            << " (momentum), " << n_r_ops << " (real space); bands = " << BDmn::dmn_size()
+            << ", k-points = " << Fixture::KClusterDmn::dmn_size() << "\n";
+
+  EXPECT_EQ(n_k_ops, TypeParam::expected_num_symmetries);
+  EXPECT_EQ(n_r_ops, TypeParam::expected_num_symmetries);
+}
+
+// TEST 2 of 4: CoarseNoOp -- the full production pipeline, asserted at 1e-12. Covers the
+// four representations the existing test exercises (k/r x w/t). For each, run
+// Symmetrize::execute on a copy of G0 and diff against the original. The set of
+// representations that are not left invariant is compared to the expected failing set
+// declared in the case trait, so all cases stay green now while the known-red cells gate
+// the next milestone of the symmetrization project.
+//
+// Unlike the per-op maps, this runs the whole production pipeline (spin + cluster +
+// time/frequency channels and the averaging/norm), so it catches defects in how the
+// operations are combined.
+TYPED_TEST(SymmetrizeCharacterizationTest, CoarseNoOp) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using Parameters = typename Fixture::Parameters;
+  using KClusterDmn = typename Fixture::KClusterDmn;
+  using RClusterDmn = typename Fixture::RClusterDmn;
+  using TDmn = typename Fixture::TDmn;
+  using WDmn = typename Fixture::WDmn;
+
+  // Symmetrize a copy with the production code; return max element-wise change.
+  auto noOpResidual = [](auto G0) {
+    auto sym = G0;
+    dca::phys::Symmetrize<Parameters>::execute(sym, false);
+    return maxAbsDiff(G0, sym);
+  };
+
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
+  dca::phys::compute_G0_k_w(this->H0_, this->parameters_.get_chemical_potential(), 1, G0_k_w);
+
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
+  dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w, G0_r_w);
+
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
+  dca::phys::compute_G0_k_t(this->H0_, this->parameters_.get_chemical_potential(),
+                            this->parameters_.get_beta(), G0_k_t);
+
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cmplx;
+  dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t_cmplx);
+  function<double, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
+  G0_r_t = dca::func::util::real(G0_r_t_cmplx, dca::ImagCheck::FAIL);
+
+  // Run the oracle on all four reps and collect (name, residual) pairs
+  const std::vector<std::pair<std::string, double>> residuals = {
+      {"k_iw", noOpResidual(G0_k_w)},
+      {"r_iw", noOpResidual(G0_r_w)},
+      {"k_tau", noOpResidual(G0_k_t)},
+      {"r_tau", noOpResidual(G0_r_t)}};
+
+  // Turn residuals into a red/green list and diff against the expected failing set
+  std::vector<std::string> failing_reps;
+  std::cout << "[coarse no-op residuals] " << TypeParam::Input << "\n";
+  for (const auto& [rep, residual] : residuals) {
+    const bool failed = residual >= kTolerance;
+    std::cout << "  " << rep << ": " << (failed ? "FAIL" : "PASS")
+              << "  max|G0 - sym(G0)| = " << residual << "\n";
+    if (failed)
+      failing_reps.push_back(rep);
+  }
+
+  // Compare as a set: sort both sides so the assertion does not depend on the residuals
+  // iteration order (which carries no meaning).
+  std::sort(failing_reps.begin(), failing_reps.end());
+  auto expected_reps = TypeParam::expectedFailingReps();
+  std::sort(expected_reps.begin(), expected_reps.end());
+  EXPECT_EQ(failing_reps, expected_reps)
+      << "Coarse no-op red/green map changed vs the expected failing set.";
+}
+
+// TEST 3 of 4: PerOpMapMomentum -- per-operation map (momentum channel). For each
+// operation s, mirror the momentum band-aware executeCluster relation on G0(k, iw):
+//   G0(b0, b1, k) == sign_s * G0(b0_new, b1_new, k_new)   when sign_s != 0,
+// where (k_new, b*_new) come from get_symmetry_matrix() and sign_s from
+// transformationSignOfK. The set of ops with a real violation is compared to
+// the expected failing set.
+TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentum) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KClusterDmn = typename Fixture::KClusterDmn;
+  using WDmn = typename Fixture::WDmn;
+  using KCluster = typename Fixture::KCluster;
+  using Lattice = typename Fixture::Lattice;
+
+  // Build the (k, iw) oracle exactly as in CoarseNoOp.
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0;
+  dca::phys::compute_G0_k_w(this->H0_, this->parameters_.get_chemical_potential(), 1, G0);
+
+  const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+  const int n_ops = Fixture::KSymDmn::dmn_size();
+  const int nb = BDmn::dmn_size();
+  const int ns = SDmn::dmn_size();
+  const int nk = KClusterDmn::dmn_size();
+  const int nw = WDmn::dmn_size();
+
+  std::vector<int> failing_ops;
+  std::cout << "[per-op momentum map] " << TypeParam::Input << "\n";
+  // ---- Outer loop over symmetry ops s. Each iteration is one independent check.
+  for (int s = 0; s < n_ops; ++s) {
+    double max_viol = 0.;
+    bool any_checked = false;  // Tracks whether op s constrained anything (else N/A)
+    // ---- Sweep every (k, b0, b1) band-pair at this op
+    for (int k = 0; k < nk; ++k)
+      for (int b0 = 0; b0 < nb; ++b0)
+        for (int b1 = 0; b1 < nb; ++b1) {
+          const double sign = Lattice::transformationSignOfK(b0, b1, s);
+          if (sign == 0)  // op does not constrain this band pair -> N/A
+            continue;
+          const int k_new = sym(k, b0, s).first;  // mirrors production ("FIXME: b0 -> b1")
+          const int b0_new = sym(k, b0, s).second;
+          const int b1_new = sym(k, b1, s).second;
+          // ---- Invariance check, swept over spin and frequency. Asserts
+          // G0(b0,b1,k,w) == sign * G0(b0_new,b1_new,k_new,w). Accumulate worst
+          // violation rather than failing on first, so the printed number is the
+          // real max error for this op.
+          for (int sp = 0; sp < ns; ++sp)
+            for (int w = 0; w < nw; ++w) {
+              any_checked = true;
+              const auto lhs = G0(b0, sp, b1, sp, k, w);
+              const auto rhs = sign * G0(b0_new, sp, b1_new, sp, k_new, w);
+              max_viol = std::max(max_viol, std::abs(lhs - rhs));
+            }
+        }
+    // Classify this op: FAIL only if it actually checked something AND exceeded tolerance
+    const bool failed = any_checked && max_viol >= kTolerance;
+    std::cout << "  op " << s << ": " << (any_checked ? (failed ? "FAIL" : "PASS") : "N/A ")
+              << "  max|G0 - S.G0| = " << max_viol << "\n";
+    if (failed)
+      failing_ops.push_back(s);
+  }
+
+  std::sort(failing_ops.begin(), failing_ops.end());
+  auto expected_ops = TypeParam::expectedFailingKOps();
+  std::sort(expected_ops.begin(), expected_ops.end());
+  EXPECT_EQ(failing_ops, expected_ops)
+      << "Momentum per-op red/green map changed vs the expected failing set.";
+}
+
+// TEST 4 of 4: PerOpMapRealSpace -- mirror of TEST 3 but in real space / tau, and with one
+// key difference: it skips off-diagonal band pairs (b0!=b1) because production's real-space
+// executeCluster does the same. That skip is itself one of the suspected bugs, so this test
+// characterizes production's behavior, off-diag blind spot included.
+TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapRealSpace) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KClusterDmn = typename Fixture::KClusterDmn;
+  using RClusterDmn = typename Fixture::RClusterDmn;
+  using TDmn = typename Fixture::TDmn;
+  using RCluster = typename Fixture::RCluster;
+  using Lattice = typename Fixture::Lattice;
+
+  // Build (k,tau), FT to (r,tau), drop the imaginary part -> real G0(r,tau).
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
+  dca::phys::compute_G0_k_t(this->H0_, this->parameters_.get_chemical_potential(),
+                            this->parameters_.get_beta(), G0_k_t);
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_cmplx;
+  dca::math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_cmplx);
+  function<double, dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0;
+  G0 = dca::func::util::real(G0_cmplx, dca::ImagCheck::FAIL);
+
+  const auto& sym = dca::phys::domains::cluster_symmetry<RCluster>::get_symmetry_matrix();
+  const int n_ops = Fixture::RSymDmn::dmn_size();
+  const int nb = BDmn::dmn_size();
+  const int ns = SDmn::dmn_size();
+  const int nr = RClusterDmn::dmn_size();
+  const int nt = TDmn::dmn_size();
+
+  std::vector<int> failing_ops;
+  std::cout << "[per-op real-space map] " << TypeParam::Input << "\n";
+  for (int s = 0; s < n_ops; ++s) {
+    double max_viol = 0.;
+    bool any_checked = false;
+    for (int r = 0; r < nr; ++r)
+      for (int b0 = 0; b0 < nb; ++b0)
+        for (int b1 = 0; b1 < nb; ++b1) {
+          if (b0 != b1)  // off-diagonal skip in executeCluster -> N/A
+            continue;
+          // Real-space phase for this diagonal element under op s; 0 => N/A.
+          const double sign = Lattice::transformationSignOfR(b0, b1, s);
+          if (sign == 0)
+            continue;
+          const int r_new = sym(r, 0, s).first;
+          const int b0_new = sym(r, b0, s).second;
+          const int b1_new = sym(0, b1, s).second;
+          // Invariance check over spin + imaginary time, real arithmetic this time.
+          for (int sp = 0; sp < ns; ++sp)
+            for (int t = 0; t < nt; ++t) {
+              any_checked = true;
+              const double lhs = G0(b0, sp, b1, sp, r, t);
+              const double rhs = sign * G0(b0_new, sp, b1_new, sp, r_new, t);
+              max_viol = std::max(max_viol, std::abs(lhs - rhs));
+            }
+        }
+    const bool failed = any_checked && max_viol >= kTolerance;
+    std::cout << "  op " << s << ": " << (any_checked ? (failed ? "FAIL" : "PASS") : "N/A ")
+              << "  max|G0 - S.G0| = " << max_viol << "\n";
+    if (failed)
+      failing_ops.push_back(s);
+  }
+
+  std::sort(failing_ops.begin(), failing_ops.end());
+  auto expected_ops = TypeParam::expectedFailingROps();
+  std::sort(expected_ops.begin(), expected_ops.end());
+  EXPECT_EQ(failing_ops, expected_ops)
+      << "Real-space per-op red/green map changed vs the expected failing set.";
+}
+
+}  // namespace
