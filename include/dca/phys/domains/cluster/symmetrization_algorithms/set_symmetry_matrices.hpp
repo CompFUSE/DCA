@@ -156,6 +156,9 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
                  func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
       fold_phase = cluster_symmetry<k_cluster_type>::get_fold_phase();
 
+  func::function<int, func::dmn_variadic<k_dmn_t, sym_super_cell_dmn_t>>& mapped_point =
+      cluster_symmetry<k_cluster_type>::get_mapped_point();
+
   //   r_symmetry_matrix.print_fingerprint();
   //   k_symmetry_matrix.print_fingerprint();
 
@@ -169,6 +172,12 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
         const int k_image = find_k_index(trafo_k);
         k_symmetry_matrix(i, j, l).first = k_image;
         k_symmetry_matrix(i, j, l).second = r_symmetry_matrix(i, j, l).second;
+
+        // mapped_point is the same k-image, promoted to a band-independent accessor. trafo_k (hence
+        // k_image) is computed from the momentum alone, so it does not depend on the band j; store it
+        // once (j == 0) to make that independence explicit.
+        if (j == 0)
+          mapped_point(i, l) = k_image;
 
         // Folding phase V(G) = e^{i G.a_band}. find_k_index folds (O k) back into the BZ by
         // subtracting the reciprocal vector G. Here, we recover G = (O k) - k[image]

@@ -40,9 +40,12 @@
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
+#include "dca/phys/dca_step/symmetrization/solve_orbital_op_signs.hpp"
 
 #include <algorithm>
 #include <complex>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -103,6 +106,7 @@ struct SquareD4 {
   static std::vector<std::string> expectedFailingReps() { return {}; }
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
+  static std::vector<int> expectedUnverifiedKOps() { return {}; }
 };
 
 // CASE 2 -- three-band Hubbard (Emery/CuO2) model on D4. This case fails the
@@ -121,6 +125,7 @@ struct ThreebandD4 {
   static std::vector<std::string> expectedFailingReps() { return {"k_iw", "r_iw", "r_tau"}; }
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
+  static std::vector<int> expectedUnverifiedKOps() { return {}; }
 };
 
 // CASE 3 -- 1D chain. Since this model has identity-only symmetry, this test exercises
@@ -135,6 +140,7 @@ struct SinglebandChain {
   static std::vector<std::string> expectedFailingReps() { return {}; }
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
+  static std::vector<int> expectedUnverifiedKOps() { return {}; }
 };
 
 // Templated test fixture
@@ -204,7 +210,43 @@ double maxAbsDiff(const F& a, const F& b) {
   return m;
 }
 
-// TEST 1 of 4: DomainActivation -- sanity gate. Reads the op counts off the symmetry
+// Runs fn and returns the what() string of any std::exception it throws, or "" if it ran
+// to completion. The rejection fixtures use this to assert not just that the sign solver
+// throws, but that it throws for the intended reason (the three branches catch three
+// distinct corruptions and share two exception types, so the message is what distinguishes
+// them).
+template <typename F>
+std::string captureThrowMessage(F&& fn) {
+  try {
+    fn();
+  }
+  catch (const std::exception& e) {
+    return e.what();
+  }
+  return "";
+}
+
+// Location of an off-diagonal H0 coupling: the band pair (b0, b1) at momentum k, and its magnitude.
+struct OffDiagTarget {
+  int b0, b1, k;
+  double mag;
+};
+
+// Finds the strongest off-diagonal coupling H0(b0, b1, k) (b0 != b1) over all momenta. Shared by the
+// magnitude-mismatch and non-unit-ratio rejection fixtures, which perturb that one entry (and its
+// Hermitian partner) in different ways.
+template <typename F>
+OffDiagTarget findStrongestOffDiagonal(const F& H0, int nb, int nk) {
+  OffDiagTarget t{-1, -1, -1, 0.};
+  for (int k = 0; k < nk; ++k)
+    for (int b0 = 0; b0 < nb; ++b0)
+      for (int b1 = 0; b1 < nb; ++b1)
+        if (b0 != b1 && std::abs(H0(b0, 0, b1, 0, k)) > t.mag)
+          t = {b0, b1, k, std::abs(H0(b0, 0, b1, 0, k))};
+  return t;
+}
+
+// TEST 1: DomainActivation -- sanity gate. Reads the op counts off the symmetry
 // domains and asserts they match the trait's expected_num_symmetries. Without this, a
 // misconfigured case could run green simply because it had only the identity op to check.
 TYPED_TEST(SymmetrizeCharacterizationTest, DomainActivation) {
@@ -220,7 +262,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, DomainActivation) {
   EXPECT_EQ(n_r_ops, TypeParam::expected_num_symmetries);
 }
 
-// TEST 2 of 4: CoarseNoOp -- the full production pipeline, asserted at 1e-12. Covers the
+// TEST 2: CoarseNoOp -- the full production pipeline, asserted at 1e-12. Covers the
 // four representations the existing test exercises (k/r x w/t). For each, run
 // Symmetrize::execute on a copy of G0 and diff against the original. The set of
 // representations that are not left invariant is compared to the expected failing set
@@ -287,7 +329,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, CoarseNoOp) {
       << "Coarse no-op red/green map changed vs the expected failing set.";
 }
 
-// TEST 3 of 4: PerOpMapMomentum -- per-operation map (momentum channel). For each
+// TEST 3: PerOpMapMomentum -- per-operation map (momentum channel). For each
 // operation s, mirror the momentum band-aware executeCluster relation on G0(k, iw):
 //   G0(b0, b1, k) == sign_s * G0(b0_new, b1_new, k_new)   when sign_s != 0,
 // where (k_new, b*_new) come from get_symmetry_matrix() and sign_s from
@@ -354,7 +396,143 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentum) {
       << "Momentum per-op red/green map changed vs the expected failing set.";
 }
 
-// TEST 4 of 4: PerOpMapRealSpace -- mirror of TEST 3 but in real space / tau, and with one
+// TEST 4: PerOpMapMomentumUS -- the shadow orbital-op record, derived from H0. Solve each U_S as
+// a signed permutation directly from H0(k) by enumerating the sign assignments consistent with the
+// H0 couplings (no transformationSignOf*), verify it is a well-formed unitary signed permutation,
+// and re-run the per-op momentum no-op as the matrix conjugation  G0(k) == U_S G0(k_new) U_S^dagger
+// rather than the element-wise scalar relation of TEST 3. It must reproduce TEST 3's red/green map;
+// its purpose is to prove the consolidated, H0-derived matrix record is faithful and correct, not
+// to find new bugs.
+TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentumUS) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KClusterDmn = typename Fixture::KClusterDmn;
+  using WDmn = typename Fixture::WDmn;
+  using KCluster = typename Fixture::KCluster;
+
+  // Populate the shadow orbital-op table from H0 alone; throws if the op is not a signed-permutation
+  // symmetry of H0.
+  dca::phys::solveOrbitalOpSignsFromH0<KCluster>(this->H0_);
+  const auto& u_s = dca::phys::domains::cluster_symmetry<KCluster>::get_orbital_op();
+  const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+
+  const int n_ops = Fixture::KSymDmn::dmn_size();
+  const int nb = BDmn::dmn_size();
+  const int ns = SDmn::dmn_size();
+  const int nk = KClusterDmn::dmn_size();
+  const int nw = WDmn::dmn_size();
+
+  // ---- Check 1 (structural): each U_S is a signed permutation -- exactly one +/-1 per row and column.
+  // (A real matrix with one unit-magnitude entry per row and per column is orthogonal by
+  // construction, so there is no separate U_S U_S^T = I check to run.)
+  for (int s = 0; s < n_ops; ++s)
+    for (int r = 0; r < nb; ++r) {
+      int row_nnz = 0, col_nnz = 0;
+      for (int c = 0; c < nb; ++c) {
+        if (u_s(r, c, s) != 0.) {
+          ++row_nnz;
+          EXPECT_DOUBLE_EQ(std::abs(u_s(r, c, s)), 1.0);
+        }
+        if (u_s(c, r, s) != 0.)
+          ++col_nnz;
+      }
+      EXPECT_EQ(row_nnz, 1) << "U_S op " << s << " row " << r << " is not a permutation row";
+      EXPECT_EQ(col_nnz, 1) << "U_S op " << s << " col " << r << " is not a permutation column";
+    }
+
+  // ---- Check 2 (action): per-op no-op via conjugation  G0(k) == U_S G0(k_new) U_S^dagger  (U_S real).
+  function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0;
+  dca::phys::compute_G0_k_w(this->H0_, this->parameters_.get_chemical_potential(), 1, G0);
+
+  std::vector<int> failing_ops;
+  std::cout << "[per-op momentum map, U_S conjugation] " << TypeParam::Input << "\n";
+  for (int s = 0; s < n_ops; ++s) {
+    double max_viol = 0.;
+    for (int k = 0; k < nk; ++k) {
+      const int k_new = sym(k, 0, s).first;  // k-image is band-independent
+      for (int sp = 0; sp < ns; ++sp)
+        for (int w = 0; w < nw; ++w)
+          for (int b0 = 0; b0 < nb; ++b0)
+            for (int b1 = 0; b1 < nb; ++b1) {
+              std::complex<double> conj_val = 0.;
+              for (int a = 0; a < nb; ++a)
+                for (int b = 0; b < nb; ++b)
+                  conj_val += u_s(b0, a, s) * G0(a, sp, b, sp, k_new, w) * u_s(b1, b, s);
+              max_viol = std::max(max_viol, std::abs(G0(b0, sp, b1, sp, k, w) - conj_val));
+            }
+    }
+    const bool failed = max_viol >= kTolerance;
+    std::cout << "  op " << s << ": " << (failed ? "FAIL" : "PASS")
+              << "  max|G0 - U_S.G0.U_S^dag| = " << max_viol << "\n";
+    if (failed)
+      failing_ops.push_back(s);
+  }
+
+  std::sort(failing_ops.begin(), failing_ops.end());
+  auto expected_ops = TypeParam::expectedFailingKOps();
+  std::sort(expected_ops.begin(), expected_ops.end());
+  EXPECT_EQ(failing_ops, expected_ops)
+      << "U_S conjugation per-op momentum map changed vs the expected failing set.";
+}
+
+// TEST 5: GroupShadowCrossCheck -- the headline U_S verification statement. The candidate ops
+// in the symmetry table come from the declared point group (DCA_point_group), filtered by lattice
+// geometry; DomainActivation already pins their count to the declared order. This test closes the
+// loop at the Hamiltonian level: the set of ops the sign-consistency solve accepts (the H0-verified
+// group) must equal the full declared/realized group. Equivalently, no declared op may be merely a
+// lattice symmetry that H0 does not respect. The set of rejected ops is compared to the per-case
+// expectation (empty on every model included in this test). When candidate ops are derived from H0,
+// this same predicate becomes the actual filter that carves the real group out of a candidate table;
+// here it is validated against the declared group as a known-correct oracle.
+TYPED_TEST(SymmetrizeCharacterizationTest, GroupShadowCrossCheck) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KCluster = typename Fixture::KCluster;
+  const int n_ops = Fixture::KSymDmn::dmn_size();
+
+  // The H0-verified group: ops the sign-consistency solve accepts (non-throwing).
+  const std::vector<int> verified = dca::phys::verifiedSymmetryOps<KCluster>(this->H0_);
+
+  // Anything the table declares but H0 does not verify.
+  std::vector<int> rejected;
+  for (int s = 0; s < n_ops; ++s)
+    if (std::find(verified.begin(), verified.end(), s) == verified.end())
+      rejected.push_back(s);
+
+  std::cout << "[group shadow] " << TypeParam::Input << ": " << verified.size() << "/" << n_ops
+            << " declared ops H0-verified\n";
+
+  std::sort(rejected.begin(), rejected.end());
+  auto expected_rejected = TypeParam::expectedUnverifiedKOps();
+  std::sort(expected_rejected.begin(), expected_rejected.end());
+  EXPECT_EQ(rejected, expected_rejected)
+      << "H0-verified group differs from the declared group: the set of declared ops the "
+         "sign-consistency check rejects changed vs the expectation.";
+}
+
+// TEST 6: MappedPointShadow -- the mapped_point accessor. The band-independent ".first" of the
+// legacy symmetry matrix (the image of each momentum under each op) is promoted into its own
+// (cluster-point x op) accessor. Verify it reproduces .first for every band, which confirms both
+// that the shadow accessor is faithful and that the momentum image really is band-independent.
+TYPED_TEST(SymmetrizeCharacterizationTest, MappedPointShadow) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KCluster = typename Fixture::KCluster;
+  using KClusterDmn = typename Fixture::KClusterDmn;
+
+  const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+  const auto& mapped_point = dca::phys::domains::cluster_symmetry<KCluster>::get_mapped_point();
+
+  const int n_ops = Fixture::KSymDmn::dmn_size();
+  const int nb = BDmn::dmn_size();
+  const int nk = KClusterDmn::dmn_size();
+
+  for (int s = 0; s < n_ops; ++s)
+    for (int k = 0; k < nk; ++k)
+      for (int b = 0; b < nb; ++b)
+        EXPECT_EQ(mapped_point(k, s), sym(k, b, s).first)
+            << "mapped_point disagrees with legacy .first at (k=" << k << ", b=" << b << ", op=" << s
+            << ")";
+}
+
+// TEST 7: PerOpMapRealSpace -- mirror of TEST 3 but in real space / tau, and with one
 // key difference: it skips off-diagonal band pairs (b0!=b1) because production's real-space
 // executeCluster does the same. That skip is itself one of the suspected bugs, so this test
 // characterizes production's behavior, off-diag blind spot included.
@@ -420,6 +598,112 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapRealSpace) {
   std::sort(expected_ops.begin(), expected_ops.end());
   EXPECT_EQ(failing_ops, expected_ops)
       << "Real-space per-op red/green map changed vs the expected failing set.";
+}
+
+// TEST 8 (a/b/c): rejection fixtures for the sign-consistency solver.
+//
+// solveOrbitalOpSignsFromH0 has three throw branches. No shipped model exercises any of the
+// three on a correct H0 -- the spine cases all pass -- so we perturb a copy of the (exactly
+// symmetric) H0 to break one operation and assert the solver throws for the intended reason.
+//
+// These need a multi-orbital model. A single band has no off-diagonal coupling to corrupt,
+// and on the spine's square cluster every nonzero single-band entry sits at a k that is a
+// fixed point of every op (the BZ center and corner), so no single-entry perturbation can
+// break a symmetry there. Threeband (d, px, py) is the driver; square and singleband skip.
+
+// 8a/8b -- the two ways a single broken off-diagonal coupling is rejected. Both perturb the
+// strongest off-diagonal H0 entry (and its Hermitian partner) so its symmetry image no longer
+// matches, differing only in how:
+//   * vanish it (-> magnitude mismatch: a coupling present on one side of the relation but gone on
+//     the other, so the band permutation is no longer a symmetry of H0);
+//   * scale it by 1.5 (-> non-unit ratio: the H0 ratio that would fix the sign product is no longer
+//     a real +/-1, the signature of an op needing a non-signed-permutation U_S -- genuine orbital
+//     mixing -- or simply not a symmetry).
+// They share everything but the perturbation, so they live in one test with two assertion blocks.
+TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KCluster = typename Fixture::KCluster;
+  const int nb = BDmn::dmn_size();
+  const int nk = Fixture::KClusterDmn::dmn_size();
+  if (nb < 2) {
+    std::cout << "[skip] " << TypeParam::Input
+              << ": needs a multi-orbital model with off-diagonal couplings.\n";
+    return;
+  }
+
+  const auto t = findStrongestOffDiagonal(this->H0_, nb, nk);
+  ASSERT_GT(t.mag, kTolerance) << "no off-diagonal coupling to perturb.";
+
+  // Vanish: the op connecting this entry to its (still nonzero) image sees it gone on one side only.
+  {
+    auto H0p = this->H0_;
+    H0p(t.b0, 0, t.b1, 0, t.k) = 0.;
+    H0p(t.b1, 0, t.b0, 0, t.k) = 0.;
+    const std::string msg =
+        captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
+    ASSERT_FALSE(msg.empty()) << "sign solver did not reject a vanished coupling.";
+    EXPECT_NE(msg.find("magnitude mismatch"), std::string::npos) << "actual: " << msg;
+  }
+
+  // Scale by 1.5: the entry stays nonzero but its ratio to the image is not +/-1.
+  {
+    auto H0p = this->H0_;
+    H0p(t.b0, 0, t.b1, 0, t.k) *= 1.5;
+    H0p(t.b1, 0, t.b0, 0, t.k) *= 1.5;
+    const std::string msg =
+        captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
+    ASSERT_FALSE(msg.empty()) << "sign solver did not reject a non-unit coupling ratio.";
+    EXPECT_NE(msg.find("not a real"), std::string::npos) << "actual: " << msg;
+  }
+}
+
+// 8c -- inconsistent signs: pairwise sign products that are each a valid +/-1 but cannot be
+// jointly satisfied by any assignment. At the zone corner all three bands couple (d-px, d-py,
+// px-py), so the d-px and d-py signs force the px-py sign product, and a px<->py swap op
+// reads the px-py sign off H0 directly. Flipping one direction of the px-py coupling
+// makes the direct reading contradict the forced product: no sign vector works.
+TYPED_TEST(SymmetrizeCharacterizationTest, RejectsInconsistentSigns) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KCluster = typename Fixture::KCluster;
+  const int nb = BDmn::dmn_size();
+  const int nk = Fixture::KClusterDmn::dmn_size();
+  if (nb < 3) {
+    std::cout << "[skip] " << TypeParam::Input << ": needs >=3 coupled bands to form a sign cycle.\n";
+    return;
+  }
+
+  auto H0p = this->H0_;
+  // The zone corner is the only momentum where the px-py coupling H0(1,2) is nonzero (both
+  // sin(k/2) factors nonzero); there all three bands couple.
+  int kc = -1;
+  for (int k = 0; k < nk; ++k)
+    if (std::abs(H0p(1, 0, 2, 0, k)) > kTolerance) {
+      kc = k;
+      break;
+    }
+  ASSERT_GE(kc, 0) << "no zone-corner px-py coupling found.";
+
+  // An op that swaps bands 1<->2 and fixes the corner reads the px-py sign as the raw H0
+  // ratio; without one the contradiction never arises.
+  const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+  const int n_ops = Fixture::KSymDmn::dmn_size();
+  bool have_swap = false;
+  for (int s = 0; s < n_ops; ++s)
+    if (sym(0, 1, s).second == 2 && sym(0, 2, s).second == 1 && sym(kc, 0, s).first == kc) {
+      have_swap = true;
+      break;
+    }
+  if (!have_swap) {
+    std::cout << "[skip] " << TypeParam::Input << ": no px<->py swap op fixing the zone corner.\n";
+    return;
+  }
+
+  H0p(1, 0, 2, 0, kc) *= -1.;  // one direction only, on purpose.
+
+  const std::string msg =
+      captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
+  ASSERT_FALSE(msg.empty()) << "sign solver did not reject an inconsistent sign system.";
+  EXPECT_NE(msg.find("no consistent"), std::string::npos) << "actual: " << msg;
 }
 
 }  // namespace
