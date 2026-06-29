@@ -173,6 +173,16 @@ protected:
 
   auto getGSingleband(int s, int k1, int k2, int w1, int w2) -> TpComplex const;
 
+  using Momentum = typename KDmn::parameter_type::element_type;
+
+  static Momentum qMinusKVector(int k, int q);
+
+  void getGMultibandAtMomenta(int s, const Momentum& k1, int k1_folded, const Momentum& k2,
+                              int k2_folded, int w1, int w2, Matrix& G);
+
+  void applyFoldedMomentumPhase(Matrix& G, const Momentum& k1, int k1_folded,
+                                const Momentum& k2, int k2_folded) const;
+
   template <class Configuration, typename SpScalar>
   double computeM(const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
                   const std::array<Configuration, 2>& configs);
@@ -206,13 +216,20 @@ protected:
 private:
   // work spaces for computeGMultiband.
   Matrix G0_M_, G_a_, G_b_;
+
+  func::function<TpComplex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>>
+      M_r_r_w_w_;
 };
 
 template <class Parameters, DistType DT>
 TpAccumulator<Parameters, DT, linalg::CPU>::TpAccumulator(
     const func::function<TpComplex, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
     const Parameters& pars, const int thread_id)
-    : Base(G0, pars, thread_id), G0_M_(n_bands_), G_a_(n_bands_), G_b_(n_bands_) {
+    : Base(G0, pars, thread_id),
+      G0_M_(n_bands_),
+      G_a_(n_bands_),
+      G_b_(n_bands_),
+      M_r_r_w_w_("M_r_r_w_w") {
   if constexpr (DT == DistType::BLOCKED) {
     std::cerr << "Blocked distribution is not supported in the CPU accumulator. "
               << "Reverting to no distribution.\n";
@@ -257,20 +274,20 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::computeM(
     const std::array<linalg::Matrix<SpScalar, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   double flops = 0.;
-
-  func::function<TpComplex, func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WTpExtPosDmn, WTpExtDmn>>
-      M_r_r_w_w;
+  M_r_r_w_w_ = TpComplex(0., 0.);
 
   for (int spin = 0; spin < SDmn::dmn_size(); ++spin) {
     Profiler prf_a("Frequency FT", "tp-accumulation", __LINE__, thread_id_);
     if (not configs[spin].size())
       continue;
-    flops += ndft_obj_.execute(configs[spin], M_pair[spin], M_r_r_w_w, spin);
+    flops += ndft_obj_.execute(configs[spin], M_pair[spin], M_r_r_w_w_, spin);
   }
 
   Profiler prf_b("Space FT", "tp-accumulation", __LINE__, thread_id_);
   // TODO: add the gflops here.
-  math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, TpPrecision>::execute(M_r_r_w_w, G_);
+  auto M_r_r_w_w_transformed = M_r_r_w_w_;
+  math::transform::SpaceTransform2D<RDmn, KDmn, BDmn, SDmn, TpPrecision>::execute(
+      M_r_r_w_w_transformed, G_);
 
   return flops;
 }
@@ -386,6 +403,45 @@ auto TpAccumulator<Parameters, DT, linalg::CPU>::getGSingleband(const int s, con
 }
 
 template <class Parameters, DistType DT>
+auto TpAccumulator<Parameters, DT, linalg::CPU>::qMinusKVector(const int k, const int q)
+    -> Momentum {
+  const auto& k_elements = KDmn::parameter_type::get_elements();
+  const auto& q_vec = k_elements[q];
+  const auto& k_vec = k_elements[k];
+
+  Momentum q_minus_k_vec(q_vec.size(), 0);
+  for (std::size_t d = 0; d < q_vec.size(); ++d)
+    q_minus_k_vec[d] = q_vec[d] - k_vec[d];
+
+  return q_minus_k_vec;
+}
+
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::CPU>::applyFoldedMomentumPhase(
+    Matrix& G, const Momentum& k1, const int k1_folded, const Momentum& k2, const int k2_folded) const {
+  const auto& k_elements = KDmn::parameter_type::get_elements();
+  const auto& bands = BDmn::get_elements();
+  const auto& K1 = k_elements[k1_folded];
+  const auto& K2 = k_elements[k2_folded];
+
+  for (int b2 = 0; b2 < n_bands_; ++b2)
+    for (int b1 = 0; b1 < n_bands_; ++b1) {
+      Real phase = 0;
+      for (std::size_t d = 0; d < k1.size(); ++d)
+        phase += (k1[d] - K1[d]) * bands[b1].a_vec[d] - (k2[d] - K2[d]) * bands[b2].a_vec[d];
+      G(b1, b2) *= std::exp(TpComplex(0, phase));
+    }
+}
+
+template <class Parameters, DistType DT>
+void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultibandAtMomenta(
+    const int s, const Momentum& k1, const int k1_folded, const Momentum& k2, const int k2_folded,
+    const int w1, const int w2, Matrix& G) {
+  getGMultiband(s, k1_folded, k2_folded, w1, w2, G);
+  applyFoldedMomentumPhase(G, k1, k1_folded, k2, k2_folded);
+}
+
+template <class Parameters, DistType DT>
 void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, int k2, int w1,
                                                                int w2, Matrix& G,
                                                                const TpComplex sign) const {
@@ -395,7 +451,7 @@ void TpAccumulator<Parameters, DT, linalg::CPU>::getGMultiband(int s, int k1, in
   const auto* const G_ptr = &G_(0, 0, s, k1, k2, w1_ext, w2_ext);
   for (int b2 = 0; b2 < n_bands_; ++b2)
     for (int b1 = 0; b1 < n_bands_; ++b1) {
-      G(b1, b2) = sign * G(b1, b2) + G_ptr[b2 + b1 * n_bands_];
+      G(b1, b2) = sign * G(b1, b2) + G_ptr[b1 + b2 * n_bands_];
 #ifndef NDEBUG
     // if (std::abs(G(b1, b2).imag()) > 10)  // std::isnan(imag(G_(b1, b2, s, k1, k2, w1_ext, w2_ext))))
     //   std::cout << w1 << "," << w2 << "," << k1 << "," << k2 << "," << b1 << "," << b2 << ","
@@ -419,6 +475,7 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
 
   auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(k, q); };
+  auto q_minus_k_vector = [](const int k, const int q) { return qMinusKVector(k, q); };
   auto q_plus_k = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
   // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
   auto w_plus_w_ex = [](const int w, const int w_ex) { return w + w_ex; };
@@ -636,15 +693,11 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                    // TpComplex* const G4_ptr = &G4(0, 0, 0, 0, k1, w1, k2, w2, k_ex_idx, w_ex_idx);
                     for (int s = 0; s < 2; ++s) {
-                      // updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, k_ex),
-                      //                q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
-                      //                w_ex_minus_w(w2, w_ex), sign_over_2, false);
-                      // contraction: G_{b1,b3}(k1, k2) * G_{b2,b4}(q-k1, q-k2).
                       getGMultiband(s, k1, k2, w1, w2, G_a_);
-                      getGMultiband(!s, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
-                                    w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                      getGMultibandAtMomenta(!s, q_minus_k_vector(k1, k_ex), q_minus_k(k1, k_ex),
+                                             q_minus_k_vector(k2, k_ex), q_minus_k(k2, k_ex),
+                                             w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
                       for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                         for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                           for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
@@ -678,8 +731,10 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                   for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
                     // contraction: G(k2, k1, b1, b3) * G(k_ex - k2, k_ex - k1, b2, b4).
                     getGMultiband(0, k1, k2, w1, w2, G_a_);
-                    getGMultiband(0, q_minus_k(k1, k_ex), q_minus_k(k2, k_ex),
-                                  w_ex_minus_w(w1, w_ex), w_ex_minus_w(w2, w_ex), G_b_);
+                    getGMultibandAtMomenta(0, q_minus_k_vector(k1, k_ex),
+                                           q_minus_k(k1, k_ex), q_minus_k_vector(k2, k_ex),
+                                           q_minus_k(k2, k_ex), w_ex_minus_w(w1, w_ex),
+                                           w_ex_minus_w(w2, w_ex), G_b_);
                     for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
@@ -689,8 +744,12 @@ double TpAccumulator<Parameters, DT, linalg::CPU>::updateG4(const int channel_id
                           }
 
                     // contraction: -G(k1, k_ex - k2, b1, b4) * G(k_ex - k1, k2, b2, b3).
-                    getGMultiband(0, k1, q_minus_k(k2, k_ex), w1, w_ex_minus_w(w2, w_ex), G_a_);
-                    getGMultiband(0, q_minus_k(k1, k_ex), k2, w_ex_minus_w(w1, w_ex), w2, G_b_);
+                    getGMultibandAtMomenta(0, KDmn::parameter_type::get_elements()[k1], k1,
+                                           q_minus_k_vector(k2, k_ex), q_minus_k(k2, k_ex), w1,
+                                           w_ex_minus_w(w2, w_ex), G_a_);
+                    getGMultibandAtMomenta(0, q_minus_k_vector(k1, k_ex), q_minus_k(k1, k_ex),
+                                           KDmn::parameter_type::get_elements()[k2], k2,
+                                           w_ex_minus_w(w1, w_ex), w2, G_b_);
                     for (int b4 = 0; b4 < BDmn::dmn_size(); ++b4)
                       for (int b3 = 0; b3 < BDmn::dmn_size(); ++b3)
                         for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)

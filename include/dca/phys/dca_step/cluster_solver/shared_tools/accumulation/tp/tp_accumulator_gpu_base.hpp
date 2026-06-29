@@ -165,10 +165,38 @@ void TpAccumulatorGpuBase<Parameters, DT>::initializeG4Helpers() const {
   const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
   const auto extension_offset = (WTpExtDmn::dmn_size() - WTpDmn::dmn_size()) / 2;
 
+  const auto& k_elements = KDmn::parameter_type::get_elements();
+  const auto& bands = BDmn::get_elements();
+  std::vector<double> q_minus_k_phase_real(q_indices.size() * KDmn::dmn_size() * n_bands_);
+  std::vector<double> q_minus_k_phase_imag(q_minus_k_phase_real.size());
+
+  auto phaseIndex = [this](const int q_pos, const int k, const int band) {
+    return band + n_bands_ * (k + KDmn::dmn_size() * q_pos);
+  };
+
+  for (int q_pos = 0; q_pos < static_cast<int>(q_indices.size()); ++q_pos) {
+    const int q = q_indices[q_pos];
+    const auto& q_vec = k_elements[q];
+    for (int k = 0; k < KDmn::dmn_size(); ++k) {
+      const auto& k_vec = k_elements[k];
+      const int folded_q_minus_k = KDmn::parameter_type::subtract(k, q);
+      const auto& folded_vec = k_elements[folded_q_minus_k];
+      for (int band = 0; band < n_bands_; ++band) {
+        double phase = 0.;
+        for (std::size_t d = 0; d < q_vec.size(); ++d)
+          phase += (q_vec[d] - k_vec[d] - folded_vec[d]) * bands[band].a_vec[d];
+
+        const auto idx = phaseIndex(q_pos, k, band);
+        q_minus_k_phase_real[idx] = std::cos(phase);
+        q_minus_k_phase_imag[idx] = std::sin(phase);
+      }
+    }
+  }
+
   // CurrentlyA WTpPosDmn should always be == WTpDmn
   details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpDmn::dmn_size(), q_indices, w_indices,
                          extension_offset, add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                         sub_mat.leadingDimension());
+                         sub_mat.leadingDimension(), q_minus_k_phase_real, q_minus_k_phase_imag);
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
