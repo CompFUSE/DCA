@@ -58,7 +58,7 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 #include "dca/phys/domains/cluster/cluster_symmetry.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
