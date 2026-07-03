@@ -40,6 +40,7 @@
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
+#include "dca/phys/dca_step/symmetrization/derive_point_group.hpp"
 #include "dca/phys/dca_step/symmetrization/solve_orbital_op_signs.hpp"
 
 #include <algorithm>
@@ -107,6 +108,7 @@ struct SquareD4 {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 8;
 };
 
 // CASE 2 -- three-band Hubbard (Emery/CuO2) model on D4. This case fails the
@@ -126,6 +128,7 @@ struct ThreebandD4 {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 8;
 };
 
 // CASE 3 -- 1D chain. Since this model has identity-only symmetry, this test exercises
@@ -141,6 +144,7 @@ struct SinglebandChain {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 4;
 };
 
 // Templated test fixture
@@ -512,6 +516,49 @@ TYPED_TEST(SymmetrizeCharacterizationTest, GroupShadowCrossCheck) {
   EXPECT_EQ(rejected, expected_rejected)
       << "H0-verified group differs from the declared group: the set of declared ops the "
          "sign-consistency check rejects changed vs the expectation.";
+}
+
+// TEST 5c: DerivedGroupReport -- the production derive-and-report step. update_domains now derives
+// each 2D model's point group from scratch (2D holohedry pool -> geometry filter -> H0 gate),
+// reports any divergence from the declared group, and keeps symmetrizing with the declared group.
+// This exercises the same routine directly and asserts the three things production relies on:
+// (1) the declared symmetry state -- op count and the full symmetry table -- is restored, so the
+//     derivation is invisible to every downstream consumer
+// (2) the report is silent exactly when derived == declared, and names the divergence otherwise
+// (3) the derived-group size matches the trait expectation
+TYPED_TEST(SymmetrizeCharacterizationTest, DerivedGroupReport) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using RClusterDmn = typename Fixture::RClusterDmn;
+  using KCluster = typename Fixture::KCluster;
+  using Model = typename Fixture::Model;
+  using CS_k = dca::phys::domains::cluster_symmetry<KCluster>;
+
+  const int n_ops_before = Fixture::KSymDmn::dmn_size();
+  const auto symmetry_matrix_before = CS_k::get_symmetry_matrix();
+
+  const std::string report =
+      dca::phys::deriveAndComparePointGroup<RClusterDmn, Model>(this->parameters_);
+
+  // (1) restoration: production must be left in exactly the declared state.
+  ASSERT_EQ(Fixture::KSymDmn::dmn_size(), n_ops_before);
+  const auto& symmetry_matrix_after = CS_k::get_symmetry_matrix();
+  for (int i = 0; i < symmetry_matrix_before.size(); ++i)
+    ASSERT_EQ(symmetry_matrix_after(i), symmetry_matrix_before(i))
+        << "symmetry table changed at linear index " << i;
+
+  // (2) + (3): silent on match; on divergence the report names the derived-group size and the
+  // under-declaration.
+  if (TypeParam::expected_num_derived_symmetries == TypeParam::expected_num_symmetries) {
+    EXPECT_TRUE(report.empty()) << "unexpected divergence report:\n" << report;
+  }
+  else {
+    const std::string expected_size = "derived group: " +
+                                      std::to_string(TypeParam::expected_num_derived_symmetries) +
+                                      " op(s)";
+    EXPECT_NE(report.find(expected_size), std::string::npos) << report;
+    EXPECT_NE(report.find("under-declared"), std::string::npos) << report;
+    std::cout << "[derived group] " << TypeParam::Input << ":\n" << report;
+  }
 }
 
 // TEST 6: MappedPointShadow -- the mapped_point accessor. The band-independent ".first" of the
