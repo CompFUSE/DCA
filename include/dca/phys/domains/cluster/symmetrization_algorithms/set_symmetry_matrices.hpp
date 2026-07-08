@@ -188,8 +188,8 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
           G_dot_a += (trafo_k[d] - k_dmn_t::get_elements()[k_image][d]) * a_vec[d];
 
         // Fold phase is assumed to be +/-1 for every model currently supported. Store it real;
-        // reject a genuine non-+/-1 fold. Lifting this to a complex phase is a future
-        // generalization.
+        // reject a genuine non-+/-1 fold.
+        // \todo Lift the storage to a complex phase to support a genuine non-+/-1 fold.
         if (std::abs(std::sin(G_dot_a)) > 1.e-6)
           throw std::domain_error(
               "set_symmetry_matrices: encountered a non-+/-1 folding phase, which is out of scope "

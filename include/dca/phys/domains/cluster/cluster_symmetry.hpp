@@ -81,7 +81,7 @@ public:
   // Diagonal folding phase V(G) = diag(e^{i G.a_alpha}) per (cluster point, band, super-cell op).
   // Populated alongside get_symmetry_matrix() in set_symmetry_matrices. Runtime guard rejects (throws)
   // any phase that is not +/-1, which holds for every shipped (symmorphic, point-symmetry-only) model.
-  // Complex storage to support a genuine non-+/-1 fold is a future generalization.
+  // \todo Lift the storage to a complex phase to support a genuine non-+/-1 fold.
   static func::function<double, symmetry_matrix_dmn_t>& get_fold_phase() {
     static func::function<double, symmetry_matrix_dmn_t> fold_phase("fold_phase_super_cell");
     return fold_phase;

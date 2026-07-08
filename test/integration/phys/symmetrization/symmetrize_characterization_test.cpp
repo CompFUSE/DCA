@@ -398,11 +398,12 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentum) {
 
 // TEST 4: PerOpMapMomentumUS -- the shadow orbital-op record, derived from H0. Solve each U_S as
 // a signed permutation directly from H0(k) by enumerating the sign assignments consistent with the
-// H0 couplings (no transformationSignOf*), verify it is a well-formed unitary signed permutation,
-// and re-run the per-op momentum no-op as the matrix conjugation  G0(k) == U_S G0(k_new) U_S^dagger
-// rather than the element-wise scalar relation of TEST 3. It must reproduce TEST 3's red/green map;
-// its purpose is to prove the consolidated, H0-derived matrix record is faithful and correct, not
-// to find new bugs.
+// fold-corrected H0 couplings (no transformationSignOf*), verify it is a well-formed unitary signed
+// permutation, and re-run the per-op momentum no-op as the matrix conjugation
+// G0(k) == (U_S V) G0(k_new) (U_S V)^dagger, where V = diag(fold_phase(k, ., s)) redresses the
+// intrinsic U_S for the folded representatives the table stores -- rather than the element-wise
+// scalar relation of TEST 3. It must reproduce TEST 3's red/green map; its purpose is to prove the
+// consolidated, H0-derived matrix record is faithful and correct, not to find new bugs.
 TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentumUS) {
   using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
   using KClusterDmn = typename Fixture::KClusterDmn;
@@ -414,6 +415,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentumUS) {
   dca::phys::solveOrbitalOpSignsFromH0<KCluster>(this->H0_);
   const auto& u_s = dca::phys::domains::cluster_symmetry<KCluster>::get_orbital_op();
   const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+  const auto& fold_phase = dca::phys::domains::cluster_symmetry<KCluster>::get_fold_phase();
 
   const int n_ops = Fixture::KSymDmn::dmn_size();
   const int nb = BDmn::dmn_size();
@@ -439,7 +441,10 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentumUS) {
       EXPECT_EQ(col_nnz, 1) << "U_S op " << s << " col " << r << " is not a permutation column";
     }
 
-  // ---- Check 2 (action): per-op no-op via conjugation  G0(k) == U_S G0(k_new) U_S^dagger  (U_S real).
+  // ---- Check 2 (action): per-op no-op via conjugation  G0(k) == (U_S V) G0(k_new) (U_S V)^dagger
+  // (all real). U_S is the intrinsic orbital transform; V = diag(fold_phase(k, ., s)) restores the
+  // folding phase of the representative k_new = S k - G the table stores, at the image (contracted)
+  // band indices.
   function<std::complex<double>, dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0;
   dca::phys::compute_G0_k_w(this->H0_, this->parameters_.get_chemical_potential(), 1, G0);
 
@@ -456,7 +461,8 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapMomentumUS) {
               std::complex<double> conj_val = 0.;
               for (int a = 0; a < nb; ++a)
                 for (int b = 0; b < nb; ++b)
-                  conj_val += u_s(b0, a, s) * G0(a, sp, b, sp, k_new, w) * u_s(b1, b, s);
+                  conj_val += u_s(b0, a, s) * fold_phase(k, a, s) * G0(a, sp, b, sp, k_new, w) *
+                              fold_phase(k, b, s) * u_s(b1, b, s);
               max_viol = std::max(max_viol, std::abs(G0(b0, sp, b1, sp, k, w) - conj_val));
             }
     }
@@ -704,6 +710,59 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsInconsistentSigns) {
       captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
   ASSERT_FALSE(msg.empty()) << "sign solver did not reject an inconsistent sign system.";
   EXPECT_NE(msg.find("no consistent"), std::string::npos) << "actual: " << msg;
+}
+
+// TEST 9: the folding phase must not be absorbed into U_S (PR #368 review). At a zone-boundary
+// momentum the folded representative of the mirror image coincides with the original point, so the
+// raw H0 ratio is +1 there; only the fold correction phi = e^{i G.a_b} exposes the intrinsic odd
+// parity of p_x. The scenario is the threeband d-p_x block at k = (pi, 0) under the k_x -> -k_x
+// mirror: the image (-pi, 0) folds back to (pi, 0) with G = (2 pi, 0), and a_px = (1/2, 0) gives
+// phi_px = cos(pi) = -1 while phi_d = +1. Without the correction the solve returns sigma_px = +1
+// -- the representative-convention-dressed sign -- instead of the intrinsic -1. Mock-based and
+// case-independent (unlike the fixtures above): the dressing is uniform across every momentum of
+// the shipped clusters, so no perturbation of a real H0 can expose it; the single boundary point
+// with an explicit fold functor is the minimal reproducer.
+TEST(SolveOrbitalOpSigns, BoundaryFoldDoesNotMaskPxParity) {
+  // One momentum, one op: the mirror image folds back onto the same representative, no band
+  // permutation.
+  struct Sym {
+    std::pair<int, int> operator()(int /*k*/, int b, int /*s*/) const {
+      return {0, b};
+    }
+  };
+  // The d-p_x block of the threeband H0 at k = (pi, 0) with t_pd = 1: 2 i t_pd sin(k_x / 2).
+  struct H0 {
+    std::complex<double> operator()(int b0, int /*s0*/, int b1, int /*s1*/, int /*k*/) const {
+      const std::complex<double> i(0., 1.);
+      if (b0 == 0 && b1 == 1)
+        return 2. * i;
+      if (b0 == 1 && b1 == 0)
+        return -2. * i;  // Hermitian partner.
+      return 0.;
+    }
+  };
+  // phi_b = cos(G . a_b) with G = (2 pi, 0): -1 for p_x (band 1, a = (1/2, 0)), +1 for d (at the
+  // origin) and p_y (a = (0, 1/2), orthogonal to G).
+  struct Fold {
+    double operator()(int /*k*/, int b, int /*s*/) const {
+      return b == 1 ? -1. : 1.;
+    }
+  };
+  // Output stand-in for cluster_symmetry::get_orbital_op(): the solver writes the solved U_S
+  // here (band row, band column; the single op collapses the op index).
+  struct USTable {
+    double data[3][3] = {};
+    double& operator()(int r, int c, int /*s*/) {
+      return data[r][c];
+    }
+  };
+
+  USTable u_s;
+  dca::phys::detail::solveSignsForOp(0, 3, 1, Sym{}, Fold{}, H0{}, u_s);
+
+  EXPECT_DOUBLE_EQ(u_s(0, 0, 0), 1.);
+  EXPECT_DOUBLE_EQ(u_s(1, 1, 0), -1.);  // The intrinsic p_x parity, not the fold-dressed +1.
+  EXPECT_DOUBLE_EQ(u_s(2, 2, 0), 1.);
 }
 
 }  // namespace
