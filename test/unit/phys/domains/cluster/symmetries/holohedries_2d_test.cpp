@@ -30,7 +30,8 @@ using Mat2 = std::array<std::array<double, 2>, 2>;
 
 constexpr double kTol = 1e-10;
 
-// The op classes store their matrix column-major (m[i + 2*j] = row i, col j); convert to row-major.
+// The op classes store their matrix column-major (m[i + 2*j] = row i, col j); convert to nested
+// row-major in order to make the algebra more readable, and easier to verify.
 Mat2 fromColumnMajor(const double* m) {
   return {{{m[0], m[2]}, {m[1], m[3]}}};
 }
@@ -58,10 +59,9 @@ std::vector<Mat2> collectOps() {
   return out;
 }
 
-// Note that the algebra below is implemented directly in this test, as opposed
-// to being imported via the existing linalg path. Given this is a logic-only
-// test operating on 2x2 matrices, hand rolling makes more sense than adding
-// a dependency on LAPACK/BLAS, which is overkill here.
+// Note that the algebra below is implemented directly in this test, as opposed to being imported
+// via the existing linalg path. Given this is a logic-only test operating on 2x2 matrices, hand
+// rolling makes more sense than adding a dependency on LAPACK/BLAS, which is overkill here.
 bool equal(const Mat2& a, const Mat2& b) {
   for (int i = 0; i < 2; ++i)
     for (int j = 0; j < 2; ++j)
@@ -107,10 +107,10 @@ bool isInteger(const Mat2& a) {
   return true;
 }
 
-// Order of the holohedry of the lattice whose primitive vectors are the columns of
-// `basis`: the number of pool ops that map the lattice onto itself (verified by applying
-// the operation to the basis vectors, multiplying by the inverse of the basis, and
-// checking whether the resulting matrix has integer values.)
+// Order of the holohedry of the lattice whose primitive vectors are the columns of `basis`: the
+// number of pool ops that map the lattice onto itself (verified by applying the operation to the
+// basis vectors, multiplying by the inverse of the basis, and checking whether the resulting
+// matrix has integer values.)
 int holohedryOrder(const std::vector<Mat2>& ops, const Mat2& basis) {
   const Mat2 binv = inverse(basis);
   int count = 0;

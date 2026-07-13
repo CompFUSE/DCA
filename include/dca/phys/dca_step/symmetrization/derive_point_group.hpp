@@ -42,8 +42,8 @@ namespace phys {
 namespace detail {
 // dca::phys::detail::
 
-// Geometric equality of two symmetry elements (same linear part and fractional translation), at the
-// tolerance the symmetry search uses to deduplicate operations.
+// Geometric equality of two symmetry elements (same linear part .O and fractional translation .t),
+// at the tolerance the symmetry search uses to deduplicate operations.
 inline bool isSameSymmetryElement(const domains::point_group_symmetry_element& a,
                                   const domains::point_group_symmetry_element& b) {
   constexpr double tol = 1e-6;
@@ -144,8 +144,8 @@ std::string deriveAndComparePointGroup(const Parameters& parameters) {
     for (const int s : verifiedSymmetryOps<KCluster>(H0))
       derived.push_back(realized[s]);
 
-    // Restore the declared production state, and verify the restoration: every consumer of the
-    // symmetry domains must see exactly the state the declared initializer produced.
+    // Restore the declared state, and verify the restoration: every consumer of the symmetry
+    // domains must see exactly the state the declared initializer produced.
     detail::installPointGroup<KCluster, typename Lattice::DCA_point_group>();
 
     if (KSymDmn::parameter_type::get_size() != n_declared)
@@ -158,32 +158,40 @@ std::string deriveAndComparePointGroup(const Parameters& parameters) {
             "deriveAndComparePointGroup: failed to restore the declared symmetry state of " +
             KCluster::get_name() + ".");
 
-    // Compare as sets and report the divergence, if any.
-    int n_underdeclared = 0;
+    // Compare as sets and report the divergence, if any, naming the ops that differ.
+    std::vector<std::string> underdeclared;
     for (const auto& op : derived)
       if (!detail::containsSymmetryElement(declared, op))
-        ++n_underdeclared;
+        underdeclared.push_back(op.describe());
 
-    int n_unverified = 0;
+    std::vector<std::string> unverified;
     for (const auto& op : declared)
       if (!detail::containsSymmetryElement(derived, op))
-        ++n_unverified;
+        unverified.push_back(op.describe());
 
-    if (n_underdeclared == 0 && n_unverified == 0)
+    if (underdeclared.empty() && unverified.empty())
       return "";
+
+    auto join = [](const std::vector<std::string>& ops) {
+      std::string s;
+      for (std::size_t i = 0; i < ops.size(); ++i)
+        s += (i ? ", " : "") + ops[i];
+      return s;
+    };
 
     std::ostringstream report;
     report << "derived-symmetry check [" << KCluster::get_name() << "]:\n"
            << "\tdeclared group: " << declared.size() << " op(s); derived group: " << derived.size()
            << " op(s).\n";
-    if (n_underdeclared > 0)
-      report << "\tunder-declared: " << n_underdeclared
+    if (!underdeclared.empty())
+      report << "\tunder-declared: " << underdeclared.size()
              << " derived H0-verified symmetry op(s) beyond the declared group "
-             << "(symmetry averaging left unexploited).\n";
-    if (n_unverified > 0)
-      report << "\tWARNING: " << n_unverified
+             << "(symmetry averaging left unexploited): " << join(underdeclared) << ".\n";
+    if (!unverified.empty())
+      report << "\tWARNING: " << unverified.size()
              << " declared op(s) not reproduced by the derivation -- the op fails the "
-             << "H0-invariance check (or, the lattice is not in the pool's standard orientation).\n";
+             << "H0-invariance check (or, the lattice is not in the pool's standard orientation): "
+             << join(unverified) << ".\n";
     return report.str();
   }
 }

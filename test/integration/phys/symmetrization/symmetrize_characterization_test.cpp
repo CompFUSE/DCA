@@ -522,9 +522,8 @@ TYPED_TEST(SymmetrizeCharacterizationTest, GroupShadowCrossCheck) {
 // each 2D model's point group from scratch (2D holohedry pool -> geometry filter -> H0 gate),
 // reports any divergence from the declared group, and keeps symmetrizing with the declared group.
 // This exercises the same routine directly and asserts the three things production relies on:
-// (1) the declared symmetry state -- op count and the full symmetry table -- is restored, so the
-//     derivation is invisible to every downstream consumer
-// (2) the report is silent exactly when derived == declared, and names the divergence otherwise
+// (1) the declared symmetry state is restored, so the derivation is invisible downstream
+// (2) the report is silent when derived == declared, and names the divergence otherwise
 // (3) the derived-group size matches the trait expectation
 TYPED_TEST(SymmetrizeCharacterizationTest, DerivedGroupReport) {
   using Fixture = SymmetrizeCharacterizationTest<TypeParam>;

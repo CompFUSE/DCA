@@ -13,6 +13,7 @@
 #define DCA_PHYS_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
 
 #include <complex>
+#include <string>
 #include <vector>
 
 namespace dca {
@@ -37,6 +38,9 @@ public:
   void linear_transform(const double *t0, double* t1) const;
 
   void transform(const double* t0, double* t1) const;
+
+  // A short human-readable label for the operation.
+  std::string describe() const;
 
   template <class stream_type>
   void to_JSON(stream_type& ss) const;

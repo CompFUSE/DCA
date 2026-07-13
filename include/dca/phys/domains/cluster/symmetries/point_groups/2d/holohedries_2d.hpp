@@ -14,10 +14,6 @@
 // (rectangular D2, oblique C2, trigonal C3/D3, ...) are not declared per model but derived at
 // runtime from the pool by the geometry filter (search_symmetry_group: is_lattice_compatible +
 // is_unit_cell_compatible) and the H0-invariance gate.
-//
-// holohedry_pool_2D is the union D4 U D6 -- the model-independent candidate set that discovery
-// filters. It is a superset, not a closed group (it holds both a 90 deg and a 60 deg rotation, whose
-// product is absent); that is intentional, the per-lattice filter extracts the closed subgroup.
 
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUPS_2D_HOLOHEDRIES_2D_HPP
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUPS_2D_HOLOHEDRIES_2D_HPP
