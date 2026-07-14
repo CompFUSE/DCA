@@ -29,9 +29,11 @@
 //
 // The analytic models shipped with DCA++ have at most n_b = 3 orbitals, so once the gauge
 // sigma(0) = +1 is fixed there are at most 2^(n_b-1) <= 4 candidate sign vectors. We simply
-// enumerate them and keep the one that satisfies every coupling constraint. Three conditions make
+// enumerate them and keep the one that satisfies every coupling constraint. Four conditions make
 // an operation fail:
 //
+//   * a missing band image in the symmetry table (the -1 value recorded by set_symmetry_matrices
+//     when it finds no admissible image) means the op has no candidate permutation at all;
 //   * a magnitude mismatch (an entry vanishing on only one side) means the permutation is not a
 //     symmetry of H0;
 //   * a non-real or non-unit ratio means the op needs a non-signed-permutation U_S (genuine orbital
@@ -78,8 +80,18 @@ void solveSignsForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& 
   // half of U_S (which orbital maps to which); it is k-independent for a point-group op, so read it
   // at k = 0. Only the signs that decorate it are unknown.
   std::vector<int> image(nb);
-  for (int b = 0; b < nb; ++b)
+  for (int b = 0; b < nb; ++b) {
     image[b] = sym(0, b, s).second;
+    // set_symmetry_matrices records a silent -1 sentinel when its position/flavor matching finds
+    // no admissible image (its own throw is commented out), so the table cannot be assumed
+    // complete here. Reject the op before the sentinel is used to index H0.
+    if (image[b] < 0 || image[b] >= nb)
+      throw std::out_of_range(
+          "solveOrbitalOpSignsFromH0: no band image in the symmetry table for band " +
+          std::to_string(b) + " under op " + std::to_string(s) +
+          " -- the geometric position/flavor matching found no admissible image, so the op has no "
+          "candidate permutation.");
+  }
 
   // Gather one sign-product constraint per nonzero coupling, over all cluster momenta. Each nonzero
   // coupling forces sigma(b0) sigma(b1) to the +/-1 fold-corrected ratio of the two H0 entries. The

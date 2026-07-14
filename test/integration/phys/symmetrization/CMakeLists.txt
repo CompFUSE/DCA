@@ -22,6 +22,17 @@ dca_add_gtest(symmetrize_characterization_threeband_D4_test
         TEST_DEFINES ThreebandD4
         )
 
+# Regression case for solveSignsForOp's -1 guard: Kagome produces the -1 which the solver
+# must reject instead of indexing H0 out of bounds.
+dca_add_gtest(symmetrize_characterization_kagome_test
+        FAST
+        GTEST_MPI_MAIN
+        INCLUDE_DIRS ${DCA_INCLUDES};${PROJECT_SOURCE_DIR};${FFTW_INCLUDE_DIR}
+        LIBS  ${DCA_LIBS}
+        CUSTOM_SOURCE symmetrize_characterization_test.cpp
+        TEST_DEFINES KagomeNoSym
+        )
+
 dca_add_gtest(symmetrize_characterization_singleband_chain_test
         FAST
         GTEST_MPI_MAIN
