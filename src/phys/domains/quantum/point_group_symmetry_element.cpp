@@ -91,19 +91,23 @@ std::string point_group_symmetry_element::describe() const {
     // proper rotation (det +1) and (cos, sin) of twice the mirror-line angle for a reflection (det
     // -1). Each operation gets a Schoenflies name (Cn^k for rotation, and sigma for reflection) and
     // a geometric description.
+    //
+    // Rotations are decoded in twelfths of a full turn, with the parenthetical is still printed in
+    // degrees (t * 30) for readability.
+    constexpr int kTwelfths = 12;
     const double det = O[0] * O[3] - O[2] * O[1];
     if (det > 0.) {
-      const long raw = std::lround(std::atan2(O[1], O[0]) * 180. / M_PI);
-      const int deg = static_cast<int>((raw % 360 + 360) % 360);
-      if (deg == 0) {
+      const long raw = std::lround(std::atan2(O[1], O[0]) * kTwelfths / (2. * M_PI));
+      const int t = static_cast<int>((raw % kTwelfths + kTwelfths) % kTwelfths);
+      if (t == 0) {
         label << "E (identity)";
       }
       else {
-        const int g = std::gcd(deg, 360);
-        label << "C" << 360 / g;
-        if (deg / g > 1)
-          label << "^" << deg / g;
-        label << " (rotation " << deg << " deg)";
+        const int g = std::gcd(t, kTwelfths);
+        label << "C" << kTwelfths / g;
+        if (t / g > 1)
+          label << "^" << t / g;
+        label << " (rotation " << t * (360 / kTwelfths) << " deg)";
       }
     }
     else {
