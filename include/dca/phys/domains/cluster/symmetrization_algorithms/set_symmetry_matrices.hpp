@@ -12,6 +12,7 @@
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_HPP
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_HPP
 
+#include <cmath>
 #include <stdexcept>
 #include <vector>
 
@@ -151,6 +152,13 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
                                                          sym_super_cell_dmn_t>>& k_symmetry_matrix =
       cluster_symmetry<k_cluster_type>::get_symmetry_matrix();  // k_cluster_type::get_symmetry_matrix();
 
+  func::function<double,
+                 func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+      fold_phase = cluster_symmetry<k_cluster_type>::get_fold_phase();
+
+  func::function<int, func::dmn_variadic<k_dmn_t, sym_super_cell_dmn_t>>& mapped_point =
+      cluster_symmetry<k_cluster_type>::get_mapped_point();
+
   //   r_symmetry_matrix.print_fingerprint();
   //   k_symmetry_matrix.print_fingerprint();
 
@@ -159,12 +167,34 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
       for (int l = 0; l < sym_super_cell_dmn_t::dmn_size(); ++l) {
         std::vector<double> k = k_dmn_t::get_elements()[i];
         std::vector<double> trafo_k(DIMENSION, 0);
-        auto sym_elem = sym_super_cell_dmn_t::get_elements()[l];
-        auto kelems = k_dmn_t::get_elements();
         sym_super_cell_dmn_t::get_elements()[l].linear_transform(&k[0], &trafo_k[0]);
 
-        k_symmetry_matrix(i, j, l).first = find_k_index(trafo_k);
+        const int k_image = find_k_index(trafo_k);
+        k_symmetry_matrix(i, j, l).first = k_image;
         k_symmetry_matrix(i, j, l).second = r_symmetry_matrix(i, j, l).second;
+
+        // mapped_point is the same k-image, promoted to a band-independent accessor. trafo_k (hence
+        // k_image) is computed from the momentum alone, so it does not depend on the band j; store it
+        // once (j == 0) to make that independence explicit.
+        if (j == 0)
+          mapped_point(i, l) = k_image;
+
+        // Folding phase V(G) = e^{i G.a_band}. find_k_index folds (O k) back into the BZ by
+        // subtracting the reciprocal vector G. Here, we recover G = (O k) - k[image]
+        // (it is otherwise discarded) and dot it with the band's intra-cell offset a_vec.
+        const std::vector<double>& a_vec = b_dmn_t::get_elements()[j].a_vec;
+        double G_dot_a = 0.;
+        for (int d = 0; d < DIMENSION; ++d)
+          G_dot_a += (trafo_k[d] - k_dmn_t::get_elements()[k_image][d]) * a_vec[d];
+
+        // Fold phase is assumed to be +/-1 for every model currently supported. Store it real;
+        // reject a genuine non-+/-1 fold.
+        // \todo Lift the storage to a complex phase to support a genuine non-+/-1 fold.
+        if (std::abs(std::sin(G_dot_a)) > 1.e-6)
+          throw std::domain_error(
+              "set_symmetry_matrices: encountered a non-+/-1 folding phase, which is out of scope "
+              "for the current symmorphic / point-symmetry-only symmetrization (real fold phase).");
+        fold_phase(i, j, l) = std::cos(G_dot_a);
       }
     }
   }
