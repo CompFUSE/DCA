@@ -40,6 +40,7 @@
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/phys/parameters/output_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
+#include "dca/phys/dca_step/symmetrization/derive_point_group.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_family.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
@@ -137,6 +138,16 @@ public:
 
   void update_model();
   void update_domains();
+
+  // Derives the point group of one cluster family from the holohedry pool + H0 and prints how it
+  // diverges from the declared group (rank 0; silent on agreement). The declared symmetry state is
+  // restored by the check, so production symmetrization is unchanged.
+  template <typename RDmn>
+  void checkDerivedSymmetry() const {
+    const std::string report = deriveAndComparePointGroup<RDmn, Model>(*this);
+    if (!report.empty() && concurrency_.id() == concurrency_.first())
+      std::cout << report;
+  }
 
   int get_buffer_size(const concurrency_type& concurrency) const;
   void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
@@ -285,8 +296,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     read_obj.open_file(filename);
     this->readWrite(read_obj);
     // Detect model-section input mistakes while the parsed tree is still live (before close_file).
-    // Only the JSON reader tracks which sections were read; HDF5 as input is realistically 
-    // machine-generated, so the access check is not implemented for that path 
+    // Only the JSON reader tracks which sections were read; HDF5 as input is realistically
+    // machine-generated, so the access check is not implemented for that path
     if constexpr (std::is_same_v<Reader, dca::io::JSONReader>) {
       checkModelSections(read_obj.topLevelGroupAccess(), filename);
     }
@@ -335,6 +346,10 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                                             DomainsParameters::get_cluster());
   domains::cluster_domain_symmetry_initializer<
       RClusterDmn, typename Model::lattice_type::DCA_point_group>::execute();
+  // The check runs immediately after the initializer: the derivation temporarily overwrites
+  // this family's symmetry singletons with the pool-derived group and then restores exactly
+  // the state the line above just produced.
+  checkDerivedSymmetry<RClusterDmn>();
 
   if (concurrency_.id() == concurrency_.first())
     KClusterDmn::parameter_type::print(std::cout);
@@ -344,6 +359,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                                            DomainsParameters::get_sp_host());
   domains::cluster_domain_symmetry_initializer<
       RSpHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+  checkDerivedSymmetry<RSpHostDmn>();
 
   domains::MomentumExchangeDomain::initialize(*this);
 
@@ -355,6 +371,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                                           AnalysisParameters::get_q_host());
   domains::cluster_domain_symmetry_initializer<
       RQHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+  checkDerivedSymmetry<RQHostDmn>();
 
   if (concurrency_.id() == concurrency_.first())
     KQHostDmn::parameter_type::print(std::cout);
@@ -364,6 +381,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                                           AnalysisParameters::get_q_host_fine());
   domains::cluster_domain_symmetry_initializer<
       RQFineDmn, typename Model::lattice_type::DCA_point_group>::execute();
+  checkDerivedSymmetry<RQFineDmn>();
 
   if (concurrency_.id() == concurrency_.first())
     KQFineDmn::parameter_type::print(std::cout);
@@ -381,6 +399,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   }
   domains::cluster_domain_symmetry_initializer<
       RTpHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
+  checkDerivedSymmetry<RTpHostDmn>();
 
   if (concurrency_.id() == concurrency_.first())
     KTpHostDmn::parameter_type::print(std::cout);

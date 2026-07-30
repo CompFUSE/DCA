@@ -16,7 +16,7 @@
 
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 
 #include "test/mock_mcconfig.hpp"
 namespace dca {

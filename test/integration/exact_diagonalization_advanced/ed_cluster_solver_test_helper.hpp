@@ -21,7 +21,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"

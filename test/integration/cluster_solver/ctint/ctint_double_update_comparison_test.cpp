@@ -38,7 +38,7 @@ using McOptions = MockMcOptions<Scalar>;
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper_submatrix.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/ctint/walker/walker_wrapper.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"

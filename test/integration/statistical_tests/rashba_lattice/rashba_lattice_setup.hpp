@@ -29,7 +29,7 @@
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/math/random/random.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"

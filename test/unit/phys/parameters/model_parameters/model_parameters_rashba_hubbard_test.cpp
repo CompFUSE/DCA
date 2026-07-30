@@ -16,7 +16,7 @@
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
 #include "dca/io/json/json_reader.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/models/analytic_hamiltonians/rashba_hubbard.hpp"
 
 using Lattice = dca::phys::models::RashbaHubbard<dca::phys::domains::no_symmetry<2>>;

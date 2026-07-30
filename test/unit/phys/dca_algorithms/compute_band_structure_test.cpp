@@ -22,7 +22,7 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
