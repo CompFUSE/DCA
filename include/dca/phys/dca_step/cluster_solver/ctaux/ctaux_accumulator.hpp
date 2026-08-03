@@ -70,7 +70,7 @@ public:
   using ParametersType = Parameters;
   using DataType = Data;
   using BaseClass = MC_accumulator_data<Scalar>;
-  
+
   typedef vertex_pair<Parameters> vertex_pair_type;
   typedef vertex_singleton vertex_singleton_type;
 
@@ -255,8 +255,8 @@ protected:
  *  in the initializers.
  */
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
-CtauxAccumulator<device_t, Parameters, Data, DIST>::CtauxAccumulator(
-    const Parameters& parameters_ref, Data& data_ref, int id)
+CtauxAccumulator<device_t, Parameters, Data, DIST>::CtauxAccumulator(const Parameters& parameters_ref,
+                                                                     Data& data_ref, int id)
     : MC_accumulator_data<Scalar>(),
 
       parameters_(parameters_ref),
@@ -307,9 +307,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::initialize(int dca_iter
                                       parameters_.dump_every_iteration());
 
   if (perform_equal_time_accumulation_) {
-    equal_time_accumulator_ptr_ =
-        std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data>>(parameters_, data_,
-                                                                                thread_id);
+    equal_time_accumulator_ptr_ = std::make_unique<ctaux::TpEqualTimeAccumulator<Parameters, Data>>(
+        parameters_, data_, thread_id);
     equal_time_accumulator_ptr_->resetAccumulation();
   }
 }
@@ -406,8 +405,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::updateFrom(walker_type&
   walker.get_error_distribution() = 0;
 #endif  // DCA_WITH_QMC_BIT
 
-  //single_particle_accumulator_obj.syncStreams(*event);
-  //two_particle_accumulator_.syncStreams(*event);
+  // single_particle_accumulator_obj.syncStreams(*event);
+  // two_particle_accumulator_.syncStreams(*event);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -519,7 +518,8 @@ void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_equal_time_q
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxAccumulator<device_t, Parameters, Data, DIST>::accumulate_two_particle_quantities() {
   profiler_type profiler("tp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
-  gflop_ += 1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_phase_.getSign());
+  gflop_ +=
+      1e-9 * two_particle_accumulator_.accumulate(M_, hs_configuration_, current_phase_.getSign());
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>

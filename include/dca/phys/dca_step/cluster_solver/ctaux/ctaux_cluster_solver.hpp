@@ -29,15 +29,18 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
+#include "dca/linalg/util/allocators/allocators.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
 #include "dca/parallel/util/get_workload.hpp"
+#include "dca/phys/dca_loop/disorder/disorder_average.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/interpolation/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/time_correlator.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -71,10 +74,14 @@ public:
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
   using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data, DIST>;
   using SpGreensFunction = typename Data::SpGreensFunction;
+  using SpDisorderedGreensFunction = typename Data::SpDisorderedGreensFunction;
 
   static constexpr linalg::DeviceType device = device_t;
 
 protected:
+  // The following are deprecated because they don't follow the
+  // naming rules nor are they consistent with other classes aliases
+  // for these domains.
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -83,9 +90,12 @@ protected:
   using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RDmn = typename CDA::RClusterDmn;
   using KDmn = typename CDA::KClusterDmn;
-
+  using DDA = DcaDomainAliases<Parameters>;
+  using WDmn = typename DDA::WDmn;
+  using NuDmn = typename DDA::NuDmn;
   using NuNuKClusterWDmn = func::dmn_variadic<nu, nu, KDmn, w>;
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RDmn, w>;
+  using NuRNuRClusterWDmn = func::dmn_variadic<nu, RDmn, nu, RDmn, w>;
 
 public:
   CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref,
@@ -117,7 +127,12 @@ public:
     return g0_;
   };
 
-  typename Walker::Resource& getResource() { return dummy_walker_resource_; };
+  typename Walker::Resource& getResource() {
+    return dummy_walker_resource_;
+  };
+
+  void accumulateGkw(double weight);
+  void collectSingle();
 
 protected:
   void warmUp(Walker& walker);
@@ -133,6 +148,19 @@ private:
   void collect_measurements();
 
   void compute_G_k_w_from_M_r_w();
+  // Now this needs to have k1, k2
+  void accumulateGkwFromMrw(
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G_k_w,
+      double weight);
+  // r-space disorder analog of accumulateGkwFromMrw: per-config Dyson into the two-r accumulator.
+  void accumulateGrrwFromMrrw(
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RDmn, NuDmn, RDmn, WDmn>>& G_r_r_w,
+      double weight);
+  // Rank-local (un-collected) analog of accumulateGrrwFromMrrw for QMC error bars: Dysons this
+  // rank's own per-config M (normalized by the per-rank phase) into G_r_r_w.
+  void accumulateLocalGrrwFromMrrw(
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RDmn, NuDmn, RDmn, WDmn>>& G_r_r_w,
+      double weight);
 
   double compute_S_k_w_from_G_k_w();
 
@@ -164,6 +192,7 @@ protected:
   G0Interpolation<device, Scalar> g0_;
 
   typename Walker::Resource dummy_walker_resource_;
+
 private:
   Rng rng_;
 
@@ -176,6 +205,10 @@ private:
   FPScalar accumulated_sign_;
   func::function<std::complex<Real>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<Real>, NuNuRClusterWDmn> M_r_w_squared_;
+#ifdef DISORDERED_G0
+  func::function<std::complex<Real>, NuRNuRClusterWDmn> M_r_r_w_;
+  func::function<std::complex<Real>, NuRNuRClusterWDmn> M_r_r_w_squared_;
+#endif
 
   bool averaged_;
   bool compute_jack_knife_;
@@ -207,8 +240,19 @@ CtauxClusterSolver<device_t, Parameters, Data, DIST>::CtauxClusterSolver(
 
       M_r_w_("M_r_w"),
       M_r_w_squared_("M_r_w_squared"),
+#ifdef DISORDERED_G0
+      M_r_r_w_("M_r_r_w"),
+      M_r_r_w_squared_("M_r_r_w_squared"),
+#endif
       averaged_(false),
       writer_(writer) {
+#ifdef DISORDERED_G0
+  // The two-particle (G4) accumulator measures against the clean G0_k_w_cluster_excluded, which is
+  // inconsistent with the disordered walker; fail fast rather than produce wrong G4 under disorder.
+  if (parameters_.isAccumulatingG4())
+    throw std::logic_error(
+        "Two-particle (G4) accumulation is not supported with DISORDERED_G0.");
+#endif
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -289,15 +333,31 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::integrate() {
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
-template <typename dca_info_struct_t>
-double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
-    dca_info_struct_t& dca_info_struct) {
+void CtauxClusterSolver<device_t, Parameters, Data, DIST>::accumulateGkw(double weight) {
+  collect_measurements();
+#ifdef DISORDERED_G0
+  accumulateGrrwFromMrrw(data_.disorder_G_r_r_w, weight);
+  // Per-rank (un-collected) accumulation for the cross-rank QMC error bar (only when requested).
+  if (accumulator_.compute_std_deviation())
+    accumulateLocalGrrwFromMrrw(data_.disorder_G_r_r_w_local, weight);
+#else
+  accumulateGkwFromMrw(data_.accumulated_G_k_w, weight);
+#endif
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collectSingle() {
   collect_measurements();
   symmetrize_measurements();
 
   // Compute new Sigma.
   compute_G_k_w_from_M_r_w();
+}
 
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+template <typename dca_info_struct_t>
+double CtauxClusterSolver<device_t, Parameters, Data, DIST>::finalize(
+    dca_info_struct_t& dca_info_struct) {
   // FT<k_DCA,r_DCA>::execute(data_.G_k_w, data_.G_r_w);
   math::transform::FunctionTransform<KDmn, RDmn>::execute(data_.G_k_w, data_.G_r_w);
 
@@ -412,13 +472,31 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
 
-  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
-
-  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, RDmn, w>> M_r_w_new("M_r_w_new");
-  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> M_k_w_new("M_k_w_new");
-
   accumulator_.finalize();
 
+#ifdef DISORDERED_G0
+  // QMC error bars on the disorder-averaged G_k_w/Sigma. disorder_G_r_r_w_local holds this rank's
+  // own (un-collected) disorder-averaged two-site G; run averageGkw's pipeline (normalize ->
+  // translational average -> FT r->k) per rank, then take the cross-rank mean and stddev.
+  const double total_disorder_weight =
+      std::accumulate(data_.disorder_weights.begin(), data_.disorder_weights.end(), 0.0);
+  data_.disorder_G_r_r_w_local /= total_disorder_weight;
+
+  func::function<std::complex<Real>, NuNuRClusterWDmn> G_r_w_new("G_r_w_new");
+  disorder::translationalAverage<nu, RDmn, w>(data_.disorder_G_r_r_w_local, G_r_w_new);
+
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
+  math::transform::FunctionTransform<RDmn, KDmn>::execute(G_r_w_new, G_k_w_new);
+
+  compute_S_k_w_new(G_k_w_new, Sigma_new_);
+
+  concurrency_.average_and_compute_stddev(Sigma_new_, data_.get_Sigma_stdv());
+  concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
+#else
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, KDmn, w>> M_k_w_new("M_k_w_new");
+
+  func::function<std::complex<Real>, func::dmn_variadic<nu, nu, RDmn, w>> M_r_w_new("M_r_w_new");
   M_r_w_new = accumulator_.get_sign_times_M_r_w();
   M_r_w_new /= static_cast<typename decltype(M_r_w_new)::this_scalar_type>(
       accumulator_.get_accumulated_phase());
@@ -430,6 +508,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeErrorBars() {
 
   concurrency_.average_and_compute_stddev(Sigma_new_, data_.get_Sigma_stdv());
   concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
+#endif  // DISORDERED_G0
 
   // sum G4
   if (accumulator_.perform_tp_accumulation()) {
@@ -470,6 +549,18 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     concurrency_.delayedSum(accumulator_.get_Gflop());
     accumulated_sign_ = accumulator_.get_accumulated_phase();
     collect_delayed(accumulated_sign_);
+#ifdef DISORDERED_G0
+    // get_sign_times_M_r_w() returns the two-site M(R1,R2,w) here; static_assert pins the domain.
+    static_assert(
+        std::is_same_v<decltype(M_r_r_w_), std::decay_t<decltype(accumulator_.get_sign_times_M_r_w())>>);
+    M_r_r_w_ = accumulator_.get_sign_times_M_r_w();
+    collect_delayed(M_r_r_w_);
+
+    if (accumulator_.compute_std_deviation()) {
+      M_r_r_w_squared_ = accumulator_.get_sign_times_M_r_w_sqr();
+      concurrency_.delayedSum(M_r_r_w_squared_);
+    }
+#else
     static_assert(
         std::is_same_v<decltype(M_r_w_), std::decay_t<decltype(accumulator_.get_sign_times_M_r_w())>>);
     M_r_w_ = accumulator_.get_sign_times_M_r_w();
@@ -479,6 +570,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
       M_r_w_squared_ = accumulator_.get_sign_times_M_r_w_sqr();
       concurrency_.delayedSum(M_r_w_squared_);
     }
+#endif
 
     if (accumulator_.perform_equal_time_accumulation()) {
       Profiler profiler("Additional time measurements.", "QMC-collectives", __LINE__);
@@ -518,9 +610,16 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::collect_measurements(
     concurrency_.resolveSums();
   }
 
+#ifdef DISORDERED_G0
+  M_r_r_w_ /= static_cast<typename decltype(M_r_r_w_)::this_scalar_type>(accumulated_sign_);
+  M_r_r_w_squared_ /=
+      static_cast<typename decltype(M_r_r_w_squared_)::this_scalar_type>(accumulated_sign_);
+  // The disorder Dyson consumes M_r_r_w_ directly; the single-R M_r_w_ is unused here.
+#else
   M_r_w_ /= static_cast<typename decltype(M_r_w_)::this_scalar_type>(accumulated_sign_);
   M_r_w_squared_ /=
       static_cast<typename decltype(M_r_w_squared_)::this_scalar_type>(accumulated_sign_);
+#endif
   if (accumulator_.perform_tp_accumulation()) {
     for (auto& G4 : data_.get_G4())
       G4 /= static_cast<typename std::remove_reference<decltype(G4)>::type::this_scalar_type>(
@@ -570,8 +669,13 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::symmetrize_measuremen
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
+#ifdef DISORDERED_G0
+  // No Symmetrize overload for the two-site <nu,R,nu,R,w> domain, and crystal symmetry only holds
+  // after disorder averaging, so per-config symmetrization is skipped.
+#else
   Symmetrize<Parameters>::execute(M_r_w_, data_.H_symmetry);
   Symmetrize<Parameters>::execute(M_r_w_squared_, data_.H_symmetry);
+#endif
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -603,6 +707,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::computeG_k_w(
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
 void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_r_w() {
+#ifndef DISORDERED_G0
   func::function<std::complex<double>, NuNuKClusterWDmn> M_k_w;
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_, M_k_w);
 
@@ -634,6 +739,78 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::compute_G_k_w_from_M_
   }
 
   Symmetrize<Parameters>::execute(data_.G_k_w, data_.H_symmetry);
+#endif  // DISORDERED_G0
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+void CtauxClusterSolver<device_t, Parameters, Data, DIST>::accumulateGkwFromMrw(
+    func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G_k_w,
+    double weight) {
+#ifndef DISORDERED_G0
+  func::function<std::complex<double>, NuNuKClusterWDmn> M_k_w;
+  math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_, M_k_w);
+
+  const std::size_t matrix_size = b::dmn_size() * s::dmn_size();
+  linalg::Matrix<std::complex<Real>, dca::linalg::CPU> G0_times_M_matrix(matrix_size);
+  using MatrixView =
+      linalg::MatrixView<std::complex<Real>, dca::linalg::CPU,
+                         linalg::util::DefaultAllocator<std::complex<Real>, dca::linalg::CPU>>;
+
+  // G = G0 - G0*M*G0/beta
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); k_ind++) {
+    for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
+      // These views make strong assumptions about the function layouts!
+      const MatrixView G0_matrix(&data_.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
+                                 matrix_size);
+      const MatrixView M_matrix(&M_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_size);
+
+      // G0 * M --> G0_times_M_matrix
+      linalg::matrixop::gemm(G0_matrix, M_matrix, G0_times_M_matrix);
+
+      MatrixView G_matrix(&G_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_size);
+
+      // G0_times_M_matrix * G0 --> G_matrix
+      linalg::matrixop::gemm(G0_times_M_matrix, G0_matrix, G_matrix);
+
+      // -G_matrix / beta + G0_cluster_excluded_matrix --> G_matrix
+      for (int j = 0; j < matrix_size; ++j)
+        for (int i = 0; i < matrix_size; ++i)
+          G_matrix(i, j) = -G_matrix(i, j) / parameters_.get_beta() + G0_matrix(i, j);
+    }
+  }
+  G_k_w *= weight;
+  data_.accumulated_G_k_w += G_k_w;
+  // No symmetrization here: crystal symmetry only holds after disorder averaging.
+#endif  // DISORDERED_G0
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+void CtauxClusterSolver<device_t, Parameters, Data, DIST>::accumulateGrrwFromMrrw(
+    func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RDmn, NuDmn, RDmn, WDmn>>& G_r_r_w,
+    double weight) {
+#ifdef DISORDERED_G0
+  // Per-frequency Dyson G = G0_dis - G0_dis*M*G0_dis/beta on the dense (nu*N_R) two-site basis,
+  // accumulated with the config weight into G_r_r_w.
+  disorder::accumulateDisorderDyson<nu, RDmn, w, Real>(
+      data_.disordered_G0_r_r_w_cl_exl, M_r_r_w_, parameters_.get_beta(), weight, G_r_r_w);
+#endif  // DISORDERED_G0
+}
+
+template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
+void CtauxClusterSolver<device_t, Parameters, Data, DIST>::accumulateLocalGrrwFromMrrw(
+    func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RDmn, NuDmn, RDmn, WDmn>>& G_r_r_w,
+    double weight) {
+#ifdef DISORDERED_G0
+  // Same Dyson as accumulateGrrwFromMrrw, but on THIS rank's own (un-collected) M instead of the
+  // MPI-combined M_r_r_w_. Each rank keeps its own per-config sum so computeErrorBars can take the
+  // cross-rank stddev. Normalized by the per-rank phase, matching the clean error-bar branch.
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RDmn, NuDmn, RDmn, WDmn>> M_r_r_w_local(
+      accumulator_.get_sign_times_M_r_w(), "M_r_r_w_local");
+  M_r_r_w_local /= static_cast<typename decltype(M_r_r_w_local)::this_scalar_type>(
+      accumulator_.get_accumulated_phase());
+  disorder::accumulateDisorderDyson<nu, RDmn, w, Real>(
+      data_.disordered_G0_r_r_w_cl_exl, M_r_r_w_local, parameters_.get_beta(), weight, G_r_r_w);
+#endif  // DISORDERED_G0
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
@@ -899,15 +1076,36 @@ auto CtauxClusterSolver<device_t, Parameters, Data, DIST>::local_G_k_w() const {
     throw std::logic_error("The local data was already averaged.");
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>> G_k_w_new("G_k_w_new");
+#ifdef DISORDERED_G0
+  // Per-node local G: the production r-space pipeline (Dyson -> translational average -> FT r->k)
+  // on THIS config alone, with no cross-rank averaging. All intermediates are local scratch.
+
+  // Two-site M(R1,R2,w), normalized by the local (per-node) sign.
+  func::function<std::complex<Real>, NuRNuRClusterWDmn> M_r_r_w_new(
+      accumulator_.get_sign_times_M_r_w(), "M_r_r_w_new");
+  M_r_r_w_new /= static_cast<typename decltype(M_r_r_w_new)::this_scalar_type>(
+      accumulator_.get_accumulated_phase());
+
+  // r-space disorder Dyson, single config (weight 1); G_r_r_w_new must start zeroed to accumulate.
+  func::function<std::complex<Real>, NuRNuRClusterWDmn> G_r_r_w_new("G_r_r_w_new");
+  disorder::accumulateDisorderDyson<nu, RDmn, w, Real>(
+      data_.disordered_G0_r_r_w_cl_exl, M_r_r_w_new, parameters_.get_beta(), 1.0, G_r_r_w_new);
+
+  // Translational average then FT r->k.
+  func::function<std::complex<Real>, NuNuRClusterWDmn> G_r_w_new("G_r_w_new");
+  disorder::translationalAverage<nu, RDmn, w>(G_r_r_w_new, G_r_w_new);
+  math::transform::FunctionTransform<RDmn, KDmn>::execute(G_r_w_new, G_k_w_new);
+#else
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KDmn, w>> M_k_w_new("M_k_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RDmn, w>> M_r_w_new(
       accumulator_.get_sign_times_M_r_w(), "M_r_w_new");
 
-  M_r_w_new /= accumulator_.get_accumulated_sign();
+  M_r_w_new /= static_cast<typename decltype(M_r_w_new)::this_scalar_type>(
+      accumulator_.get_accumulated_phase());
 
   math::transform::FunctionTransform<RDmn, KDmn>::execute(M_r_w_new, M_k_w_new);
-
   compute_G_k_w_new(M_k_w_new, G_k_w_new);
+#endif  // DISORDERED_G0
 
   return G_k_w_new;
 }

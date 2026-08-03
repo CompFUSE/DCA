@@ -52,10 +52,17 @@ public:
   typedef typename Parameters::profiler_type profiler_t;
 
   typedef func::dmn_0<domains::time_domain_left_oriented> shifted_t;
-  typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
-
   typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;
+
+#ifdef DISORDERED_G0
+  // Disorder breaks translational invariance: key G0 by the site pair (R0,R1), not a displacement.
+  typedef func::dmn_variadic<nu, r_dmn_t, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_variadic<akima_dmn_t, nu, r_dmn_t, nu, r_dmn_t, shifted_t>
+      akima_nu_nu_r_dmn_t_shifted_t;
+#else
+  typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
+#endif
 
 public:
   G0InterpolationBase(int id, const Parameters& parameters);
@@ -122,6 +129,29 @@ void G0InterpolationBase<Parameters>::initialize(Data& data) {
 template <typename Parameters>
 template <class Data>
 void G0InterpolationBase<Parameters>::initialize_linear_coefficients(Data& data) {
+#ifdef DISORDERED_G0
+  // Two-site source G0_dis(nu0,R0,nu1,R1,t); same shifted_t packing, extra R0 loop.
+  const auto& g0 = data.disordered_G0_r_r_t_cl_exl;
+  for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++)
+    for (int r1 = 0; r1 < r_dmn_t::dmn_size(); r1++)
+      for (int r0 = 0; r0 < r_dmn_t::dmn_size(); r0++)
+        for (int nu1 = 0; nu1 < b::dmn_size() * s::dmn_size(); nu1++)
+          for (int nu0 = 0; nu0 < b::dmn_size() * s::dmn_size(); nu0++) {
+            G0_r_t_shifted(nu0, r0, nu1, r1, t_ind) = g0(nu0, r0, nu1, r1, t_ind);
+            grad_G0_r_t_shifted(nu0, r0, nu1, r1, t_ind) =
+                (g0(nu0, r0, nu1, r1, t_ind + 1) - g0(nu0, r0, nu1, r1, t_ind));
+          }
+
+  for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size() - 1; t_ind++)
+    for (int r1 = 0; r1 < r_dmn_t::dmn_size(); r1++)
+      for (int r0 = 0; r0 < r_dmn_t::dmn_size(); r0++)
+        for (int nu1 = 0; nu1 < b::dmn_size() * s::dmn_size(); nu1++)
+          for (int nu0 = 0; nu0 < b::dmn_size() * s::dmn_size(); nu0++) {
+            G0_r_t_shifted(nu0, r0, nu1, r1, t_ind - 1) = g0(nu0, r0, nu1, r1, t_ind);
+            grad_G0_r_t_shifted(nu0, r0, nu1, r1, t_ind - 1) =
+                (g0(nu0, r0, nu1, r1, t_ind + 1) - g0(nu0, r0, nu1, r1, t_ind));
+          }
+#else
   for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++) {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
@@ -149,6 +179,7 @@ void G0InterpolationBase<Parameters>::initialize_linear_coefficients(Data& data)
       }
     }
   }
+#endif
 }
 
 template <typename Parameters>
@@ -164,6 +195,42 @@ void G0InterpolationBase<Parameters>::initialize_akima_coefficients(Data& data) 
   for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
 
+#ifdef DISORDERED_G0
+  // Two-site source G0_dis(nu0,R0,nu1,R1,t): one spline per (R0,R1,nu0,nu1), same shifted_t split.
+  const auto& g0 = data.disordered_G0_r_r_t_cl_exl;
+  {  // negative-tau half
+    for (int r1 = 0; r1 < r_dmn_t::dmn_size(); r1++)
+      for (int r0 = 0; r0 < r_dmn_t::dmn_size(); r0++)
+        for (int nu1 = 0; nu1 < b::dmn_size() * s::dmn_size(); nu1++)
+          for (int nu0 = 0; nu0 < b::dmn_size() * s::dmn_size(); nu0++) {
+            for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
+              y[t_ind] = g0(nu0, r0, nu1, r1, t_ind);
+
+            ai_obj.initialize(x, y);
+
+            for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++)
+              for (int l = 0; l < 4; l++)
+                akima_coefficients(l, nu0, r0, nu1, r1, t_ind) = ai_obj.get_alpha(l, t_ind);
+          }
+  }
+
+  {  // positive-tau half
+    for (int r1 = 0; r1 < r_dmn_t::dmn_size(); r1++)
+      for (int r0 = 0; r0 < r_dmn_t::dmn_size(); r0++)
+        for (int nu1 = 0; nu1 < b::dmn_size() * s::dmn_size(); nu1++)
+          for (int nu0 = 0; nu0 < b::dmn_size() * s::dmn_size(); nu0++) {
+            for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size(); t_ind++)
+              y[t_ind - t::dmn_size() / 2] = g0(nu0, r0, nu1, r1, t_ind);
+
+            ai_obj.initialize(x, y);
+
+            for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size() - 1; t_ind++)
+              for (int l = 0; l < 4; l++)
+                akima_coefficients(l, nu0, r0, nu1, r1, t_ind - 1) =
+                    ai_obj.get_alpha(l, t_ind - t::dmn_size() / 2);
+          }
+  }
+#else
   {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < b::dmn_size() * s::dmn_size(); nu1_ind++) {
@@ -199,6 +266,7 @@ void G0InterpolationBase<Parameters>::initialize_akima_coefficients(Data& data) 
       }
     }
   }
+#endif
 
   /*
     {

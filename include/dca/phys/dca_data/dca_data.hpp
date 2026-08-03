@@ -1,5 +1,5 @@
 // Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2026 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cassert>
 #include <complex>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -28,6 +29,7 @@
 
 #include "dca/distribution/dist_types.hpp"
 #include "dca/function/domains.hpp"
+#include "dca/function/domains/dmn_variadic.hpp"
 #include "dca/function/function.hpp"
 #include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/reader.hpp"
@@ -42,6 +44,7 @@
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
 #include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
+#include "dca/phys/domains/cluster/disorder_configuration_domain.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -56,6 +59,8 @@
 #include "dca/util/timer.hpp"
 #include "dca/util/to_string.hpp"
 #include "dca/distribution/dist_types.hpp"
+#include "dca/phys/types/dca_shared_types.hpp"
+#include "dca/util/type_help.hpp"
 #ifdef DCA_WITH_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
 #endif
@@ -102,14 +107,35 @@ public:
 
   using SpGreensFunction =
       func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using SpDisorderedGreensFunction =
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, KClusterDmn, NuDmn, KClusterDmn, WDmn>>;
   using SpRGreensFunction =
       func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
+  using SpRDisorderedGreensFunction =
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RClusterDmn, NuDmn, RClusterDmn, WDmn>>;
 
   using TpGreensFunction =
       func::function<TpComplex,
                      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, WVertexDmn,
                                         KClusterDmn, WVertexDmn, KExchangeDmn, WExchangeDmn>,
                      DT>;
+
+  using Type_G0_k_w =
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using Type_G0_k_t =
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>>;
+  using Type_G0_r_t = func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>>;
+
+  // Two real-index (R1,R2) disordered G0 types. The imaginary-time version follows the Scalar
+  // convention of the other real-space-time G0s, while the Matsubara-frequency version is complex.
+  using Disordered_G0_r_r_t =
+      func::function<Scalar, func::dmn_variadic<NuDmn, RClusterDmn, NuDmn, RClusterDmn, TDmn>>;
+  using Disordered_G0_r_r_w =
+      func::function<std::complex<Real>, func::dmn_variadic<NuDmn, RClusterDmn, NuDmn, RClusterDmn, WDmn>>;
+
+  // Vector NuDmn * RDmn in size that is the disorder configuration
+  using DST = DcaSharedTypes<Parameters>;
+  using DisorderConfiguration = typename DST::DisorderConfiguration;
 
   DcaData(Parameters& parameters_ref);
 
@@ -124,6 +150,9 @@ public:
 
   template <typename Writer>
   void write(Writer& writer);
+
+  template <typename Writer>
+  void writeDisAvgGreensFunction(Writer& writer);
 
 #ifdef DCA_WITH_ADIOS2
   void writeDistributedG4Adios(io::ADIOS2Writer<Concurrency>& writer);
@@ -186,18 +215,42 @@ public:
   func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G_r_w;
   func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G_r_t;
 
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> accumulated_G_k_w;
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> accumulated_G_k_t;
+  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> accumulated_G_r_w;
+  func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> accumulated_G_r_t;
+
   func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
   func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
   func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
 
-  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>
-      G0_k_w_cluster_excluded;
-  func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>>
-      G0_k_t_cluster_excluded;
+  Type_G0_k_w G0_k_w_cluster_excluded;
+  Type_G0_k_t G0_k_t_cluster_excluded;
   func::function<std::complex<Real>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>
       G0_r_w_cluster_excluded;
-  func::function<Scalar, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cluster_excluded;
+  // Why these are the only G0 tensors that still can be reall or
+  // complex I'm not clear.
+  Type_G0_r_t G0_r_t_cluster_excluded;
+
+  /// These G0 are only used when diagonal disorder is applied
+  Disordered_G0_r_r_t disordered_G0_r_r_t_cl_exl;
+  /// Disordered G0 in r-space Matsubara frequency, computed directly in makeDisorderedG0 by
+  /// per-site frequency inversion. Feeds the r-space Dyson equation in accumulateGrrwFromMrrw.
+  Disordered_G0_r_r_w disordered_G0_r_r_w_cl_exl;
+  /// Disorder-averaged interacting Green's function, accumulated over configs in
+  /// accumulateGrrwFromMrrw.
+  Disordered_G0_r_r_w disorder_G_r_r_w;
+  /// Rank-local (not MPI-collected) analog of disorder_G_r_r_w: each rank sums its own per-config
+  /// Dyson here so computeErrorBars can take the cross-rank stddev (QMC error of the disorder
+  /// average). Only populated when error bars are requested.
+  Disordered_G0_r_r_w disorder_G_r_r_w_local;
+
+  /// Disorder realizations of the current DCA step: each configuration is the per-site random
+  /// potential (box in [-W/2,W/2], binary +/-V/2), with uniform averaging weights. Generated in
+  /// the DCA loop; written to output when the "dump-disorder-configs" parameter is set.
+  std::vector<DisorderConfiguration> disorder_configurations;
+  std::vector<double> disorder_weights;
 
   func::function<Real, NuDmn> orbital_occupancy;
 
@@ -261,7 +314,14 @@ public:  // Optional members getters.
     return (bool)non_density_interactions_;
   }
 
+  void makeDisorderedG0(const DisorderConfiguration& disorder_configuration);
+
 private:  // Optional members.
+  void makeDisorderedG0(const DisorderConfiguration& disorder_configuration,
+                        const Type_G0_r_t& g0_r_t_cl_exl);
+
+  /// Due to the new ability to modify the G0 for disorder this is the
+  /// immutable g0 from the last iteration.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
   std::unique_ptr<SpRGreensFunction> G_r_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
@@ -365,19 +425,19 @@ void DcaData<Parameters, DT>::read(const std::string& filename) {
   if (parameters_.isAccumulatingG4()) {
     concurrency_.broadcast_object(G_k_w);
 #ifndef NDEBUG
-  if (concurrency_.id() == concurrency_.first()) {
-    std::cout << "broadcasted G_k_w \n";
-  }
+    if (concurrency_.id() == concurrency_.first()) {
+      std::cout << "broadcasted G_k_w \n";
+    }
 #endif
 
-  for (auto& G4_channel : G4_) {
+    for (auto& G4_channel : G4_) {
       concurrency_.broadcast_object(G4_channel);
 #ifndef NDEBUG
-  if (concurrency_.id() == concurrency_.first()) {
-    std::cout << "broadcasted G4_channel \n";
-  }
+      if (concurrency_.id() == concurrency_.first()) {
+        std::cout << "broadcasted G4_channel \n";
+      }
 #endif
-  }
+    }
   }
 }
 
@@ -530,7 +590,37 @@ void DcaData<Parameters, DT>::write(Writer& writer) {
     }
 #endif
   }
+
+  // Dump the disorder realizations of this DCA step (the per-site random potentials) as a
+  // single function over <nu, r, configuration index>. The disorder potential is site-local
+  // (one value per site), so a single R index is the faithful representation.
+  if (parameters_.dump_disorder_configs() && !disorder_configurations.empty()) {
+    domains::DisorderConfigurationDomain::initialize(static_cast<int>(disorder_configurations.size()));
+    using ConfigDmn = func::dmn_0<domains::DisorderConfigurationDomain>;
+    func::function<Real, func::dmn_variadic<NuDmn, RClusterDmn, ConfigDmn>> disorder_randoms(
+        "disorder_configurations");
+
+    // Each configuration is a contiguous nu*r block; copy it into the ic-th slot (the
+    // configuration index is the slowest-varying dimension of disorder_randoms).
+    const int block = disorder_configurations[0].size();
+    for (int ic = 0; ic < static_cast<int>(disorder_configurations.size()); ++ic) {
+      const Real* src = disorder_configurations[ic].values();
+      Real* dst = disorder_randoms.values() + ic * block;
+      for (int j = 0; j < block; ++j)
+        dst[j] = src[j];
+    }
+    writer.execute(disorder_randoms);
+  }
+
   writer.close_group();
+}
+
+template <class Parameters, DistType DT>
+template <typename Writer>
+void DcaData<Parameters, DT>::writeDisAvgGreensFunction(Writer& writer) {
+  if (parameters_.dump_cluster_Greens_functions()) {
+    writer.execute(G_k_w);
+  }
 }
 
 template <class Parameters, DistType DT>
@@ -555,7 +645,8 @@ void DcaData<Parameters, DT>::initializeH0_and_H_i() {
     for (int nu2 = 0; nu2 < NuDmn::dmn_size(); ++nu2)
       for (int nu1 = 0; nu1 < NuDmn::dmn_size(); ++nu1) {
         if (std::abs(H_interactions(nu1, nu2, r) - H_interactions(nu2, nu1, minus_r)) > 1e-8) {
-          std::cout << r << " , " << minus_r << " , " << H_interactions(nu1, nu2, r) << " , " << H_interactions(nu2, nu1, minus_r) << "\n";
+          std::cout << r << " , " << minus_r << " , " << H_interactions(nu1, nu2, r) << " , "
+                    << H_interactions(nu2, nu1, minus_r) << "\n";
           throw(std::logic_error("Double counting is not consistent."));
         }
       }
@@ -566,7 +657,6 @@ void DcaData<Parameters, DT>::initializeH0_and_H_i() {
   }
 
   Parameters::model_type::initialize_H_symmetries(H_symmetry);
-
   compute_band_structure<Parameters>::execute(parameters_, band_structure);
 }
 
@@ -659,13 +749,13 @@ void DcaData<Parameters, DT>::initializeSigma(const std::string& filename) {
     }
   }
   concurrency_.broadcast(parameters_.get_chemical_potential());
-  #ifndef NDEBUG
+#ifndef NDEBUG
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "broadcasted chemical potential: " << parameters_.get_chemical_potential();
   }
 #endif
   concurrency_.broadcast(Sigma);
-  #ifndef NDEBUG
+#ifndef NDEBUG
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "broadcasted Sigma \n";
   }
@@ -695,6 +785,75 @@ void DcaData<Parameters, DT>::readSigmaFile(io::Reader<Concurrency>& reader) {
   reader.open_group("functions");
   reader.execute(Sigma);
   reader.close_group();
+}
+
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::makeDisorderedG0(const DisorderConfiguration& disorder_configuration,
+                                               const Type_G0_r_t& g0_r_t_cl_exl) {
+  const int nu_matrix_dim = NuDmn::dmn_size();
+  const int r_matrix_dim = RClusterDmn::dmn_size();
+  const int nu_r_matrix_dim = nu_matrix_dim * r_matrix_dim;
+
+  // The frequency clean G0 is kept in k-space; bring it to (r,w).
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_w_cluster_excluded,
+                                                                        G0_r_w_cluster_excluded);
+
+  // Unfold the single-displacement clean G0 to two indices: G0(R1,R2) = g(subtract(R2,R1)).
+  for (int w = 0; w < WDmn::dmn_size(); ++w)
+    for (int R1 = 0; R1 < r_matrix_dim; ++R1)
+      for (int R2 = 0; R2 < r_matrix_dim; ++R2) {
+        const int d = RClusterDmn::parameter_type::subtract(R2, R1);  // index of r_{R1} - r_{R2}
+        for (int inu1 = 0; inu1 < nu_matrix_dim; ++inu1)
+          for (int inu2 = 0; inu2 < nu_matrix_dim; ++inu2)
+            disordered_G0_r_r_w_cl_exl(inu1, R1, inu2, R2, w) =
+                G0_r_w_cluster_excluded(inu1, inu2, d, w);
+      }
+
+  // Snapshot the clean unfold as the w->t tail-subtraction reference (shares G0_dis's 1/(iw) moment).
+  Disordered_G0_r_r_w clean_G0_r_r_w(disordered_G0_r_r_w_cl_exl);
+
+  // Per-frequency disorder Dyson: invert, add static V(R) on the diagonal, invert back.
+  dca::linalg::Matrix<std::complex<Real>, dca::linalg::CPU> g0_dis_block(nu_r_matrix_dim);
+  for (int w = 0; w < WDmn::dmn_size(); ++w) {
+    dca::linalg::matrixop::copyArrayToMatrix(nu_r_matrix_dim, nu_r_matrix_dim,
+                                             &disordered_G0_r_r_w_cl_exl(0, 0, 0, 0, w),
+                                             nu_r_matrix_dim, g0_dis_block);
+    dca::linalg::matrixop::inverse(g0_dis_block);
+    for (int ir = 0; ir < r_matrix_dim; ++ir)
+      for (int imd = 0; imd < nu_matrix_dim; ++imd)
+        g0_dis_block(imd + nu_matrix_dim * ir, imd + nu_matrix_dim * ir) +=
+            disorder_configuration(imd, ir);
+    dca::linalg::matrixop::inverse(g0_dis_block);
+    dca::linalg::matrixop::copyMatrixToArray(g0_dis_block,
+                                             &disordered_G0_r_r_w_cl_exl(0, 0, 0, 0, w),
+                                             nu_r_matrix_dim);
+  }
+
+  // Disordered G0 in imaginary time: the Dyson is a convolution in tau, so transform w->t with the
+  // tail trick instead of inverting per slice. Subtract the clean reference (O(1/w^2) remainder).
+  Disordered_G0_r_r_w delta_G0_r_r_w("delta_disordered_G0_r_r_w");
+  for (int i = 0; i < delta_G0_r_r_w.size(); ++i)
+    delta_G0_r_r_w(i) = disordered_G0_r_r_w_cl_exl(i) - clean_G0_r_r_w(i);
+
+  // FT the smooth remainder w->t (narrows complex->Scalar; t is trailing, (nu,R,nu,R) spectate).
+  Disordered_G0_r_r_t delta_G0_r_r_t("delta_disordered_G0_r_r_t");
+  math::transform::FunctionTransform<WDmn, TDmn>::execute(delta_G0_r_r_w, delta_G0_r_r_t);
+
+  // Add back the exact clean tau reference (V=0 => remainder is zero => clean tau G0 exactly).
+  for (int it = 0; it < TDmn::dmn_size(); ++it)
+    for (int R1 = 0; R1 < r_matrix_dim; ++R1)
+      for (int R2 = 0; R2 < r_matrix_dim; ++R2) {
+        const int d = RClusterDmn::parameter_type::subtract(R2, R1);
+        for (int inu1 = 0; inu1 < nu_matrix_dim; ++inu1)
+          for (int inu2 = 0; inu2 < nu_matrix_dim; ++inu2)
+            disordered_G0_r_r_t_cl_exl(inu1, R1, inu2, R2, it) =
+                delta_G0_r_r_t(inu1, R1, inu2, R2, it) + g0_r_t_cl_exl(inu1, inu2, d, it);
+      }
+}
+
+template <class Parameters, DistType DT>
+void DcaData<Parameters, DT>::makeDisorderedG0(const DisorderConfiguration& disorder_configuration) {
+  makeDisorderedG0(disorder_configuration, G0_r_t_cluster_excluded);
 }
 
 template <class Parameters, DistType DT>

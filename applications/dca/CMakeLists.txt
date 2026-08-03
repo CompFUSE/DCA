@@ -7,8 +7,9 @@ if (DCA_BUILD_DCA)
   if (DCA_HAVE_GPU)
     target_link_libraries(main_dca PRIVATE ${DCA_KERNEL_LIBS})
   endif()
-  
-  target_link_libraries(main_dca PUBLIC FFTW::Double signals ${DCA_LIBS} dca_io)
+
+  target_link_libraries(main_dca PUBLIC FFTW::Double signals ${DCA_LIBS} dca_io main_parameters)
 
   install(TARGETS main_dca RUNTIME DESTINATION bin)
+
 endif()
