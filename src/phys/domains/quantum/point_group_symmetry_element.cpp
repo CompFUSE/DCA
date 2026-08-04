@@ -11,7 +11,10 @@
 
 #include "dca/phys/domains/quantum/point_group_symmetry_element.hpp"
 
+#include <cmath>
 #include <cstring>
+#include <numeric>
+#include <sstream>
 
 namespace dca {
 namespace phys {
@@ -78,6 +81,70 @@ void point_group_symmetry_element::transform(const double* t0, double* t1) const
 
   for (int i = 0; i < DIMENSION; ++i)
     t1[i] += t[i];
+}
+
+namespace {
+// Writes the angle (num / den) * pi in lowest terms, e.g. 0, pi, pi/2, 2pi/3.
+std::string formatPiFraction(int num, int den) {
+  if (num == 0)
+    return "0";
+
+  const int g = std::gcd(num, den);
+  num /= g;
+  den /= g;
+
+  std::ostringstream angle;
+  if (num > 1)
+    angle << num;
+  angle << "pi";
+  if (den > 1)
+    angle << "/" << den;
+
+  return angle.str();
+}
+}  // namespace
+
+std::string point_group_symmetry_element::describe() const {
+  std::ostringstream label;
+
+  if (DIMENSION == 2) {
+    // O is column major, so its first column (O[0], O[1]) is (cos, sin) of the rotation angle for a
+    // proper rotation (det +1) and (cos, sin) of twice the mirror-line angle for a reflection (det
+    // -1). Each operation gets a Schoenflies name (Cn^k for rotation, and sigma for reflection) and
+    // a geometric description.
+    //
+    // Rotations are decoded in twelfths of a full turn, and mirror lines are decoded in twelfths of
+    // pi. Both are reported in radians.
+    constexpr int kTurn = 12;
+    const double det = O[0] * O[3] - O[2] * O[1];
+    if (det > 0.) {
+      const long raw = std::lround(std::atan2(O[1], O[0]) * kTurn / (2. * M_PI));
+      const int t = static_cast<int>((raw % kTurn + kTurn) % kTurn);
+      if (t == 0) {
+        label << "E (identity)";
+      }
+      else {
+        const int g = std::gcd(t, kTurn);
+        label << "C" << kTurn / g;
+        if (t / g > 1)
+          label << "^" << t / g;
+        // A rotation by t twelfths of a turn is an angle of 2 pi t / 12 = t pi / 6.
+        label << " (rotation " << formatPiFraction(t, kTurn / 2) << " rad)";
+      }
+    }
+    else {
+      // The mirror-line angle is half the angle carried by the first column, so halving turns
+      // twelfths of a turn into twelfths of pi and the mirror line is m * pi / 12.
+      const long raw = std::lround(std::atan2(O[1], O[0]) * kTurn / (2. * M_PI));
+      const int m = static_cast<int>((raw % kTurn + kTurn) % kTurn);
+      label << "sigma (mirror @ " << formatPiFraction(m, kTurn) << " rad)";
+    }
+  }
+  else {
+    label << DIMENSION << "D symmetry element";
+  }
+
+  return label.str();
 }
 
 }  // namespace domains

@@ -21,7 +21,7 @@
 #include "dca/function/function.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"

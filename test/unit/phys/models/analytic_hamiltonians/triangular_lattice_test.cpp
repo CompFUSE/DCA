@@ -22,14 +22,14 @@
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_hexagonal.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
 
 TEST(TriangularLatticeTest, Initialize_H_0) {
-  using PointGroup = phys::domains::C6;
+  using PointGroup = phys::domains::D6;
   using Lattice = phys::models::triangular_lattice<PointGroup>;
 
   using BandDmn = func::dmn<1, int>;
@@ -77,7 +77,7 @@ TEST(TriangularLatticeTest, Initialize_H_0) {
 }
 
 TEST(TriangularLatticeTest, Initialize_H_interaction) {
-  using PointGroup = phys::domains::C6;
+  using PointGroup = phys::domains::D6;
   using Lattice = phys::models::triangular_lattice<PointGroup>;
 
   using BandDmn = func::dmn_0<func::dmn<1, int>>;

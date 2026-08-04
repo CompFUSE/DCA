@@ -40,6 +40,7 @@
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
+#include "dca/phys/dca_step/symmetrization/derive_point_group.hpp"
 #include "dca/phys/dca_step/symmetrization/solve_orbital_op_signs.hpp"
 
 #include <algorithm>
@@ -58,10 +59,11 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_algorithms/compute_free_greens_function.hpp"
 #include "dca/phys/domains/cluster/cluster_symmetry.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
+#include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
 #include "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp"
@@ -107,6 +109,7 @@ struct SquareD4 {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 8;
 };
 
 // CASE 2 -- three-band Hubbard (Emery/CuO2) model on D4. This case fails the
@@ -126,6 +129,7 @@ struct ThreebandD4 {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 8;
 };
 
 // CASE 3 -- 1D chain. Since this model has identity-only symmetry, this test exercises
@@ -141,6 +145,25 @@ struct SinglebandChain {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 4;
+};
+
+// CASE 4 -- Kagome lattice declared with no_symmetry<2>, mirroring the production
+// instantiation in test/unit/phys/dca_step/cluster_solver/test_setup.hpp. This is the
+// regression case for solveSignsForOp's -1 guard: the hexagonal has the 12 D6 ops,
+// but the orbital position+flavor matching in set_symmetry_matrices filters them all out,
+// and records (-1, -1). The H0 sign solver must reject the ops instead of indexing H0 with
+// band -1 (an OOB).
+struct KagomeNoSym {
+  using Scalar = double;
+  using Lattice = dca::phys::models::KagomeHubbard<dca::phys::domains::no_symmetry<2>>;
+  static constexpr char Input[] = "kagome_input.json";
+  static constexpr int expected_num_symmetries = 1;
+  static std::vector<std::string> expectedFailingReps() { return {}; }
+  static std::vector<int> expectedFailingKOps() { return {}; }
+  static std::vector<int> expectedFailingROps() { return {}; }
+  static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 2;
 };
 
 // Templated test fixture
@@ -514,6 +537,48 @@ TYPED_TEST(SymmetrizeCharacterizationTest, GroupShadowCrossCheck) {
          "sign-consistency check rejects changed vs the expectation.";
 }
 
+// TEST 5c: DerivedGroupReport -- the production derive-and-report step. update_domains now derives
+// each 2D model's point group from scratch (2D holohedry pool -> geometry filter -> H0 gate),
+// reports any divergence from the declared group, and keeps symmetrizing with the declared group.
+// This exercises the same routine directly and asserts the three things production relies on:
+// (1) the declared symmetry state is restored, so the derivation is invisible downstream
+// (2) the report is silent when derived == declared, and names the divergence otherwise
+// (3) the derived-group size matches the trait expectation
+TYPED_TEST(SymmetrizeCharacterizationTest, DerivedGroupReport) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using RClusterDmn = typename Fixture::RClusterDmn;
+  using KCluster = typename Fixture::KCluster;
+  using Model = typename Fixture::Model;
+  using CS_k = dca::phys::domains::cluster_symmetry<KCluster>;
+
+  const int n_ops_before = Fixture::KSymDmn::dmn_size();
+  const auto symmetry_matrix_before = CS_k::get_symmetry_matrix();
+
+  const std::string report =
+      dca::phys::deriveAndComparePointGroup<RClusterDmn, Model>(this->parameters_);
+
+  // (1) restoration: production must be left in exactly the declared state.
+  ASSERT_EQ(Fixture::KSymDmn::dmn_size(), n_ops_before);
+  const auto& symmetry_matrix_after = CS_k::get_symmetry_matrix();
+  for (int i = 0; i < symmetry_matrix_before.size(); ++i)
+    ASSERT_EQ(symmetry_matrix_after(i), symmetry_matrix_before(i))
+        << "symmetry table changed at linear index " << i;
+
+  // (2) + (3): silent on match; on divergence the report names the derived-group size and the
+  // under-declaration.
+  if (TypeParam::expected_num_derived_symmetries == TypeParam::expected_num_symmetries) {
+    EXPECT_TRUE(report.empty()) << "unexpected divergence report:\n" << report;
+  }
+  else {
+    const std::string expected_size = "derived group: " +
+                                      std::to_string(TypeParam::expected_num_derived_symmetries) +
+                                      " op(s)";
+    EXPECT_NE(report.find(expected_size), std::string::npos) << report;
+    EXPECT_NE(report.find("under-declared"), std::string::npos) << report;
+    std::cout << "[derived group] " << TypeParam::Input << ":\n" << report;
+  }
+}
+
 // TEST 6: MappedPointShadow -- the mapped_point accessor. The band-independent ".first" of the
 // legacy symmetry matrix (the image of each momentum under each op) is promoted into its own
 // (cluster-point x op) accessor. Verify it reproduces .first for every band, which confirms both
@@ -606,11 +671,12 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapRealSpace) {
       << "Real-space per-op red/green map changed vs the expected failing set.";
 }
 
-// TEST 8 (a/b/c): rejection fixtures for the sign-consistency solver.
+// TEST 8 (a/b/c/d): rejection fixtures for the sign-consistency solver.
 //
-// solveOrbitalOpSignsFromH0 has three throw branches. No shipped model exercises any of the
-// three on a correct H0 -- the spine cases all pass -- so we perturb a copy of the (exactly
-// symmetric) H0 to break one operation and assert the solver throws for the intended reason.
+// solveOrbitalOpSignsFromH0 has four throw branches. No shipped model exercises any of the
+// four on a correct H0 and a complete symmetry table -- the spine cases all pass -- so we
+// perturb a copy of the (exactly symmetric) H0 (8a-8c), or the table itself (8d), to break one
+// operation and assert the solver throws for the intended reason.
 //
 // These need a multi-orbital model. A single band has no off-diagonal coupling to corrupt,
 // and on the spine's square cluster every nonzero single-band entry sits at a k that is a
@@ -639,6 +705,29 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
 
   const auto t = findStrongestOffDiagonal(this->H0_, nb, nk);
   ASSERT_GT(t.mag, kTolerance) << "no off-diagonal coupling to perturb.";
+
+  // The perturbation is only visible to an op that maps the corrupted entry to a *different*
+  // (unperturbed) H0 entry. Both the entry and its Hermitian partner are perturbed, so an op
+  // landing on either sees a consistent H0 and cannot throw. An identity-only group (e.g. a
+  // multi-band lattice declared with no_symmetry) therefore has nothing to detect: skip.
+  {
+    const auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+    const int n_ops = Fixture::KSymDmn::dmn_size();
+    bool movable = false;
+    for (int s = 0; s < n_ops && !movable; ++s) {
+      const int k_new = sym(t.k, 0, s).first;
+      const int b0_new = sym(0, t.b0, s).second;
+      const int b1_new = sym(0, t.b1, s).second;
+      const bool fixes = k_new == t.k && b0_new == t.b0 && b1_new == t.b1;
+      const bool hermitian_partner = k_new == t.k && b0_new == t.b1 && b1_new == t.b0;
+      movable = !fixes && !hermitian_partner;
+    }
+    if (!movable) {
+      std::cout << "[skip] " << TypeParam::Input
+                << ": no op moves the corrupted coupling to an unperturbed entry.\n";
+      return;
+    }
+  }
 
   // Vanish: the op connecting this entry to its (still nonzero) image sees it gone on one side only.
   {
@@ -763,6 +852,38 @@ TEST(SolveOrbitalOpSigns, BoundaryFoldDoesNotMaskPxParity) {
   EXPECT_DOUBLE_EQ(u_s(0, 0, 0), 1.);
   EXPECT_DOUBLE_EQ(u_s(1, 1, 0), -1.);  // The intrinsic p_x parity, not the fold-dressed +1.
   EXPECT_DOUBLE_EQ(u_s(2, 2, 0), 1.);
+}
+
+// 8d -- missing band image: the geometric position/flavor matching in set_symmetry_matrices
+// records -1 when it finds no admissible image, so the solver cannot assume a complete table.
+// Unlike 8a-8c this perturbs the symmetry table, not H0: the whole-group populator must throw,
+// and the non-throwing classifier must omit the op instead of indexing H0 with -1 (an OOB). The
+// table is shared static state, so it gets restored.
+TYPED_TEST(SymmetrizeCharacterizationTest, RejectsMissingBandImage) {
+  using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
+  using KCluster = typename Fixture::KCluster;
+
+  const std::vector<int> baseline = dca::phys::verifiedSymmetryOps<KCluster>(this->H0_);
+  ASSERT_FALSE(baseline.empty()) << "no verified op to corrupt (identity should always pass).";
+  const int s_target = baseline.front();
+
+  auto& sym = dca::phys::domains::cluster_symmetry<KCluster>::get_symmetry_matrix();
+  const int saved_image = sym(0, 0, s_target).second;
+  sym(0, 0, s_target).second = -1;
+
+  const std::string msg =
+      captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(this->H0_); });
+  const std::vector<int> verified = dca::phys::verifiedSymmetryOps<KCluster>(this->H0_);
+
+  sym(0, 0, s_target).second = saved_image;
+
+  ASSERT_FALSE(msg.empty()) << "sign solver did not reject a -1 sentinel band image.";
+  EXPECT_NE(msg.find("no band image"), std::string::npos) << "actual: " << msg;
+
+  std::vector<int> expected = baseline;
+  expected.erase(std::find(expected.begin(), expected.end(), s_target));
+  EXPECT_EQ(verified, expected)
+      << "classifier did not cleanly omit (only) the op with the sentinel image.";
 }
 
 }  // namespace

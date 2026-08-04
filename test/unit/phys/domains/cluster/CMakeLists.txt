@@ -13,5 +13,7 @@ dca_add_gtest(cluster_domain_test
   GTEST_MAIN
   LIBS ${LAPACK_LIBRARIES} function enumerations quantum_domains cluster_domains dca_io FFTW::Double ${DCA_GPU_LIBS})
 
+add_subdirectory(symmetries)
+
 # deprecated (requires NFFT)
 # add_subdirectory(interpolation/wannier_interpolation)
