@@ -64,6 +64,7 @@
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/phys/models/analytic_hamiltonians/Kagome_hubbard.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/threeband_hubbard.hpp"
@@ -150,10 +151,10 @@ struct SinglebandChain {
 
 // CASE 4 -- Kagome lattice declared with no_symmetry<2>, mirroring the production
 // instantiation in test/unit/phys/dca_step/cluster_solver/test_setup.hpp. This is the
-// regression case for solveSignsForOp's -1 guard: the hexagonal has the 12 D6 ops,
-// but the orbital position+flavor matching in set_symmetry_matrices filters them all out,
-// and records (-1, -1). The H0 sign solver must reject the ops instead of indexing H0 with
-// band -1 (an OOB).
+// regression case for deriveOrbitalOpForOp's -1 guard: the hexagonal has the 12 D6 ops,
+// but the orbital position+flavor matching in set_symmetry_matrices filters them all out
+// and records (-1, -1). Deriving P from H0 recovers all 12 -- the search skips the -1
+// candidate and finds the sublattice permutation geometry could not place.
 struct KagomeNoSym {
   using Scalar = double;
   using Lattice = dca::phys::models::KagomeHubbard<dca::phys::domains::no_symmetry<2>>;
@@ -163,7 +164,26 @@ struct KagomeNoSym {
   static std::vector<int> expectedFailingKOps() { return {}; }
   static std::vector<int> expectedFailingROps() { return {}; }
   static std::vector<int> expectedUnverifiedKOps() { return {}; }
-  static constexpr int expected_num_derived_symmetries = 2;
+  static constexpr int expected_num_derived_symmetries = 12;
+};
+
+// CASE 5 -- FeAs (minimal two-band iron-pnictide model, PRB 77, 220503): the motivating case for
+// deriving P from H0. Its two orbitals (d_xz, d_yz) share a site (a_vec = 0 for both), so
+// position/flavor matching can only return the IDENTITY band image. But H0's two diagonals are the
+// same dispersion with k_x and k_y exchanged, so the four D4 ops exchanging the axes (C4, C4^3, the
+// two diagonal mirrors) are symmetries only with the band SWAP: geometry derives 4 ops, H0 all 8.
+struct FeAs {
+  using Scalar = double;
+  // FeAsLattice ignores its template argument: it hardcodes FeAsPointGroup = {identity, C2}, the
+  // largest group the geometry-derived permutation could support.
+  using Lattice = dca::phys::models::FeAsLattice<dca::phys::domains::D4>;
+  static constexpr char Input[] = "fe_as_input.json";
+  static constexpr int expected_num_symmetries = 2;
+  static std::vector<std::string> expectedFailingReps() { return {}; }
+  static std::vector<int> expectedFailingKOps() { return {}; }
+  static std::vector<int> expectedFailingROps() { return {}; }
+  static std::vector<int> expectedUnverifiedKOps() { return {}; }
+  static constexpr int expected_num_derived_symmetries = 8;
 };
 
 // Templated test fixture
@@ -673,25 +693,21 @@ TYPED_TEST(SymmetrizeCharacterizationTest, PerOpMapRealSpace) {
 
 // TEST 8 (a/b/c/d): rejection fixtures for the sign-consistency solver.
 //
-// solveOrbitalOpSignsFromH0 has four throw branches. No shipped model exercises any of the
-// four on a correct H0 and a complete symmetry table -- the spine cases all pass -- so we
-// perturb a copy of the (exactly symmetric) H0 (8a-8c), or the table itself (8d), to break one
-// operation and assert the solver throws for the intended reason.
+// solveOrbitalOpSignsFromH0 derives the permutation from H0, throwing only when no band
+// permutation reproduces it. No shipped model triggers that on a correct H0 -- the spine cases all
+// pass -- so we perturb a copy of the (exactly symmetric) H0 (8a-8c) to break one op past every
+// permutation, or corrupt the table (8d) to show the search recovers what geometry cannot place.
 //
 // These need a multi-orbital model. A single band has no off-diagonal coupling to corrupt,
 // and on the spine's square cluster every nonzero single-band entry sits at a k that is a
 // fixed point of every op (the BZ center and corner), so no single-entry perturbation can
 // break a symmetry there. Threeband (d, px, py) is the driver; square and singleband skip.
 
-// 8a/8b -- the two ways a single broken off-diagonal coupling is rejected. Both perturb the
-// strongest off-diagonal H0 entry (and its Hermitian partner) so its symmetry image no longer
-// matches, differing only in how:
-//   * vanish it (-> magnitude mismatch: a coupling present on one side of the relation but gone on
-//     the other, so the band permutation is no longer a symmetry of H0);
-//   * scale it by 1.5 (-> non-unit ratio: the H0 ratio that would fix the sign product is no longer
-//     a real +/-1, the signature of an op needing a non-signed-permutation U_S -- genuine orbital
-//     mixing -- or simply not a symmetry).
-// They share everything but the perturbation, so they live in one test with two assertion blocks.
+// 8a/8b -- two ways a single broken off-diagonal coupling breaks the op past any permutation. Both
+// perturb the strongest off-diagonal H0 entry (and its Hermitian partner), differing only in how:
+//   * vanish it (a coupling present on one side of the relation but gone on the other);
+//   * scale it by 1.5 (the H0 ratio that would fix a sign product is no longer a real +/-1).
+// Either way the search exhausts every permutation and throws the unified message.
 TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
   using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
   using KCluster = typename Fixture::KCluster;
@@ -737,7 +753,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
     const std::string msg =
         captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
     ASSERT_FALSE(msg.empty()) << "sign solver did not reject a vanished coupling.";
-    EXPECT_NE(msg.find("magnitude mismatch"), std::string::npos) << "actual: " << msg;
+    EXPECT_NE(msg.find("for any band permutation"), std::string::npos) << "actual: " << msg;
   }
 
   // Scale by 1.5: the entry stays nonzero but its ratio to the image is not +/-1.
@@ -748,7 +764,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
     const std::string msg =
         captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
     ASSERT_FALSE(msg.empty()) << "sign solver did not reject a non-unit coupling ratio.";
-    EXPECT_NE(msg.find("not a real"), std::string::npos) << "actual: " << msg;
+    EXPECT_NE(msg.find("for any band permutation"), std::string::npos) << "actual: " << msg;
   }
 }
 
@@ -756,7 +772,8 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsBrokenOffDiagonalCoupling) {
 // jointly satisfied by any assignment. At the zone corner all three bands couple (d-px, d-py,
 // px-py), so the d-px and d-py signs force the px-py sign product, and a px<->py swap op
 // reads the px-py sign off H0 directly. Flipping one direction of the px-py coupling
-// makes the direct reading contradict the forced product: no sign vector works.
+// makes the direct reading contradict the forced product: no sign vector works -- and, because the
+// flip is asymmetric, no other band permutation rescues it either, so the search still throws.
 TYPED_TEST(SymmetrizeCharacterizationTest, RejectsInconsistentSigns) {
   using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
   using KCluster = typename Fixture::KCluster;
@@ -798,7 +815,7 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsInconsistentSigns) {
   const std::string msg =
       captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(H0p); });
   ASSERT_FALSE(msg.empty()) << "sign solver did not reject an inconsistent sign system.";
-  EXPECT_NE(msg.find("no consistent"), std::string::npos) << "actual: " << msg;
+  EXPECT_NE(msg.find("for any band permutation"), std::string::npos) << "actual: " << msg;
 }
 
 // TEST 9: the folding phase must not be absorbed into U_S (PR #368 review). At a zone-boundary
@@ -847,19 +864,18 @@ TEST(SolveOrbitalOpSigns, BoundaryFoldDoesNotMaskPxParity) {
   };
 
   USTable u_s;
-  dca::phys::detail::solveSignsForOp(0, 3, 1, Sym{}, Fold{}, H0{}, u_s);
+  dca::phys::detail::deriveOrbitalOpForOp(0, 3, 1, Sym{}, Fold{}, H0{}, u_s);
 
   EXPECT_DOUBLE_EQ(u_s(0, 0, 0), 1.);
   EXPECT_DOUBLE_EQ(u_s(1, 1, 0), -1.);  // The intrinsic p_x parity, not the fold-dressed +1.
   EXPECT_DOUBLE_EQ(u_s(2, 2, 0), 1.);
 }
 
-// 8d -- missing band image: the geometric position/flavor matching in set_symmetry_matrices
-// records -1 when it finds no admissible image, so the solver cannot assume a complete table.
-// Unlike 8a-8c this perturbs the symmetry table, not H0: the whole-group populator must throw,
-// and the non-throwing classifier must omit the op instead of indexing H0 with -1 (an OOB). The
-// table is shared static state, so it gets restored.
-TYPED_TEST(SymmetrizeCharacterizationTest, RejectsMissingBandImage) {
+// 8d -- recovery from a missing band image: set_symmetry_matrices records -1 when its position/
+// flavor matching finds no admissible image. Unlike 8a-8c this perturbs the symmetry table, not H0:
+// the solver skips the -1 candidate (no OOB) and recovers the op from the search, so the populator
+// succeeds and the classifier still includes it. The table is static state, so it gets restored.
+TYPED_TEST(SymmetrizeCharacterizationTest, RecoversFromMissingBandImage) {
   using Fixture = SymmetrizeCharacterizationTest<TypeParam>;
   using KCluster = typename Fixture::KCluster;
 
@@ -871,19 +887,17 @@ TYPED_TEST(SymmetrizeCharacterizationTest, RejectsMissingBandImage) {
   const int saved_image = sym(0, 0, s_target).second;
   sym(0, 0, s_target).second = -1;
 
+  // The populator must NOT throw: the -1 makes the geometric candidate inadmissible, but the search
+  // should continue
   const std::string msg =
       captureThrowMessage([&] { dca::phys::solveOrbitalOpSignsFromH0<KCluster>(this->H0_); });
   const std::vector<int> verified = dca::phys::verifiedSymmetryOps<KCluster>(this->H0_);
 
   sym(0, 0, s_target).second = saved_image;
 
-  ASSERT_FALSE(msg.empty()) << "sign solver did not reject a -1 sentinel band image.";
-  EXPECT_NE(msg.find("no band image"), std::string::npos) << "actual: " << msg;
-
-  std::vector<int> expected = baseline;
-  expected.erase(std::find(expected.begin(), expected.end(), s_target));
-  EXPECT_EQ(verified, expected)
-      << "classifier did not cleanly omit (only) the op with the sentinel image.";
+  EXPECT_TRUE(msg.empty()) << "solver failed to recover from a -1 valued band image: " << msg;
+  EXPECT_EQ(verified, baseline)
+      << "the H0 search did not recover the op whose geometric band image was corrupted.";
 }
 
 }  // namespace
