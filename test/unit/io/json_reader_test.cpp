@@ -92,6 +92,36 @@ TEST(ReadTest, All) {
   EXPECT_EQ(vc, vc_check);
 }
 
+// Issue #300: the reader must report which top-level sections were read, so callers can detect
+// input that the executable silently ignores.
+TEST(ReadTest, TopLevelGroupAccessTracking) {
+  dca::io::JSONReader reader;
+  reader.open_file(directory + "model_sections_input.json");
+
+  // Before any access, every top-level group is reported as unread.
+  auto groups = reader.topLevelGroupAccess();
+  // Sorted by name: bilayer-Hubbard-model, domains, single-band-Hubbard-model.
+  ASSERT_EQ(groups.size(), 3u);
+  EXPECT_EQ(groups[0].name, "bilayer-Hubbard-model");
+  EXPECT_EQ(groups[1].name, "domains");
+  EXPECT_EQ(groups[2].name, "single-band-Hubbard-model");
+  for (const auto& group : groups)
+    EXPECT_FALSE(group.accessed) << group.name << " should not be accessed yet";
+
+  // Open one of them, as the executable's ModelParameters would.
+  EXPECT_TRUE(reader.open_group("single-band-Hubbard-model"));
+  reader.close_group();
+
+  // A failed open (e.g. a typo'd section name) must not mark anything accessed.
+  EXPECT_FALSE(reader.open_group("single-band-Hubard-model"));
+
+  groups = reader.topLevelGroupAccess();
+  ASSERT_EQ(groups.size(), 3u);
+  EXPECT_FALSE(groups[0].accessed);  // bilayer-Hubbard-model: present but never opened
+  EXPECT_FALSE(groups[1].accessed);  // domains: never opened
+  EXPECT_TRUE(groups[2].accessed);   // single-band-Hubbard-model: opened
+}
+
 TEST(ReadTest, InvalidInput) {
   auto test_file = [](const std::string& name, int err_line) {
     dca::io::JSONReader reader;

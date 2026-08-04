@@ -1,0 +1,31 @@
+{
+  "physics": {
+    "beta"                      :  1.,
+    "chemical-potential"        : 0.
+  },
+
+  "single-band-Hubbard-model":
+  {
+    "t"       : 1.,
+    "U"       : 4.
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0], [0, 2]],
+      "sp-host": [[8, 0], [0, 8]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 128
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 64
+    }
+  },
+
+  "DCA": {
+    "interacting-orbitals": [0]
+  }
+}

@@ -14,6 +14,7 @@
 #ifndef DCA_PHYS_PARAMETERS_OUTPUT_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_OUTPUT_PARAMETERS_HPP
 
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include "dca/io/io_types.hpp"
@@ -63,6 +64,12 @@ public:
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
+
+  // Throws std::invalid_argument if the parsed parameters describe state that cannot be
+  // used in a run (e.g. the configured output directory does not exist on disk). Intended
+  // to be called by Parameters::readInput on the rank that parsed the input file.
+  // Issue #300: surface bad input at parse time instead of crashing later in HDF5.
+  void validate() const;
 
   const std::string& get_directory() const {
     return directory_;
@@ -270,6 +277,11 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
         throw std::runtime_error("JSON output format does not support dump-ever-iteration.");
     }
   }
+}
+
+inline void OutputParameters::validate() const {
+  if (!std::filesystem::exists(directory_))
+    throw std::invalid_argument("Output directory does not exist: " + directory_);
 }
 
 }  // namespace params

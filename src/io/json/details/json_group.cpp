@@ -10,6 +10,9 @@
 // JSON group.
 
 #include "dca/io/json/details/json_group.hpp"
+
+#include <algorithm>
+
 #include "dca/io/json/details/util.hpp"
 
 namespace dca::io::details {
@@ -26,7 +29,27 @@ JSONGroup* JSONGroup::addGroup(const std::string& name) {
 }
 
 JSONGroup* JSONGroup::getGroup(const std::string& name) {
-  return dynamic_cast<JSONGroup*>(objects_[name].get());
+  // Note: use find() rather than operator[], which would insert a null entry on a miss.
+  const auto it = objects_.find(name);
+  if (it == objects_.end())
+    return nullptr;
+
+  auto* group = dynamic_cast<JSONGroup*>(it->second.get());
+  if (group)
+    group->markAccessed();
+  return group;
+}
+
+std::vector<ChildGroupStatus> JSONGroup::childGroupAccess() const {
+  std::vector<ChildGroupStatus> child_groups;
+  for (const auto& [name, object] : objects_) {
+    if (dynamic_cast<const JSONGroup*>(object.get()))
+      child_groups.push_back({name, object->wasAccessed()});
+  }
+  // objects_ is an unordered_map; sort for deterministic output (e.g. warning messages).
+  std::sort(child_groups.begin(), child_groups.end(),
+            [](const ChildGroupStatus& a, const ChildGroupStatus& b) { return a.name < b.name; });
+  return child_groups;
 }
 
 void JSONGroup::write(std::ostream& stream, int ident) const {

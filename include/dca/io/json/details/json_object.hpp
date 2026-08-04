@@ -23,6 +23,19 @@ public:
 
   virtual void write(std::ostream& stream, int ident) const = 0;
   virtual bool read(std::istream& stream) = 0;
+
+  // Tracks whether this object was ever looked up during reading. Used to detect input that the
+  // executable silently ignores (issue #300). Marking is logically const (it does not change the
+  // parsed value), hence the mutable flag and const markAccessed().
+  bool wasAccessed() const noexcept {
+    return accessed_;
+  }
+  void markAccessed() const noexcept {
+    accessed_ = true;
+  }
+
+private:
+  mutable bool accessed_ = false;
 };
 
 }  // namespace dca::io::details

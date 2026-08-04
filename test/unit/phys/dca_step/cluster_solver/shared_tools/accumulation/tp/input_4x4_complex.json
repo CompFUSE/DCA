@@ -30,6 +30,13 @@
     "phi": 0
   },
 
+  "Rashba-Hubbard-model": {
+    "t": 1,
+    "h": 0,
+    "lambda": 0,
+    "U": 0
+  },
+
   "single-band-Hubbard-model": {
     "t": 1,
     "U": 2

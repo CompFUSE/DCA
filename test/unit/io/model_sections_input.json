@@ -1,0 +1,15 @@
+{
+  "single-band-Hubbard-model" : {
+    "t" : 1.0,
+    "U" : 8.0
+  },
+
+  "bilayer-Hubbard-model" : {
+    "t" : 1.0,
+    "U" : 6.0
+  },
+
+  "domains" : {
+    "vec int" : [1, 2, 3]
+  }
+}

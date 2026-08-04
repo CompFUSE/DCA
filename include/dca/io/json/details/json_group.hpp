@@ -22,6 +22,13 @@
 
 namespace dca::io::details {
 
+// A child group together with whether it was ever read. Returned by childGroupAccess() to let
+// callers detect input sections the executable silently ignored (issue #300).
+struct ChildGroupStatus {
+  std::string name;
+  bool accessed;
+};
+
 class JSONGroup : public JSONObject {
 public:
   JSONGroup() = default;
@@ -29,6 +36,10 @@ public:
 
   JSONGroup* addGroup(const std::string& name);
   JSONGroup* getGroup(const std::string& name);
+
+  // Returns the access state of each direct child that is itself a group, sorted by name. Used to
+  // report sections of the input that the executable never read (issue #300).
+  std::vector<ChildGroupStatus> childGroupAccess() const;
 
   template <class T>
   void addEntry(const std::string& name, const T& val) {

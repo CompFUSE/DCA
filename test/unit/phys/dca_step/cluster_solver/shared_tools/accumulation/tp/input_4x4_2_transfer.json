@@ -37,6 +37,17 @@
     "U": 2
   },
 
+  "FeAs-model": {
+    "t1": 0,
+    "t2": 0,
+    "t3": 0,
+    "t4": 0,
+    "U": 0,
+    "V": 0,
+    "J": 0,
+    "Jp": 0
+  },
+
   "domains": {
     "real-space-grids": {
       "cluster": [

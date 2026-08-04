@@ -12,6 +12,8 @@
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
 
+#include <stdexcept>
+
 #include "dca/config/haves_defines.hpp"
 #include "dca/phys/parameters/output_parameters.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
@@ -87,4 +89,19 @@ TEST(OutputParametersTest, ReadAll) {
   EXPECT_TRUE(pars.dump_cluster_Greens_functions());
   EXPECT_TRUE(pars.dump_Gamma_lattice());
   EXPECT_TRUE(pars.dump_chi_0_lattice());
+}
+
+// Issue #300, bug #1: a non-existent output.directory should produce a clear error at
+// parameter-read time. readWrite() parses the directory string without touching the
+// disk; validate() is where the existence check and the throw live.
+TEST(OutputParametersTest, MissingDirectoryThrows) {
+  dca::io::JSONReader reader;
+  dca::phys::params::OutputParameters pars;
+
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/output_parameters/missing_directory.json");
+  pars.readWrite(reader);
+  reader.close_file();
+
+  EXPECT_THROW(pars.validate(), std::invalid_argument);
 }

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <vector>
 
 #include "dca/platform/dca_gpu.h"
 #include "dca/io/json/details/json_group.hpp"
@@ -42,6 +43,13 @@ public:
   // Closes the topmost open griup, irreardless of its validity. Returns false if trying to close
   // the root group.
   bool close_group() noexcept;
+
+  // Returns the access state of each top-level group of the currently loaded file, sorted by name.
+  // A group is "accessed" if it was ever opened via open_group. Lets callers detect sections the
+  // executable silently ignored (issue #300). Must be called before close_file().
+  std::vector<details::ChildGroupStatus> topLevelGroupAccess() const {
+    return root_.childGroupAccess();
+  }
 
   long getStepCount() { return 0; }
 

@@ -19,7 +19,7 @@
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_id.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 
