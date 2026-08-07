@@ -22,7 +22,7 @@
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
-#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/holohedries_2d.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/testing/gtest_h_w_warning_blocking.h"
@@ -90,8 +90,8 @@ std::vector<int> uniqueIndices(std::initializer_list<int> indices) {
 int indexOfDisplacement(std::vector<double> displacement) {
   const auto& super_basis = RClusterDmn::parameter_type::get_super_basis_vectors();
   const auto& elements = RClusterDmn::parameter_type::get_elements();
-  displacement = dca::phys::domains::cluster_operations::translate_inside_cluster(displacement,
-                                                                                  super_basis);
+  displacement =
+      dca::phys::domains::cluster_operations::translate_inside_cluster(displacement, super_basis);
   return dca::phys::domains::cluster_operations::index(displacement, elements,
                                                        dca::phys::domains::BRILLOUIN_ZONE);
 }
@@ -154,9 +154,7 @@ TEST(ThreebandHubbardTest, InitializeH0IncludesHartreeShifts) {
   using KDmn = dca::func::dmn_0<dca::func::dmn<2, std::vector<double>>>;
   KDmn::parameter_type::set_elements({{0., 0.}, {M_PI, M_PI}});
 
-  dca::func::function<std::complex<double>,
-                      dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>
-      H_0;
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>> H_0;
 
   ModelParameters pars;
   pars.set_t_pd(1.5);
@@ -191,8 +189,7 @@ TEST(ThreebandHubbardTest, InitializeH0IncludesHartreeShifts) {
 TEST(ThreebandHubbardTest, InitializeHInteractionIncludesVpdVpp) {
   initializeRealCluster();
 
-  dca::func::function<double, dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>>
-      H_interaction;
+  dca::func::function<double, dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
 
   ModelParameters pars;
   pars.set_U_dd(8.);
