@@ -67,6 +67,20 @@ public:
     U_pp_ = U_pp;
   }
 
+  double get_V_pd() const {
+    return V_pd_;
+  }
+  void set_V_pd(const double V_pd) {
+    V_pd_ = V_pd;
+  }
+
+  double get_V_pp() const {
+    return V_pp_;
+  }
+  void set_V_pp(const double V_pp) {
+    V_pp_ = V_pp;
+  }
+
 private:
   double t_pd_ = 0;
   double t_pp_ = 0;
@@ -74,6 +88,8 @@ private:
   double ep_d_ = 0;
   double U_dd_ = 0;
   double U_pp_ = 0;
+  double V_pd_ = 0;
+  double V_pp_ = 0;
 };
 
 template <typename PointGroup>
@@ -88,6 +104,8 @@ int ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGrou
   buffer_size += concurrency.get_buffer_size(ep_d_);
   buffer_size += concurrency.get_buffer_size(U_dd_);
   buffer_size += concurrency.get_buffer_size(U_pp_);
+  buffer_size += concurrency.get_buffer_size(V_pd_);
+  buffer_size += concurrency.get_buffer_size(V_pp_);
 
   return buffer_size;
 }
@@ -102,6 +120,8 @@ void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGro
   concurrency.pack(buffer, buffer_size, position, ep_d_);
   concurrency.pack(buffer, buffer_size, position, U_dd_);
   concurrency.pack(buffer, buffer_size, position, U_pp_);
+  concurrency.pack(buffer, buffer_size, position, V_pd_);
+  concurrency.pack(buffer, buffer_size, position, V_pp_);
 }
 
 template <typename PointGroup>
@@ -114,6 +134,8 @@ void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGro
   concurrency.unpack(buffer, buffer_size, position, ep_d_);
   concurrency.unpack(buffer, buffer_size, position, U_dd_);
   concurrency.unpack(buffer, buffer_size, position, U_pp_);
+  concurrency.unpack(buffer, buffer_size, position, V_pd_);
+  concurrency.unpack(buffer, buffer_size, position, V_pp_);
 }
 
 template <typename PointGroup>
@@ -150,6 +172,16 @@ void ModelParameters<models::TightBindingModel<models::ThreebandHubbard<PointGro
     }
     try {
       reader_or_writer.execute("U_pp", U_pp_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("V_pd", V_pd_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("V_pp", V_pp_);
     }
     catch (const std::exception& r_e) {
     }
