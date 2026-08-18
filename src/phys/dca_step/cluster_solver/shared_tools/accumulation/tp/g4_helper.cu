@@ -14,11 +14,9 @@
 
 #include <algorithm>
 #include <array>
+#include <iostream>
 #include <mutex>
 #include <stdexcept>
-#include <iostream>
-
-#include "dca/platform/dca_gpu.h"
 
 namespace dca {
 namespace phys {
@@ -33,7 +31,9 @@ __CONSTANT__ int* k_ex_indices_actual;
 
 void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
                    const std::vector<int>& delta_w, const int extension_offset, const int* add_k,
-                   int lda, const int* sub_k, int lds) {
+                   int lda, const int* sub_k, int lds,
+                   const std::vector<double>& q_minus_k_phase_real,
+                   const std::vector<double>& q_minus_k_phase_imag) {
   // Initialize the reciprocal cluster if not done already.
   solver::details::ClusterHelper::setMomentum(nk, add_k, lda, sub_k, lds);
 
@@ -71,6 +71,22 @@ void G4Helper::set(int nb, int nk, int nw, const std::vector<int>& delta_k,
   cudaMalloc(&host_helper.k_ex_indices_, sizeof(int) * delta_k.size());
   checkRC(cudaMemcpy(const_cast<int*>(host_helper.k_ex_indices_), delta_k.data(),
                      sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice));
+
+  const std::size_t phase_table_size =
+      static_cast<std::size_t>(nb) * static_cast<std::size_t>(nk) * delta_k.size();
+  if (q_minus_k_phase_real.size() != phase_table_size ||
+      q_minus_k_phase_imag.size() != phase_table_size)
+    throw(std::logic_error("Unexpected G4 q-k phase table size."));
+
+  cudaMalloc(&host_helper.q_minus_k_phase_real_, sizeof(double) * q_minus_k_phase_real.size());
+  checkRC(cudaMemcpy(const_cast<double*>(host_helper.q_minus_k_phase_real_),
+                     q_minus_k_phase_real.data(), sizeof(double) * q_minus_k_phase_real.size(),
+                     cudaMemcpyHostToDevice));
+
+  cudaMalloc(&host_helper.q_minus_k_phase_imag_, sizeof(double) * q_minus_k_phase_imag.size());
+  checkRC(cudaMemcpy(const_cast<double*>(host_helper.q_minus_k_phase_imag_),
+                     q_minus_k_phase_imag.data(), sizeof(double) * q_minus_k_phase_imag.size(),
+                     cudaMemcpyHostToDevice));
 
 #ifndef NDEBUG
   checkRC(cudaMalloc(&host_helper.bad_indicies_, sizeof(int) * 1024));
