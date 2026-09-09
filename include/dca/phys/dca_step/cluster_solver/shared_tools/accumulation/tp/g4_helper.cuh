@@ -37,7 +37,9 @@ public:
    */
   static void set(int nb, int nk, int nw,
                   const std::vector<int>& delta_k, const std::vector<int>& delta_w,
-                  const int extension_offset, const int* add_k, int lda, const int* sub_k, int lds);
+                  const int extension_offset, const int* add_k, int lda, const int* sub_k, int lds,
+                  const std::vector<double>& q_minus_k_phase_real,
+                  const std::vector<double>& q_minus_k_phase_imag);
 
   __device__ auto get_bands() const {
     return nb_;
@@ -56,6 +58,10 @@ public:
   __device__ inline int addWex(int w_idx, int w_ex_idx) const;
   // Returns the index of w_ex - w.
   __device__ inline int wexMinus(int w_idx, int w_ex_idx) const;
+
+  // Returns the phase factor exp(i * (K_ex - K - fold(K_ex - K)) . a_band).
+  __device__ inline double qMinusKPhaseReal(int k_idx, int k_ex_idx, int band) const;
+  __device__ inline double qMinusKPhaseImag(int k_idx, int k_ex_idx, int band) const;
 
   // Maps the indices w1 w2 from the compact frequency domain of G4,
   // to the extended (positive for w1) domain used by G.
@@ -81,6 +87,8 @@ protected:
 
   const int* w_ex_indices_;
   const int* k_ex_indices_;
+  const double* q_minus_k_phase_real_;
+  const double* q_minus_k_phase_imag_;
   int ext_size_;
 
   int nw_;
@@ -122,6 +130,15 @@ inline __device__ int G4Helper::kMinus(const int k_idx) const {
   return solver::details::cluster_momentum_helper.minus(k_idx);
 }
 
+inline __device__ double G4Helper::qMinusKPhaseReal(const int k_idx, const int k_ex_idx,
+                                                    const int band) const {
+  return q_minus_k_phase_real_[band + nb_ * (k_idx + nc_ * k_ex_idx)];
+}
+
+inline __device__ double G4Helper::qMinusKPhaseImag(const int k_idx, const int k_ex_idx,
+                                                    const int band) const {
+  return q_minus_k_phase_imag_[band + nb_ * (k_idx + nc_ * k_ex_idx)];
+}
 
 inline __device__ void G4Helper::unrollIndex(std::size_t index, int& b1, int& b2,
                                              int& b3, int& b4, int& k1, int& w1,
