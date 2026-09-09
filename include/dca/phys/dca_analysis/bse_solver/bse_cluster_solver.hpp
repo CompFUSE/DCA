@@ -113,12 +113,13 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::compute_Gamma_cl
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II("G_II");
   func::function<std::complex<ScalarType>, DCA_matrix_dmn_t> G_II_0("G_II_0");
 
-  apply_symmetries_sp();
-
+  // Load G_II and compute G_II_0 BEFORE symmetrizing Sigma/G_k_w,
+  // so the bare bubble matches Python's unsymmetrized calculation.
   load_G_II(G_II);
-
   load_G_II_0(G_II_0);
   load_G_II_0_function(G_II_0);
+
+  apply_symmetries_sp();
 
   apply_symmetries_tp(G_II, G_II_0);
 
@@ -327,9 +328,11 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_clu
   dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II_0(0), N, G4_0_inv);
   dca::linalg::matrixop::inverse(G4_0_inv);
 
+  const ScalarType beta_Nc_factor = parameters.get_beta() * static_cast<ScalarType>(k_DCA::dmn_size());
   for (int j = 0; j < N; j++)
     for (int i = 0; i < N; i++)
-      Gamma_cluster(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
+      Gamma_cluster(i, j) = (G4_0_inv(i, j) - G4_inv(i, j)) * beta_Nc_factor;
+
 }
 
 }  // namespace analysis

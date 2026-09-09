@@ -396,6 +396,19 @@ void DcaData<Parameters, DT>::read(dca::io::Reader<typename Parameters::concurre
 
   reader.close_group();
 
+  {
+    reader.open_group("DCA-loop-functions");
+    std::vector<Real> chemical_potentials;
+    bool cp_present = reader.execute("chemical-potential", chemical_potentials);
+    if (cp_present && !chemical_potentials.empty()) {
+      parameters_.get_chemical_potential() = chemical_potentials.back();
+      if (concurrency_.id() == concurrency_.first())
+        std::cout << "\tAdjusted chemical potential from DCA loop: "
+                  << parameters_.get_chemical_potential() << std::endl;
+    }
+    reader.close_group();
+  }
+
   reader.open_group("functions");
 
   reader.execute(Sigma);

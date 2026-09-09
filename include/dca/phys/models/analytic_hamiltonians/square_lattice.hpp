@@ -78,6 +78,14 @@ public:
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
       func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0, typename KDmn::element_type& q);
 
+  template <typename ParametersType>
+  static double evaluateH0AtK(const ParametersType& parameters, const std::vector<double>& k) {
+    const auto t = parameters.get_t();
+    const auto t_prime = parameters.get_t_prime();
+    return -2. * t * (std::cos(k[0]) + std::cos(k[1])) -
+           4. * t_prime * std::cos(k[0]) * std::cos(k[1]);
+  }
+
 };
 
 template <typename point_group_type>

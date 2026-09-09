@@ -88,6 +88,8 @@
     "analysis": {
         "symmetrize-Gamma": true,
         "Gamma-deconvolution-cut-off": 0.5,
-        "project-onto-crystal-harmonics": false
+        "project-onto-crystal-harmonics": false,
+        "direct-grid-chi0": true,
+        "direct-grid-nkfine": 32
     }
 }

@@ -72,6 +72,14 @@ public:
       func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
                                                     func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
+  template <typename ParametersType>
+  static double evaluateH0AtK(const ParametersType& /*parameters*/,
+                              const std::vector<double>& /*k*/) {
+    throw std::logic_error(
+        "evaluateH0AtK not implemented for NiO material lattice. "
+        "Use get_LDA_Hamiltonians or initializeH0 instead.");
+  }
+
   static double latticeConstant() {
     return a;
   }
