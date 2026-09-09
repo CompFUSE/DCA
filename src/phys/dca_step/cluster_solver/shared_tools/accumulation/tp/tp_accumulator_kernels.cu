@@ -45,6 +45,14 @@ using dca::util::RealAlias;
 using phys::FourPointType;
 using dca::util::SignType;
 
+template <typename Scalar>
+__device__ inline GPUComplex<RealAlias<Scalar>> makeQMinusKPhase(const int k, const int k_ex,
+                                                                 const int band) {
+  return GPUComplex<RealAlias<Scalar>>{
+      static_cast<RealAlias<Scalar>>(g4_helper.qMinusKPhaseReal(k, k_ex, band)),
+      static_cast<RealAlias<Scalar>>(g4_helper.qMinusKPhaseImag(k, k_ex, band))};
+}
+
 std::string toString(const std::array<dim3, 2>& dims) {
   std::ostringstream oss;
   oss << "{{" << static_cast<int>((dims[0]).x) << "," << (dims[0]).y << "},{" << dims[1].x << ","
@@ -167,24 +175,26 @@ __global__ void computeGMultibandKernel(GPUComplex<Real>* __restrict__ G, int ld
   __syncthreads();
   GPUComplex<Real> G_val_store = G[id_i + ldg * id_j];
 
-  const GPUComplex<Real>* const G0_w1 = G0 + nb * k2 + no * w2;
-  const GPUComplex<Real>* const G0_w2 = G0 + nb * k1 + no * w1;
+  const GPUComplex<Real>* const G0_w1 = G0 + nb * k1 + no * w1;
+  const GPUComplex<Real>* const G0_w2 = G0 + nb * k2 + no * w2;
 
   G_val_store.x = 0;
   G_val_store.y = 0;
   for (int j = 0; j < nb; ++j) {
     for (int i = 0; i < nb; ++i) {
-      const GPUComplex<Real> G_band = -G0_w1[i + ldg0 * b1] * M[j + ldm * i] * G0_w2[b2 + ldg0 * j];
+      const GPUComplex<Real> G_band =
+          -G0_w1[b1 + ldg0 * i] * M[i + ldm * j] * G0_w2[j + ldg0 * b2];
       G_val_store += G_band;
     }
   }
 
   if (k1 == k2 && w1 == w2)  // G0_w1 == G0_w2)
-    G_val_store += G0_w1[b2 + ldg0 * b1] * beta;
+    G_val_store += G0_w1[b1 + ldg0 * b2] * beta;
 #ifdef DEBUG_G4_GPU
   printf("%lf %lf %lf %lf %lf %lf -- %d %d %d %d %d %d %f,%f\n", M[b1 + ldm * b2].x,
-         M[b1 + ldm * b2].y, G0_w1[b2 + ldg0 * b1].x, G0_w1[b2 + ldg0 * b1].y,
-         G0_w2[b1 + ldg0 * b2].x, G0_w2[b1 + ldg0 * b2].y, b1, b2, k1, k2, w1, w2, G_val.x, G_val.y);
+         M[b1 + ldm * b2].y, G0_w1[b1 + ldg0 * b2].x, G0_w1[b1 + ldg0 * b2].y,
+         G0_w2[b2 + ldg0 * b1].x, G0_w2[b2 + ldg0 * b1].y, b1, b2, k1, k2, w1, w2, G_val.x,
+         G_val.y);
 #endif
   G_val = G_val_store;
 }
@@ -650,14 +660,13 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
       g4_helper.extendGIndicesMultiBand(k1_a, k2_a, w1_a, w2_a);
     int i_a = nb * k1_a + no * w1_a + b1;
     int j_a = nb * k2_a + no * w2_a + b3;
-
     const GPUComplex<RealAlias<Scalar>> Ga_1 = G_up[i_a + ldgu * j_a];
     const GPUComplex<RealAlias<Scalar>> Ga_2 = G_down[i_a + ldgd * j_a];
 
     int w1_b(g4_helper.wexMinus(w1, w_ex));
     int w2_b(g4_helper.wexMinus(w2, w_ex));
-    int k1_b = g4_helper.kexMinus(k1, k_ex);
-    int k2_b = g4_helper.kexMinus(k2, k_ex);
+    int k1_b(g4_helper.kexMinus(k1, k_ex));
+    int k2_b(g4_helper.kexMinus(k2, k_ex));
 
     if (g4_helper.get_bands() == 1)
       g4_helper.extendGIndices(k1_b, k2_b, w1_b, w2_b);
@@ -670,7 +679,9 @@ __global__ void updateG4Kernel(GPUComplex<RealAlias<Scalar>>* __restrict__ G4,
     const GPUComplex<RealAlias<Scalar>> Gb_1 = G_down[i_b + ldgd * j_b];
     const GPUComplex<RealAlias<Scalar>> Gb_2 = G_up[i_b + ldgu * j_b];
 
-    contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2);
+    const auto phase =
+        makeQMinusKPhase<Scalar>(k1, k_ex, b2) * conj(makeQMinusKPhase<Scalar>(k2, k_ex, b4));
+    contribution = sign_over_2 * (Ga_1 * Gb_1 + Ga_2 * Gb_2) * phase;
   }
 
   decltype(G4) const result_ptr = G4 + local_g4_index;
@@ -775,6 +786,8 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
   // the exchange momentum, implies the same operation is performed with the exchange frequency.
   // See tp_accumulator.hpp for more details.
   if constexpr (type == FourPointType::PARTICLE_PARTICLE_UP_DOWN) {
+    const auto phase =
+        makeQMinusKPhase<Scalar>(k1, k_ex, b2) * conj(makeQMinusKPhase<Scalar>(k2, k_ex, b4));
     {
       int w1_a(w1);
       int w2_a(w2);
@@ -797,7 +810,7 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
 
-      contribution = complex_factor * (Ga_1 * Gb_1);
+      contribution = complex_factor * (Ga_1 * Gb_1) * phase;
     }
     {
       int w1_a(w1);
@@ -821,7 +834,7 @@ __global__ void updateG4KernelNoSpin(GPUComplex<RealAlias<Scalar>>* __restrict__
       const GPUComplex<RealAlias<Scalar>> Ga_1 = G_dn[i_a + ldgd * j_a];
       const GPUComplex<RealAlias<Scalar>> Gb_1 = G_dn[i_b + ldgd * j_b];
 
-      contribution -= complex_factor * (Ga_1 * Gb_1);
+      contribution -= complex_factor * (Ga_1 * Gb_1) * phase;
     }
   }
   decltype(G4) const result_ptr = G4 + local_g4_index;

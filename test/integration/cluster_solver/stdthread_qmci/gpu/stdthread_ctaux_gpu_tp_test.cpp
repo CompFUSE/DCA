@@ -11,7 +11,10 @@
 // nearest-neighbour hopping and on site interaction. The results are expected to be the
 // same up to numerical error.
 
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 
 #include "dca/config/cmake_options.hpp"
@@ -69,6 +72,43 @@ using QmcSolverGpu = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverGpu
 using BaseSolverCpu = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
 using QmcSolverCpu = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverCpu>;
 
+template <class Function>
+dca::func::util::Difference differenceForTransfer(const Function& cpu, const Function& gpu,
+                                                  const int q_index, const int w_index) {
+  double l1 = 0.;
+  double l2 = 0.;
+  double linf = 0.;
+
+  double l1_error = 0.;
+  double l2_error = 0.;
+  double linf_error = 0.;
+
+  for (int i = 0; i < cpu.size(); ++i) {
+    const auto subind = cpu.linind_2_subind(i);
+    if (subind[8] != std::size_t(q_index) || subind[9] != std::size_t(w_index))
+      continue;
+
+    const double ref = std::abs(cpu(i));
+    l1 += ref;
+    l2 += ref * ref;
+    linf = std::max(linf, ref);
+
+    const double err = std::abs(cpu(i) - gpu(i));
+    l1_error += err;
+    l2_error += err * err;
+    linf_error = std::max(linf_error, err);
+  }
+
+  const auto relative = [](const double numerator, const double denominator) {
+    if (denominator > 0)
+      return numerator / denominator;
+    return numerator == 0 ? 0. : std::numeric_limits<double>::infinity();
+  };
+
+  return {relative(l1_error, l1), relative(std::sqrt(l2_error), std::sqrt(l2)),
+          relative(linf_error, linf)};
+}
+
 TEST(PosixCtauxClusterSolverTest, G_k_w) {
   dca::linalg::util::initializeMagma();
   TestConcurrency concurrency(0, nullptr);
@@ -78,7 +118,11 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "threaded_input.json");
+  const char* input_override = std::getenv("DCA_CPU_GPU_TEST_INPUT");
+  const std::string input_file =
+      input_override ? input_override : input_dir + "threaded_input.json";
+  std::cout << "Reading input " << input_file << "\n";
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
   parameters.update_model();
   parameters.update_domains();
 
@@ -105,10 +149,45 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   QmcSolverGpu qmc_solver_gpu(parameters, data_gpu, nullptr);
   perform_integration(qmc_solver_gpu);
 
+  // dca::func::util::difference reports relative CPU/GPU norm errors:
+  // err_i = abs(cpu_i - gpu_i), ref_i = abs(cpu_i)
+  // l1 = sum_i err_i / sum_i ref_i
+  // l2 = sqrt(sum_i err_i^2 / sum_i ref_i^2)
+  // l_inf = max_i err_i / max_i ref_i
   const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
-  const auto err_g4 = dca::func::util::difference(data_cpu.get_G4()[0], data_gpu.get_G4()[0]);
+  std::cout << "CPU/GPU G_k_w relative differences:"
+            << " l1=" << err_g.l1 << " l2=" << err_g.l2 << " l_inf=" << err_g.l_inf
+            << "\n";
 
   EXPECT_GE(5e-7, err_g.l_inf);
-  // Is this too large?
-  EXPECT_GE(5e-5, err_g4.l_inf);
+
+  const auto& g4_cpu = data_cpu.get_G4();
+  const auto& g4_gpu = data_gpu.get_G4();
+  constexpr double g4_tolerance = 5e-5;
+  ASSERT_EQ(g4_cpu.size(), g4_gpu.size());
+  for (std::size_t channel = 0; channel < g4_cpu.size(); ++channel) {
+    const auto err_g4 = dca::func::util::difference(g4_cpu[channel], g4_gpu[channel]);
+    std::cout << "CPU/GPU G4 channel " << channel << " all-transfer relative differences:"
+              << " l1=" << err_g4.l1 << " l2=" << err_g4.l2 << " l_inf=" << err_g4.l_inf
+              << "\n";
+    EXPECT_GE(g4_tolerance, err_g4.l_inf) << "G4 channel: " << channel;
+
+    const auto& sizes = g4_cpu[channel].getDomainSizes();
+    ASSERT_EQ(10, sizes.size());
+    ASSERT_EQ(sizes, g4_gpu[channel].getDomainSizes());
+
+    for (int w_index = 0; w_index < sizes[9]; ++w_index) {
+      for (int q_index = 0; q_index < sizes[8]; ++q_index) {
+        const auto err_g4_transfer =
+            differenceForTransfer(g4_cpu[channel], g4_gpu[channel], q_index, w_index);
+        if (err_g4_transfer.l_inf > g4_tolerance) {
+          ADD_FAILURE() << "G4 channel: " << channel << ", q_index: " << q_index
+                        << ", w_index: " << w_index
+                        << " relative differences: l1=" << err_g4_transfer.l1
+                        << " l2=" << err_g4_transfer.l2
+                        << " l_inf=" << err_g4_transfer.l_inf;
+        }
+      }
+    }
+  }
 }
