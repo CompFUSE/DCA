@@ -1,4 +1,4 @@
-################################################################################
+﻿################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Checks for external libraries and creates a global lists of them and the corresponding include
@@ -41,11 +41,24 @@ list(APPEND DCA_EXTERNAL_LIBS ${BLAS_LIBRARIES})
 # HDF5
 
 if (NOT HDF5_LIBRARIES)
-set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE false)
-set(HDF5_PREFER_PARALLEL false)
-find_package(HDF5 REQUIRED COMPONENTS C CXX)
-message("HDF5: ${HDF5_FOUND} ${HDF5_LIBRARIES}")
-mark_as_advanced(HDF5_LIBRARIES)
+  set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE false)
+  set(HDF5_PREFER_PARALLEL false)
+  # DCA needs the HDF5 C++ API (libhdf5_cpp). A C-only install often surfaces as a
+  # confusing "missing: HDF5_INCLUDE_DIRS" failure from FindHDF5 - point at CXX.
+  find_package(HDF5 COMPONENTS C CXX)
+  if (NOT HDF5_FOUND OR NOT HDF5_CXX_LIBRARIES)
+    message(FATAL_ERROR
+      "Could not find HDF5 with C++ support (COMPONENTS C CXX).\n"
+      "DCA requires the HDF5 C++ API (headers + libhdf5_cpp).\n"
+      "A package that only provides the C library is not enough.\n"
+      "Install the HDF5 C++ development package (e.g. libhdf5-cpp / hdf5-devel with CXX),\n"
+      "or set HDF5_ROOT to a prefix built with --enable-cxx / HDF5_BUILD_CPP_LIB=ON.\n"
+      "HDF5_FOUND=${HDF5_FOUND} HDF5_VERSION=${HDF5_VERSION} "
+      "HDF5_INCLUDE_DIRS=${HDF5_INCLUDE_DIRS} HDF5_LIBRARIES=${HDF5_LIBRARIES} "
+      "HDF5_CXX_LIBRARIES=${HDF5_CXX_LIBRARIES}")
+  endif()
+  message("HDF5: ${HDF5_FOUND} ${HDF5_LIBRARIES} CXX=${HDF5_CXX_LIBRARIES}")
+  mark_as_advanced(HDF5_LIBRARIES)
 endif()
 
 
