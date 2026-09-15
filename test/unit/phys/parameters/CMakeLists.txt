@@ -1,5 +1,8 @@
 add_subdirectory(analysis_parameters)
 add_subdirectory(dca_parameters)
+if(DCA_WITH_DISORDER AND NOT DCA_WITH_CUDA AND NOT DCA_WITH_HIP)
+  add_subdirectory(disorder_parameters)
+endif()
 add_subdirectory(domains_parameters)
 add_subdirectory(double_counting_parameters)
 add_subdirectory(ed_solver_parameters)

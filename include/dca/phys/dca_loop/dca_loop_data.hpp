@@ -1,11 +1,12 @@
 // Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
+// Copyright (C) 2026 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Peter W. Doak (doakpw@ornl.gov)
 //
 // This class contains physical and computational data of the DCA(+) loop.
 
@@ -18,10 +19,12 @@
 #include "dca/function/function.hpp"
 #include "dca/io/filesystem.hpp"
 #include "dca/io/reader.hpp"
+#include "dca/phys/domains/cluster/cluster_definitions.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/types/dca_shared_types.hpp"
 #ifdef DCA_HAVE_ADIOS2
 #include "dca/io/adios2/adios2_writer.hpp"
 #endif
@@ -47,6 +50,12 @@ public:
   using k_DCA =
       func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, Parameters::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+
+  using DST = DcaSharedTypes<Parameters>;
+  using DisorderConfiguration = typename DST::DisorderConfiguration;
   DcaLoopData();
 
   template <typename WRITER>
@@ -85,6 +94,8 @@ public:
   func::function<double, DCA_iteration_domain_type> chemical_potential;
   func::function<double, DCA_iteration_domain_type> average_expansion_order;
 
+  func::function<double, DCA_iteration_domain_type> average_defect_density;
+  func::function<int, DCA_iteration_domain_type> num_defect_configurations;
   int last_completed_iteration = -1;
 };
 
@@ -113,7 +124,8 @@ DcaLoopData<Parameters>::DcaLoopData()
 
       density("density"),
       chemical_potential("chemical-potential"),
-      average_expansion_order("expansion_order") {}
+      average_expansion_order("expansion_order"),
+      average_defect_density("defect_density") {}
 
 template <typename Parameters>
 template <typename Writer>

@@ -38,6 +38,7 @@ TEST(OutputParametersTest, DefaultValues) {
   EXPECT_FALSE(pars.dump_cluster_Greens_functions());
   EXPECT_FALSE(pars.dump_Gamma_lattice());
   EXPECT_FALSE(pars.dump_chi_0_lattice());
+  EXPECT_FALSE(pars.dump_disorder_configs());
   EXPECT_FALSE(pars.dump_every_iteration());
 
   // // And nothing except required input should get updated by reading the minimal input

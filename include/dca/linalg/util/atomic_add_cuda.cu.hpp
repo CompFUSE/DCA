@@ -21,28 +21,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600
-// Older devices do not have an hardware atomicAdd for double.
-// See
-// https://stackoverflow.com/questions/12626096/why-has-atomicadd-not-been-implemented-for-doubles
-__device__ double inline atomicAddImpl(double* address, const double val) {
-  unsigned long long int* address_as_ull = (unsigned long long int*)address;
-  unsigned long long int old = *address_as_ull, assumed;
-  do {
-    assumed = old;
-    old = atomicCAS(address_as_ull, assumed,
-                    __double_as_longlong(val + __longlong_as_double(assumed)));
-    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN) }
-  } while (assumed != old);
-  return __longlong_as_double(old);
-}
-
-__device__ void inline atomicAdd(double* address, const double val) {
-  atomicAddImpl(address, val);
-}
-
-#elif defined(DCA_HAVE_HIP)
+#if defined(DCA_HAVE_HIP)
 // HIP seems to have some horrible problem with concurrent atomic operations.
 __device__ double inline atomicAddImpl(double* address, const double val) {
   unsigned long long int* address_as_ull = (unsigned long long int*)address;
@@ -61,13 +40,12 @@ __device__ double inline atomicAddImpl(float* address, const float val) {
   unsigned long int old = *address_as_int, assumed;
   do {
     assumed = old;
-    old = atomicCAS(address_as_int, assumed,
-                    __float_as_int(val + __int_as_float(assumed)));
+    old = atomicCAS(address_as_int, assumed, __float_as_int(val + __int_as_float(assumed)));
     // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN) }
   } while (assumed != old);
   return __int_as_float(old);
 }
-  
+
 __device__ void inline atomicAdd(float* address, const float val) {
   atomicAddImpl(address, val);
 }
@@ -82,7 +60,7 @@ __device__ void inline atomicAdd(cuDoubleComplex* address, cuDoubleComplex val) 
   atomicAddImpl(a_d + 1, val.y);
 }
 
-  __device__ void inline atomicAdd(magmaFloatComplex* const address, magmaFloatComplex val) {
+__device__ void inline atomicAdd(magmaFloatComplex* const address, magmaFloatComplex val) {
   double* a_d = reinterpret_cast<double*>(address);
   atomicAddImpl(a_d, val.x);
   atomicAddImpl(a_d + 1, val.y);
@@ -105,12 +83,13 @@ __device__ void inline atomicAdd(float* address, float val) {
 
 __device__ void inline atomicAdd(cuDoubleComplex* address, cuDoubleComplex val) {
   double* a_d = reinterpret_cast<double*>(address);
-  atomicAdd(a_d, val.x);
-  atomicAdd(a_d + 1, val.y);
+  ::atomicAdd(a_d, val.x);
+  ::atomicAdd(a_d + 1, val.y);
 }
+
 #endif  // atomic operation help
 
-}  // linalg
-}  // dca
+}  // namespace linalg
+}  // namespace dca
 
 #endif  // DCA_LINALG_UTIL_ATOMIC_ADD_CUDA_CU_HPP

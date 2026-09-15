@@ -1,0 +1,28 @@
+{
+  "physics": {
+    "beta": 2,
+    "chemical-potential": 0
+  },
+  "single-band-Hubbard-model": {
+    "t": 1,
+    "U": 0
+  },
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 4]]
+    },
+    "imaginary-time": {
+      "sp-time-intervals": 64
+    },
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 16,
+      "four-point-fermionic-frequencies": 8
+    }
+  },
+  "four-point": {
+    "type": "NONE",
+    "momentum-transfer": [0., 0.],
+    "frequency-transfer": 0
+  }
+}

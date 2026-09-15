@@ -16,3 +16,6 @@ bin*
 *#
 *.swp
 .idea
+
+#Install directory
+install*

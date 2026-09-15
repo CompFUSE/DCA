@@ -76,15 +76,15 @@ protected:
 
   DMatrixBuilder<linalg::CPU, Scalar>& d_matrix_builder_;
 
-  BaseClass::MatrixPair getM();
+  typename BaseClass::MatrixPair getM();
 
   /** The following methods are really only here to get decent unit testing
       they shouldn't really be called outside of the base implementations
   */
   void computeMInit() override;
   void computeGInit() override;
-  BaseClass::MatrixPair getRawM();
-  BaseClass::MatrixPair getRawG();
+  typename BaseClass::MatrixPair getRawM();
+  typename BaseClass::MatrixPair getRawG();
 
 private:
   /** This does a bunch of things, this is the majority of a step
@@ -161,7 +161,7 @@ protected:
   using SubmatrixBase::n_init_;
   using SubmatrixBase::D_;
   using SubmatrixBase::G_;
-  using SubmatrixBase::M_;
+  
   using SubmatrixBase::s_;
   using SubmatrixBase::Gamma_indices_;
   using SubmatrixBase::Gamma_inv_;
@@ -616,7 +616,7 @@ void CtintWalkerSubmatrixCpu<Parameters, DIST>::computeMixedInsertionAndRemoval(
 }
 
 template <class Parameters, DistType DIST>
-CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+typename CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
     Parameters, DIST>::getRawM() {
   typename BaseClass::MatrixPair M;
   M = M_;
@@ -626,7 +626,7 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubm
 }
 
 template <class Parameters, DistType DIST>
-CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
+typename CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<
     Parameters, DIST>::getRawG() {
   typename BaseClass::MatrixPair G;
   G = G_;
@@ -636,7 +636,7 @@ CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubm
 }
 
 template <class Parameters, DistType DIST>
-CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters,
+typename CtintWalkerSubmatrixCpu<Parameters, DIST>::BaseClass::MatrixPair CtintWalkerSubmatrixCpu<Parameters,
                                                                                          DIST>::getM() {
   typename BaseClass::MatrixPair M;
   computeM(M);
