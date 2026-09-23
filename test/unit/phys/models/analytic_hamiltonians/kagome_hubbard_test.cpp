@@ -11,6 +11,7 @@
 #include "dca/platform/dca_gpu.h"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 
+#include <array>
 #include <cmath>
 #include <complex>
 #include <vector>
@@ -109,35 +110,56 @@ TEST(KagomeLatticeTest, Initialize_H_interaction) {
             else
               EXPECT_DOUBLE_EQ(0., H_interaction(b1, s1, b2, s2, r));
 
-  // \todo surely the Kagome lattice has more parameters and interactions to check
+  // Check all intra-cell and intercell nearest-neighbor interactions.  Every
+  // nonzero displacement of this Nc=4 cluster is self-inverse, so both orbital
+  // orderings must be present at the same real-space index.
+  params.set_V(2);
+  Lattice::initializeHInteraction(H_interaction, params);
 
-  // // Check nearest-neighbor opposite spin interaction.
-  // params.set_U(0);
+  constexpr std::array<std::array<int, 2>, 3> intra_cell_pairs = {{
+      {{0, 1}}, {{1, 2}}, {{0, 2}}
+  }};
+  constexpr std::array<std::array<int, 2>, 3> intercell_pairs = {{
+      {{2, 0}}, {{1, 2}}, {{1, 0}}
+  }};
 
-  // Lattice::initializeHInteraction(H_interaction, params);
+  auto is_pair = [](int b1, int b2, const auto& pairs) {
+    for (const auto& pair : pairs)
+      if ((b1 == pair[0] && b2 == pair[1]) ||
+          (b1 == pair[1] && b2 == pair[0]))
+        return true;
+    return false;
+  };
 
-  // for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
-  //   for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
-  //     for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
-  //       for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
-  //         for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1)
-  //           if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 != s2)
-  //             EXPECT_DOUBLE_EQ(2., H_interaction(0, s1, 0, s2, r));
-  //           else
-  //             EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
+        for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+          for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1) {
+            double expected = 0.;
+            if (r == origin && b1 == b2 && s1 != s2)
+              expected = 4.;
+            else if (r == origin && is_pair(b1, b2, intra_cell_pairs))
+              expected = 2.;
+            else {
+              for (int direction = 0; direction < 3; ++direction)
+                if (r == nn_index[direction] &&
+                    ((b1 == intercell_pairs[direction][0] &&
+                      b2 == intercell_pairs[direction][1]) ||
+                     (b1 == intercell_pairs[direction][1] &&
+                      b2 == intercell_pairs[direction][0])))
+                  expected = 2.;
+            }
+            EXPECT_DOUBLE_EQ(expected, H_interaction(b1, s1, b2, s2, r));
+          }
 
-  // Check nearest-neighbor same spin interaction.
-  // params.set_U(0);
-  // params.set_V(0);
-  // params.set_V_prime(1);
-
-  // Lattice::initializeHInteraction(H_interaction, params);
-
-  // for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
-  //   for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
-  //     for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
-  //       if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 == s2)
-  //         EXPECT_DOUBLE_EQ(1., H_interaction(0, s1, 0, s2, r));
-  //       else
-  //         EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
+    const int minus_r = RClusterDmn::parameter_type::subtract(r, origin);
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
+        for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+          for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1)
+            EXPECT_DOUBLE_EQ(H_interaction(b1, s1, b2, s2, r),
+                             H_interaction(b2, s2, b1, s1, minus_r));
+  }
 }
