@@ -13,6 +13,7 @@
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_HPP
 
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -107,10 +108,20 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
           }
         }
 
+#ifndef NDEBUG
+        // A missing pair means this candidate operation cannot map the transformed cluster site
+        // and orbital onto a site with the required flavor.  Keep the (-1, -1) sentinel: the
+        // point-group validation subsequently rejects this operation.  The details below are
+        // useful when diagnosing lattice/orbital conventions, but must not pollute production
+        // output while candidate point groups are being probed.
         if (symmetry_matrix(i, j, l).first == -1 or symmetry_matrix(i, j, l).second == -1) {
+          std::cout << "[debug] No (r_ind, b_ind) mapping symmetry_matrix(" << i << ", " << j
+                    << ", " << l
+                    << "): the candidate operation is not a valid symmetry for "
+                       "this cluster/orbital flavor.\n";
+
           std::vector<double> r_plus_a =
               math::util::add(r_dmn_t::get_elements()[i], b_dmn_t::get_elements()[j].a_vec);
-
           std::vector<double> trafo_r_plus_a(DIMENSION, 0);
           std::vector<double> trafo_r_plus_a_in_cluster(DIMENSION, 0);
 
@@ -134,10 +145,8 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
           std::cout << "\n\n";
 
           sym_super_cell_dmn_t::get_elements()[l].to_JSON(std::cout);
-
-          // assert(false);
-          // throw std::logic_error(__FUNCTION__);
         }
+#endif
       }
     }
   }
@@ -152,8 +161,7 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
                                                          sym_super_cell_dmn_t>>& k_symmetry_matrix =
       cluster_symmetry<k_cluster_type>::get_symmetry_matrix();  // k_cluster_type::get_symmetry_matrix();
 
-  func::function<double,
-                 func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+  func::function<double, func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
       fold_phase = cluster_symmetry<k_cluster_type>::get_fold_phase();
 
   func::function<int, func::dmn_variadic<k_dmn_t, sym_super_cell_dmn_t>>& mapped_point =
@@ -174,8 +182,8 @@ void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
         k_symmetry_matrix(i, j, l).second = r_symmetry_matrix(i, j, l).second;
 
         // mapped_point is the same k-image, promoted to a band-independent accessor. trafo_k (hence
-        // k_image) is computed from the momentum alone, so it does not depend on the band j; store it
-        // once (j == 0) to make that independence explicit.
+        // k_image) is computed from the momentum alone, so it does not depend on the band j; store
+        // it once (j == 0) to make that independence explicit.
         if (j == 0)
           mapped_point(i, l) = k_image;
 
