@@ -115,7 +115,7 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
         // useful when diagnosing lattice/orbital conventions, but must not pollute production
         // output while candidate point groups are being probed.
         if (symmetry_matrix(i, j, l).first == -1 or symmetry_matrix(i, j, l).second == -1) {
-          std::cout << "[debug] No (r_ind, b_ind) mapping symmetry_matrix(" << i << ", " << j
+          std::cout << "[debug] No (r_ind, b_ind) mapping for symmetry_matrix(" << i << ", " << j
                     << ", " << l
                     << "): the candidate operation is not a valid symmetry for "
                        "this cluster/orbital flavor.\n";
