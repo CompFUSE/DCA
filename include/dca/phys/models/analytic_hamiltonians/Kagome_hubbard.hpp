@@ -193,14 +193,18 @@ void KagomeHubbard<PointGroupType>::initializeHInteraction(
     if (r != origin) {
       const int minus_r = RDmn::parameter_type::subtract(r, origin);
 
-      nn_index.push_back(r);
+      // H_interaction(b1, b2, delta_r) uses delta_r = R1 - R2.  The orbital
+      // pairs below describe b1 in the reference cell and b2 in the cell at
+      // +nn_vec, so their displacement is -nn_vec.
+      nn_index.push_back(minus_r);
       nn_orbs.push_back({orb_pairs[vec_idx][0], orb_pairs[vec_idx][1]});
 
-      // Add negative direction if distinct
-      if (r != minus_r) {
-        nn_index.push_back(minus_r);
-        nn_orbs.push_back({orb_pairs[vec_idx][1], orb_pairs[vec_idx][0]});
-      }
+      // Always add the reversed matrix element required by
+      // H(b1,b2,r) = H(b2,b1,-r).  This is still a distinct orbital entry
+      // when r == -r, as happens for every nonzero displacement of the Nc=4
+      // cluster.
+      nn_index.push_back(r);
+      nn_orbs.push_back({orb_pairs[vec_idx][1], orb_pairs[vec_idx][0]});
     }
   }
 
