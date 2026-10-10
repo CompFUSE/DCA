@@ -1,0 +1,9 @@
+{
+  "disorder": {
+    "distribution": "box",
+    "potential": 1.0,
+    "density": 0.25,
+    "num-configurations": 10,
+    "unique-configs": true
+  }
+}

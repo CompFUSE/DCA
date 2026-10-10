@@ -15,6 +15,8 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
+#include "dca/util/to_string.hpp"
 
 namespace dca {
 namespace phys {
@@ -45,24 +47,32 @@ public:
     return elements_;
   }
 
+  static const auto& get_flavors() {
+    return flavors_;
+  }
+
   template <typename Writer>
   static void write(Writer& writer);
 
   template <typename Parameters>
   static void initialize(const Parameters& parameters);
 
+  template <typename ss_type>
+  static void print(const electron_band_domain& ebd, ss_type& ss);
+
   // For testing purposes only.
-  static void setAVectors(const std::vector<std::vector<double>>& vecs){
-      if(vecs.size() != get_size()){
-          throw(std::logic_error(__PRETTY_FUNCTION__));
-      }
-      for(int b = 0; b < get_size(); ++b){
-          elements_[b].a_vec = vecs[b];
-      }
+  static void setAVectors(const std::vector<std::vector<double>>& vecs) {
+    if (vecs.size() != get_size()) {
+      throw(std::logic_error(__PRETTY_FUNCTION__));
+    }
+    for (int b = 0; b < get_size(); ++b) {
+      elements_[b].a_vec = vecs[b];
+    }
   }
 
 private:
   static inline std::vector<element_type> elements_;
+  static std::vector<int> flavors_;
 };
 
 template <typename Writer>
@@ -77,14 +87,20 @@ void electron_band_domain::initialize(const Parameters& /*parameters*/) {
   elements_.resize(Parameters::bands);
 
   using Lattice = typename Parameters::lattice_type;
-  auto flavours = Lattice::flavors();
+  flavors_ = Lattice::flavors();
   auto a_vecs = Lattice::aVectors();
 
   for (size_t i = 0; i < a_vecs.size(); ++i) {
     elements_.at(i).number = i;
-    elements_.at(i).flavor = flavours.at(i);
+    elements_.at(i).flavor = flavors_.at(i);
     elements_.at(i).a_vec = a_vecs.at(i);
   }
+}
+
+template <typename ss_type>
+void electron_band_domain::print(const electron_band_domain& ebd, ss_type& ss) {
+  ss << "\t electron orbitals/bands: " << ebd.get_elements().size() << " of "
+     << vectorToString(ebd.get_flavors()) << '\n';
 }
 
 }  // namespace domains

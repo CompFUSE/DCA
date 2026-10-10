@@ -32,6 +32,7 @@ public:
   using element_type = double;
   using scalar_type = double;
 
+  static constexpr int DIMENSION = 1;
   // Needed in function transform.
   using dmn_specifications_type = math::transform::interval_dmn_1D_type;
 
@@ -114,8 +115,8 @@ void time_domain::to_JSON(stream_type& ss) {
   ss << "]\n";
 }
 
-}  // domains
-}  // phys
-}  // dca
+}  // namespace domains
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_TIME_DOMAIN_HPP
