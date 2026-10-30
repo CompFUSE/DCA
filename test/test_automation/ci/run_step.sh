@@ -61,7 +61,7 @@ case "$1" in
       # export PATH=$(spack find -lp llvm | awk '/llvm/{print $3}')/bin:${PATH}
       # export LD_LIBRARY_PATH=$(spack find -lp gcc/yel5m4n | awk '/gcc/{print $3}')/lib64:$(spack find -lp hdf5 | awk '/hdf5/{print $3}')/lib64:$(spack find -lp llvm/navafcm | awk '/llvm/{print $3}')/lib:${LD_LIBRARY_PATH}:$(spack find -lp tree-sitter-cmake | awk '/tree-sitter-cmake/{print $3}')/lib:${LD_LIBRARY_PATH}
       # export CUDAHOSTCXX=clang++
-      # export MAGMA_ROOT=/home/epd/opt_a30/magma
+      # export MAGMA_ROOT=$(spack find --loaded -lp magma | awk '/magma/{print $3}')
       # export HDF5_ROOT=$(spack find --loaded -lp hdf5 | awk '/hdf5/{print $3}')
       # export OPENBLAS_ROOT=$(spack find --loaded -lp openblas | awk '/openblas/{print $3}')
       # export MPI_ROOT=$(spack find --loaded -lp openmpi | awk '/openmpi/{print $3}')
