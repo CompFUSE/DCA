@@ -42,6 +42,12 @@ public:
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
                                                    int b1, int s1, int b2, int s2);
 
+  template <typename ParametersType>
+  static double evaluateH0AtK(const ParametersType& parameters, const std::vector<double>& k) {
+    return std::real(
+        get_LDA_Hamiltonians(const_cast<ParametersType&>(parameters), k, 0, 0, 0, 0));
+  }
+
 private:
   template <class parameters_type>
   static std::vector<std::vector<double>>& get_t_ij(parameters_type& parameters);

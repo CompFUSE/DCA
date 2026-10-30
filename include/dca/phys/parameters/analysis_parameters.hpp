@@ -70,6 +70,12 @@ public:
   bool get_dump_intermediates() const {
     return dump_intermediates_;
   }
+  bool direct_grid_chi0() const {
+    return direct_grid_chi0_;
+  }
+  int direct_grid_nkfine() const {
+    return direct_grid_nkfine_;
+  }
 
 private:
   bool symmetrize_Gamma_ = true;
@@ -80,6 +86,8 @@ private:
   std::vector<std::vector<int>> q_host_;
   std::vector<std::vector<int>> q_host_fine_;
   bool dump_intermediates_ = false;
+  bool direct_grid_chi0_ = false;
+  int direct_grid_nkfine_ = 32;
 };
 
 template <typename Concurrency>
@@ -95,6 +103,8 @@ int AnalysisParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(q_host_fine_);
 
   buffer_size += concurrency.get_buffer_size(dump_intermediates_);
+  buffer_size += concurrency.get_buffer_size(direct_grid_chi0_);
+  buffer_size += concurrency.get_buffer_size(direct_grid_nkfine_);
 
   return buffer_size;
 }
@@ -111,6 +121,8 @@ void AnalysisParameters::pack(const Concurrency& concurrency, char* buffer, int 
   concurrency.pack(buffer, buffer_size, position, q_host_fine_);
 
   concurrency.pack(buffer, buffer_size, position, dump_intermediates_);
+  concurrency.pack(buffer, buffer_size, position, direct_grid_chi0_);
+  concurrency.pack(buffer, buffer_size, position, direct_grid_nkfine_);
 }
 
 template <typename Concurrency>
@@ -125,6 +137,8 @@ void AnalysisParameters::unpack(const Concurrency& concurrency, char* buffer, in
   concurrency.unpack(buffer, buffer_size, position, q_host_fine_);
 
   concurrency.unpack(buffer, buffer_size, position, dump_intermediates_);
+  concurrency.unpack(buffer, buffer_size, position, direct_grid_chi0_);
+  concurrency.unpack(buffer, buffer_size, position, direct_grid_nkfine_);
 }
 
 template <typename ReaderOrWriter>
@@ -155,6 +169,16 @@ void AnalysisParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
 
     reader_or_writer.execute("dump-intermediates", dump_intermediates_);
+    try {
+      reader_or_writer.execute("direct-grid-chi0", direct_grid_chi0_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("direct-grid-nkfine", direct_grid_nkfine_);
+    }
+    catch (const std::exception& r_e) {
+    }
     reader_or_writer.close_group();
   }
 }
