@@ -9,9 +9,12 @@
 // Derives the orbital-operation matrix U_S of each point-group operation from H0(k) and populates
 // cluster_symmetry::get_orbital_op(), without reading hand-coded Lattice::transformationSignOf*.
 //
-// Scope: for every analytic model, U_S is a real signed permutation U_S = D P, where the
-// permutation P is already encoded in the symmetry table (the band image .second) and the only
-// unknown is the diagonal of +/-1 signs D = diag(sigma).
+// Scope: for every analytic model, U_S is a real signed permutation U_S = D P. Both halves are
+// derived from H0: the permutation P (which orbital maps to which) and the diagonal of +/-1 signs
+// D = diag(sigma). The symmetry table's band image (.second) is only the first candidate for P;
+// when H0 rejects it -- geometry cannot see an on-site orbital rotation, such as the dxz/dyz swap
+// under C4 of two orbitals sharing a_vec = 0 -- the remaining permutations are searched. n_b <= 3
+// for every shipped model, so that is at most 3! = 6 candidates.
 //
 // The symmetry table stores not the exact momentum image S k but its folded representative
 // k_new = S k - G, and with intra-cell orbital offsets a_b the fold is not free: H0 picks up the
@@ -27,22 +30,25 @@
 // the odd parity of p_x under a mirror at a zone-boundary momentum) instead of the intrinsic
 // orbital transform.
 //
-// The analytic models shipped with DCA++ have at most n_b = 3 orbitals, so once the gauge
-// sigma(0) = +1 is fixed there are at most 2^(n_b-1) <= 4 candidate sign vectors. We simply
-// enumerate them and keep the one that satisfies every coupling constraint. Four conditions make
-// an operation fail:
+// For a candidate permutation, the signs are found by enumerating the at most 2^(n_b-1) <= 4
+// vectors with the gauge sigma(0) = +1 and keeping the one that satisfies every constraint.
+// A malformed candidate (an out-of-range or repeated band image -- only the geometric one can be)
+// is rejected up front; an admissible one is rejected, and the next tried, when:
 //
-//   * a missing band image in the symmetry table (the -1 value recorded by set_symmetry_matrices
-//     when it finds no admissible image) means the op has no candidate permutation at all;
-//   * a magnitude mismatch (an entry vanishing on only one side) means the permutation is not a
-//     symmetry of H0;
-//   * a non-real or non-unit ratio means the op needs a non-signed-permutation U_S (genuine orbital
-//     mixing, not yet supported) or is not a symmetry;
-//   * no candidate sign vector satisfying all couplings means no signed-permutation U_S exists.
+//    * a coupling vanishes on only one side (a magnitude mismatch -- the permutation is not a
+//      symmetry of H0)
+//    * a fold-corrected ratio is not a real +/-1 (this permutation would need a
+//      non-signed-permutation U_S)
+//    * no sign vector satisfies all couplings
+//
+// Only when every band permutation is rejected does the operation fail outright: it then needs a
+// genuinely non-signed-permutation U_S (orbital mixing or a complex phase out of scope) or is not
+// a symmetry of H0.
 
 #ifndef DCA_PHYS_DCA_STEP_SYMMETRIZATION_SOLVE_ORBITAL_OP_SIGNS_HPP
 #define DCA_PHYS_DCA_STEP_SYMMETRIZATION_SOLVE_ORBITAL_OP_SIGNS_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <stdexcept>
@@ -67,37 +73,25 @@ constexpr double kCouplingZeroTol = 1e-10;
 // magnitude from 1 must both be below this.
 constexpr double kSignRealTol = 1e-9;
 
-// Solves the +/-1 signs of one operation s and writes that op's U_S block into u_s. fold_phase is
-// the diagonal folding phase phi (callable as fold_phase(k, band, s)) that undresses the folded
-// H0 samples, so the solved signs are the intrinsic orbital transform. Throws if op s is not a
-// signed-permutation symmetry of H0. Shared by the whole-group populator -- which lets the throw
-// propagate, since a model must be a genuine symmetry group -- and by the group verification,
-// which catches it to classify the op.
+// Tests one candidate band permutation `image` against H0. Returns true, and writes that op into
+// u_s, iff `image` is a signed-permutation symmetry of H0: every nonzero coupling gives a real
+// +/-1 (fold-corrected) ratio, and some sign vector satisfies the resulting products.
 template <typename SymFunc, typename FoldFunc, typename H0Function, typename UFunc>
-void solveSignsForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& fold_phase,
-                     const H0Function& H0, UFunc& u_s) {
-  // Band permutation P: row b's single entry lands in column image[b]. This is the geometry-derived
-  // half of U_S (which orbital maps to which); it is k-independent for a point-group op, so read it
-  // at k = 0. Only the signs that decorate it are unknown.
-  std::vector<int> image(nb);
+bool tryPermutation(const std::vector<int>& image, int s, int nb, int nk, const SymFunc& sym,
+                    const FoldFunc& fold_phase, const H0Function& H0, UFunc& u_s) {
+  // Reject a malformed candidate before it indexes H0: an out-of-range entry (the -1 recorded when
+  // set_symmetry_matrices finds no admissible image) or a repeated one (two orbitals sharing a site
+  // and a flavor collide).
+  std::vector<bool> is_hit(nb, false);
   for (int b = 0; b < nb; ++b) {
-    image[b] = sym(0, b, s).second;
-    // set_symmetry_matrices records a silent -1 sentinel when its position/flavor matching finds
-    // no admissible image (its own throw is commented out), so the table cannot be assumed
-    // complete here. Reject the op before the sentinel is used to index H0.
-    if (image[b] < 0 || image[b] >= nb)
-      throw std::out_of_range(
-          "solveOrbitalOpSignsFromH0: no band image in the symmetry table for band " +
-          std::to_string(b) + " under op " + std::to_string(s) +
-          " -- the geometric position/flavor matching found no admissible image, so the op has no "
-          "candidate permutation.");
+    if (image[b] < 0 || image[b] >= nb || is_hit[image[b]])
+      return false;
+    is_hit[image[b]] = true;
   }
 
   // Gather one sign-product constraint per nonzero coupling, over all cluster momenta. Each nonzero
-  // coupling forces sigma(b0) sigma(b1) to the +/-1 fold-corrected ratio of the two H0 entries. The
-  // ratio must be a real +/-1 for a signed permutation to exist at all; the two checks below
-  // (magnitude match, real +/-1) are independent of the signs themselves, so they are tested here
-  // and reported as the first two rejection branches.
+  // coupling forces sigma(b0) sigma(b1) to the +/-1 fold-corrected ratio of the two H0 entries; the
+  // ratio must be a real +/-1 for a signed permutation to exist under this permutation at all.
   struct Constraint {
     int b0, b1, product;
   };
@@ -114,10 +108,7 @@ void solveSignsForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& 
         if (zero_lhs && zero_rhs)
           continue;  // coupling absent on both sides: consistent, but no constraint.
         if (zero_lhs != zero_rhs)
-          throw std::logic_error(
-              "solveOrbitalOpSignsFromH0: H0 magnitude mismatch for op " + std::to_string(s) +
-              " -- the band permutation is not a symmetry of H0 (a coupling vanishes on only one "
-              "side).");
+          return false;  // magnitude mismatch: this permutation is not a symmetry of H0.
         // Undress the fold before taking the ratio. phi lives at the image bands -- the rhs entry
         // sits at (image(b0), image(b1)) -- with G determined by (k, s); the stored table carries
         // the band as a free index, so the image-band lookup is direct.
@@ -125,10 +116,7 @@ void solveSignsForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& 
         const std::complex<double> ratio = lhs / (fold * rhs);
         if (std::abs(std::imag(ratio)) > kSignRealTol ||
             std::abs(std::abs(ratio) - 1.) > kSignRealTol)
-          throw std::domain_error(
-              "solveOrbitalOpSignsFromH0: H0 ratio is not a real +/-1 for op " + std::to_string(s) +
-              " -- the operation requires a non-signed-permutation U_S (genuine orbital mixing) or "
-              "is not a symmetry of H0.");
+          return false;  // non-signed-permutation ratio: this permutation would need a dense U_S.
 
         constraints.push_back({b0, b1, std::real(ratio) > 0. ? 1 : -1});
       }
@@ -152,15 +140,44 @@ void solveSignsForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& 
         break;
       }
   }
-  // No sign vector satisfied every constraint, so no signed permutation reproduces H0 under this op
   if (!found)
-    throw std::logic_error(
-        "solveOrbitalOpSignsFromH0: no consistent +/-1 signs for op " + std::to_string(s) +
-        " -- the H0 couplings admit no signed-permutation U_S.");
+    return false;  // no sign vector reproduces H0 under this permutation.
 
   // Materialize U_S = D P one entry at a time: sign sigma(b) at (row b, column image[b]).
   for (int b = 0; b < nb; ++b)
     u_s(b, image[b], s) = static_cast<double>(sigma[b]);
+  return true;
+}
+
+// Derives op s's orbital operation U_S = D P from H0 -- both the permutation P and the signs D --
+// and writes it into u_s. H0 is the authority: U_S is whatever signed permutation makes
+// H0(S k) = U_S H0(k) U_S^dagger hold.
+template <typename SymFunc, typename FoldFunc, typename H0Function, typename UFunc>
+void deriveOrbitalOpForOp(int s, int nb, int nk, const SymFunc& sym, const FoldFunc& fold_phase,
+                          const H0Function& H0, UFunc& u_s) {
+  // The geometric image is the canonical candidate: verify it against H0 first.
+  std::vector<int> geometric(nb);
+  for (int b = 0; b < nb; ++b)
+    geometric[b] = sym(0, b, s).second;
+
+  if (tryPermutation(geometric, s, nb, nk, sym, fold_phase, H0, u_s))
+    return;
+
+  // H0 did not admit it; check the remaining permutations, in std::next_permutation order so the
+  // search is deterministic, skipping the geometric candidate already tried.
+  std::vector<int> image(nb);
+  for (int b = 0; b < nb; ++b)
+    image[b] = b;
+  do {
+    if (image != geometric && tryPermutation(image, s, nb, nk, sym, fold_phase, H0, u_s))
+      return;
+  } while (std::next_permutation(image.begin(), image.end()));
+
+  throw std::logic_error(
+      "solveOrbitalOpSignsFromH0: no signed-permutation U_S reproduces H0 under op " +
+      std::to_string(s) +
+      " for any band permutation -- the operation needs a non-signed-permutation U_S (genuine "
+      "orbital mixing or a complex phase) or is not a symmetry of H0.");
 }
 
 }  // namespace detail
@@ -185,7 +202,7 @@ void solveOrbitalOpSignsFromH0(const H0Function& H0) {
   const int n_ops = SymDmn::dmn_size();
 
   for (int s = 0; s < n_ops; ++s)
-    detail::solveSignsForOp(s, nb, nk, sym, fold_phase, H0, u_s);
+    detail::deriveOrbitalOpForOp(s, nb, nk, sym, fold_phase, H0, u_s);
 }
 
 // Returns the sorted op indices that pass the sign-consistency (H0-invariance) check -- the
@@ -210,7 +227,7 @@ std::vector<int> verifiedSymmetryOps(const H0Function& H0) {
   std::vector<int> verified;
   for (int s = 0; s < n_ops; ++s) {
     try {
-      detail::solveSignsForOp(s, nb, nk, sym, fold_phase, H0, u_s);
+      detail::deriveOrbitalOpForOp(s, nb, nk, sym, fold_phase, H0, u_s);
       verified.push_back(s);
     }
     catch (const std::exception&) {
