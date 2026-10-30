@@ -57,16 +57,6 @@ case "$1" in
     # Path to QMC_DATA in self-hosted CI system and point at minimum gcc-9
     if [[ "$HOST_NAME" =~ (a30four) ]]
     then
-	# use gcc-12
-      # export PATH=$(spack find -lp llvm | awk '/llvm/{print $3}')/bin:${PATH}
-      # export LD_LIBRARY_PATH=$(spack find -lp gcc/yel5m4n | awk '/gcc/{print $3}')/lib64:$(spack find -lp hdf5 | awk '/hdf5/{print $3}')/lib64:$(spack find -lp llvm/navafcm | awk '/llvm/{print $3}')/lib:${LD_LIBRARY_PATH}:$(spack find -lp tree-sitter-cmake | awk '/tree-sitter-cmake/{print $3}')/lib:${LD_LIBRARY_PATH}
-      # export CUDAHOSTCXX=clang++
-      # export MAGMA_ROOT=/home/epd/opt_a30/magma
-      # export HDF5_ROOT=$(spack find --loaded -lp hdf5 | awk '/hdf5/{print $3}')
-      # export OPENBLAS_ROOT=$(spack find --loaded -lp openblas | awk '/openblas/{print $3}')
-      # export MPI_ROOT=$(spack find --loaded -lp openmpi | awk '/openmpi/{print $3}')
-      # export FFTW_ROOT=$(spack find --loaded -lp fftw | awk '/fftw/{print $3}')
-      # Make current environment variables available to subsequent steps
       echo "PATH=$PATH" >> $GITHUB_ENV
       echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
     fi
@@ -84,7 +74,7 @@ case "$1" in
               -DDCA_WITH_MPI=1 \
               -DCMAKE_BUILD_TYPE=Release \
 	      -DTEST_RUNNER="mpiexec" \
-              -DMAGMA_ROOT="/home/epd/opt_a30/magma" \
+              -DMAGMA_ROOT=$MAGMA_ROOT \
 	      -DMPIEXEC_NUMPROC_FLAG="-n" -DMPIEXEC_PREFLAGS="-mca btl self,tcp" -DDCA_WITH_CUDA=1 \
 	      -DDCA_WITH_TESTS_FAST=1 \
               ${GITHUB_WORKSPACE}
