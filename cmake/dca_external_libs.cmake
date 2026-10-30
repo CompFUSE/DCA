@@ -1,4 +1,4 @@
-﻿################################################################################
+################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Checks for external libraries and creates a global lists of them and the corresponding include
