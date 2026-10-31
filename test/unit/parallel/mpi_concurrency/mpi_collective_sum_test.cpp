@@ -177,8 +177,9 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   EXPECT_DOUBLE_EQ(f_copy(0), f(0));
   EXPECT_DOUBLE_EQ(f_copy(1), f(1));
 
-  EXPECT_DOUBLE_EQ(err_expected(0), err_no_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_no_overwriting(1));
+  // Jackknife error is a floating-point reduction: compare within epsilon_, not bit-exact.
+  EXPECT_NEAR(err_expected(0), err_no_overwriting(0), epsilon_);
+  EXPECT_NEAR(err_expected(1), err_no_overwriting(1), epsilon_);
 
   // Overwrite the jackknife estimates with their average.
   auto err_overwriting = sum_interface_.jackknifeError(f, true);
@@ -188,8 +189,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   EXPECT_DOUBLE_EQ(rank_avg, f(0));
   EXPECT_DOUBLE_EQ(d, f(1));
 
-  EXPECT_DOUBLE_EQ(err_expected(0), err_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_overwriting(1));
+  EXPECT_NEAR(err_expected(0), err_overwriting(0), epsilon_);
+  EXPECT_NEAR(err_expected(1), err_overwriting(1), epsilon_);
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
@@ -260,10 +261,11 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   EXPECT_DOUBLE_EQ(f_copy(0).real(), f(0).real());
   EXPECT_DOUBLE_EQ(f_copy(1).real(), f(1).real());
 
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_no_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_no_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_no_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_no_overwriting(1).imag());
+  // Jackknife error is a floating-point reduction: compare within epsilon_, not bit-exact.
+  EXPECT_NEAR(err_expected(0).real(), err_no_overwriting(0).real(), epsilon_);
+  EXPECT_NEAR(err_expected(0).imag(), err_no_overwriting(0).imag(), epsilon_);
+  EXPECT_NEAR(err_expected(1).real(), err_no_overwriting(1).real(), epsilon_);
+  EXPECT_NEAR(err_expected(1).imag(), err_no_overwriting(1).imag(), epsilon_);
 
   // Overwrite the jackknife estimates with their average.
   auto err_overwriting = sum_interface_.jackknifeError(f, true);
@@ -273,10 +275,10 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, rank_avg + r).real(), f(0).real());
   EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, d).real(), f(1).real());
 
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_overwriting(1).imag());
+  EXPECT_NEAR(err_expected(0).real(), err_overwriting(0).real(), epsilon_);
+  EXPECT_NEAR(err_expected(0).imag(), err_overwriting(0).imag(), epsilon_);
+  EXPECT_NEAR(err_expected(1).real(), err_overwriting(1).real(), epsilon_);
+  EXPECT_NEAR(err_expected(1).imag(), err_overwriting(1).imag(), epsilon_);
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
