@@ -44,6 +44,13 @@ public:
 
   double get_Gflop();
 
+  /** build the G_matrix for this configuration
+   *   @param[in] full_configuration   the full vertex configuration
+   *   @param[in] N
+   *   @param[in] G0
+   *   @param[inout] G   the question is whether this is in out or just
+   *   out.
+   */
   template <class configuration_type>
   void build_G_matrix(configuration_type& full_configuration,
                       const dca::linalg::Matrix<Scalar, device_t>& N,
@@ -174,7 +181,8 @@ void G_TOOLS<device_t, Parameters>::build_G_matrix(configuration_type& full_conf
                                                  G.ptr(0, 0), LD_G, thread_id, stream_id);
 
     if constexpr (dca::util::IsComplex_t<Scalar>::value) {
-      GFLOP += (8.0 * G.nrCols() * G.nrRows() * N.nrCols() + 12.0 * (G.nrCols() * G.nrRows())) * 1.0e-9;
+      GFLOP +=
+          (8.0 * G.nrCols() * G.nrRows() * N.nrCols() + 12.0 * (G.nrCols() * G.nrRows())) * 1.0e-9;
     }
     else {
       GFLOP += 2. * G.nrCols() * G.nrRows() * N.nrCols() * 1.e-9;

@@ -31,15 +31,16 @@ using McOptions = MockMcOptions<double>;
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/profiling/null_profiler.hpp"
+#include "dca/phys/domains/domain_aliases.hpp"
 
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::RashbaHubbard<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
-using Parameters =
-    dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler,
-                                  Model, void, dca::ClusterSolverId::CT_AUX,               dca::NumericalTraits<double,
-                                   typename dca::util::ScalarSelect<double,
-                                                                    Model::lattice_type::complex_g0>::type>>;
+using Parameters = dca::phys::params::Parameters<
+    Concurrency, dca::parallel::NoThreading, dca::profiling::NullProfiler, Model, void,
+    dca::ClusterSolverId::CT_AUX,
+    dca::NumericalTraits<
+        double, typename dca::util::ScalarSelect<double, Model::lattice_type::complex_g0>::type>>;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/unit/math/function_transform/";
 
@@ -49,6 +50,8 @@ using NuDmn = dca::func::dmn_variadic<BDmn, SDmn>;
 using WDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
 using KDmn = Parameters::KClusterDmn;
 using RDmn = Parameters::RClusterDmn;
+using DDA = dca::phys::DcaDomainAliases<Parameters>;
+using TDmn = typename DDA::TDmn;
 
 const std::vector<std::vector<double>> a_vecs{std::vector<double>{0, 0},
                                               std::vector<double>{0.25, 0.25}};
@@ -141,6 +144,80 @@ void spTestImplementation(const bool direct) {
   }
 }
 
+template <class InpDmn, class OutDmn>
+void timeFreqTestImplementation(const bool direct) {
+  using namespace dca::func;
+  using Real = double;
+  using Complex = std::complex<Real>;
+  function<Complex, dmn_variadic<NuDmn, NuDmn, KDmn, InpDmn>> f_b_b_in;
+  function<Complex, dmn_variadic<KDmn, InpDmn>> f_in;
+
+  // Initialize the input function.
+  for (int k = 0; k < KDmn::dmn_size(); ++k)
+    for (int i = 0; i < InpDmn::dmn_size(); ++i) {
+      const Complex val(i * i + 0.5 * i, k);
+      f_in(i, k) = val;
+      for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2)
+        for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1)
+          f_b_b_in(b1, 0, b2, 0, k, i) = f_b_b_in(b1, 1, b2, 1, k, i) = val;
+    }
+
+  function<Complex, dmn_variadic<NuDmn, NuDmn, KDmn, OutDmn>> f_b_b_out;
+  function<Complex, dmn_variadic<KDmn, OutDmn>> f_out;
+
+  // Regular transform.
+  dca::math::transform::FunctionTransform<InpDmn, OutDmn>::execute(f_in, f_out);
+  // Transform with phase factor.
+  dca::math::transform::FunctionTransform<InpDmn, OutDmn>::execute(f_b_b_in, f_b_b_out);
+
+  const int exp_sign = direct ? 1 : -1;
+  const double norm = direct ? 1 : 1. / InpDmn::dmn_size();
+
+  constexpr double tolerance = 1e-10;
+
+  for (int k = 0; k < KDmn::dmn_size(); ++k) {
+    // Test regular transform.
+    for (int o = 0; o < OutDmn::dmn_size(); ++o) {
+      const auto& o_dmn_val = OutDmn::get_elements()[o];
+      Complex val(0);
+
+      for (int i = 0; i < InpDmn::dmn_size(); ++i) {
+        const auto& i_dmn_val = InpDmn::get_elements()[i];
+        val += f_in(i, k) * std::exp(Complex(0., exp_sign * dca::math::util::innerProduct(
+                                                                static_cast<double>(i_dmn_val),
+                                                                static_cast<double>(o_dmn_val))));
+      }
+      val *= norm;
+
+      EXPECT_LE(std::abs(val - f_out(o, k)), tolerance);
+
+      // // Test transform with phase factors.
+      // for (int b1 = 0; b1 < BDmn::dmn_size(); ++b1) {
+      //   for (int b2 = 0; b2 < BDmn::dmn_size(); ++b2) {
+      //     const auto a_diff = dca::math::util::subtract(a_vecs[b2], a_vecs[b1]);
+      //     for (int o = 0; o < OutDmn::dmn_size(); ++o) {
+      //       const auto& o_dmn_val = OutDmn::get_elements()[o];
+      //       Complex val(0);
+
+      //       for (int i = 0; i < InpDmn::dmn_size(); ++i) {
+      //         const auto& i_dmn_val = InpDmn::get_elements()[i];
+      //         const auto& k_val = direct ? o_dmn_val : i_dmn_val;
+      //         const Complex phase_factor = std::exp(Complex(
+      //             0, exp_sign * dca::math::util::innerProduct(static_cast<double>(k_val), a_diff)));
+      //         val += f_b_b_in(b1, 0, b2, 0, k, i) * phase_factor *
+      //                std::exp(Complex(
+      //                    0., exp_sign * dca::math::util::innerProduct(i_dmn_val, o_dmn_val)));
+      //       }
+      //       val *= norm;
+
+      //       EXPECT_LE(std::abs(val - f_b_b_out(b1, 0, b2, 0, k, o)), tolerance);
+      //     }
+      //   }
+      // }
+    }
+  }
+}
+
 TEST(FunctionTransformTest, SpaceToMomentumCmplx) {
   initialize();
   spTestImplementation<RDmn, KDmn>(true);
@@ -150,3 +227,8 @@ TEST(FunctionTransformTest, MomentumToSpaceCmplx) {
   initialize();
   spTestImplementation<KDmn, RDmn>(false);
 }
+
+// TEST(FunctionTransformTest, TimeToFrequency) {
+//   initialize();
+//   timeFreqTestImplementation<TDmn, WDmn>(true);
+// }

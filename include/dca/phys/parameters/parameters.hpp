@@ -31,6 +31,7 @@
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
+#include "dca/phys/parameters/disorder_parameters.hpp"
 #include "dca/phys/parameters/domains_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/ed_solver_parameters.hpp"
@@ -70,6 +71,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, ClusterSolverId solver_name, class NUMTRAITS>
 class Parameters : public AnalysisParameters,
                    public DcaParameters,
+                   public DisorderParameters,
                    public DomainsParameters,
                    public DoubleCountingParameters,
                    public EdSolverParameters,
@@ -180,10 +182,12 @@ template <class Parameters, typename = bool>
 struct CheckParametersNumericTypes : public std::false_type {};
 
 template <class Parameters>
-struct CheckParametersNumericTypes <Parameters,
-				    std::enable_if_t<std::is_same<typename Parameters::Scalar,
-								  typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>::value, bool>>
-    : public std::true_type {};
+struct CheckParametersNumericTypes<
+    Parameters,
+    std::enable_if_t<std::is_same<typename Parameters::Scalar,
+                                  typename dca::util::ScalarSelect<typename Parameters::Real,
+                                                                   Parameters::complex_g0>::type>::value,
+                     bool>> : public std::true_type {};
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
@@ -191,6 +195,7 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
            NUMTRAITS>::Parameters(const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(Model::DIMENSION),
       DcaParameters(Model::BANDS),
+      DisorderParameters(),
       DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
       EdSolverParameters(),
@@ -217,8 +222,10 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
 #endif
 
   // check consistency between the value of the Parameters::complex_g0 and Parameters NUMTRAITS
-  static_assert(std::is_same_v<typename Parameters::Scalar,
-		typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>);
+  static_assert(
+      std::is_same_v<
+          typename Parameters::Scalar,
+          typename dca::util::ScalarSelect<typename Parameters::Real, Parameters::complex_g0>::type>);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
@@ -281,8 +288,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, ClusterSolverId solver_name, typename NUMTRAITS>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name,
-                NUMTRAITS>::broadcast()
-{
+                NUMTRAITS>::broadcast() {
   concurrency_.broadcast_object(*this);
 }
 
@@ -413,6 +419,7 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, s
 
   buffer_size += AnalysisParameters::getBufferSize(concurrency);
   buffer_size += DcaParameters::getBufferSize(concurrency);
+  buffer_size += DisorderParameters::getBufferSize(concurrency);
   buffer_size += DomainsParameters::getBufferSize(concurrency);
   buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
   buffer_size += EdSolverParameters::getBufferSize(concurrency);
@@ -433,6 +440,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                  int& position) const {
   AnalysisParameters::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
+  DisorderParameters::pack(concurrency, buffer, buffer_size, position);
   DomainsParameters::pack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
   EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
@@ -451,6 +459,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
                                    int& position) {
   AnalysisParameters::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
+  DisorderParameters::unpack(concurrency, buffer, buffer_size, position);
   DomainsParameters::unpack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
   EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
@@ -481,6 +490,10 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   AnalysisParameters::readWrite(reader_or_writer);
   DcaParameters::readWrite(reader_or_writer);
   DomainsParameters::readWrite(reader_or_writer);
+  // It makes sense for this to come after because validity of input
+  // for disorder is dependent on particulars of the domains. That is when
+  // we have some input validation someday
+  DisorderParameters::readWrite(reader_or_writer);
   DoubleCountingParameters::readWrite(reader_or_writer);
   EdSolverParameters::readWrite(reader_or_writer);
   FourPointParameters<Model::DIMENSION>::readWrite(reader_or_writer);

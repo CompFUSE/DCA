@@ -38,6 +38,7 @@ public:
   int last() const {
     return nr_threads_ - 1;
   }
+  void barrier() const {}
 
   auto get() const {
 #if defined (CRAY_MPICH_VERSION) && defined (DCA_HAVE_MPI)

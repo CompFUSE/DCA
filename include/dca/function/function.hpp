@@ -408,6 +408,21 @@ private:
   // These are the linear start and end indexes with respect to the complete function.
   std::size_t start_;
   std::size_t end_;
+
+public:
+#ifdef DEBUG
+  // Variadic debug accessor: forwards all args to operator()
+  template <typename... Ts>
+  const scalartype& value_at_debug(Ts&&... indices) const {
+    return (*this)(std::forward<Ts>(indices)...);
+  }
+
+  // Non-const version (if needed for writing)
+  template <typename... Ts>
+  scalartype& value_at_debug(Ts&&... indices) {
+    return (*this)(std::forward<Ts>(indices)...);
+  }
+#endif
 };
 
 template <typename scalartype, class domain, DistType DT>

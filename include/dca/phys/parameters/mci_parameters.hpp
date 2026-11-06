@@ -160,6 +160,8 @@ private:
   bool fix_meas_per_walker_ = true;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
+  /// actually a runtime variable that should be moved from
+  /// parameters.
   bool store_configuration_;
   DistType g4_distribution_;
   int stamping_period_ = 0;
@@ -322,41 +324,43 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   reader_or_writer.close_group();
 
   if constexpr (ReaderOrWriter::is_reader) {
-    // The input file can contain an integral seed or the seeding option "random".  
-  // Check parameters consistency.
-  if (g4_distribution_ == DistType::BLOCKED) {
+    // The input file can contain an integral seed or the seeding option "random".
+    // Check parameters consistency.
+    if (g4_distribution_ == DistType::BLOCKED) {
 #ifdef DCA_HAVE_MPI
-    // Check for number of accumulators and walkers consistency.
-    if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
-      throw std::logic_error(
-          "\n With distributed g4 enabled, 1) walker and accumulator should share "
-          "thread, "
-          "2) #walker == #accumulator\n");
-    }
+      // Check for number of accumulators and walkers consistency.
+      if (!shared_walk_and_accumulation_thread_ || walkers_ != accumulators_) {
+        throw std::logic_error(
+            "\n With distributed g4 enabled, 1) walker and accumulator should share "
+            "thread, "
+            "2) #walker == #accumulator\n");
+      }
 
-    // Check for number of ranks and g4 measurements consistency.
-    // This is potentially wrong if fancy rank ganging or the like is used.
-    int mpi_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    int local_meas = measurements_.back() / mpi_size;
-    if (measurements_.back() % mpi_size != 0 && local_meas % accumulators_ != 0) {
-      throw std::logic_error(
-          "\n With distributed g4 enabled, 1) local measurements should be same across "
-          "ranks, "
-          "2) each accumulator should have same measurements\n");
-    }
+      // Check for number of ranks and g4 measurements consistency.
+      // This is potentially wrong if fancy rank ganging or the like is used.
+      int mpi_size;
+      MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+      int local_meas = measurements_.back() / mpi_size;
+      if (measurements_.back() % mpi_size != 0 && local_meas % accumulators_ != 0) {
+        throw std::logic_error(
+            "\n With distributed g4 enabled, 1) local measurements should be same across "
+            "ranks, "
+            "2) each accumulator should have same measurements\n");
+      }
 #else
-    throw(std::logic_error("MPI distribution requested with no MPI available."));
+      throw(std::logic_error("MPI distribution requested with no MPI available."));
 #endif  // DCA_HAVE_MPI
-    if (stamping_period_ != 0) {
-      if (!(shared_walk_and_accumulation_thread_ && walkers_ == accumulators_))
-	throw std::runtime_error("Individual measurement stamping not available unless shared-walk-and-accumulation-thread = true and walkers == acceptors!");
+      if (stamping_period_ != 0) {
+        if (!(shared_walk_and_accumulation_thread_ && walkers_ == accumulators_))
+          throw std::runtime_error(
+              "Individual measurement stamping not available unless "
+              "shared-walk-and-accumulation-thread = true and walkers == acceptors!");
+      }
+      // Solve conflicts
     }
-    // Solve conflicts
-  }
   }
   if (!time_correlation_window_)
-      compute_G_correlation_ = false;
+    compute_G_correlation_ = false;
 }
 
 void MciParameters::solveDcaIterationConflict(int iterations) {

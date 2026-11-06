@@ -18,6 +18,8 @@ namespace solver {
 
 template <typename Scalar>
 void G0Interpolation<linalg::CPU, Scalar>::initialize(const FunctionProxy<Scalar, PTdmn>& G0_pars_t) {
+  // As the G0 comes in it is (b1, b2, r)->p, t
+
   beta_ = PositiveTimeDomain::get_elements().back();
   n_div_beta_ = Real(PositiveTimeDomain::get_size() - 1) / beta_;
 
