@@ -117,7 +117,9 @@ public:
     return g0_;
   };
 
-  typename Walker::Resource& getResource() { return dummy_walker_resource_; };
+  typename Walker::Resource& getResource() {
+    return dummy_walker_resource_;
+  };
 
 protected:
   void warmUp(Walker& walker);
@@ -164,6 +166,7 @@ protected:
   G0Interpolation<device, Scalar> g0_;
 
   typename Walker::Resource dummy_walker_resource_;
+
 private:
   Rng rng_;
 
@@ -241,9 +244,17 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::initialize(int dca_it
       (dca_iteration == parameters_.get_dca_iterations() - 1) &&
       (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE);
 
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
+    if (compute_jack_knife_)
+      std::cout << "WARNING: error-computation-type is set to JACK_KNIFE. Final single-particle "
+                   "functions "
+                   "(G and Sigma) are averages of leave-one-out replica estimates, not "
+                   "estimates computed from the globally reduced measurements. These "
+                   "generally differ, so enabling JACK_KNIFE can change the reported G and Sigma "
+                   "and convergence results.\n";
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>

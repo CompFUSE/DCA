@@ -23,7 +23,7 @@ endif()
 #               [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [THREADED]
-#               [MPI [MPI_NUMPROC procs]]
+#               [MPI [MPI_NUMPROC proc1 [proc2 ...]]]
 #               [CUDA | CUDA_MPI]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
 #               [SOURCES src1 [src2 ...]]
@@ -32,12 +32,13 @@ endif()
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
 # The type of the test can be FAST, EXTENSIVE, STOCHASTIC or PERFORMANCE (mutually exclusive
 # options). If no option is specified, the default is FAST.
-# MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
-# number of MPI processes to use for a test with MPI, the default value is 1.
+# MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC gives
+# the MPI process count(s) for a test, defaulting to 1. Multiple counts register tests named
+# 'name_np<count>'; a single count retains the original test name.
 function(dca_add_gtest name)
   set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN GTEST_MPI_MAIN THREADED MPI CUDA CUDA_MPI)
-  set(oneValueArgs MPI_NUMPROC)
-  set(multiValueArgs INCLUDE_DIRS SOURCES LIBS CUSTOM_SOURCE TEST_DEFINES)
+  set(oneValueArgs)
+  set(multiValueArgs MPI_NUMPROC INCLUDE_DIRS SOURCES LIBS CUSTOM_SOURCE TEST_DEFINES)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # FAST, EXTENSIVE and PERFORMANCE are mutually exclusive.
@@ -52,7 +53,7 @@ function(dca_add_gtest name)
                                        [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [THREADED]\n
-                                       [MPI [MPI_NUMPROC procs]]\n
+                                       [MPI [MPI_NUMPROC proc1 [proc2 ...]]]\n
                                        [CUDA | CUDA_MPI]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
                                        [SOURCES src1 [src2 ...]]\n
@@ -199,11 +200,20 @@ function(dca_add_gtest name)
       set(DCA_ADD_GTEST_MPI_NUMPROC 1)
     endif()
 
-    add_test(NAME ${name}
-             COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${MPIEXEC_POSTFLAGS} ${CVD_LAUNCHER} "$<TARGET_FILE:${name}>"
-                     ${DCA_TESTING_FLAGS})
-                 target_link_libraries(${name} PRIVATE ${MPI_C_LIBRARIES})
+    list(LENGTH DCA_ADD_GTEST_MPI_NUMPROC numproc_count)
+    foreach(numproc IN LISTS DCA_ADD_GTEST_MPI_NUMPROC)
+      if (numproc_count GREATER 1)
+        set(test_name ${name}_np${numproc})
+      else()
+        set(test_name ${name})
+      endif()
+      add_test(NAME ${test_name}
+               COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${numproc}
+                       ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} ${MPIEXEC_POSTFLAGS} ${CVD_LAUNCHER}
+                       "$<TARGET_FILE:${name}>" ${DCA_TESTING_FLAGS})
+      set_tests_properties(${test_name} PROPERTIES PROCESSORS ${numproc})
+    endforeach()
+    target_link_libraries(${name} PRIVATE ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}

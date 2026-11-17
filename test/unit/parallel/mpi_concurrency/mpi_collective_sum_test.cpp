@@ -11,12 +11,12 @@
 //
 // This file tests mpi_collective_sum.hpp.
 //
-// This test only passes for 8 MPI processes.
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
 
 #include <cmath>
 #include <complex>
+#include <numeric>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -32,7 +32,11 @@ protected:
 
   int size_;
   int rank_;
-  constexpr static double epsilon_ = 1e-14;
+  // Covers reduction-order/compiler/dependency roundoff for modest synthetic data
+  // and MPI runs with at most six ranks.
+  static double roundoffTolerance(double expected) {
+    return 1e-12 + 1e-12 * std::abs(expected);
+  }
 
   dca::parallel::MPICollectiveSum sum_interface_;
 };
@@ -69,7 +73,102 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < function_test.size(); i++)
-    EXPECT_EQ(function_expected(i), function_test(i));
+    EXPECT_NEAR(function_expected(i), function_test(i), roundoffTolerance(function_expected(i)));
+}
+
+TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumScalars) {
+  const double real_local = 1.25 + 2. * rank_;
+  const std::complex<double> complex_local(0.5 + rank_, 2. - 0.75 * rank_);
+  double real_immediate = real_local;
+  std::complex<double> complex_immediate = complex_local;
+  double real_delayed = real_local;
+  std::complex<double> complex_delayed = complex_local;
+  double ordinary_delayed = rank_ + 1.;
+
+  sum_interface_.leaveOneOutSum(real_immediate);
+  sum_interface_.leaveOneOutSum(complex_immediate);
+  sum_interface_.leaveOneOutSum(real_delayed, true);
+  sum_interface_.leaveOneOutSum(complex_delayed, true);
+  sum_interface_.delayedSum(ordinary_delayed);
+  sum_interface_.resolveSums();
+
+  double real_expected = size_ == 1 ? real_local : 0.;
+  std::complex<double> complex_expected = size_ == 1 ? complex_local : std::complex<double>{};
+  double ordinary_expected = 0.;
+  for (int rank = 0; rank < size_; ++rank) {
+    if (rank != rank_) {
+      real_expected += 1.25 + 2. * rank;
+      complex_expected += std::complex<double>(0.5 + rank, 2. - 0.75 * rank);
+    }
+    ordinary_expected += rank + 1.;
+  }
+
+  EXPECT_NEAR(real_expected, real_immediate, roundoffTolerance(real_expected));
+  EXPECT_NEAR(complex_expected.real(), complex_immediate.real(),
+              roundoffTolerance(complex_expected.real()));
+  EXPECT_NEAR(complex_expected.imag(), complex_immediate.imag(),
+              roundoffTolerance(complex_expected.imag()));
+  EXPECT_NEAR(real_expected, real_delayed, roundoffTolerance(real_expected));
+  EXPECT_NEAR(complex_expected.real(), complex_delayed.real(),
+              roundoffTolerance(complex_expected.real()));
+  EXPECT_NEAR(complex_expected.imag(), complex_delayed.imag(),
+              roundoffTolerance(complex_expected.imag()));
+  EXPECT_NEAR(ordinary_expected, ordinary_delayed, roundoffTolerance(ordinary_expected));
+}
+
+TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumFunctions) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
+  using RealFunction = dca::func::function<double, TestDomain>;
+  using ComplexFunction = dca::func::function<std::complex<double>, TestDomain>;
+
+  RealFunction real_immediate("real-immediate");
+  RealFunction real_delayed("real-delayed");
+  RealFunction ordinary_delayed("ordinary-delayed");
+  ComplexFunction complex_immediate("complex-immediate");
+  ComplexFunction complex_delayed("complex-delayed");
+  for (int i = 0; i < real_immediate.size(); ++i) {
+    real_immediate(i) = 1. + rank_ * (i + 1.);
+    real_delayed(i) = real_immediate(i);
+    ordinary_delayed(i) = real_immediate(i);
+    complex_immediate(i) = {2. + rank_ * (i + 1.), -1. + rank_ * (2. * i + 1.)};
+    complex_delayed(i) = complex_immediate(i);
+  }
+
+  sum_interface_.leaveOneOutSum(real_immediate);
+  sum_interface_.leaveOneOutSum(complex_immediate);
+  sum_interface_.leaveOneOutSum(real_delayed, true);
+  sum_interface_.leaveOneOutSum(complex_delayed, true);
+  sum_interface_.delayedSum(ordinary_delayed);
+  sum_interface_.resolveSums();
+
+  for (int i = 0; i < real_immediate.size(); ++i) {
+    // The single-rank API intentionally leaves the local contribution unchanged.
+    double real_expected = size_ == 1 ? 1. + rank_ * (i + 1.) : 0.;
+    std::complex<double> complex_expected =
+        size_ == 1 ? std::complex<double>(2. + rank_ * (i + 1.), -1. + rank_ * (2. * i + 1.))
+                   : std::complex<double>{};
+    for (int rank = 0; rank < size_; ++rank) {
+      if (rank != rank_) {
+        real_expected += 1. + rank * (i + 1.);
+        complex_expected += std::complex<double>(2. + rank * (i + 1.),
+                                                 -1. + rank * (2. * i + 1.));
+      }
+    }
+    const double local = 1. + rank_ * (i + 1.);
+    const double ordinary_expected = size_ == 1 ? local : real_expected + local;
+    EXPECT_NEAR(ordinary_expected, ordinary_delayed(i),
+                roundoffTolerance(ordinary_expected));
+    EXPECT_NEAR(real_expected, real_immediate(i), roundoffTolerance(real_expected));
+    EXPECT_NEAR(real_expected, real_delayed(i), roundoffTolerance(real_expected));
+    EXPECT_NEAR(complex_expected.real(), complex_immediate(i).real(),
+                roundoffTolerance(complex_expected.real()));
+    EXPECT_NEAR(complex_expected.imag(), complex_immediate(i).imag(),
+                roundoffTolerance(complex_expected.imag()));
+    EXPECT_NEAR(complex_expected.real(), complex_delayed(i).real(),
+                roundoffTolerance(complex_expected.real()));
+    EXPECT_NEAR(complex_expected.imag(), complex_delayed(i).imag(),
+                roundoffTolerance(complex_expected.imag()));
+  }
 }
 
 TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
@@ -79,9 +178,9 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
     values[i] = 3.14 + i;
     sum += values[i];
   }
-  std::cout << "looaas:" << sum << "\n";
-  // Expected result
-  const double expected = (sum - values[rank_]) / double(size_ - 1);
+  // These APIs intentionally leave the local value unchanged for one rank.
+  const double expected = size_ == 1 ? values[rank_] : (sum - values[rank_]) / double(size_ - 1);
+  const double expected_sum = size_ == 1 ? values[rank_] : expected * (size_ - 1);
 
   // Check scalar version.
   double scalar = values[rank_];
@@ -91,8 +190,8 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_DOUBLE_EQ(expected, scalar);
-  EXPECT_DOUBLE_EQ(expected * (size_ - 1), sum_one_out);
+  EXPECT_NEAR(expected, scalar, roundoffTolerance(expected));
+  EXPECT_NEAR(expected_sum, sum_one_out, roundoffTolerance(expected_sum));
 
   // Check dca::func::function version.
   using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
@@ -106,177 +205,163 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_DOUBLE_EQ(expected, f(0));
-  EXPECT_DOUBLE_EQ(expected * (size_ - 1), f_sum(0));
+  EXPECT_NEAR(expected, f(0), roundoffTolerance(expected));
+  EXPECT_NEAR(expected_sum, f_sum(0), roundoffTolerance(expected_sum));
 
-  EXPECT_DOUBLE_EQ(0., f(1));
-  EXPECT_DOUBLE_EQ(0., f_sum(1));
+  EXPECT_NEAR(0., f(1), roundoffTolerance(0.));
+  EXPECT_NEAR(0., f_sum(1), roundoffTolerance(0.));
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   using FunctionType = dca::func::function<double, TestDomain>;
-
-  FunctionType f;
-
-  // Trivial case
-  // All jackknife estimates are identical: jackknife error = 0
-  f(0) = 3.14;
-  f(1) = 2.72;
-
-  auto err_trivial = sum_interface_.jackknifeError(f);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_NEAR(0., err_trivial(0), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1), epsilon_);
-
-  // Non-trivial case
-  const double d = 42.1;
-  f(0) = rank_;
-  f(1) = d;
-
-  const FunctionType f_copy(f);
-
-  FunctionType err_expected;
-  // Where the 21 comes from I don't know.
-  // original code
-  // err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
-  err_expected(1) = 0.;
-
-  std::vector<double> rank_obs;
-  for (int i = 0; i < size_; ++i) {
-    rank_obs.push_back(i);
-    //      rank_obs.push_back(d);
+  FunctionType original;
+  if (size_ == 1) {
+    // The API's explicit single-rank contract returns zero without arithmetic.
+    original(0) = 7.;
+    original(1) = 9.;
+    original(2) = 11.;
+    for (bool overwrite : {false, true}) {
+      auto replicas = original;
+      const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+      for (int i = 0; i < 3; ++i) {
+        EXPECT_EQ(0., error(i));
+        // Exact equality intentionally checks the unchanged-input invariant.
+        EXPECT_EQ(original(i), replicas(i));
+      }
+    }
+    return;
   }
 
-  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
-    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
-    std::vector<double> jack_samp(samples);
-    jack_samp.erase(jack_samp.begin() + rank);
-    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
-    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
-    double scale = double(samples.size() - 1) / double(samples.size());
-    return scale * estsqr;
-  };
-  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
-    std::vector<double> jack_knifes(samples.size(), 0.0);
-    for (int i = 0; i < samples.size(); ++i) {
-      jack_knifes[i] = jacknife_var(samples, i);
+  // Explicitly delete each rank's observation, then evaluate the estimator.
+  // The ratio uses unequal denominators, so its replica average is not the pooled estimate.
+  std::vector<double> means(size_), ratios(size_);
+  double numerator = 0., denominator = 0.;
+  for (int r = 0; r < size_; ++r) {
+    means[r] = (size_ * (size_ + 1.) / 2. - (r + 1.)) / (size_ - 1.);
+    numerator += (r + 1.) * (r + 1.);
+    denominator += r + 1.;
+  }
+  for (int r = 0; r < size_; ++r)
+    ratios[r] = (numerator - (r + 1.) * (r + 1.)) / (denominator - (r + 1.));
+
+  // Independent oracle: sum_{r,s}(t_r-t_s)^2 = 2*N*sum_r(t_r-t_avg)^2.
+  double pairwise = 0.;
+  for (double a : ratios)
+    for (double b : ratios)
+      pairwise += (a - b) * (a - b);
+  const double ratio_se = std::sqrt((size_ - 1.) * pairwise / (2. * size_ * size_));
+  const double ratio_average = std::accumulate(ratios.begin(), ratios.end(), 0.) / size_;
+  ASSERT_GT(std::abs(numerator / denominator - ratio_average), 1e-6);
+  original(0) = means[rank_];
+  original(1) = 9.;
+  original(2) = ratios[rank_];
+
+  for (bool overwrite : {false, true}) {
+    auto replicas = original;
+    const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+    // Analytic standard error of the mean of raw observations 1..N.
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0),
+                roundoffTolerance(std::sqrt((size_ + 1.) / 12.)));
+    EXPECT_NEAR(0., error(1), roundoffTolerance(0.));
+    EXPECT_NEAR(ratio_se, error(2), roundoffTolerance(ratio_se));
+    if (!overwrite) {
+      // Exact equality intentionally checks the unchanged-input invariant.
+      for (int i = 0; i < 3; ++i)
+        EXPECT_EQ(original(i), replicas(i));
     }
-    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
-  };
-
-  err_expected(0) = jacknife_err(rank_obs);
-
-  // Do not overwrite the jackknife estimates with their average.
-  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_DOUBLE_EQ(f_copy(0), f(0));
-  EXPECT_DOUBLE_EQ(f_copy(1), f(1));
-
-  EXPECT_DOUBLE_EQ(err_expected(0), err_no_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_no_overwriting(1));
-
-  // Overwrite the jackknife estimates with their average.
-  auto err_overwriting = sum_interface_.jackknifeError(f, true);
-
-  const double rank_avg = double(size_ - 1) / 2.;
-
-  EXPECT_DOUBLE_EQ(rank_avg, f(0));
-  EXPECT_DOUBLE_EQ(d, f(1));
-
-  EXPECT_DOUBLE_EQ(err_expected(0), err_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_overwriting(1));
+    else {
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0), roundoffTolerance((size_ + 1.) / 2.));
+      EXPECT_NEAR(9., replicas(1), roundoffTolerance(9.));
+      EXPECT_NEAR(ratio_average, replicas(2), roundoffTolerance(ratio_average));
+    }
+  }
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   using FunctionType = dca::func::function<std::complex<double>, TestDomain>;
-
-  FunctionType f;
-
-  // Trivial case
-  // All jackknife estimates are identical: jackknife error = 0
-  f(0) = std::complex<double>(3.14, 1.2);
-  f(1) = std::complex<double>(2.72, 3.4);
-
-  auto err_trivial = sum_interface_.jackknifeError(f);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_NEAR(0., err_trivial(0).real(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1).real(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(0).imag(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1).imag(), epsilon_);
-
-  // Non-trivial case
-  const double d = 42.1;
-  const double r = 1.4;
-  f(0) = std::complex<double>(rank_, rank_ + r);
-  f(1) = std::complex<double>(rank_, d);
-
-  std::vector<double> rank_obs_real;
-  std::vector<double> rank_obs_imag;
-
-  for (int i = 0; i < size_; ++i) {
-    rank_obs_real.push_back(i);
-    rank_obs_imag.push_back(i + r);
-    //      rank_obs.push_back(d);
+  FunctionType original;
+  if (size_ == 1) {
+    // Exact checks: the single-rank path returns zero and leaves inputs untouched.
+    original(0) = {7., -2.};
+    original(1) = {4., -3.};
+    original(2) = {8., 5.};
+    for (bool overwrite : {false, true}) {
+      auto replicas = original;
+      const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+      for (int i = 0; i < 3; ++i) {
+        EXPECT_EQ(0., error(i).real());
+        EXPECT_EQ(0., error(i).imag());
+        EXPECT_EQ(original(i), replicas(i));
+      }
+    }
+    return;
   }
 
-  const FunctionType f_copy(f);
-
-  FunctionType err_expected;
-
-  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
-    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
-    std::vector<double> jack_samp(samples);
-    jack_samp.erase(jack_samp.begin() + rank);
-    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
-    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
-    double scale = double(samples.size() - 1) / double(samples.size());
-    return scale * estsqr;
+  // Different real/imaginary observations test marginal errors independently.
+  // Also construct nonlinear ratio replicas rather than passing raw observations.
+  std::vector<std::complex<double>> observations(size_), means(size_), ratios(size_);
+  std::complex<double> total{}, numerator{}, denominator{};
+  for (int r = 0; r < size_; ++r) {
+    observations[r] = {r + 1., (r + 1.) * (r + 1.)};
+    total += observations[r];
+    const std::complex<double> x(r + 1., .5 * (r + 1.));
+    numerator += x * x;
+    denominator += x;
+  }
+  for (int r = 0; r < size_; ++r) {
+    means[r] = (total - observations[r]) / double(size_ - 1);
+    const std::complex<double> x(r + 1., .5 * (r + 1.));
+    ratios[r] = (numerator - x * x) / (denominator - x);
+  }
+  const auto pairwise_error = [this](const auto& samples, bool imaginary) {
+    double pairwise = 0.;
+    for (const auto& a : samples)
+      for (const auto& b : samples) {
+        const double d = imaginary ? a.imag() - b.imag() : a.real() - b.real();
+        pairwise += d * d;
+      }
+    return std::sqrt((size_ - 1.) * pairwise / (2. * size_ * size_));
   };
-  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
-    std::vector<double> jack_knifes(samples.size(), 0.0);
-    for (int i = 0; i < samples.size(); ++i) {
-      jack_knifes[i] = jacknife_var(samples, i);
+  std::complex<double> ratio_average{};
+  for (const auto& ratio : ratios)
+    ratio_average += ratio / double(size_);
+  original(0) = means[rank_];
+  original(1) = {4., -3.};
+  original(2) = ratios[rank_];
+
+  for (bool overwrite : {false, true}) {
+    auto replicas = original;
+    const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0).real(),
+                roundoffTolerance(std::sqrt((size_ + 1.) / 12.)));
+    EXPECT_NEAR(pairwise_error(means, true), error(0).imag(),
+                roundoffTolerance(pairwise_error(means, true)));
+    EXPECT_NE(error(0).real(), error(0).imag());
+    EXPECT_NEAR(0., error(1).real(), roundoffTolerance(0.));
+    EXPECT_NEAR(0., error(1).imag(), roundoffTolerance(0.));
+    EXPECT_NEAR(pairwise_error(ratios, false), error(2).real(),
+                roundoffTolerance(pairwise_error(ratios, false)));
+    EXPECT_NEAR(pairwise_error(ratios, true), error(2).imag(),
+                roundoffTolerance(pairwise_error(ratios, true)));
+    if (!overwrite) {
+      for (int i = 0; i < 3; ++i)
+        EXPECT_EQ(original(i), replicas(i));
     }
-    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
-  };
-
-  // const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
-  err_expected(0) = std::complex<double>(jacknife_err(rank_obs_real), jacknife_err(rank_obs_imag));
-  err_expected(1) = std::complex<double>(jacknife_err(rank_obs_real), 0.);
-
-  // Do not overwrite the jackknife estimates with their average.
-  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_DOUBLE_EQ(f_copy(0).real(), f(0).real());
-  EXPECT_DOUBLE_EQ(f_copy(1).real(), f(1).real());
-
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_no_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_no_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_no_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_no_overwriting(1).imag());
-
-  // Overwrite the jackknife estimates with their average.
-  auto err_overwriting = sum_interface_.jackknifeError(f, true);
-
-  const double rank_avg = double(size_ - 1) / 2.;
-
-  EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, rank_avg + r).real(), f(0).real());
-  EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, d).real(), f(1).real());
-
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_overwriting(1).imag());
+    else {
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0).real(),
+                  roundoffTolerance((size_ + 1.) / 2.));
+      EXPECT_NEAR((size_ + 1.) * (2. * size_ + 1.) / 6., replicas(0).imag(),
+                  roundoffTolerance((size_ + 1.) * (2. * size_ + 1.) / 6.));
+      EXPECT_NEAR(4., replicas(1).real(), roundoffTolerance(4.));
+      EXPECT_NEAR(-3., replicas(1).imag(), roundoffTolerance(-3.));
+      EXPECT_NEAR(ratio_average.real(), replicas(2).real(),
+                  roundoffTolerance(ratio_average.real()));
+      EXPECT_NEAR(ratio_average.imag(), replicas(2).imag(),
+                  roundoffTolerance(ratio_average.imag()));
+    }
+  }
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
@@ -333,12 +418,14 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < f_mean.size(); ++i)
-    EXPECT_DOUBLE_EQ(f_mean(i), f(i));
+    EXPECT_NEAR(f_mean(i), f(i), roundoffTolerance(f_mean(i)));
 
   for (int i = 0; i < f.size(); ++i) {
     for (int j = 0; j < f.size(); ++j) {
-      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovariance(i, j));
-      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovarianceAndAvg(i, j));
+      EXPECT_NEAR(cov.at(j)[i], covariance_from_computeCovariance(i, j),
+                  roundoffTolerance(cov.at(j)[i]));
+      EXPECT_NEAR(cov.at(j)[i], covariance_from_computeCovarianceAndAvg(i, j),
+                  roundoffTolerance(cov.at(j)[i]));
     }
   }
 }
@@ -421,8 +508,8 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < f_mean.size(); ++i) {
-    EXPECT_DOUBLE_EQ(f_mean(i).real(), f(i).real());
-    EXPECT_DOUBLE_EQ(f_mean(i).imag(), f(i).imag());
+    EXPECT_NEAR(f_mean(i).real(), f(i).real(), roundoffTolerance(f_mean(i).real()));
+    EXPECT_NEAR(f_mean(i).imag(), f(i).imag(), roundoffTolerance(f_mean(i).imag()));
   }
 
   for (int i = 0; i < f.size(); ++i) {
@@ -431,10 +518,14 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
       double real_real_elem = .5 * kzz_pzz_elem.real();
       kzz_pzz_elem = std::complex<double>((ps_cov.at(i)[j] - cov.at(i)[j]));
       double real_imag_elem = .5 * kzz_pzz_elem.imag();
-      EXPECT_NEAR(real_real_elem, covariance_from_computeCovariance(i, j), 1.0E-12);
-      EXPECT_NEAR(real_real_elem, covariance_from_computeCovarianceAndAvg(i, j), 1.0E-12);
-      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovariance(i, j + f.size()));
-      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovarianceAndAvg(i, j + f.size()));
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovariance(i, j),
+                  roundoffTolerance(real_real_elem));
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovarianceAndAvg(i, j),
+                  roundoffTolerance(real_real_elem));
+      EXPECT_NEAR(real_imag_elem, covariance_from_computeCovariance(i, j + f.size()),
+                  roundoffTolerance(real_imag_elem));
+      EXPECT_NEAR(real_imag_elem, covariance_from_computeCovarianceAndAvg(i, j + f.size()),
+                  roundoffTolerance(real_imag_elem));
     }
   }
 }
@@ -447,10 +538,19 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
 
   std::vector<double> momenta(orders.size());
 
-  int rank = rank_ + 1;
-  
   for (int i = 0; i < f.size(); i++) {
     f(i) = rank_ * (i + 1);
+  }
+
+  momenta = sum_interface_.avgNormalizedMomenta(f, orders);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (size_ == 1) {
+    // Normalized moments are undefined when the single-rank variance is zero.
+    ASSERT_EQ(2, momenta.size());
+    EXPECT_TRUE(std::isnan(momenta[0]));
+    EXPECT_TRUE(std::isnan(momenta[1]));
+    return;
   }
 
   std::vector<std::vector<double>> m_momenta;
@@ -495,9 +595,6 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
   for (int ir = 0; ir < orders.size(); ++ir)
     expected_momenta_avg[ir] /= f.size();
 
-  momenta = sum_interface_.avgNormalizedMomenta(f, orders);
-  MPI_Barrier(MPI_COMM_WORLD);
-
   // Expected values obtained with python
   EXPECT_NEAR(0., momenta[0], 1e-8);
   EXPECT_NEAR(expected_momenta_avg[1], momenta[1], 1e-8);
@@ -530,9 +627,15 @@ TEST_F(MPICollectiveSumTest, DelayedSum) {
   sum_interface_.resolveSums();
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_EQ(scalar_expected, scalar_test);
-  EXPECT_EQ(function_expected, function_test);
-  EXPECT_EQ(function_cmplx_expected, function_cmplx_test);
+  EXPECT_NEAR(scalar_expected, scalar_test, roundoffTolerance(scalar_expected));
+  for (int i = 0; i < function_test.size(); ++i)
+    EXPECT_NEAR(function_expected(i), function_test(i), roundoffTolerance(function_expected(i)));
+  for (int i = 0; i < function_cmplx_test.size(); ++i) {
+    EXPECT_NEAR(function_cmplx_expected(i).real(), function_cmplx_test(i).real(),
+                roundoffTolerance(function_cmplx_expected(i).real()));
+    EXPECT_NEAR(function_cmplx_expected(i).imag(), function_cmplx_test(i).imag(),
+                roundoffTolerance(function_cmplx_expected(i).imag()));
+  }
 }
 
 int main(int argc, char** argv) {

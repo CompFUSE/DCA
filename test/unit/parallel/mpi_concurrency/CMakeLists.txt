@@ -14,7 +14,7 @@ dca_add_gtest(mpi_collective_min_test
   MPI MPI_NUMPROC 4
   LIBS ${MPI_TEST_LIBS})
 dca_add_gtest(mpi_collective_sum_test
-  MPI MPI_NUMPROC 6
+  MPI MPI_NUMPROC 1 2 3 6
   LIBS ${MPI_TEST_LIBS} function)
 dca_add_gtest(mpi_packing_test
   MPI MPI_NUMPROC 1
