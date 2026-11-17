@@ -347,7 +347,7 @@ void MPICollectiveSum::leaveOneOutSum(func::function<Scalar, Domain, DIST>& f, c
   }
   else {
     delayedSum(f);
-    remove_local_value_.back() = false;
+    remove_local_value_.back() = true;
   }
 }
 
