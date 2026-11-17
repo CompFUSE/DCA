@@ -430,6 +430,12 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
+**Warning:** The current CT-AUX and CT-INT jackknife procedures replace central
+values with averages of leave-one-out replicas rather than retaining the pooled
+estimates. These generally differ for ratios and nonlinear transformations, so
+selecting `"JACK_KNIFE"` can change G, Sigma, and convergence results, not just
+add error bars. The replica procedure also alters per-rank accumulated data.
+
 `"time-correlation-window":` integer (0)  
  Maximum distance (in MC time) considered when computing the correlation between configurations.
  If 0, no auto-correlation is computed.

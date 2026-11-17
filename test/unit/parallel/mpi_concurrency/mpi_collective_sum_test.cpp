@@ -72,6 +72,91 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
     EXPECT_EQ(function_expected(i), function_test(i));
 }
 
+TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumScalars) {
+  const double real_local = 1.25 + 2. * rank_;
+  const std::complex<double> complex_local(0.5 + rank_, 2. - 0.75 * rank_);
+  double real_immediate = real_local;
+  std::complex<double> complex_immediate = complex_local;
+  double real_delayed = real_local;
+  std::complex<double> complex_delayed = complex_local;
+  double ordinary_delayed = rank_ + 1.;
+
+  sum_interface_.leaveOneOutSum(real_immediate);
+  sum_interface_.leaveOneOutSum(complex_immediate);
+  sum_interface_.leaveOneOutSum(real_delayed, true);
+  sum_interface_.leaveOneOutSum(complex_delayed, true);
+  sum_interface_.delayedSum(ordinary_delayed);
+  sum_interface_.resolveSums();
+
+  double real_expected = size_ == 1 ? real_local : 0.;
+  std::complex<double> complex_expected = size_ == 1 ? complex_local : std::complex<double>{};
+  double ordinary_expected = 0.;
+  for (int rank = 0; rank < size_; ++rank) {
+    if (rank != rank_) {
+      real_expected += 1.25 + 2. * rank;
+      complex_expected += std::complex<double>(0.5 + rank, 2. - 0.75 * rank);
+    }
+    ordinary_expected += rank + 1.;
+  }
+
+  EXPECT_DOUBLE_EQ(real_expected, real_immediate);
+  EXPECT_DOUBLE_EQ(complex_expected.real(), complex_immediate.real());
+  EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_immediate.imag());
+  EXPECT_DOUBLE_EQ(real_expected, real_delayed);
+  EXPECT_DOUBLE_EQ(complex_expected.real(), complex_delayed.real());
+  EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_delayed.imag());
+  EXPECT_DOUBLE_EQ(ordinary_expected, ordinary_delayed);
+}
+
+TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumFunctions) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
+  using RealFunction = dca::func::function<double, TestDomain>;
+  using ComplexFunction = dca::func::function<std::complex<double>, TestDomain>;
+
+  RealFunction real_immediate("real-immediate");
+  RealFunction real_delayed("real-delayed");
+  RealFunction ordinary_delayed("ordinary-delayed");
+  ComplexFunction complex_immediate("complex-immediate");
+  ComplexFunction complex_delayed("complex-delayed");
+  for (int i = 0; i < real_immediate.size(); ++i) {
+    real_immediate(i) = 1. + rank_ * (i + 1.);
+    real_delayed(i) = real_immediate(i);
+    ordinary_delayed(i) = real_immediate(i);
+    complex_immediate(i) = {2. + rank_ * (i + 1.), -1. + rank_ * (2. * i + 1.)};
+    complex_delayed(i) = complex_immediate(i);
+  }
+
+  sum_interface_.leaveOneOutSum(real_immediate);
+  sum_interface_.leaveOneOutSum(complex_immediate);
+  sum_interface_.leaveOneOutSum(real_delayed, true);
+  sum_interface_.leaveOneOutSum(complex_delayed, true);
+  sum_interface_.delayedSum(ordinary_delayed);
+  sum_interface_.resolveSums();
+
+  for (int i = 0; i < real_immediate.size(); ++i) {
+    // The single-rank API intentionally leaves the local contribution unchanged.
+    double real_expected = size_ == 1 ? 1. + rank_ * (i + 1.) : 0.;
+    std::complex<double> complex_expected =
+        size_ == 1 ? std::complex<double>(2. + rank_ * (i + 1.), -1. + rank_ * (2. * i + 1.))
+                   : std::complex<double>{};
+    for (int rank = 0; rank < size_; ++rank) {
+      if (rank != rank_) {
+        real_expected += 1. + rank * (i + 1.);
+        complex_expected += std::complex<double>(2. + rank * (i + 1.),
+                                                 -1. + rank * (2. * i + 1.));
+      }
+    }
+    const double local = 1. + rank_ * (i + 1.);
+    EXPECT_DOUBLE_EQ(size_ == 1 ? local : real_expected + local, ordinary_delayed(i));
+    EXPECT_DOUBLE_EQ(real_expected, real_immediate(i));
+    EXPECT_DOUBLE_EQ(real_expected, real_delayed(i));
+    EXPECT_DOUBLE_EQ(complex_expected.real(), complex_immediate(i).real());
+    EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_immediate(i).imag());
+    EXPECT_DOUBLE_EQ(complex_expected.real(), complex_delayed(i).real());
+    EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_delayed(i).imag());
+  }
+}
+
 TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   std::vector<double> values(size_);
   double sum = 0.;

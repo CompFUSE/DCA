@@ -241,9 +241,14 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::initialize(int dca_it
       (dca_iteration == parameters_.get_dca_iterations() - 1) &&
       (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE);
 
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
+    if (compute_jack_knife_)
+      std::cout << "WARNING: CT-AUX JACK_KNIFE replaces central values with averages of "
+                   "leave-one-out replicas. These generally differ from pooled estimates, "
+                   "so enabling JACK_KNIFE can change G, Sigma, and convergence results.\n";
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data, DistType DIST>
