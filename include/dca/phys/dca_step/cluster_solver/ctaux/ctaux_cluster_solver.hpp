@@ -245,9 +245,11 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::initialize(int dca_it
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
     if (compute_jack_knife_)
-      std::cout << "WARNING: CT-AUX JACK_KNIFE replaces central values with averages of "
-                   "leave-one-out replicas. These generally differ from pooled estimates, "
-                   "so enabling JACK_KNIFE can change G, Sigma, and convergence results.\n";
+      std::cout << "WARNING: CT-AUX JACK_KNIFE is enabled. Final single-particle functions "
+                   "(G and Sigma) are averages of leave-one-out replica estimates, not "
+                   "estimates computed from the globally reduced measurements. These "
+                   "generally differ, so enabling JACK_KNIFE can change central values "
+                   "and convergence results.\n";
   }
 }
 
