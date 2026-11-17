@@ -32,7 +32,11 @@ protected:
 
   int size_;
   int rank_;
-  constexpr static double epsilon_ = 1e-14;
+  // Covers reduction-order/compiler/dependency roundoff for modest synthetic data
+  // and MPI runs with at most six ranks.
+  static double roundoffTolerance(double expected) {
+    return 1e-12 + 1e-12 * std::abs(expected);
+  }
 
   dca::parallel::MPICollectiveSum sum_interface_;
 };
@@ -69,7 +73,7 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < function_test.size(); i++)
-    EXPECT_EQ(function_expected(i), function_test(i));
+    EXPECT_NEAR(function_expected(i), function_test(i), roundoffTolerance(function_expected(i)));
 }
 
 TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumScalars) {
@@ -99,13 +103,17 @@ TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumScalars) {
     ordinary_expected += rank + 1.;
   }
 
-  EXPECT_DOUBLE_EQ(real_expected, real_immediate);
-  EXPECT_DOUBLE_EQ(complex_expected.real(), complex_immediate.real());
-  EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_immediate.imag());
-  EXPECT_DOUBLE_EQ(real_expected, real_delayed);
-  EXPECT_DOUBLE_EQ(complex_expected.real(), complex_delayed.real());
-  EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_delayed.imag());
-  EXPECT_DOUBLE_EQ(ordinary_expected, ordinary_delayed);
+  EXPECT_NEAR(real_expected, real_immediate, roundoffTolerance(real_expected));
+  EXPECT_NEAR(complex_expected.real(), complex_immediate.real(),
+              roundoffTolerance(complex_expected.real()));
+  EXPECT_NEAR(complex_expected.imag(), complex_immediate.imag(),
+              roundoffTolerance(complex_expected.imag()));
+  EXPECT_NEAR(real_expected, real_delayed, roundoffTolerance(real_expected));
+  EXPECT_NEAR(complex_expected.real(), complex_delayed.real(),
+              roundoffTolerance(complex_expected.real()));
+  EXPECT_NEAR(complex_expected.imag(), complex_delayed.imag(),
+              roundoffTolerance(complex_expected.imag()));
+  EXPECT_NEAR(ordinary_expected, ordinary_delayed, roundoffTolerance(ordinary_expected));
 }
 
 TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumFunctions) {
@@ -147,13 +155,19 @@ TEST_F(MPICollectiveSumTest, DelayedLeaveOneOutSumFunctions) {
       }
     }
     const double local = 1. + rank_ * (i + 1.);
-    EXPECT_DOUBLE_EQ(size_ == 1 ? local : real_expected + local, ordinary_delayed(i));
-    EXPECT_DOUBLE_EQ(real_expected, real_immediate(i));
-    EXPECT_DOUBLE_EQ(real_expected, real_delayed(i));
-    EXPECT_DOUBLE_EQ(complex_expected.real(), complex_immediate(i).real());
-    EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_immediate(i).imag());
-    EXPECT_DOUBLE_EQ(complex_expected.real(), complex_delayed(i).real());
-    EXPECT_DOUBLE_EQ(complex_expected.imag(), complex_delayed(i).imag());
+    const double ordinary_expected = size_ == 1 ? local : real_expected + local;
+    EXPECT_NEAR(ordinary_expected, ordinary_delayed(i),
+                roundoffTolerance(ordinary_expected));
+    EXPECT_NEAR(real_expected, real_immediate(i), roundoffTolerance(real_expected));
+    EXPECT_NEAR(real_expected, real_delayed(i), roundoffTolerance(real_expected));
+    EXPECT_NEAR(complex_expected.real(), complex_immediate(i).real(),
+                roundoffTolerance(complex_expected.real()));
+    EXPECT_NEAR(complex_expected.imag(), complex_immediate(i).imag(),
+                roundoffTolerance(complex_expected.imag()));
+    EXPECT_NEAR(complex_expected.real(), complex_delayed(i).real(),
+                roundoffTolerance(complex_expected.real()));
+    EXPECT_NEAR(complex_expected.imag(), complex_delayed(i).imag(),
+                roundoffTolerance(complex_expected.imag()));
   }
 }
 
@@ -176,8 +190,8 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_DOUBLE_EQ(expected, scalar);
-  EXPECT_DOUBLE_EQ(expected_sum, sum_one_out);
+  EXPECT_NEAR(expected, scalar, roundoffTolerance(expected));
+  EXPECT_NEAR(expected_sum, sum_one_out, roundoffTolerance(expected_sum));
 
   // Check dca::func::function version.
   using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
@@ -191,11 +205,11 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_DOUBLE_EQ(expected, f(0));
-  EXPECT_DOUBLE_EQ(expected_sum, f_sum(0));
+  EXPECT_NEAR(expected, f(0), roundoffTolerance(expected));
+  EXPECT_NEAR(expected_sum, f_sum(0), roundoffTolerance(expected_sum));
 
-  EXPECT_DOUBLE_EQ(0., f(1));
-  EXPECT_DOUBLE_EQ(0., f_sum(1));
+  EXPECT_NEAR(0., f(1), roundoffTolerance(0.));
+  EXPECT_NEAR(0., f_sum(1), roundoffTolerance(0.));
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
@@ -203,6 +217,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
   using FunctionType = dca::func::function<double, TestDomain>;
   FunctionType original;
   if (size_ == 1) {
+    // The API's explicit single-rank contract returns zero without arithmetic.
     original(0) = 7.;
     original(1) = 9.;
     original(2) = 11.;
@@ -210,8 +225,9 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
       auto replicas = original;
       const auto error = sum_interface_.jackknifeError(replicas, overwrite);
       for (int i = 0; i < 3; ++i) {
-        EXPECT_DOUBLE_EQ(0., error(i));
-        EXPECT_DOUBLE_EQ(original(i), replicas(i));
+        EXPECT_EQ(0., error(i));
+        // Exact equality intentionally checks the unchanged-input invariant.
+        EXPECT_EQ(original(i), replicas(i));
       }
     }
     return;
@@ -245,17 +261,19 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
     auto replicas = original;
     const auto error = sum_interface_.jackknifeError(replicas, overwrite);
     // Analytic standard error of the mean of raw observations 1..N.
-    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0), epsilon_);
-    EXPECT_DOUBLE_EQ(0., error(1));
-    EXPECT_NEAR(ratio_se, error(2), epsilon_);
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0),
+                roundoffTolerance(std::sqrt((size_ + 1.) / 12.)));
+    EXPECT_NEAR(0., error(1), roundoffTolerance(0.));
+    EXPECT_NEAR(ratio_se, error(2), roundoffTolerance(ratio_se));
     if (!overwrite) {
+      // Exact equality intentionally checks the unchanged-input invariant.
       for (int i = 0; i < 3; ++i)
-        EXPECT_DOUBLE_EQ(original(i), replicas(i));
+        EXPECT_EQ(original(i), replicas(i));
     }
     else {
-      EXPECT_NEAR((size_ + 1.) / 2., replicas(0), epsilon_);
-      EXPECT_DOUBLE_EQ(9., replicas(1));
-      EXPECT_NEAR(ratio_average, replicas(2), epsilon_);
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0), roundoffTolerance((size_ + 1.) / 2.));
+      EXPECT_NEAR(9., replicas(1), roundoffTolerance(9.));
+      EXPECT_NEAR(ratio_average, replicas(2), roundoffTolerance(ratio_average));
     }
   }
 }
@@ -265,6 +283,7 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   using FunctionType = dca::func::function<std::complex<double>, TestDomain>;
   FunctionType original;
   if (size_ == 1) {
+    // Exact checks: the single-rank path returns zero and leaves inputs untouched.
     original(0) = {7., -2.};
     original(1) = {4., -3.};
     original(2) = {8., 5.};
@@ -272,8 +291,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
       auto replicas = original;
       const auto error = sum_interface_.jackknifeError(replicas, overwrite);
       for (int i = 0; i < 3; ++i) {
-        EXPECT_DOUBLE_EQ(0., error(i).real());
-        EXPECT_DOUBLE_EQ(0., error(i).imag());
+        EXPECT_EQ(0., error(i).real());
+        EXPECT_EQ(0., error(i).imag());
         EXPECT_EQ(original(i), replicas(i));
       }
     }
@@ -315,23 +334,32 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   for (bool overwrite : {false, true}) {
     auto replicas = original;
     const auto error = sum_interface_.jackknifeError(replicas, overwrite);
-    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0).real(), epsilon_);
-    EXPECT_NEAR(pairwise_error(means, true), error(0).imag(), epsilon_);
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0).real(),
+                roundoffTolerance(std::sqrt((size_ + 1.) / 12.)));
+    EXPECT_NEAR(pairwise_error(means, true), error(0).imag(),
+                roundoffTolerance(pairwise_error(means, true)));
     EXPECT_NE(error(0).real(), error(0).imag());
-    EXPECT_DOUBLE_EQ(0., error(1).real());
-    EXPECT_DOUBLE_EQ(0., error(1).imag());
-    EXPECT_NEAR(pairwise_error(ratios, false), error(2).real(), epsilon_);
-    EXPECT_NEAR(pairwise_error(ratios, true), error(2).imag(), epsilon_);
+    EXPECT_NEAR(0., error(1).real(), roundoffTolerance(0.));
+    EXPECT_NEAR(0., error(1).imag(), roundoffTolerance(0.));
+    EXPECT_NEAR(pairwise_error(ratios, false), error(2).real(),
+                roundoffTolerance(pairwise_error(ratios, false)));
+    EXPECT_NEAR(pairwise_error(ratios, true), error(2).imag(),
+                roundoffTolerance(pairwise_error(ratios, true)));
     if (!overwrite) {
       for (int i = 0; i < 3; ++i)
         EXPECT_EQ(original(i), replicas(i));
     }
     else {
-      EXPECT_NEAR((size_ + 1.) / 2., replicas(0).real(), epsilon_);
-      EXPECT_NEAR((size_ + 1.) * (2. * size_ + 1.) / 6., replicas(0).imag(), epsilon_);
-      EXPECT_EQ(std::complex<double>(4., -3.), replicas(1));
-      EXPECT_NEAR(ratio_average.real(), replicas(2).real(), epsilon_);
-      EXPECT_NEAR(ratio_average.imag(), replicas(2).imag(), epsilon_);
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0).real(),
+                  roundoffTolerance((size_ + 1.) / 2.));
+      EXPECT_NEAR((size_ + 1.) * (2. * size_ + 1.) / 6., replicas(0).imag(),
+                  roundoffTolerance((size_ + 1.) * (2. * size_ + 1.) / 6.));
+      EXPECT_NEAR(4., replicas(1).real(), roundoffTolerance(4.));
+      EXPECT_NEAR(-3., replicas(1).imag(), roundoffTolerance(-3.));
+      EXPECT_NEAR(ratio_average.real(), replicas(2).real(),
+                  roundoffTolerance(ratio_average.real()));
+      EXPECT_NEAR(ratio_average.imag(), replicas(2).imag(),
+                  roundoffTolerance(ratio_average.imag()));
     }
   }
 }
@@ -390,12 +418,14 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < f_mean.size(); ++i)
-    EXPECT_DOUBLE_EQ(f_mean(i), f(i));
+    EXPECT_NEAR(f_mean(i), f(i), roundoffTolerance(f_mean(i)));
 
   for (int i = 0; i < f.size(); ++i) {
     for (int j = 0; j < f.size(); ++j) {
-      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovariance(i, j));
-      EXPECT_DOUBLE_EQ(cov.at(j)[i], covariance_from_computeCovarianceAndAvg(i, j));
+      EXPECT_NEAR(cov.at(j)[i], covariance_from_computeCovariance(i, j),
+                  roundoffTolerance(cov.at(j)[i]));
+      EXPECT_NEAR(cov.at(j)[i], covariance_from_computeCovarianceAndAvg(i, j),
+                  roundoffTolerance(cov.at(j)[i]));
     }
   }
 }
@@ -478,8 +508,8 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int i = 0; i < f_mean.size(); ++i) {
-    EXPECT_DOUBLE_EQ(f_mean(i).real(), f(i).real());
-    EXPECT_DOUBLE_EQ(f_mean(i).imag(), f(i).imag());
+    EXPECT_NEAR(f_mean(i).real(), f(i).real(), roundoffTolerance(f_mean(i).real()));
+    EXPECT_NEAR(f_mean(i).imag(), f(i).imag(), roundoffTolerance(f_mean(i).imag()));
   }
 
   for (int i = 0; i < f.size(); ++i) {
@@ -488,10 +518,14 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
       double real_real_elem = .5 * kzz_pzz_elem.real();
       kzz_pzz_elem = std::complex<double>((ps_cov.at(i)[j] - cov.at(i)[j]));
       double real_imag_elem = .5 * kzz_pzz_elem.imag();
-      EXPECT_NEAR(real_real_elem, covariance_from_computeCovariance(i, j), 1.0E-12);
-      EXPECT_NEAR(real_real_elem, covariance_from_computeCovarianceAndAvg(i, j), 1.0E-12);
-      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovariance(i, j + f.size()));
-      EXPECT_DOUBLE_EQ(real_imag_elem, covariance_from_computeCovarianceAndAvg(i, j + f.size()));
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovariance(i, j),
+                  roundoffTolerance(real_real_elem));
+      EXPECT_NEAR(real_real_elem, covariance_from_computeCovarianceAndAvg(i, j),
+                  roundoffTolerance(real_real_elem));
+      EXPECT_NEAR(real_imag_elem, covariance_from_computeCovariance(i, j + f.size()),
+                  roundoffTolerance(real_imag_elem));
+      EXPECT_NEAR(real_imag_elem, covariance_from_computeCovarianceAndAvg(i, j + f.size()),
+                  roundoffTolerance(real_imag_elem));
     }
   }
 }
@@ -593,9 +627,15 @@ TEST_F(MPICollectiveSumTest, DelayedSum) {
   sum_interface_.resolveSums();
   MPI_Barrier(MPI_COMM_WORLD);
 
-  EXPECT_EQ(scalar_expected, scalar_test);
-  EXPECT_EQ(function_expected, function_test);
-  EXPECT_EQ(function_cmplx_expected, function_cmplx_test);
+  EXPECT_NEAR(scalar_expected, scalar_test, roundoffTolerance(scalar_expected));
+  for (int i = 0; i < function_test.size(); ++i)
+    EXPECT_NEAR(function_expected(i), function_test(i), roundoffTolerance(function_expected(i)));
+  for (int i = 0; i < function_cmplx_test.size(); ++i) {
+    EXPECT_NEAR(function_cmplx_expected(i).real(), function_cmplx_test(i).real(),
+                roundoffTolerance(function_cmplx_expected(i).real()));
+    EXPECT_NEAR(function_cmplx_expected(i).imag(), function_cmplx_test(i).imag(),
+                roundoffTolerance(function_cmplx_expected(i).imag()));
+  }
 }
 
 int main(int argc, char** argv) {
