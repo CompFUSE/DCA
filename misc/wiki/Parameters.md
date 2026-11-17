@@ -430,11 +430,16 @@ Determines the type of error computation that will be performed during the last 
 - "STANDARD_DEVIATION"
 - "JACK_KNIFE"
 
-**Warning:** The current CT-AUX and CT-INT jackknife procedures replace central
-values with averages of leave-one-out replicas rather than retaining the pooled
-estimates. These generally differ for ratios and nonlinear transformations, so
-selecting `"JACK_KNIFE"` can change G, Sigma, and convergence results, not just
-add error bars. The replica procedure also alters per-rank accumulated data.
+**Warning:** The current CT-AUX and CT-INT jackknife procedures report
+averages of leave-one-rank-out estimates rather than estimates computed
+from the globally summed measurements. There are N such replicas, where
+N is the number of MPI ranks; each excludes one rank's measurements.
+
+For ratios and nonlinear transformations, these two procedures generally
+give different results. The difference can be appreciable with few ranks
+and is not guaranteed to be small compared with the estimated error bars.
+Selecting `"JACK_KNIFE"` can therefore change the reported G, Sigma, and
+convergence values—not just add error bars.
 
 `"time-correlation-window":` integer (0)  
  Maximum distance (in MC time) considered when computing the correlation between configurations.

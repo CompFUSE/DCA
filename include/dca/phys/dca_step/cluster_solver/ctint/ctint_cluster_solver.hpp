@@ -202,9 +202,18 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
 
   // It is a waiting to happen bug for this to be here and in CtintAccumulator
   accumulator_.initialize(dca_iteration_);
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\n\t CT-INT Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
+
+    if (compute_jack_knife_)
+      std::cout << "WARNING: error-computation-type is set to JACK_KNIFE. Final single-particle "
+                   "functions "
+                   "(G and Sigma) are averages of leave-one-out replica estimates, not "
+                   "estimates computed from the globally reduced measurements. These "
+                   "generally differ, so enabling JACK_KNIFE can change central values "
+                   "and convergence results.\n";
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix, DistType DIST>
