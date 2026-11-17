@@ -441,6 +441,13 @@ and is not guaranteed to be small compared with the estimated error bars.
 Selecting `"JACK_KNIFE"` can therefore change the reported G, Sigma, and
 convergence values—not just add error bars.
 
+With independent rank streams, sufficient effective sampling per rank, and
+well-conditioned sign/phase normalization and matrix inversions, this difference
+is expected to become small compared with the statistical error as sampling
+increases. A large raw measurement count alone is not sufficient: sampling must
+account for equilibration and the relevant autocorrelation times, which can be
+long and depend on the system and observable.
+
 `"time-correlation-window":` integer (0)  
  Maximum distance (in MC time) considered when computing the correlation between configurations.
  If 0, no auto-correlation is computed.

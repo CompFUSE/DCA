@@ -252,7 +252,7 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::initialize(int dca_it
                    "functions "
                    "(G and Sigma) are averages of leave-one-out replica estimates, not "
                    "estimates computed from the globally reduced measurements. These "
-                   "generally differ, so enabling JACK_KNIFE can change central values "
+                   "generally differ, so enabling JACK_KNIFE can change the reported G and Sigma "
                    "and convergence results.\n";
   }
 }

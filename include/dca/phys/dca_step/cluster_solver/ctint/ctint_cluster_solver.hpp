@@ -206,12 +206,13 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix, DIST>::initialize(i
     std::cout << "\n\n\t CT-INT Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
 
-    if (compute_jack_knife_)
+    if (dca_iteration_ == parameters_.get_dca_iterations() - 1 &&
+        parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE)
       std::cout << "WARNING: error-computation-type is set to JACK_KNIFE. Final single-particle "
                    "functions "
                    "(G and Sigma) are averages of leave-one-out replica estimates, not "
                    "estimates computed from the globally reduced measurements. These "
-                   "generally differ, so enabling JACK_KNIFE can change central values "
+                   "generally differ, so enabling JACK_KNIFE can change the reported G and Sigma "
                    "and convergence results.\n";
   }
 }
