@@ -164,9 +164,9 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
     values[i] = 3.14 + i;
     sum += values[i];
   }
-  std::cout << "looaas:" << sum << "\n";
-  // Expected result
-  const double expected = (sum - values[rank_]) / double(size_ - 1);
+  // These APIs intentionally leave the local value unchanged for one rank.
+  const double expected = size_ == 1 ? values[rank_] : (sum - values[rank_]) / double(size_ - 1);
+  const double expected_sum = size_ == 1 ? values[rank_] : expected * (size_ - 1);
 
   // Check scalar version.
   double scalar = values[rank_];
@@ -177,7 +177,7 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_DOUBLE_EQ(expected, scalar);
-  EXPECT_DOUBLE_EQ(expected * (size_ - 1), sum_one_out);
+  EXPECT_DOUBLE_EQ(expected_sum, sum_one_out);
 
   // Check dca::func::function version.
   using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
@@ -192,7 +192,7 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   EXPECT_DOUBLE_EQ(expected, f(0));
-  EXPECT_DOUBLE_EQ(expected * (size_ - 1), f_sum(0));
+  EXPECT_DOUBLE_EQ(expected_sum, f_sum(0));
 
   EXPECT_DOUBLE_EQ(0., f(1));
   EXPECT_DOUBLE_EQ(0., f_sum(1));
@@ -504,10 +504,19 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
 
   std::vector<double> momenta(orders.size());
 
-  int rank = rank_ + 1;
-  
   for (int i = 0; i < f.size(); i++) {
     f(i) = rank_ * (i + 1);
+  }
+
+  momenta = sum_interface_.avgNormalizedMomenta(f, orders);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (size_ == 1) {
+    // Normalized moments are undefined when the single-rank variance is zero.
+    ASSERT_EQ(2, momenta.size());
+    EXPECT_TRUE(std::isnan(momenta[0]));
+    EXPECT_TRUE(std::isnan(momenta[1]));
+    return;
   }
 
   std::vector<std::vector<double>> m_momenta;
@@ -551,9 +560,6 @@ TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
 
   for (int ir = 0; ir < orders.size(); ++ir)
     expected_momenta_avg[ir] /= f.size();
-
-  momenta = sum_interface_.avgNormalizedMomenta(f, orders);
-  MPI_Barrier(MPI_COMM_WORLD);
 
   // Expected values obtained with python
   EXPECT_NEAR(0., momenta[0], 1e-8);
