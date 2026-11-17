@@ -118,7 +118,8 @@ public:
   // Returns zero for all elements, if there is only one rank.
   // In/Out: f_i
   // In (optional): overwrite (default = true)
-  // Preconditions: Each rank holds a unique precomputed jackknife estimate f_i.
+  // Preconditions: Each rank holds its precomputed leave-one-out replica f_i, not a raw
+  //                observation or a jackknife pseudovalue.
   // Postconditions: If overwrite == true, the jackknife estimate f_i is overwritten with the
   //                 average f_avg; else f_i stays unchanged.
   template <typename Scalar, class Domain, DistType DIST>
@@ -378,7 +379,7 @@ func::function<Scalar, Domain, DIST> MPICollectiveSum::jackknifeError(
 
   sum(err);
 
-  const double scale = double(1) / (double(n - 1) * double(n));
+  const double scale = double(n - 1) / double(n);
   for (int k = 0; k < err.size(); ++k)
     err(k) = std::sqrt(scale * err(k));
 
@@ -409,7 +410,7 @@ func::function<std::complex<Scalar>, Domain, DIST> MPICollectiveSum::jackknifeEr
 
   sum(err);
 
-  const double scale = 1.0 / (double(n - 1) * double(n));
+  const double scale = double(n - 1) / double(n);
   for (int k = 0; k < err.size(); ++k) {
     err(k).real(std::sqrt(scale * err(k).real()));
     err(k).imag(std::sqrt(scale * err(k).imag()));

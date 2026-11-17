@@ -11,12 +11,12 @@
 //
 // This file tests mpi_collective_sum.hpp.
 //
-// This test only passes for 8 MPI processes.
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
 
 #include <cmath>
 #include <complex>
+#include <numeric>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -199,169 +199,141 @@ TEST_F(MPICollectiveSumTest, LeaveOneOutAvgAndSum) {
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   using FunctionType = dca::func::function<double, TestDomain>;
-
-  FunctionType f;
-
-  // Trivial case
-  // All jackknife estimates are identical: jackknife error = 0
-  f(0) = 3.14;
-  f(1) = 2.72;
-
-  auto err_trivial = sum_interface_.jackknifeError(f);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_NEAR(0., err_trivial(0), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1), epsilon_);
-
-  // Non-trivial case
-  const double d = 42.1;
-  f(0) = rank_;
-  f(1) = d;
-
-  const FunctionType f_copy(f);
-
-  FunctionType err_expected;
-  // Where the 21 comes from I don't know.
-  // original code
-  // err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
-  err_expected(1) = 0.;
-
-  std::vector<double> rank_obs;
-  for (int i = 0; i < size_; ++i) {
-    rank_obs.push_back(i);
-    //      rank_obs.push_back(d);
+  FunctionType original;
+  if (size_ == 1) {
+    original(0) = 7.;
+    original(1) = 9.;
+    original(2) = 11.;
+    for (bool overwrite : {false, true}) {
+      auto replicas = original;
+      const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+      for (int i = 0; i < 3; ++i) {
+        EXPECT_DOUBLE_EQ(0., error(i));
+        EXPECT_DOUBLE_EQ(original(i), replicas(i));
+      }
+    }
+    return;
   }
 
-  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
-    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
-    std::vector<double> jack_samp(samples);
-    jack_samp.erase(jack_samp.begin() + rank);
-    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
-    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
-    double scale = double(samples.size() - 1) / double(samples.size());
-    return scale * estsqr;
-  };
-  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
-    std::vector<double> jack_knifes(samples.size(), 0.0);
-    for (int i = 0; i < samples.size(); ++i) {
-      jack_knifes[i] = jacknife_var(samples, i);
+  // Explicitly delete each rank's observation, then evaluate the estimator.
+  // The ratio uses unequal denominators, so its replica average is not the pooled estimate.
+  std::vector<double> means(size_), ratios(size_);
+  double numerator = 0., denominator = 0.;
+  for (int r = 0; r < size_; ++r) {
+    means[r] = (size_ * (size_ + 1.) / 2. - (r + 1.)) / (size_ - 1.);
+    numerator += (r + 1.) * (r + 1.);
+    denominator += r + 1.;
+  }
+  for (int r = 0; r < size_; ++r)
+    ratios[r] = (numerator - (r + 1.) * (r + 1.)) / (denominator - (r + 1.));
+
+  // Independent oracle: sum_{r,s}(t_r-t_s)^2 = 2*N*sum_r(t_r-t_avg)^2.
+  double pairwise = 0.;
+  for (double a : ratios)
+    for (double b : ratios)
+      pairwise += (a - b) * (a - b);
+  const double ratio_se = std::sqrt((size_ - 1.) * pairwise / (2. * size_ * size_));
+  const double ratio_average = std::accumulate(ratios.begin(), ratios.end(), 0.) / size_;
+  ASSERT_GT(std::abs(numerator / denominator - ratio_average), 1e-6);
+  original(0) = means[rank_];
+  original(1) = 9.;
+  original(2) = ratios[rank_];
+
+  for (bool overwrite : {false, true}) {
+    auto replicas = original;
+    const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+    // Analytic standard error of the mean of raw observations 1..N.
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0), epsilon_);
+    EXPECT_DOUBLE_EQ(0., error(1));
+    EXPECT_NEAR(ratio_se, error(2), epsilon_);
+    if (!overwrite) {
+      for (int i = 0; i < 3; ++i)
+        EXPECT_DOUBLE_EQ(original(i), replicas(i));
     }
-    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
-  };
-
-  err_expected(0) = jacknife_err(rank_obs);
-
-  // Do not overwrite the jackknife estimates with their average.
-  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_DOUBLE_EQ(f_copy(0), f(0));
-  EXPECT_DOUBLE_EQ(f_copy(1), f(1));
-
-  EXPECT_DOUBLE_EQ(err_expected(0), err_no_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_no_overwriting(1));
-
-  // Overwrite the jackknife estimates with their average.
-  auto err_overwriting = sum_interface_.jackknifeError(f, true);
-
-  const double rank_avg = double(size_ - 1) / 2.;
-
-  EXPECT_DOUBLE_EQ(rank_avg, f(0));
-  EXPECT_DOUBLE_EQ(d, f(1));
-
-  EXPECT_DOUBLE_EQ(err_expected(0), err_overwriting(0));
-  EXPECT_DOUBLE_EQ(err_expected(1), err_overwriting(1));
+    else {
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0), epsilon_);
+      EXPECT_DOUBLE_EQ(9., replicas(1));
+      EXPECT_NEAR(ratio_average, replicas(2), epsilon_);
+    }
+  }
 }
 
 TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
-  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   using FunctionType = dca::func::function<std::complex<double>, TestDomain>;
-
-  FunctionType f;
-
-  // Trivial case
-  // All jackknife estimates are identical: jackknife error = 0
-  f(0) = std::complex<double>(3.14, 1.2);
-  f(1) = std::complex<double>(2.72, 3.4);
-
-  auto err_trivial = sum_interface_.jackknifeError(f);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_NEAR(0., err_trivial(0).real(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1).real(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(0).imag(), epsilon_);
-  EXPECT_NEAR(0., err_trivial(1).imag(), epsilon_);
-
-  // Non-trivial case
-  const double d = 42.1;
-  const double r = 1.4;
-  f(0) = std::complex<double>(rank_, rank_ + r);
-  f(1) = std::complex<double>(rank_, d);
-
-  std::vector<double> rank_obs_real;
-  std::vector<double> rank_obs_imag;
-
-  for (int i = 0; i < size_; ++i) {
-    rank_obs_real.push_back(i);
-    rank_obs_imag.push_back(i + r);
-    //      rank_obs.push_back(d);
+  FunctionType original;
+  if (size_ == 1) {
+    original(0) = {7., -2.};
+    original(1) = {4., -3.};
+    original(2) = {8., 5.};
+    for (bool overwrite : {false, true}) {
+      auto replicas = original;
+      const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+      for (int i = 0; i < 3; ++i) {
+        EXPECT_DOUBLE_EQ(0., error(i).real());
+        EXPECT_DOUBLE_EQ(0., error(i).imag());
+        EXPECT_EQ(original(i), replicas(i));
+      }
+    }
+    return;
   }
 
-  const FunctionType f_copy(f);
-
-  FunctionType err_expected;
-
-  auto jacknife_var = [](std::vector<double>& samples, int rank) -> double {
-    double full_avg = std::accumulate(samples.begin(), samples.end(), 0.0) / samples.size();
-    std::vector<double> jack_samp(samples);
-    jack_samp.erase(jack_samp.begin() + rank);
-    double jack_est = std::accumulate(jack_samp.begin(), jack_samp.end(), 0.0) / jack_samp.size();
-    double estsqr = (jack_est - full_avg) * (jack_est - full_avg);
-    double scale = double(samples.size() - 1) / double(samples.size());
-    return scale * estsqr;
+  // Different real/imaginary observations test marginal errors independently.
+  // Also construct nonlinear ratio replicas rather than passing raw observations.
+  std::vector<std::complex<double>> observations(size_), means(size_), ratios(size_);
+  std::complex<double> total{}, numerator{}, denominator{};
+  for (int r = 0; r < size_; ++r) {
+    observations[r] = {r + 1., (r + 1.) * (r + 1.)};
+    total += observations[r];
+    const std::complex<double> x(r + 1., .5 * (r + 1.));
+    numerator += x * x;
+    denominator += x;
+  }
+  for (int r = 0; r < size_; ++r) {
+    means[r] = (total - observations[r]) / double(size_ - 1);
+    const std::complex<double> x(r + 1., .5 * (r + 1.));
+    ratios[r] = (numerator - x * x) / (denominator - x);
+  }
+  const auto pairwise_error = [this](const auto& samples, bool imaginary) {
+    double pairwise = 0.;
+    for (const auto& a : samples)
+      for (const auto& b : samples) {
+        const double d = imaginary ? a.imag() - b.imag() : a.real() - b.real();
+        pairwise += d * d;
+      }
+    return std::sqrt((size_ - 1.) * pairwise / (2. * size_ * size_));
   };
-  auto jacknife_err = [jacknife_var](std::vector<double>& samples) -> double {
-    std::vector<double> jack_knifes(samples.size(), 0.0);
-    for (int i = 0; i < samples.size(); ++i) {
-      jack_knifes[i] = jacknife_var(samples, i);
+  std::complex<double> ratio_average{};
+  for (const auto& ratio : ratios)
+    ratio_average += ratio / double(size_);
+  original(0) = means[rank_];
+  original(1) = {4., -3.};
+  original(2) = ratios[rank_];
+
+  for (bool overwrite : {false, true}) {
+    auto replicas = original;
+    const auto error = sum_interface_.jackknifeError(replicas, overwrite);
+    EXPECT_NEAR(std::sqrt((size_ + 1.) / 12.), error(0).real(), epsilon_);
+    EXPECT_NEAR(pairwise_error(means, true), error(0).imag(), epsilon_);
+    EXPECT_NE(error(0).real(), error(0).imag());
+    EXPECT_DOUBLE_EQ(0., error(1).real());
+    EXPECT_DOUBLE_EQ(0., error(1).imag());
+    EXPECT_NEAR(pairwise_error(ratios, false), error(2).real(), epsilon_);
+    EXPECT_NEAR(pairwise_error(ratios, true), error(2).imag(), epsilon_);
+    if (!overwrite) {
+      for (int i = 0; i < 3; ++i)
+        EXPECT_EQ(original(i), replicas(i));
     }
-    return std::sqrt(std::accumulate(jack_knifes.begin(), jack_knifes.end(), 0.0));
-  };
-
-  // const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
-  err_expected(0) = std::complex<double>(jacknife_err(rank_obs_real), jacknife_err(rank_obs_imag));
-  err_expected(1) = std::complex<double>(jacknife_err(rank_obs_real), 0.);
-
-  // Do not overwrite the jackknife estimates with their average.
-  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  EXPECT_DOUBLE_EQ(f_copy(0).real(), f(0).real());
-  EXPECT_DOUBLE_EQ(f_copy(1).real(), f(1).real());
-
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_no_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_no_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_no_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_no_overwriting(1).imag());
-
-  // Overwrite the jackknife estimates with their average.
-  auto err_overwriting = sum_interface_.jackknifeError(f, true);
-
-  const double rank_avg = double(size_ - 1) / 2.;
-
-  EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, rank_avg + r).real(), f(0).real());
-  EXPECT_DOUBLE_EQ(std::complex<double>(rank_avg, d).real(), f(1).real());
-
-  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_overwriting(0).real());
-  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_overwriting(0).imag());
-  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_overwriting(1).real());
-  EXPECT_DOUBLE_EQ(err_expected(1).imag(), err_overwriting(1).imag());
+    else {
+      EXPECT_NEAR((size_ + 1.) / 2., replicas(0).real(), epsilon_);
+      EXPECT_NEAR((size_ + 1.) * (2. * size_ + 1.) / 6., replicas(0).imag(), epsilon_);
+      EXPECT_EQ(std::complex<double>(4., -3.), replicas(1));
+      EXPECT_NEAR(ratio_average.real(), replicas(2).real(), epsilon_);
+      EXPECT_NEAR(ratio_average.imag(), replicas(2).imag(), epsilon_);
+    }
+  }
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
