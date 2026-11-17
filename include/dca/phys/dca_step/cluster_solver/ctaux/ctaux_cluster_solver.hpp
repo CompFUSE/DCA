@@ -248,12 +248,12 @@ void CtauxClusterSolver<device_t, Parameters, Data, DIST>::initialize(int dca_it
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
     if (compute_jack_knife_)
-      std::cout << "WARNING: error-computation-type is set to JACK_KNIFE. Final single-particle "
-                   "functions "
-                   "(G and Sigma) are averages of leave-one-out replica estimates, not "
-                   "estimates computed from the globally reduced measurements. These "
-                   "generally differ, so enabling JACK_KNIFE can change the reported G and Sigma "
-                   "and convergence results.\n";
+      std::cout
+          << "WARNING: error-computation-type is set to JACK_KNIFE. Final iteraction"
+             "functions (G's, G4, and Sigma) are averages of leave-one-out replica estimates,"
+             "not estimates computed from the globally reduced measurements. These "
+             "generally differ, so enabling JACK_KNIFE can change the reported G, Sigma, and G4 "
+             "and convergence results.\n";
   }
 }
 
