@@ -28,6 +28,9 @@ TEST(AnalysisParametersTest, DefaultValues) {
   EXPECT_EQ(q_host_check, pars.get_q_host());
   std::vector<std::vector<int>> q_host_fine_check{{10, 0}, {0, 10}};
   EXPECT_EQ(q_host_fine_check, pars.get_q_host_fine());
+
+  EXPECT_FALSE(pars.direct_grid_chi0());
+  EXPECT_EQ(32, pars.direct_grid_nkfine());
 }
 
 TEST(AnalysisParametersTest, ReadAll) {
@@ -52,4 +55,6 @@ TEST(AnalysisParametersTest, ReadAll) {
   std::vector<std::vector<int>> q_host_fine_check{{100, 0}, {0, 100}};
   EXPECT_EQ(q_host_fine_check, pars.get_q_host_fine());
 
+  EXPECT_TRUE(pars.direct_grid_chi0());
+  EXPECT_EQ(64, pars.direct_grid_nkfine());
 }

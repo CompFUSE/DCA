@@ -681,6 +681,12 @@ Project &Gamma; &chi;<sub>0</sub> onto the crystal harmonic functions and diagon
 `"projection-cut-off-radius":` double (1.5)  
 For the projection use crystal-harmonic functions of lattice vectors **r** with ||**r**||<sub>2</sub> < *projection-cut-off-radius*.
 
+`"direct-grid-chi0":` boolean (false)  
+If <tt>true</tt>, compute the lattice bare susceptibility &chi;<sub>0</sub> and the screened interaction <i>W</i> on a uniform fine <b>k</b>-grid using direct evaluation of the Hamiltonian and cluster self-energy, instead of the default tetrahedron-mesh coarse-graining. This method is required to match the Python reference implementation for the particle-particle channel.
+
+`"direct-grid-nkfine":` integer (32)  
+Number of uniform grid points per dimension for the direct-grid &chi;<sub>0</sub> integration. For a 2D system the total number of points per DCA patch is <tt>direct-grid-nkfine</tt><sup>2</sup>.
+
 
 #### Example
 

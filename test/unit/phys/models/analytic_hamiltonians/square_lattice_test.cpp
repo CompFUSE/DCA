@@ -145,3 +145,24 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
         else
           EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
 }
+
+TEST(SquareLatticeTest, EvaluateH0AtK) {
+  using PointGroup = phys::domains::D4;
+  using Lattice = phys::models::square_lattice<PointGroup>;
+
+  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
+  params.set_t(1.);
+  params.set_t_prime(0.5);
+
+  std::vector<double> k0 = {0., 0.};
+  EXPECT_DOUBLE_EQ(-6., Lattice::evaluateH0AtK(params, k0));
+
+  std::vector<double> k1 = {0., M_PI};
+  EXPECT_DOUBLE_EQ(2., Lattice::evaluateH0AtK(params, k1));
+
+  std::vector<double> k2 = {M_PI, 0.};
+  EXPECT_DOUBLE_EQ(2., Lattice::evaluateH0AtK(params, k2));
+
+  std::vector<double> k3 = {M_PI, M_PI};
+  EXPECT_DOUBLE_EQ(2., Lattice::evaluateH0AtK(params, k3));
+}
